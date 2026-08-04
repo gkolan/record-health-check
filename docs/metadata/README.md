@@ -31,7 +31,7 @@ publication contract and security profile.
 | -------- | ---- |
 | [Check Set fields](fields-check-set.md) | Every field on the Check Set type |
 | [Rule fields](fields-check-rule.md) | Every field on the Rule type |
-| [Reason Codes](../reference/reference-reason-codes.md) | Stable codes for skipped, unable, setup, and error outcomes |
+| [Reason Codes](../reference/contracts/reason-codes.md) | Stable codes for skipped, unable, setup, and error outcomes |
 | [Lifecycle-events overview](../integration/lifecycle-events.md) | Publication behavior, source rules, optional publication choices, and subscriber failures |
 | [Check Set Run Platform Event](event-set-run.md) | Every field, summary-event possibilities, examples, limits, and subscriber design |
 | [Rule Result Platform Event](event-rule-result.md) | Every field, status interpretation, routing possibilities, limits, and subscriber design |
@@ -39,10 +39,13 @@ publication contract and security profile.
 | [API examples](../api/README.md) | Public `evaluate(request)` API, Flow actions, and asynchronous Apex patterns |
 | [Platform Event subscriptions](../platform-events/README.md) | Flow and Apex subscriber patterns for all three events |
 | [Lightning component](../integration/lightning-component.md) | Automatic versus explicit publication behavior |
-| [Field limits](../reference/reference-fields-limits.md) | Salesforce storage limits and Framework completed-text limits |
+| [Field limits](../reference/contracts/field-limits.md) | Salesforce storage limits and Framework completed-text limits |
 | [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md) | Mental model, walkthroughs, troubleshooting, go-live checklist |
 
-For merge tokens, applicability, and evaluator behavior, see the [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md) and the Evaluation Type references in the [examples library](../examples/README.md).
+For merge tokens, applicability, and evaluator behavior, see
+[Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md) and the Evaluation Type
+references under [Technical references](../reference/README.md#choose-an-evaluation-type-reference).
+Practical Rule patterns remain in the [examples library](../examples/README.md).
 
 ## Related
 

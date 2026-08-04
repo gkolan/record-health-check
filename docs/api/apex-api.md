@@ -127,7 +127,7 @@ selection fan-out.
 ## Related
 
 - [API examples](README.md)
-- [Apex plugin contract](../reference/reference-apex.md)
-- [Apex class catalog](../reference/reference-apex-classes.md)
+- [Apex plugin contract](../reference/evaluation/apex-rule-contract.md)
+- [Apex class catalog](../reference/apex/README.md)
 - [Flow API](flow.md)
 - [Upgrade guide](../installation/04-upgrading.md)

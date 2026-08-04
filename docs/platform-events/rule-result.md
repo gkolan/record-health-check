@@ -90,4 +90,4 @@ queries and DML outside event loops.
 - [Rule Result metadata](../metadata/event-rule-result.md)
 - [Check Set Run subscription](check-set-run.md)
 - [Log subscription](error-log.md)
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)

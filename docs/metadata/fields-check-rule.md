@@ -414,7 +414,7 @@ Formula Result Type to **Number** and Display: Value Format to **Currency** at t
 
 Naming a format that cannot apply to a value is not an error - the value keeps its original
 spelling. Full contract:
-[Reference: Display value format](../reference/reference-display-value-format.md).
+[Reference: Display value format](../reference/contracts/display-value-format.md).
 
 
 ## 4. Check fields on this record (`FORMULA`)

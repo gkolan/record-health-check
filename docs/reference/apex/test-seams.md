@@ -1,11 +1,15 @@
-# Apex test-seam and architecture policy
+# Contributor policy: Apex test seams and architecture gates
+
+> [!NOTE]
+> On this page, follow the contributor policy for `@TestVisible`, `Test.isRunningTest()`, and the
+> Apex architecture release gate. This is not a Framework outcome or Evaluation Type reference.
 
 This project treats `@TestVisible` and `Test.isRunningTest()` as temporary design debt, not as a
 testing strategy. Production behavior is tested through public contracts or the collaborator that
 owns the behavior whenever possible.
 
 The machine-readable baseline is
-[`scripts/release/generated/apex-architecture-baseline.json`](../../scripts/release/generated/apex-architecture-baseline.json).
+[`scripts/release/generated/apex-architecture-baseline.json`](../../../scripts/release/generated/apex-architecture-baseline.json).
 `npm run check:apex-architecture` fails when a change:
 
 - adds `@TestVisible` to an unapproved file or increases an approved file's count;
@@ -46,6 +50,6 @@ so every inline-suppressed finding remains visible in the advisory evidence.
 
 ## Related
 
-- [Architecture](reference-architecture.md)
-- [Apex class reference](reference-apex-classes.md)
-- [Development documentation](../README.md)
+- [Contributing](../../../.github/CONTRIBUTING.md)
+- [Architecture](../framework/architecture.md)
+- [Apex class reference](README.md)

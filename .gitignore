@@ -60,10 +60,8 @@ $RECYCLE.BIN/
 .env.*
 !.env.example
 
-# Internal / local-only files — kept on your machine, never published.
-# Remove an entry below if you decide you DO want it in the public repo.
-/docs/development/*
-!/docs/development/configuration-identity-and-package-boundary-standard.md
+# Maintainer-only material — never committed or published with the project.
+/internal/
 /spec/
 /specs/
 /releases/
@@ -71,34 +69,15 @@ $RECYCLE.BIN/
 tasks/
 slides_build/
 *.pptx
-docs/slides/
-docs/examples/non-profit-cloud/
 project-homepage.html
 project-homepage copy.html
 PUBLISHING.md
 
-# Standalone interactive HTML pages (not part of the published docs)
-docs/interactive/
-
 # Stray screenshots / build images (not referenced by docs)
 build-record-health-check-mobile.png
 
-# Engineering audit reports (living backlog is in tasks/)
-docs/audits/
-
-# Point-in-time review write-ups; they cite local-only docs/spec/ and bugs/ notes
-docs/review/
-docs/reviews/
-
-# Maintainer execution plans and deferred-feature archives (local only)
-docs/enhancements/
+# Deferred package metadata (local only)
 force-app/deferred/
-
-# Dev iteration notes superseded by design spec + CHANGELOG
-docs/reference/record-health-check-ui-changes-2026-06.md
-
-# Engineering hardening tracker (backlog, effort sizing, status — maintainer only)
-docs/reference/code-quality-and-hardening-guide.md
 
 # CI / IDE artifacts
 /code-analyzer/
@@ -110,7 +89,6 @@ docs/reference/code-quality-and-hardening-guide.md
 # (Note: .github/ISSUE_TEMPLATE/ and pull_request_template.md are functional
 #  GitHub config and are intentionally NOT ignored.)
 templates/
-docs/_templates/
 **/_TEMPLATE.*
 
 # Maintainer doc-generation / authoring tooling (one-off Python scripts).
@@ -152,14 +130,6 @@ scripts/apex/*
 /DOCUMENTATION-AUDIT-*.md
 /FIX-VERIFICATION-*.md
 
-# Internal planning / roadmap docs — kept local, not published with the project.
-docs/spec/
-docs/reference/product-roadmap.md
-docs/reference/label-simplification-plan.md
-docs/guides/cli-commands.md
-docs/demo/
-docs/demo-account-health-check-component.md
-
 # Internal bug write-ups — kept local, not published with the project.
 bugs/
 
@@ -181,4 +151,5 @@ recycle-bin/
 docs/_config.yml
 docs/index.html
 docs/_layouts/
+docs/_site/
 docs/assets/css/style.css

@@ -5,7 +5,7 @@
 >
 > **Setup reference**
 >
-> Use the [Query reference](../../reference/reference-query.md) for the complete setup fields and behavior.
+> Use the [Query reference](../../reference/evaluation/query.md) for the complete setup fields and behavior.
 
 ## Scenario
 
@@ -100,7 +100,7 @@ Use these Check Set values:
 | **Check Set** | `Account_Related_Record_Review` |
 | **Object** | `Account` |
 | **Card Title** | `Related Record Review` |
-| **Card Subtitle** | Add one short sentence explaining what the card reviews. |
+| **Card Subtitle** | Confirm open Opportunities have positive Amount values. |
 | **When Checks Run** | Run on request |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |

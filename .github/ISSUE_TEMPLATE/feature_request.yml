@@ -8,7 +8,7 @@ body:
       value: |
         Record Health Check is **advisory** — it reports on records, it does not block
         saves or write data. Requests for save-time enforcement are out of scope (use a
-        validation rule or Flow). Start with [How Record Health Check works](https://gkolan.github.io/RecordHealthCheck/installation/01-how-it-works.html).
+        validation rule or Flow). Start with [How Record Health Check works](https://gkolan.github.io/record-health-check/installation/01-how-it-works.html).
   - type: textarea
     id: problem
     attributes:

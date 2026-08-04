@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for filing a bug. Please **do not include** Salesforce access tokens,
         session IDs, full Org IDs, or real customer record data. Redact screenshots.
-        Security vulnerabilities go through the [Security policy](https://github.com/gkolan/RecordHealthCheck/blob/main/.github/SECURITY.md) instead.
+        Security vulnerabilities go through the [Security policy](https://github.com/gkolan/record-health-check/blob/main/.github/SECURITY.md) instead.
   - type: checkboxes
     id: preflight
     attributes:

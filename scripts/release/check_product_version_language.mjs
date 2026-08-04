@@ -17,9 +17,10 @@ const ignoredDirectories = new Set([
   "scratch-org-setup",
   "spec",
   "specs",
-  "tasks"
+  "tasks",
+  "internal"
 ]);
-const ignoredPathPrefixes = ["docs/development/"];
+const ignoredPathPrefixes = [];
 const ignoredFiles = new Set([
   "LICENSE",
   "NOTICE",

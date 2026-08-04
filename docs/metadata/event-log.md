@@ -128,7 +128,7 @@ repeat.
 | Publish acceptance does not prove delivery, persistence, alerting, or investigation. | Monitor the subscriber and every downstream destination independently. |
 | Platform Event retention is temporary. | Persist events in a subscriber-owned store when long-term history is required. |
 | Record ID or metadata name can be blank when the failure occurred before that context was known. | Treat those fields as optional during correlation. |
-| `Code__c` can contain Framework-internal codes. | Use the public [Reason Code registry](../reference/reference-reason-codes.md) only for public Rule outcomes. |
+| `Code__c` can contain Framework-internal codes. | Use the public [Reason Code registry](../reference/contracts/reason-codes.md) only for public Rule outcomes. |
 
 ## Related
 
@@ -137,4 +137,4 @@ repeat.
 - [Check Set Run Platform Event](event-set-run.md)
 - [Rule Result Platform Event](event-rule-result.md)
 - [Troubleshoot with Show Diagnostics](../guides/troubleshoot-with-show-diagnostics.md)
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)

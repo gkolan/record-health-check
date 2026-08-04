@@ -5,7 +5,7 @@
 >
 > **Setup reference**
 >
-> Use the [Compare-two-queries reference](../../reference/reference-compare-two-queries.md) for the complete setup fields and behavior.
+> Use the [Compare-two-queries reference](../../reference/evaluation/compare-two-queries.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > This configuration is illustrative teaching metadata. It is not installed by the Framework package.
@@ -96,7 +96,7 @@ Use these Check Set values:
 | **Check Set** | `Account_Record_Alignment` |
 | **Object** | `Account` |
 | **Card Title** | `Account Record Alignment` |
-| **Card Subtitle** | Add one short sentence explaining what the card reviews. |
+| **Card Subtitle** | Confirm open Opportunities have Contact Roles. |
 | **When Checks Run** | Run on request |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |

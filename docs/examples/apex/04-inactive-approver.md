@@ -5,7 +5,7 @@
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/reference-apex.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../reference/evaluation/apex-rule-contract.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > The supporting Apex class for this example lives under `integration-tests/`. It does not install
@@ -51,25 +51,18 @@ A Salesforce administrator opens a record whose approval has stopped moving.
 
 ## What Record Health Check passes to Apex
 
-| Input in Apex | Where it comes from |
-| --- | --- |
-| `scope.recordIds` | The records being evaluated in this run |
-| `scope.parameters` | **Apex Parameters (JSON)** (`ApexParametersJson__c`) on the `Record_Health_Check_Rule__mdt` record |
-
-Record Health Check supplies the evaluated record ID automatically; leave it out of the parameter
-JSON:
-
-- On a Lightning record page, the scope normally contains the open record.
-- Bulk Apex requests can place as many as 200 record IDs in one scope.
-- Flow supplies its **Record ID** input to the scope-building pipeline.
-
-This example uses dynamic SOQL because the Advanced Approvals package is optional. It still binds
-the supplied record ID instead of joining it into the query text:
+Shared scope inputs are documented once in the
+[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Rule receives the
+evaluated record Ids and package-specific object/field names in JSON.
 
 ```apex
 List<Id> targetRecordIds = scope.recordIds;
 ```
 
+This example uses dynamic SOQL because the Advanced Approvals package is optional. It still binds
+the supplied record Id instead of joining it into the query text.
+
+## Step 1:
 ## Step 1: Understand the parameters
 
 This Rule uses one JSON object with the package-specific object and field names:
@@ -93,7 +86,7 @@ After deploying the class:
 
 Record Health Check parses the JSON and supplies the named settings as `scope.parameters`.
 Blank settings use the class defaults, and an empty status list uses `Requested`. See
-[Parameter parsing patterns](../../reference/reference-apex.md#scope)
+[Parameter parsing patterns](../../reference/evaluation/apex-rule-contract.md#scope)
 for validation and type-conversion guidance.
 
 ## Implementation summary
@@ -401,7 +394,7 @@ For applicability, configure **Applies To** on the Rule so Record Health Check s
 runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden side effects, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/reference-apex.md#outcome).
+[Returning an outcome](../../reference/evaluation/apex-rule-contract.md#outcome).
 
 
 ## Step 3: Configure the Rule
@@ -422,7 +415,7 @@ In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Rec
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check-rule.md#check-description-checkdescription__c) | Fails when a pending Advanced Approvals step is assigned to an inactive user. Confirm all product API names before activation. |
+| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check-rule.md#check-description-checkdescription__c) | Fails when a pending Advanced Approvals step is assigned to an inactive user. Confirm all object and class API names before activation. |
 | **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check-rule.md#failure-severity-failureseverity__c) | Critical |
 | **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check-rule.md#message-when-failed-failuremessage__c) | One or more pending approval steps are assigned to an inactive user. Reassign the approver before submitting for approval. |
 | **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Could not check approvers: confirm Advanced Approvals is installed and the object and field API names in Apex Parameters (JSON) are correct for this org. |
@@ -432,7 +425,7 @@ In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Rec
 | **Action Label** | [`ActionLabel__c`](../../metadata/fields-check-rule.md#action-label-actionlabel__c) | Leave blank until the org's approval-management destination is verified. |
 | **Action URL** | [`ActionUrl__c`](../../metadata/fields-check-rule.md#action-url-actionurl__c) | Leave blank; managed-package pages and URLs can vary by installed version. |
 | **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check-rule.md#evaluation-order-evaluationorder__c) | `40` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check-rule.md#active-isactive__c) | Unchecked: activate only after confirming product API names and tests. |
+| **Active** | [`IsActive__c`](../../metadata/fields-check-rule.md#active-isactive__c) | Unchecked: activate only after confirming object and class API names and tests. |
 | **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 > [!IMPORTANT]
@@ -453,7 +446,7 @@ Use these Check Set values:
 | **Check Set** | `Account_Apex_Readiness` |
 | **Object** | `Account` |
 | **Card Title** | `Account Readiness` |
-| **Card Subtitle** | Add one short sentence explaining what the card reviews. |
+| **Card Subtitle** | Confirm pending approval assignees are still active users. |
 | **When Checks Run** | Run on request |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
@@ -534,7 +527,7 @@ Confirm `status`, Found, Expected, message, and any Reason Code.
 
 | Reason or symptom | What to verify |
 | --- | --- |
-| `OBJECT_NOT_FOUND` | Install the product or correct `approvalObject`; keep the Rule inactive. |
+| `OBJECT_NOT_FOUND` | Install the Framework or correct `approvalObject`; keep the Rule inactive. |
 | `INVALID_SOQL_TEMPLATE` | Correct field names, field types, and pending statuses in Object Manager. |
 | Too few inactive users | Check approval-row sharing, User visibility, and the status list. |
 | The Found list is truncated | The framework limits list previews for readability. Use authorized diagnostics or the approval records to review the complete assignment set. |

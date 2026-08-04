@@ -5,7 +5,7 @@
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/reference-apex.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../reference/evaluation/apex-rule-contract.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > The supporting Apex class for this example lives under `integration-tests/`. It does not install
@@ -51,26 +51,17 @@ A sales manager opens an Account before pipeline coaching.
 
 ## What Record Health Check passes to Apex
 
-| Input in Apex | Where it comes from |
-| --- | --- |
-| `scope.recordIds` | The Accounts being evaluated in this run |
-| `scope.parameters` | **Apex Parameters (JSON)** (`ApexParametersJson__c`) on the `Record_Health_Check_Rule__mdt` record |
-
-Record Health Check supplies the Account ID automatically; leave it out of the parameter JSON:
-
-- On a Lightning record page, the scope normally contains the open record.
-- Bulk Apex requests can place as many as 200 record IDs in one scope.
-- Flow supplies its **Record ID** input to the scope-building pipeline.
-
-Use the supplied ID as a SOQL bind variable:
+Shared scope inputs are documented once in the
+[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Rule receives Account
+Ids and binds them in one Opportunity query.
 
 ```apex
 List<Id> accountIds = scope.recordIds;
 ```
 
-The complete class below binds the full ID collection in one Opportunity query and returns one
-outcome for every requested Account.
+The complete class below returns one outcome for every requested Account.
 
+## Step 1:
 ## Step 1: Understand the parameters
 
 Use Rule parameters to change the stale-activity window without editing the Apex class:
@@ -89,7 +80,7 @@ After deploying the class:
 
 Record Health Check parses the JSON and supplies it as `scope.parameters`. The class accepts
 `staleDays` from `1` through `3650`; a missing or invalid value uses 30. See
-[Parameter parsing patterns](../../reference/reference-apex.md#scope)
+[Parameter parsing patterns](../../reference/evaluation/apex-rule-contract.md#scope)
 for validation and type-conversion guidance.
 
 ## Step 2: Create the Apex class
@@ -258,7 +249,7 @@ For applicability, configure **Applies To** on the Rule so Record Health Check s
 runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden side effects, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/reference-apex.md#outcome).
+[Returning an outcome](../../reference/evaluation/apex-rule-contract.md#outcome).
 
 
 ## Step 3: Configure the Rule
@@ -311,7 +302,7 @@ Use these Check Set values:
 | **Check Set** | `Account_Apex_Readiness` |
 | **Object** | `Account` |
 | **Card Title** | `Account Readiness` |
-| **Card Subtitle** | Add one short sentence explaining what the card reviews. |
+| **Card Subtitle** | Confirm open Opportunities are not stale on amount, close date, and next step. |
 | **When Checks Run** | Run on request |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |

@@ -30,7 +30,7 @@ The Framework publishes this event only when every condition is true:
 | Required condition | What to verify |
 | --- | --- |
 | Publication is enabled | **Publish User Run Event** (`PublishUserRunEvent__c`) is checked on the Check Set. |
-| The source is allowed | The completed run came from `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, or `BATCH`. |
+| The source is allowed | The completed run came from `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT`. |
 | Work is committed | The Salesforce transaction commits. |
 
 Automatic Lightning record-page evaluation (`RUN_ON_LOAD`) never publishes. Subscriber context
@@ -58,7 +58,7 @@ Automatic Lightning record-page evaluation (`RUN_ON_LOAD`) never publishes. Subs
 | Check Set Qualified API Name | `CheckSetQualifiedApiName__c` | Text(80) | Required | Check Set `QualifiedApiName`; distinguishes packaged and subscriber definitions. |
 | Record ID | `RecordId__c` | Text(18) | Required in framework publications | Salesforce record represented by this summary. |
 | Occurred At | `OccurredAt__c` | DateTime | Required; generated | UTC time when the Framework constructed the event. |
-| Source | `Source__c` | Text(30) | Required; caller-derived | `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, or `BATCH`. |
+| Source | `Source__c` | Text(30) | Required; caller-derived | `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT`. |
 | Contract Version | `ContractVersion__c` | Text(10) | Required; `1.0` | Version of this Platform Event schema, independent of synchronous response versions. |
 | Framework Version | `FrameworkVersion__c` | Text(20) | Required | Framework release that produced the event. |
 | Eligible Rule Count | `EligibleRuleCount__c` | Number(5,0) | Optional; generated | Rules included after the Framework selected definitions for the run. |
@@ -121,4 +121,4 @@ or successful subscriber processing, and subscriber failure never changes the co
 - [Rule Result Platform Event](event-rule-result.md)
 - [Log Platform Event](event-log.md)
 - [Check Set fields](fields-check-set.md): **Publish User Run Event**
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)

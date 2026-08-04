@@ -9,8 +9,8 @@
 >
 > - This page is the source of truth for merge-token behavior; configuration guides and examples
 >   link here rather than restating the full contract.
-> - For field-level Setup examples, use the [Rule field reference](../metadata/fields-check-rule.md).
->   For Action URL patterns, use [Configure action links](../guides/configure-action-links.md).
+> - For field-level Setup examples, use the [Rule field reference](../../metadata/fields-check-rule.md).
+>   For Action URL patterns, use [Configure action links](../../guides/configure-action-links.md).
 
 A merge token is a placeholder in a failure message, Fix Message, Action Label, Action URL, Found
 or Expected display text, or SOQL template. When the Rule runs, Record Health Check replaces the
@@ -183,15 +183,15 @@ fallbacks in SOQL return `MISSING_BIND_VALUE` rather than running a misleading q
 
 When **Action URL** resolves to more than 2,000 characters, the link is suppressed and Fix Message
 can still render. URL scheme and path rules live in
-[Configure action links](../guides/configure-action-links.md#allowed-url-formats).
+[Configure action links](../../guides/configure-action-links.md#allowed-url-formats).
 
-Full outcome list lives in [Reason Codes](reference-reason-codes.md).
+Full outcome list lives in [Reason Codes](reason-codes.md).
 
 ## Related
 
-- [Configure Check Sets and Rules: Merge tokens](../guides/configure-check-sets-and-rules.md#11-merge-tokens)
-- [Configure action links](../guides/configure-action-links.md)
-- [Rule fields](../metadata/fields-check-rule.md)
-- [Query reference](reference-query.md)
-- [Field limits](reference-fields-limits.md)
-- [Reason Codes](reference-reason-codes.md)
+- [Configure Check Sets and Rules: Merge tokens](../../guides/configure-check-sets-and-rules.md#11-merge-tokens)
+- [Configure action links](../../guides/configure-action-links.md)
+- [Rule fields](../../metadata/fields-check-rule.md)
+- [Query reference](../evaluation/query.md)
+- [Field limits](field-limits.md)
+- [Reason Codes](reason-codes.md)

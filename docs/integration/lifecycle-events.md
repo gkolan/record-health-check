@@ -205,4 +205,4 @@ Event reference](../metadata/event-log.md).
 - [Rule Result Platform Event](../metadata/event-rule-result.md)
 - [Log Platform Event](../metadata/event-log.md)
 - [Revalidate an installation](../installation/04-upgrading.md)
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)

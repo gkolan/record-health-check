@@ -6,17 +6,17 @@
 > **Reference**
 >
 > - This page explains every Formula setting, result, security behavior, and failure path.
-> - For every field's size, default, help text, and example, use the [Rule field reference](../metadata/fields-check-rule.md).
+> - For every field's size, default, help text, and example, use the [Rule field reference](../../metadata/fields-check-rule.md).
 
 ## Required Formula settings
 
 | Setup field | API name | Requirement |
 | --- | --- | --- |
-| **Evaluation Type** | [`EvaluationType__c`](../metadata/fields-check-rule.md#evaluation-type-evaluationtype__c) | **Verify with a formula**: `FORMULA` |
-| **Pass Condition** | [`PassConditionFormula__c`](../metadata/fields-check-rule.md#pass-condition-passconditionformula__c) | Required Boolean formula; `true` returns `PASS`, `false` returns `FAIL` |
-| **Display: Found Formula** | [`DisplayFoundFormula__c`](../metadata/fields-check-rule.md#display-found-formula-displayfoundformula__c) | Optional display-only Found value |
-| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../metadata/fields-check-rule.md#display-expected-formula-displayexpectedformula__c) | Optional display-only Expected value |
-| **Formula Result Type** | [`FormulaResultType__c`](../metadata/fields-check-rule.md#formula-result-type-formularesulttype__c) | Optional type hint; defaults to **Auto**: `AUTO` |
+| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check-rule.md#evaluation-type-evaluationtype__c) | **Verify with a formula**: `FORMULA` |
+| **Pass Condition** | [`PassConditionFormula__c`](../../metadata/fields-check-rule.md#pass-condition-passconditionformula__c) | Required Boolean formula; `true` returns `PASS`, `false` returns `FAIL` |
+| **Display: Found Formula** | [`DisplayFoundFormula__c`](../../metadata/fields-check-rule.md#display-found-formula-displayfoundformula__c) | Optional display-only Found value |
+| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../../metadata/fields-check-rule.md#display-expected-formula-displayexpectedformula__c) | Optional display-only Expected value |
+| **Formula Result Type** | [`FormulaResultType__c`](../../metadata/fields-check-rule.md#formula-result-type-formularesulttype__c) | Optional type hint; defaults to **Auto**: `AUTO` |
 
 Query and Apex evaluator fields are ignored by a Formula Rule. Applicability fields run before the
 pass condition and can return `SKIPPED` without evaluating it.
@@ -55,7 +55,7 @@ Display formulas never change `PASS` or `FAIL`.
 | `PASS` | Pass Condition resolves to `true` | No action required |
 | `FAIL` | Pass Condition resolves to `false` | Review Found, Expected, and the configured failure guidance |
 | `SKIPPED` | Applicability or a prerequisite prevents evaluation | Review Applies To and Prerequisite Rule |
-| `UNABLE_TO_EVALUATE` | Formula configuration, access, missing relationship data, or a null/invalid result prevents a conclusion | Review the stable [Reason Code](reference-reason-codes.md) and authorized diagnostics |
+| `UNABLE_TO_EVALUATE` | Formula configuration, access, missing relationship data, or a null/invalid result prevents a conclusion | Review the stable [Reason Code](../contracts/reason-codes.md) and authorized diagnostics |
 | `ERROR` | An unexpected evaluator or platform problem occurs | Review authorized diagnostics and Apex debug logs |
 
 A null or non-Boolean pass-condition result does not become `FAIL`; the engine returns
@@ -68,13 +68,13 @@ A null or non-Boolean pass-condition result does not become `FAIL`; the engine r
 - Parent traversal depends on the relationship and referenced fields being available to the user.
 - Formula evaluation consumes Salesforce transaction resources; avoid repeating expensive logic
   across pass, Found, Expected, and applicability formulas.
-- Framework-wide caps are documented in [Field limits](reference-fields-limits.md).
+- Framework-wide caps are documented in [Field limits](../contracts/field-limits.md).
 
 ## Additional Rule configuration
 
 The same Rule can configure titles, category, severity, messages, applicability, prerequisites,
 action links, display behavior, and lifecycle-event publication. Those fields apply consistently
-across Evaluation Types; use the [Rule field reference](../metadata/fields-check-rule.md) rather than
+across Evaluation Types; use the [Rule field reference](../../metadata/fields-check-rule.md) rather than
 copying their definitions into each check-type reference.
 
 ## Test coverage
@@ -97,7 +97,7 @@ currently deprecated.
 
 ## Related
 
-- [Seller research readiness](../examples/formula/01-account-research-ready.md)
-- [Rule fields](../metadata/fields-check-rule.md)
-- [Reason Codes](reference-reason-codes.md)
-- [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md)
+- [Seller research readiness](../../examples/formula/01-account-research-ready.md)
+- [Rule fields](../../metadata/fields-check-rule.md)
+- [Reason Codes](../contracts/reason-codes.md)
+- [Configure Check Sets and Rules](../../guides/configure-check-sets-and-rules.md)

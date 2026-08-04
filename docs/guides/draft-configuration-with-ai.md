@@ -3,9 +3,16 @@
 > [!NOTE]
 > On this page, give an AI assistant enough Framework and Salesforce context to draft reviewable Check Set and Rule configuration without inventing fields, values, or unsupported behavior.
 
+> [!IMPORTANT]
+> **This is not a Setup walkthrough.** Paste [§2 System prompt](#2-system-prompt-copy-into-a-gemini-gem-or-custom-gpt) into your assistant, review the tables it returns, then enter approved values in Salesforce using
+> [Create your first Rule](../installation/03-create-your-first-rule.md) or the
+> [Check Set](../metadata/fields-check-set.md) / [Rule](../metadata/fields-check-rule.md) field
+> references. For human configuration teaching, start with
+> [Configure Check Sets and Rules](configure-check-sets-and-rules.md).
+
 This file is the single source for AI assistants translating business requirements into correct Custom Metadata configuration. Paste the output tables into Setup; see [Create your first Rule: Step 2](../installation/03-create-your-first-rule.md#step-2-create-the-rule). For every field explained, see [Configure Check Sets and Rules](configure-check-sets-and-rules.md). For exact field behavior, use the [Check Set fields](../metadata/fields-check-set.md) and [Rule fields](../metadata/fields-check-rule.md) references. Write explanations in direct, plain language and define Salesforce terms when a reader may not know them.
 
-## 1. What this product does
+## 1. What this Framework does
 
 Record Health Check is a **read-time, advisory** Lightning card on **record pages**. Check Sets
 (`Record_Health_Check_Set__mdt`) and Rules (`Record_Health_Check_Rule__mdt`) live in Custom Metadata.
@@ -57,7 +64,7 @@ RULES YOU MUST FOLLOW:
 7. SOQL merge tokens: `{!record.FieldApiName}` on the current record (e.g. `{!record.Id}`, `{!record.Name}`). Add a quoted `fallback` attribute when a blank value needs a substitute (e.g. `{!record.AnnualRevenue fallback="0"}`, `{!record.Customer_Tier__c fallback="Standard"}`).
 8. Max 25 active Rules per Check Set per run. Use applicability checks to reduce noise.
 9. Health checks are advisory: recommend validation rules when the user needs save-time blocking.
-10. If metadata cannot express the Rule, recommend Apex (`RecordHealthCheckRule`) and say what the class must do. Cite a shipped example from https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/apex/ (1=multi-object OR, 2=child aggregation, 3=composite score). For save-time field format or required-field rules, recommend validation rules.
+10. If metadata cannot express the Rule, recommend Apex (`RecordHealthCheckRule`) and say what the class must do. Cite a shipped example from https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/ (1=multi-object OR, 2=child aggregation, 3=composite score). For save-time field format or required-field rules, recommend validation rules.
 11. QueryResultHandling__c = ONE_RESULT for aggregates and single COUNT(); ANY_ROW_PASSES / ALL_ROWS_PASS for row-by-row; COMPARE_AS_LISTS for list operators.
 12. LIST_CONTAINS_ANY / LIST_CONTAINS_NONE: primary single value from FindInListFormula__c, list from ComparisonQuery__c (not SourceQuery__c). PassConditionFormula__c is record-formula-only.
 13. Use field API names the user provided, or mark unverified names as placeholders to confirm in Setup.
@@ -100,7 +107,7 @@ User describes a business rule
    └─ EvaluationType__c = APEX
       ApexClass__c = class implementing RecordHealthCheckRule
       ApexParametersJson__c = optional JSON object for per-Rule configuration
-      See https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/README.md#example-catalog for the apex examples
+      See https://github.com/gkolan/record-health-check/blob/main/docs/examples/README.md#example-catalog for the apex examples
 ```
 
 **Apex complexity ladder (pick the smallest level that fits):**
@@ -119,7 +126,7 @@ When recommending Apex, also output a **Class sketch** section: what to query, w
 
 | If the rule… | Recommend |
 | --- | --- |
-| Must be true **to save**; single record; willing to block user | **Validation rule** (not this product) |
+| Must be true **to save**; single record; willing to block user | **Validation rule** (not this Framework) |
 | Must be true; needs automation or cross-object writes on save | **Flow / Apex trigger** |
 | Should be true for health; uses related data or aggregates; must **not** block save | **Record Health Check** |
 
@@ -199,7 +206,7 @@ Apex example.
 
 ### 4.5 Class sketch (Apex only)
 
-When `EvaluationType__c` = `APEX`, add a section after the Rule table. See [Apex reference](../reference/reference-apex.md) for full patterns.
+When `EvaluationType__c` = `APEX`, add a section after the Rule table. See [Apex reference](../reference/evaluation/apex-rule-contract.md) for full patterns.
 
 | Item | What to include |
 | ---- | --------------- |
@@ -283,14 +290,14 @@ List operators for `COMPARE_AS_LISTS`: `LISTS_OVERLAP`, `LISTS_CONTAIN_ALL`, `LI
 
 ### 5.4 Apex (`EvaluationType__c` = `APEX`)
 
-Full walkthroughs: [Apex examples](../examples/README.md#apex-examples) · [Recent Account activity](../examples/apex/01-recent-activity.md) · [Apex reference](../reference/reference-apex.md)
+Full walkthroughs: [Apex examples](../examples/README.md#apex-examples) · [Recent Account activity](../examples/apex/01-recent-activity.md) · [Apex reference](../reference/evaluation/apex-rule-contract.md)
 
 | API field | Required | Notes |
 | --- | --- | --- |
 | `ApexClass__c` | Yes | Class implementing `RecordHealthCheckRule`: deploy before activating Rule |
 | `ApexParametersJson__c` | No | JSON **object** (not array), e.g. `{"daysBack": 90}`, `{"minDigits": 10}`, `{"staleDays": 30}` |
 
-**Apex interface summary:** Full patterns: [Apex reference](../reference/reference-apex.md).
+**Apex interface summary:** Full patterns: [Apex reference](../reference/evaluation/apex-rule-contract.md).
 
 ```apex
 global with sharing class AccountExampleCheck
@@ -337,7 +344,7 @@ global with sharing class AccountExampleCheck
 | `AccountHasRecentActivityCheck` | `daysBack` (1-3650, default 30) | Task + Event window |
 | `AccountOpenOpportunityHealthCheck` | `staleDays` (1-3650, default 30) | Unhealthy open Opportunity detection |
 
-Recommend only the shipped class names listed above. For composite scoring, name a **new** class and include a Class sketch for implementation (see [example 3](https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/apex/03-strategic-readiness.md)).
+Recommend only the shipped class names listed above. For composite scoring, name a **new** class and include a Class sketch for implementation (see [example 3](https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/03-strategic-readiness.md)).
 
 ### 5.5 Applicability (all rules)
 
@@ -395,7 +402,7 @@ Prerequisite must return `PASS` or dependent is `SKIPPED`.
 | Run only when children exist | | | Applicability SOQL: COUNT > 0 |
 | Recent activity (Task or Event) | APEX | | `AccountHasRecentActivityCheck` |
 | Unhealthy child rows (combined) | APEX | | `AccountOpenOpportunityHealthCheck` |
-| Weighted readiness score | Apex | | Custom class: [apex/03-strategic-readiness.md](https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/apex/03-strategic-readiness.md) |
+| Weighted readiness score | Apex | | Custom class: [apex/03-strategic-readiness.md](https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/03-strategic-readiness.md) |
 
 ## 8. Supported vs unsupported combinations
 
@@ -552,7 +559,7 @@ Copy this value into `FailureMessage__c`:
 {!record.Name fallback="this record"} has no completed tasks or logged events in the last 90 days.
 ```
 
-This class ships with Record Health Check. See [Recent Account activity](https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/apex/01-recent-activity.md).
+This class ships with Record Health Check. See [Recent Account activity](https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/01-recent-activity.md).
 
 ### 10.7 Unhealthy open Opportunities (Apex: Child aggregation)
 
@@ -568,7 +575,7 @@ This class ships with Record Health Check. See [Recent Account activity](https:/
 | `FailureSeverity__c` | `CRITICAL` |
 | `FailureMessage__c` | One or more open opportunities are stale, missing a Next Step, or have no close date this quarter. |
 
-Doc: [apex/02-open-opportunity-health.md](https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/apex/02-open-opportunity-health.md).
+Doc: [apex/02-open-opportunity-health.md](https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/02-open-opportunity-health.md).
 
 ### 10.8 Strategic readiness score (Apex: Composite, custom deploy)
 
@@ -580,7 +587,7 @@ Doc: [apex/02-open-opportunity-health.md](https://github.com/gkolan/RecordHealth
 | `ApplicabilityMode__c` | `WHEN_FORMULA_TRUE` |
 | `ApplicabilityFormula__c` | `ISPICKVAL(Type, "Strategic")` |
 
-Include a **Class sketch** when outputting this pattern. Full reference code: [apex/03-strategic-readiness.md](https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/apex/03-strategic-readiness.md).
+Include a **Class sketch** when outputting this pattern. Full reference code: [apex/03-strategic-readiness.md](https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/03-strategic-readiness.md).
 
 ## 11. Naming conventions
 
@@ -628,8 +635,8 @@ select a distinct pattern, then output configuration the reader can create in Sa
 
 - [Configure Check Sets and Rules](configure-check-sets-and-rules.md): every Setup field explained
 - [Configuration guide: what it can check](configure-check-sets-and-rules.md#2-what-it-can-check): when to use which Evaluation Type
-- [Examples README](https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/README.md): pattern matrix, merge tokens, and copy-paste examples by type
-- [Reason Codes](../reference/reference-reason-codes.md): stable Framework outcomes and investigation guidance
+- [Examples README](https://github.com/gkolan/record-health-check/blob/main/docs/examples/README.md): pattern matrix, merge tokens, and copy-paste examples by type
+- [Reason Codes](../reference/contracts/reason-codes.md): stable Framework outcomes and investigation guidance
 - [Create your first Rule](../installation/03-create-your-first-rule.md): install and first Rule
 
 ## 16. Gemini gem checklist
@@ -637,7 +644,7 @@ select a distinct pattern, then output configuration the reader can create in Sa
 When building a Gemini gem for this project:
 
 1. Upload this file as primary knowledge.
-2. Add `configure-check-sets-and-rules.md` and `https://github.com/gkolan/RecordHealthCheck/blob/main/docs/examples/README.md` as secondary knowledge.
+2. Add `configure-check-sets-and-rules.md` and `https://github.com/gkolan/record-health-check/blob/main/docs/examples/README.md` as secondary knowledge.
 3. Paste Section 2 (system prompt) into gem instructions.
 4. Tell users to paste: base object, fields involved, pass/fail semantics, and whether zero children should pass or skip.
 5. Require gem output to use Section 4 tables (API names, not Setup-only labels).
@@ -647,5 +654,5 @@ When building a Gemini gem for this project:
 
 - [Configure Check Sets and Rules](configure-check-sets-and-rules.md)
 - [Metadata reference](../metadata/README.md)
-- [Apex reference](../reference/reference-apex.md)
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Apex reference](../reference/evaluation/apex-rule-contract.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)

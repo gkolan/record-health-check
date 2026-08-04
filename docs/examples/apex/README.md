@@ -21,6 +21,23 @@ Only **Recent Account activity** installs with the Framework. The other three pa
 from classes that live under `integration-tests/` for CI and demos. Copy them into your org when you
 want those behaviors.
 
+## What Record Health Check passes to Apex
+
+Every Apex example uses the same bulk scope contract. Full detail lives in
+[Apex Rule contract](../../reference/evaluation/apex-rule-contract.md).
+
+| Input in Apex | Where it comes from |
+| --- | --- |
+| `scope.recordIds` | The records being evaluated in this run (one Id on the card; up to 200 from Apex or Flow) |
+| `scope.parameters` | **Apex Parameters (JSON)** (`ApexParametersJson__c`) on the Rule |
+
+Leave the evaluated record Id out of the parameter JSON. Copy `scope.recordIds` once and bind it in
+SOQL so one query serves the whole scope:
+
+```apex
+List<Id> recordIds = scope.recordIds;
+```
+
 ## When Apex is the right choice
 
 Choose Apex only after confirming that the declarative Evaluation Types would make the decision
@@ -29,11 +46,11 @@ schema, and carefully handled product dependencies, but it also requires secure 
 Apex test coverage.
 
 For the plugin interface, context, parameters, result contract, security, and deployment checklist,
-use [Reference: Apex](../../reference/reference-apex.md).
+use [Reference: Apex](../../reference/evaluation/apex-rule-contract.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Apex](../../reference/reference-apex.md)
+- [Reference: Apex](../../reference/evaluation/apex-rule-contract.md)
 - [Apex API](../../api/apex-api.md)
 - [Rule fields](../../metadata/fields-check-rule.md)

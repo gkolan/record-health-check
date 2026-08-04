@@ -1,6 +1,6 @@
 # Integration tests (CI fixtures only)
 
-This directory is **not** part of the product install.
+This directory is **not** part of the Framework install.
 
 It holds fixture Custom Metadata, a small custom object, Apex smoke coverage, and
 platform-event subscriber triggers used by the manual Salesforce release gate
@@ -75,7 +75,7 @@ sf apex run --file integration-tests/scripts/demo_apex_api.apex --target-org my-
 sf apex run --file integration-tests/scripts/demo_flow_actions.apex --target-org my-scratch-org
 ```
 
-`integration-tests` intentionally remains outside `sfdx-project.json`. A normal product install
+`integration-tests` intentionally remains outside `sfdx-project.json`. A normal Framework install
 deploys only `force-app`; deploying demo fixtures always requires the explicit second command.
 
 The Framework package already includes the four Demo `Example_` Check Sets. Matching copies here

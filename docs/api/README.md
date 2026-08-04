@@ -45,5 +45,5 @@ The default publication mode is `NONE`. Use `ACTIONABLE` to publish `FAIL`,
 
 - [Platform Event subscriptions](../platform-events/README.md)
 - [Integration overview](../integration/README.md)
-- [Reason Codes](../reference/reference-reason-codes.md)
-- [Architecture](../reference/reference-architecture.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)
+- [Architecture](../reference/framework/architecture.md)

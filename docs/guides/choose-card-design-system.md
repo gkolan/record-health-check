@@ -29,12 +29,13 @@ The design system may change color, radius, spacing, and elevation. Record Healt
 
 ## Verification checklist
 
-Use this checklist before release:
+After placing the card on a Lightning record page:
 
-- Place the component on representative pages in established Lightning and Cosmos environments.
-- Verify default, loading, empty, passed, failed, skipped, unable, and error states.
-- Verify diagnostic and narrow-width states.
-- Run the SLDS linter and Jest suite after every styling change.
+1. Open a matching record and confirm the card renders in the active org theme (established Lightning styling or Cosmos).
+2. Confirm Pass, Fail, Skipped, Unable to Check, and System Error rows remain readable.
+3. Confirm there is no Design System property on the component in Lightning App Builder.
+
+After a Framework styling change (contributors only): run the SLDS linter and Jest suite.
 
 ## Related
 

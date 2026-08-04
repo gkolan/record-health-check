@@ -81,13 +81,18 @@ The Formula Rule reads only the current Account, so it does not need SOQL or Ape
 If the Check Set picker is empty, confirm the Check Set is active and its **Object** value is
 `Account`.
 
+When a Demo Check Set is already installed, the card can look like this example (Pass, Fail, and
+Skipped outcomes with Found and Expected values):
+
+![Example Account Relationship and Risk health check card](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+
 ## Step 4: Test both results
 
 Use an Account you can safely edit.
 
 | Test | What to do | Expected result |
 | --- | --- | --- |
-| Failing record | Clear Billing City, save the Account, and select **Run** | **Needs attention** with the failure and fix messages |
+| Failing record | Clear Billing City, save the Account, and select **Run** | **Warning** (Fail) with the failure and fix messages |
 | Passing record | Add Billing City, save, and select **Rerun** | **Pass** |
 
 The card does not rerun automatically after a record edit. Select **Rerun** or refresh the page.

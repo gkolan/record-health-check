@@ -41,12 +41,6 @@ const plainLanguageAvoidList = [
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
-    if (
-      entryPath === path.join(docsRoot, "slides") ||
-      entryPath === path.join(docsRoot, "audits") ||
-      entryPath === path.join(docsRoot, "development")
-    )
-      continue;
     if (entry.isDirectory()) walk(entryPath);
     else if (entry.name.endsWith(".md")) markdownFiles.push(entryPath);
   }
@@ -138,7 +132,6 @@ for (const file of projectMarkdownFiles) {
   }
   const isPlainLanguageSource =
     file.startsWith(`${docsRoot}${path.sep}`) &&
-    file !== path.join(docsRoot, "development/documentation-standard.md") &&
     !file.startsWith(path.join(docsRoot, "metadata") + path.sep);
   if (isPlainLanguageSource) {
     for (const avoided of plainLanguageAvoidList) {
@@ -171,7 +164,14 @@ for (const reference of [
 
 for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
   const examplesDirectory = path.join(docsRoot, "examples", folder);
-  const reference = path.join(docsRoot, "reference", `reference-${folder}.md`);
+  const evaluationReferenceName =
+    folder === "apex" ? "apex-rule-contract.md" : `${folder}.md`;
+  const reference = path.join(
+    docsRoot,
+    "reference",
+    "evaluation",
+    evaluationReferenceName
+  );
   if (!fs.existsSync(reference))
     failures.push(`missing ${folder} reference page`);
 
@@ -224,9 +224,9 @@ for (const [eventName, referenceName] of [
   }
 }
 
-// Every production Apex class must remain visible in both source-ownership
-// references. This catches a new class that compiles and ships but is absent
-// from the class guide or architecture map.
+// Every production Apex class must remain visible in the Apex class-reference
+// corpus under docs/reference/apex/. This catches a new class that compiles and
+// ships but is absent from the layer guides.
 const apexClassesDirectory = path.join(root, "force-app/main/default/classes");
 const productionApexClasses = fs
   .readdirSync(apexClassesDirectory)
@@ -246,20 +246,19 @@ const productionApexClasses = fs
     return !/@IsTest\b/i.test(source);
   })
   .map((name) => name.replace(/\.cls$/, ""));
-for (const referenceName of [
-  "reference-apex-classes.md",
-  "reference-architecture.md"
-]) {
-  const reference = fs.readFileSync(
-    path.join(docsRoot, "reference", referenceName),
-    "utf8"
-  );
-  for (const apexClass of productionApexClasses) {
-    if (!reference.includes(`\`${apexClass}\``)) {
-      failures.push(
-        `${referenceName}: missing production Apex class ${apexClass}`
-      );
-    }
+const apexReferenceDirectory = path.join(docsRoot, "reference", "apex");
+const apexReferenceCorpus = fs
+  .readdirSync(apexReferenceDirectory)
+  .filter((name) => name.endsWith(".md"))
+  .map((name) =>
+    fs.readFileSync(path.join(apexReferenceDirectory, name), "utf8")
+  )
+  .join("\n");
+for (const apexClass of productionApexClasses) {
+  if (!apexReferenceCorpus.includes(`\`${apexClass}\``)) {
+    failures.push(
+      `reference/apex/: missing production Apex class ${apexClass}`
+    );
   }
 }
 

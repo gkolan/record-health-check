@@ -227,7 +227,7 @@ associated with that transaction and prevents Publish After Commit events from b
 | Governor-limit fault | The transaction has insufficient remaining Salesforce limits | Reduce other work or run the evaluation in a separate transaction |
 | `FAIL` returned as a normal output | The Rule found an unhealthy business condition | Route the status with a Decision element; keep the fault connector for invalid requests and transaction failures |
 
-Use the [reason-code reference](../reference/reference-reason-codes.md) when the action returns a code you do
+Use the [reason-code reference](../reference/contracts/reason-codes.md) when the action returns a code you do
 not recognize.
 
 ## Optional: Publish lifecycle events
@@ -269,6 +269,6 @@ fields they do not recognize. No Flow action is deprecated.
 
 - [Integration overview](../integration/README.md)
 - [Create your first Rule](../installation/03-create-your-first-rule.md)
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)
 - [Lifecycle events](lifecycle-events.md)
 - [Apex API](../api/apex-api.md)

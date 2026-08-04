@@ -25,14 +25,14 @@ Record Health Check is a read-only checklist on a record page. It looks at the r
 
 It does not stop users from saving. Use validation rules when a user must be blocked from saving bad data.
 
-### What the seller sees
+### What the user sees
 
-When the seller opens the Account, the card shows the Check Set title and one result for each Rule.
+When someone opens the Account, the card shows the Check Set title and one result for each Rule.
 A result can confirm readiness, identify something that needs attention, explain that a Rule did
 not apply, or state that access or configuration prevented a reliable answer.
 
-The seller does not need to understand the Formula, SOQL, or Apex behind the Rule. The administrator
-uses those Framework options to make the business question reliable and the result actionable.
+The person reading the card does not need to understand the Formula, SOQL, or Apex behind the Rule.
+Those Framework options make the business question reliable and the result actionable.
 
 ## The words you need
 
@@ -92,6 +92,7 @@ For deeper fixes, use [Configuration Guide: Troubleshooting](../guides/configure
 
 ## Next steps
 
+- [Install and verify](02-install-and-verify.md): install the Framework and place the card
 - [Create your first Rule](03-create-your-first-rule.md): create your first Rule
 - [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md): configure every Evaluation Type
-- [Reason Codes](../reference/reference-reason-codes.md): diagnose unable and system-error outcomes
+- [Reason Codes](../reference/contracts/reason-codes.md): diagnose unable and system-error outcomes

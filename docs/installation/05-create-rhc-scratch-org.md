@@ -10,8 +10,8 @@ orgs. Confirm both tools and the Dev Hub before running setup:
 
 ```bash
 sf --version
-git clone https://github.com/gkolan/RecordHealthCheck.git
-cd RecordHealthCheck
+git clone https://github.com/gkolan/record-health-check.git
+cd record-health-check
 sf org login web --set-default-dev-hub --alias my-dev-hub
 sf org display --target-org my-dev-hub
 ```

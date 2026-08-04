@@ -10,11 +10,11 @@
 > - This page is the source of truth for readable Found and Expected formatting on the card and in
 >   evaluator results.
 > - Formatting is implemented by
->   [`RecordHealthCheckDisplayFormat`](reference-apex-classes.md#recordhealthcheckdisplayformat),
+>   [`RecordHealthCheckDisplayFormat`](../apex/shared-services.md#recordhealthcheckdisplayformat),
 >   reached through
->   [`RecordHealthCheckComparisonEngine.formatValue`](reference-apex-classes.md#recordhealthcheckcomparisonengine).
+>   [`RecordHealthCheckComparisonEngine.formatValue`](../apex/shared-services.md#recordhealthcheckcomparisonengine).
 >   Merge-token substitution uses a different path; see
->   [Reference: Merge tokens](reference-merge-tokens.md).
+>   [Reference: Merge tokens](merge-tokens.md).
 
 When any Evaluation Type finishes, the Framework can turn typed Found and Expected values into
 short display text for the card chips. The goal is readable comparison values without changing how
@@ -239,7 +239,7 @@ entry carries the currency of the row it came from.
   already-formatted values through `{!rhcResult.foundValue}` and `{!rhcResult.expectedValue}`, so a
   Rule can quote a formatted amount inside its own wording.
 - Merge tokens in messages and Action URLs use
-  [merge-token resolution](reference-merge-tokens.md), not `formatValue`.
+  [merge-token resolution](merge-tokens.md), not `formatValue`.
 - A raw record token can opt into this catalog inline, for example
   `{!record.Amount format="CURRENCY" fallback="Not available"}`.
 - **Formula Result Type** (`FormulaResultType__c`) is a different setting. It declares the type a
@@ -260,9 +260,9 @@ cannot follow the running user's locale, and cannot distinguish currencies in a 
 
 ## Related
 
-- [Reference: Apex classes](reference-apex-classes.md#recordhealthcheckdisplayformat):
+- [Reference: Apex classes](../apex/shared-services.md#recordhealthcheckdisplayformat):
   `RecordHealthCheckDisplayFormat` rendering rules and `formatValue` / `formatList` ownership
-- [Reference: Query](reference-query.md): Found and Expected on Query Rules
-- [Reference: Formula](reference-formula.md): optional Found and Expected display formulas
-- [Reference: Compare two queries](reference-compare-two-queries.md): two-sided Found and Expected
-- [Reference: Apex](reference-apex.md): plugin-authored Found and Expected strings
+- [Reference: Query](../evaluation/query.md): Found and Expected on Query Rules
+- [Reference: Formula](../evaluation/formula.md): optional Found and Expected display formulas
+- [Reference: Compare two queries](../evaluation/compare-two-queries.md): two-sided Found and Expected
+- [Reference: Apex](../evaluation/apex-rule-contract.md): plugin-authored Found and Expected strings

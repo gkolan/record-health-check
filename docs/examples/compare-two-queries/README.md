@@ -26,11 +26,11 @@ an [Apex example](../apex/README.md) only when the comparison cannot be expresse
 supported count, value, or list operators.
 
 For both query shapes, compatible operators, no-row behavior, security, and limits, use
-[Reference: Compare two queries](../../reference/reference-compare-two-queries.md).
+[Reference: Compare two queries](../../reference/evaluation/compare-two-queries.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Compare two queries](../../reference/reference-compare-two-queries.md)
+- [Reference: Compare two queries](../../reference/evaluation/compare-two-queries.md)
 - [Rule fields](../../metadata/fields-check-rule.md)
 - [Configure Check Sets and Rules](../../guides/configure-check-sets-and-rules.md)

@@ -5,7 +5,7 @@ Source deployment is a development workflow and is not the supported subscriber 
 
 ## Version model
 
-The product follows Semantic Versioning. `package.json` carries the product version and
+The Framework follows Semantic Versioning. `package.json` carries the Framework version and
 `sfdx-project.json` carries the Salesforce package version as `MAJOR.MINOR.PATCH.NEXT`.
 Each package build uses `MAJOR.MINOR.PATCH.BUILD`; later build numbers are immutable candidates for
 the same semantic release.

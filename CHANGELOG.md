@@ -49,10 +49,33 @@ interfaces and product-generation terminology.
 - The package manifest and Permission Sets are checked against shipped metadata.
 - Apex tests use the shared TestDataFactory for Salesforce record creation.
 - Salesforce Code Analyzer, ESLint, the SLDS linter, formatting, documentation structure, links,
-  field limits, query shapes, product language, Apex coverage, and deployment validation are release
+  field limits, query shapes, Framework version language, Apex coverage, and deployment validation are release
   gates.
 
 For installation and verification, start with
 [Install and verify](docs/installation/02-install-and-verify.md). For the public contracts, use the
 [Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
-[Apex Rule plugin reference](docs/reference/reference-apex.md).
+[Apex Rule plugin reference](docs/reference/evaluation/apex-rule-contract.md).
+
+## [2.0.0] - 2026-08-04
+
+### Added
+
+- Four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`) shipped with the Framework
+  package for Account, Contact, and Opportunity teaching scenarios.
+- Documentation surfaces for security and data access, glossary, compatibility, data model,
+  localization, FAQ, native-Salesforce comparison, uninstall/rollback, and production operations.
+- [Support](SUPPORT.md) map for Issues, Discussions, Slack, and security advisories.
+
+### Changed
+
+- Install documentation states the namespaced unlocked package as the supported subscriber path,
+  with source deploy reserved for contribution and scratch-org workflows.
+- Configuration identity guidance lives under
+  [Configuration identity](docs/reference/framework/configuration-identity.md).
+- Technical references are grouped under `docs/reference/{framework,evaluation,contracts,apex}/`
+  instead of a flat `reference-*.md` list. Old GitHub blob URLs to the previous filenames will not
+  redirect.
+
+Earlier package builds under `2.0.0-*` candidates are listed in `sfdx-project.json` package
+aliases. Dated section history starts with this release notes format.

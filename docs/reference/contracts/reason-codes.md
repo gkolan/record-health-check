@@ -9,12 +9,12 @@ administrator-authored display messages.
 
 ## How to use a Reason Code
 
-| Reader | Use the code to… |
+| Surface | Use the code to… |
 | --- | --- |
-| Salesforce administrator | Decide whether to inspect applicability, dependencies, field access, Formula configuration, SOQL, or Apex |
-| Flow builder | Route a known non-normal result without treating display text as an API |
-| Apex developer | Branch or log using a stable `UPPER_SNAKE_CASE` value |
-| Support or release engineer | Correlate the public result with authorized Show Diagnostics and logs |
+| Card or Setup investigation | Decide whether to inspect applicability, dependencies, field access, Formula configuration, SOQL, or Apex |
+| Flow | Route a known non-normal result without treating display text as an API |
+| Apex | Branch or log using a stable `UPPER_SNAKE_CASE` value |
+| Support or release review | Correlate the public result with authorized Show Diagnostics and logs |
 
 Reason Codes explain why a Rule did not produce a normal `PASS` or `FAIL`, or why a card could not
 load. Codes are additive `UPPER_SNAKE_CASE` strings. Integrations must key on the code, never on
@@ -170,8 +170,8 @@ These often appear on the card chrome rather than a single Rule row:
 
 ## Related
 
-- [Apex API](../api/apex-api.md)
-- [Flow actions](../integration/flow-actions.md)
-- [Lifecycle events](../integration/lifecycle-events.md)
-- [Troubleshoot with Show Diagnostics](../guides/troubleshoot-with-show-diagnostics.md)
-- [Architecture](reference-architecture.md)
+- [Apex API](../../api/apex-api.md)
+- [Flow actions](../../integration/flow-actions.md)
+- [Lifecycle events](../../integration/lifecycle-events.md)
+- [Troubleshoot with Show Diagnostics](../../guides/troubleshoot-with-show-diagnostics.md)
+- [Architecture](../framework/architecture.md)

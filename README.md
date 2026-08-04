@@ -1,6 +1,6 @@
 # Record Health Check
 
-[![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE) [![CI](https://github.com/gkolan/RecordHealthCheck/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/RecordHealthCheck/actions/workflows/ci.yml) [![Apex coverage: 99.41%](https://img.shields.io/badge/Apex%20coverage-99.41%25-brightgreen)](docs/development/code-coverage-statistics.md) [![Salesforce API](assets/img/badge-salesforce-api.svg)](sfdx-project.json) [![Feedback: RHC Slack](https://img.shields.io/badge/Feedback-RHC%20Slack-4A154B?logo=slack&logoColor=white)](https://recordhealthcheck.com/slack-invite)
+[![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE) [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml) [![Apex coverage: 99.41%](https://img.shields.io/badge/Apex%20coverage-99.41%25-brightgreen)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml) [![Salesforce API](assets/img/badge-salesforce-api.svg)](sfdx-project.json) [![Deploy to Salesforce](assets/img/badge-deploy.svg)](https://githubsfdeploy.herokuapp.com/app/githubdeploy/gkolan/record-health-check) [![Feedback: RHC Slack](https://img.shields.io/badge/Feedback-RHC%20Slack-4A154B?logo=slack&logoColor=white)](https://recordhealthcheck.com/slack-invite)
 
 > **Make informed decisions before taking action on Salesforce data.**
 
@@ -11,7 +11,7 @@ card. Fail rows show **Failed**, **Warning**, or **Info** by severity. When a re
 the card explains what was **Found** and **Expected**, and provides fix instructions with an optional
 read-only **Fix it** link.
 
-Administrators define **Check Sets** and **Rules** in Custom Metadata. The framework evaluates them at read time, so one card can review the current record, related records, aggregate results, and data that existed before the Rules were created, all without writing to the record.
+**Check Sets** and **Rules** are defined in Custom Metadata. The framework evaluates them at read time, so one card can review the current record, related records, aggregate results, and data that existed before the Rules were created, all without writing to the record.
 
 > [!NOTE]
 > Record Health Check provides advisory guidance; it never blocks a save. When Salesforce must
@@ -21,7 +21,15 @@ Administrators define **Check Sets** and **Rules** in Custom Metadata. The frame
 [How it works](docs/installation/01-how-it-works.md) ·
 [Install](docs/installation/02-install-and-verify.md) ·
 [Examples](docs/examples/README.md) ·
-[Try the demo](docs/installation/05-create-rhc-scratch-org.md)
+[Try the demo](docs/installation/05-create-rhc-scratch-org.md) ·
+[Support](SUPPORT.md) ·
+[Security](docs/reference/framework/security.md) ·
+[Changelog](CHANGELOG.md)
+
+> [!IMPORTANT]
+> **Supported install:** the namespaced unlocked package **Record Health Check** (`rhc`).
+> Source deploy from this repository is for contributors and scratch-org demos. See
+> [Install and verify](docs/installation/02-install-and-verify.md).
 
 ## Demo
 
@@ -66,9 +74,9 @@ Administrators define **Check Sets** and **Rules** in Custom Metadata. The frame
 | A Check Set card on the Lightning record page                       | Guidance appears where people already work, not in a separate report or dashboard                                                                |
 | Pass, Fail, Skipped, Unable to Check, or System Error for each Rule | Outcomes stay honest: not applicable and "could not evaluate" are not forced into pass/fail; Fail rows show Failed, Warning, or Info by severity |
 | Severity, Found, and Expected on issues                             | Failures show what was observed versus what the Rule required                                                                                    |
-| Fix instructions and an optional **Fix it** link                    | Remediation stays in-product and read-only; the Framework never writes the record                                                                |
+| Fix instructions and an optional **Fix it** link                    | Remediation stays on the card and is read-only; the Framework never writes the record                                                            |
 
-### For administrators
+### Configuration
 
 | What you configure                      | Why it helps                                                                                         |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -90,7 +98,7 @@ Start with [How it works](docs/installation/01-how-it-works.md), [Install](docs/
 ## Contributing
 
 Planning to contribute? See [Contributing](.github/CONTRIBUTING.md) for local checks, testing requirements,
-and pull request guidance.
+and pull request guidance. For questions and bug reports, see [Support](SUPPORT.md).
 
 ## License
 

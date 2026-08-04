@@ -39,7 +39,7 @@ jobs:
         run: npm run lint
       - name: Validate SLDS 1 and SLDS 2 styles
         run: npm run lint:slds
-      - name: Verify package manifest covers all product metadata
+      - name: Verify package manifest covers all Framework metadata
         run: npm run check:manifest
       - name: Verify Framework and fixture package boundary
         run: npm run check:package-boundary

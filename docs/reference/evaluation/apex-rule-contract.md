@@ -133,6 +133,6 @@ install; do not infer plugin compatibility from an event or response version num
 
 ## Related
 
-- [Plugin verification](reference-apex-plugin-verification.md)
-- [Apex API](../api/apex-api.md)
-- [Recent activity example](../examples/apex/01-recent-activity.md)
+- [Plugin verification](../apex/plugin-verification.md)
+- [Apex API](../../api/apex-api.md)
+- [Recent activity example](../../examples/apex/01-recent-activity.md)

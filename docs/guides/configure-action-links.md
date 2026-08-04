@@ -96,7 +96,7 @@ field exists in the target org and the running user can read it; replace `Custom
 real field API name from your data model.
 
 For the full namespace list and fallback rules, see
-[Reference: Merge tokens](../reference/reference-merge-tokens.md).
+[Reference: Merge tokens](../reference/contracts/merge-tokens.md).
 
 ## Common link patterns
 
@@ -203,5 +203,5 @@ Use this when the next step is a help page outside Salesforce.
 
 - [Configure Check Sets and Rules](configure-check-sets-and-rules.md): every card and Check Set setting
 - [Rule fields](../metadata/fields-check-rule.md): field definitions for `ActionLabel__c`, `ActionUrl__c`, and `FixMessage__c`
-- [Field limits](../reference/reference-fields-limits.md): character limits for these fields
+- [Field limits](../reference/contracts/field-limits.md): character limits for these fields
 - [Troubleshoot with Show Diagnostics](troubleshoot-with-show-diagnostics.md): troubleshooting a Rule that fails to evaluate

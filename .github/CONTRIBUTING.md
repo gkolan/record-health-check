@@ -10,17 +10,17 @@ contributing, you agree that your contributions are licensed under the
 
 ## Ways to contribute
 
-| I want to…                  | Do this                                                                                                                       |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Report a bug**            | Open a [Bug report](https://github.com/gkolan/RecordHealthCheck/issues/new?template=bug_report.yml) issue                     |
-| **Request a feature**       | Open a [Feature request](https://github.com/gkolan/RecordHealthCheck/issues/new?template=feature_request.yml) issue           |
-| **Ask a question**          | Start a [GitHub Discussion](https://github.com/gkolan/RecordHealthCheck/discussions) (or open an issue if Discussions is off) |
-| **Report a security issue** | Report privately through the [Security policy](SECURITY.md) rather than a public issue                                        |
-| **Fix code or docs**        | Open a pull request (see below)                                                                                               |
+| I want to…                  | Do this                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Report a bug**            | Open a [Bug report](https://github.com/gkolan/record-health-check/issues/new?template=bug_report.yml) issue                     |
+| **Request a feature**       | Open a [Feature request](https://github.com/gkolan/record-health-check/issues/new?template=feature_request.yml) issue           |
+| **Ask a question**          | Start a [GitHub Discussion](https://github.com/gkolan/record-health-check/discussions) (or open an issue if Discussions is off) |
+| **Report a security issue** | Report privately through the [Security policy](SECURITY.md) rather than a public issue                                          |
+| **Fix code or docs**        | Open a pull request (see below)                                                                                                 |
 
 ## Reporting a bug: step by step
 
-1. **Search first.** Check [existing issues](https://github.com/gkolan/RecordHealthCheck/issues)
+1. **Search first.** Check [existing issues](https://github.com/gkolan/record-health-check/issues)
    so you do not file a duplicate.
 2. Go to **Issues → New issue → Bug report**.
 3. Fill in every field. The most useful reports include:
@@ -39,8 +39,8 @@ record data from issues.
 
 1. **Fork** the repo and **clone** your fork:
    ```bash
-   git clone https://github.com/<your-username>/recordHealthCheck.git
-   cd RecordHealthCheck
+   git clone https://github.com/<your-username>/record-health-check.git
+   cd record-health-check
    npm ci
    ```
 2. **Create a focused branch** (one change per branch):
@@ -85,13 +85,35 @@ feedback by pushing more commits to the same branch.
   validation, reason-code documentation, and both positive and misconfiguration
   tests. Prefer extending the shared modules over adding another parser or comparison operator copy.
 
-See [`docs/reference/reference-architecture.md`](../docs/reference/reference-architecture.md)
+See [`docs/reference/framework/architecture.md`](../docs/reference/framework/architecture.md)
 for the published Framework architecture and to find where things live.
+
+## Configuration identity and package boundary
+
+When changing Demo `Example_` Check Sets/Rules or any public identity boundary:
+
+1. Change the record in `force-app/main/default/customMetadata`.
+2. Copy the same record into `integration-tests/main/default/customMetadata` (identical XML).
+3. Keep Check Set `CardTitle__c` values prefixed with `Demo:`.
+4. Update `manifest/package.xml` CustomMetadata members when members are listed explicitly.
+5. Deploy `force-app` alone to a clean org before broader fixture deployment.
+6. Run `npm run check:configuration-identity` and `npm run check:package-boundary`.
+
+Every public input must accept the exact Custom Metadata `QualifiedApiName` Salesforce returns. Do
+not guess namespaces or retry alternate name forms. See
+[Configuration identity](../docs/reference/framework/configuration-identity.md).
+
+## Apex test-seam policy
+
+`@TestVisible` and `Test.isRunningTest()` are temporary design debt. Do not add seams without
+updating the architecture baseline. The full policy lives in
+[Contributor policy: Apex test seams](../docs/reference/apex/test-seams.md). Run
+`npm run check:apex-architecture` before opening a PR that touches Apex.
 
 ## Integration-test fixtures
 
 [`integration-tests/`](../integration-tests/) holds CI-only fixture metadata and is **not** part of
-the product install. Keep it out of `sfdx-project.json` `packageDirectories`. The release
+the Framework install. Keep it out of `sfdx-project.json` `packageDirectories`. The release
 gate deploys it with an explicit `--source-dir integration-tests` after Core. See
 [`integration-tests/README.md`](../integration-tests/README.md).
 
@@ -104,6 +126,6 @@ Docs must match the code at the same commit. Follow these authoring standards:
 - **Code blocks**: introduce every block with a sentence ending in a colon; use fenced blocks with a language identifier (`bash`, `apex`, `sql`, `json`).
 - **No em-dashes**: replace each em-dash by hand with a period, comma, or parentheses, never a blanket swap to a colon.
 
-The public [architecture document](../docs/reference/reference-architecture.md) is the
+The public [architecture document](../docs/reference/framework/architecture.md) is the
 contributor-facing source of truth for Framework architecture and where code and docs live.
 Maintainer release steps are in [`RELEASING.md`](RELEASING.md).

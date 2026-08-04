@@ -5,10 +5,14 @@
       <stop offset="0%" stop-color="#444D56"/>
       <stop offset="100%" stop-color="#24292E"/>
     </linearGradient>
+    <linearGradient id="value" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#17B0EB"/>
+      <stop offset="100%" stop-color="#00A1E0"/>
+    </linearGradient>
   </defs>
   <g fill="none" fill-rule="evenodd">
     <path fill="url(#label)" d="M0,3 C0,1.343 1.355,0 3.027,0 H97 V20 H3.027 C1.355,20 0,18.657 0,17 Z"/>
-    <path fill="#6A737D" d="M97,0 H144.973 C146.645,0 148,1.343 148,3 V17 C148,18.657 146.645,20 144.973,20 H97 Z"/>
+    <path fill="url(#value)" d="M97,0 H144.973 C146.645,0 148,1.343 148,3 V17 C148,18.657 146.645,20 144.973,20 H97 Z"/>
     <g font-family="'DejaVu Sans',Verdana,Geneva,sans-serif" font-size="11">
       <text fill="#010101" fill-opacity=".3" aria-hidden="true"><tspan x="8" y="15">Salesforce API</tspan></text>
       <text fill="#FFFFFF"><tspan x="8" y="14">Salesforce API</tspan></text>

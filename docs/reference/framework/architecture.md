@@ -246,14 +246,19 @@ Three version numbers move independently.
 | --- | --- | --- |
 | Response contract | Apex and Flow results, in `contractVersion` | `1.0` |
 | Event contract | The `ContractVersion__c` field on each platform event | `1.0` |
-| Product version | The release itself, reported as `FrameworkVersion__c` on events | Independent of both |
+| Framework version | The release itself, reported as `FrameworkVersion__c` on events | Independent of both |
 
 Additive fields may appear inside a contract version, so consumers must ignore fields they do not
 recognize. Removing or renaming a public operation, field, status, or reason value requires a new
-contract version. Branch automation on statuses and [reason codes](reference-reason-codes.md), never
+contract version. Branch automation on statuses and [reason codes](../contracts/reason-codes.md), never
 on administrator-authored display text.
 
 ## 9. Security model
+
+Record Health Check evaluates with the running user's access, rejects unsafe query shapes, and
+keeps diagnostics and error detail behind explicit permissions. For the full evaluator-facing
+model (Permission Sets, persistence, events, plugins, and fix links), see
+[Security and data access](security.md).
 
 | Concern | Approach |
 | --- | --- |
@@ -272,7 +277,7 @@ validation surface for troubleshooting sessions.
 
 ## 10. Limits and governor safety
 
-Stored field capacities live in [Field limits](reference-fields-limits.md); runtime caps live in
+Stored field capacities live in [Field limits](../contracts/field-limits.md); runtime caps live in
 `RecordHealthCheckConstants`.
 
 | What is capped | Cap | Enforcement point |
@@ -360,7 +365,7 @@ Single-currency orgs show a symbol, while orgs with multiple currencies lead wit
 The Framework does not convert currencies or normalize cross-currency comparisons. Comparisons use
 the typed values Salesforce returns. Currency conversion, dated exchange rates, and business rules
 for comparing unlike currencies remain the responsibility of the Rule query, formula, or Apex
-plugin. See [Display value format](reference-display-value-format.md#currency).
+plugin. See [Display value format](../contracts/display-value-format.md#currency).
 
 ## 15. Design decisions
 
@@ -388,7 +393,7 @@ plugin. See [Display value format](reference-display-value-format.md#currency).
 ## 17. Class ownership map
 
 Use this when changing code. If a responsibility moves, update this table in the same change.
-For longer per-class descriptions, see [Reference: Apex classes](reference-apex-classes.md).
+For longer per-class descriptions, see [Reference: Apex classes](../apex/README.md).
 
 ### Entry points
 
@@ -490,17 +495,17 @@ One bundle, four modules. Keep them together as one component.
 
 | What you need | Where to look |
 | --- | --- |
-| Field definitions and caps | [Check Set fields](../metadata/fields-check-set.md), [Rule fields](../metadata/fields-check-rule.md), [Field limits](reference-fields-limits.md) |
-| Evaluation Type contracts | [Formula](reference-formula.md), [Query](reference-query.md), [Compare two queries](reference-compare-two-queries.md), [Apex](reference-apex.md) |
-| Calling surfaces | [Apex API](../api/apex-api.md), [Flow actions](../integration/flow-actions.md), [Lightning component](../integration/lightning-component.md) |
-| Events | [Lifecycle events](../integration/lifecycle-events.md), [Log event](../metadata/event-log.md) |
-| Result terms and codes | [Reason codes](reference-reason-codes.md), [Merge tokens](reference-merge-tokens.md) |
-| Class-by-class guide | [Apex classes](reference-apex-classes.md) |
-| Concepts and installation | [How it works](../installation/01-how-it-works.md), [Install and verify](../installation/02-install-and-verify.md), [Revalidate an installation](../installation/04-upgrading.md) |
+| Field definitions and caps | [Check Set fields](../../metadata/fields-check-set.md), [Rule fields](../../metadata/fields-check-rule.md), [Field limits](../contracts/field-limits.md) |
+| Evaluation Type contracts | [Formula](../evaluation/formula.md), [Query](../evaluation/query.md), [Compare two queries](../evaluation/compare-two-queries.md), [Apex](../evaluation/apex-rule-contract.md) |
+| Calling surfaces | [Apex API](../../api/apex-api.md), [Flow actions](../../integration/flow-actions.md), [Lightning component](../../integration/lightning-component.md) |
+| Events | [Lifecycle events](../../integration/lifecycle-events.md), [Log event](../../metadata/event-log.md) |
+| Result terms and codes | [Reason codes](../contracts/reason-codes.md), [Merge tokens](../contracts/merge-tokens.md) |
+| Class-by-class guide | [Apex classes](../apex/README.md) |
+| Concepts and installation | [How it works](../../installation/01-how-it-works.md), [Install and verify](../../installation/02-install-and-verify.md), [Revalidate an installation](../../installation/04-upgrading.md) |
 
 ## Related
 
-- [Documentation index](../README.md)
-- [Integration overview](../integration/README.md)
-- [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md)
-- [Troubleshoot with Show Diagnostics](../guides/troubleshoot-with-show-diagnostics.md)
+- [Documentation index](../../README.md)
+- [Integration overview](../../integration/README.md)
+- [Configure Check Sets and Rules](../../guides/configure-check-sets-and-rules.md)
+- [Troubleshoot with Show Diagnostics](../../guides/troubleshoot-with-show-diagnostics.md)

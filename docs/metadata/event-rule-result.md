@@ -30,7 +30,7 @@ The Framework publishes one event for a Rule only when every condition is true:
 | --- | --- |
 | Publication is enabled | **Publish User Result Event** (`PublishUserResultEvent__c`) is checked on the Rule. |
 | The result is final | The Rule finished during a deliberate Rule or Check Set run. |
-| The source is allowed | Source is `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, or `BATCH`. |
+| The source is allowed | Source is `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT`. |
 | Work is committed | The Salesforce transaction commits. |
 
 Automatic Lightning record-page evaluation, subscriber context, blank sources, and unknown sources
@@ -66,7 +66,7 @@ acting. Other supported sources publish directly from their server-side evaluati
 | Reason Code | `ReasonCode__c` | Text(80) | Optional | Stable public Reason Code. Diagnostics-only codes are not published here. |
 | Severity | `Severity__c` | Text(20) | Optional | `CRITICAL`, `WARNING`, or `INFO` when applicable. |
 | Occurred At | `OccurredAt__c` | DateTime | Required; generated | UTC time when the Framework constructed the event. |
-| Source | `Source__c` | Text(30) | Required; caller-derived | `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, or `BATCH`. |
+| Source | `Source__c` | Text(30) | Required; caller-derived | `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT`. |
 | Contract Version | `ContractVersion__c` | Text(10) | Required; `1.0` | Version of this event schema. |
 | Framework Version | `FrameworkVersion__c` | Text(20) | Required | Framework release that produced the event. |
 | Contains Restricted Detail | `ContainsRestrictedDetail__c` | Checkbox | Defaults to false | Indicates that restricted detail existed on the in-memory result. It does not publish that detail. |
@@ -135,4 +135,4 @@ not change the finalized Rule status.
 - [Check Set Run Platform Event](event-set-run.md)
 - [Log Platform Event](event-log.md)
 - [Rule fields](fields-check-rule.md): **Publish User Result Event**
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)

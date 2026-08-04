@@ -16,6 +16,10 @@ Show Diagnostics adds on-screen and browser-console evidence for the current run
 history, change Salesforce data, or grant access by itself. Leave it off on production Check Sets
 when the investigation is complete.
 
+For what a normal (non-diagnostics) card looks like with Pass, Fail, and Skipped outcomes, see the
+[Demo Account Relationship and Risk screenshot](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+on [Install and verify](../installation/02-install-and-verify.md).
+
 ## What you will learn
 
 | Question | Answer on this page |

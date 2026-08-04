@@ -5,13 +5,13 @@
   "description": "Metadata-driven, extensible record health checks for Salesforce",
   "license": "Apache-2.0",
   "author": "Gautam Kolan (https://github.com/gkolan)",
-  "homepage": "https://github.com/gkolan/RecordHealthCheck#readme",
+  "homepage": "https://github.com/gkolan/record-health-check#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gkolan/RecordHealthCheck.git"
+    "url": "git+https://github.com/gkolan/record-health-check.git"
   },
   "bugs": {
-    "url": "https://github.com/gkolan/RecordHealthCheck/issues"
+    "url": "https://github.com/gkolan/record-health-check/issues"
   },
   "scripts": {
     "lint": "eslint --no-error-on-unmatched-pattern **/{aura,lwc}/**/*.js",

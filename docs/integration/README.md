@@ -3,6 +3,11 @@
 > [!NOTE]
 > On this page, place each readiness decision on the right Salesforce surface by comparing how Lightning, Apex, Flow, and platform events start work, return outcomes, and handle failure.
 
+> [!TIP]
+> **Only placing the Lightning card?** Follow
+> [Install and verify](../installation/02-install-and-verify.md), then return here when you need Apex,
+> Flow, or platform-event subscribers.
+
 Use this page to decide where a readiness decision belongs: a Lightning record page, Flow,
 Apex, or an independent subscriber receiving an after-commit lifecycle event.
 
@@ -16,7 +21,7 @@ does not create a second configuration model.
 | --- | --- | --- |
 | Show health to a user on a record page | [Lightning component](lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
 | Make an immediate or asynchronous decision in code | [API examples](../api/README.md) | Choose synchronous Apex, Queueable, Batch, or Scheduled Apex |
-| Branch in automation without custom Apex | [Flow API](../api/flow.md) | Configure an Action and Decision element with explicit status paths |
+| Branch in automation without custom Apex | [Flow actions](../integration/flow-actions.md) | Configure an Action and Decision element with explicit status paths |
 | Notify independent automation after commit | [Platform Event subscriptions](../platform-events/README.md) | Build a Flow or Apex subscriber and handle replay or duplicate delivery |
 | Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/01-recent-activity.md) | Write the class used by a Verify with Apex Rule |
 
@@ -169,9 +174,10 @@ automation on those fields rather than administrator-authored message text.
 ## Next steps
 
 - [API examples](../api/README.md)
-- [Flow API](../api/flow.md)
+- [Flow actions](../integration/flow-actions.md)
+- [Flow API pattern](../api/flow.md)
 - [Lightning component](lightning-component.md)
 - [Platform Event subscriptions](../platform-events/README.md)
 - [Lifecycle event behavior](lifecycle-events.md)
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)
 - [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md)

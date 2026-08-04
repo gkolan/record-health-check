@@ -46,4 +46,4 @@ Salesforce replay ID only when an external subscriber needs a replay position.
 - [API examples](../api/README.md)
 - [Lifecycle event behavior](../integration/lifecycle-events.md)
 - [Platform Event metadata](../metadata/README.md#choose-a-platform-event-reference)
-- [Reason Codes](../reference/reference-reason-codes.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)

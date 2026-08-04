@@ -61,6 +61,6 @@ wired to the reusable harness.
 
 ## Related
 
-- [Apex plugin contract](reference-apex.md)
-- [Apex API](../api/apex-api.md)
-- [Apex class catalog](reference-apex-classes.md)
+- [Apex plugin contract](../evaluation/apex-rule-contract.md)
+- [Apex API](../../api/apex-api.md)
+- [Apex class catalog](README.md)
