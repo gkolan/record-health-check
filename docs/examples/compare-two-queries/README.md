@@ -15,6 +15,9 @@ are equal, overlap, or contain all required values.
 | [Open-pipeline product continuity](02-open-pipeline-product-continuity.md) | Does open pipeline include a Product the customer previously purchased? | Two lists compared with **Lists overlap** |
 | [Account Team coverage](03-account-team-opportunity-coverage.md) | Does the Account Team include every open Opportunity owner? | Two lists compared with **Lists contain all** and no-row failure |
 
+These teaching configurations are illustrative. They are not installed by the Framework package.
+Adapt the field tables into your org's Custom Metadata when you want the behavior.
+
 ## When two queries are the right choice
 
 Choose this Evaluation Type when a complete answer requires comparing two related-record

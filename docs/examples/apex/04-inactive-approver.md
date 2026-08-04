@@ -7,6 +7,10 @@
 >
 > Use the [Apex reference](../../reference/reference-apex.md) for the complete setup fields and behavior.
 
+> [!IMPORTANT]
+> The supporting Apex class for this example lives under `integration-tests/`. It does not install
+> with the Framework package. Deploy or copy the class when you want this Rule in an org.
+
 ## Scenario
 
 A Salesforce administrator opens a record whose approval has stopped moving.
@@ -378,8 +382,8 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached, deduplicated IDs to evaluate; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `ruleDeveloperName` | `String` | Developer Name of the Rule being evaluated |
-| `checkSetDeveloperName` | `String` | Developer Name of the Check Set that supplied the Rule |
+| `ruleDeveloperName` | `String` | Qualified Rule identity (property name is historical; value is the Rule QualifiedApiName) |
+| `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a

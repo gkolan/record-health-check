@@ -10,8 +10,10 @@ This file is the single source for AI assistants translating business requiremen
 Record Health Check is a **read-time, advisory** Lightning card on **record pages**. Check Sets
 (`Record_Health_Check_Set__mdt`) and Rules (`Record_Health_Check_Rule__mdt`) live in Custom Metadata.
 
-The component evaluates the current record and shows each Rule as **Pass**, **Fail**, **Skipped**,
-**Unable to evaluate**, or **Error**. It does not block saves. Use it when data should be healthy but
+The component evaluates the current record and shows each Rule as **Pass**, **Fail** (card labels
+**Failed**, **Warning**, or **Info** by severity), **Skipped**, **Unable to Check**, or
+**System Error**. Setup and API use **Unable to Evaluate** / `UNABLE_TO_EVALUATE` and `ERROR` for the
+last two statuses. It does not block saves. Use it when data should be healthy but
 must not hard-stop users, including related-record checks, aggregates, and coaching on existing
 records.
 
@@ -150,7 +152,7 @@ Minimum fields when creating a new Check Set:
 | `PublishUserRunEvent__c` | Publish User Run Event | No | `false` by default; page-load runs never publish |
 | `PublishErrorLogEvent__c` | Publish Error Log Event | No | `true` by default; set `false` to opt this Check Set out of ERROR log events |
 
-**Component wiring:** In Lightning App Builder, select the intended **Check Set** for the record page. The stored LWC property is `checkSetName`; Apex still receives that value as `checkSetDeveloperName`.
+**Component wiring:** In Lightning App Builder, select the intended **Check Set** for the record page. The stored LWC property is `checkSetName` and holds the Check Set's `QualifiedApiName`; Apex controller methods receive that qualified identity.
 
 ### 4.3 Rule table
 
@@ -166,6 +168,7 @@ Always include (all Evaluation Types):
 | `EvaluationOrder__c` | Evaluation Order | Yes | `10` (use gaps: 10, 20, 30…) |
 | `Category__c` | Category | No | API values such as `COMPLETENESS`, `CONSISTENCY`, `ELIGIBILITY`, `READINESS`, or `RELATIONSHIP_COVERAGE`; Setup shows readable labels. Metadata only: UI grouping not implemented yet. |
 | `FailureSeverity__c` | Failure Severity | Yes | `CRITICAL`, `WARNING`, or `INFO` |
+| `DisplayValueFormat__c` | Display: Value Format | No | `AUTO` (default), or an explicit format such as `CURRENCY`, `PERCENT`, `NUMBER`, `DATE` when Found/Expected must share units |
 | `FailureMessage__c` | Message When Failed | Yes | Names the record, then states what is below target: copy the example from below the table |
 | `FixMessage__c` | Fix Message | No | `Review open opportunities…` (renders on FAIL rows) |
 | `ActionLabel__c` | Action Label | No | Short link text; display merge tokens allowed (80-character field). Blank defaults to `Fix this` when Action URL is set |

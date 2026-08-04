@@ -106,10 +106,20 @@ Registry helpers for the remapped pair live in `RecordHealthCheckReasonCodes`. O
 
 | Code | Typical status | Meaning |
 | --- | --- | --- |
-| `APEX_CLASS_NOT_FOUND` | `UNABLE_TO_EVALUATE` | `ApexClass__c` could not be resolved to a `RecordHealthCheckRule`. |
+| `APEX_CLASS_NOT_FOUND` | `UNABLE_TO_EVALUATE` | `ApexClass__c` could not be resolved to a `RecordHealthCheckRule`. Confirm the class API name, packaging namespace, and `RecordHealthCheckRule` implementation. |
 | `INVALID_APEX_PARAMETERS` | `UNABLE_TO_EVALUATE` | `ApexParametersJson__c` is not valid JSON object input. |
-| `APEX_EVALUATOR_ERROR` | `ERROR` / `UNABLE_TO_EVALUATE` | Plugin threw, returned an illegal status, or omitted required Found/Expected on `PASS`/`FAIL`. |
+| `APEX_EVALUATOR_ERROR` | `ERROR` / `UNABLE_TO_EVALUATE` | Plugin returned an illegal status or omitted required Found/Expected on `PASS`/`FAIL`. |
+| `PLUGIN_RESULT_MISSING` | `ERROR` (per record) or thrown contract fault | The plugin returned no entry for a requested record, or returned a null map for the whole scope. Cover every requested ID, including empty scopes. |
+| `PLUGIN_RESULT_UNKNOWN_KEY` | Thrown contract fault | The plugin returned an outcome for a record ID outside the requested scope. Fails the whole Rule for the scope. |
+| `PLUGIN_THREW` | Thrown contract fault | The plugin threw an unhandled exception the engine cannot attribute to one record. |
+| `PLUGIN_SIDE_EFFECT_DETECTED` | Thrown contract fault | The plugin performed DML, a callout, email, event publication, or asynchronous work. The transaction must not commit that effect. |
+| `RECORD_NO_LONGER_AVAILABLE` | Plugin-authored `UNABLE_TO_EVALUATE` / `ERROR` | Stable code plugins may return when a record disappeared between applicability and evaluation. |
 | `OBJECT_NOT_FOUND` | plugin-defined | Example plugins may return domain-specific codes such as this. |
+
+`PLUGIN_RESULT_UNKNOWN_KEY`, `PLUGIN_THREW`, and `PLUGIN_SIDE_EFFECT_DETECTED` are contract faults raised by
+`RecordHealthCheckPluginDispatch`. They are not ordinary per-record display outcomes. A null returned
+map uses `PLUGIN_RESULT_MISSING` as a thrown fault; a missing key for one requested ID becomes a
+per-record `ERROR` with that code.
 
 ---
 

@@ -7,6 +7,9 @@
 >
 > Use the [Query reference](../../reference/reference-query.md) for the complete setup fields and behavior.
 
+> [!IMPORTANT]
+> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
+
 ## Scenario
 
 A data steward is preparing Accounts imported from a test or legacy system.

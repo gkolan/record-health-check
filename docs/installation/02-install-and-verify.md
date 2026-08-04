@@ -35,7 +35,7 @@ sandbox installs. That tree is CI fixture metadata. See
 | User access is assigned | A representative user can run the protected Apex surface |
 | A Check Set is available | Lightning App Builder can select an active Check Set for the record page object |
 | The card is placed | The Record Health Check card appears on the matching Lightning record page |
-| A Rule runs | The card shows Pass, Needs attention, Skipped, or Unable to check for the record |
+| A Rule runs | The card shows Pass, Fail (Failed / Warning / Info), Skipped, Unable to Check, or System Error for the record |
 
 ## 1. Connect to the sandbox
 
@@ -98,14 +98,15 @@ separately and review every Rule before adapting it.
 ## 5. Verify the result
 
 Open a matching record. If the card is configured for manual execution, click **Run**. The card
-shows Pass, Fail, Skipped, or Unable to Check for each Rule. Edit relevant record data and rerun to
+shows Pass, Fail (Failed, Warning, or Info by severity), Skipped, Unable to Check, or System Error
+for each Rule. Edit relevant record data and rerun to
 confirm the result changes. Repeat the verification as a representative user, not only as the
 administrator who deployed Record Health Check.
 
 | Verification | Expected result |
 | --- | --- |
 | Open the record as a user with `Record_Health_Check_User` | The Record Health Check card is visible and can run the selected Check Set |
-| Run a manually configured Check Set | Each Rule shows Pass, Fail, Skipped, or Unable to Check |
+| Run a manually configured Check Set | Each Rule shows Pass, Fail, Skipped, Unable to Check, or System Error |
 | Change data used by a Rule, save, and select **Rerun** | The result reflects the saved record data |
 | Open the page as a user without Framework access | The user cannot call the protected Apex surface |
 
@@ -117,6 +118,7 @@ administrator who deployed Record Health Check.
 | The card has no Check Set to select | Create or activate a Check Set whose Object matches the Lightning record page object. A Framework-only install intentionally starts with none. |
 | A user cannot see or run the card | Assign `Record_Health_Check_User`, then review record, object, and field access. |
 | A Rule shows Unable to Check | Review its Reason Code, Rule configuration, and the running user's Salesforce access. |
+| A Rule shows System Error | Review the Reason Code, Apex plugin if any, Salesforce logs, and Show Diagnostics. |
 
 If the card does not appear or a Rule will not evaluate, see
 [Configuration Guide: Troubleshooting](../guides/configure-check-sets-and-rules.md#13-troubleshooting).

@@ -15,7 +15,7 @@ Use this page before installation when you want the mental model, or after
 | Question | What this page explains |
 | --- | --- |
 | What appears on the Lightning record page? | One Check Set card containing ordered Rule rows |
-| What does each result mean? | The difference between Pass, Needs attention, Skipped, Unable to check, and System error |
+| What does each result mean? | The difference between Pass, Fail (shown as Failed, Warning, or Info), Skipped, Unable to Check, and System Error |
 | Where can a Rule get its answer? | Current-record fields, related records, two query results, or Apex |
 | When should I use a Validation Rule instead? | When Salesforce must prevent a record from being saved |
 
@@ -38,11 +38,11 @@ uses those Framework options to make the business question reliable and the resu
 
 - **Check Set:** the whole card. It decides which object the card is for, when it runs, and which Rules belong together.
 - **Rule:** one row on the card. A Rule asks one question, such as "Has there been recent activity?"
-- **Pass:** the record meets the Rule.
-- **Fail:** the Rule found something that needs attention.
-- **Skipped:** the Rule did not apply to this record right now, or it was waiting for another Rule to pass first.
-- **Unable to evaluate:** setup, access, or available data prevented a reliable conclusion.
-- **System error:** an unexpected evaluator or platform problem occurred.
+- **Pass:** the record meets the Rule. The card label is **Pass**; the API status is `PASS`.
+- **Fail:** the Rule found something that needs attention. The card shows **Failed**, **Warning**, or **Info** based on Failure Severity; the API status is `FAIL`.
+- **Skipped:** the Rule did not apply to this record right now, or it was waiting for another Rule to pass first. The card label is **Skipped**; the API status is `SKIPPED`.
+- **Unable to Check:** the card label when setup, access, or available data prevented a reliable conclusion. Setup fields and API status use **Unable to Evaluate** / `UNABLE_TO_EVALUATE`.
+- **System Error:** the card label for an unexpected evaluator or platform problem. The API status is `ERROR`.
 - **Applicability:** a condition that decides whether a Rule runs. Example: only check Partner requirements on Partner Accounts.
 - **Formula-based check:** a check that looks at fields on the current record, or parent fields Salesforce formula syntax can reach.
 - **Query-based check:** a check that looks for related records with SOQL, such as Contacts, Opportunities, Cases, Tasks, or Events.
@@ -66,10 +66,10 @@ Why this is a health check:
 How it appears to users:
 
 - **Pass:** the Account has recent activity.
-- **Fail:** the Account has no completed Task or logged Event inside the configured look-back window.
+- **Fail:** the Account has no completed Task or logged Event inside the configured look-back window. The card shows **Failed**, **Warning**, or **Info** based on Failure Severity.
 - **Skipped:** the Rule did not apply because of its setup conditions.
-- **Unable to evaluate:** access, setup, or available data prevented a conclusion.
-- **System error:** an unexpected evaluator or platform problem occurred; review troubleshooting details.
+- **Unable to Check:** access, setup, or available data prevented a conclusion. Setup and API call this outcome Unable to Evaluate (`UNABLE_TO_EVALUATE`).
+- **System Error:** an unexpected evaluator or platform problem occurred; review troubleshooting details. The API status is `ERROR`.
 
 Record Health Check installs without business-policy Check Sets or Rules. This keeps a production
 installation neutral: administrators deliberately create or install the configuration their org

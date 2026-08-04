@@ -222,9 +222,9 @@ inputs, supplies Lightning lifecycle sources, and delegates to `RecordHealthChec
 | Member | Purpose |
 | --- | --- |
 | `getCheckSetAvailabilityForRecord(recordId)` | Active/inactive Check Sets for the record's object (setup banner) |
-| `getCheckDefinitions(checkSetDeveloperName, recordId)` | Display settings and ordered Rule definitions for the card |
-| `evaluateCheck(checkSetDeveloperName, ruleDeveloperName, recordId, runId, source)` | One Rule evaluation (one Apex transaction per Rule from the card) |
-| `completeRun(checkSetDeveloperName, recordId, runId, source)` | After a user-initiated run: re-evaluates server-side and publishes the Set completed event |
+| `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)` | Display settings and ordered Rule definitions for the card |
+| `evaluateCheck(checkSetQualifiedApiName, ruleQualifiedApiName, recordId, runId, source)` | One Rule evaluation (one Apex transaction per Rule from the card) |
+| `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)` | After a user-initiated run: re-evaluates server-side and publishes the Set completed event |
 
 **Notable behavior:**
 - **Source behavior:** the browser may request only Lightning-allowed source values. Unknown values
@@ -1117,7 +1117,7 @@ the engine to run Formula or Query Rules.
 ### `AccountHasRecentActivityCheck`
 
 **Role:** Shipped Apex Rule for recent Account Task/Event activity.
-**Type:** Example plugin (implements `RecordHealthCheckRule`) · `public with sharing`
+**Type:** Example plugin (implements `RecordHealthCheckRule`) · `global with sharing`
 
 Ships with Record Health Check in `force-app`. Passes when the Account has at least one completed Task or Event in
 a look-back window. Tunable with `ApexParametersJson__c`: `{"daysBack": 90}` (default 30, bounds

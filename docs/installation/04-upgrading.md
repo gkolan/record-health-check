@@ -27,6 +27,23 @@ Capture these items before changing metadata:
 Store the backup where the release owner can restore it. A backup that has never been restored in
 a test org is not sufficient rollback evidence.
 
+## Public surfaces to re-check after deployment
+
+This page is a revalidation procedure, not a migration guide between product generations. When the org
+already calls or configures Record Health Check, confirm these current contracts after deployment:
+
+| Surface | Confirm |
+| --- | --- |
+| Synchronous Apex | Callers use `RecordHealthCheck.evaluate(RecordHealthCheckRequest)` with qualified Check Set or Rule API names |
+| Apex plugins | Plugins implement bulk `RecordHealthCheckRule.evaluate(RecordHealthCheckScope)` and return one outcome per requested record ID |
+| Merge tokens | Templates use namespaced tokens and attribute fallbacks such as `{!record.Name fallback="this record"}` |
+| Diagnostics access | Troubleshooters hold `Record_Health_Check_View_Diagnostics` (via `Record_Health_Check_Admin`) and the Check Set enables **Show Diagnostics** only while investigating |
+| Run entitlement | Executable surfaces require `Record_Health_Check_Run` (included in the User and Admin Permission Sets) |
+| Card outcomes | Lightning verification expects Pass, Fail (Failed / Warning / Info), Skipped, Unable to Check, and System Error |
+
+Do not teach or restore retired entry points. If an existing caller still uses an older shape, update
+the caller to the contracts above before treating the org as verified.
+
 ## Step 1: Validate the repository locally
 
 From the repository root, install the locked dependencies and run the release gates:

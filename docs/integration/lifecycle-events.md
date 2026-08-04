@@ -52,7 +52,9 @@ For the end-to-end model, start with [Integrate Record Health Check](../integrat
 1. Assign subscriber access to the selected platform event (object permissions on the event) and
    choose Flow, Apex, or Pub/Sub API as the subscriber technology. Custom fields on these platform
    events are not field-level-security permissionable; granting event object access is enough for
-   field visibility in subscriber UIs.
+   field visibility in subscriber UIs. The User and Admin Permission Sets grant create/read on Set
+   Run and Rule Result events. They do **not** grant `Record_Health_Check_Log__e`; grant Log object
+   access separately to the users or integration that subscribe to error diagnostics.
 2. In a sandbox, enable **Publish User Run Event** on one Check Set. Leave Rule publication off for the
    first test.
 3. Subscribe before clicking Run or Rerun; automatic page load cannot publish.
@@ -70,17 +72,20 @@ runs. Automatic Lightning record-page runs never publish.
 | `APEX_API` | Public `RecordHealthCheck` Apex methods |
 | `FLOW` | Packaged Flow actions |
 | `USER_INITIATED` | An explicit Run or Rerun action in the Lightning component |
-| `SCHEDULED` | A source-aware scheduled Apex caller |
-| `BATCH` | A source-aware batch or other asynchronous Apex caller |
-| `RUN_ON_LOAD` | Hard-blocked: never publishes |
-| `SUBSCRIBER` | Hard-blocked: never publishes |
+| `SCHEDULED` | Packaged scheduled Apex adapter |
+| `BATCH` | Packaged Batch Apex adapter |
+| `QUEUEABLE` | Packaged Queueable Apex adapter |
+| `FUTURE` | Attribution value for legacy future callers migrating to Queueable |
+| `AGENT` | Attribution value for agent/tool callers that use the public Apex API |
+| `RUN_ON_LOAD` | Lightning automatic page load; controller keeps publication off |
 
-Unknown, blank, and misspelled source values are also blocked. Source-aware Apex callers must pass
-one of the allowed constants; subscribers must use `SUBSCRIBER` to prevent event feedback loops.
+Lightning automatic loads never publish. Programmatic callers publish only when they select a
+publication mode other than `NONE` and Check Set / Rule metadata permits the event. Event
+subscribers call `enterSubscriberContext()` so nested Framework work does not publish again.
 
-The source restrictions prevent passive record-page loading from consuming event allocations and
-prevent a subscriber from triggering another event indefinitely. They also make each published
-event traceable to a deliberate Framework entry point.
+Keeping page-load publication off protects platform-event allocations. Subscriber context keeps a
+subscriber from publishing another lifecycle event indefinitely. Each published event still carries
+the caller's source so operators can see which entry point produced it.
 
 Publish failures are logged and **do not** change Rule or Check Set results.
 

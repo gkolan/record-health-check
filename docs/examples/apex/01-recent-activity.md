@@ -128,11 +128,16 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
   private static final Integer MIN_DAYS_BACK = 1;
   private static final Integer MAX_DAYS_BACK = 3650;
 
+  /** Evaluates recent activity once for the complete requested scope. */
   global Map<Id, RecordHealthCheckOutcome> evaluate(
     RecordHealthCheckScope scope
   ) {
     Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
     List<Id> recordIds = scope.recordIds;
+    if (recordIds == null || recordIds.isEmpty()) {
+      return results;
+    }
+    Set<Id> queryRecordIds = new Set<Id>(recordIds);
 
     Integer daysBack = resolveDaysBack(scope.parameters);
     if (daysBack == null) {
@@ -145,6 +150,9 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       return results;
     }
     Date cutoff = Date.today().addDays(-daysBack);
+    if (cutoff == null) {
+      return results;
+    }
 
     // Seed every Id with zero BEFORE overlaying the aggregates. An aggregate
     // returns no row at all for an Account with no activity, so a map built
@@ -159,7 +167,10 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     for (AggregateResult row : [
       SELECT WhatId whatId, COUNT(Id) total
       FROM Task
-      WHERE WhatId IN :recordIds AND IsClosed = TRUE AND ActivityDate >= :cutoff
+      WHERE
+        WhatId IN :queryRecordIds
+        AND IsClosed = TRUE
+        AND ActivityDate >= :cutoff
       WITH USER_MODE
       GROUP BY WhatId
     ]) {
@@ -173,7 +184,7 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     for (AggregateResult row : [
       SELECT WhatId whatId, COUNT(Id) total
       FROM Event
-      WHERE WhatId IN :recordIds AND ActivityDate >= :cutoff
+      WHERE WhatId IN :queryRecordIds AND ActivityDate >= :cutoff
       WITH USER_MODE
       GROUP BY WhatId
     ]) {
@@ -264,8 +275,8 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached, deduplicated IDs to evaluate; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope, such as `Account` |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `ruleDeveloperName` | `String` | Developer Name of the Rule being evaluated |
-| `checkSetDeveloperName` | `String` | Developer Name of the Check Set that supplied the Rule |
+| `ruleDeveloperName` | `String` | Qualified Rule identity (property name is historical; value is the Rule QualifiedApiName) |
+| `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a

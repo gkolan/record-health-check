@@ -8,7 +8,7 @@
 > - This page is the primary source for Show Diagnostics and the F12 console output.
 > - For every other Check Set field, use the [Configure Check Sets and Rules](configure-check-sets-and-rules.md#3-check-set-fields).
 
-Use this guide when a Rule shows **Unable to check**, behaves differently between users, or needs
+Use this guide when a Rule shows **Unable to Check**, behaves differently between users, or needs
 additional runtime evidence. Temporarily enable **Show Diagnostics** and test with authorized
 troubleshooting access.
 
@@ -44,21 +44,21 @@ Reason Codes, source details, or access failures to every user of the Lightning 
 
 ### Which Permission Set unlocks troubleshooting detail?
 
-| Permission Set | API name | Can run checks | Includes View Details |
+| Permission Set | API name | Can run checks | Includes View Diagnostics |
 | --- | --- | --- | --- |
 | Record Health Check User | `Record_Health_Check_User` | Yes | No |
 | Record Health Check Admin | `Record_Health_Check_Admin` | Yes | Yes: includes `Record_Health_Check_View_Diagnostics` |
 
 If you checked Show Diagnostics on the Check Set but still see a normal card, the most common cause is that the viewing user does not have the Permission Set named **`Record_Health_Check_Admin`**.
 
-## What View Details unlocks
+## What View Diagnostics unlocks
 
 `Record_Health_Check_View_Diagnostics` is the Custom Permission that authorizes advanced result and
 troubleshooting information. The Record Health Check Admin Permission Set includes it.
 
-| Capability | View Details required | Show Diagnostics required | What the authorized user receives |
+| Capability | View Diagnostics required | Show Diagnostics required | What the authorized user receives |
 | --- | --- | --- | --- |
-| Formula **Passes when** | Yes | No | The Formula Rule's pass condition when the row uses the Framework's default Formula comparison display. Users without View Details see the business message instead of the formula expression. |
+| Formula **Passes when** | Yes | No | The Formula Rule's pass condition when the row uses the Framework's default Formula comparison display. Users without View Diagnostics see the business message instead of the formula expression. |
 | Result troubleshooting line | Yes | Yes | Status, Reason Code, duration, and Evaluation Type beneath each result. |
 | **Troubleshooting detail** | Yes | Yes | Technical context for a Rule that returned `UNABLE_TO_EVALUATE` or `ERROR`, when detail is available. |
 | Browser-console prompt | Yes | Yes | The **Check console (F12) for diagnostics** message on the card. |

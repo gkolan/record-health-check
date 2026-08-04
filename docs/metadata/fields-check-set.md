@@ -258,9 +258,9 @@ For the complete creation flow, use [Create your first Rule](../installation/03-
 | Capacity | Checkbox |
 | Always required | No |
 | Default | **Unchecked**: `false` |
-| Used when | Optional for every Check Set; detail also requires the View Details Custom Permission. |
-| Description | <p>Enables authorized troubleshooting details on the card and in the browser console. A user sees those details only when this field is checked and the user has the "Record Health Check View Details" Custom Permission.</p><p>Other users continue to see the standard card. Enable it only while diagnosing a configuration or evaluation problem.</p> |
-| Help text | <p>Troubleshooting only. Details appear only to users with "Record Health Check View Details".</p><p>Leave unchecked during normal use.</p> |
+| Used when | Optional for every Check Set; detail also requires the View Diagnostics Custom Permission. |
+| Description | <p>Enables authorized troubleshooting details on the card and in the browser console. A user sees those details only when this field is checked and the user has the "Record Health Check View Diagnostics" Custom Permission.</p><p>Other users continue to see the standard card. Enable it only while diagnosing a configuration or evaluation problem.</p> |
+| Help text | <p>Troubleshooting only. Details appear only to users with "Record Health Check View Diagnostics".</p><p>Leave unchecked during normal use.</p> |
 | Allowed values | **Checked**: `true`<br>**Unchecked**: `false` |
 
 

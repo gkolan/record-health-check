@@ -56,7 +56,7 @@ For setup, see [Create your first Rule](../installation/03-create-your-first-rul
 
 | Piece | What it means |
 | ----- | ------------- |
-| Component instance | The Lightning record page component. It points to one Check Set through the **Check Set** picker in App Builder (`checkSetName` in the LWC, sent to Apex as `checkSetDeveloperName`). |
+| Component instance | The Lightning record page component. It points to one Check Set through the **Check Set** picker in App Builder (`checkSetName` in the LWC, stored and sent to Apex as the Check Set's `QualifiedApiName`). |
 | Check Set | A group of Rules for one base object (for example, Account). Stored in `Record_Health_Check_Set__mdt`. |
 | Rule | One individual check inside a Check Set. Stored in `Record_Health_Check_Rule__mdt`. |
 | Evaluation Type | How a Rule checks the record: Formula, Query, Compare Two Queries, or Apex. |
@@ -72,7 +72,7 @@ Rule DeveloperName: Example_Customer_Engagement_Current
 
 **Where to place the component:** Lightning **record pages** only. The component needs a record context (`recordId`). It is not exposed on App or Home pages.
 
-**App Builder property:** Select a **Check Set** from the dropdown. It lists the active Check Sets whose object matches this record page, by `DeveloperName`. When the object has exactly one active Check Set, it is selected for you. This is the only property; comparison expanders start collapsed and follow the Check Set's **Found/Expected Display** setting.
+**App Builder property:** Select a **Check Set** from the dropdown. It lists the active Check Sets whose object matches this record page. The picklist displays the Master Label and stores the `QualifiedApiName`. When the object has exactly one active Check Set, it is selected for you. This is the only property; comparison expanders start collapsed and follow the Check Set's **Found/Expected Display** setting.
 
 ## 2. What it can check
 
@@ -105,11 +105,11 @@ Every field on `Record_Health_Check_Rule__mdt` is documented in **[Rule fields](
 
 | Status | Meaning | Typical response |
 | ------ | ------- | ---------------- |
-| `PASS` | Rule ran and passed. | No action. |
-| `FAIL` | Rule ran and found a data issue. | Record or process owner. |
-| `SKIPPED` | Rule did not apply or dependency did not pass. | Review applicability or dependencies if unexpected. |
-| `UNABLE_TO_EVALUATE` | Metadata, permissions, SOQL, or data blocked safe evaluation. | Review configuration, field-level security, and the Reason Code. |
-| `ERROR` | Unexpected Framework or Apex exception. | Review the Apex plugin, Salesforce logs, and the Reason Code. |
+| `PASS` | Rule ran and passed. Card label: **Pass**. | No action. |
+| `FAIL` | Rule ran and found a data issue. Card label: **Failed**, **Warning**, or **Info** by Failure Severity. | Record or process owner. |
+| `SKIPPED` | Rule did not apply or dependency did not pass. Card label: **Skipped**. | Review applicability or dependencies if unexpected. |
+| `UNABLE_TO_EVALUATE` | Metadata, permissions, SOQL, or data blocked safe evaluation. Card label: **Unable to Check**. Setup fields say **Unable to Evaluate**. | Review configuration, field-level security, and the Reason Code. |
+| `ERROR` | Unexpected Framework or Apex exception. Card label: **System Error**. | Review the Apex plugin, Salesforce logs, and the Reason Code. |
 
 | Severity | Use when |
 | -------- | -------- |
@@ -196,6 +196,19 @@ pass/fail decision.
 | A display formula cannot be resolved | No configuration change is required. | Silently returns to the default display and never changes pass/fail. |
 | Formula type is known | Set Single-Value Formula Return Type to Number, Text, Date, or the matching type. | Avoids unnecessary FormulaEval calls in bulk and Flow runs. |
 | Formula type is uncertain | Leave Single-Value Formula Return Type as Auto. | The Framework determines the type. |
+
+### Display: Value Format
+
+**Display: Value Format** (`DisplayValueFormat__c`) controls how Found and Expected values are written
+on the card for every Evaluation Type. The default is **Auto**, which chooses a format from the
+value's type. Set an explicit format when both sides of a comparison must read in the same units,
+for example Currency, Percent, or Ratio as Percent.
+
+A format that cannot apply to a value returns the value with its original spelling. Display format
+never changes Pass, Fail, Skipped, Unable to Evaluate, or System Error.
+
+Primary contract: [Display value format](../reference/reference-display-value-format.md). Field
+catalog: [Display: Value Format](../metadata/fields-check-rule.md#display-value-format-displayvalueformat__c).
 
 ### Which Evaluation Type compares what?
 
@@ -315,7 +328,7 @@ For example, adding ` needs attention.` after that token produces `Data quality 
 Title is `Data quality`. If the Check Title is blank, it produces ` needs attention.`. Check Title is required on
 active Rules, but the same blank behavior matters for optional record fields and relationships.
 
-Append `|fallback text` when a blank value should produce clear wording instead:
+Add a quoted `fallback` attribute when a blank value should produce clear wording instead:
 
 ```text
 {!record.Parent.Name fallback="Independent account"}
@@ -504,6 +517,7 @@ Before activating a Check Set:
 - [ ] Longer panels use Category consistently for authoring (UI grouping not implemented yet), or leave it blank to group checks as Uncategorized.
 - [ ] Any Fix Message or Action URL are advisory/read-only. They can guide users on failed checks, but Record Health Check does not update records.
 - [ ] **Found/Expected Display** matches the amount of Found/Expected detail users need (`ON_DEMAND` for audit-friendly panels, `FAILURES_ONLY` for compact pass checks).
+- [ ] **Display: Value Format** is Auto unless a comparison Rule needs an explicit Number, Currency, Percent, Ratio as Percent, Checkbox, Date, Date/Time, Text, or Raw format ([Display value format](../reference/reference-display-value-format.md)).
 - [ ] Verify with a query and Compare two queries Rules have required query fields and **How To Read Query Results** set appropriately.
 - [ ] `NoRowsResult__c` is set for `ANY_ROW_PASSES` / `ALL_ROWS_PASS` / `COMPARE_AS_LISTS` Rules.
 - [ ] Apex Rules reference deployed `RecordHealthCheckRule` implementations.
@@ -519,10 +533,10 @@ Automation uses the public `RecordHealthCheck` Apex class or the separate Rule a
 
 **Runtime flow (record page):**
 
-1. LWC calls `getCheckDefinitions(checkSetDeveloperName, recordId, runId)` (not cacheable).
+1. LWC calls `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)` (not cacheable).
 2. Apex loads active Check Set, validates object, returns ordered Rule definitions.
 3. LWC coordinates runs (dependencies, concurrent evaluations, display modes, run token).
-4. Apex evaluates each Rule (applicability, dependencies, evaluator routing).
+4. Apex evaluates each Rule through `evaluateCheck(checkSetQualifiedApiName, ruleQualifiedApiName, …)` (applicability, dependencies, evaluator routing).
 5. LWC renders results and summaries. Automatic runs publish nothing; explicit Run and Rerun
    actions publish enabled Rule events and one enabled Set completion event.
 

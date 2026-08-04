@@ -19,6 +19,10 @@ Use this event for restricted technical operations and support, not readiness wo
 Use the Log event for ERROR diagnostics; use Rule Result and Set Run events for finalized
 outcomes.
 
+The packaged User and Admin Permission Sets do **not** grant create or read access on
+`Record_Health_Check_Log__e`. Grant that object access separately to the restricted users or
+integration that subscribe to error diagnostics.
+
 ## How publication works
 
 `RecordHealthCheckLogger` holds each Framework log entry whose level is `ERROR`. The public Apex,

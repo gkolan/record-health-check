@@ -19,6 +19,7 @@ const ignoredDirectories = new Set([
   "specs",
   "tasks"
 ]);
+const ignoredPathPrefixes = ["docs/development/"];
 const ignoredFiles = new Set([
   "LICENSE",
   "NOTICE",
@@ -49,10 +50,23 @@ function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     if (entry.isDirectory() && ignoredDirectories.has(entry.name)) continue;
     const entryPath = path.join(directory, entry.name);
+    const relativePath = path
+      .relative(root, entryPath)
+      .split(path.sep)
+      .join("/");
+    if (
+      ignoredPathPrefixes.some(
+        (prefix) =>
+          relativePath === prefix.slice(0, -1) ||
+          relativePath.startsWith(prefix)
+      )
+    ) {
+      continue;
+    }
     if (entry.isDirectory()) {
       if (/^v(?:1|2)(?:[._-]|$)/i.test(entry.name)) {
         failures.push(
-          `${path.relative(root, entryPath)}: remove product generation label from path`
+          `${relativePath}: remove product generation label from path`
         );
       }
       walk(entryPath);
@@ -74,13 +88,13 @@ function walk(directory) {
     for (const match of source.matchAll(productVersionLabel)) {
       const line = source.slice(0, match.index).split("\n").length;
       failures.push(
-        `${path.relative(root, entryPath)}:${line}: remove product generation label ${match[0]}`
+        `${relativePath}:${line}: remove product generation label ${match[0]}`
       );
     }
     for (const match of source.matchAll(productGenerationPhrase)) {
       const line = source.slice(0, match.index).split("\n").length;
       failures.push(
-        `${path.relative(root, entryPath)}:${line}: remove product generation phrase ${match[0]}`
+        `${relativePath}:${line}: remove product generation phrase ${match[0]}`
       );
     }
   }

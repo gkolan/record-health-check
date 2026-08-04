@@ -6,7 +6,10 @@
 
 Record Health Check is a metadata-driven framework that evaluates a Salesforce record directly on its record page. It provides read-only guidance about what needs attention, why it matters, and how to resolve it, without modifying the record or blocking users.
 
-Every Rule returns **Pass**, **Fail**, **Skipped**, or **Unable to Check**. When a record needs attention, the card can show its **Critical**, **Warning**, or **Info** severity, explain what was **Found** and **Expected**, and provide fix instructions with an optional read-only **Fix it** link.
+Every Rule returns **Pass**, **Fail**, **Skipped**, **Unable to Check**, or **System Error** on the
+card. Fail rows show **Failed**, **Warning**, or **Info** by severity. When a record needs attention,
+the card explains what was **Found** and **Expected**, and provides fix instructions with an optional
+read-only **Fix it** link.
 
 Administrators define **Check Sets** and **Rules** in Custom Metadata. The framework evaluates them at read time, so one card can review the current record, related records, aggregate results, and data that existed before the Rules were created, all without writing to the record.
 
@@ -58,12 +61,12 @@ Administrators define **Check Sets** and **Rules** in Custom Metadata. The frame
 
 ### On the record page
 
-| What users see                                        | Why it helps                                                                                |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| A Check Set card on the Lightning record page         | Guidance appears where people already work, not in a separate report or dashboard           |
-| Pass, Fail, Skipped, or Unable to Check for each Rule | Outcomes stay honest: not applicable and "could not evaluate" are not forced into pass/fail |
-| Severity, Found, and Expected on issues               | Failures show what was observed versus what the Rule required                               |
-| Fix instructions and an optional **Fix it** link      | Remediation stays in-product and read-only; the Framework never writes the record           |
+| What users see                                                      | Why it helps                                                                                                                                     |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A Check Set card on the Lightning record page                       | Guidance appears where people already work, not in a separate report or dashboard                                                                |
+| Pass, Fail, Skipped, Unable to Check, or System Error for each Rule | Outcomes stay honest: not applicable and "could not evaluate" are not forced into pass/fail; Fail rows show Failed, Warning, or Info by severity |
+| Severity, Found, and Expected on issues                             | Failures show what was observed versus what the Rule required                                                                                    |
+| Fix instructions and an optional **Fix it** link                    | Remediation stays in-product and read-only; the Framework never writes the record                                                                |
 
 ### For administrators
 

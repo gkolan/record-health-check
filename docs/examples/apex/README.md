@@ -10,12 +10,16 @@ for every requested record ID.
 
 ## Choose an Apex example
 
-| Example | Salesforce question | Distinct Framework technique |
-| --- | --- | --- |
-| [Recent Account activity](01-recent-activity.md) | Does the Account have a recent completed Task or Event? | Multiple objects and a bounded JSON activity window |
-| [Open Opportunity health](02-open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Several conditions applied to each related record plus count-query applicability |
-| [Strategic Account readiness](03-strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Weighted scoring, multiple JSON parameters, and Formula applicability |
-| [Inactive approval participants](04-inactive-approver.md) | Is a pending approval assigned to an inactive user? | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior |
+| Example | Salesforce question | Distinct Framework technique | Packaging |
+| --- | --- | --- | --- |
+| [Recent Account activity](01-recent-activity.md) | Does the Account have a recent completed Task or Event? | Multiple objects and a bounded JSON activity window | Ships in the Framework package (`force-app`) |
+| [Open Opportunity health](02-open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Several conditions applied to each related record plus count-query applicability | Integration-test fixture only (`integration-tests/`); not part of the Framework install |
+| [Strategic Account readiness](03-strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Weighted scoring, multiple JSON parameters, and Formula applicability | Integration-test fixture only (`integration-tests/`); not part of the Framework install |
+| [Inactive approval participants](04-inactive-approver.md) | Is a pending approval assigned to an inactive user? | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior | Integration-test fixture only (`integration-tests/`); not part of the Framework install |
+
+Only **Recent Account activity** installs with the Framework. The other three pages teach patterns
+from classes that live under `integration-tests/` for CI and demos. Copy them into your org when you
+want those behaviors.
 
 ## When Apex is the right choice
 

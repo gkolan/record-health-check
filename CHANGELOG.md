@@ -33,11 +33,15 @@ interfaces and product-generation terminology.
 ### Administrator experience
 
 - Lightning App Builder provides a Check Set picker filtered to the record-page object.
-- The card distinguishes Pass, Fail, Skipped, Unable to Evaluate, and System Error outcomes.
+- The card distinguishes Pass, Fail (Failed / Warning / Info by severity), Skipped, Unable to Check,
+  and System Error outcomes. Setup and API use Unable to Evaluate (`UNABLE_TO_EVALUATE`) and `ERROR`
+  for the last two statuses.
 - Found and Expected values support locale-aware Number, Currency, Percent, Ratio as Percent,
   Checkbox, Date, Date/Time, Text, and Raw display formats.
 - Optional remediation text and safe links guide a user without changing Salesforce data.
-- Example Check Sets and deterministic demo data cover Account, Contact, and Opportunity scenarios.
+- Teaching examples and deterministic demo data cover Account, Contact, and Opportunity scenarios.
+  The Framework package itself ships without business-policy Check Sets or Rules; optional starter
+  metadata lives in RecordHealthCheck-Examples and integration fixtures.
 
 ### Engineering gates
 

@@ -7,6 +7,9 @@
 >
 > Use the [Query reference](../../reference/reference-query.md) for the complete setup fields and behavior.
 
+> [!IMPORTANT]
+> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
+
 ## Scenario
 
 A service manager is preparing for the daily review of an important customer Account.

@@ -56,7 +56,7 @@ a Validation Rule or trigger would block saves org-wide.
 | Public Apex API, asynchronous adapters, and two invocable Flow actions | The same engine for automation and integrations |
 | `Record_Health_Check_Set_Run__e` and `Record_Health_Check_Rule_Result__e` | Optional lifecycle events after deliberate runs |
 | `Record_Health_Check_Log__e` | `ERROR` detail published through `RecordHealthCheckLogger.flush()` |
-| Two Permission Sets and one Custom Permission | Separate execution access from diagnostics access |
+| Two Permission Sets and two Custom Permissions | Separate run entitlement (`Record_Health_Check_Run`) from diagnostics access (`Record_Health_Check_View_Diagnostics`) |
 
 The Framework returns results and publishes events. It persists nothing: retention, reporting, and
 follow-on automation belong to platform event subscribers.
@@ -211,9 +211,10 @@ result.
 | `RecordHealthCheckRunSetFlowAction` | Flow Builder | The same for a whole Check Set |
 | `RecordHealthCheckController` | The Lightning card | Availability, definitions, one evaluate call per Rule, and `completeRun` |
 
-Each entry point supplies a **source** value that travels with the run. `APEX_API`, `FLOW`,
-`USER_INITIATED`, `SCHEDULED`, and `BATCH` are publishable. Automatic card loads carry
-`RUN_ON_LOAD`, which is not publishable, so page views generate no event volume. The browser may
+Each entry point supplies a **source** value that travels with the run. Publishable programmatic
+and deliberate sources include `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`,
+`QUEUEABLE`, `FUTURE`, and `AGENT`. Automatic card loads carry `RUN_ON_LOAD`, which the Lightning
+controller keeps non-publishable, so page views generate no lifecycle-event volume. The browser may
 request only the two Lightning values, and the server substitutes `RUN_ON_LOAD` for anything else.
 
 **Lightning record page:** the component calls `getCheckDefinitions` once, then `evaluateCheck` once
