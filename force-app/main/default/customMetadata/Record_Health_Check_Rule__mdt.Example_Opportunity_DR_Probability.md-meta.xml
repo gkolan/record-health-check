@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Deal Readiness - Probability</label><protected
+  >false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Opportunity_Deal_Readiness</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Win Probability Is Meaningful</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >An open opportunity needs a nonzero probability for a meaningful weighted forecast.</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >RISK</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >OR(IsClosed, Probability &gt; 0)</value></values>
+    <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >Probability</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >A nonzero probability consistent with {!record.Name fallback="this opportunity"}'s stage</value></values>
+    <values><field>FormulaResultType__c</field><value
+      xsi:type="xsd:string"
+    >NUMBER</value></values>
+    <values><field>DisplayValueFormat__c</field><value
+      xsi:type="xsd:string"
+    >PERCENT</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This opportunity"} contributes no weighted value because its win probability is zero.</value></values>
+    <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Reassess qualification evidence and stage. Update probability only when it reflects the deal's real confidence.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Reassess {!record.Name fallback="opportunity"} confidence</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Opportunity/{!record.Id}/edit</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Forecast confidence could not be evaluated for {!record.Name fallback="this opportunity"}. Verify Probability access and retry.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >40</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

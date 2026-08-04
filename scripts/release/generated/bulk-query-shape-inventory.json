@@ -5,6 +5,72 @@
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "rule": "Example_Contacts_Have_Email",
+    "soql": "SELECT Email FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "rule": "Example_No_High_Priority_Issues",
+    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "rule": "Example_Open_Deals_Have_Contacts",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "rule": "Example_Open_Deals_Have_Contacts",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "rule": "Example_Pipeline_Protects_Revenue",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "rule": "Example_Pipeline_Protects_Revenue",
+    "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
     "package": "integration-tests",
     "rule": "Account_Active_Signed_Contract",
     "soql": "SELECT Id FROM Contract WHERE AccountId = {!record.Id} AND Status = 'Activated' AND CustomerSignedDate != null AND EndDate >= TODAY",
@@ -1142,6 +1208,28 @@
     "rule": "Open_Pipeline_Covers_Annual_Revenue",
     "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
     "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "rule": "Example_Executive_Sponsorship",
+    "soql": "SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Role = 'Executive Sponsor' AND ContactId != null AND (Contact.Email != null OR Contact.Phone != null)",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "rule": "Example_Open_Deals_Have_Contacts",
+    "soql": "SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "strategy": "CHILD_PATH"
   },
   {
     "aggregate": true,

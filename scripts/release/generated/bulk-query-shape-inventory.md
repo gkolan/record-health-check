@@ -7,17 +7,17 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `specs/framework-contracts/04a-bulk-query-grammar.md`.
 
-**150 templates · 7 strategies · 0 unclassified**
+**158 templates · 7 strategies · 0 unclassified**
 
 ## Strategy totals
 
 | Strategy | Templates | How one scope-wide query is built |
 | --- | --- | --- |
-| `CHILD_DIRECT` | 104 | Group child rows by the lookup field that carried the token |
+| `CHILD_DIRECT` | 110 | Group child rows by the lookup field that carried the token |
 | `SELF` | 27 | Query the evaluated records themselves; correlation column is Id |
 | `TOKEN_INDIRECT` | 12 | Collect distinct token values across the scope, query them once, map back |
+| `CHILD_PATH` | 4 | Group child rows by the relationship path that carried the token |
 | `ORDERED_PICK_IN_MEMORY` | 3 | ORDER BY + LIMIT 1 on another field; rank per record in Apex |
-| `CHILD_PATH` | 2 | Group child rows by the relationship path that carried the token |
 | `ORDERED_PICK_AGGREGATE` | 1 | ORDER BY + LIMIT 1 on the selected field becomes MIN/MAX with GROUP BY |
 | `SCOPE_INVARIANT` | 1 | No record token; one query serves every record in the scope |
 
@@ -29,6 +29,12 @@ predicate to issue a single query.
 
 | Strategy | Package | Rule | Field | Correlation | Note |
 | --- | --- | --- | --- | --- | --- |
+| `CHILD_DIRECT` | force-app | `Example_Contacts_Have_Email` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_No_High_Priority_Issues` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Open_Deals_Have_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Open_Deals_Have_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Pipeline_Protects_Revenue` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Pipeline_Protects_Revenue` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Account_Active_Signed_Contract` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Account_Adv_AllOppsHaveAmount` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Account_Adv_AnyOppAbove50k` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
@@ -133,6 +139,8 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `Open_Opportunities_Have_Amount` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Open_Pipeline_Covers_Annual_Revenue` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Open_Pipeline_Covers_Annual_Revenue` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_PATH` | force-app | `Example_Executive_Sponsorship` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | force-app | `Example_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | integration-tests | `Example_Executive_Sponsorship` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | integration-tests | `Example_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `ORDERED_PICK_AGGREGATE` | integration-tests | `Account_DVF_Date` | `SourceQuery__c` | `AccountId = record.Id` | MIN/MAX(CloseDate) GROUP BY AccountId |

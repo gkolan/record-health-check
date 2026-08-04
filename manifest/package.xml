@@ -1,9 +1,62 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<!-- Record Health Check framework metadata. Optional Check Sets and Rules live in RecordHealthCheck-Examples. -->
+<!-- Record Health Check framework metadata, including Demo: Example_ starter Check Sets and Rules. -->
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members>*</members>
         <name>CustomLabel</name>
+    </types>
+    <types>
+        <members
+    >Record_Health_Check_Set__mdt.Example_Account_Profile_Readiness</members>
+        <members
+    >Record_Health_Check_Set__mdt.Example_Account_Relationship_Risk</members>
+        <members
+    >Record_Health_Check_Set__mdt.Example_Contact_Relationship_Readiness</members>
+        <members
+    >Record_Health_Check_Set__mdt.Example_Opportunity_Deal_Readiness</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Profile_Phone_Available</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Profile_Website_Available</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Profile_Industry_Classified</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Profile_Billing_Address</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Contact_RR_Email</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Contact_RR_Phone</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Contact_RR_Title</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Contact_RR_Mailing_City</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Amount</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Close_Date</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Next_Step</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Probability</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Executive_Sponsorship</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Account_Owner_Active</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Industry_Aligns_With_Parent</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Open_Deals_Have_Contacts</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Contacts_Have_Email</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Customer_Engagement_Current</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Pipeline_Protects_Revenue</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_No_High_Priority_Issues</members>
+        <members
+    >Record_Health_Check_Rule__mdt.Example_Channel_Partner_Governance</members>
+        <name>CustomMetadata</name>
     </types>
     <types>
         <members>Record_Health_Check_Rule__mdt</members>
@@ -327,7 +380,9 @@
     </types>
     <types>
         <members>Record_Health_Check_Rule__mdt.All</members>
+        <members>Record_Health_Check_Rule__mdt.Examples</members>
         <members>Record_Health_Check_Set__mdt.All</members>
+        <members>Record_Health_Check_Set__mdt.Examples</members>
         <name>ListView</name>
     </types>
     <version>66.0</version>

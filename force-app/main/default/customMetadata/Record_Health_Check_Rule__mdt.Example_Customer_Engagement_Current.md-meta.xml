@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Customer Engagement Is Current</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Relationship_Risk</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">Customer engagement is current</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Confirms that meaningful customer activity has been recorded within the last 90 days.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">TIMELINESS</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">APEX</value>
+    </values>
+    <values>
+        <field>ApexClass__c</field>
+        <value xsi:type="xsd:string">AccountHasRecentActivityCheck</value>
+    </values>
+    <values>
+        <field>ApexParametersJson__c</field>
+        <value xsi:type="xsd:string">{"daysBack": 90}</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >No meaningful activity has been logged for {!record.Name fallback="this account"} in the last 90 days.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcRule.checkTitle} could not run for {!record.Name fallback="this account"}. Verify activity access and retry.</value>
+    </values>
+    <values><field>DisplayFoundText__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcResult.foundValue} in the last 90 days</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcResult.expectedValue} in the last 90 days</value></values>
+    <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Log the latest customer interaction or schedule a concrete follow-up for {!record.Name fallback="this account"}.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Log activity for {!record.Name fallback="account"}</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Task/new?defaultFieldValues=WhatId={!record.Id}</value></values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">40</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

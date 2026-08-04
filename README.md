@@ -80,7 +80,7 @@ Administrators define **Check Sets** and **Rules** in Custom Metadata. The frame
 
 ### Also available
 
-- Optional starter Check Sets and Rules live in the separate [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples/tree/main/core-examples) repository; the Framework install adds no business-policy records
+- The Framework ships four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`) for Account, Contact, and Opportunity; additional teaching packs live in [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples)
 - `Record_Health_Check_User` and `Record_Health_Check_Admin` permission sets (runner vs configure/troubleshoot)
 - Opt-in platform events for Set runs and Rule results, plus Apex and Flow entry points for automation
 - Diagnostics gated by permission so troubleshooting detail stays off everyday cards

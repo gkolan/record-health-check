@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Open Deals Have Contacts</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Account_Relationship_Risk</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Open deals have customer contacts</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Confirms that every open opportunity identifies at least one customer contact involved in the deal.</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >RELATIONSHIP_COVERAGE</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >COMPARE_TWO_QUERIES</value></values>
+    <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false</value></values>
+    <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >coveredDeals</value></values>
+    <values><field>ComparisonQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >EQUALS</value></values>
+    <values><field>DisplayFoundText__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcResult.foundValue} open deals have a customer contact</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >Every open deal for {!record.Name fallback="this account"} has a customer contact</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >One or more open deals at {!record.Name fallback="this account"} have no customer contact identified.</value></values>
+    <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >For each uncovered deal, identify the customer involved and add them as an Opportunity Contact Role.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Connect contacts to {!record.Name fallback="account"} deals</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Customer-contact coverage could not be evaluated for {!record.Name fallback="this account"}. Verify access to Opportunities and Opportunity Contact Roles, then retry.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >WHEN_COUNT_QUERY_MATCHES</value></values>
+    <values><field>ApplicabilityCountQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value></values>
+    <values><field>ApplicabilityCountOperator__c</field><value
+      xsi:type="xsd:string"
+    >GREATER_THAN</value></values>
+    <values><field>ApplicabilityCountThreshold__c</field><value
+      xsi:type="xsd:string"
+    >0</value></values>
+    <values><field>ApplicabilityNotMetMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This account"} has no open deals requiring customer-contact coverage.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >25</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

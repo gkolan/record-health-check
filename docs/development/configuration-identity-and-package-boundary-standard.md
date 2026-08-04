@@ -1,8 +1,8 @@
 # Configuration identity and package boundary standard
 
 > [!NOTE]
-> On this page, preserve one exact Custom Metadata identity contract and keep optional business
-> configuration outside the installable Framework.
+> On this page, preserve one exact Custom Metadata identity contract and keep shipped Demo
+> Check Sets clearly labeled so administrators can distinguish starter content from org policy.
 
 Apply this standard whenever code, Flow, Lightning, events, tests, examples, or documentation
 identifies a Check Set or Rule.
@@ -51,32 +51,35 @@ safer than selecting a different record whose short name happens to match.
 same-package Custom Metadata relationship, and keying dependencies within one already-loaded Check
 Set. It is not the public selection contract.
 
-## Keep the Framework free of business policy
+## Keep Demo starter configuration explicit
 
 `force-app` contains the engine, Lightning component, permissions, Custom Metadata Type
-definitions, public APIs, and reusable evaluator code. It contains no Check Set or Rule records.
+definitions, public APIs, reusable evaluator code, and the four shipped `Example_` Demo Check Sets
+(with their Rules). Those records are teaching and sandbox-ready starters. Their `CardTitle__c`
+values start with `Demo:` so Lightning App Builder and the card make the starter status obvious.
 
-Optional starter configuration belongs in
-[`RecordHealthCheck-Examples/core-examples`](https://github.com/gkolan/RecordHealthCheck-Examples/tree/main/core-examples).
-The main repository keeps an identical fixture copy under `integration-tests` so Salesforce tests
-can exercise realistic configurations without turning those records into customer install content.
+The same 25 records are mirrored under `integration-tests/main/default/customMetadata` so local
+and CI fixture deploys stay identical to the package content. Additional teaching packs and
+learning-path metadata may still live in
+[`RecordHealthCheck-Examples`](https://github.com/gkolan/RecordHealthCheck-Examples).
 
-Do not add example-only list views, manifest members, page assignments, or documentation claims to
-the Framework package. A normal `force-app` deployment must succeed before integration fixtures
-are deployed.
+Do not add unlabeled business-policy records to the Framework package. Keep `All` list views
+unfiltered. The `Examples (Example_)` list views may filter by the `Example_` DeveloperName prefix
+for Setup browsing.
 
 ## Change procedure
 
-When adding or changing optional starter metadata:
+When adding or changing Demo starter metadata:
 
-1. Change the installable record in `RecordHealthCheck-Examples/core-examples`.
+1. Change the record in `force-app/main/default/customMetadata`.
 2. Copy the same record into `integration-tests/main/default/customMetadata`.
 3. Keep filenames and XML content identical between the two locations.
-4. Update the examples manifest and verify exact manifest-to-file parity.
-5. Confirm `force-app/main/default/customMetadata` contains no records.
-6. Deploy `force-app` alone to a clean org and run package tests.
-7. Deploy `integration-tests` separately and run the integration suite.
-8. Test subscriber-owned, `rhc`-owned, and other-package identities when lookup behavior changes.
+4. Keep Check Set `CardTitle__c` values prefixed with `Demo:`.
+5. Update `manifest/package.xml` CustomMetadata members.
+6. Confirm only the intended Demo Example_ records exist under `force-app` Custom Metadata.
+7. Deploy `force-app` alone to a clean org and run package tests.
+8. Deploy `integration-tests` separately when exercising the broader fixture suite.
+9. Test subscriber-owned, `rhc`-owned, and other-package identities when lookup behavior changes.
 
 ## Review checklist
 
@@ -86,12 +89,11 @@ Before accepting a change, answer yes to every question:
 2. Does each caller pass the exact value Salesforce returned?
 3. Is namespace guessing absent from Apex and JavaScript?
 4. Does a missing qualified identity fail closed with a useful error?
-5. Does the Framework package contain zero Check Set and Rule records?
-6. Are optional starter records isolated in the examples repository?
-7. Does `integration-tests` retain the matching fixture copy?
-8. Do manifests, documentation, setup scripts, and tests describe the same boundary?
-9. Did a Framework-only deployment pass before fixture deployment?
-10. Did the integration suite pass after fixture deployment?
+5. Are Framework Check Set card titles for Demo sets prefixed with `Demo:`?
+6. Are force-app and integration-tests Demo Example_ records identical?
+7. Do manifests, documentation, setup scripts, and tests describe the same boundary?
+8. Did a Framework-only deployment pass before broader fixture deployment?
+9. Did the integration suite pass after fixture deployment?
 
 Run `npm run check:configuration-identity` and `npm run check:package-boundary` for the repository
 guards.
@@ -103,8 +105,8 @@ guards.
 - `QualifiedApiName` is discovered from Salesforce; it is not a string-formatting convention.
 - A convenience retry hides configuration mistakes and creates namespace-specific behavior. Reject
   ambiguity.
-- Example records in the main package silently turn sample policy into installed customer policy.
-  Separate packages make consent and ownership explicit.
+- Unlabeled example records in the main package silently turn sample policy into installed customer
+  policy. Prefix Demo card titles and keep DeveloperNames under `Example_`.
 - Moving files is incomplete until list views, manifests, demo scripts, generated inventories,
   tests, and public documentation agree with the new boundary.
 - Automated documentation scores do not establish editorial quality. Human review and executable

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Profile Industry Classified</label><protected
+  >false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Account_Profile_Readiness</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Industry is classified</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Supports relevant benchmarks, segmentation, reporting, and industry-specific engagement.</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >COMPLETENESS</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(ISBLANK(TEXT(Industry)))</value></values>
+    <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >IF(ISBLANK(TEXT(Industry)), "Not classified", TEXT(Industry))</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >A verified industry classification for {!record.Name fallback="this account"}</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This account"} is not classified by industry.</value></values>
+    <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Select the industry that best represents {!record.Name fallback="this account"}'s primary business.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Classify {!record.Name fallback="account"}</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcRule.checkTitle} could not evaluate {!record.Name fallback="this account"}. Verify access to Account Industry and retry.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >30</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

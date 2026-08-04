@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Channel Partner Governance</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Relationship_Risk</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Channel partner governance is complete</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >For channel customers, confirms that the account is connected to the appropriate partner hierarchy.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">RELATIONSHIP_COVERAGE</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">FORMULA</value>
+    </values>
+    <values>
+        <field>PassConditionFormula__c</field>
+        <value xsi:type="xsd:string">NOT(ISBLANK(ParentId))</value>
+    </values>
+    <values>
+        <field>DisplayFoundFormula__c</field>
+        <value
+      xsi:type="xsd:string"
+    >IF(ISBLANK(ParentId), "No partner hierarchy assigned", Parent.Name)</value>
+    </values>
+    <values>
+        <field>DisplayExpectedFormula__c</field>
+        <value
+      xsi:type="xsd:string"
+    >"An approved channel-partner hierarchy"</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This channel account"} is not connected to an approved partner hierarchy.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Associate the account with the responsible channel partner before approving the opportunity strategy.</value>
+    </values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Connect {!record.Name fallback="partner account"} to its hierarchy</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcRule.checkTitle} could not evaluate {!record.Name fallback="this partner account"}. Verify access to Account Type and Parent Account, then retry.</value></values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">WHEN_FORMULA_TRUE</value>
+    </values>
+    <values>
+        <field>ApplicabilityFormula__c</field>
+        <value
+      xsi:type="xsd:string"
+    >ISPICKVAL(Type, "Customer - Channel")</value>
+    </values>
+    <values>
+        <field>ApplicabilityNotMetMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name} is classified as {!record.Type}. Channel partner governance applies only to Customer - Channel accounts.</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">90</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

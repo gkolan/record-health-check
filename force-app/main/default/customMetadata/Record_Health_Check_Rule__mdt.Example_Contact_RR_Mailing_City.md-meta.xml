@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Contact Readiness - Mailing City</label><protected
+  >false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Contact_Relationship_Readiness</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Business Location Is Known</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >A known business location supports regional planning and in-person engagement.</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >COMPLETENESS</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(ISBLANK(MailingCity))</value></values>
+    <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >BLANKVALUE(MailingCity, "Business location unknown")</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >A current business city for {!record.Name fallback="this contact"}</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Regional planning is incomplete because {!record.Name fallback="this contact"}'s business location is unknown.</value></values>
+    <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Confirm where the contact currently works; do not assume the Account headquarters is their location.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Set {!record.Name fallback="contact"}'s business location</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Contact/{!record.Id}/edit</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Business location could not be evaluated for {!record.Name fallback="this contact"}. Verify Mailing City access and retry.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >40</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

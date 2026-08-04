@@ -12,7 +12,7 @@ customer sandbox or production org.
 | Path                                                      | What deploys                                                          |
 | --------------------------------------------------------- | --------------------------------------------------------------------- |
 | README **Deploy** buttons (`githubsfdeploy`)              | Default package directory only: `force-app`                           |
-| `sf project deploy start --manifest manifest/package.xml` | Framework only; no business-policy Check Sets or Rules                |
+| `sf project deploy start --manifest manifest/package.xml` | Framework + four Demo Check Sets (`Example_…`, `Demo:` card titles)   |
 | `sf project deploy start` (no flags)                      | `force-app` only (this directory is not a `packageDirectories` entry) |
 | Release gate                                              | Explicit `--source-dir integration-tests` after the Framework deploy  |
 
@@ -23,7 +23,8 @@ metadata into the target org.
 
 ## Contents (high level)
 
-- Fixture Check Sets and Rules, including a retained copy of the optional core examples
+- Fixture Check Sets and Rules, including a retained copy of the four Demo `Example_` Check Sets
+  that also ship in `force-app`
 - `Account_Display_Formats`: one Check Set whose Rules cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries. Set it up with
   `./scripts/setup-display-formats.sh`, which creates a scratch org, seeds the Account and
@@ -77,8 +78,9 @@ sf apex run --file integration-tests/scripts/demo_flow_actions.apex --target-org
 `integration-tests` intentionally remains outside `sfdx-project.json`. A normal product install
 deploys only `force-app`; deploying demo fixtures always requires the explicit second command.
 
-The optional installable copy lives in the separate `RecordHealthCheck-Examples/core-examples`
-package. The copy here exists only so integration runs exercise the same configurations.
+The Framework package already includes the four Demo `Example_` Check Sets. Matching copies here
+exist so integration runs can deploy the same configurations alongside broader fixtures. Additional
+teaching packs may live in `RecordHealthCheck-Examples`.
 
 ## Example fixture data
 

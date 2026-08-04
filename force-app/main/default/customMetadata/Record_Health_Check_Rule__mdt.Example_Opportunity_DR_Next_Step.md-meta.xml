@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Deal Readiness - Next Step</label><protected
+  >false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Opportunity_Deal_Readiness</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Next Step Is Documented</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >An open deal needs a concrete next action so the team can maintain momentum.</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >READINESS</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >OR(IsClosed, NOT(ISBLANK(NextStep)))</value></values>
+    <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >IF(IsClosed, "Deal is closed", BLANKVALUE(NextStep, "No next step documented"))</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >A specific owner, action, and timing for {!record.Name fallback="this opportunity"}</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Momentum is unclear because {!record.Name fallback="this opportunity"} has no documented next step.</value></values>
+    <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Document the agreed action with enough specificity that another team member can understand who does what next and when.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Plan {!record.Name fallback="opportunity"}'s next move</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Opportunity/{!record.Id}/edit</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Deal momentum could not be evaluated for {!record.Name fallback="this opportunity"}. Verify Next Step access and retry.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >30</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

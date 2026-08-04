@@ -71,11 +71,11 @@ How it appears to users:
 - **Unable to Check:** access, setup, or available data prevented a conclusion. Setup and API call this outcome Unable to Evaluate (`UNABLE_TO_EVALUATE`).
 - **System Error:** an unexpected evaluator or platform problem occurred; review troubleshooting details. The API status is `ERROR`.
 
-Record Health Check installs without business-policy Check Sets or Rules. This keeps a production
-installation neutral: administrators deliberately create or install the configuration their org
-will enforce. The [examples library](../examples/README.md) teaches reusable patterns, while the
-optional [core examples](https://github.com/gkolan/RecordHealthCheck-Examples/tree/main/core-examples)
-provide sandbox-ready metadata in a separate repository.
+Record Health Check installs four Demo Check Sets (`Example_…`) whose card titles start with
+`Demo:` so administrators can distinguish starter content from org policy. Review or deactivate
+them before production use, and create the Check Sets your org will enforce. The
+[examples library](../examples/README.md) teaches reusable patterns; additional teaching packs may
+live in [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples).
 
 ## First troubleshooting checks
 

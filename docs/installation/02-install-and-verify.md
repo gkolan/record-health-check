@@ -15,9 +15,9 @@ permission to deploy metadata and edit Lightning record pages.
 
 ## What the install includes
 
-The documented install paths deploy only the Record Health Check Framework from `force-app` via
+The documented install paths deploy the Record Health Check Framework from `force-app` via
 `manifest/package.xml`: the engine, permission sets, Lightning component, Custom Metadata Types,
-and public APIs. The install adds no Check Sets or Rules that express business policy.
+public APIs, and four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`).
 
 They do **not** create Acme demo Account data. Those deterministic records come only from
 [Try the demo](05-create-rhc-scratch-org.md).
@@ -79,13 +79,14 @@ sf org assign permset --name Record_Health_Check_User --target-org rhc-sandbox
 Authors and troubleshooting administrators can also receive `Record_Health_Check_Admin`; do not
 assign administrative access to users who only need to run checks.
 
-## 3. Add a Check Set
+## 3. Choose or add a Check Set
 
-Create a Check Set under **Setup → Custom Metadata Types** by following
-[Create your first Rule](03-create-your-first-rule.md). If you want disposable starter
-configuration in a sandbox, install the optional
-[core examples](https://github.com/gkolan/RecordHealthCheck-Examples/tree/main/core-examples)
-separately and review every Rule before adapting it.
+The install includes four Demo Check Sets you can select immediately (Account Profile Readiness,
+Account Relationship & Risk, Contact Relationship Readiness, and Opportunity Deal Readiness).
+Review every Demo Rule before adapting it for production policy.
+
+To author your own configuration, create a Check Set under **Setup → Custom Metadata Types** by
+following [Create your first Rule](03-create-your-first-rule.md).
 
 ## 4. Add the card to a record page
 
@@ -115,7 +116,7 @@ administrator who deployed Record Health Check.
 | Symptom | What to check |
 | --- | --- |
 | The deployment reports an Apex or metadata permission error | Confirm that the authenticated user can deploy Apex and Custom Metadata. |
-| The card has no Check Set to select | Create or activate a Check Set whose Object matches the Lightning record page object. A Framework-only install intentionally starts with none. |
+| The card has no Check Set to select | Select an active Demo Check Set whose Object matches the Lightning record page object, or create and activate your own Check Set. |
 | A user cannot see or run the card | Assign `Record_Health_Check_User`, then review record, object, and field access. |
 | A Rule shows Unable to Check | Review its Reason Code, Rule configuration, and the running user's Salesforce access. |
 | A Rule shows System Error | Review the Reason Code, Apex plugin if any, Salesforce logs, and Show Diagnostics. |

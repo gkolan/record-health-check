@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Deal Readiness - Close Date</label><protected
+  >false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Opportunity_Deal_Readiness</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Close Date Is Current</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >An open opportunity should not carry a close date in the past.</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >TIMELINESS</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >OR(IsClosed, CloseDate &gt;= TODAY())</value></values>
+    <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >CloseDate</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >Today or later while {!record.Name fallback="the opportunity"} remains open</value></values>
+    <values><field>FormulaResultType__c</field><value
+      xsi:type="xsd:string"
+    >DATE</value></values>
+    <values><field>DisplayValueFormat__c</field><value
+      xsi:type="xsd:string"
+    >DATE</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This opportunity"} is still open after its close date, weakening forecast timing.</value></values>
+    <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Reconfirm the customer's decision date. Move the close date only when the revised timing is supported by a next step.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Reforecast {!record.Name fallback="opportunity"}</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Opportunity/{!record.Id}/edit</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Forecast timing could not be evaluated for {!record.Name fallback="this opportunity"}. Verify Close Date access and retry.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >20</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

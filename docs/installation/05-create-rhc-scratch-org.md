@@ -34,8 +34,8 @@ only when you no longer need that org, or choose another alias.
 Setup performs the following operations in order:
 
 1. Creates a 30-day scratch org from the checked-in definition.
-2. Deploys the Framework-only `force-app` package.
-3. Deploys the optional Check Sets and Rules from the integration-fixture copy, then deploys the demo Account record page.
+2. Deploys the Framework `force-app` package, including the four Demo Check Sets.
+3. Deploys additional integration-fixture metadata (matching Demo copies plus broader fixtures), then deploys the demo Account record page.
 4. Assigns `Record_Health_Check_Admin` to the scratch-org user.
 5. Creates the deterministic Acme data set and its inactive owner scenario.
 6. Creates the realistic Account, Contact, and Opportunity portfolio for all four optional Check Sets.

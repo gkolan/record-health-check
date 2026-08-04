@@ -95,9 +95,9 @@ Start with the [integration overview](integration/README.md) if you are unsure w
 - A normal business issue returns `FAIL`. An unexpected execution problem returns `ERROR`.
 - Formula and query evaluation uses the running user's Salesforce access.
 - Lifecycle-event publication is optional and off by default.
-- Record Health Check ships the Framework without business-policy Check Sets or Rules. Use the
-  [examples library](examples/README.md) for teaching patterns or install optional starter metadata
-  from [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples/tree/main/core-examples).
+- Record Health Check ships four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`).
+  Use the [examples library](examples/README.md) for teaching patterns; additional packs may live in
+  [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples).
 
 ## Related
 

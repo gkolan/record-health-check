@@ -40,8 +40,9 @@ interfaces and product-generation terminology.
   Checkbox, Date, Date/Time, Text, and Raw display formats.
 - Optional remediation text and safe links guide a user without changing Salesforce data.
 - Teaching examples and deterministic demo data cover Account, Contact, and Opportunity scenarios.
-  The Framework package itself ships without business-policy Check Sets or Rules; optional starter
-  metadata lives in RecordHealthCheck-Examples and integration fixtures.
+  The Framework package ships four Demo Check Sets (`Example_…`, card titles prefixed with
+  `Demo:`) plus matching integration fixtures. Additional teaching packs may live in
+  RecordHealthCheck-Examples.
 
 ### Engineering gates
 

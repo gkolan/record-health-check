@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example_Pipeline Protects Revenue</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Relationship_Risk</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">Pipeline protects the revenue base</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Tests qualified open pipeline against a dynamic target of 75% of this account's annual revenue, exposing renewal and growth risk before the forecast review.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">RISK</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">QUERY</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">pipelineTotal</value>
+    </values>
+    <values>
+        <field>ExpectedValueSource__c</field>
+        <value xsi:type="xsd:string">RECORD_FORMULA</value>
+    </values>
+    <values>
+        <field>ExpectedRecordFormula__c</field>
+        <value xsi:type="xsd:string">AnnualRevenue * 0.75</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">NUMBER</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">CURRENCY</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.foundValue} in qualified open pipeline</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >75% revenue target: {!rhcResult.expectedValue}</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">GREATER_THAN_OR_EQUAL</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">WHEN_COUNT_QUERY_MATCHES</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountOperator__c</field>
+        <value xsi:type="xsd:string">GREATER_THAN</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountThreshold__c</field>
+        <value xsi:type="xsd:string">0</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">INFO</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Open pipeline is below 75% of annual revenue ({!record.AnnualRevenue format="CURRENCY" fallback="Not available"}).</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Add or advance qualified opportunities for {!record.Name fallback="this account"} to close the coverage gap.</value>
+    </values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Close {!record.Name fallback="account"}'s pipeline gap</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value></values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcRule.checkTitle} could not be calculated for {!record.Name fallback="this account"}. Confirm access to Opportunity Amount and Account Annual Revenue, then retry.</value>
+    </values>
+    <values><field>ApplicabilityNotMetMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This account"} has no open opportunities with an amount, so pipeline coverage is not applicable.</value></values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">50</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

@@ -339,8 +339,8 @@ use the qualified names returned by Custom Metadata queries and the public Apex 
 
 Operational consequences:
 
-- The Framework deploys no business-policy Check Sets or Rules. Optional starter metadata and
-  integration fixtures remain separate from the product package.
+- The Framework deploys four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`)
+  with matching integration-fixture copies. Additional teaching packs may live outside the package.
 - Check Sets and Rules are Custom Metadata, so they deploy between orgs and version control
   alongside the classes they configure.
 - Qualified API Names are the external contract identifiers used by the Apex API, Flow actions,
@@ -433,7 +433,7 @@ For longer per-class descriptions, see [Reference: Apex classes](reference-apex-
 | `RecordHealthCheckSoqlTemplate` | SOQL safety checks, row limit, and `WITH USER_MODE` injection |
 | `RecordHealthCheckValueResolver` | Convert and compare values safely |
 | `RecordHealthCheckDescribeCache` | Describe results reused within one transaction |
-| `AccountHasRecentActivityCheck` | An evaluator used by optional starter metadata and integration fixtures |
+| `AccountHasRecentActivityCheck` | An evaluator used by the Demo `Example_Customer_Engagement_Current` Rule and integration fixtures |
 
 ### Merge tokens
 
