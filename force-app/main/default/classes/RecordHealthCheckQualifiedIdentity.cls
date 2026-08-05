@@ -1,4 +1,4 @@
-/** Canonical validation shared by every qualified metadata-identity boundary. */
+/** Shared validation for every qualified metadata-identity boundary. */
 public with sharing class RecordHealthCheckQualifiedIdentity {
   /** Trims and bounds one Rule or Check Set QualifiedApiName. */
   public static String normalize(String supplied, String label) {

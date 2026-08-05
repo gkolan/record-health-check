@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Source__c</fullName><label>Source</label><description
-  >Stores the exact direct or event-reported execution origin.</description><inlineHelpText
-  >Examples include FLOW, QUEUEABLE, BATCH, APEX, and USER_INITIATED.</inlineHelpText><length
-  >40</length><type>Text</type></CustomField>

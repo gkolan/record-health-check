@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Started_At__c</fullName><label>Started At</label><description
-  >Records when the extension began the captured execution.</description><inlineHelpText
-  >Compare with Completed At to understand elapsed wall time.</inlineHelpText><type
-  >DateTime</type></CustomField>

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Message__c</fullName><label>Message</label><description
-  >Stores rendered user guidance or the framework error message.</description><inlineHelpText
-  >This field may contain restricted diagnostic detail; share carefully.</inlineHelpText><length
-  >32768</length><visibleLines>6</visibleLines><type
-  >LongTextArea</type></CustomField>

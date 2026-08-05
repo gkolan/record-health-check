@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Action_Label__c</fullName><label>Action Label</label><description
-  >Stores the label for the Rule remediation action.</description><inlineHelpText
-  >Displayed with Action URL when the failed Rule provides a safe link.</inlineHelpText><length
-  >255</length><type>Text</type></CustomField>

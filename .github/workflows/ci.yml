@@ -36,4 +36,4 @@ jobs:
       - run: npm run check:permission-sets
       - run: npm run test:unit:coverage
       - name: Validate XML
-        run: python3 -c "import pathlib,xml.etree.ElementTree as ET; [ET.parse(p) for root in ('force-app','integration-tests','manifest','extensions/observability/force-app') for p in pathlib.Path(root).rglob('*.xml')]"
+        run: python3 -c "import pathlib,xml.etree.ElementTree as ET; [ET.parse(p) for root in ('force-app','integration-tests','manifest') for p in pathlib.Path(root).rglob('*.xml')]"

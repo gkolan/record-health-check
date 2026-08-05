@@ -76,9 +76,6 @@ PUBLISHING.md
 # Stray screenshots / build images (not referenced by docs)
 build-record-health-check-mobile.png
 
-# Deferred package metadata (local only)
-force-app/deferred/
-
 # CI / IDE artifacts
 /code-analyzer/
 .cursor/
@@ -144,12 +141,8 @@ recycle-bin/
 # Legacy GitHub Wiki source; public guidance is maintained under docs/.
 /wiki/
 
-# Personal, portable scratch-org setup kit — never tracked; meant to be movable out of the repo.
-/scratch-org-setup/
+# Personal, portable local org kit — never tracked; meant to be movable out of the repo.
+/local-orgs/
 
-# Jekyll/GitHub Pages scaffold for docs/ — kept locally, not maintaining a published static site.
-docs/_config.yml
-docs/index.html
-docs/_layouts/
-docs/_site/
-docs/assets/css/style.css
+# Local-only docs site scaffold (Jekyll/GitHub Pages preview — not published).
+docs/site/

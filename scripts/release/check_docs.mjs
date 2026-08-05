@@ -41,8 +41,10 @@ const plainLanguageAvoidList = [
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) walk(entryPath);
-    else if (entry.name.endsWith(".md")) markdownFiles.push(entryPath);
+    if (entry.isDirectory()) {
+      if (entry.name === "site") continue;
+      walk(entryPath);
+    } else if (entry.name.endsWith(".md")) markdownFiles.push(entryPath);
   }
 }
 
@@ -150,8 +152,8 @@ for (const file of projectMarkdownFiles) {
 
 const canonicalFieldAnchors = new Map();
 for (const reference of [
-  path.join(docsRoot, "metadata/fields-check-rule.md"),
-  path.join(docsRoot, "metadata/fields-check-set.md")
+  path.join(docsRoot, "metadata/02-fields-check-rule.md"),
+  path.join(docsRoot, "metadata/01-fields-check-set.md")
 ]) {
   const markdown = fs.readFileSync(reference, "utf8");
   for (const match of markdown.matchAll(/^###\s+.+\s+\(`([^`]+)`\)$/gm)) {
@@ -165,7 +167,13 @@ for (const reference of [
 for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
   const examplesDirectory = path.join(docsRoot, "examples", folder);
   const evaluationReferenceName =
-    folder === "apex" ? "apex-rule-contract.md" : `${folder}.md`;
+    folder === "formula"
+      ? "01-formula.md"
+      : folder === "query"
+        ? "02-query.md"
+        : folder === "compare-two-queries"
+          ? "03-compare-two-queries.md"
+          : "04-apex-rule-contract.md";
   const reference = path.join(
     docsRoot,
     "reference",
@@ -183,8 +191,8 @@ for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
 }
 
 for (const [objectName, referenceName] of [
-  ["Record_Health_Check_Rule__mdt", "fields-check-rule.md"],
-  ["Record_Health_Check_Set__mdt", "fields-check-set.md"]
+  ["Record_Health_Check_Rule__mdt", "02-fields-check-rule.md"],
+  ["Record_Health_Check_Set__mdt", "01-fields-check-set.md"]
 ]) {
   const reference = path.join(docsRoot, "metadata", referenceName);
   const fieldsDirectory = path.join(
@@ -202,9 +210,9 @@ for (const [objectName, referenceName] of [
 }
 
 for (const [eventName, referenceName] of [
-  ["Record_Health_Check_Set_Run__e", "event-set-run.md"],
-  ["Record_Health_Check_Rule_Result__e", "event-rule-result.md"],
-  ["Record_Health_Check_Log__e", "event-log.md"]
+  ["Record_Health_Check_Set_Run__e", "03-event-set-run.md"],
+  ["Record_Health_Check_Rule_Result__e", "04-event-rule-result.md"],
+  ["Record_Health_Check_Log__e", "05-event-log.md"]
 ]) {
   const eventReference = fs.readFileSync(
     path.join(docsRoot, "metadata", referenceName),

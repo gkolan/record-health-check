@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Rule_Qualified_Api_Name__c</fullName><label
-  >Rule Qualified API Name</label><description
-  >Identifies the Rule associated with the outcome or error.</description><inlineHelpText
-  >Blank is valid for run-level framework errors.</inlineHelpText><length
-  >120</length><type>Text</type></CustomField>

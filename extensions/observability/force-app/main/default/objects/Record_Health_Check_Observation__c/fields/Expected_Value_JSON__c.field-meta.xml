@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Expected_Value_JSON__c</fullName><label
-  >Expected Value JSON</label><description
-  >Stores the typed Expected value exactly as returned by the evaluation contract.</description><inlineHelpText
-  >Compare this structured value with Found Value JSON during triage.</inlineHelpText><length
-  >32768</length><visibleLines>4</visibleLines><type
-  >LongTextArea</type></CustomField>

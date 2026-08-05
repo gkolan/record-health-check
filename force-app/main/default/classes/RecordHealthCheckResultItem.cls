@@ -3,7 +3,7 @@
  */
 global class RecordHealthCheckResultItem {
   @AuraEnabled
-  /** Stable machine-readable evaluation. */
+  /** Stable evaluation data. */
   global RecordHealthCheckEvaluationResult evaluation;
   @AuraEnabled
   /** Optional human-facing rendering. */

@@ -27,11 +27,11 @@ SOQL, or [Apex](../apex/README.md) when the decision needs several objects, calc
 that is difficult to express declaratively.
 
 For every Query mode, comparison source, no-row behavior, empty-value option, and limit, use
-[Reference: Query](../../reference/evaluation/query.md).
+[Reference: Query](../../reference/evaluation/02-query.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Query](../../reference/evaluation/query.md)
-- [Rule fields](../../metadata/fields-check-rule.md)
-- [Configure Check Sets and Rules](../../guides/configure-check-sets-and-rules.md)
+- [Reference: Query](../../reference/evaluation/02-query.md)
+- [Rule fields](../../metadata/02-fields-check-rule.md)
+- [Configure Check Sets and Rules](../../guides/03-configure-check-sets-and-rules.md)

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ListView xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Async_Runs</fullName><filterScope>Everything</filterScope><label
-  >Batch and Queueable Runs</label><columns>NAME</columns><columns
-  >Source__c</columns><columns>Status__c</columns><columns
-  >Async_Job_Id__c</columns><columns>Record_Count__c</columns><columns
-  >Completed_At__c</columns><filters><field>Source__c</field><operation
-    >equals</operation><value>BATCH,QUEUEABLE</value></filters></ListView>

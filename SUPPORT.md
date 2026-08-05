@@ -18,20 +18,20 @@ This page explains where to get help with Record Health Check, based on what you
 Most questions are answered faster with a bit of preparation:
 
 - Note the **Check Set** and **Rule** Developer Names involved, not just the labels shown on the card.
-- Note whether **Show Diagnostics** was on, and capture the `[RHC]` summary from the browser console. See [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md).
+- Note whether **Show Diagnostics** was on, and capture the `[RHC]` summary from the browser console. See [Troubleshoot with Show Diagnostics](docs/guides/07-troubleshoot-with-show-diagnostics.md).
 - Note the org type (Production, Sandbox, or Scratch) and the Salesforce API version.
 - Redact record data, Org IDs, session IDs, and access tokens before sharing anything.
 
 ## Where to start in the docs
 
-| Situation                             | Start here                                                                                            |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| New to Record Health Check            | [How Record Health Check works](docs/installation/01-how-it-works.md)                                 |
-| Installing for the first time         | [Install and verify](docs/installation/02-install-and-verify.md)                                      |
-| A Rule is not behaving as expected    | [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md)               |
-| A result code needs explaining        | [Reason Codes](docs/reference/contracts/reason-codes.md)                                              |
-| Comparing to Validation Rules or Flow | [Compare Record Health Check to native Salesforce tools](docs/guides/compare-to-native-salesforce.md) |
-| Quick answers to common questions     | [FAQ](docs/guides/faq.md)                                                                             |
+| Situation                             | Start here                                                                                               |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| New to Record Health Check            | [How Record Health Check works](docs/installation/01-how-it-works.md)                                    |
+| Installing for the first time         | [Install and verify](docs/installation/02-install-and-verify.md)                                         |
+| A Rule is not behaving as expected    | [Troubleshoot with Show Diagnostics](docs/guides/07-troubleshoot-with-show-diagnostics.md)               |
+| A result code needs explaining        | [Reason Codes](docs/reference/contracts/01-reason-codes.md)                                              |
+| Comparing to Validation Rules or Flow | [Compare Record Health Check to native Salesforce tools](docs/guides/01-compare-to-native-salesforce.md) |
+| Quick answers to common questions     | [FAQ](docs/guides/02-faq.md)                                                                             |
 
 ## Community Slack
 

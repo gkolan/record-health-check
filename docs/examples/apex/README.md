@@ -13,9 +13,9 @@ for every requested record ID.
 | Example | Salesforce question | Distinct Framework technique | Packaging |
 | --- | --- | --- | --- |
 | [Recent Account activity](01-recent-activity.md) | Does the Account have a recent completed Task or Event? | Multiple objects and a bounded JSON activity window | Ships in the Framework package (`force-app`) |
-| [Open Opportunity health](02-open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Several conditions applied to each related record plus count-query applicability | Integration-test fixture only (`integration-tests/`); not part of the Framework install |
-| [Strategic Account readiness](03-strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Weighted scoring, multiple JSON parameters, and Formula applicability | Integration-test fixture only (`integration-tests/`); not part of the Framework install |
-| [Inactive approval participants](04-inactive-approver.md) | Is a pending approval assigned to an inactive user? | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior | Integration-test fixture only (`integration-tests/`); not part of the Framework install |
+| [Open Opportunity health](02-open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Several conditions applied to each related record plus count-query applicability | Integration-test sample only (`integration-tests/`); not part of the Framework install |
+| [Strategic Account readiness](03-strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Weighted scoring, multiple JSON parameters, and Formula applicability | Integration-test sample only (`integration-tests/`); not part of the Framework install |
+| [Inactive approval participants](04-inactive-approver.md) | Is a pending approval assigned to an inactive user? | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior | Integration-test sample only (`integration-tests/`); not part of the Framework install |
 
 Only **Recent Account activity** installs with the Framework. The other three pages teach patterns
 from classes that live under `integration-tests/` for CI and demos. Copy them into your org when you
@@ -24,7 +24,7 @@ want those behaviors.
 ## What Record Health Check passes to Apex
 
 Every Apex example uses the same bulk scope contract. Full detail lives in
-[Apex Rule contract](../../reference/evaluation/apex-rule-contract.md).
+[Apex Rule contract](../../reference/evaluation/04-apex-rule-contract.md).
 
 | Input in Apex | Where it comes from |
 | --- | --- |
@@ -46,11 +46,11 @@ schema, and carefully handled product dependencies, but it also requires secure 
 Apex test coverage.
 
 For the plugin interface, context, parameters, result contract, security, and deployment checklist,
-use [Reference: Apex](../../reference/evaluation/apex-rule-contract.md).
+use [Reference: Apex](../../reference/evaluation/04-apex-rule-contract.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Apex](../../reference/evaluation/apex-rule-contract.md)
-- [Apex API](../../api/apex-api.md)
-- [Rule fields](../../metadata/fields-check-rule.md)
+- [Reference: Apex](../../reference/evaluation/04-apex-rule-contract.md)
+- [Apex API](../../api/01-apex-api.md)
+- [Rule fields](../../metadata/02-fields-check-rule.md)

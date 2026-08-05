@@ -54,8 +54,8 @@ interfaces and product-generation terminology.
 
 For installation and verification, start with
 [Install and verify](docs/installation/02-install-and-verify.md). For the public contracts, use the
-[Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
-[Apex Rule plugin reference](docs/reference/evaluation/apex-rule-contract.md).
+[Apex API](docs/api/01-apex-api.md), [Flow actions](docs/integration/02-flow-actions.md), and
+[Apex Rule plugin reference](docs/reference/evaluation/04-apex-rule-contract.md).
 
 ## [2.0.0] - 2026-08-04
 
@@ -72,7 +72,7 @@ For installation and verification, start with
 - Install documentation states the namespaced unlocked package as the supported subscriber path,
   with source deploy reserved for contribution and scratch-org workflows.
 - Configuration identity guidance lives under
-  [Configuration identity](docs/reference/framework/configuration-identity.md).
+  [Configuration identity](docs/reference/framework/06-configuration-identity.md).
 - Technical references are grouped under `docs/reference/{framework,evaluation,contracts,apex}/`
   instead of a flat `reference-*.md` list. Old GitHub blob URLs to the previous filenames will not
   redirect.

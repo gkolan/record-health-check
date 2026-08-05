@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Record_Count__c</fullName><label>Record Count</label><description
-  >Counts records submitted in the request scope.</description><inlineHelpText
-  >Use this value to compare single-record and bulk behavior.</inlineHelpText><precision
-  >9</precision><scale>0</scale><type>Number</type></CustomField>

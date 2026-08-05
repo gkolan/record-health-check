@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Framework_Version__c</fullName><label>Framework Version</label><description
-  >Stores the Framework release that produced an event-backed observation.</description><inlineHelpText
-  >Use this to correlate failures with deployed Framework behavior.</inlineHelpText><length
-  >20</length><type>Text</type></CustomField>

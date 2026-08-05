@@ -49,7 +49,7 @@ global class RecordHealthCheckValue {
 
   /** Stable type discriminator. */
   global String dataType { get; private set; }
-  /** Canonical serialized scalar value. */
+  /** Official serialized scalar value. */
   global String storedValue { get; private set; }
 
   private List<String> storedValuesInternal;

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Found_Value_JSON__c</fullName><label>Found Value JSON</label><description
-  >Stores the typed Found value exactly as returned by the evaluation contract.</description><inlineHelpText
-  >Review field access before sharing this potentially sensitive value.</inlineHelpText><length
-  >32768</length><visibleLines>4</visibleLines><type
-  >LongTextArea</type></CustomField>

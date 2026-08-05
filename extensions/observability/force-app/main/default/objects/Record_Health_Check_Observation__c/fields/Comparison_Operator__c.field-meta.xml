@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Comparison_Operator__c</fullName><label
-  >Comparison Operator</label><description
-  >Stores the comparison operator applied by the Rule.</description><inlineHelpText
-  >Interpret Found and Expected values using this operator.</inlineHelpText><length
-  >40</length><type>Text</type></CustomField>

@@ -17,8 +17,10 @@ const files = [];
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) walk(entryPath);
-    else if (entry.name.endsWith(".md")) files.push(entryPath);
+    if (entry.isDirectory()) {
+      if (entry.name === "site") continue;
+      walk(entryPath);
+    } else if (entry.name.endsWith(".md")) files.push(entryPath);
   }
 }
 
@@ -176,17 +178,17 @@ function structureMatches(type, markdown) {
       ]);
     case "Guides home":
       return hasAll(markdown, [
-        /^## Choose a guide$/m,
         /^## Recommended path$/m,
-        /\| What you need to do \| Guide \| What you will accomplish \|/,
+        /^## Pick a task$/m,
+        /\| I want to… \| Guide \|/,
         /^## Related$/m
       ]);
     case "Technical reference home":
       return hasAll(markdown, [
-        /^## Choose a technical reference$/m,
-        /^## Choose an Evaluation Type reference$/m,
-        /^## Other reference families$/m,
-        /\| Your question \| Reference \| What it provides \|/,
+        /^## Recommended path/m,
+        /^## Evaluation Types$/m,
+        /^## Contracts$/m,
+        /\| Step \| Reference \| What it provides \|/,
         /^## Related$/m
       ]);
     case "Worked example":

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate docs/reference/contracts/field-limits.md from shipped CMDT XML.
+"""Generate docs/reference/contracts/04-field-limits.md from shipped CMDT XML.
 
 Run from the repository root with:
   python3 scripts/release/generate_field_size_registry.py
@@ -18,7 +18,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 OBJECTS = ROOT / "force-app/main/default/objects"
-OUTPUT = ROOT / "docs/reference/contracts/field-limits.md"
+OUTPUT = ROOT / "docs/reference/contracts/04-field-limits.md"
 NS = {"m": "http://soap.sforce.com/2006/04/metadata"}
 
 
@@ -54,9 +54,9 @@ def github_anchor(value):
 
 def field_link(object_name, label, field):
     page = (
-        "../../metadata/fields-check-set.md"
+        "../../metadata/01-fields-check-set.md"
         if object_name == "Record_Health_Check_Set__mdt"
-        else "../../metadata/fields-check-rule.md"
+        else "../../metadata/02-fields-check-rule.md"
     )
     anchor = github_anchor(f"{label} ({field})")
     return f"[`{field}`]({page}#{anchor})"
@@ -198,10 +198,10 @@ lines += [
     "",
     "## Related",
     "",
-    "- [Check Set fields](../../metadata/fields-check-set.md)",
-    "- [Rule fields](../../metadata/fields-check-rule.md)",
-    "- [Configuration guide](../../guides/configure-check-sets-and-rules.md)",
-    "- [Architecture](../framework/architecture.md)",
+    "- [Check Set fields](../../metadata/01-fields-check-set.md)",
+    "- [Rule fields](../../metadata/02-fields-check-rule.md)",
+    "- [Configuration guide](../../guides/03-configure-check-sets-and-rules.md)",
+    "- [Architecture](../framework/01-architecture.md)",
     "",
 ]
 content = "\n".join(lines)

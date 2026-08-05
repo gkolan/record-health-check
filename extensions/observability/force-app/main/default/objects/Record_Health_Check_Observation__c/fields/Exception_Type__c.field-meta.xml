@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Exception_Type__c</fullName><label>Exception Type</label><description
-  >Stores the Apex exception type for framework errors.</description><inlineHelpText
-  >Use exception type with Error Code to group technical failures.</inlineHelpText><length
-  >120</length><type>Text</type></CustomField>

@@ -1,5 +1,5 @@
 /**
- * Stable machine-readable result for one Rule evaluated against one record.
+ * Stable result for one Rule evaluated against one record.
  */
 global class RecordHealthCheckEvaluationResult {
   @AuraEnabled
@@ -15,7 +15,7 @@ global class RecordHealthCheckEvaluationResult {
   /** Configured failure severity. */
   global String severity;
   @AuraEnabled
-  /** Stable machine-readable reason. */
+  /** Stable reason code. */
   global String reasonCode;
   @AuraEnabled
   /** Typed value observed by the Rule. */

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Unable_Count__c</fullName><label>Unable Count</label><description
-  >Counts UNABLE_TO_EVALUATE outcomes in the response.</description><inlineHelpText
-  >Review related observations for configuration or access failures.</inlineHelpText><precision
-  >9</precision><scale>0</scale><type>Number</type></CustomField>

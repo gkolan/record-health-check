@@ -5,7 +5,7 @@
 >
 > **Setup reference**
 >
-> Use the [Query reference](../../reference/evaluation/query.md) for the complete setup fields and behavior.
+> Use the [Query reference](../../reference/evaluation/02-query.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > This configuration is illustrative teaching metadata. It is not installed by the Framework package.
@@ -55,22 +55,22 @@ In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Rec
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check-rule.md#developer-name-developername) | `Contact_Email_Excludes_Placeholder_Domain` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check-rule.md#label-masterlabel) | Contact Email Excludes Placeholder Domain |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check-rule.md#check-title-checktitle__c) | Contact Emails Exclude Placeholder Domain |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check-rule.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check-rule.md#source-query-sourcequery__c) | `SELECT Email FROM Contact WHERE AccountId = {!record.Id}` |
-| **Source Query Field** | [`SourceQueryField__c`](../../metadata/fields-check-rule.md#source-query-field-sourcequeryfield__c) | `Email` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check-rule.md#how-to-read-query-results-queryresulthandling__c) | Every record passes |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check-rule.md#comparison-operator-comparisonoperator__c) | Does not contain text |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check-rule.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/fields-check-rule.md#expected-value-fixed-expectedfixedvalue__c) | `@example.com` (**Replace with your confirmed placeholder or test domain**) |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check-rule.md#if-query-finds-no-records-norowsresult__c) | Skip |
-| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../metadata/fields-check-rule.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignore the record |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check-rule.md#max-query-rows-1-2000-maxqueryrows__c) | `200` |
-| **Display: Found Text** | [`DisplayFoundText__c`](../../metadata/fields-check-rule.md#display-found-text-displayfoundtext__c) | Count of contact emails using the placeholder domain out of the total: copy it from below the table |
-| **Display: Expected Text** | [`DisplayExpectedText__c`](../../metadata/fields-check-rule.md#display-expected-text-displayexpectedtext__c) | `No contact email uses the confirmed placeholder domain` |
+| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check-rule.md#developer-name-developername) | `Contact_Email_Excludes_Placeholder_Domain` |
+| **Label** | [`MasterLabel`](../../metadata/02-fields-check-rule.md#label-masterlabel) | Contact Email Excludes Placeholder Domain |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
+| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check-rule.md#check-title-checktitle__c) | Contact Emails Exclude Placeholder Domain |
+| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | Verify with a query |
+| **Source Query** | [`SourceQuery__c`](../../metadata/02-fields-check-rule.md#source-query-sourcequery__c) | `SELECT Email FROM Contact WHERE AccountId = {!record.Id}` |
+| **Source Query Field** | [`SourceQueryField__c`](../../metadata/02-fields-check-rule.md#source-query-field-sourcequeryfield__c) | `Email` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/02-fields-check-rule.md#how-to-read-query-results-queryresulthandling__c) | Every record passes |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/02-fields-check-rule.md#comparison-operator-comparisonoperator__c) | Does not contain text |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/02-fields-check-rule.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
+| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/02-fields-check-rule.md#expected-value-fixed-expectedfixedvalue__c) | `@example.com` (**Replace with your confirmed placeholder or test domain**) |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/02-fields-check-rule.md#if-query-finds-no-records-norowsresult__c) | Skip |
+| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../metadata/02-fields-check-rule.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignore the record |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/02-fields-check-rule.md#max-query-rows-1-2000-maxqueryrows__c) | `200` |
+| **Display: Found Text** | [`DisplayFoundText__c`](../../metadata/02-fields-check-rule.md#display-found-text-displayfoundtext__c) | Count of contact emails using the placeholder domain out of the total: copy it from below the table |
+| **Display: Expected Text** | [`DisplayExpectedText__c`](../../metadata/02-fields-check-rule.md#display-expected-text-displayexpectedtext__c) | `No contact email uses the confirmed placeholder domain` |
 
 Copy this value into **Display: Found Text**:
 
@@ -82,19 +82,19 @@ Copy this value into **Display: Found Text**:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check-rule.md#check-description-checkdescription__c) | Checks populated Contact emails for a confirmed placeholder or test domain. |
-| **Category** | [`Category__c`](../../metadata/fields-check-rule.md#category-category__c) | Consistency |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check-rule.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check-rule.md#message-when-failed-failuremessage__c) | One or more Contacts use a placeholder email domain. Replace each placeholder with a verified address or clear it according to your data policy. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Contact Email. Confirm the user can read Contact, AccountId, and Email. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check-rule.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Rule** | [`PrerequisiteRule__c`](../../metadata/fields-check-rule.md#prerequisite-rule-prerequisiterule__c) | `Has_At_Least_One_Contact` from [Customer handoff](01-customer-contact.md) |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check-rule.md#fix-message-fixmessage__c) | Review the related Contacts and correct only addresses that have been verified. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check-rule.md#action-label-actionlabel__c) | `Review contacts` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check-rule.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Contacts/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check-rule.md#evaluation-order-evaluationorder__c) | `100` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check-rule.md#active-isactive__c) | Checked only after replacing the sample domain with a confirmed value |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check-rule.md#check-description-checkdescription__c) | Checks populated Contact emails for a confirmed placeholder or test domain. |
+| **Category** | [`Category__c`](../../metadata/02-fields-check-rule.md#category-category__c) | Consistency |
+| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | One or more Contacts use a placeholder email domain. Replace each placeholder with a verified address or clear it according to your data policy. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Contact Email. Confirm the user can read Contact, AccountId, and Email. |
+| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check-rule.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Rule** | [`PrerequisiteRule__c`](../../metadata/02-fields-check-rule.md#prerequisite-rule-prerequisiterule__c) | `Has_At_Least_One_Contact` from [Customer handoff](01-customer-contact.md) |
+| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Review the related Contacts and correct only addresses that have been verified. |
+| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check-rule.md#action-label-actionlabel__c) | `Review contacts` |
+| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check-rule.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Contacts/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `100` |
+| **Active** | [`IsActive__c`](../../metadata/02-fields-check-rule.md#active-isactive__c) | Checked only after replacing the sample domain with a confirmed value |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 The prerequisite and this Rule must belong to the same Check Set. Give
 `Has_At_Least_One_Contact` a lower **Evaluation Order** so it runs first. Comparison Query, list,

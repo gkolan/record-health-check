@@ -137,7 +137,7 @@ public with sharing class RecordHealthCheckRuleValidator {
    * Formula → ApplicabilityFormula__c required
    * SOQL → ApplicabilityCountQuery__c required + single-value COUNT, ApplicabilityCountOperator__c a recognized
    * count operator, ApplicabilityCountThreshold__c present.
-   * Findings are emitted in ConfigService's historical order.
+   * Findings are returned in ConfigService's historical order.
    */
   public static List<Finding> applicabilityFindings(
     Record_Health_Check_Rule__mdt rule

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Event_Id__c</fullName><label>Event ID</label><description
-  >Stores the Framework lifecycle or log event identifier when event-backed.</description><inlineHelpText
-  >Use this identifier to reconcile an observation with Event Monitoring.</inlineHelpText><length
-  >80</length><type>Text</type></CustomField>

@@ -15,13 +15,24 @@ Record Health Check uses the same metadata-defined Check Sets and Rules across t
 integration choice changes how the evaluation starts and how the caller receives the result; it
 does not create a second configuration model.
 
+## Recommended path
+
+| Step | Guide | What you finish |
+| ---: | --- | --- |
+| 1 | [Lightning component](01-lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
+| 2 | [Flow actions](02-flow-actions.md) | Branch in automation without custom Apex |
+| 3 | [Lifecycle events](03-lifecycle-events.md) | After-commit publication behavior for independent subscribers |
+
+For Apex API patterns (sync and async), use [API examples](../api/README.md). For subscriber
+recipes, use [Platform Event subscriptions](../platform-events/README.md).
+
 ## Choose an integration
 
 | Goal | Start here | What you will learn |
 | --- | --- | --- |
-| Show health to a user on a record page | [Lightning component](lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
+| Show health to a user on a record page | [Lightning component](01-lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
 | Make an immediate or asynchronous decision in code | [API examples](../api/README.md) | Choose synchronous Apex, Queueable, Batch, or Scheduled Apex |
-| Branch in automation without custom Apex | [Flow actions](../integration/flow-actions.md) | Configure an Action and Decision element with explicit status paths |
+| Branch in automation without custom Apex | [Flow actions](../integration/02-flow-actions.md) | Configure an Action and Decision element with explicit status paths |
 | Notify independent automation after commit | [Platform Event subscriptions](../platform-events/README.md) | Build a Flow or Apex subscriber and handle replay or duplicate delivery |
 | Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/01-recent-activity.md) | Write the class used by a Verify with Apex Rule |
 
@@ -54,10 +65,10 @@ Record Health Check is not:
 
 | Goal | Start here | Immediate output | Optional event source |
 | --- | --- | --- | --- |
-| Show health on a record page | [Lightning component](lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
-| Make a code-level decision | [Apex API](../api/apex-api.md) | Typed Rule or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
-| Branch in automation without code | [Flow actions](flow-actions.md) | Flow output variables and JSON | `FLOW` |
-| React asynchronously or export results | [Platform events](lifecycle-events.md) | Event body | Depends on the publisher |
+| Show health on a record page | [Lightning component](01-lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
+| Make a code-level decision | [Apex API](../api/01-apex-api.md) | Typed Rule or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
+| Branch in automation without code | [Flow actions](02-flow-actions.md) | Flow output variables and JSON | `FLOW` |
+| React asynchronously or export results | [Platform events](03-lifecycle-events.md) | Event body | Depends on the publisher |
 | Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/01-recent-activity.md) | Normal Rule result | Inherits the calling run |
 
 ## Evaluation model
@@ -107,7 +118,7 @@ if (health.summary.failed > 0) {
 }
 ```
 
-For method overloads, fields, limits, and exceptions, use the [Apex API reference](../api/apex-api.md).
+For method overloads, fields, limits, and exceptions, use the [Apex API reference](../api/01-apex-api.md).
 
 ## Basic Flow pattern
 
@@ -117,7 +128,7 @@ For method overloads, fields, limits, and exceptions, use the [Apex API referenc
 4. Connect the fault path.
 5. Use the count outputs or Result JSON when the decision needs Rule-level detail.
 
-For every input and output, use the [Flow actions reference](flow-actions.md).
+For every input and output, use the [Flow actions reference](02-flow-actions.md).
 
 ## Synchronous results versus events
 
@@ -174,10 +185,10 @@ automation on those fields rather than administrator-authored message text.
 ## Next steps
 
 - [API examples](../api/README.md)
-- [Flow actions](../integration/flow-actions.md)
-- [Flow API pattern](../api/flow.md)
-- [Lightning component](lightning-component.md)
+- [Flow actions](../integration/02-flow-actions.md)
+- [Flow API pattern](../api/02-flow.md)
+- [Lightning component](01-lightning-component.md)
 - [Platform Event subscriptions](../platform-events/README.md)
-- [Lifecycle event behavior](lifecycle-events.md)
-- [Reason Codes](../reference/contracts/reason-codes.md)
-- [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md)
+- [Lifecycle event behavior](03-lifecycle-events.md)
+- [Reason Codes](../reference/contracts/01-reason-codes.md)
+- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Rule_Count__c</fullName><label>Rule Count</label><description
-  >Counts selected Rules reported by Framework.</description><inlineHelpText
-  >Use this with Record Count when reviewing total evaluation volume.</inlineHelpText><precision
-  >9</precision><scale>0</scale><type>Number</type></CustomField>

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Check_Set_Qualified_Api_Name__c</fullName><label
-  >Check Set Qualified API Name</label><description
-  >Identifies the selected Check Set without relying on a subscriber label.</description><inlineHelpText
-  >Enter or filter by the Custom Metadata QualifiedApiName.</inlineHelpText><length
-  >120</length><type>Text</type></CustomField>

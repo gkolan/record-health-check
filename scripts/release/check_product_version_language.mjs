@@ -14,7 +14,7 @@ const ignoredDirectories = new Set([
   "slides_build",
   "audits",
   "slides",
-  "scratch-org-setup",
+  "local-orgs",
   "spec",
   "specs",
   "tasks",

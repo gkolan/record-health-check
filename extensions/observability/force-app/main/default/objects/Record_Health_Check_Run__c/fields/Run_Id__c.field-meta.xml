@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Run_Id__c</fullName><label>Run ID</label><description
-  >Stores the correlation identifier shared by every result and error from one execution.</description><inlineHelpText
-  >Use this value to correlate Framework logs, events, and captured observations.</inlineHelpText><length
-  >120</length><externalId>true</externalId><unique>true</unique><type
-  >Text</type></CustomField>

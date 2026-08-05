@@ -1,4 +1,4 @@
-/** Proves the shipped bulk plugin passes the reusable contract harness. */
+/** Proves the shipped bulk plugin passes the reusable contract test. */
 @IsTest
 global with sharing class RecordHealthCheckRuleContractHarnessTest extends RecordHealthCheckRuleContractTest {
   global override RecordHealthCheckRule newRule() {

@@ -4,7 +4,7 @@
  */
 
 /**
- * Shared evaluator exception carrying a machine-readable reason code.
+ * Shared evaluator exception carrying a stable reason code.
  * A single top-level type lets RecordHealthCheckComparisonEngine throw
  * one exception both evaluators recognize, so their error handlers map the same
  * reason codes to UNABLE_TO_EVALUATE results.

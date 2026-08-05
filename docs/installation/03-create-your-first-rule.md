@@ -32,12 +32,12 @@ result without blocking record save or changing Account data.
 
 | Setup field | API name | Value |
 | --- | --- | --- |
-| **Label** | [`MasterLabel`](../metadata/fields-check-set.md#label-masterlabel) | Account Readiness |
-| **Developer Name** | [`DeveloperName`](../metadata/fields-check-set.md#developer-name-developername) | `Account_Readiness` |
-| **Object** | [`ObjectApiName__c`](../metadata/fields-check-set.md#object-objectapiname__c) | `Account` |
-| **Card Title** | [`CardTitle__c`](../metadata/fields-check-set.md#card-title-cardtitle__c) | Account Readiness |
-| **When Checks Run** | [`CardRunMode__c`](../metadata/fields-check-set.md#when-checks-run-cardrunmode__c) | **When the user clicks Run** (`RUN_ON_REQUEST`) |
-| **Active** | [`IsActive__c`](../metadata/fields-check-set.md#active-isactive__c) | Checked |
+| **Label** | [`MasterLabel`](../metadata/01-fields-check-set.md#label-masterlabel) | Account Readiness |
+| **Developer Name** | [`DeveloperName`](../metadata/01-fields-check-set.md#developer-name-developername) | `Account_Readiness` |
+| **Object** | [`ObjectApiName__c`](../metadata/01-fields-check-set.md#object-objectapiname__c) | `Account` |
+| **Card Title** | [`CardTitle__c`](../metadata/01-fields-check-set.md#card-title-cardtitle__c) | Account Readiness |
+| **When Checks Run** | [`CardRunMode__c`](../metadata/01-fields-check-set.md#when-checks-run-cardrunmode__c) | **When the user clicks Run** (`RUN_ON_REQUEST`) |
+| **Active** | [`IsActive__c`](../metadata/01-fields-check-set.md#active-isactive__c) | Checked |
 
 5. Select **Save**.
 
@@ -53,17 +53,17 @@ Manual execution makes the first test easier to follow because the card waits fo
 
 | Setup field | API name | Value |
 | --- | --- | --- |
-| **Label** | [`MasterLabel`](../metadata/fields-check-rule.md#label-masterlabel) | Billing City Is Populated |
-| **Developer Name** | [`DeveloperName`](../metadata/fields-check-rule.md#developer-name-developername) | `Billing_City_Is_Populated` |
-| **Check Set** | [`Record_Health_Check_Set__c`](../metadata/fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../metadata/fields-check-rule.md#check-title-checktitle__c) | Billing City is populated |
-| **Evaluation Type** | [`EvaluationType__c`](../metadata/fields-check-rule.md#evaluation-type-evaluationtype__c) | **Verify with a formula** (`FORMULA`) |
-| **Pass Condition** | [`PassConditionFormula__c`](../metadata/fields-check-rule.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCity))` |
-| **Failure Severity** | [`FailureSeverity__c`](../metadata/fields-check-rule.md#failure-severity-failureseverity__c) | **Warning** (`WARNING`) |
-| **Message When Failed** | [`FailureMessage__c`](../metadata/fields-check-rule.md#message-when-failed-failuremessage__c) | Billing City is missing. Add it before the Account review. |
-| **Fix Message** | [`FixMessage__c`](../metadata/fields-check-rule.md#fix-message-fixmessage__c) | Edit the Account billing address and rerun the check. |
-| **Evaluation Order** | [`EvaluationOrder__c`](../metadata/fields-check-rule.md#evaluation-order-evaluationorder__c) | `100` |
-| **Active** | [`IsActive__c`](../metadata/fields-check-rule.md#active-isactive__c) | Checked |
+| **Label** | [`MasterLabel`](../metadata/02-fields-check-rule.md#label-masterlabel) | Billing City Is Populated |
+| **Developer Name** | [`DeveloperName`](../metadata/02-fields-check-rule.md#developer-name-developername) | `Billing_City_Is_Populated` |
+| **Check Set** | [`Record_Health_Check_Set__c`](../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Readiness` |
+| **Check Title** | [`CheckTitle__c`](../metadata/02-fields-check-rule.md#check-title-checktitle__c) | Billing City is populated |
+| **Evaluation Type** | [`EvaluationType__c`](../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | **Verify with a formula** (`FORMULA`) |
+| **Pass Condition** | [`PassConditionFormula__c`](../metadata/02-fields-check-rule.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCity))` |
+| **Failure Severity** | [`FailureSeverity__c`](../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | **Warning** (`WARNING`) |
+| **Message When Failed** | [`FailureMessage__c`](../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | Billing City is missing. Add it before the Account review. |
+| **Fix Message** | [`FixMessage__c`](../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Edit the Account billing address and rerun the check. |
+| **Evaluation Order** | [`EvaluationOrder__c`](../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `100` |
+| **Active** | [`IsActive__c`](../metadata/02-fields-check-rule.md#active-isactive__c) | Checked |
 
 5. Select **Save**.
 
@@ -107,7 +107,7 @@ The card does not rerun automatically after a record edit. Select **Rerun** or r
 | The Rule cannot evaluate | Confirm the running user can read Account and `BillingCity` |
 | Setup changes do not appear | Refresh the record page after saving Custom Metadata |
 
-For authorized troubleshooting details, use [Troubleshoot with Show Diagnostics](../guides/troubleshoot-with-show-diagnostics.md).
+For authorized troubleshooting details, use [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md).
 
 ## What to learn next
 
@@ -115,13 +115,13 @@ For authorized troubleshooting details, use [Troubleshoot with Show Diagnostics]
 | --- | --- |
 | Add more Formula Rules | [Formula examples](../examples/README.md#formula-examples) |
 | Check Contacts, Opportunities, Cases, or other related records | [Query examples](../examples/README.md#query-examples) |
-| Understand every available field | [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md) |
-| Add a link or instruction to a failed Rule | [Configure action links](../guides/configure-action-links.md) |
-| Prepare the Check Set for release | [Configuration review checklist](../guides/configure-check-sets-and-rules.md#14-review-checklist) |
+| Understand every available field | [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md) |
+| Add a link or instruction to a failed Rule | [Configure action links](../guides/04-configure-action-links.md) |
+| Prepare the Check Set for release | [Configuration review checklist](../guides/03-configure-check-sets-and-rules.md#14-review-checklist) |
 
 ## Next steps
 
 - [Examples library](../examples/README.md)
-- [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md)
-- [Check Set fields](../metadata/fields-check-set.md)
-- [Rule fields](../metadata/fields-check-rule.md)
+- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
+- [Check Set fields](../metadata/01-fields-check-set.md)
+- [Rule fields](../metadata/02-fields-check-rule.md)

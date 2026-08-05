@@ -4,7 +4,7 @@
  */
 
 /**
- * Transaction-scoped cache for Schema describe calls. A busy record page can
+ * Describe cache for Schema describe calls for the current transaction. A busy record page can
  * evaluate many checks in one request; without caching, each field-planning
  * pass rebuilds object and field metadata and creeps toward describe limits.
  *

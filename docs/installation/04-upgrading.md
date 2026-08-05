@@ -45,7 +45,7 @@ the upgrade:
 | Apex plugins | Plugins implement bulk `RecordHealthCheckRule.evaluate(RecordHealthCheckScope)` and return one outcome per requested record ID |
 | Merge tokens | Templates use namespaced tokens and attribute fallbacks such as `{!record.Name fallback="this record"}` |
 | Diagnostics access | Troubleshooters hold `Record_Health_Check_View_Diagnostics` (via `Record_Health_Check_Admin`) and the Check Set enables **Show Diagnostics** only while investigating |
-| Run entitlement | Executable surfaces require `Record_Health_Check_Run` (included in the User and Admin Permission Sets) |
+| Run access | Executable surfaces require `Record_Health_Check_Run` (included in the User and Admin Permission Sets) |
 | Card outcomes | Lightning verification expects Pass, Fail (Failed / Warning / Info), Skipped, Unable to Check, and System Error |
 
 Do not teach or restore retired entry points. If an existing caller still uses an older shape, update
@@ -160,7 +160,7 @@ Do not resume the release until the restored org produces the retained passing a
 
 - [Install and verify](02-install-and-verify.md)
 - [Uninstall and rollback](06-uninstall-and-rollback.md)
-- [Operate in production](../guides/operate-in-production.md)
-- [Configuration review checklist](../guides/configure-check-sets-and-rules.md#14-review-checklist)
+- [Operate in production](../guides/08-operate-in-production.md)
+- [Configuration review checklist](../guides/03-configure-check-sets-and-rules.md#14-review-checklist)
 - [Integration overview](../integration/README.md)
-- [Reason Codes](../reference/contracts/reason-codes.md)
+- [Reason Codes](../reference/contracts/01-reason-codes.md)

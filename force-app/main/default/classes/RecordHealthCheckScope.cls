@@ -11,7 +11,7 @@
  * hands back a detached copy, so a plugin holding a reference cannot mutate
  * engine state.
  *
- * `source` is deliberately absent. It is telemetry the engine already owns, and
+ * `source` is deliberately absent. It is monitoring context the engine already owns, and
  * a plugin must not branch on it. Putting it in the extension contract would
  * permanently enable exactly the source-dependent behavior this architecture
  * rejects.

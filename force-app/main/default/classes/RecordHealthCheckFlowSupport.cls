@@ -12,7 +12,7 @@ public with sharing class RecordHealthCheckFlowSupport {
   public class FlowSupportException extends Exception {
   }
 
-  /** Aggregate Flow response payload exceeded its safe transaction budget. */
+  /** Aggregate Flow response exceeded its safe transaction budget. */
   public class PayloadBudgetException extends Exception {
   }
 
@@ -90,7 +90,7 @@ public with sharing class RecordHealthCheckFlowSupport {
     return indexed;
   }
 
-  /** Returns the initial aggregate payload count for one Flow invocation. */
+  /** Returns the initial aggregate response size for one Flow call. */
   public static Integer initialPayloadChars() {
     return payloadBudgetStartOverride == null ? 0 : payloadBudgetStartOverride;
   }

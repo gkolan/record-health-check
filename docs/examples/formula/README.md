@@ -27,11 +27,11 @@ relationship and the decision remains clear in Salesforce formula syntax. Use a
 runtime behavior.
 
 For every Formula setting, outcome, security rule, and limit, use
-[Reference: Formula](../../reference/evaluation/formula.md).
+[Reference: Formula](../../reference/evaluation/01-formula.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Formula](../../reference/evaluation/formula.md)
-- [Rule fields](../../metadata/fields-check-rule.md)
+- [Reference: Formula](../../reference/evaluation/01-formula.md)
+- [Rule fields](../../metadata/02-fields-check-rule.md)
 - [Create your first Rule](../../installation/03-create-your-first-rule.md)

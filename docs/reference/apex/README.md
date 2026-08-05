@@ -3,30 +3,30 @@
 > [!NOTE]
 > On this page, choose the layer-specific Apex class guide for Record Health Check. Use this
 > when reading source or extending the Framework. Writing an Apex Rule plugin? Start with
-> [Apex Rule contract](../evaluation/apex-rule-contract.md), not this folder.
+> [Apex Rule contract](../evaluation/04-apex-rule-contract.md), not this folder.
 
 This guide covers every **production** class under `force-app/main/default/classes/` (excluding
 `*Test` classes and coverage helpers). Shipped and integration-test example plugins are listed in
-[Results, definitions, and plugins](results-and-plugins.md).
+[Results, definitions, and plugins](07-results-and-plugins.md).
 
 Unless noted otherwise, Framework service classes are `public with sharing`. Result and definition
 data holders, the plugin interface, merge-token helpers, and a few other types are plain `public`
 classes (no sharing keyword) because they hold data or interfaces rather than query Salesforce
 records.
 
-## Choose a layer guide
+## Recommended path (L5 → L1)
 
-| Layer | Page |
-| --- | --- |
-| L5 Entry points | [Entry points](entry-points.md) |
-| L4 Scope orchestration | [Scope orchestration](scope-orchestration.md) |
-| L3 Evaluators | [Evaluators](evaluators.md) |
-| L2 Configuration and validation | [Configuration and validation](configuration-and-validation.md) |
-| L2 Shared evaluation services | [Shared services](shared-services.md) |
-| L2 Merge-token classes | [Merge-token classes](merge-token-classes.md) |
-| L1 Results, definitions, and plugins | [Results and plugins](results-and-plugins.md) |
-| Plugin verification harness | [Plugin verification](plugin-verification.md) |
-| Test-seam / architecture policy (contributors) | [Contributor policy: Apex test seams](test-seams.md) |
+| Step | Layer | Page |
+| ---: | --- | --- |
+| 1 | L5 Entry points | [Entry points](01-entry-points.md) |
+| 2 | L4 Scope orchestration | [Scope orchestration](02-scope-orchestration.md) |
+| 3 | L3 Evaluators | [Evaluators](03-evaluators.md) |
+| 4 | L2 Configuration and validation | [Configuration and validation](04-configuration-and-validation.md) |
+| 5 | L2 Shared evaluation services | [Shared services](05-shared-services.md) |
+| 6 | L2 Merge-token classes | [Merge-token classes](06-merge-token-classes.md) |
+| 7 | L1 Results, definitions, and plugins | [Results and plugins](07-results-and-plugins.md) |
+| 8 | Plugin verification test | [Plugin verification](08-plugin-verification.md) |
+| 9 | Test-only access / architecture policy | [Contributor policy: Apex test-only access](09-test-only-access.md) |
 
 ## How to use this guide
 
@@ -35,8 +35,8 @@ records.
 | Scan classes by layer | [Class index by level](#class-index-by-level) |
 | Understand who calls whom | [Layers at a glance](#layers-at-a-glance) |
 | Read a detailed description | The layer sections below |
-| Call the Framework from Apex or Flow | Entry points, then [Apex API](../../api/apex-api.md) / [Flow actions](../../integration/flow-actions.md) |
-| Implement `RecordHealthCheckRule` | Plugin interface classes, then [Apex reference](../evaluation/apex-rule-contract.md) |
+| Call the Framework from Apex or Flow | Entry points, then [Apex API](../../api/01-apex-api.md) / [Flow actions](../../integration/02-flow-actions.md) |
+| Implement `RecordHealthCheckRule` | Plugin interface classes, then [Apex reference](../evaluation/04-apex-rule-contract.md) |
 
 Every class entry below follows the same order, so you can find any given fact in the same place
 every time: **Role** (what it is, read in under three seconds) → **Type** (declared sharing mode or
@@ -48,7 +48,7 @@ order never changes.
 ## Layers at a glance
 
 Higher levels call lower levels. Lower levels never call back up. This matches
-[Reference: Architecture § 5. Layers](../framework/architecture.md#5-layers); the sections below use
+[Reference: Architecture § 5. Layers](../framework/01-architecture.md#5-layers); the sections below use
 the same L5→L1 numbering so you can move between the two pages without re-deriving the mapping.
 
 | Level | Layer | Classes (summary) |
@@ -68,41 +68,41 @@ readability, but all three live at **L2** in the architecture layer diagram.
 
 | Level | Class | One-line purpose |
 | --- | --- | --- |
-| L5 | [`RecordHealthCheck`](entry-points.md#recordhealthcheck) | Public Apex `evaluate(request)` API |
-| L5 | [`RecordHealthCheckController`](entry-points.md#recordhealthcheckcontroller) | Aura-enabled API for the Lightning card |
-| L5 | [`RecordHealthCheckRunRuleFlowAction`](entry-points.md#recordhealthcheckrunruleflowaction) | Packaged Flow action "Run Record Health Check Rule" |
-| L5 | [`RecordHealthCheckRunSetFlowAction`](entry-points.md#recordhealthcheckrunsetflowaction) | Packaged Flow action "Run Record Health Check Set" |
+| L5 | [`RecordHealthCheck`](01-entry-points.md#recordhealthcheck) | Public Apex `evaluate(request)` API |
+| L5 | [`RecordHealthCheckController`](01-entry-points.md#recordhealthcheckcontroller) | Aura-enabled API for the Lightning card |
+| L5 | [`RecordHealthCheckRunRuleFlowAction`](01-entry-points.md#recordhealthcheckrunruleflowaction) | Packaged Flow action "Run Record Health Check Rule" |
+| L5 | [`RecordHealthCheckRunSetFlowAction`](01-entry-points.md#recordhealthcheckrunsetflowaction) | Packaged Flow action "Run Record Health Check Set" |
 | L5 | `RecordHealthCheckQueueable` | Packaged asynchronous adapter for one bounded Check Set scope |
 | L5 | `RecordHealthCheckBatch` | Packaged adapter that splits an explicit ID population into safe transactions |
 | L5 | `RecordHealthCheckScheduled` | Lightweight scheduler that launches `RecordHealthCheckBatch` |
 | L5 | `RecordHealthCheckAsyncSupport` | Shared validation and request construction for asynchronous adapters |
 | L5 | `RecordHealthCheckFlowSupport` | Shared Flow input normalization, result alignment, and summary status logic |
 | L5 | `RecordHealthCheckFlowGroupExecutor` | Shared normalized grouping and engine execution for both Flow actions |
-| L5 | [`RecordHealthCheckLifecyclePublisher`](entry-points.md#recordhealthchecklifecyclepublisher) | Optional Set Run and Rule Result platform events |
-| L5 | [`RecordHealthCheckRunContext`](entry-points.md#recordhealthcheckruncontext) | Run id, source, and timing for one evaluation |
-| L5 | [`RecordHealthCheckSetPicklist`](entry-points.md#recordhealthchecksetpicklist) | App Builder dynamic picklist for Check Set Developer Name |
+| L5 | [`RecordHealthCheckLifecyclePublisher`](01-entry-points.md#recordhealthchecklifecyclepublisher) | Optional Set Run and Rule Result platform events |
+| L5 | [`RecordHealthCheckRunContext`](01-entry-points.md#recordhealthcheckruncontext) | Run id, source, and timing for one evaluation |
+| L5 | [`RecordHealthCheckSetPicklist`](01-entry-points.md#recordhealthchecksetpicklist) | App Builder dynamic picklist for Check Set Developer Name |
 
 ### L4 - Engine
 
 | Level | Class | One-line purpose |
 | --- | --- | --- |
-| L4 | [`RecordHealthCheckScopePipeline`](scope-orchestration.md#recordhealthcheckscopepipeline) | Resolves a selection and evaluates the complete ordered record scope |
-| L4 | [`RecordHealthCheckEvaluatorRegistry`](scope-orchestration.md#recordhealthcheckevaluatorregistry) | Maps Evaluation Type values to a common scope evaluator contract |
-| L4 | [`RecordHealthCheckFieldPlanner`](scope-orchestration.md#recordhealthcheckfieldplanner) | Safe record-field planning for scope evaluation |
-| L4 | [`RecordHealthCheckBulkQuerySupport`](scope-orchestration.md#recordhealthcheckbulkquerysupport) | Executes supported query templates once for a complete scope |
-| L4 | [`RecordHealthCheckBulkQueryRewriter`](scope-orchestration.md#recordhealthcheckbulkqueryrewriter) | Rewrites validated query templates for scope-wide execution |
-| L4 | [`RecordHealthCheckScopePlanner`](scope-orchestration.md#recordhealthcheckscopeplanner) | Resolves selections, applicability, prerequisites, and request budgets |
-| L4 | [`RecordHealthCheckScopeResultSupport`](scope-orchestration.md#recordhealthcheckscoperesultsupport) | Converts internal outcomes, diagnostics, display text, and safe URLs |
+| L4 | [`RecordHealthCheckScopePipeline`](02-scope-orchestration.md#recordhealthcheckscopepipeline) | Resolves a selection and evaluates the complete ordered record scope |
+| L4 | [`RecordHealthCheckEvaluatorRegistry`](02-scope-orchestration.md#recordhealthcheckevaluatorregistry) | Maps Evaluation Type values to a common scope evaluator contract |
+| L4 | [`RecordHealthCheckFieldPlanner`](02-scope-orchestration.md#recordhealthcheckfieldplanner) | Safe record-field planning for scope evaluation |
+| L4 | [`RecordHealthCheckBulkQuerySupport`](02-scope-orchestration.md#recordhealthcheckbulkquerysupport) | Executes supported query templates once for a complete scope |
+| L4 | [`RecordHealthCheckBulkQueryRewriter`](02-scope-orchestration.md#recordhealthcheckbulkqueryrewriter) | Rewrites validated query templates for scope-wide execution |
+| L4 | [`RecordHealthCheckScopePlanner`](02-scope-orchestration.md#recordhealthcheckscopeplanner) | Resolves selections, applicability, prerequisites, and request budgets |
+| L4 | [`RecordHealthCheckScopeResultSupport`](02-scope-orchestration.md#recordhealthcheckscoperesultsupport) | Converts internal outcomes, diagnostics, display text, and safe URLs |
 
 ### L3 - Evaluators
 
 | Level | Class | One-line purpose |
 | --- | --- | --- |
-| L3 | [`RecordHealthCheckFormulaEvaluator`](evaluators.md#recordhealthcheckformulaevaluator) | Formula Evaluation Type and shared formula resolution |
-| L3 | [`RecordHealthCheckSoqlEvaluator`](evaluators.md#recordhealthchecksoqlevaluator) | Single-query Evaluation Type |
-| L3 | [`RecordHealthCheckCompareQueriesEvaluator`](evaluators.md#recordhealthcheckcomparequeriesevaluator) | Compare-two-queries Evaluation Type |
-| L3 | [`RecordHealthCheckApexEvaluator`](evaluators.md#recordhealthcheckapexevaluator) | Loads and runs a `RecordHealthCheckRule` plugin |
-| L3 | [`RecordHealthCheckQueryEvaluatorSupport`](evaluators.md#recordhealthcheckqueryevaluatorsupport) | Shared query execution and empty-result handling |
+| L3 | [`RecordHealthCheckFormulaEvaluator`](03-evaluators.md#recordhealthcheckformulaevaluator) | Formula Evaluation Type and shared formula resolution |
+| L3 | [`RecordHealthCheckSoqlEvaluator`](03-evaluators.md#recordhealthchecksoqlevaluator) | Single-query Evaluation Type |
+| L3 | [`RecordHealthCheckCompareQueriesEvaluator`](03-evaluators.md#recordhealthcheckcomparequeriesevaluator) | Compare-two-queries Evaluation Type |
+| L3 | [`RecordHealthCheckApexEvaluator`](03-evaluators.md#recordhealthcheckapexevaluator) | Loads and runs a `RecordHealthCheckRule` plugin |
+| L3 | [`RecordHealthCheckQueryEvaluatorSupport`](03-evaluators.md#recordhealthcheckqueryevaluatorsupport) | Shared query execution and empty-result handling |
 | L3 | `RecordHealthCheckApexResultFinalizer` | Finalizes plugin outcomes without mixing result shaping into dispatch |
 | L3 | `RecordHealthCheckApexPluginResolver` | Resolves validated plugin instances and bounded parameter objects |
 | L3 | `RecordHealthCheckCompareQuerySupport` | Owns compare-query row reduction and side-specific handling |
@@ -116,29 +116,29 @@ readability, but all three live at **L2** in the architecture layer diagram.
 
 | Level | Class | One-line purpose |
 | --- | --- | --- |
-| L2 | [`RecordHealthCheckConfigService`](configuration-and-validation.md#recordhealthcheckconfigservice) | Load Check Sets/Rules; definitions; runtime validation adapter |
-| L2 | [`RecordHealthCheckRuleValidator`](configuration-and-validation.md#recordhealthcheckrulevalidator) | Shared per-Evaluation-Type Rule field validation |
-| L2 | [`RecordHealthCheckMetadataValidator`](configuration-and-validation.md#recordhealthcheckmetadatavalidator) | Deploy-time / CI audit of Custom Metadata |
-| L2 | [`RecordHealthCheckConfigValidator`](configuration-and-validation.md#recordhealthcheckconfigvalidator) | Shared validation helpers (object names, plugins, JSON, tokens) |
-| L2 | [`RecordHealthCheckConstants`](configuration-and-validation.md#recordhealthcheckconstants) | Allowed values and numeric limits (single source of truth) |
-| L2 | [`RecordHealthCheckReasonCodes`](configuration-and-validation.md#recordhealthcheckreasoncodes) | Selected stable reason-code helpers |
-| L2 | [`RecordHealthCheckSetAvailability`](configuration-and-validation.md#recordhealthchecksetavailability) | Whether an object has active/inactive Check Sets |
-| L2 | [`RecordHealthCheckComparisonEngine`](shared-services.md#recordhealthcheckcomparisonengine) | Operators, equality, empty/null behavior |
-| L2 | [`RecordHealthCheckDisplayFormat`](shared-services.md#recordhealthcheckdisplayformat) | Renders Found and Expected values for the card chips |
-| L2 | [`RecordHealthCheckSoqlTemplate`](shared-services.md#recordhealthchecksoqltemplate) | Safe SOQL preparation (`WITH USER_MODE`, row limit, keyword rejection) |
-| L2 | [`RecordHealthCheckValueResolver`](shared-services.md#recordhealthcheckvalueresolver) | Extract, convert, and compare query values |
-| L2 | [`RecordHealthCheckDescribeCache`](shared-services.md#recordhealthcheckdescribecache) | Schema describe cache for the current transaction |
-| L2 | [`RecordHealthCheckEvaluatorException`](shared-services.md#recordhealthcheckevaluatorexception) | Evaluator failure carrying a reason code |
-| L2 | [`RecordHealthCheckAccess`](shared-services.md#recordhealthcheckaccess) | Diagnostics Custom Permission check |
-| L2 | [`RecordHealthCheckLogger`](shared-services.md#recordhealthchecklogger) | `[RHC]` debug lines and ERROR log platform events |
+| L2 | [`RecordHealthCheckConfigService`](04-configuration-and-validation.md#recordhealthcheckconfigservice) | Load Check Sets/Rules; definitions; runtime validation adapter |
+| L2 | [`RecordHealthCheckRuleValidator`](04-configuration-and-validation.md#recordhealthcheckrulevalidator) | Shared per-Evaluation-Type Rule field validation |
+| L2 | [`RecordHealthCheckMetadataValidator`](04-configuration-and-validation.md#recordhealthcheckmetadatavalidator) | Deploy-time / CI audit of Custom Metadata |
+| L2 | [`RecordHealthCheckConfigValidator`](04-configuration-and-validation.md#recordhealthcheckconfigvalidator) | Shared validation helpers (object names, plugins, JSON, tokens) |
+| L2 | [`RecordHealthCheckConstants`](04-configuration-and-validation.md#recordhealthcheckconstants) | Allowed values and numeric limits (single source of truth) |
+| L2 | [`RecordHealthCheckReasonCodes`](04-configuration-and-validation.md#recordhealthcheckreasoncodes) | Selected stable reason-code helpers |
+| L2 | [`RecordHealthCheckSetAvailability`](04-configuration-and-validation.md#recordhealthchecksetavailability) | Whether an object has active/inactive Check Sets |
+| L2 | [`RecordHealthCheckComparisonEngine`](05-shared-services.md#recordhealthcheckcomparisonengine) | Operators, equality, empty/null behavior |
+| L2 | [`RecordHealthCheckDisplayFormat`](05-shared-services.md#recordhealthcheckdisplayformat) | Renders Found and Expected values for the card chips |
+| L2 | [`RecordHealthCheckSoqlTemplate`](05-shared-services.md#recordhealthchecksoqltemplate) | Safe SOQL preparation (`WITH USER_MODE`, row limit, keyword rejection) |
+| L2 | [`RecordHealthCheckValueResolver`](05-shared-services.md#recordhealthcheckvalueresolver) | Extract, convert, and compare query values |
+| L2 | [`RecordHealthCheckDescribeCache`](05-shared-services.md#recordhealthcheckdescribecache) | Schema describe cache for the current transaction |
+| L2 | [`RecordHealthCheckEvaluatorException`](05-shared-services.md#recordhealthcheckevaluatorexception) | Evaluator failure carrying a reason code |
+| L2 | [`RecordHealthCheckAccess`](05-shared-services.md#recordhealthcheckaccess) | Diagnostics Custom Permission check |
+| L2 | [`RecordHealthCheckLogger`](05-shared-services.md#recordhealthchecklogger) | `[RHC]` debug lines and ERROR log platform events |
 | L2 | `RecordHealthCheckDiagnosticTrace` | Builds authorized Rule configuration and resolution snapshots for browser diagnostics |
 | L2 | `RecordHealthCheckSettingsProvider` | Resolves lifecycle and diagnostic publication settings |
-| L2 | [`RecordHealthCheckTemplateService`](merge-token-classes.md#recordhealthchecktemplateservice) | Parse, validate, and resolve namespaced merge tokens and their optional fallback text |
+| L2 | [`RecordHealthCheckTemplateService`](06-merge-token-classes.md#recordhealthchecktemplateservice) | Parse, validate, and resolve namespaced merge tokens and their optional fallback text |
 | L2 | `RecordHealthCheckTemplateValueResolver` | Resolves namespace-specific values from the runtime merge context |
-| L2 | [`RecordHealthCheckTokenRegistry`](merge-token-classes.md#recordhealthchecktokenregistry) | Allowed token namespaces and properties |
-| L2 | [`RecordHealthCheckToken`](merge-token-classes.md#recordhealthchecktoken) | One parsed merge token |
-| L2 | [`RecordHealthCheckTokenIssue`](merge-token-classes.md#recordhealthchecktokenissue) | One token validation failure |
-| L2 | [`RecordHealthCheckMergeContext`](merge-token-classes.md#recordhealthcheckmergecontext) | Values available while resolving merge tokens |
+| L2 | [`RecordHealthCheckTokenRegistry`](06-merge-token-classes.md#recordhealthchecktokenregistry) | Allowed token namespaces and properties |
+| L2 | [`RecordHealthCheckToken`](06-merge-token-classes.md#recordhealthchecktoken) | One parsed merge token |
+| L2 | [`RecordHealthCheckTokenIssue`](06-merge-token-classes.md#recordhealthchecktokenissue) | One token validation failure |
+| L2 | [`RecordHealthCheckMergeContext`](06-merge-token-classes.md#recordhealthcheckmergecontext) | Values available while resolving merge tokens |
 | L2 | `RecordHealthCheckComparisonDisplay` | Converts comparison operands into stable display content |
 | L2 | `RecordHealthCheckConfigFindingMapper` | Maps validation findings to runtime configuration results |
 | L2 | `RecordHealthCheckDefinitionLoader` | Loads and validates Lightning definition metadata |
@@ -170,31 +170,31 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L1 | `RecordHealthCheckRequest` | Qualified selection and detached record scope |
 | L1 | `RecordHealthCheckResponse` | Shared Rule and Check Set response envelope |
 | L1 | `RecordHealthCheckRunSummary` | Terminal status counts for one response |
-| L1 | `RecordHealthCheckRuleContractTest` | Extensible plugin verification harness for bulk growth and prohibited effects |
-| L1 | `RecordHealthCheckRuleContractTestData` | Plugin-author supplied scopes and controlled permission fixture |
-| L1 | `RecordHealthCheckStatus` | The status vocabulary: PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, ERROR |
+| L1 | `RecordHealthCheckRuleContractTest` | Extensible plugin verification test for bulk growth and forbidden writes |
+| L1 | `RecordHealthCheckRuleContractTestData` | Plugin-author supplied scopes and controlled least-privilege test data |
+| L1 | `RecordHealthCheckStatus` | The status values: PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, ERROR |
 | L1 | `RecordHealthCheckResultMode` | Selects how much data a result carries |
 | L1 | `RecordHealthCheckEventPublication` | Whether a programmatic run publishes lifecycle Platform Events |
-| L1 | `RecordHealthCheckPluginDispatch` | Runs a custom Rule and holds it to its contract, including the side-effect fence |
+| L1 | `RecordHealthCheckPluginDispatch` | Runs a custom Rule and holds it to its contract, including the write check that blocks DML, callouts, email, events, and async work |
 
-| L1 | [`RecordHealthCheckDefinition`](results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | One Rule row in the Lightning definition response |
-| L1 | [`RecordHealthCheckDefinitionResponse`](results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | Check Set display settings + ordered Rule definitions |
-| L1 | [`RecordHealthCheckAdminDetail`](results-and-plugins.md#recordhealthcheckadmindetail) | Structured diagnostics detail on a Rule result |
-| L1 | [`RecordHealthCheckValueSource`](results-and-plugins.md#recordhealthcheckvaluesource) | Structured Found/Expected diagnostic detail |
-| L1 | [`RecordHealthCheckRule`](results-and-plugins.md#recordhealthcheckrule-interface) | Interface every Apex evaluator plugin implements |
+| L1 | [`RecordHealthCheckDefinition`](07-results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | One Rule row in the Lightning definition response |
+| L1 | [`RecordHealthCheckDefinitionResponse`](07-results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | Check Set display settings + ordered Rule definitions |
+| L1 | [`RecordHealthCheckAdminDetail`](07-results-and-plugins.md#recordhealthcheckadmindetail) | Structured diagnostics detail on a Rule result |
+| L1 | [`RecordHealthCheckValueSource`](07-results-and-plugins.md#recordhealthcheckvaluesource) | Structured Found/Expected diagnostic detail |
+| L1 | [`RecordHealthCheckRule`](07-results-and-plugins.md#recordhealthcheckrule-interface) | Interface every Apex evaluator plugin implements |
 
 ### Example plugins
 
 | Level | Class | One-line purpose |
 | --- | --- | --- |
-| Example | [`AccountHasRecentActivityCheck`](results-and-plugins.md#accounthasrecentactivitycheck) | Shipped Apex Rule: recent Task/Event activity on an Account |
+| Example | [`AccountHasRecentActivityCheck`](07-results-and-plugins.md#accounthasrecentactivitycheck) | Shipped Apex Rule: recent Task/Event activity on an Account |
 
 ---
 
 
 ## Related
 
-- [Architecture](../framework/architecture.md)
-- [Apex Rule contract](../evaluation/apex-rule-contract.md)
-- [Apex API](../../api/apex-api.md)
-- [Flow actions](../../integration/flow-actions.md)
+- [Architecture](../framework/01-architecture.md)
+- [Apex Rule contract](../evaluation/04-apex-rule-contract.md)
+- [Apex API](../../api/01-apex-api.md)
+- [Flow actions](../../integration/02-flow-actions.md)

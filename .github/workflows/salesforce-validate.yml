@@ -45,7 +45,7 @@ jobs:
         run: npm run check:package-boundary
       - name: Verify query-shape inventory
         run: npm run check:query-shapes
-      - name: Enforce Apex architecture and test-seam policy
+      - name: Enforce Apex architecture and test-only access policy
         run: npm run check:apex-architecture
       - name: Verify documentation contracts
         run: npm run check:docs
@@ -73,10 +73,6 @@ jobs:
         run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy production package artifact
         run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --wait 30
-      - name: Dry-run observability extension deployment
-        run: sf project deploy start --source-dir extensions/observability/force-app --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
-      - name: Deploy observability extension and tests
-        run: sf project deploy start --source-dir extensions/observability/force-app --target-org rhc-ci --test-level RunLocalTests --wait 30
       - name: Dry-run integration harness deployment
         run: sf project deploy start --source-dir integration-tests --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy integration fixtures and fixture-dependent tests
@@ -96,12 +92,12 @@ jobs:
       - name: Run blocking Code Analyzer release-policy gate
         run: |
           mkdir -p code-analyzer/logs
-          sf code-analyzer run --workspace force-app --workspace integration-tests --workspace extensions/observability/force-app --rule-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
+          sf code-analyzer run --workspace force-app --workspace integration-tests --rule-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
       - name: Run all-rules neutral advisory debt audit
         if: always()
         continue-on-error: true
         run: |
-          sf code-analyzer run --workspace force-app --workspace integration-tests --workspace extensions/observability/force-app --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
+          sf code-analyzer run --workspace force-app --workspace integration-tests --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
       - name: Upload Code Analyzer evidence
         if: always()
         uses: actions/upload-artifact@v4

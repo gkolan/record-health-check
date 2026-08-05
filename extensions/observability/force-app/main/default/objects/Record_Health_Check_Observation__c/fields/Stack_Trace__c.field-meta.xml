@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Stack_Trace__c</fullName><label>Stack Trace</label><description
-  >Stores the Apex stack trace published by the enabled Framework error log.</description><inlineHelpText
-  >Restrict this field to administrators and support personnel.</inlineHelpText><length
-  >32768</length><visibleLines>10</visibleLines><type
-  >LongTextArea</type></CustomField>

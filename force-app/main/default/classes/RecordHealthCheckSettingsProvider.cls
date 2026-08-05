@@ -43,7 +43,7 @@ public virtual with sharing class RecordHealthCheckSettingsProvider {
     return enabledRules;
   }
 
-  /** Query seam keeps metadata-backed publication filtering independently testable. */
+  /** Query method kept overridable so metadata-backed publication filtering stays independently testable. */
   protected virtual List<Record_Health_Check_Rule__mdt> queryPublishedRules(
     String checkSetQualifiedApiName
   ) {

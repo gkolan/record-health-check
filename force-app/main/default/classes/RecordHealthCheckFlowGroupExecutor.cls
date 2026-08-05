@@ -81,7 +81,7 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
     return plan.idsByGroup.size() > RecordHealthCheckConstants.MAX_FLOW_GROUPS;
   }
 
-  /** Creates the canonical grouping key for one identity/publication pair. */
+  /** Creates the official grouping key for one identity/publication pair. */
   public static String key(String identity, String publication) {
     return JSON.serialize(
       new List<String>{

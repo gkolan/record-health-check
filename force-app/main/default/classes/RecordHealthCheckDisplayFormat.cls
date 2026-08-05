@@ -165,7 +165,7 @@ public with sharing class RecordHealthCheckDisplayFormat {
     return KNOWN_FORMATS.contains(trimmed) ? trimmed : FORMAT_AUTO;
   }
 
-  /** True only for a canonical uppercase Display: Value Format API name. */
+  /** True only for an official uppercase Display: Value Format API name. */
   public static Boolean isFormatApiName(String format) {
     return String.isNotBlank(format) && KNOWN_FORMATS.contains(format);
   }

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Last_Event_Id__c</fullName><label>Last Event ID</label><description
-  >Stores the most recent lifecycle event identifier applied to the run.</description><inlineHelpText
-  >Use this identifier when diagnosing duplicate or delayed event delivery.</inlineHelpText><length
-  >80</length><type>Text</type></CustomField>

@@ -9,7 +9,7 @@ Apex callers, Flow integrations, or Platform Event subscribers.
 
 **Not sure you need this Framework yet?** Start with
 [How it works](01-how-it-works.md) and
-[Compare to native Salesforce](../guides/compare-to-native-salesforce.md) before you install.
+[Compare to native Salesforce](../guides/01-compare-to-native-salesforce.md) before you install.
 
 ## Choose your path
 
@@ -41,5 +41,5 @@ business outcomes, integrations, event subscribers, and rollback evidence.
 - [Documentation home](../README.md): task map for install, configure, integrate, and reference
 - [Examples library](../examples/README.md): learn through complete Salesforce scenarios
 - [Metadata reference](../metadata/README.md): look up current Setup labels, API names, allowed values, and defaults
-- [Operate in production](../guides/operate-in-production.md): day-2 monitoring and diagnostics hygiene
+- [Operate in production](../guides/08-operate-in-production.md): day-2 monitoring and diagnostics hygiene
 - [Uninstall and rollback](06-uninstall-and-rollback.md): remove an installation safely

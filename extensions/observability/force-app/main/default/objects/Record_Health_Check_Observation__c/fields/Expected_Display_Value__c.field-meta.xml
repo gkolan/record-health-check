@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Expected_Display_Value__c</fullName><label
-  >Expected Display Value</label><description
-  >Stores the human-formatted Expected value when display content was requested.</description><inlineHelpText
-  >Use this presentation value for administrator review, not integrations.</inlineHelpText><length
-  >32768</length><visibleLines>3</visibleLines><type
-  >LongTextArea</type></CustomField>

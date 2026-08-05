@@ -15,10 +15,10 @@ global abstract class RecordHealthCheckRuleContractTest {
   /** Returns a new plugin instance for each measured scope. */
   global abstract RecordHealthCheckRule newRule();
 
-  /** Returns the author's scope and optional permission fixture provider. */
+  /** Returns the author's scope and optional permission test-data provider. */
   global abstract RecordHealthCheckRuleContractTestData testData();
 
-  /** Runs the complete bulk, coverage, side-effect, and permission evidence suite. */
+  /** Runs the complete bulk, coverage, forbidden-write, and permission evidence suite. */
   global void verifyContract() {
     List<Integer> queryDeltas = new List<Integer>();
     for (Integer size : SCOPE_SIZES) {
@@ -90,11 +90,11 @@ global abstract class RecordHealthCheckRuleContractTest {
       .permissionFixture();
     System.Assert.isTrue(
       fixture == null || hasPermissionEvidence(newRule(), fixture),
-      'The controlled permission fixture must yield the expected status without leaking values.'
+      'The controlled permission test setup must yield the expected status without leaking values.'
     );
   }
 
-  /** Evaluates measured query deltas without throwing, for harness self-tests. */
+  /** Evaluates measured query deltas without throwing, for contract self-tests. */
   global static Boolean hasStableQueryGrowth(List<Integer> queryDeltas) {
     if (queryDeltas == null || queryDeltas.isEmpty()) {
       return false;
@@ -108,7 +108,7 @@ global abstract class RecordHealthCheckRuleContractTest {
     return true;
   }
 
-  /** Runs one controlled least-privilege fixture without claiming access-mode proof. */
+  /** Runs one controlled least-privilege test setup without claiming access-mode proof. */
   global static Boolean hasPermissionEvidence(
     RecordHealthCheckRule rule,
     RecordHealthCheckRuleContractTestData.PermissionFixture fixture

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >System_Error_Count__c</fullName><label>System Error Count</label><description
-  >Counts ERROR outcomes in the response.</description><inlineHelpText
-  >Treat nonzero values as operational failures requiring investigation.</inlineHelpText><precision
-  >9</precision><scale>0</scale><type>Number</type></CustomField>

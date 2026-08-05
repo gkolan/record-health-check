@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Completed_At__c</fullName><label>Completed At</label><description
-  >Records when response capture or lifecycle-event processing completed.</description><inlineHelpText
-  >Blank means the run has not received a terminal update.</inlineHelpText><type
-  >DateTime</type></CustomField>

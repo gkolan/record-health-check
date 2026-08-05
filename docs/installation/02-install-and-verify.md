@@ -77,7 +77,7 @@ ORDER BY QualifiedApiName
 ```
 
 Use the `QualifiedApiName` value exactly when Apex, Flow, or docs ask for a Check Set identity. See
-[Configuration identity](../reference/framework/configuration-identity.md) if you call the Framework
+[Configuration identity](../reference/framework/06-configuration-identity.md) if you call the Framework
 from code.
 
 ### Option B: Source deploy (contributors and scratch orgs only)
@@ -148,14 +148,14 @@ user who installed Record Health Check.
 | A Rule shows System Error | Review the Reason Code, Apex plugin if any, Salesforce logs, and Show Diagnostics. |
 
 If the card does not appear or a Rule will not evaluate, see
-[Configuration Guide: Troubleshooting](../guides/configure-check-sets-and-rules.md#13-troubleshooting)
-or the [FAQ](../guides/faq.md).
+[Configuration Guide: Troubleshooting](../guides/03-configure-check-sets-and-rules.md#13-troubleshooting)
+or the [FAQ](../guides/02-faq.md).
 
 ## Next steps
 
 - [Try the demo](05-create-rhc-scratch-org.md): full scratch-org walkthrough with deterministic Acme data
 - [Examples library](../examples/README.md): adapt another Rule pattern
-- [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md): configure every field
+- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md): configure every field
 - [How It Works](01-how-it-works.md): learn the result terms and codes
 - [Uninstall and rollback](06-uninstall-and-rollback.md): remove the card, subscribers, and package when needed
-- [Security and data access](../reference/framework/security.md): review the trust model before production
+- [Security and data access](../reference/framework/02-security.md): review the trust model before production

@@ -1,29 +1,98 @@
 {
   "maximumApexClassLines": 500,
   "testVisible": {
-    "force-app/main/default/classes/RecordHealthCheckAccess.cls": { "maximum": 2, "category": "authorization test seam" },
-    "force-app/main/default/classes/RecordHealthCheckCompareQueriesEvaluator.cls": { "maximum": 3, "category": "scope-query seams" },
-    "force-app/main/default/classes/RecordHealthCheckConfigValidator.cls": { "maximum": 1, "category": "configuration validation seam" },
-    "force-app/main/default/classes/RecordHealthCheckController.cls": { "maximum": 2, "category": "controller failure and completion-boundary seams" },
-    "force-app/main/default/classes/RecordHealthCheckDescribeCache.cls": { "maximum": 1, "category": "transaction cache reset" },
-    "force-app/main/default/classes/RecordHealthCheckDisplayCurrencyResolver.cls": { "maximum": 4, "category": "currency cache state and corporate-currency query seam" },
-    "force-app/main/default/classes/RecordHealthCheckFieldPlanner.cls": { "maximum": 2, "category": "multi-currency and calculated-formula platform seams" },
-    "force-app/main/default/classes/RecordHealthCheckFormulaEvaluator.cls": { "maximum": 3, "category": "formula evaluator counters and return-type algorithm" },
-    "force-app/main/default/classes/RecordHealthCheckLifecyclePublisher.cls": { "maximum": 3, "category": "settings injection and platform-event publication seams" },
-    "force-app/main/default/classes/RecordHealthCheckQueueable.cls": { "maximum": 2, "category": "finalizer observation and submission-boundary seams" },
-    "force-app/main/default/classes/RecordHealthCheckBatch.cls": { "maximum": 1, "category": "submission-boundary seam" },
-    "force-app/main/default/classes/RecordHealthCheckScheduled.cls": { "maximum": 1, "category": "submission-boundary seam" },
-    "force-app/main/default/classes/RecordHealthCheckLogger.cls": { "maximum": 3, "category": "settings injection and buffered-event observation seams" },
-    "force-app/main/default/classes/RecordHealthCheckMetadataValidator.cls": { "maximum": 1, "category": "validation seam" },
-    "force-app/main/default/classes/RecordHealthCheckPluginDispatch.cls": { "maximum": 1, "category": "plugin dispatch seam" },
-    "force-app/main/default/classes/RecordHealthCheckFlowSupport.cls": { "maximum": 3, "category": "aligned response and payload-budget seams" },
-    "force-app/main/default/classes/RecordHealthCheckScopePipeline.cls": { "maximum": 4, "category": "orchestration, planning, record-load, and evaluator failure seams" },
-    "force-app/main/default/classes/RecordHealthCheckSoqlEvaluator.cls": { "maximum": 3, "category": "scope-query seams" },
-    "integration-tests/main/default/classes/AccountOpenOpportunityHealthCheck.cls": { "maximum": 3, "category": "integration fixture seam" },
-    "integration-tests/main/default/classes/AccountStrategicReadinessCheck.cls": { "maximum": 1, "category": "integration fixture seam" },
-    "integration-tests/main/default/classes/ApprovalInactiveApproverCheck.cls": { "maximum": 8, "category": "integration fixture seam" },
-    "integration-tests/main/default/classes/RecordHealthCheckBenchmarkSeeder.cls": { "maximum": 1, "category": "benchmark harness seam" },
-    "integration-tests/main/default/classes/RecordHealthCheckExhaustiveSmoke.cls": { "maximum": 3, "category": "scratch-org harness seam" }
+    "force-app/main/default/classes/RecordHealthCheckAccess.cls": {
+      "maximum": 2,
+      "category": "authorization test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckCompareQueriesEvaluator.cls": {
+      "maximum": 3,
+      "category": "scope-query test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckConfigValidator.cls": {
+      "maximum": 1,
+      "category": "configuration validation test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckController.cls": {
+      "maximum": 2,
+      "category": "controller failure and completion-boundary test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckDescribeCache.cls": {
+      "maximum": 1,
+      "category": "transaction cache reset"
+    },
+    "force-app/main/default/classes/RecordHealthCheckDisplayCurrencyResolver.cls": {
+      "maximum": 4,
+      "category": "currency cache state and corporate-currency query test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckFieldPlanner.cls": {
+      "maximum": 2,
+      "category": "multi-currency and calculated-formula platform test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckFormulaEvaluator.cls": {
+      "maximum": 3,
+      "category": "formula evaluator counters and return-type algorithm"
+    },
+    "force-app/main/default/classes/RecordHealthCheckLifecyclePublisher.cls": {
+      "maximum": 3,
+      "category": "settings supply and platform-event publication test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckQueueable.cls": {
+      "maximum": 2,
+      "category": "finalizer observation and submission-boundary test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckBatch.cls": {
+      "maximum": 1,
+      "category": "submission-boundary test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckScheduled.cls": {
+      "maximum": 1,
+      "category": "submission-boundary test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckLogger.cls": {
+      "maximum": 3,
+      "category": "settings supply and held-event observation test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckMetadataValidator.cls": {
+      "maximum": 1,
+      "category": "validation test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckPluginDispatch.cls": {
+      "maximum": 1,
+      "category": "plugin dispatch test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckFlowSupport.cls": {
+      "maximum": 3,
+      "category": "aligned response and response-budget test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckScopePipeline.cls": {
+      "maximum": 4,
+      "category": "planning, record-load, and evaluator failure test-only access"
+    },
+    "force-app/main/default/classes/RecordHealthCheckSoqlEvaluator.cls": {
+      "maximum": 3,
+      "category": "scope-query test-only access"
+    },
+    "integration-tests/main/default/classes/AccountOpenOpportunityHealthCheck.cls": {
+      "maximum": 3,
+      "category": "integration-test sample test-only access"
+    },
+    "integration-tests/main/default/classes/AccountStrategicReadinessCheck.cls": {
+      "maximum": 1,
+      "category": "integration-test sample test-only access"
+    },
+    "integration-tests/main/default/classes/ApprovalInactiveApproverCheck.cls": {
+      "maximum": 8,
+      "category": "integration-test sample test-only access"
+    },
+    "integration-tests/main/default/classes/RecordHealthCheckBenchmarkSeeder.cls": {
+      "maximum": 1,
+      "category": "benchmark test-only access"
+    },
+    "integration-tests/main/default/classes/RecordHealthCheckExhaustiveSmoke.cls": {
+      "maximum": 3,
+      "category": "scratch-org test-only access"
+    }
   },
   "testRuntimeBranches": {
     "force-app/main/default/classes/RecordHealthCheckAccess.cls": 1

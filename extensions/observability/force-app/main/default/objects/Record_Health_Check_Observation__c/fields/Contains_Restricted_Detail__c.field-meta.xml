@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Contains_Restricted_Detail__c</fullName><label
-  >Contains Restricted Detail</label><description
-  >Marks observations whose source says restricted diagnostic detail is present.</description><inlineHelpText
-  >Do not export or broadly share marked observations.</inlineHelpText><defaultValue
-  >false</defaultValue><type>Checkbox</type></CustomField>

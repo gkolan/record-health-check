@@ -88,11 +88,11 @@ live in [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck
 - **Formula errors:** confirm the formula returns true/false for pass/fail and uses valid field API names.
 - **User does not see troubleshooting details:** confirm **Show Diagnostics** is checked on the Check Set and the user has the Permission Set named `Record_Health_Check_Admin`.
 
-For deeper fixes, use [Configuration Guide: Troubleshooting](../guides/configure-check-sets-and-rules.md#13-troubleshooting).
+For deeper fixes, use [Configuration Guide: Troubleshooting](../guides/03-configure-check-sets-and-rules.md#13-troubleshooting).
 
 ## Next steps
 
 - [Install and verify](02-install-and-verify.md): install the Framework and place the card
 - [Create your first Rule](03-create-your-first-rule.md): create your first Rule
-- [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md): configure every Evaluation Type
-- [Reason Codes](../reference/contracts/reason-codes.md): diagnose unable and system-error outcomes
+- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md): configure every Evaluation Type
+- [Reason Codes](../reference/contracts/01-reason-codes.md): diagnose unable and system-error outcomes

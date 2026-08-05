@@ -1,5 +1,5 @@
 // Runnable smoke demonstration of the exact invocable methods exposed to Flow.
-// Use the Flow Builder recipe in docs/integration/flow-actions.md for a visual demo.
+// Use the Flow Builder recipe in docs/integration/02-flow-actions.md for a visual demo.
 List<Account> demoAccounts = [
   SELECT Id
   FROM Account

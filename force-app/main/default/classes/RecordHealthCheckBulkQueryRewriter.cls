@@ -26,7 +26,7 @@ public with sharing class RecordHealthCheckBulkQueryRewriter {
       soql.substring(matcher.end()).trim();
   }
 
-  /** Aliases an injected leading correlation field for AggregateResult lookup. */
+  /** Aliases a leading correlation field added for AggregateResult lookup. */
   public static String aliasCorrelation(String soql, String fieldPath) {
     Matcher selectMatcher = Pattern.compile('(?i)\\bSELECT\\b').matcher(soql);
     if (!selectMatcher.find()) {

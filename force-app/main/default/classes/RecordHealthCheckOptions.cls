@@ -11,7 +11,7 @@ global class RecordHealthCheckOptions {
   }
   /** Optional normalized caller correlation identifier. */
   global String runId { get; private set; }
-  /** Caller context attributed to execution telemetry. */
+  /** Caller context attributed to execution monitoring. */
   global RecordHealthCheckExecutionOrigin executionOrigin { get; private set; }
 
   private RecordHealthCheckOptions(

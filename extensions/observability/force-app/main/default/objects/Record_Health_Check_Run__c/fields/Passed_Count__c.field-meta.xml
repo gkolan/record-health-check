@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Passed_Count__c</fullName><label>Passed Count</label><description
-  >Counts PASS outcomes in the response.</description><inlineHelpText
-  >This count includes every evaluated record and Rule pair.</inlineHelpText><precision
-  >9</precision><scale>0</scale><type>Number</type></CustomField>

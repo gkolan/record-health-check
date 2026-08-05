@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Skipped_Count__c</fullName><label>Skipped Count</label><description
-  >Counts SKIPPED outcomes in the response.</description><inlineHelpText
-  >Review prerequisite and applicability reasons when unexpectedly high.</inlineHelpText><precision
-  >9</precision><scale>0</scale><type>Number</type></CustomField>

@@ -23,13 +23,8 @@ read-only **Fix it** link.
 [Examples](docs/examples/README.md) ·
 [Try the demo](docs/installation/05-create-rhc-scratch-org.md) ·
 [Support](SUPPORT.md) ·
-[Security](docs/reference/framework/security.md) ·
+[Security](docs/reference/framework/02-security.md) ·
 [Changelog](CHANGELOG.md)
-
-> [!IMPORTANT]
-> **Supported install:** the namespaced unlocked package **Record Health Check** (`rhc`).
-> Source deploy from this repository is for contributors and scratch-org demos. See
-> [Install and verify](docs/installation/02-install-and-verify.md).
 
 ## Demo
 

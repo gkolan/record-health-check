@@ -27,7 +27,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   // Apex), retrying the same single-value formula per record multiplies that cost and
   // can exhaust the 100-call budget. Caching the return type that first resolved a
   // given formula (keyed by SObject type + expression) lets the second and later
-  // records resolve in a single call. Transaction-scoped, like formulaEvalCallCount.
+  // records resolve in a single call. Cached for the current transaction, like formulaEvalCallCount.
   @TestVisible
   private static Map<String, formulaeval.FormulaReturnType> resolvedReturnTypeByFormula = new Map<String, formulaeval.FormulaReturnType>();
 

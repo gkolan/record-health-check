@@ -1,9 +1,9 @@
-/** Data and permission fixtures supplied by a plugin author's contract test. */
+/** Data and permission test setups supplied by a plugin author's contract test. */
 global abstract class RecordHealthCheckRuleContractTestData {
   /** Builds an isolated scope of exactly the requested size. */
   global abstract RecordHealthCheckScope createScope(Integer size);
 
-  /** Optional controlled fixture whose user-mode and system-mode visibility differ. */
+  /** Optional controlled test setup whose user-mode and system-mode visibility differ. */
   global virtual PermissionFixture permissionFixture() {
     return null;
   }

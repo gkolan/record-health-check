@@ -7,20 +7,38 @@ Record Health Check exposes one typed Apex entry point and two Flow actions. The
 section show how to use that contract from interactive automation, synchronous Apex, Queueable
 Apex, Batch Apex, scheduled work, and future methods.
 
-## Choose an API pattern
+## Recommended path
 
-| Need | Start here | Execution model |
-| --- | --- | --- |
-| Make an immediate decision in Apex | [Apex API](apex-api.md) | Synchronous |
-| Branch in Flow Builder | [Flow API](flow.md) | Synchronous in the Flow transaction |
-| Move one bounded request to a separate transaction | [Queueable Apex](queueable.md) | Asynchronous |
-| Process a large record population in controlled scopes | [Batch Apex](batch.md) | Asynchronous scopes |
-| Run recurring health checks | [Scheduled Apex](scheduled.md) | Time-based asynchronous work |
-| Replace an existing future method | [Move from Future to Queueable Apex](future.md) | Steps for a monitorable asynchronous job |
+| Step | Guide | Execution model |
+| ---: | --- | --- |
+| 1 | [Apex API](01-apex-api.md) | Synchronous decision in Apex |
+| 2 | [Flow API](02-flow.md) | Synchronous in the Flow transaction |
+| 3 | [Queueable Apex](03-queueable.md) | One bounded request in a separate transaction |
+| 4 | [Batch Apex](04-batch.md) | Large populations in controlled scopes |
+| 5 | [Scheduled Apex](05-scheduled.md) | Recurring health checks |
+| 6 | [Move from Future to Queueable](06-future.md) | Replace an existing future method |
 
 Prefer synchronous Apex or Flow when the current transaction needs the result. Prefer Queueable
 Apex for new asynchronous work. Use Batch Apex when the record population requires multiple
 transactions.
+
+## Pick a task
+
+### Synchronous
+
+| I want to… | Guide |
+| --- | --- |
+| Make an immediate decision in Apex | [01 - Apex API](01-apex-api.md) |
+| Branch in Flow Builder | [02 - Flow API](02-flow.md) |
+
+### Asynchronous
+
+| I want to… | Guide |
+| --- | --- |
+| Move one request to a separate transaction | [03 - Queueable Apex](03-queueable.md) |
+| Process a large record population | [04 - Batch Apex](04-batch.md) |
+| Run recurring health checks | [05 - Scheduled Apex](05-scheduled.md) |
+| Replace an existing future method | [06 - Move from Future to Queueable](06-future.md) |
 
 ## Shared request contract
 
@@ -45,5 +63,5 @@ The default publication mode is `NONE`. Use `ACTIONABLE` to publish `FAIL`,
 
 - [Platform Event subscriptions](../platform-events/README.md)
 - [Integration overview](../integration/README.md)
-- [Reason Codes](../reference/contracts/reason-codes.md)
-- [Architecture](../reference/framework/architecture.md)
+- [Reason Codes](../reference/contracts/01-reason-codes.md)
+- [Architecture](../reference/framework/01-architecture.md)

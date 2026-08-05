@@ -19,7 +19,7 @@ need below.
 | 2 | [Install and verify](installation/02-install-and-verify.md) | A Record Health Check card appears on a sandbox record page |
 | 3 | [Create your first Rule](installation/03-create-your-first-rule.md) | The card evaluates one Rule you configured in Setup |
 | 4 | [Choose another example](examples/README.md) | You pick an Evaluation Type based on where the data lives |
-| 5 | [Review the configuration guide](guides/configure-check-sets-and-rules.md) | The Check Set is ready for broader testing |
+| 5 | [Review the configuration guide](guides/03-configure-check-sets-and-rules.md) | The Check Set is ready for broader testing |
 
 Prefer a scripted demo org instead of building from scratch? Use
 [Try the demo](installation/05-create-rhc-scratch-org.md).
@@ -31,24 +31,24 @@ Prefer a scripted demo org instead of building from scratch? Use
 | Install and see a working card | [Install and verify](installation/02-install-and-verify.md) | How to install the unlocked package, assign access, place the card, and verify |
 | Revalidate or upgrade an existing org | [Revalidate an installation](installation/04-upgrading.md) | How to back up configuration and verify after upgrade |
 | Remove the Framework | [Uninstall and rollback](installation/06-uninstall-and-rollback.md) | How to remove placements, subscribers, and the package |
-| Answer a common question first | [FAQ](guides/faq.md) | Short answers on saves, editions, install paths, and Demo Check Sets |
+| Answer a common question first | [FAQ](guides/02-faq.md) | Short answers on saves, editions, install paths, and Demo Check Sets |
 | Create my first Rule in Setup | [Create your first Rule](installation/03-create-your-first-rule.md) | How to author a Formula Rule and test Pass and Fail |
 | Copy a practical example | [Examples library](examples/README.md) | How to choose an Evaluation Type and adapt a tested pattern |
-| Configure advanced Check Set / Rule behavior | [Configure Check Sets and Rules](guides/configure-check-sets-and-rules.md) | How to design a full readiness review |
-| Add Fix it links | [Configure action links](guides/configure-action-links.md) | How to pair Fix Message with Action Label and URL |
-| Troubleshoot an unexpected result | [Troubleshoot with Show Diagnostics](guides/troubleshoot-with-show-diagnostics.md) | How to reveal authorized diagnostics safely |
-| Keep a production org healthy | [Operate in production](guides/operate-in-production.md) | Day-2 monitoring and diagnostics hygiene |
+| Configure advanced Check Set / Rule behavior | [Configure Check Sets and Rules](guides/03-configure-check-sets-and-rules.md) | How to design a full readiness review |
+| Add Fix it links | [Configure action links](guides/04-configure-action-links.md) | How to pair Fix Message with Action Label and URL |
+| Troubleshoot an unexpected result | [Troubleshoot with Show Diagnostics](guides/07-troubleshoot-with-show-diagnostics.md) | How to reveal authorized diagnostics safely |
+| Keep a production org healthy | [Operate in production](guides/08-operate-in-production.md) | Day-2 monitoring and diagnostics hygiene |
 | Look up one Setup field | [Metadata reference](metadata/README.md) | Exact Setup labels, API names, and defaults |
-| Look up a Framework term | [Glossary](reference/glossary.md) | Shared vocabulary for outcomes and configuration |
+| Look up a Framework term | [Glossary](reference/01-glossary.md) | Shared terms for outcomes and configuration |
 | Choose Lightning, Apex, Flow, or events | [Integration overview](integration/README.md) | Which surface fits the readiness decision |
-| Call `evaluate` from Apex | [Apex API](api/apex-api.md) | How to invoke Check Sets from code |
-| Call checks from Flow | [Flow actions](integration/flow-actions.md) | How to configure an Action and Decision path |
-| Write an Apex Rule plugin | [Apex Rule contract](reference/evaluation/apex-rule-contract.md) | The plugin interface and verification expectations |
+| Call `evaluate` from Apex | [Apex API](api/01-apex-api.md) | How to invoke Check Sets from code |
+| Call checks from Flow | [Flow actions](integration/02-flow-actions.md) | How to configure an Action and Decision path |
+| Write an Apex Rule plugin | [Apex Rule contract](reference/evaluation/04-apex-rule-contract.md) | The plugin interface and verification expectations |
 | Subscribe to lifecycle events | [Platform Event subscriptions](platform-events/README.md) | How to build a Flow or Apex subscriber |
-| Compare to Validation Rules / Duplicate Rules / Flow | [Compare to native Salesforce](guides/compare-to-native-salesforce.md) | When advisory health checks fit versus blocking tools |
-| Review security and data access | [Security and data access](reference/framework/security.md) | USER_MODE, permission sets, diagnostics, and plugins |
-| Check edition / Lightning compatibility | [Compatibility](reference/framework/compatibility.md) | Supported editions and known limits |
-| Read the architecture | [Architecture](reference/framework/architecture.md) | Layers, entry points, and ownership |
+| Compare to Validation Rules / Duplicate Rules / Flow | [Compare to native Salesforce](guides/01-compare-to-native-salesforce.md) | When advisory health checks fit versus blocking tools |
+| Review security and data access | [Security and data access](reference/framework/02-security.md) | USER_MODE, permission sets, diagnostics, and plugins |
+| Check edition / Lightning compatibility | [Compatibility](reference/framework/04-compatibility.md) | Supported editions and known limits |
+| Read the architecture | [Architecture](reference/framework/01-architecture.md) | Layers, entry points, and ownership |
 | Browse every technical reference | [Technical references](reference/README.md) | Contracts, Evaluation Types, and Apex class guides |
 
 ## Learn by example

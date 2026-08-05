@@ -9,18 +9,18 @@
  * Every guarantee the extension boundary makes is enforced here, in one place,
  * so there is no second path a caller could use to reach a plugin without them.
  * Consumers must never instantiate a plugin directly: doing so would bypass
- * scope construction, the side-effect fence, completeness validation, and
- * identity stamping all at once.
+ * scope construction, the write check that blocks DML, callouts, email, events,
+ * and async work, completeness validation, and identity stamping all at once.
  *
  * Two behaviors are worth reading closely, because both are easy to get subtly
  * wrong and neither is recoverable afterwards.
  *
- * 1. The side-effect fence runs in a `finally`, so it also runs when the plugin
+ * 1. The write check runs in a `finally`, so it also runs when the plugin
  *    throws. A plugin that performs DML and then throws would otherwise have its
  *    exception converted into ordinary ERROR rows, and those rows would commit
  *    along with the mutation the framework promises never to make.
  *
- * 2. A detected side effect outranks every other outcome, including an
+ * 2. A detected forbidden write outranks every other outcome, including an
  *    exception, and is rethrown rather than converted. Nothing downstream may
  *    catch it and turn it into results, because the only way to undo the
  *    mutation is to let the transaction die.
@@ -29,7 +29,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
   /**
    * Prohibited effects, with the counter that detects each. Where Apex exposes
    * no reliable counter (batch and scheduled dispatch, event publication) the
-   * obligation moves to static analysis and the contract harness, and the
+   * obligation moves to static analysis and the contract test, and the
    * report does not pretend otherwise.
    */
   public class SideEffectException extends Exception {

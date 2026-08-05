@@ -7,23 +7,31 @@ Record Health Check publishes three Platform Events. Check Set Run and Rule Resu
 finalized outcomes after the publishing transaction commits. Log events report restricted
 Framework errors immediately when error-event publication is enabled.
 
-## Choose a Platform Event
+## Recommended path
 
-| Subscriber need | Event guide | Publish behavior |
-| --- | --- | --- |
-| One completion summary for a Check Set | [Check Set Run](check-set-run.md) | Publish After Commit |
-| One finalized outcome for each selected Rule | [Rule Result](rule-result.md) | Publish After Commit |
-| Restricted Framework error diagnostics | [Log](error-log.md) | Publish Immediately |
+| Step | Event guide | Publish behavior |
+| ---: | --- | --- |
+| 1 | [Check Set Run](01-check-set-run.md) | Publish After Commit - one completion summary |
+| 2 | [Rule Result](02-rule-result.md) | Publish After Commit - one outcome per selected Rule |
+| 3 | [Log](03-error-log.md) | Publish Immediately - restricted Framework errors |
 
 Start with Check Set Run when counts and overall completion are sufficient. Add Rule Result only
 when automation needs Rule-level status, severity, or Reason Code. Restrict Log subscribers because
 messages and stack traces can contain organization-specific information.
 
+## Pick a task
+
+| I want to… | Guide |
+| --- | --- |
+| One completion summary for a Check Set | [01 - Check Set Run](01-check-set-run.md) |
+| One finalized outcome for each Rule | [02 - Rule Result](02-rule-result.md) |
+| Restricted Framework error diagnostics | [03 - Log](03-error-log.md) |
+
 ## Choose Flow or Apex
 
 | Subscriber | Best fit | Main constraint |
 | --- | --- | --- |
-| Platform event-triggered Flow | Declarative routing, record creation, and notifications | Runs asynchronously and needs a durable duplicate check |
+| Platform event-triggered Flow | Declarative routing, record creation, and notifications | Runs asynchronously and needs a lasting duplicate check |
 | Apex trigger | Complex transformations, controlled bulk DML, and reusable handlers | Requires tests, access review, and independent monitoring |
 
 Both subscribers receive events asynchronously. Neither can change the synchronous health-check
@@ -33,7 +41,7 @@ Salesforce replay ID only when an external subscriber needs a replay position.
 ## Shared subscriber checklist
 
 1. Grant read access to the selected Platform Event only to the subscriber identity.
-2. Create a durable receipt or destination record with a unique `EventId__c` field.
+2. Create a lasting receipt or destination record with a unique `EventId__c` field.
 3. Route using API fields such as Status, Reason Code, source, and metadata names.
 4. Treat new field values as a review path instead of dropping the event.
 5. Keep processing safe when Salesforce retries or replays an event.
@@ -44,6 +52,6 @@ Salesforce replay ID only when an external subscriber needs a replay position.
 ## Related
 
 - [API examples](../api/README.md)
-- [Lifecycle event behavior](../integration/lifecycle-events.md)
-- [Platform Event metadata](../metadata/README.md#choose-a-platform-event-reference)
-- [Reason Codes](../reference/contracts/reason-codes.md)
+- [Lifecycle event behavior](../integration/03-lifecycle-events.md)
+- [Platform Event metadata](../metadata/README.md#platform-events)
+- [Reason Codes](../reference/contracts/01-reason-codes.md)

@@ -34,7 +34,7 @@ public class RecordHealthCheckInternalResult {
   @AuraEnabled
   public String expectedValue; // the operator + comparison operand the value was tested against
   // Server-side display values used while an evaluator result is shaped for
-  // the Lightning response. Named formats use canonical uppercase API names.
+  // the Lightning response. Named formats use official uppercase API names.
   public Object actualDisplayValue;
   public Object expectedDisplayValue;
   public String actualDisplayFormat;
@@ -44,9 +44,9 @@ public class RecordHealthCheckInternalResult {
   @AuraEnabled
   public String expectedValueLabel; // overrides the UI's default "Expected" key when set — e.g. "Passes when" for a Formula check echoing its pass/fail condition rather than a comparison value
   @AuraEnabled
-  public String actualValueDetail; // value-source note for the Found side — gated by Record_Health_Check_View_Diagnostics
+  public String actualValueDetail; // value-source note for the Found side — only when Record_Health_Check_View_Diagnostics is held
   @AuraEnabled
-  public String expectedValueDetail; // value-source note for the Expected side — gated by the same permission
+  public String expectedValueDetail; // value-source note for the Expected side — only when the same permission is held
   // Structured value source the evaluators fill in; the engine renders these into
   // the two *Detail strings above and gates them by permission. Intentionally not
   // @AuraEnabled — the public contract is the rendered strings, not this shape.

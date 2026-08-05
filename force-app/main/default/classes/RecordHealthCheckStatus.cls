@@ -4,7 +4,7 @@
  */
 
 /**
- * The status vocabulary, in one place and global so consumers in any namespace
+ * The status values, in one place and global so consumers in any namespace
  * can compare against it instead of retyping string literals.
  *
  * SKIPPED and UNABLE_TO_EVALUATE are outcomes in their own right, never

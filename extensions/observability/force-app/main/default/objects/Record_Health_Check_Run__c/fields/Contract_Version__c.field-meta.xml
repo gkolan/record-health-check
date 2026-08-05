@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
-  >Contract_Version__c</fullName><label>Contract Version</label><description
-  >Stores the lifecycle or API contract version used by the run.</description><inlineHelpText
-  >Use this when reconciling payload changes across package upgrades.</inlineHelpText><length
-  >10</length><type>Text</type></CustomField>

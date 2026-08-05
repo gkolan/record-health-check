@@ -45,10 +45,10 @@ available settings, operators, limits, or result behavior.
 
 | Evaluation Type | Start with | Detailed reference |
 | --- | --- | --- |
-| [Verify with a formula](formula/README.md) | [Seller research readiness](formula/01-account-research-ready.md) | [Formula reference](../reference/evaluation/formula.md) |
-| [Verify with a query](query/README.md) | [Customer handoff](query/01-customer-contact.md) | [Query reference](../reference/evaluation/query.md) |
-| [Compare two queries](compare-two-queries/README.md) | [Opportunity Contact Role coverage](compare-two-queries/01-opportunity-contact-role-coverage.md) | [Compare two queries reference](../reference/evaluation/compare-two-queries.md) |
-| [Verify with Apex](apex/README.md) | [Recent Account activity](apex/01-recent-activity.md) | [Apex reference](../reference/evaluation/apex-rule-contract.md) |
+| [Verify with a formula](formula/README.md) | [Seller research readiness](formula/01-account-research-ready.md) | [Formula reference](../reference/evaluation/01-formula.md) |
+| [Verify with a query](query/README.md) | [Customer handoff](query/01-customer-contact.md) | [Query reference](../reference/evaluation/02-query.md) |
+| [Compare two queries](compare-two-queries/README.md) | [Opportunity Contact Role coverage](compare-two-queries/01-opportunity-contact-role-coverage.md) | [Compare two queries reference](../reference/evaluation/03-compare-two-queries.md) |
+| [Verify with Apex](apex/README.md) | [Recent Account activity](apex/01-recent-activity.md) | [Apex reference](../reference/evaluation/04-apex-rule-contract.md) |
 
 ## Formula examples
 
@@ -136,6 +136,6 @@ for every possible picklist value.
 ## Related documentation
 
 - [Create your first Rule](../installation/03-create-your-first-rule.md)
-- [Configure Check Sets and Rules](../guides/configure-check-sets-and-rules.md)
-- [Rule fields](../metadata/fields-check-rule.md)
-- [Check Set fields](../metadata/fields-check-set.md)
+- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
+- [Rule fields](../metadata/02-fields-check-rule.md)
+- [Check Set fields](../metadata/01-fields-check-set.md)

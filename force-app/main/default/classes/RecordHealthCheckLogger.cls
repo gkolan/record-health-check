@@ -52,7 +52,7 @@ public with sharing class RecordHealthCheckLogger {
   // logging cannot republish onto the same bus.
   private static Boolean inSubscriberContext = false;
   private static Boolean debugEnabled = false;
-  // Transaction-scoped buffer of ERROR events awaiting flush().
+  // Held ERROR events for the current transaction, awaiting flush().
   private static final List<Record_Health_Check_Log__e> PENDING_EVENTS = new List<Record_Health_Check_Log__e>();
 
   // Correlation keys carried for the life of one evaluate()/load call so that

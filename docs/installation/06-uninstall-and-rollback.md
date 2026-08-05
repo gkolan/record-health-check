@@ -154,6 +154,6 @@ backup:
 
 - [Revalidate an installation](04-upgrading.md)
 - [Install and verify](02-install-and-verify.md)
-- [Operate in production](../guides/operate-in-production.md)
-- [Configuration identity](../reference/framework/configuration-identity.md)
-- [Security and data access](../reference/framework/security.md)
+- [Operate in production](../guides/08-operate-in-production.md)
+- [Configuration identity](../reference/framework/06-configuration-identity.md)
+- [Security and data access](../reference/framework/02-security.md)
