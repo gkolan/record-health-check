@@ -74,8 +74,7 @@ How it appears to users:
 Record Health Check installs four Demo Check Sets (`Example_…`) whose card titles start with
 `Demo:` so administrators can distinguish starter content from org policy. Review or deactivate
 them before production use, and create the Check Sets your org will enforce. The
-[examples library](../examples/README.md) teaches reusable patterns; additional teaching packs may
-live in [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples).
+[examples library](../examples/README.md) teaches reusable patterns.
 
 ## First troubleshooting checks
 

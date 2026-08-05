@@ -14,7 +14,6 @@ identifies a Check Set or Rule.
 | Framework unlocked package (`rhc`) | Engine, Lightning card, Permission Sets, Custom Metadata Types, public Apex/Flow APIs, four Demo `Example_…` Check Sets | Subscribers (supported path) |
 | This repository `force-app` | Same Framework metadata used to build the package | Contributors and scratch-org demos |
 | `integration-tests/` | Fixture mirror of Demo CMDT plus CI-only helpers | CI and local verification only (not subscriber installs) |
-| [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples) | Additional teaching packs beyond the four Demo Check Sets | Optional learning orgs |
 
 Demo Check Set `CardTitle__c` values start with `Demo:` so Lightning App Builder and the card make
 starter status obvious. Subscriber policy should use different Developer Names and titles.
@@ -73,8 +72,7 @@ definitions, public APIs, reusable evaluator code, and the four shipped `Example
 (with their Rules). Those records are teaching and sandbox-ready starters.
 
 The same Demo records are mirrored under `integration-tests/main/default/customMetadata` so local
-and CI sample deploys stay identical to the package content. Additional teaching packs may live in
-[`RecordHealthCheck-Examples`](https://github.com/gkolan/RecordHealthCheck-Examples).
+and CI sample deploys stay identical to the package content.
 
 Do not add unlabeled business-policy records to the Framework package. Keep `All` list views
 unfiltered. The `Examples (Example_)` list views may filter by the `Example_` DeveloperName prefix

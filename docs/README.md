@@ -69,8 +69,7 @@ Prefer a scripted demo org instead of building from scratch? Use
 - Formula and query evaluation uses the running user's Salesforce access.
 - Lifecycle-event publication for Set Run / Rule Result is off by default (Error Log defaults on).
 - The Framework ships four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`).
-  Use the [examples library](examples/README.md) for teaching patterns; additional packs may live in
-  [RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples).
+  Use the [examples library](examples/README.md) for teaching patterns.
 
 ## Related
 

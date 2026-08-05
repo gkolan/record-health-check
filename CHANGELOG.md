@@ -41,8 +41,7 @@ interfaces and product-generation terminology.
 - Optional remediation text and safe links guide a user without changing Salesforce data.
 - Teaching examples and deterministic demo data cover Account, Contact, and Opportunity scenarios.
   The Framework package ships four Demo Check Sets (`Example_…`, card titles prefixed with
-  `Demo:`) plus matching integration fixtures. Additional teaching packs may live in
-  RecordHealthCheck-Examples.
+  `Demo:`) plus matching integration fixtures.
 
 ### Engineering gates
 

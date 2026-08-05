@@ -345,7 +345,7 @@ use the qualified names returned by Custom Metadata queries and the public Apex 
 Operational consequences:
 
 - The Framework deploys four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`)
-  with matching integration-test sample copies. Additional teaching packs may live outside the package.
+  with matching integration-test sample copies.
 - Check Sets and Rules are Custom Metadata, so they deploy between orgs and version control
   alongside the classes they configure.
 - Qualified API Names are the external contract identifiers used by the Apex API, Flow actions,

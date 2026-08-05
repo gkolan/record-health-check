@@ -79,8 +79,7 @@ sf apex run --file integration-tests/scripts/demo_flow_actions.apex --target-org
 deploys only `force-app`; deploying demo fixtures always requires the explicit second command.
 
 The Framework package already includes the four Demo `Example_` Check Sets. Matching copies here
-exist so integration runs can deploy the same configurations alongside broader fixtures. Additional
-teaching packs may live in `RecordHealthCheck-Examples`.
+exist so integration runs can deploy the same configurations alongside broader fixtures.
 
 ## Example fixture data
 

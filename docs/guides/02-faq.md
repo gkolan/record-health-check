@@ -62,8 +62,7 @@ Salesforce. Record Health Check never elevates privilege and never runs a query 
 Record Health Check ships four Demo Check Sets (Developer Names prefixed `Example_`, card titles
 prefixed `Demo:`) covering Account, Contact, and Opportunity scenarios. They are teaching starters,
 not production policy. Review or deactivate them before going live, and create Check Sets with your
-own Developer Names and titles for org policy. Additional teaching packs may live in
-[RecordHealthCheck-Examples](https://github.com/gkolan/RecordHealthCheck-Examples). See
+own Developer Names and titles for org policy. See
 [How Record Health Check works](../installation/01-how-it-works.md).
 
 ## What does the `rhc` namespace mean for me?
