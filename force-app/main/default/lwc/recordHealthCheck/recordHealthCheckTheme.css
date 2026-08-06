@@ -4,6 +4,9 @@
  *
  * Adaptive theme: Salesforce supplies the active design-system values through
  * semantic global hooks; established Lightning values remain the fallbacks.
+ *
+ * `.rhc-theme_slds2` is added when the page exposes SLDS 2 color-scheme
+ * classes so card chrome can differ without a Design property.
  */
 .rhc-theme {
   --rhc-theme-card-background: var(
@@ -11,18 +14,16 @@
     var(--slds-g-color-neutral-base-100, #ffffff)
   );
   --rhc-theme-card-border: var(
-    --slds-g-color-border-1,
-    var(--slds-g-color-border-base-1, #c9c7c5)
+    --slds-g-color-border-base-1,
+    var(--slds-g-color-border-1, #c9c7c5)
   );
-  --rhc-theme-card-radius: var(--slds-g-radius-border-4, 0.25rem);
-  --rhc-theme-card-shadow: var(
-    --slds-g-shadow-2,
-    0 2px 6px 0 rgba(0, 0, 0, 0.16)
-  );
-  --rhc-theme-header-background: var(
-    --slds-g-color-surface-container-2,
-    var(--slds-g-color-neutral-base-95, #fafafa)
-  );
+  --rhc-theme-card-border-width: var(--slds-g-sizing-border-1, 1px);
+  /* SLDS 1: fixed small radius matching standard Lightning panels. Do not
+     read --slds-g-radius-border-* here — those hooks can resolve to Cosmos
+     scale values even on SLDS 1 pages. */
+  --rhc-theme-card-radius: 0.25rem;
+  /* SLDS 1 default: soft gray header band. */
+  --rhc-theme-header-background: var(--slds-g-color-neutral-base-95, #fafafa);
   --rhc-theme-row-hover: var(
     --slds-g-color-surface-container-2,
     var(--slds-g-color-neutral-base-95, #f5f5f5)
@@ -39,4 +40,16 @@
   --rhc-layer-tooltip: 100;
   --rhc-layer-tooltip-nubbin: 101;
   font-family: var(--slds-g-font-family, "Salesforce Sans", Arial, sans-serif);
+}
+
+/* Cosmos / SLDS 2: white header, no card border, no elevation shadow,
+   and the larger Cosmos card radius. */
+.rhc-theme_slds2 {
+  --rhc-theme-card-border: transparent;
+  --rhc-theme-card-border-width: 0;
+  --rhc-theme-card-radius: var(--slds-g-radius-border-4, 0.75rem);
+  --rhc-theme-header-background: var(
+    --slds-g-color-surface-container-1,
+    #ffffff
+  );
 }

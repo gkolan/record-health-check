@@ -130,8 +130,16 @@ private class RecordHealthCheckFieldPlannerTest {
       );
     Test.stopTest();
 
+    Set<String> expected = new Set<String>{ 'Id' };
+    if (
+      UserInfo.isMultiCurrencyOrganization() &&
+      RecordHealthCheckDescribeCache.fieldMap(Account.SObjectType)
+        .containsKey('currencyisocode')
+    ) {
+      expected.add('CurrencyIsoCode');
+    }
     Assert.areEqual(
-      new Set<String>{ 'Id' },
+      expected,
       fields,
       'Invalid paths must not enter dynamic SOQL.'
     );

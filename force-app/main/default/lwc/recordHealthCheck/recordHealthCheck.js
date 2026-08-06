@@ -50,13 +50,52 @@ const SETUP_ERROR_CODES = new Set([
   "INVALID_CONFIG"
 ]);
 
+/** SLDS 2 / Cosmos pages expose one of these (absent on SLDS 1). */
+const SLDS2_COLOR_SCHEME_CLASSES = [
+  "slds-color-scheme--light",
+  "slds-color-scheme--dark",
+  "slds-color-scheme--system"
+];
+
+function elementHasSlds2ColorScheme(el) {
+  if (!el?.classList) {
+    return false;
+  }
+  return SLDS2_COLOR_SCHEME_CLASSES.some((name) => el.classList.contains(name));
+}
+
+function detectSlds2Theme() {
+  if (typeof document === "undefined") {
+    return false;
+  }
+  if (
+    elementHasSlds2ColorScheme(document.body) ||
+    elementHasSlds2ColorScheme(document.documentElement)
+  ) {
+    return true;
+  }
+  // Cosmos / SLDS 2 publishes the surface scale on :root. Presence of
+  // --slds-g-color-surface-1 is enough — do not also require --lwc-* to be
+  // absent; Lightning may leave legacy tokens defined after a theme switch.
+  try {
+    return (
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--slds-g-color-surface-1")
+        .trim().length > 0
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default class RecordHealthCheck extends LightningElement {
   static stylesheets = [themeStyles];
 
   _checkSetName;
+  @track _isSlds2 = false;
 
   get themeClass() {
-    return "rhc-theme";
+    return this._isSlds2 ? "rhc-theme rhc-theme_slds2" : "rhc-theme";
   }
 
   @api
@@ -146,6 +185,11 @@ export default class RecordHealthCheck extends LightningElement {
 
   connectedCallback() {
     this._connected = true;
+    this._syncDesignTheme();
+    // LWS forbids MutationObserver on shared document/body/html nodes, so
+    // re-check when the user returns to the tab after switching themes in Setup.
+    window.addEventListener("focus", this._syncDesignTheme);
+    window.addEventListener("visibilitychange", this._syncDesignTheme);
     window.addEventListener("resize", this._handleViewportResize);
     // Yield the first frame to the Lightning page before loading definitions.
     // Automatic evaluation therefore cannot compete with the page's initial
@@ -153,12 +197,16 @@ export default class RecordHealthCheck extends LightningElement {
     // eslint-disable-next-line @lwc/lwc/no-async-operation
     this._initialLoadFrame = requestAnimationFrame(() => {
       this._initialLoadFrame = null;
+      // Theme tokens can land after first paint when Cosmos/SLDS 1 is applied.
+      this._syncDesignTheme();
       this._loadDefinitions();
     });
   }
 
   disconnectedCallback() {
     this._connected = false;
+    window.removeEventListener("focus", this._syncDesignTheme);
+    window.removeEventListener("visibilitychange", this._syncDesignTheme);
     window.removeEventListener("resize", this._handleViewportResize);
     if (this._resizeFrame) {
       cancelAnimationFrame(this._resizeFrame);
@@ -194,7 +242,20 @@ export default class RecordHealthCheck extends LightningElement {
     this._clearAllTooltipDwells();
   }
 
+  _syncDesignTheme = () => {
+    if (!this._connected) {
+      return;
+    }
+    const next = detectSlds2Theme();
+    if (next !== this._isSlds2) {
+      this._isSlds2 = next;
+    }
+  };
+
   renderedCallback() {
+    // Re-check on each render so a soft theme change that remounts children
+    // (without focus/visibility events) still picks up Cosmos chrome.
+    this._syncDesignTheme();
     // Content grows as checks resolve, so re-measure every clampable region and
     // reveal its +/- toggle only when the rendered text actually overflows.
     this._measureClampedContent();
@@ -889,9 +950,9 @@ export default class RecordHealthCheck extends LightningElement {
         } else {
           groups.push({
             key: "uncategorized",
-            label: null,
-            assistiveLabel: "Checks without a category",
-            cssClass: "rhc-stats-group rhc-stats-group--unlabeled",
+            label: "Other",
+            assistiveLabel: null,
+            cssClass: "rhc-stats-group rhc-stats-group--labeled",
             stats: [inactiveStat]
           });
         }

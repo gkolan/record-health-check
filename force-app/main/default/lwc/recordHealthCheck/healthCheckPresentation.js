@@ -399,7 +399,12 @@ export function buildSummaryStats(checks, tooltipKeys = new Set()) {
   );
 }
 
-/** Build alphabetized category summary rows, leaving uncategorized checks unlabeled and last. */
+/** Visible label for checks that have no Rule category when others do. */
+export function uncategorizedSummaryLabel(count) {
+  return count === 1 ? "Other" : "Others";
+}
+
+/** Build alphabetized category summary rows; uncategorized checks become Other/Others last. */
 export function buildSummaryGroups(checks, tooltipKeys = new Set()) {
   const resolved = checks.filter((check) => check.result);
   const hasCategories = resolved.some((check) => check.category);
@@ -451,9 +456,9 @@ export function buildSummaryGroups(checks, tooltipKeys = new Set()) {
   if (uncategorized.length) {
     groups.push({
       key: "uncategorized",
-      label: null,
-      assistiveLabel: "Checks without a category",
-      cssClass: "rhc-stats-group rhc-stats-group--unlabeled",
+      label: uncategorizedSummaryLabel(uncategorized.length),
+      assistiveLabel: null,
+      cssClass: "rhc-stats-group rhc-stats-group--labeled",
       stats: buildSummaryStats(uncategorized, allTooltipKeys)
     });
   }

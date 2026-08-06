@@ -81,3 +81,5 @@ might be blank in some languages' data, for example
 - [Reference: Merge tokens](../contracts/02-merge-tokens.md)
 - [Reference: Compatibility](04-compatibility.md)
 - [Configure Check Sets and Rules](../../guides/03-configure-check-sets-and-rules.md)
+- [FAQ: single-currency and multi-currency orgs](../../guides/02-faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs)
+- [Create the demo scratch org: Currency mode](../../installation/05-create-rhc-scratch-org.md#currency-mode)

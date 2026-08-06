@@ -220,6 +220,96 @@ describe("c-record-health-check — adaptive design theme", () => {
 
     expect(element.shadowRoot.querySelector(".rhc-theme")).not.toBeNull();
   });
+
+  it("adds the SLDS 2 modifier when a Cosmos color-scheme class is present", () => {
+    document.body.classList.add("slds-color-scheme--light");
+    element = createComponent();
+    document.body.appendChild(element);
+
+    const theme = element.shadowRoot.querySelector(".rhc-theme");
+    expect(theme).not.toBeNull();
+    expect(theme.classList.contains("rhc-theme_slds2")).toBe(true);
+
+    document.body.classList.remove("slds-color-scheme--light");
+  });
+
+  it("adds the SLDS 2 modifier when the Cosmos surface-1 hook is defined", () => {
+    document.body.classList.remove(
+      "slds-color-scheme--light",
+      "slds-color-scheme--dark",
+      "slds-color-scheme--system"
+    );
+    document.documentElement.style.setProperty(
+      "--slds-g-color-surface-1",
+      "#ffffff"
+    );
+    element = createComponent();
+    document.body.appendChild(element);
+
+    const theme = element.shadowRoot.querySelector(".rhc-theme");
+    expect(theme).not.toBeNull();
+    expect(theme.classList.contains("rhc-theme_slds2")).toBe(true);
+
+    document.documentElement.style.removeProperty("--slds-g-color-surface-1");
+  });
+
+  it("keeps SLDS 1 chrome when no Cosmos signals are present", () => {
+    document.body.classList.remove(
+      "slds-color-scheme--light",
+      "slds-color-scheme--dark",
+      "slds-color-scheme--system"
+    );
+    document.documentElement.style.removeProperty("--slds-g-color-surface-1");
+    element = createComponent();
+    document.body.appendChild(element);
+
+    const theme = element.shadowRoot.querySelector(".rhc-theme");
+    expect(theme).not.toBeNull();
+    expect(theme.classList.contains("rhc-theme_slds2")).toBe(false);
+  });
+
+  it("adds the SLDS 2 modifier from a color-scheme class on the document element", () => {
+    document.body.classList.remove(
+      "slds-color-scheme--light",
+      "slds-color-scheme--dark",
+      "slds-color-scheme--system"
+    );
+    document.documentElement.classList.add("slds-color-scheme--dark");
+    element = createComponent();
+    document.body.appendChild(element);
+
+    expect(
+      element.shadowRoot
+        .querySelector(".rhc-theme")
+        .classList.contains("rhc-theme_slds2")
+    ).toBe(true);
+
+    document.documentElement.classList.remove("slds-color-scheme--dark");
+  });
+
+  it("keeps SLDS 1 chrome when theme token detection throws", () => {
+    document.body.classList.remove(
+      "slds-color-scheme--light",
+      "slds-color-scheme--dark",
+      "slds-color-scheme--system"
+    );
+    document.documentElement.style.removeProperty("--slds-g-color-surface-1");
+    const originalGetComputedStyle = window.getComputedStyle;
+    window.getComputedStyle = () => {
+      throw new Error("style unavailable");
+    };
+    try {
+      element = createComponent();
+      document.body.appendChild(element);
+      expect(
+        element.shadowRoot
+          .querySelector(".rhc-theme")
+          .classList.contains("rhc-theme_slds2")
+      ).toBe(false);
+    } finally {
+      window.getComputedStyle = originalGetComputedStyle;
+    }
+  });
 });
 
 describe("c-record-health-check — load and error states", () => {
@@ -832,6 +922,41 @@ describe("c-record-health-check — run orchestration", () => {
       "2 inactive Rules omitted: Retired Owner Check, Legacy Phone Check"
     );
     expect(stats[0].getAttribute("tabindex")).toBe("0");
+  });
+
+  it("puts inactive rules under Other when every visible Rule already has a category", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        showDiagnostics: true,
+        inactiveRuleCount: 1,
+        inactiveRuleLabels: ["Retired Owner Check"],
+        checks: [
+          {
+            developerName: "Check_A",
+            label: "Check A",
+            description: "First check",
+            priority: 1,
+            dependsOnRuleDeveloperName: null,
+            category: "COMPLETENESS",
+            categoryLabel: "Completeness"
+          }
+        ]
+      })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+
+    const groups = [...element.shadowRoot.querySelectorAll(".rhc-stats-group")];
+    const other = groups.find((group) => group.textContent.includes("Other"));
+    expect(other).toBeTruthy();
+    expect(other.querySelector(".rhc-stat--inactive")).not.toBeNull();
+    expect(other.querySelector(".rhc-stat--inactive").textContent).toContain(
+      "1 Inactive"
+    );
   });
 
   it("summarizes undisclosed inactive rule names in the pill tooltip", async () => {
@@ -1979,6 +2104,50 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     groupEnd.mockRestore();
   });
 
+  it("warns when a diagnostics check carries a server message or restricted detail", async () => {
+    const group = jest.spyOn(console, "group").mockImplementation(() => {});
+    const groupCollapsed = jest
+      .spyOn(console, "groupCollapsed")
+      .mockImplementation(() => {});
+    const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const table = jest.spyOn(console, "table").mockImplementation(() => {});
+    const groupEnd = jest
+      .spyOn(console, "groupEnd")
+      .mockImplementation(() => {});
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        showDiagnostics: true,
+        checks: [makeDefinitions().checks[0]]
+      })
+    );
+    evaluateCheck.mockResolvedValue({
+      ...PASS_RESULT("Check_A"),
+      adminDetail: {
+        message: "Formula timed out on the server",
+        containsRestrictedDetail: true
+      }
+    });
+    await appendAndLoad(element);
+    await clickRun(element);
+    await flushPromises();
+    await flushPromises();
+
+    expect(warn).toHaveBeenCalledWith(
+      "Server diagnostic",
+      "Formula timed out on the server"
+    );
+    expect(warn).toHaveBeenCalledWith(
+      "This check contains restricted diagnostic detail."
+    );
+    group.mockRestore();
+    groupCollapsed.mockRestore();
+    log.mockRestore();
+    warn.mockRestore();
+    table.mockRestore();
+    groupEnd.mockRestore();
+  });
+
   it("includes system errors and elapsed time in the diagnostics summary", async () => {
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -2729,7 +2898,7 @@ describe("buildSummaryStats — label pluralization", () => {
     expect(stat.tooltip).toBe("3 Passed: A, B, C");
   });
 
-  it("sorts category summaries by label and leaves the non-category row unlabeled and last", () => {
+  it("sorts category summaries by label and labels the non-category row Other/Others last", () => {
     const checks = [
       {
         ...resolved("Risk pass", "PASS", null),
@@ -2758,15 +2927,41 @@ describe("buildSummaryStats — label pluralization", () => {
     expect(groups.map((group) => group.label)).toEqual([
       "Completeness",
       "Risk",
-      null
+      "Other"
     ]);
-    expect(groups[2].assistiveLabel).toBe("Checks without a category");
-    expect(groups[2].cssClass).toContain("unlabeled");
+    expect(groups[2].key).toBe("uncategorized");
+    expect(groups[2].cssClass).toContain("labeled");
     expect(groups[0].stats.map((stat) => stat.label)).toEqual([
       "1 Passed",
       "1 Warning"
     ]);
     expect(groups[0].stats[0].tooltip).toContain("Completeness pass");
+  });
+
+  it("uses Others when more than one check has no category", () => {
+    const groups = buildSummaryGroups([
+      {
+        ...resolved("Categorized", "PASS", null),
+        category: "RISK",
+        categoryLabel: "Risk"
+      },
+      {
+        ...resolved("Uncategorized A", "PASS", null),
+        category: null,
+        categoryLabel: null
+      },
+      {
+        ...resolved("Uncategorized B", "SKIPPED", null),
+        category: null,
+        categoryLabel: null
+      }
+    ]);
+
+    expect(groups.map((group) => group.label)).toEqual(["Risk", "Others"]);
+    expect(groups[1].stats.map((stat) => stat.label)).toEqual([
+      "1 Passed",
+      "1 Skipped"
+    ]);
   });
 
   it("keeps the existing ungrouped summary when no resolved Rule has a category", () => {

@@ -48,22 +48,25 @@
   padding: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-4, 1rem);
   font-size: var(--slds-g-font-scale-base, 0.8125rem);
   color: var(--slds-g-color-neutral-base-40, #706e6b);
-  border-bottom: 1px solid var(--slds-g-color-border-base-1, #e5e5e5);
 }
 
 .rhc-card {
   display: block;
   background: var(--rhc-theme-card-background);
-  border: var(--slds-g-sizing-border-1, 1px) solid var(--rhc-theme-card-border);
+  border: var(--rhc-theme-card-border-width, var(--slds-g-sizing-border-1, 1px))
+    solid var(--rhc-theme-card-border);
   /* Match standard Lightning cards (related lists, record panels). */
   border-radius: var(--rhc-theme-card-radius);
-  /* Let row/summary tooltips extend past the card edge; bottom rounding is applied
-     on the last body child instead of clipping popovers. */
+  /* Let row/summary tooltips extend past the card edge; bottom rounding is
+     applied on the last body child instead of clipping popovers. */
   overflow: visible;
 }
 
-.rhc-theme .rhc-card {
-  box-shadow: var(--rhc-theme-card-shadow);
+/* Empty list stays in the DOM before/without results; hide it so the preceding
+   sibling becomes :last-child and receives the bottom corner radius (avoids a
+   zero-height last child leaving a square bottom edge on the hint above). */
+.rhc-list:empty {
+  display: none;
 }
 
 .rhc-body > :last-child {
@@ -76,7 +79,9 @@
   flex-direction: column;
   gap: 0.375rem;
   min-width: 0;
-  padding: 0.875rem var(--slds-g-spacing-4, 1rem) 0.875rem;
+  /* Slightly more top padding than the side/bottom inset so the title has
+     breathing room under the card’s rounded edge (SLDS 1 and SLDS 2). */
+  padding: 1.25rem var(--slds-g-spacing-4, 1rem) 0.875rem;
   background: var(--rhc-theme-header-background);
   border-bottom: 1px solid var(--slds-g-color-border-base-1, #e5e5e5);
   border-top-left-radius: var(--rhc-theme-card-radius);
@@ -264,27 +269,31 @@
 }
 
 /* ── Summary stats bar ─────────────────────────────────────────────────────── */
+/* Category blocks are true full-width rows (padding on the group, not the bar)
+   so separators span edge-to-edge like .rhc-row. Each group is position:relative
+   so summary-pill tooltips hang under that category — same model as rule rows. */
 .rhc-stats-bar {
-  /* Vertical padding is shared with the nubbin offset below: the pill sits this
-     far above the bar's bottom edge, so the arrow must drop by the same amount
-     to reach the bubble that hangs off the bar. Keeping it in one var means the
-     arrow stays glued to the bubble if the padding ever changes. */
-  --rhc-stats-bar-pad-y: 0.625rem;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.5rem;
-  padding: var(--rhc-stats-bar-pad-y) var(--slds-g-spacing-4, 1rem);
+  gap: 0;
+  padding: 0;
   border-top: 1px solid var(--slds-g-color-border-base-1, #f0f0f0);
-  /* Positioning context for summary-pill tooltips (bubble spans the bar). */
-  position: relative;
 }
 
 .rhc-stats-group {
+  --rhc-stats-group-pad-y: 0.625rem;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.25rem;
+  gap: 0.375rem;
+  /* Match check-row vertical padding so labels and pills share the same top inset. */
+  padding: var(--rhc-stats-group-pad-y) var(--slds-g-spacing-4, 1rem);
+  position: relative;
+}
+
+.rhc-stats-group + .rhc-stats-group {
+  border-top: 1px solid var(--slds-g-color-border-base-1, #f0f0f0);
 }
 
 .rhc-stats-group__label {
@@ -307,10 +316,10 @@
 }
 
 /* Grid stack: pill label + nubbin host share one cell. The footer anchor stays
-   position:static so its tooltip bubble (::after) escapes to the stats bar and can
-   span the full card width (like the rule rows). The nubbin host is a later sibling
-   of the anchor so the arrow is driven by the anchor's own :hover/:focus-visible and
-   fades in together with the bubble, not on a separate pill-hover timer. */
+   position:static so its tooltip bubble (::after) escapes to the category group
+   and spans that row's width (like rule-row tooltips). The nubbin host is a later
+   sibling of the anchor so the arrow is driven by the anchor's own :hover/
+   :focus-visible and fades in together with the bubble. */
 .rhc-summary-pill {
   display: inline-grid;
   position: static;
@@ -331,11 +340,9 @@
 
 .rhc-stat__nubbin {
   position: absolute;
-  /* Drop past the bar's bottom padding so the arrow lands at the bubble's top
-     edge (which hangs 0.5rem below the bar), instead of floating up by the pill
-     with a gap to the bubble. This mirrors the rule-row arrow, which sits right
-     against its bubble. */
-  top: calc(100% + var(--rhc-stats-bar-pad-y) + 0.25rem);
+  /* Drop past the group's bottom padding so the arrow lands at the bubble's top
+     edge (which hangs below the group), matching the rule-row nubbin gap. */
+  top: calc(100% + var(--rhc-stats-group-pad-y) + 0.25rem);
   left: 50%;
   width: var(--slds-g-sizing-3, 0.5rem);
   height: var(--slds-g-sizing-3, 0.5rem);
@@ -960,8 +967,8 @@
 }
 
 /* Summary pill tooltip: the anchor stays position:static so the bubble escapes to
-   the stats bar and spans the full card width (left/right:1rem), matching the rule
-   rows. It opens downward by default (base top); JS adds --flip-up near the bottom
+   the category group (position:relative) and spans that row's width, matching the
+   rule-row model. It opens downward by default; JS adds --flip-up near the bottom
    of the viewport to open it upward instead. */
 .rhc-tooltip-anchor--footer {
   position: static;
@@ -1057,11 +1064,11 @@
   border-right: 1px solid var(--slds-g-color-border-2, #aeacaa);
 }
 
-/* The summary nubbin clears the bar's top padding when flipped up, mirroring the
-   downward offset so it stays glued to the bubble above the bar. */
+/* The summary nubbin clears the group's bottom padding when flipped up, mirroring
+   the downward offset so it stays glued to the bubble above the category row. */
 .rhc-tooltip-anchor--flip-up ~ .rhc-stat__nubbin-host .rhc-stat__nubbin {
   top: auto;
-  bottom: calc(100% + var(--rhc-stats-bar-pad-y) + 0.25rem);
+  bottom: calc(100% + var(--rhc-stats-group-pad-y) + 0.25rem);
   border-top: 0;
   border-left: 0;
   border-bottom: 1px solid var(--slds-g-color-border-2, #aeacaa);

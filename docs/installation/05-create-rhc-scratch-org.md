@@ -6,7 +6,9 @@
 ## Prerequisites
 
 Install the Salesforce CLI, clone this repository, and authenticate a Dev Hub that is allowed to create scratch
-orgs. Confirm both tools and the Dev Hub before running setup:
+orgs. Confirm both tools and the Dev Hub before running setup. On Windows, run the setup script from
+**Git Bash** or execute the equivalent `sf` commands in **PowerShell**; do not use WSL `bash` to call the
+Windows `sf` CLI (see [Windows and shell notes](#windows-and-shell-notes)).
 
 ```bash
 sf --version
@@ -143,6 +145,62 @@ sf apex run --target-org rhc-demo --file scripts/apex/verifyDemo.apex
 
 The final verification command checks every record count and every Rule status listed on this page. A successful
 run prints `RHC_DEMO_VERIFIED pass=3 fail=4 skip=1`.
+
+## Currency mode
+
+The demo scratch org is **multi-currency by design** (`MultiCurrency` in
+`config/display-formats-scratch-def.json`). That matches currency display examples and the EUR activation
+step in `setup-demo.sh`.
+
+Installed subscriber orgs (package or source) work in **both** single-currency and multi-currency modes.
+At runtime the Framework selects `CurrencyIsoCode` only when the org is multi-currency, and Found /
+Expected currency chips use a symbol in a single-currency org or an ISO code in a multi-currency org.
+See [Localization](../reference/framework/05-localization.md) and the
+[FAQ](../guides/02-faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs).
+
+To exercise display formatting in a **single-currency** scratch org, use the display-formats fixture path
+with `config/project-scratch-def.json` instead of this demo script. See
+[`integration-tests/README.md`](../../integration-tests/README.md).
+
+## Windows and shell notes
+
+`scripts/setup-demo.sh` is a bash script. On Windows:
+
+- Prefer **Git Bash** or run the equivalent `sf` steps in **PowerShell**.
+- Do **not** use WSL `bash` to invoke the Windows Salesforce CLI (`sf.cmd`). WSL cannot execute that
+  launcher and fails with errors such as `@echo: not found`.
+- If bash reports `$'\r': command not found` or `pipefail: invalid option name`, the script has CRLF
+  line endings. Convert to LF (for example with `dos2unix` or your editor) before running under bash.
+
+## Known setup-script gaps
+
+`setup-demo.sh` currently references Apex files that are **not** checked into this repository:
+
+| Referenced file | Intended role |
+| --- | --- |
+| `scripts/apex/configureDemoAdmin.apex` | Rename / personalize the scratch-org admin user |
+| `scripts/apex/setupExampleData.apex` | Seed the realistic Account / Contact / Opportunity portfolio |
+| `scripts/apex/verifyExampleData.apex` | Verify that portfolio and object-specific Check Set outcomes |
+
+When those files are absent, stop after the Acme path that **is** in the repo:
+`setupDemoUser.apex` → `setupDemoData.apex` → `deactivateDemoUser.apex` → `validateMetadata.apex` →
+`verifyDemo.apex`. A successful Acme verification still prints
+`RHC_DEMO_VERIFIED pass=3 fail=4 skip=1`. Re-add or restore the missing scripts before expecting the
+object-specific portfolio section above to run end-to-end from `setup-demo.sh`.
+
+## Multi-currency Apex test failure
+
+If a deploy with `--test-level RunLocalTests` fails on
+`RecordHealthCheckFieldPlannerTest.rejectsMissingInaccessibleAndMalformedPaths` with a message like
+`Expected: {Id}, Actual: {CurrencyIsoCode, Id}`, the org is multi-currency and the field planner
+correctly selected `CurrencyIsoCode`. The test must allow that field when
+`UserInfo.isMultiCurrencyOrganization()` is true and Account exposes `CurrencyIsoCode`. Current
+`force-app` includes that assertion. Pull the latest Framework sources before re-running the demo
+setup on a multi-currency scratch org.
+
+This failure affects **contributor source deploys that run local tests**, not typical unlocked-package
+installs into subscriber sandboxes. See the
+[FAQ](../guides/02-faq.md#why-did-my-multi-currency-scratch-or-source-deploy-fail-apex-tests).
 
 ## Next steps
 

@@ -81,12 +81,39 @@ event publication, or asynchronous work: the Framework detects that forbidden wr
 rolls it back before it can commit, then reports a Framework exception rather than letting it
 through. See [Security and data access: Plugin side-effect bans](../reference/framework/02-security.md#plugin-side-effect-bans).
 
+## Does Record Health Check work in single-currency and multi-currency orgs?
+
+Yes. Install and day-to-day evaluation work the same in both modes. At runtime the Framework:
+
+- selects `CurrencyIsoCode` on the card record only when the org is multi-currency;
+- formats currency Found / Expected values with a **symbol** in a single-currency org and an **ISO
+  code** in a multi-currency org;
+- still compares raw numeric and API values for Pass / Fail, never the formatted display text.
+
+Subscriber sandboxes installing the unlocked package do not need a special currency-mode install
+step. Maintainers validate both modes with
+[`scripts/setup-display-formats.sh`](../../scripts/setup-display-formats.sh) (multi-currency by
+default; set `SCRATCH_DEF=config/project-scratch-def.json` for single-currency). See
+[Localization](../reference/framework/05-localization.md) and
+[Create the demo scratch org](../installation/05-create-rhc-scratch-org.md#currency-mode).
+
+## Why did my multi-currency scratch or source deploy fail Apex tests?
+
+A source deploy with `--test-level RunLocalTests` into a multi-currency org can fail
+`RecordHealthCheckFieldPlannerTest.rejectsMissingInaccessibleAndMalformedPaths` when the assertion
+expects only `{Id}` but the planner correctly returns `{CurrencyIsoCode, Id}`. That is a test
+assertion issue, not a Framework currency bug. Current `force-app` allows `CurrencyIsoCode` when
+the org is multi-currency. Pull the latest sources and redeploy. Unlocked-package installs into
+subscriber orgs are unaffected by this contributor-path failure mode. See
+[Multi-currency Apex test failure](../installation/05-create-rhc-scratch-org.md#multi-currency-apex-test-failure).
+
 ## Where do I go next?
 
 | Goal | Page |
 | --- | --- |
 | Understand the mental model | [How Record Health Check works](../installation/01-how-it-works.md) |
 | Install it | [Install and verify](../installation/02-install-and-verify.md) |
+| Confirm single- vs multi-currency behavior | [Does Record Health Check work in single-currency and multi-currency orgs?](#does-record-health-check-work-in-single-currency-and-multi-currency-orgs) |
 | Compare it to Validation Rules, Duplicate Rules, and Flow | [Compare Record Health Check to native Salesforce tools](01-compare-to-native-salesforce.md) |
 | Look up a term | [Glossary](../reference/01-glossary.md) |
 | Get help | [Support](../../SUPPORT.md) |

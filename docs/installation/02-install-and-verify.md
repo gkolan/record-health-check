@@ -50,7 +50,9 @@ through the browser package installer, you can skip the CLI login until you need
 
 ## 2. Install Record Health Check
 
-Use a sandbox for the first install.
+Use a sandbox for the first install. Single-currency and multi-currency orgs use the same install
+steps; currency mode only changes how Found / Expected currency values render. See
+[Does Record Health Check work in single-currency and multi-currency orgs?](../guides/02-faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs).
 
 ### Option A: Unlocked package (supported)
 
