@@ -2,7 +2,7 @@
 
 [![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Apex coverage: 93.61%](https://img.shields.io/badge/Apex_coverage-93.61%25-brightgreen)](config/quality-metrics.json)
+[![Apex coverage: 99.54%](https://img.shields.io/badge/Apex_coverage-99.54%25-brightgreen)](config/quality-metrics.json)
 [![LWC line coverage: 98.92%](https://img.shields.io/badge/LWC_lines-98.92%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
@@ -88,7 +88,7 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 | Measure               | Details                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 2GP unlocked package  | `rhc` namespace                                                                                                          |
-| Apex                  | 173 classes, including 79 test classes · 93.61% test coverage for packaged Apex                                          |
+| Apex                  | 199 classes, including 105 test classes · 99.54% test coverage for packaged Apex                                         |
 | LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 98.92% line coverage                                                   |
 | Packaged examples     | 4 packaged Demo Check Sets containing 21 Checks                                                                          |
 | Permission sets       | Record Health Check User and Record Health Check Admin                                                                   |
