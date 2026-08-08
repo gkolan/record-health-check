@@ -30,15 +30,18 @@ Before creating a release candidate:
 
 1. Run every local gate, including docs, query shapes, permissions, formatting, lint, and Jest.
 2. Run Code Analyzer and resolve every unsuppressed release finding.
-3. Run `npm run package:verify` against the candidate `04t` (clean install and, when available,
-   previous-to-candidate upgrade).
-4. Confirm subscriber-owned Custom Metadata survives the upgrade gate.
-5. Run the package-source org gate in CI (`salesforce-validate.yml`).
-6. After both namespaced and no-namespace source tests complete, run
+3. Run the package-source org gate in CI (`salesforce-validate.yml`).
+4. After both namespaced and no-namespace source tests complete, run
    `npm run check:apex-coverage -- <org-alias>` for each org and retain the lower Framework result.
    Run `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
    `npm run check:quality-metrics -- --apex-org <org-alias>` against both orgs. Published coverage
    must describe the candidate being released, not a prior package.
+
+After creating the single candidate and before promotion:
+
+1. Run `npm run package:verify` against its explicit `04t`.
+2. Confirm the retrieved server artifact passes the physical-file audit.
+3. Confirm clean install, N-1 upgrade, and subscriber-owned Custom Metadata preservation gates.
 
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
 
@@ -55,7 +58,15 @@ Package creation is manual and happens once, at the end of release-branch prepar
 a package version for every commit and do not add creation to ordinary pull-request CI. Commit the
 exact release source first; the command refuses a dirty worktree, `main`, a detached HEAD, or a
 missing explicit release-ready acknowledgement. The command runs the complete local release
-preflight before consuming package-version capacity.
+preflight before consuming package-version capacity. That preflight converts the package to
+Metadata API format and proves that every Custom Metadata member named in `package.xml` has a
+physical file, including exactly four Check Sets and 21 Checks.
+
+The command permits only one candidate attempt in a Dev Hub package-create limit window by default.
+If any package-create capacity has already been consumed, wait for the limit to reset. An additional
+attempt requires both `--allow-additional-candidate` and a reviewed `--override-reason` of at least
+20 characters. This exception is for an externally time-critical release with evidence of a fixed
+cause; it is not a retry mechanism for package debugging.
 
 ```bash
 npm run package:create -- --dev-hub <dev-hub> --release-ready
@@ -71,9 +82,9 @@ cd packages/record-health-check
 
 sf package version create \
   --package 0Hoak0000004kKPCAY \
-  --path force-app \
   --definition-file config/project-scratch-def.json \
   --code-coverage \
+  --generate-pkg-zip \
   --installation-key-bypass \
   --wait 120 \
   --target-dev-hub <dev-hub>
@@ -90,6 +101,8 @@ npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 
 This runs:
 
+- Retrieval of the immutable server-generated package artifact
+- Refusal to continue unless all 25 Custom Metadata records exist in both its manifest and files
 - Clean no-namespace install of the candidate
 - Subscriber harness deploy and `RHCSubscriberSmokeTest`
 - Previous-to-candidate upgrade rehearsal when `previous` is a promoted `04t`
@@ -125,6 +138,12 @@ excludes it from the package, which is how `2.0.0.6` came to install with zero E
 
 Demo _data_ is different. The Acme Accounts and related records the demo org uses are subscriber
 owned, come from `scripts/subscriber/data`, and must never be packaged.
+
+Package artifact evidence is retained locally under
+`packages/record-health-check/.package-artifacts/<04t>/`. Verification never overwrites an existing
+artifact directory. If retrieval is interrupted, inspect and move or delete the incomplete directory
+before retrying. The Dev Hub user must have Salesforce's package-zip download permission; a missing
+permission blocks verification before a scratch org is created.
 
 ## Rollback
 

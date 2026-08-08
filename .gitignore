@@ -65,6 +65,8 @@ $RECYCLE.BIN/
 /spec/
 /specs/
 /releases/
+packages/record-health-check/.package-artifacts/
+packages/record-health-check/.package-evidence/
 .backups/
 tasks/
 slides_build/

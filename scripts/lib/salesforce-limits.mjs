@@ -57,4 +57,5 @@ export function assertPackageVersionCapacity(devHub) {
   console.log(
     `2GP package-version capacity confirmed on ${devHub}: ${limit.remaining}/${limit.max} creates remain.`
   );
+  return limit;
 }

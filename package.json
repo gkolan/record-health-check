@@ -52,6 +52,7 @@
     "check:docs": "node scripts/release/check_docs.mjs && node scripts/release/audit_docs_quality.mjs --check",
     "check:field-limits": "python3 scripts/release/generate_field_size_registry.py --check",
     "check:manifest": "node scripts/release/check_manifest_coverage.mjs",
+    "check:package-artifact": "node scripts/release/audit_package_artifact.mjs",
     "check:package-boundary": "node scripts/release/check_package_boundary.mjs",
     "check:query-shapes": "python3 scripts/release/inventory_bulk_query_shapes.py --self-test && python3 scripts/release/inventory_bulk_query_shapes.py --check",
     "capture:query-verdicts": "python3 scripts/release/capture_query_verdicts.py",

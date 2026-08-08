@@ -61,9 +61,15 @@ These checks apply to every AI coding agent and automated contributor working in
   URLs, commit the exact package source, and create the matching semantic-version tag and release.
 - Check `Package2VersionCreates` before creating a candidate. Do not consume package-version or
   scratch-org capacity for documentation-only or local UI-only changes.
+- Treat one package-version create per Dev Hub limit window as the default hard ceiling. An
+  additional attempt requires an explicit reviewed exception and evidence that the root cause is
+  fixed; never spend candidates on speculative packaging changes.
 - Never create a package version per commit or in ordinary pull-request CI. Package creation is the
   final release-candidate step after the release branch is committed, source gates pass, and both
   org shapes are proven. Run the explicit release preflight, then create one candidate with
   `--release-ready`; verify that candidate before merge and promotion.
 - Retain redacted JSON evidence for create, install, upgrade, test, coverage, promote, and deployment
   operations. A successful command without retained evidence is not a completed release gate.
+- Generate a retrievable package zip for every candidate. Before creating a subscriber org or
+  installing, retrieve it and prove that every Custom Metadata member in `package.xml` has a
+  physical file. Stop on the first mismatch; do not create a retry candidate in the same window.

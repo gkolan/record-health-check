@@ -55,9 +55,12 @@ That is why checking only the active-org list is insufficient.
 1. Run local structural, documentation, JavaScript, SLDS, security, and coverage gates.
 2. Prove namespaced and no-namespace source shapes and refresh measured coverage.
 3. Commit the exact release branch and run the complete release preflight.
-4. Check `Package2VersionCreates` capacity and create one immutable candidate with
-   `npm run package:create -- --dev-hub <dev-hub> --release-ready`. Never create per commit.
-5. Verify a clean no-namespace subscriber install and smoke test.
+4. Run the converted-artifact audit, check `Package2VersionCreates`, and create one immutable
+   candidate with `npm run package:create -- --dev-hub <dev-hub> --release-ready`. The command
+   generates a retrievable package zip and blocks another attempt in the same limit window by
+   default. Never create per commit or use candidate capacity for debugging.
+5. Retrieve and audit the immutable server artifact before creating a scratch org. Verify a clean
+   no-namespace subscriber install and smoke test only after all 25 Custom Metadata files pass.
 6. Verify previous-to-candidate upgrade and subscriber-owned configuration preservation.
 7. Attach redacted evidence to the pull request and complete release review.
 8. Promote the verified candidate at the approved release point.

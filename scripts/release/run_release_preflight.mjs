@@ -17,6 +17,7 @@ const gates = [
   "check:docs",
   "check:field-limits",
   "check:manifest",
+  "check:package-artifact",
   "check:package-boundary",
   "check:query-shapes",
   "check:distribution-boundary",
