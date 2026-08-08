@@ -1,42 +1,32 @@
 # Uninstall and rollback
 
-> [!NOTE]
-> On this page, remove Record Health Check from an org safely: back up configuration first, remove
-> Lightning placements and automation subscribers, then uninstall the package or remove
-> source-deployed metadata.
-
-Use this page when an org no longer needs Record Health Check, or when a revalidation in
-[Revalidate an installation](04-upgrading.md) fails and the release owner decides to roll back to
-"not installed" rather than to a prior version.
+Use this guide when an org no longer needs Record Health Check. You will preserve anything needed
+for a future reinstall, remove the places where people and automation depend on the Framework, and
+then uninstall it without leaving broken pages or processes behind.
 
 ## Before you start
 
-Removing Record Health Check removes the Lightning card, the Apex API, the Flow actions, and the
-Custom Metadata Types it defines. Anything built on top of those surfaces stops working the moment
-its dependency is gone. Confirm the blast radius before you begin:
+Uninstalling removes the card, Check Set and Rule configuration types, permission sets, and
+automation entry points. Before making that change, identify where the Framework is used:
 
-1. Identify every Lightning record page that places the **Record Health Check** component.
-2. Identify every Apex class that calls `RecordHealthCheck.evaluate(...)` or references
-   `RecordHealthCheckRule`, `RecordHealthCheckScope`, or `RecordHealthCheckOutcome`.
-3. Identify every Flow that uses **Run Record Health Check Rule** or **Run Record Health Check
-   Set**.
-4. Identify every Flow or Apex trigger subscribed to `Record_Health_Check_Set_Run__e`,
-   `Record_Health_Check_Rule_Result__e`, or `Record_Health_Check_Log__e`.
-5. Identify every user assigned **Record Health Check User** (`Record_Health_Check_User`) or **Record Health Check Admin** (`Record_Health_Check_Admin`).
+1. List every Lightning record page that contains the **Record Health Check** card.
+2. Ask the owners of Salesforce automation whether a Flow, Apex class, scheduled job, or event
+   subscriber uses Record Health Check.
+3. List the people assigned **Record Health Check User** or **Record Health Check Admin**.
+4. Agree on when users and automation should stop relying on the Framework.
 
-## Back up Custom Metadata first
+## Preserve the configuration first
 
-Check Set and Rule configuration lives entirely in Custom Metadata. Export it before removing
-anything, the same way [Revalidate an installation](04-upgrading.md#before-you-start) does for an
-upgrade:
+Check Sets and Rules contain the questions, messages, and guidance your organization authored.
+Export them before removing anything:
 
 1. Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) record.
 2. Export every **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record.
 3. Record which Lightning record pages had the component placed, and which Check Set each one
    selected.
 
-Store the export somewhere the org can restore from later. If the removal is temporary or
-experimental, this backup is what makes a future reinstall a restoration rather than a rebuild.
+Store the export with the record-page list and access assignments. If the removal is temporary,
+these items turn a future reinstall into a restoration instead of a reconstruction exercise.
 
 ## Step 1: Remove Lightning placements
 
@@ -50,10 +40,11 @@ For every record page identified above:
 Removing the placement first means users stop seeing a card that will shortly call an Apex class
 that may no longer exist, instead of encountering an error mid-removal.
 
-## Step 2: Remove Flow and Apex event subscribers
+## Step 2: Stop connected automation
 
-Disable or remove automation that depends on Record Health Check before removing the Framework
-itself, so nothing is left calling into a surface that is about to disappear:
+If your organization does not connect Record Health Check to Flow, Apex, scheduled work, or Platform
+Events, continue to Step 3. Otherwise, work with the automation owner to disable those dependencies
+before uninstalling:
 
 1. Deactivate or delete Flows that call **Run Record Health Check Rule** or **Run Record Health
    Check Set**.
@@ -65,31 +56,30 @@ itself, so nothing is left calling into a surface that is about to disappear:
    platform events above.
 4. Remove any scheduled job created from `RecordHealthCheckScheduled`.
 
-## Step 3: Remove Permission Set assignments
+## Step 3: Remove user access
 
-Remove **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`) assignments before uninstalling
-the package or removing source metadata:
+In **Setup → Permission Sets**, open **Record Health Check User** and **Record Health Check Admin**,
+then use **Manage Assignments** to remove their users.
+
+Removing assignments first provides a clear record of who lost access and when. Salesforce also
+removes packaged permission sets during uninstall, so this step is preparation rather than a
+technical requirement.
+
+Teams that manage assignments with the Salesforce CLI can use:
 
 ```bash
 sf org list users --target-org <org-alias>
 ```
-
-Then remove each affected user's assignment through **Setup → Permission Sets → (Permission Set) →
-Manage Assignments**, or with the CLI:
 
 ```bash
 sf org remove permsetassign --name Record_Health_Check_User --target-org <org-alias> --on-behalf-of <username>
 sf org remove permsetassign --name Record_Health_Check_Admin --target-org <org-alias> --on-behalf-of <username>
 ```
 
-This step is not strictly required before uninstalling (an uninstalled package removes its
-Permission Sets along with everything else), but doing it explicitly gives you a clean audit trail
-of who lost access and when.
+## Step 4: Uninstall the package
 
-## Step 4a: Uninstall the unlocked package
-
-If Record Health Check was installed as the namespaced unlocked package (`rhc`), uninstall it from
-**Setup → Installed Packages**, or with the CLI:
+Open **Setup → Installed Packages**, find **Record Health Check**, and select **Uninstall**. Teams
+that manage packages with the Salesforce CLI can use:
 
 ```bash
 sf package uninstall --package "Record Health Check" --target-org <org-alias> --wait 30
@@ -100,7 +90,7 @@ Salesforce blocks an uninstall if other metadata in the org still depends on pac
 class extending a packaged interface without an override). Resolve every dependency identified in
 [Before you start](#before-you-start) first, then retry.
 
-## Step 4b: Remove source-deployed metadata
+## Contributor-only alternative: Remove development source
 
 If Record Health Check was source-deployed during contributor development, remove the same manifest
 that installed it. Run these commands from `packages/record-health-check/` or pass the full manifest
@@ -127,10 +117,10 @@ sf project delete source \
 Do not run a bare deletion without a manifest. Deleting by manifest keeps the operation scoped to
 Record Health Check's own components.
 
-This step applies only to contributor source-deploy orgs. Subscriber orgs that installed the unlocked
-package should use [Step 4a](#step-4a-uninstall-the-unlocked-package) instead.
+This alternative applies only to contributor development orgs. An org that used the public package
+installer should follow [Step 4](#step-4-uninstall-the-package).
 
-## Step 5: Verify removal
+## Step 5: Confirm the org is clean
 
 | Check | Expected result |
 | --- | --- |
@@ -146,19 +136,19 @@ If Record Health Check needs to come back, treat it as a new installation using 
 backup:
 
 1. Reinstall the package (or redeploy the source) following
-   [Install and verify](02-install-and-verify.md).
+   [Install and verify in your org](02-install-and-verify.md).
 2. Restore the exported **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) records.
 3. Reassign **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`) to the users identified in
    [Before you start](#before-you-start).
 4. Re-add the Lightning component to the record pages that had it.
 5. Re-enable any Flow, Apex, or event subscriber automation that was disabled during removal.
 6. Re-verify with the same passing and failing scenarios described in
-   [Install and verify: Verify the result](02-install-and-verify.md#5-verify-the-result).
+   [Install and verify in your org: Verify the experience as a user](02-install-and-verify.md#step-4-verify-the-experience-as-a-user).
 
 ## Next steps
 
-- [Revalidate an installation](04-upgrading.md)
-- [Install and verify](02-install-and-verify.md)
+- [Upgrade and revalidate](04-upgrading.md)
+- [Install and verify in your org](02-install-and-verify.md)
 - [Operate in production](../guides/08-operate-in-production.md)
 - [Configuration identity](../reference/framework/06-configuration-identity.md)
 - [Security and data access](../reference/framework/02-security.md)

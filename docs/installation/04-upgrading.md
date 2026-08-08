@@ -1,133 +1,130 @@
-# Revalidate or upgrade an installation
+# Upgrade and revalidate an installation
 
-> [!NOTE]
-> Use this page when Record Health Check is already installed and you need to upgrade the unlocked
-> package safely. You will preserve the org's configuration, verify the result in a representative
-> environment, and retain a tested rollback path.
+Use this guide when Record Health Check is already installed. The goal is not simply to complete a
+package upgrade; it is to prove that the checks, pages, access, and automations people rely on still
+behave as expected afterward.
 
-Do not treat an existing installation like a new sandbox. Its Custom Metadata, Lightning page
-activation, permission assignments, Apex callers, Flow integrations, and Platform Event
-subscribers may support active business processes.
+Test the upgrade in a representative sandbox before production.
 
 ## Before you start
 
-Capture these items before changing metadata:
+An established installation can include configuration created by your organization, Lightning page
+placements, permission assignments, and automation. Capture enough information to restore and
+retest that experience before changing the package.
 
-1. Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record.
-2. Retain the installed package version ID from Setup → Installed Packages or
-   `sf package installed list --target-org <validation-org>`.
-3. Record the active Lightning record pages and their selected Check Sets.
-4. Export assignments for **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`).
-5. List Apex, Flow, and Platform Event integrations that call or subscribe to Record Health Check.
-6. Record one passing and one failing business scenario for each active Check Set.
+Keep:
 
-Store the backup where the release owner can restore it. A backup that has never been restored in
-a test org is not sufficient rollback evidence.
+- an export of your Record Health Check Sets and Rules;
+- the currently installed package version;
+- a list of Lightning pages that contain the card and the Check Set selected on each page;
+- the users assigned **Record Health Check User** and **Record Health Check Admin**;
+- a list of Flows, Apex callers, scheduled work, or event subscribers connected to the Framework;
+- one record that should pass and one that should need attention for each important Check Set.
 
-## Upgrade the unlocked package
+Store the backup somewhere the person responsible for the release can restore it. A backup is most
+useful when its restoration has already been rehearsed in a safe org.
 
-Use a sandbox that mirrors production before upgrading production.
+## Step 1: Confirm the current experience
 
-1. Confirm the currently installed package version (Setup → Installed Packages, or
-   `sf package installed list --target-org <validation-org>`).
-2. Install the newer promoted **Record Health Check** package version into the validation org.
-   The current stable subscriber package version ID is recorded in
-   [`config/package-releases.json`](../../config/package-releases.json).
+Before upgrading, run the important Check Sets against the records you retained. Capture the
+results, including Found, Expected, severity, and remediation guidance. This gives you a meaningful
+before-and-after comparison instead of relying only on whether the package installation succeeds.
 
-   | Org type | Install |
-   | --- | --- |
-   | Production / Developer Edition | Use the `installUrl.production` value from `config/package-releases.json` |
-   | Sandbox | Use the `installUrl.sandbox` value from `config/package-releases.json` |
+Also confirm that a regular user can run the card and that diagnostic details are hidden during
+normal use.
 
-   ```bash
-   sf package install \
-     --package <04t-from-package-releases.json> \
-     --target-org <validation-org> \
-     --upgrade-type DeprecateOnly \
-     --wait 30 \
-     --publish-wait 10
-   ```
+## Step 2: Upgrade the sandbox
 
-   Or run the maintained upgrade helper against a scratch org:
+Open the current installation link from
+[`config/package-releases.json`](../../config/package-releases.json), sign in to the validation
+sandbox, and follow the Salesforce upgrade prompts.
 
-   ```bash
-   npm run subscriber:upgrade -- --alias <org-alias>
-   ```
+Keep the organization's own Check Sets and Rules. A package upgrade should not silently replace
+configuration your organization owns. Compare the upgraded configuration with the export if
+anything appears missing, blank, inactive, or unexpectedly changed.
 
-   Use `DeprecateOnly` while the project is young; see
-   [Package testing and upgrades](../reference/framework/07-package-testing-and-upgrades.md).
+### Optional command-line installation
 
-3. Keep subscriber-owned Check Sets and Rules. Package upgrades should not replace org-authored
-   Custom Metadata; investigate any unexpected change against your pre-upgrade export.
-4. Run the [verification checklist](#verification).
-5. Repeat the package install against production only after the release owner approves the
-   validation evidence, backup, and rollback rehearsal.
+Teams that automate upgrades can use the Salesforce CLI:
 
-## Public surfaces to re-check after upgrade
+```bash
+sf package install \
+  --package <package-version-id> \
+  --target-org <validation-org> \
+  --upgrade-type DeprecateOnly \
+  --wait 30 \
+  --publish-wait 10
+```
 
-When the org already calls or configures Record Health Check, confirm these current contracts after
-the upgrade:
+The package version ID is the value beginning with `04t` in
+[`config/package-releases.json`](../../config/package-releases.json). The command works on Windows,
+macOS, and Linux.
 
-| Surface | Confirm |
+## Step 3: Revalidate what people use
+
+| What to verify | What success looks like |
 | --- | --- |
-| Synchronous Apex | Callers use `RecordHealthCheck.evaluate(RecordHealthCheckRequest)` with qualified Check Set or Rule API names |
-| Apex plugins | Plugins implement bulk `RecordHealthCheckRule.evaluate(RecordHealthCheckScope)` and return one outcome per requested record ID |
-| Merge tokens | Templates use namespaced tokens and attribute fallbacks such as `{!record.Name fallback="this record"}` |
-| Diagnostics access | Troubleshooters hold **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) (via **Record Health Check Admin** (`Record_Health_Check_Admin`)) and the Check Set enables **Show Diagnostics** only while investigating |
-| Run access | Executable surfaces require **Record Health Check Run** (`Record_Health_Check_Run`) (included in the User and Admin Permission Sets) |
-| Card outcomes | Lightning verification expects Pass, Fail (Failed / Warning / Info), Skipped, Unable to Check, and System Error |
+| Lightning pages | Each page still shows the intended Check Set |
+| Passing scenario | The expected Rules pass |
+| Attention scenario | The same guidance, severity, Found, Expected, and action remain meaningful |
+| Regular user | The user can run the card without seeing diagnostic detail |
+| Framework administrator | Show Diagnostics is available only when intentionally enabled |
+| Organization-owned configuration | Check Sets and Rules match the approved pre-upgrade configuration |
+| Flow or Apex automation | Every caller still receives and handles the expected outcomes |
+| Event subscribers | Publication and downstream behavior remain intentional and do not duplicate work |
 
-Do not teach or restore retired entry points. If an existing caller still uses an older shape, update
-the caller to the contracts above before treating the org as verified.
+Investigate a changed Rule result before approving production. The cause may be the package,
+configuration, user access, or changed Salesforce data; the retained before-and-after record helps
+you distinguish them.
 
-## Verification
+## Step 4: Decide whether to proceed
 
-| Verification | Expected result |
-| --- | --- |
-| Open each active Lightning record page | The intended Check Set appears on the Record Health Check card |
-| Run the retained passing record | The expected Rules pass without exposing diagnostic detail |
-| Run the retained failing record | The expected guidance, severity, Found/Expected values, and action appear |
-| Run as a standard user | The card respects record, object, and field access |
-| Run as an authorized troubleshooter | Diagnostic detail appears only when **Show Diagnostics** is enabled |
-| Exercise each Apex or Flow caller | The caller handles every returned status and preserves its correlation ID |
-| Exercise each event subscriber | Publication intent, duplicate handling, replay behavior, and data retention match the approved design |
+Proceed to production only when:
 
-Compare deployed Custom Metadata with the export captured before the upgrade. Investigate an
-unexpected deletion, blank value, changed relationship, or inactive record before continuing.
+- the package installed successfully in the sandbox;
+- the retained business scenarios behave as expected;
+- regular-user access remains correct;
+- organization-owned configuration is intact;
+- connected automation still works; and
+- the backup and recovery path are understood.
 
-## Roll back when verification fails
-
-1. Disable lifecycle publication when subscribers could act on unverified results.
-2. Restore the retained package version.
-3. Restore the exported Custom Metadata records.
-4. Restore Lightning page activation and permission assignments.
-5. Run the retained business scenarios.
-6. Preserve deployment, validation, and subscriber logs for root-cause analysis.
-
-Do not resume the release until the restored org produces the retained passing and failing results.
+Repeat the same verification after the production upgrade. Installation success alone is not the
+release outcome; a working user experience is.
 
 ## If verification fails
 
-| Failure | What to inspect |
+Stop before production. Preserve the installation result and the evidence from the affected Check
+Set.
+
+| What changed | What to inspect first |
 | --- | --- |
-| Package install fails | The first component failure, missing dependencies, and target-org feature settings |
-| A Check Set is missing | Custom Metadata deployment, **Active**, **Object**, and Lightning component selection |
-| A Rule changes status | Referenced data, running-user access, applicability, prerequisite order, and Evaluation Type configuration |
-| An integration fails | Qualified metadata names, request limits, status handling, publication mode, and subscriber permissions |
-| Rollback does not restore behavior | The retained package version, Custom Metadata export, page activation, permission assignments, and external subscriber state |
+| The package did not install | The first Salesforce installation error and any missing org feature or dependency it names |
+| A Check Set is missing | The configuration export, Active setting, target object, and Lightning page selection |
+| A Rule changed outcome | The underlying record data, the user's access, and the Rule configuration |
+| A user lost access | Permission-set assignments and the user's record, object, and field access |
+| Automation stopped working | The Flow or Apex error, the outcome it received, and its permission assignments |
+| Event-driven work changed | Event publication settings, duplicate handling, and subscriber errors |
 
-## Contributor revalidation
+Use [Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md) when the card result needs
+deeper evidence.
 
-If you are validating Framework source changes rather than upgrading a subscriber org, use the
-contributor workflow in [Source development](../contributing/source-development.md). That path
-deploys unpackaged package source into a development org and is not a supported subscriber
-installation method.
+## Recover the previous experience
+
+If the upgraded sandbox cannot be approved:
+
+1. stop connected automation that could act on unverified results;
+2. restore the previously approved package version when Salesforce permits that path;
+3. restore the exported Check Sets and Rules;
+4. restore Lightning page selections and permission assignments; and
+5. rerun the retained passing and attention scenarios.
+
+Do not resume the release until the restored org produces the expected user experience.
 
 ## Next steps
 
-- [Install and verify](02-install-and-verify.md)
-- [Uninstall and rollback](06-uninstall-and-rollback.md)
-- [Operate in production](../guides/08-operate-in-production.md)
-- [Configuration review checklist](../guides/03-configure-check-sets-and-rules.md#14-review-checklist)
-- [Integration overview](../integration/README.md)
-- [Reason Codes](../reference/contracts/01-reason-codes.md)
+| Your next goal | Continue with |
+| --- | --- |
+| Operate the verified installation | [Operate in production](../guides/08-operate-in-production.md) |
+| Investigate a result | [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md) |
+| Remove the Framework | [Uninstall and rollback](06-uninstall-and-rollback.md) |
+| Review connected surfaces | [Integration overview](../integration/README.md) |

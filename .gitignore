@@ -11,10 +11,10 @@ deploy-options.json
 # Published install / subscriber setup inputs (scratch defs live under the package).
 !/config/package-releases.json
 !/config/subscriber-scratch-def.json
+!/config/quality-metrics.json
+!/config/toolchain.json
 .claude/
 .playwright-mcp/
-/AGENTS.md
-/CLAUDE.md
 
 # LWC VSCode autocomplete
 **/lwc/jsconfig.json

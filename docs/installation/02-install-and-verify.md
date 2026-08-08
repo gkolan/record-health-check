@@ -1,135 +1,156 @@
-# Install and verify
+# Install and verify in your org
 
-> [!NOTE]
-> On this page, install Record Health Check in a sandbox, place the card on a Lightning record
-> page, and prove a Rule result as a representative user before you plan production.
+Use this guide when you want Record Health Check in a Salesforce org you already use. You will
+install the package, decide who can use it, add the card to a record page, and confirm that it reads
+your Salesforce data correctly.
 
-**You need:** a Salesforce sandbox, permission to install an unlocked package, and permission to
-edit Lightning record pages.
-
-**You do not need:** this repository's source, Apex, or the Salesforce CLI for the main path below.
+When you finish, a user can open a record and see clear guidance from a working Check Set.
 
 > [!TIP]
-> Install the promoted unlocked package only. Assign **Record Health Check User** (`rhc__Record_Health_Check_User`), place the
-> card, and pick a Demo Check Set.
->
-> **Already installed?** Use [Revalidate an installation](04-upgrading.md).
-> **Want the maintained demo org?** See [Try the demo](05-create-rhc-scratch-org.md).
+> Looking for a prepared evaluation environment instead? [Deploy to a demo scratch
+> org](05-create-rhc-scratch-org.md) creates a separate org with known records and expected results.
+> It does not change your existing sandbox or production org.
 
-## What success looks like
+## Before you begin
 
-| Milestone | Expected result |
-| --- | --- |
-| Package installed | Setup → Installed Packages lists **Record Health Check** (`rhc`) |
-| Access assigned | A normal user with **Record Health Check User** (`rhc__Record_Health_Check_User`) can open the card and run it |
-| Check Set selected | Lightning App Builder offers an active Check Set for that object |
-| Card on the page | The Record Health Check card appears on the Lightning record page |
-| A Rule runs | Each Rule shows Pass, Fail (Failed / Warning / Info), Skipped, Unable to Check, or System Error |
+Start in a sandbox. It gives you room to decide where the card belongs, who should see it, and which
+checks make sense before you introduce the experience in production.
 
-## What the install includes
+You need:
 
-You get the Framework, permission sets, Lightning component, Custom Metadata Types, public APIs,
-and four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`).
+- permission to install a Salesforce package;
+- permission to edit Lightning record pages; and
+- at least one Account, Contact, or Opportunity you can use for verification.
 
-You do **not** get the Acme demo Accounts. Those records come only from
-[Try the demo](05-create-rhc-scratch-org.md).
+You do not need this repository, Salesforce CLI, Apex, or Flow for the steps below.
 
-The promoted version and install links live in
-[`config/package-releases.json`](../../config/package-releases.json).
+## What the package adds
 
-## 1. Install in a sandbox
+The package adds the Record Health Check card, the configuration used to define checks, permission
+sets, and APIs for future automation. It also includes four Demo Check Sets:
 
-Use a sandbox first. Single-currency and multi-currency orgs use the same steps; currency mode only
-changes how Found / Expected currency values look. See the
-[currency FAQ](../guides/02-faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs).
+- **Demo: Account Profile Readiness**
+- **Demo: Account Relationship & Risk**
+- **Demo: Contact Relationship Readiness**
+- **Demo: Opportunity Deal Readiness**
 
-[![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge&logo=salesforce&logoColor=white)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO)
+The Demo Check Sets are ready to evaluate records already in your org. They do not create or change
+Accounts, Contacts, Opportunities, or other business data.
 
-| Org type | When to use it | Install |
+## Step 1: Install the package
+
+Choose the destination that matches the org where you are signed in:
+
+| Destination | Use it when | Install |
 | --- | --- | --- |
-| Sandbox | First install and everyday verification | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO) |
-| Production / Developer Edition | After the sandbox path works | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO) |
+| Sandbox | You are evaluating or preparing the Framework | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO) |
+| Production or Developer Edition | You have completed your sandbox review | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO) |
 
-Both links install the same package: **Record Health Check** (`rhc`) version **2.0.0.6**
-(`04tak000000ZXVlAAO`). Only the login host differs.
+Both links install Record Health Check version **2.0.0.6**. The links differ only because Salesforce
+uses a separate sign-in page for sandboxes.
 
-On the install screen, choose **Install for Admins Only** unless you have a reason not to. People
-get access from the permission sets in the next step, not from that install-time profile choice.
+On the Salesforce installation page, choose **Install for Admins Only**. This installs the complete
+Framework, but it does not automatically grant its packaged permissions to every user profile. You
+will give non-admin users access with permission sets in the next step.
 
-## 2. Give people access
+Choosing **Install for All Users** does not make the Framework write to records or run checks by
+itself. The concern is access: Salesforce grants the package's profile-level permissions broadly,
+including to people who may not need the card. That is harder to review and remove later. **Install
+for Admins Only** followed by permission-set assignments keeps access visible and intentional.
 
-In **Setup → Permission Sets**:
+After installation, open **Setup → Installed Packages** and confirm that **Record Health Check** is
+listed.
 
-1. Assign **Record Health Check User** (`rhc__Record_Health_Check_User`) to everyone who should run the card.
-2. Assign **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) only to people who configure Check Sets or troubleshoot
-   with Show Diagnostics.
+## Step 2: Choose who can use it
 
-Leave packaged Apex and packaged tests as the package shipped them. Put your own tests in your own
-repo. See [Package testing and upgrades](../reference/framework/07-package-testing-and-upgrades.md)
-when you need that boundary spelled out.
+The package includes two permission sets so people receive only the access their work requires.
 
-## 3. Pick a Demo Check Set
+| Permission set | Assign it to | What it allows |
+| --- | --- | --- |
+| **Record Health Check User** | People who should run checks on record pages | View and run the card |
+| **Record Health Check Admin** | People who configure Check Sets or investigate unexpected results | Configure the Framework and use Show Diagnostics |
 
-The install already includes four Demo Check Sets you can select right away:
+To give a non-admin access after choosing **Install for Admins Only**:
 
-- Account Profile Readiness
-- Account Relationship & Risk
-- Contact Relationship Readiness
-- Opportunity Deal Readiness
+1. In **Setup**, open **Permission Sets**.
+2. Open **Record Health Check User**.
+3. Select **Manage Assignments**, then **Add Assignments**.
+4. Select the users who should run the card and complete the assignment.
 
-Open an Account and look at **Demo: Account Relationship & Risk** first. Review each Demo Rule
-before you treat it as production policy.
+Repeat those steps with **Record Health Check Admin** only for administrators and troubleshooters.
+A person can be a Salesforce non-admin and still run Record Health Check; the **Record Health Check
+User** permission set provides the Framework access, while the person's existing Salesforce access
+still controls which records and fields the checks can read.
+
+## Step 3: Add a meaningful check to a record page
+
+Use one of the packaged Demo Check Sets for the first review. **Demo: Account Relationship & Risk**
+is a useful starting point because it demonstrates current-record fields, related records, clear
+evidence, remediation guidance, and checks that apply only in certain situations.
+
+1. Open an Account in the sandbox.
+2. Select **Setup → Edit Page**.
+3. Drag **Record Health Check** from the **Custom** components into a useful position on the page.
+4. In the component properties, select **Demo: Account Relationship & Risk**.
+5. Save and activate the page.
+6. Return to the Account and refresh the page.
+
+The component appears under **Custom** because Record Health Check is an unlocked package. Nothing
+is wrong if you do not see it under **Custom - Managed**.
 
 ![Demo Account Relationship and Risk health check card on an Account record page](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
 
-When you are ready to write your own configuration, follow
-[Create your first Rule](03-create-your-first-rule.md).
+## Step 4: Verify the experience as a user
 
-## 4. Add the card to a record page
+Open the Account as the person who received **Record Health Check User**. This matters: a successful
+administrator test does not prove that an everyday user has the right access.
 
-1. Go to **Setup → Lightning App Builder**.
-2. Edit a record page for the same object as the Check Set (Account for the Demo Account cards).
-3. Drag **Record Health Check** onto the page. In App Builder it appears under **Custom** (unlocked
-   packages do; **Custom - Managed** is for managed packages).
-4. Select the Demo Check Set or one you created.
-5. Save and activate the page.
+Select **Run** if the card is waiting. Then review the result as a user would:
 
-## 5. Verify the result
+- Does every Rule communicate a clear outcome?
+- Do **Found** and **Expected** explain why attention is needed?
+- Does a skipped Rule explain why it does not apply?
+- Can the user understand the suggested next step without leaving the record?
 
-Open a matching record as someone who has **Record Health Check User** (`rhc__Record_Health_Check_User`), not only as the installer.
-If the card waits for a click, select **Run**.
+A Rule can show **Pass**, **Failed**, **Warning**, **Info**, **Skipped**, **Unable to Check**, or
+**System Error**. A business condition that needs attention should appear as Failed, Warning, or
+Info. Unable to Check and System Error mean the Framework could not give a reliable business answer.
 
-Each Rule should show Pass, Fail (Failed, Warning, or Info by severity), Skipped, Unable to Check,
-or System Error. Change a field a Rule cares about, save, and select **Rerun**. The result should
-follow the saved data.
+For one final confidence check, change a field used by a Demo Rule on a record you can safely edit.
+Save the record and select **Rerun**. The result should follow the saved Salesforce data. The
+Framework should not change the record itself.
 
-| Verification | Expected result |
+## You are ready to continue when
+
+- **Setup → Installed Packages** lists Record Health Check;
+- the intended user can see and run the card;
+- the card is active on the correct Lightning record page;
+- each Rule communicates an understandable outcome; and
+- rerunning the Check Set reflects a saved change to the record.
+
+At this point, the installation is proven. The Demo Check Set is still teaching content, not your
+organization's policy. Review it before wider use, or [create your first Rule](03-create-your-first-rule.md)
+around a decision your users actually make.
+
+## If the result is not what you expected
+
+| What you see | What to check first |
 | --- | --- |
-| User with **Record Health Check User** (`rhc__Record_Health_Check_User`) opens the record | The card is visible and can run |
-| User runs the Check Set | Every Rule shows one of the statuses above |
-| User changes related data, saves, and selects **Rerun** | The result matches the saved record |
-| User without Framework access opens the page | That user cannot run the checks |
+| Installation cannot continue | Confirm that you are signed in to the intended org and can install packages |
+| Record Health Check is missing in Lightning App Builder | Confirm the package appears in **Setup → Installed Packages**, then look under **Custom** components |
+| No Check Set is available | Use a Demo Check Set for the same object as the record page, such as an Account Demo Check Set on an Account page |
+| A user cannot see or run the card | Confirm that the user has **Record Health Check User** and can read the record and fields being checked |
+| A Rule shows **Unable to Check** | Read the explanation on the card, then check the user's access and the Rule configuration |
+| A Rule shows **System Error** | Ask a Framework administrator to enable Show Diagnostics temporarily and capture the diagnostic details |
+| Salesforce reports a conflict with `RecordHealthCheckController` | The org already contains an unpackaged copy of the Framework; install into an org that has not received that source deployment |
 
-## If something fails
+For a guided investigation, see [Troubleshoot with Show
+Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md).
 
-| Symptom | What to check |
-| --- | --- |
-| Install fails on permissions | Confirm the signed-in user can install unlocked packages |
-| App Builder has no Check Set to pick | Choose an active Demo Check Set whose Object matches the page, or create and activate your own |
-| A user cannot see or run the card | Assign **Record Health Check User** (`rhc__Record_Health_Check_User`), then check object, field, and record access |
-| Component sits under **Custom**, not **Custom - Managed** | Expected for an unlocked package. Confirm **Setup → Installed Packages** shows Record Health Check (`rhc`) |
-| Install fails with a package/caller mismatch about `RecordHealthCheckController` | That org already has unpackaged Framework source from this repository. Use an org that has never received that source deploy |
-| A Rule shows Unable to Check | Read the Reason Code, check the Rule, and confirm the running user's Salesforce access |
-| A Rule shows System Error | Read the Reason Code, check any Apex plugin, review logs, and turn on Show Diagnostics if you have Admin access |
+## Optional: Install from the Salesforce CLI
 
-Need a longer diagnostic path? See
-[Configure Check Sets and Rules: Troubleshooting](../guides/03-configure-check-sets-and-rules.md#13-troubleshooting)
-or the [FAQ](../guides/02-faq.md).
-
-## Optional: Install with the Salesforce CLI
-
-Use this when a pipeline or script should perform the install. Commands work the same on Windows,
-macOS, and Linux.
+Use the command-line path when you are automating installation. The same commands work on Windows,
+macOS, and Linux after the Salesforce CLI is installed.
 
 ```bash
 sf org login web --instance-url https://test.salesforce.com --alias rhc-sandbox
@@ -142,43 +163,21 @@ sf package install \
   --wait 30 \
   --publish-wait 10
 
-sf org assign permset --name rhc__Record_Health_Check_User --target-org rhc-sandbox
+sf org assign permset \
+  --name Record_Health_Check_User \
+  --target-org rhc-sandbox
 ```
 
-Then continue from [Pick a Demo Check Set](#3-pick-a-demo-check-set).
-
-## Optional: Call the package from your own Apex or metadata
-
-Everything the package installs lives in the `rhc` namespace. Your org does not need a namespace of
-its own. Subscriber-owned Custom Metadata records stay unnamespaced even when the type is prefixed.
-
-| What you are referencing | Write it as |
-| --- | --- |
-| Custom Metadata Type | **Record Health Check Set** (`rhc__Record_Health_Check_Set__mdt`), **Record Health Check Rule** (`rhc__Record_Health_Check_Rule__mdt`) |
-| A packaged field on those types | **Card Title** (`rhc__CardTitle__c`), **Active** (`rhc__IsActive__c`) |
-| Standard fields on those types | `DeveloperName`, `QualifiedApiName` (no prefix) |
-| Apex classes and public API types | `rhc.RecordHealthCheck`, `rhc.RecordHealthCheckRequest`, `rhc.RecordHealthCheckResponse` |
-| Permission sets | **Record Health Check User** (`rhc__Record_Health_Check_User`), **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) |
-| Your own Check Set metadata file | `rhc__Record_Health_Check_Set__mdt.My_Check_Set.md-meta.xml`, with `rhc__`-prefixed `<field>` names |
-
-To list the Demo Check Sets after install:
-
-```sql
-SELECT DeveloperName, QualifiedApiName, rhc__CardTitle__c
-FROM rhc__Record_Health_Check_Set__mdt
-WHERE DeveloperName LIKE 'Example_%'
-ORDER BY QualifiedApiName
-```
-
-Use `QualifiedApiName` exactly when Apex, Flow, or App Builder asks for a Check Set identity. See
-[Configuration identity](../reference/framework/06-configuration-identity.md).
+The `sf org display` step helps prevent installing into the wrong org. After the command succeeds,
+continue with [Step 3](#step-3-add-a-meaningful-check-to-a-record-page).
 
 ## Next steps
 
-- [Create your first Rule](03-create-your-first-rule.md): build one Check Set of your own
-- [Try the demo](05-create-rhc-scratch-org.md): full Acme scenario with `npm run setup`
-- [Examples library](../examples/README.md): adapt another Rule pattern
-- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md): every field in depth
-- [How it works](01-how-it-works.md): result terms and when to use a Validation Rule instead
-- [Security and data access](../reference/framework/02-security.md): trust model before production
-- [Uninstall and rollback](06-uninstall-and-rollback.md): remove the card and package cleanly
+| Your next goal | Continue with |
+| --- | --- |
+| Prove the complete prepared experience in a separate org | [Deploy to a demo scratch org](05-create-rhc-scratch-org.md) |
+| Build a small check that belongs to your organization | [Create your first Rule](03-create-your-first-rule.md) |
+| Adapt a tested pattern | [Examples library](../examples/README.md) |
+| Review security before production | [Security and data access](../reference/framework/02-security.md) |
+| Revalidate after an upgrade | [Upgrade and revalidate](04-upgrading.md) |
+| Remove the package | [Uninstall and rollback](06-uninstall-and-rollback.md) |

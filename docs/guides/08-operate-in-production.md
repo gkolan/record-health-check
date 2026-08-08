@@ -53,9 +53,9 @@ Establish a cadence, not a one-time export:
 
 | Cadence | Action |
 | --- | --- |
-| Before every deployment | Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record, per [Revalidate an installation: Before you start](../installation/04-upgrading.md#before-you-start) |
+| Before every deployment | Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record, per [Upgrade and revalidate: Before you start](../installation/04-upgrading.md#before-you-start) |
 | On a recurring schedule (for example, weekly) | Export current production configuration even between deployments, to catch drift from direct Setup edits |
-| Before any planned removal | Follow the backup step in [Uninstall and rollback](../installation/06-uninstall-and-rollback.md#back-up-custom-metadata-first) |
+| Before any planned removal | Follow [Preserve the configuration first](../installation/06-uninstall-and-rollback.md#preserve-the-configuration-first) |
 | After any bulk Setup edit session | Re-export immediately so the backup reflects the edit, not the state before it |
 
 Store exports somewhere the release owner can restore from, and periodically prove that a restore
@@ -101,7 +101,7 @@ on the health check:
       unexpected deletion, blank value, or inactive record.
 
 This checklist is the day-2 companion to the one-time deployment verification in
-[Revalidate an installation: Verification](../installation/04-upgrading.md#verification).
+[Upgrade and revalidate: Revalidate what people use](../installation/04-upgrading.md#step-3-revalidate-what-people-use).
 Run it on a schedule, not only during a release window.
 
 ## Related

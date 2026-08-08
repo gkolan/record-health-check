@@ -11,6 +11,7 @@ import {
   installedPackageRecords
 } from "../lib/installed-packages.mjs";
 import { run, runJson, tryRun } from "../lib/run.mjs";
+import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
 
 function parseArgs(argv) {
   const options = {
@@ -74,6 +75,16 @@ function main() {
 
   ensureSfInstalled();
   ensureAliasAvailable(options.alias);
+  const durationDays = Number.parseInt(options.durationDays, 10);
+  if (
+    !Number.isInteger(durationDays) ||
+    durationDays < 1 ||
+    durationDays > 30
+  ) {
+    console.error("Scratch-org duration must be between 1 and 30 days.");
+    process.exit(1);
+  }
+  assertScratchCapacity(options.devHub);
 
   console.log(
     `Creating no-namespace subscriber scratch org '${options.alias}'...`

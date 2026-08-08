@@ -50,15 +50,34 @@ const SETUP_ERROR_CODES = new Set([
   "INVALID_CONFIG"
 ]);
 
-/** SLDS theme values come from inherited `--slds-g-*` hooks; no runtime detection. */
+/** SLDS 2 / Cosmos pages expose one of these classes; SLDS 1 pages do not. */
+const SLDS2_COLOR_SCHEME_CLASSES = [
+  "slds-color-scheme--light",
+  "slds-color-scheme--dark",
+  "slds-color-scheme--system"
+];
+
+function elementHasSlds2ColorScheme(element) {
+  return SLDS2_COLOR_SCHEME_CLASSES.some((name) =>
+    element.classList.contains(name)
+  );
+}
+
+function detectSlds2Theme() {
+  return (
+    elementHasSlds2ColorScheme(document.body) ||
+    elementHasSlds2ColorScheme(document.documentElement)
+  );
+}
 
 export default class RecordHealthCheck extends LightningElement {
   static stylesheets = [themeStyles];
 
   _checkSetName;
+  @track _isSlds2 = false;
 
   get themeClass() {
-    return "rhc-theme";
+    return this._isSlds2 ? "rhc-theme rhc-theme_slds2" : "rhc-theme";
   }
 
   @api
@@ -196,7 +215,18 @@ export default class RecordHealthCheck extends LightningElement {
     this._clearAllTooltipDwells();
   }
 
+  _syncDesignTheme = () => {
+    if (!this._connected) {
+      return;
+    }
+    const next = detectSlds2Theme();
+    if (next !== this._isSlds2) {
+      this._isSlds2 = next;
+    }
+  };
+
   renderedCallback() {
+    this._syncDesignTheme();
     // Content grows as checks resolve, so re-measure every clampable region and
     // reveal its +/- toggle only when the rendered text actually overflows.
     this._measureClampedContent();

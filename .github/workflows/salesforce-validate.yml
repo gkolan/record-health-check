@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: salesforce-release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-dev-hub-secret:
     runs-on: ubuntu-latest
@@ -57,7 +61,8 @@ jobs:
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts
         run: npm run check:permission-sets
-      - run: npm install --global @salesforce/cli@2.139.6
+      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm run check:toolchain
       - run: echo y | sf plugins install code-analyzer@5.14.0
       - name: Record analyzer toolchain versions
         run: |
@@ -68,7 +73,9 @@ jobs:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
-      - run: sf org create scratch --definition-file packages/record-health-check/config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 1 --wait 15
+      - name: Check scratch-org capacity
+        run: npm run check:scratch-capacity -- --dev-hub devhub
+      - run: sf org create scratch --definition-file packages/record-health-check/config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
       - name: Dry-run production package deployment
         run: sf project deploy start --manifest packages/record-health-check/manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy production package artifact
@@ -80,6 +87,8 @@ jobs:
       - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
       - name: Enforce production Apex coverage class by class
         run: npm run check:apex-coverage -- rhc-ci --list
+      - name: Verify published Apex and LWC coverage statistics
+        run: npm run test:unit:coverage && npm run check:quality-metrics -- --apex-org rhc-ci
       - name: Verify bounded query behavior against the accepted baseline
         run: npm run check:query-verdicts -- --target-org rhc-ci --namespace rhc
       - name: Run metadata validator

@@ -1,0 +1,19 @@
+{
+  "verifiedAt": "2026-08-08",
+  "apex": {
+    "coveragePercent": 93.61,
+    "coveredLines": 7638,
+    "executableLines": 8159,
+    "testCount": 468,
+    "evidenceOrgShape": "no-namespace",
+    "evidenceOrgAlias": "rhc-nons-20260807",
+    "testRunId": "707RK0000BL2bu0"
+  },
+  "lwc": {
+    "testCount": 172,
+    "linesPercent": 98.92,
+    "statementsPercent": 98.54,
+    "functionsPercent": 98.12,
+    "branchesPercent": 94.58
+  }
+}

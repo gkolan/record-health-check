@@ -3,12 +3,13 @@
 import { spawnSync } from "node:child_process";
 import { paths } from "../lib/paths.mjs";
 import { run } from "../lib/run.mjs";
+import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
 
 function parseArgs(argv) {
   const options = {
     alias: process.env.RHC_PORTABLE_ALIAS ?? "rhc-portable",
     devHub: process.env.DEV_HUB_ALIAS ?? "",
-    durationDays: "1"
+    durationDays: "30"
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -49,6 +50,7 @@ function main() {
   }
 
   ensureAliasAvailable(options.alias);
+  assertScratchCapacity(options.devHub);
 
   console.log(
     "Portable contributor check: deploy unpackaged force-app into a no-namespace scratch org."

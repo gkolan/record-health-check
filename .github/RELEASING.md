@@ -34,13 +34,31 @@ Before creating a release candidate:
    previous-to-candidate upgrade).
 4. Confirm subscriber-owned Custom Metadata survives the upgrade gate.
 5. Run the package-source org gate in CI (`salesforce-validate.yml`).
+6. After both namespaced and no-namespace source tests complete, run
+   `npm run check:apex-coverage -- <org-alias>` for each org and retain the lower Framework result.
+   Run `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
+   `npm run check:quality-metrics -- --apex-org <org-alias>` against both orgs. Published coverage
+   must describe the candidate being released, not a prior package.
 
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
 
+Before any Salesforce operation, run `npm run check:toolchain`. Before creating scratch orgs or a
+package candidate, the repository scripts check the authoritative Dev Hub limits and stop rather
+than consume the last required capacity. Package verification deletes only the orgs it created; use
+`--keep-org` solely for an intentional, time-bounded investigation and delete that org afterward.
+See [Salesforce operations standard](SALESFORCE_OPERATIONS.md) for the mandatory lifecycle rules and
+the redacted migration record.
+
 ## Create a package candidate
 
+Package creation is manual and happens once, at the end of release-branch preparation. Do not create
+a package version for every commit and do not add creation to ordinary pull-request CI. Commit the
+exact release source first; the command refuses a dirty worktree, `main`, a detached HEAD, or a
+missing explicit release-ready acknowledgement. The command runs the complete local release
+preflight before consuming package-version capacity.
+
 ```bash
-npm run package:create -- --dev-hub <dev-hub>
+npm run package:create -- --dev-hub <dev-hub> --release-ready
 ```
 
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
@@ -61,7 +79,8 @@ sf package version create \
   --target-dev-hub <dev-hub>
 ```
 
-Record the resulting `04t` ID. Do not promote it until subscriber verification gates pass.
+Record the resulting `04t` ID. Verify the immutable candidate, attach the redacted evidence to the
+pull request, and do not promote it until subscriber verification gates pass.
 
 ## Verify before promote
 

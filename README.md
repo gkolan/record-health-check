@@ -2,7 +2,8 @@
 
 [![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Apex coverage: 99.41%](https://img.shields.io/badge/Apex%20coverage-99.41%25-brightgreen)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
+[![Apex coverage: 93.61%](https://img.shields.io/badge/Apex_coverage-93.61%25-brightgreen)](config/quality-metrics.json)
+[![LWC line coverage: 98.92%](https://img.shields.io/badge/LWC_lines-98.92%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
 [![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO)
@@ -15,16 +16,15 @@ Record Health Check is a metadata-driven framework that evaluates a Salesforce r
 Every Rule returns **Pass**, **Fail**, **Skipped**, **Unable to Check**, or **System Error** on the
 card. Fail rows show **Failed**, **Warning**, or **Info** by severity. When a record needs attention,
 the card explains what was **Found** and **Expected**, and provides fix instructions with an optional
-read-only **Fix it** link.
+read-only action link.
 
 **Check Sets** and **Rules** are defined in Custom Metadata. The framework evaluates them at read time, so one card can review the current record, related records, aggregate results, and data that existed before the Rules were created, all without writing to the record.
 
 > Questions and feedback can be shared in a GitHub [discussion](https://github.com/gkolan/record-health-check/discussions). To report a bug or request a feature, open an [issue](https://github.com/gkolan/record-health-check/issues). You can also [join the community on Slack](https://recordhealthcheck.com/slack-invite). Already a member? [Open Slack](https://recordhealthcheck.com/slack). Prefer email? Reach out at [feedback@recordhealthcheck.com](mailto:feedback@recordhealthcheck.com).
 
 **Quick links:** [Documentation](docs/README.md) ·
-[Install](docs/installation/02-install-and-verify.md) ·
-[Try the demo](docs/installation/05-create-rhc-scratch-org.md) ·
-[Support](SUPPORT.md) ·
+[Install and verify in your org](docs/installation/02-install-and-verify.md) ·
+[Deploy to a demo scratch org](docs/installation/05-create-rhc-scratch-org.md) ·
 [Examples](docs/examples/README.md)
 
 ## Demo
@@ -71,32 +71,31 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 
 - **Clear outcomes:** every Rule reports Pass, Fail, Skipped, Unable to Check, or System Error; issues are classified as Failed, Warning, or Info.
 - **Useful evidence:** Found and Expected values explain the gap instead of leaving users to interpret a score or dashboard.
-- **Guided resolution:** fix instructions and an optional read-only **Fix it** link point users toward the next action without changing the record.
-
-Administrators define Check Sets and Rules as Custom Metadata, choose when a Rule applies, and control whether the card runs on open or on demand. Evaluation can use a Formula, a Query, two compared queries, or custom Apex.
+- **Guided resolution:** fix instructions and an optional read-only action link point users toward the next step without changing the record.
 
 ### Framework capabilities
 
-| Capability                    | What it provides                                                                                                                                                                   |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Custom Metadata configuration | Version, review, and deploy Check Sets and Rules with the rest of your Salesforce metadata                                                                                         |
-| Applicability conditions      | Skip Rules that do not apply and explain why, such as a partner-only check on a customer Account                                                                                   |
-| Display and run controls      | Run automatically or on demand and control how passed and skipped Rules appear                                                                                                     |
-| Demo configuration            | Four packaged Demo Check Sets for Account, Contact, and Opportunity                                                                                                                |
-| Permission sets               | **Record Health Check User** (`Record_Health_Check_User`) for running checks and **Record Health Check Admin** (`Record_Health_Check_Admin`) for configuration and troubleshooting |
-| Automation and observability  | Apex and Flow entry points, opt-in platform events, and permission-gated diagnostics                                                                                               |
+| Capability                    | What it provides                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Custom Metadata configuration | Version, review, and deploy Check Sets and Rules with the rest of your Salesforce metadata                                      |
+| Evaluation methods            | Evaluate the current record with a Formula, query related data, compare two queries, or use custom Apex                         |
+| Applicability conditions      | Skip Rules that do not apply and explain why, such as a partner-only check on a customer Account                                |
+| Display and run controls      | Run automatically or on demand and control how passed and skipped Rules appear                                                  |
+| Automation and observability  | Use Apex and Flow entry points, opt-in Platform Events, and permission-gated diagnostics for automation and operational insight |
 
 ## Framework Snapshot
 
-| Measure              | Current profile                                                                   |
-| -------------------- | --------------------------------------------------------------------------------- |
-| 2GP unlocked package | `rhc` namespace                                                                   |
-| Apex                 | 173 classes, including 74 test classes · 99.41% CI coverage                       |
-| LWC                  | 1 component (`recordHealthCheck`) · 98%+ Jest coverage                            |
-| Packaged examples    | 4 Demo Check Sets · 21 Rules                                                      |
-| Security access      | 2 permission sets: **Record Health Check User** and **Record Health Check Admin** |
-| Evaluation model     | 4 types: Formula, Query, Compare two queries, and Apex                            |
-| Documentation        | 90 maintained pages, including 19 worked Rule examples                            |
+| Measure               | Details                                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 2GP unlocked package  | `rhc` namespace                                                                                                               |
+| Apex                  | 173 classes, including 79 test classes · 93.61% test coverage for packaged Apex                                               |
+| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 98.92% line coverage                                                        |
+| Packaged examples     | 4 packaged Demo Check Sets containing 21 Rules                                                                                |
+| Permission sets       | Record Health Check User and Record Health Check Admin                                                                        |
+| Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                              |
+| Custom Metadata Types | Record Health Check Set (13 fields) and Record Health Check Rule (43 fields)                                                  |
+| Platform Events       | Record Health Check Log (14 fields), Record Health Check Rule Result (13 fields), and Record Health Check Set Run (16 fields) |
+| Documentation         | 90 maintained pages, including 19 documented Rule examples                                                                    |
 
 ## Contributing
 

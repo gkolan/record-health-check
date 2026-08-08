@@ -16,26 +16,27 @@ need below.
 | Step | Task | Expected result |
 | ---: | --- | --- |
 | 1 | [Learn how it works](installation/01-how-it-works.md) | You can explain Check Set vs Rule, and that the Framework does not block saves |
-| 2 | [Install and verify](installation/02-install-and-verify.md) | A Record Health Check card appears on a sandbox record page |
+| 2 | [Install and verify in your org](installation/02-install-and-verify.md) | A Record Health Check card appears on a sandbox record page |
 | 3 | [Create your first Rule](installation/03-create-your-first-rule.md) | The card evaluates one Rule you configured in Setup |
 | 4 | [Choose another example](examples/README.md) | You pick an Evaluation Type based on where the data lives |
 | 5 | [Review the configuration guide](guides/03-configure-check-sets-and-rules.md) | The Check Set is ready for broader testing |
 
-Prefer a scripted demo org instead of building from scratch? Use
-[Try the demo](installation/05-create-rhc-scratch-org.md).
+Prefer to evaluate known records and outcomes in a separate org? Use
+[Deploy to a demo scratch org](installation/05-create-rhc-scratch-org.md).
 
 ## What do you want to do?
 
 | I want to… | Start here | What you will learn |
 | --- | --- | --- |
-| Install and see a working card | [Install and verify](installation/02-install-and-verify.md) | How to install the unlocked package, assign access, place the card, and verify |
+| Install and verify the Framework in an org I already use | [Install and verify in your org](installation/02-install-and-verify.md) | How to install the package, assign access, place the card, and verify it with your records |
+| Evaluate the complete prepared experience separately | [Deploy to a demo scratch org](installation/05-create-rhc-scratch-org.md) | How to create known records and confirm every expected Demo outcome |
 | Revalidate or upgrade an existing org | [Revalidate an installation](installation/04-upgrading.md) | How to back up configuration and verify after upgrade |
 | Remove the Framework | [Uninstall and rollback](installation/06-uninstall-and-rollback.md) | How to remove placements, subscribers, and the package |
 | Answer a common question first | [FAQ](guides/02-faq.md) | Short answers on saves, editions, install paths, and Demo Check Sets |
 | Create my first Rule in Setup | [Create your first Rule](installation/03-create-your-first-rule.md) | How to author a Formula Rule and test Pass and Fail |
 | Copy a practical example | [Examples library](examples/README.md) | How to choose an Evaluation Type and adapt a tested pattern |
 | Configure advanced Check Set / Rule behavior | [Configure Check Sets and Rules](guides/03-configure-check-sets-and-rules.md) | How to design a full readiness review |
-| Add Fix it links | [Configure action links](guides/04-configure-action-links.md) | How to pair Fix Message with Action Label and URL |
+| Add action links | [Configure action links](guides/04-configure-action-links.md) | How to pair Fix Message with Action Label and URL |
 | Troubleshoot an unexpected result | [Troubleshoot with Show Diagnostics](guides/07-troubleshoot-with-show-diagnostics.md) | How to reveal authorized diagnostics safely |
 | Keep a production org healthy | [Operate in production](guides/08-operate-in-production.md) | Day-2 monitoring and diagnostics hygiene |
 | Look up one Setup field | [Metadata reference](metadata/README.md) | Exact Setup labels, API names, and defaults |

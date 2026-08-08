@@ -4,12 +4,13 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { paths } from "../lib/paths.mjs";
 import { run } from "../lib/run.mjs";
+import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
 
 function parseArgs(argv) {
   const options = {
     alias: process.env.RHC_DEV_ALIAS ?? "rhc-dev",
     devHub: process.env.DEV_HUB_ALIAS ?? "",
-    durationDays: "7"
+    durationDays: "30"
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -50,6 +51,7 @@ function main() {
   }
 
   ensureAliasAvailable(options.alias);
+  assertScratchCapacity(options.devHub);
 
   console.log(
     "Contributor mode: deploying unpackaged package source for development."

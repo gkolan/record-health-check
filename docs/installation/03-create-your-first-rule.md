@@ -1,17 +1,16 @@
 # Create your first Rule
 
-> [!NOTE]
-> On this page, build your first Account readiness experience in Salesforce Setup and prove that its Formula Rule communicates both a passing record and a record that needs attention.
+Use this guide to turn one familiar business question into a working health check: does this Account
+have a Billing City? You will create the configuration in Salesforce Setup, place it on an Account
+page, and prove that the guidance makes sense when the field is blank and when it is populated.
 
-Use this guide to create one Check Set and one Formula Rule in Salesforce Setup. When you finish,
-an Account record page will show whether Billing City is populated.
-
-**You need:** Record Health Check installed, permission to manage Custom Metadata and edit
-Lightning record pages, and the **Record Health Check User** (`Record_Health_Check_User`) Permission Set.
+You need Record Health Check installed, permission to manage Custom Metadata and edit Lightning
+record pages, and **Record Health Check User** access.
 
 **You do not need:** Apex, Flow, or command-line tools.
 
-If Record Health Check is not installed yet, complete [Install and verify](02-install-and-verify.md) first.
+If Record Health Check is not installed yet, complete [Install and verify in your
+org](02-install-and-verify.md) first.
 
 ## What you will build
 
@@ -30,14 +29,14 @@ result without blocking record save or changing Account data.
 3. Select **New**.
 4. Enter these values:
 
-| Setup field | API name | Value |
+| Setup field | Value | Why this value is useful now |
 | --- | --- | --- |
-| **Label** | [`MasterLabel`](../metadata/01-fields-check-set.md#label-masterlabel) | Account Readiness |
-| **Developer Name** | [`DeveloperName`](../metadata/01-fields-check-set.md#developer-name-developername) | `Account_Readiness` |
-| **Object** | [`ObjectApiName__c`](../metadata/01-fields-check-set.md#object-objectapiname__c) | `Account` |
-| **Card Title** | [`CardTitle__c`](../metadata/01-fields-check-set.md#card-title-cardtitle__c) | Account Readiness |
-| **When Checks Run** | [`CardRunMode__c`](../metadata/01-fields-check-set.md#when-checks-run-cardrunmode__c) | **When the user clicks Run** (`RUN_ON_REQUEST`) |
-| **Active** | [`IsActive__c`](../metadata/01-fields-check-set.md#active-isactive__c) | Checked |
+| **Label** | Account Readiness | Gives the configuration a recognizable name |
+| **Developer Name** | `Account_Readiness` | Gives Salesforce a stable identity for the Check Set |
+| **Object** | `Account` | Makes the Check Set available on Account pages |
+| **Card Title** | Account Readiness | Tells users what the card is reviewing |
+| **When Checks Run** | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
+| **Active** | Checked | Makes the Check Set available to the Lightning component |
 
 5. Select **Save**.
 
@@ -51,19 +50,19 @@ Manual execution makes the first test easier to follow because the card waits fo
 3. Select **New**.
 4. Enter these values:
 
-| Setup field | API name | Value |
+| Setup field | Value | What it means to the user |
 | --- | --- | --- |
-| **Label** | [`MasterLabel`](../metadata/02-fields-check-rule.md#label-masterlabel) | Billing City Is Populated |
-| **Developer Name** | [`DeveloperName`](../metadata/02-fields-check-rule.md#developer-name-developername) | `Billing_City_Is_Populated` |
-| **Check Set** | [`Record_Health_Check_Set__c`](../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../metadata/02-fields-check-rule.md#check-title-checktitle__c) | Billing City is populated |
-| **Evaluation Type** | [`EvaluationType__c`](../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | **Verify with a formula** (`FORMULA`) |
-| **Pass Condition** | [`PassConditionFormula__c`](../metadata/02-fields-check-rule.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCity))` |
-| **Failure Severity** | [`FailureSeverity__c`](../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | **Warning** (`WARNING`) |
-| **Message When Failed** | [`FailureMessage__c`](../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | Billing City is missing. Add it before the Account review. |
-| **Fix Message** | [`FixMessage__c`](../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Edit the Account billing address and rerun the check. |
-| **Evaluation Order** | [`EvaluationOrder__c`](../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `100` |
-| **Active** | [`IsActive__c`](../metadata/02-fields-check-rule.md#active-isactive__c) | Checked |
+| **Label** | Billing City Is Populated | Gives administrators a recognizable Rule name |
+| **Developer Name** | `Billing_City_Is_Populated` | Gives Salesforce a stable identity for the Rule |
+| **Check Set** | `Account_Readiness` | Places this question on the card you just created |
+| **Check Title** | Billing City is populated | States the question clearly on the card |
+| **Evaluation Type** | **Verify with a formula** | Reads a field on the open Account |
+| **Pass Condition** | `NOT(ISBLANK(BillingCity))` | Passes when Billing City contains a value |
+| **Failure Severity** | **Warning** | Signals that the missing value deserves attention without presenting it as the most serious outcome |
+| **Message When Failed** | Billing City is missing. Add it before the Account review. | Explains why the result matters |
+| **Fix Message** | Edit the Account billing address and rerun the check. | Gives the user a concrete next step |
+| **Evaluation Order** | `100` | Sets this Rule's position when more Rules are added later |
+| **Active** | Checked | Allows the Rule to run |
 
 5. Select **Save**.
 

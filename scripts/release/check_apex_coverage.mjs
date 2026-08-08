@@ -95,6 +95,8 @@ const coverageByName = new Map(
 const failures = [];
 const notApplicable = [];
 const coverageRows = [];
+let aggregateCovered = 0;
+let aggregateExecutable = 0;
 for (const className of productionClasses) {
   const coverage = coverageByName.get(className);
   if (!coverage) {
@@ -115,6 +117,8 @@ for (const className of productionClasses) {
     continue;
   }
   const percent = (covered * 100) / total;
+  aggregateCovered += covered;
+  aggregateExecutable += total;
   coverageRows.push(
     `${className}\t${percent.toFixed(2)}%\t${covered}/${total}`
   );
@@ -127,6 +131,13 @@ for (const className of productionClasses) {
 
 console.log(
   `Checked ${productionClasses.length} production Apex classes; ${notApplicable.length} N/A (0 executable lines).`
+);
+const aggregatePercent =
+  aggregateExecutable === 0
+    ? 100
+    : (aggregateCovered * 100) / aggregateExecutable;
+console.log(
+  `Framework Apex coverage: ${aggregatePercent.toFixed(2)}% (${aggregateCovered}/${aggregateExecutable} executable lines).`
 );
 if (notApplicable.length > 0) {
   console.log(`N/A: ${notApplicable.join(", ")}`);

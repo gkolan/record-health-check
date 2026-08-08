@@ -45,7 +45,7 @@ that depends on data outside the record being saved, belongs to Record Health Ch
 | "Show whether an existing Opportunity is missing an Executive Sponsor Contact Role." | Record Health Check (existing records, related-record query, advisory) |
 | "Compare pipeline coverage against a target computed from two independent queries." | Record Health Check (Compare Two Queries; no single-record trigger point exists) |
 | "Run a custom readiness algorithm that a formula or single query cannot express." | Record Health Check (Apex Evaluation Type) |
-| "Let a user see a Fix It link and instructions, but still let them save regardless." | Record Health Check |
+| "Let a user see a Fix it link and instructions, but still let them save regardless." | Record Health Check |
 
 ## Why the boundary matters
 

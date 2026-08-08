@@ -2,9 +2,8 @@
  * @author Gautam Kolan (https://github.com/gkolan)
  * SPDX-License-Identifier: Apache-2.0
  *
- * Adaptive theme via platform styling hooks. Semantic `--slds-g-*` values are
- * SLDS 2 only; SLDS 1 pages leave them unset, so the nested fallbacks win.
- * Custom properties inherit through shadow DOM — no runtime theme detection.
+ * SLDS 1 keeps familiar Lightning card chrome. The `rhc-theme_slds2` modifier
+ * removes that chrome for the flatter SLDS 2 / Cosmos presentation.
  */
 .rhc-theme {
   --rhc-theme-card-background: var(
@@ -16,12 +15,13 @@
     var(--slds-g-color-border-1, #c9c7c5)
   );
   --rhc-theme-card-border-width: var(--slds-g-sizing-border-1, 1px);
-  --rhc-theme-card-radius: var(
-    --slds-g-radius-border-4,
-    var(--lwc-borderRadiusMedium, 0.25rem)
+  --rhc-theme-card-radius: var(--slds-g-radius-border-3, 0.75rem);
+  --rhc-theme-card-shadow: var(
+    --slds-g-shadow-2,
+    0 2px 6px 0 rgba(0, 0, 0, 0.16)
   );
   --rhc-theme-header-background: var(
-    --slds-g-color-surface-container-1,
+    --slds-g-color-surface-container-2,
     var(--slds-g-color-neutral-base-95, #fafafa)
   );
   --rhc-theme-row-hover: var(
@@ -32,6 +32,7 @@
     --slds-g-color-on-surface-1,
     var(--slds-g-color-neutral-base-10, #181818)
   );
+  --rhc-theme-title-text: var(--slds-g-color-neutral-base-10, #181818);
   --rhc-theme-text-weak: var(
     --slds-g-color-on-surface-2,
     var(--slds-g-color-neutral-base-40, #706e6b)
@@ -40,4 +41,16 @@
   --rhc-layer-tooltip: 100;
   --rhc-layer-tooltip-nubbin: 101;
   font-family: var(--slds-g-font-family, "Salesforce Sans", Arial, sans-serif);
+}
+
+.rhc-theme_slds2 {
+  --rhc-theme-card-border: transparent;
+  --rhc-theme-card-border-width: 0;
+  --rhc-theme-card-radius: var(--slds-g-radius-border-4, 1.25rem);
+  --rhc-theme-card-shadow: none;
+  --rhc-theme-header-background: transparent;
+  --rhc-theme-title-text: var(
+    --slds-g-color-on-surface-3,
+    var(--slds-g-color-neutral-base-10, #181818)
+  );
 }

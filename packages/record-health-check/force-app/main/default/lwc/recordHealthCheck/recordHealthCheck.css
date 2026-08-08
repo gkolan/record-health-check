@@ -57,6 +57,7 @@
     solid var(--rhc-theme-card-border);
   /* Match standard Lightning cards (related lists, record panels). */
   border-radius: var(--rhc-theme-card-radius);
+  box-shadow: var(--rhc-theme-card-shadow);
   /* Let row/summary tooltips extend past the card edge; bottom rounding is
      applied on the last body child instead of clipping popovers. */
   overflow: visible;
@@ -112,9 +113,10 @@
   display: block;
   /* SLDS text-heading_small (16px / bold) — matches the standard Lightning card
      title so the component title sits at the same level as native page cards. */
+  font-family: var(--slds-g-font-family, "Salesforce Sans", Arial, sans-serif);
   font-size: var(--slds-g-font-scale-2, 1rem);
   font-weight: var(--slds-g-font-weight-7, 700);
-  color: var(--rhc-theme-text);
+  color: var(--rhc-theme-title-text);
   line-height: var(--slds-g-font-line-height-2, 1.25);
   margin: 0;
 }
@@ -385,7 +387,8 @@
   padding: 0;
 }
 
-.rhc-list:not(:empty) {
+/* Reserve rounding clearance only when no notice or summary follows the list. */
+.rhc-list:not(:empty):last-child {
   padding-bottom: var(--slds-g-spacing-1, 0.25rem);
 }
 

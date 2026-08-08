@@ -13,6 +13,7 @@ import {
   installedPackageRecords
 } from "../lib/installed-packages.mjs";
 import { run, runJson } from "../lib/run.mjs";
+import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -20,9 +21,47 @@ const { values } = parseArgs({
     "dev-hub": { type: "string", default: process.env.DEV_HUB_ALIAS ?? "" },
     package: { type: "string" },
     "skip-upgrade": { type: "boolean", default: false },
-    "upgrade-only": { type: "boolean", default: false }
+    "upgrade-only": { type: "boolean", default: false },
+    "keep-org": { type: "boolean", default: false }
   }
 });
+
+const createdAliases = new Set();
+
+function deleteOwnedScratchOrg(alias) {
+  if (!createdAliases.has(alias)) return;
+  const result = spawnSync(
+    "sf",
+    ["org", "delete", "scratch", "--target-org", alias, "--no-prompt"],
+    { encoding: "utf8", shell: process.platform === "win32" }
+  );
+  if (result.status === 0) {
+    createdAliases.delete(alias);
+    console.log(`Deleted verification scratch org '${alias}'.`);
+  } else {
+    console.error(
+      `Unable to delete verification scratch org '${alias}'. Delete it manually to release Dev Hub capacity.`
+    );
+    if (result.stderr) process.stderr.write(result.stderr);
+  }
+}
+
+process.once("exit", () => {
+  if (values["keep-org"]) return;
+  for (const alias of [...createdAliases]) deleteOwnedScratchOrg(alias);
+});
+
+for (const [signal, exitCode] of [
+  ["SIGINT", 130],
+  ["SIGTERM", 143]
+]) {
+  process.once(signal, () => {
+    if (!values["keep-org"]) {
+      for (const alias of [...createdAliases]) deleteOwnedScratchOrg(alias);
+    }
+    process.exit(exitCode);
+  });
+}
 
 function aliasAvailable(alias) {
   const result = spawnSync(
@@ -142,6 +181,11 @@ function main() {
   const releases = readPackageReleases();
   const candidateId = values.package ?? stablePackageVersionId(releases);
   const alias = values.alias;
+  const previousId = releases.previous?.subscriberPackageVersionId ?? "";
+  const needsUpgradeOrg =
+    !values["skip-upgrade"] &&
+    previousId.startsWith("04t") &&
+    previousId !== candidateId;
 
   if (values["upgrade-only"]) {
     runUpgradeGate(candidateId, alias, devHub, releases);
@@ -156,6 +200,7 @@ function main() {
   }
 
   console.log(`Creating no-namespace verification org '${alias}'...`);
+  assertScratchCapacity(devHub, needsUpgradeOrg ? 2 : 1);
   run("sf", [
     "org",
     "create",
@@ -167,11 +212,12 @@ function main() {
     "--target-dev-hub",
     devHub,
     "--duration-days",
-    "1",
+    "30",
     "--no-namespace",
     "--wait",
     "30"
   ]);
+  createdAliases.add(alias);
 
   console.log(`Clean install of candidate ${candidateId}...`);
   installPackage(candidateId, alias);
@@ -214,17 +260,17 @@ function runUpgradeGate(candidateId, alias, devHub, releases) {
   }
 
   if (!aliasAvailable(alias)) {
-    run("sf", [
-      "org",
-      "delete",
-      "scratch",
-      "--target-org",
-      alias,
-      "--no-prompt"
-    ]);
+    deleteOwnedScratchOrg(alias);
+    if (!aliasAvailable(alias)) {
+      console.error(
+        `Alias '${alias}' belongs to an org this process did not create. Pass a free alias; it will not be deleted.`
+      );
+      process.exit(1);
+    }
   }
 
   console.log(`Creating no-namespace upgrade org '${alias}'...`);
+  assertScratchCapacity(devHub);
   run("sf", [
     "org",
     "create",
@@ -236,11 +282,12 @@ function runUpgradeGate(candidateId, alias, devHub, releases) {
     "--target-dev-hub",
     devHub,
     "--duration-days",
-    "1",
+    "30",
     "--no-namespace",
     "--wait",
     "30"
   ]);
+  createdAliases.add(alias);
 
   console.log(
     `Installing previous promoted version ${previousId} for upgrade rehearsal...`

@@ -1,14 +1,18 @@
-# Create the demo scratch org
+# Deploy to a demo scratch org
 
 > [!NOTE]
-> On this page, reproduce the project's complete first-run experience: the same org definition, Framework, examples, Lightning page, permissions, deterministic test records, and verified outcomes.
+> Use this path to create a disposable, fully prepared scratch org. One command installs the
+> Framework and provisions examples, a Lightning page, permissions, deterministic records, and
+> verified outcomes without changing an existing sandbox or production org.
 
-## Prerequisites
+Use this path when you want to judge a known, repeatable experience rather than interpret whatever
+data happens to be in an existing sandbox. When setup finishes, you can open Acme Corporation and
+compare the card with the expected outcomes documented below.
 
-Install the Salesforce CLI, clone this repository, and authenticate a Dev Hub that is allowed to create scratch
-orgs. Confirm both tools and the Dev Hub before running setup. On Windows, run the setup script from
-**Git Bash** or execute the equivalent `sf` commands in **PowerShell**; do not use WSL `bash` to call the
-Windows `sf` CLI (see [Windows and shell notes](#windows-and-shell-notes)).
+## Before you begin
+
+You need Git, Node.js with npm, the Salesforce CLI, and a Dev Hub that can create scratch orgs. The
+setup command works in PowerShell, Command Prompt, Git Bash, and macOS or Linux terminals.
 
 ```bash
 sf --version
@@ -16,13 +20,14 @@ git clone https://github.com/gkolan/record-health-check.git
 cd record-health-check
 sf org login web --set-default-dev-hub --alias my-dev-hub
 sf org display --target-org my-dev-hub
+npm install
 ```
 
-The setup reads `config/subscriber-scratch-def.json`. It creates a 30-day Developer Edition
-scratch org with Salesforce sample data, Lightning Experience, and API password generation
-enabled. Pass `--duration-days` when you need a shorter org.
+The final `sf org display` command confirms which Dev Hub will create the org. `npm install` prepares
+the checked-in setup tools; it does not install Record Health Check into Salesforce. The setup
+creates a 30-day org by default; pass `--duration-days` when you need a shorter one.
 
-## Step 1: Create the same demo org
+## Step 1: Create the demo org
 
 From the repository root, run:
 
@@ -33,25 +38,22 @@ npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
 The command deliberately refuses to overwrite an existing alias. If `rhc-demo` already exists, delete it yourself
 only when you no longer need that org, or choose another alias.
 
-Setup performs the following operations in order:
+The command creates a separate scratch org and prepares the entire experience:
 
-1. Creates a 30-day, no-namespace scratch org from the checked-in subscriber definition.
-2. Installs the promoted **Record Health Check** package (`04t` from `config/package-releases.json`).
-3. Assigns **Record Health Check Admin** (`Record_Health_Check_Admin`) to the scratch-org user.
-4. Deploys subscriber-owned demo metadata from `subscriber-app`.
-5. Creates the deterministic Acme data set via `scripts/subscriber/data/setupDemoData.apex`.
-6. Runs `RHCSubscriberSmokeTest` to verify the installed package and subscriber harness.
+1. Creates a scratch org that has no package namespace of its own.
+2. Installs the same promoted Record Health Check package offered by the public install links.
+3. Gives the scratch-org user Record Health Check administrator access.
+4. Adds the prepared Lightning page and demo configuration.
+5. Creates the Acme records used by the Demo Check Set.
+6. Runs automated verification before reporting success.
 
-This workflow does **not** deploy unpackaged Framework source or `integration-tests` fixtures.
+This is an installed-package experience, like a subscriber org. It does not replace the package
+with development source.
 
-## Exact test data created
+## What the demo prepares
 
-The setup creates or resets this deterministic scenario. Rerunning the data setup replaces the keyed demo Account's
-Contacts, Opportunities, Opportunity Contact Roles, Tasks, Events, and Cases, so counts do not accumulate.
-
-The factory identifies its records with demo-only stable keys rather than display names. It uses Account Number
-values beginning with `RHC-DEMO-` and the demo owner's Federation ID. Duplicate rules remain enabled for the org;
-only factory DML uses Salesforce's duplicate-rule bypass header.
+The setup creates the same Acme scenario every time. The record counts and relationships are
+intentional so the card can prove Passed, Failed, and Skipped outcomes with understandable evidence.
 
 | Salesforce object | Records created | Purpose |
 | --- | ---: | --- |
@@ -63,8 +65,7 @@ only factory DML uses Salesforce's duplicate-rule bypass header.
 | Task | 2 | Completed activity within the last 90 days |
 | Case | 4 | Open High-priority customer issues |
 
-No Event records are created. Rerunning the factory removes any earlier demo Events associated with the keyed
-Acme Account so recent-activity results remain deterministic.
+No Event records are created. Recent engagement comes from the two completed Tasks.
 
 | Data | Exact result |
 | --- | --- |
@@ -93,25 +94,21 @@ realistic department, address, reporting-line, email, and business-context data.
 The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
 relationships, and health-check outcomes remain deterministic.
 
-The verification also checks all eight Rule outcomes individually:
+The setup also verifies all eight Rule outcomes before you open the org:
 
-| Rule Developer Name | Expected status |
+| What the Rule reviews | Expected outcome |
 | --- | --- |
-| `Example_Executive_Sponsorship` | `PASS` |
-| `Example_Account_Owner_Active` | `FAIL` |
-| `Example_Industry_Aligns_With_Parent` | `PASS` |
-| `Example_Contacts_Have_Email` | `FAIL` |
-| `Example_Customer_Engagement_Current` | `PASS` |
-| `Example_Pipeline_Protects_Revenue` | `FAIL` |
-| `Example_No_High_Priority_Issues` | `FAIL` |
-| `Example_Channel_Partner_Governance` | `SKIPPED` |
+| Executive sponsorship | Pass |
+| Account owner is active | Failed |
+| Industry aligns with the parent Account | Pass |
+| Contacts have email | Failed |
+| Customer engagement is current | Pass |
+| Pipeline protects revenue | Failed |
+| No high-priority customer issues | Failed |
+| Channel-partner governance | Skipped because Acme is a direct customer |
 
-`Example_Pipeline_Protects_Revenue` is also an optional display-format example. It formats both
-the aggregate Found value and record-formula Expected value as currency, applies administrator
-captions, and resolves the strict token
-`{!record.AnnualRevenue format="CURRENCY" fallback="Not available"}` in its failure message. The
-verification script asserts the formatted `$70,000` Found value, `$375,000` Expected value, and
-that no unresolved token remains.
+The pipeline Rule also demonstrates useful evidence: it shows `$70,000` as Found and `$375,000` as
+Expected, then explains the revenue-protection gap.
 
 ## Step 2: Open and test the experience
 
@@ -121,16 +118,26 @@ Open the prepared Account list:
 sf org open --target-org rhc-demo --path 'lightning/o/Account/list?filterName=AllAccounts'
 ```
 
-Open **Acme Corporation**. Its activated Account page already contains the Record Health Check component and the
-example Check Set. Run the checks and confirm the summary is 3 passed, 4 failed, and 1 skipped. Expand values,
-hover Rule titles, and follow the configured action links to exercise the same first-run UI used by maintainers.
+Open **Acme Corporation**. Its Account page already contains Record Health Check. Run the checks and
+confirm the summary is three passed, four failed, and one skipped. Expand the results and follow the
+guidance as someone preparing for the customer review would.
 
-## Step 3: Rerun or troubleshoot setup
+## Step 3: Know that verification succeeded
 
-The data seeding is safe to run again for the named Acme records, but the top-level script does not reuse an org alias.
-For a failed setup, inspect the failing CLI command, correct the cause, and run the setup again with a fresh
-alias. The script prints each operation before executing it, so the last printed operation identifies the failed
-stage.
+The demo is ready when:
+
+- the setup command completes without an error;
+- Acme Corporation opens on the prepared Account page;
+- the summary shows three passed, four failed, and one skipped Rule; and
+- the expanded results explain the known Acme data in the tables above.
+
+These outcomes prove the prepared demo. They do not certify a separate sandbox or production org;
+use [Install and verify in your org](02-install-and-verify.md) for that outcome.
+
+## If setup does not finish
+
+The setup command does not overwrite an existing org alias. If setup fails, read the final operation
+shown in the terminal, correct that problem, and rerun with a new alias.
 
 Common checks:
 
@@ -141,53 +148,34 @@ sf apex run test --class-names RHCSubscriberSmokeTest --target-org rhc-demo --re
 sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
 ```
 
-The demo verification Apex script checks record counts and Rule statuses for the Acme scenario when
-you need manual troubleshooting beyond the subscriber smoke tests.
+The first command confirms that the scratch org exists. The remaining commands provide deeper
+evidence when package setup, automated verification, or demo-data verification failed.
 
 ## Currency mode
 
-The subscriber demo scratch org uses `config/subscriber-scratch-def.json` and is **not**
-multi-currency by default. Installed subscriber orgs work in **both** single-currency and
-multi-currency modes. At runtime the Framework selects `CurrencyIsoCode` only when the org is
-multi-currency, and Found / Expected currency chips use a symbol in a single-currency org or an ISO
-code in a multi-currency org. See [Localization](../reference/framework/05-localization.md) and the
-[FAQ](../guides/02-faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs).
-
-To exercise display formatting in a **multi-currency** scratch org, use
-`packages/record-health-check/config/display-formats-scratch-def.json` with
-[`scripts/setup-display-formats.sh`](../../scripts/setup-display-formats.sh). For single-currency
-display-format coverage, pass
-`SCRATCH_DEF=packages/record-health-check/config/project-scratch-def.json`. See
-[`integration-tests/README.md`](../../packages/record-health-check/integration-tests/README.md).
+The prepared demo is a single-currency org, so currency evidence uses symbols such as `$70,000`.
+Record Health Check also supports multi-currency orgs, where currency evidence includes the ISO
+currency code. See [Localization](../reference/framework/05-localization.md) when you need to test
+that separate presentation.
 
 ## Windows and shell notes
 
-`npm run setup` uses Node and works the same on Windows, macOS, and Linux. You still need the
-Salesforce CLI installed and authenticated to a Dev Hub.
-
-Pass the Dev Hub with the `--dev-hub` flag, which behaves identically in bash, zsh, PowerShell, and
-cmd. The `DEV_HUB_ALIAS` environment variable is still honoured, but the `VAR=value command` prefix
-form used to set it is bash/zsh-only and does nothing on Windows:
+`npm run setup` works the same on Windows, macOS, and Linux. Pass the Dev Hub with `--dev-hub` as
+shown below; this form works in PowerShell, Command Prompt, Git Bash, bash, and zsh.
 
 ```bash
 npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
 ```
 
-Contributors changing Framework source use
-[`npm run dev:setup`](../contributing/source-development.md) instead, which deploys unpackaged source
-rather than installing the package.
-
-## Multi-currency Apex test failure
-
-If a contributor deploy with `--test-level RunLocalTests` fails on
-`RecordHealthCheckFieldPlannerTest.rejectsMissingInaccessibleAndMalformedPaths` with a message like
-`Expected: {Id}, Actual: {CurrencyIsoCode, Id}`, the org is multi-currency and the field planner
-correctly selected `CurrencyIsoCode`. Unlocked-package subscriber installs are unaffected. See
-[Source development](../contributing/source-development.md) and the
-[FAQ](../guides/02-faq.md#why-did-contributor-source-deploy-fail-apex-tests-in-a-multi-currency-org).
+Do not use WSL to call a Salesforce CLI installed only in Windows. Use PowerShell, Command Prompt,
+or Git Bash instead. Contributors changing Framework source follow [Source
+development](../contributing/source-development.md), which is a different workflow.
 
 ## Next steps
 
-- Replace one example Rule with a small Rule of your own.
-- Rerun the verification after changing demo metadata or data.
-- Turn on Show Diagnostics when an observed result differs from the expected table above.
+| Your next goal | Continue with |
+| --- | --- |
+| Install in a sandbox or production org you control | [Install and verify in your org](02-install-and-verify.md) |
+| Build a small Rule of your own | [Create your first Rule](03-create-your-first-rule.md) |
+| Understand another evaluation pattern | [Examples library](../examples/README.md) |
+| Investigate a result that differs from this page | [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md) |

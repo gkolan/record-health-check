@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: subscriber-release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-dev-hub-secret:
     runs-on: ubuntu-latest
@@ -35,7 +39,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.139.6
+      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
@@ -58,7 +63,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.139.6
+      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}

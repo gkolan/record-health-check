@@ -219,6 +219,30 @@ describe("c-record-health-check — adaptive design theme", () => {
     document.body.appendChild(element);
 
     expect(element.shadowRoot.querySelector(".rhc-theme")).not.toBeNull();
+  });
+
+  it("adds the SLDS 2 modifier when a Cosmos color-scheme class is present", async () => {
+    document.body.classList.add("slds-color-scheme--light");
+    element = createComponent();
+    document.body.appendChild(element);
+    await Promise.resolve();
+
+    const theme = element.shadowRoot.querySelector(".rhc-theme");
+    expect(theme).not.toBeNull();
+    expect(theme.classList.contains("rhc-theme_slds2")).toBe(true);
+
+    document.body.classList.remove("slds-color-scheme--light");
+  });
+
+  it("keeps SLDS 1 chrome when no Cosmos signals are present", () => {
+    document.body.classList.remove(
+      "slds-color-scheme--light",
+      "slds-color-scheme--dark",
+      "slds-color-scheme--system"
+    );
+    element = createComponent();
+    document.body.appendChild(element);
+
     expect(
       element.shadowRoot
         .querySelector(".rhc-theme")
@@ -226,21 +250,19 @@ describe("c-record-health-check — adaptive design theme", () => {
     ).toBe(false);
   });
 
-  it("keeps a single theme class when Cosmos page signals are present", () => {
-    document.body.classList.add("slds-color-scheme--light");
-    document.documentElement.style.setProperty(
-      "--slds-g-color-surface-1",
-      "#ffffff"
-    );
+  it("detects a Cosmos class on the document element", async () => {
+    document.documentElement.classList.add("slds-color-scheme--dark");
     element = createComponent();
     document.body.appendChild(element);
+    await Promise.resolve();
 
-    const theme = element.shadowRoot.querySelector(".rhc-theme");
-    expect(theme).not.toBeNull();
-    expect(theme.classList.contains("rhc-theme_slds2")).toBe(false);
+    expect(
+      element.shadowRoot
+        .querySelector(".rhc-theme")
+        .classList.contains("rhc-theme_slds2")
+    ).toBe(true);
 
-    document.body.classList.remove("slds-color-scheme--light");
-    document.documentElement.style.removeProperty("--slds-g-color-surface-1");
+    document.documentElement.classList.remove("slds-color-scheme--dark");
   });
 });
 
