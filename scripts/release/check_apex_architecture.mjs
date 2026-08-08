@@ -81,10 +81,15 @@ for (const file of apexFiles) {
   }
   if (
     fileName.startsWith("packages/record-health-check/force-app/") &&
-    lineCount > baseline.maximumApexClassLines
+    lineCount >
+      (baseline.maximumApexClassLinesByFile?.[fileName]?.maximum ??
+        baseline.maximumApexClassLines)
   ) {
+    const maximum =
+      baseline.maximumApexClassLinesByFile?.[fileName]?.maximum ??
+      baseline.maximumApexClassLines;
     failures.push(
-      `${fileName}: ${lineCount} lines exceeds the ${baseline.maximumApexClassLines}-line review ceiling`
+      `${fileName}: ${lineCount} lines exceeds the ${maximum}-line review ceiling`
     );
   }
   if (/compatibility wrappers|prior API|older org/i.test(source)) {
@@ -96,6 +101,16 @@ for (const file of apexFiles) {
     failures.push(
       `${fileName}: public/global members must not carry redundant @TestVisible`
     );
+  }
+}
+
+for (const [fileName, policy] of Object.entries(
+  baseline.maximumApexClassLinesByFile ?? {}
+)) {
+  if (!fs.existsSync(path.join(root, fileName))) {
+    failures.push(`${fileName}: approved line-ceiling file no longer exists`);
+  } else if (!policy.category?.trim()) {
+    failures.push(`${fileName}: approved line-ceiling entry has no category`);
   }
 }
 

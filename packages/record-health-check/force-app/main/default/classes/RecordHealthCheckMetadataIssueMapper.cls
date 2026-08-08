@@ -1,6 +1,6 @@
 /**
  * @author Gautam Kolan (https://github.com/gkolan)
- * @description Maps shared rule-validation findings to deploy-time metadata issues.
+ * @description Maps shared check-validation findings to deploy-time metadata issues.
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RecordHealthCheckMetadataIssueMapper {
@@ -9,20 +9,20 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
   /** Maps each shared Finding to a RecordHealthCheckMetadataValidator.ValidationIssue and appends it to `issues`. */
   public static void addIssues(
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues,
-    List<RecordHealthCheckRuleValidator.Finding> findings,
-    Record_Health_Check_Rule__mdt rule
+    List<RecordHealthCheckValidator.Finding> findings,
+    Record_Health_Check__mdt check
   ) {
-    for (RecordHealthCheckRuleValidator.Finding finding : findings) {
-      issues.add(toIssue(finding, rule));
+    for (RecordHealthCheckValidator.Finding finding : findings) {
+      issues.add(toIssue(finding, check));
     }
   }
 
   public static List<RecordHealthCheckMetadataValidator.ValidationIssue> toIssues(
-    List<RecordHealthCheckRuleValidator.Finding> findings,
-    Record_Health_Check_Rule__mdt rule
+    List<RecordHealthCheckValidator.Finding> findings,
+    Record_Health_Check__mdt check
   ) {
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new List<RecordHealthCheckMetadataValidator.ValidationIssue>();
-    addIssues(issues, findings, rule);
+    addIssues(issues, findings, check);
     return issues;
   }
 
@@ -34,15 +34,15 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
    * reason-code-membership tests still pass.
    */
   private static RecordHealthCheckMetadataValidator.ValidationIssue toIssue(
-    RecordHealthCheckRuleValidator.Finding finding,
-    Record_Health_Check_Rule__mdt rule
+    RecordHealthCheckValidator.Finding finding,
+    Record_Health_Check__mdt check
   ) {
     String val = finding.offendingValue;
     switch on finding.code {
       // ── Applicability check ──
       when APPLICABILITY_FORMULA_MISSING {
         return issue(
-          rule,
+          check,
           'ApplicabilityFormula__c',
           'Applicability Formula is required when Applicability Mode is Formula.',
           'INVALID_FORMULA'
@@ -50,7 +50,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when APPLICABILITY_SOQL_MISSING {
         return issue(
-          rule,
+          check,
           'ApplicabilityCountQuery__c',
           'Applicability SOQL is required when Applicability Mode is SOQL.',
           'INVALID_SOQL_TEMPLATE'
@@ -58,7 +58,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when APPLICABILITY_SOQL_NOT_SINGLE_VALUE {
         return issue(
-          rule,
+          check,
           'ApplicabilityCountQuery__c',
           'Applicability SOQL must be a single COUNT() or COUNT(Id) query without GROUP BY.',
           'INVALID_SOQL_TEMPLATE'
@@ -66,7 +66,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when APPLICABILITY_OPERATOR_MISSING {
         return issue(
-          rule,
+          check,
           'ApplicabilityCountOperator__c',
           'Applicability comparison operator is required when Applicability Mode is SOQL.',
           'INVALID_OPERATOR'
@@ -74,7 +74,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when APPLICABILITY_OPERATOR_INVALID {
         return issue(
-          rule,
+          check,
           'ApplicabilityCountOperator__c',
           'Applicability comparison operator "' +
             val +
@@ -84,7 +84,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when APPLICABILITY_THRESHOLD_MISSING {
         return issue(
-          rule,
+          check,
           'ApplicabilityCountThreshold__c',
           'Applicability Comparison Value is required when Applicability Mode is SOQL.',
           'MISSING_REQUIRED_FIELD'
@@ -93,7 +93,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       // ── Formula ──
       when FORMULA_MISSING {
         return issue(
-          rule,
+          check,
           'PassConditionFormula__c',
           'Formula is required for Formula checks.',
           'INVALID_FORMULA'
@@ -102,7 +102,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       // ── Query (single) ──
       when LIST_VALUE_TO_TEST_MISSING {
         return issue(
-          rule,
+          check,
           'FindInListFormula__c',
           'Value To Test is required as the primary value source for List contains any/List contains none.',
           'INVALID_FORMULA'
@@ -110,7 +110,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when LIST_COMPARE_QUERY_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonQuery__c',
           'Comparison Query is required as the list source for List contains any/List contains none.',
           'INVALID_SOQL_TEMPLATE'
@@ -118,7 +118,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when LIST_COMPARE_FIELD_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonQueryField__c',
           'Comparison Query Field is required for list comparison queries.',
           'MISSING_REQUIRED_FIELD'
@@ -126,7 +126,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when PRIMARY_QUERY_MISSING {
         return issue(
-          rule,
+          check,
           'SourceQuery__c',
           'Source Query is required for Query checks (except List contains any/List contains none).',
           'INVALID_SOQL_TEMPLATE'
@@ -134,7 +134,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when PRIMARY_QUERY_FIELD_MISSING {
         return issue(
-          rule,
+          check,
           'SourceQueryField__c',
           'Source Query Field is required for non-aggregate queries.',
           'MISSING_REQUIRED_FIELD'
@@ -142,7 +142,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_OPERATOR_ON_SINGLE {
         return issue(
-          rule,
+          check,
           'ComparisonOperator__c',
           'Operator "' +
             val +
@@ -152,7 +152,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when OPERATOR_INVALID {
         return issue(
-          rule,
+          check,
           'ComparisonOperator__c',
           'Comparison operator "' + val + '" is not recognized.',
           'INVALID_OPERATOR'
@@ -160,7 +160,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when OPERATOR_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonOperator__c',
           'Comparison operator is required for Query checks.',
           'INVALID_OPERATOR'
@@ -168,7 +168,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when MULTI_ROWS_MISSING {
         return issue(
-          rule,
+          check,
           'QueryResultHandling__c',
           'How To Interpret Query Results is required for Query checks.',
           'MISSING_REQUIRED_FIELD'
@@ -176,7 +176,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when MULTI_ROWS_INVALID {
         return issue(
-          rule,
+          check,
           'QueryResultHandling__c',
           'How To Interpret Query Results "' + val + '" is not recognized.',
           'INVALID_CONFIG'
@@ -184,7 +184,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when COMPARE_AS_LISTS_ON_SINGLE {
         return issue(
-          rule,
+          check,
           'QueryResultHandling__c',
           'Compare query results as lists requires Evaluation Type Compare two queries, not Check records with a query.',
           'INVALID_OPERATOR'
@@ -192,7 +192,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when COMPARE_AGAINST_MISSING {
         return issue(
-          rule,
+          check,
           'ExpectedValueSource__c',
           'Expected Value Comes From is required for Query checks except IsBlank/IsNotBlank.',
           'MISSING_REQUIRED_FIELD'
@@ -200,7 +200,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when COMPARE_AGAINST_INVALID {
         return issue(
-          rule,
+          check,
           'ExpectedValueSource__c',
           'Expected Value Comes From "' + val + '" is not recognized.',
           'INVALID_CONFIG'
@@ -208,7 +208,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when FIXED_VALUE_MISSING {
         return issue(
-          rule,
+          check,
           'ExpectedFixedValue__c',
           'Expected Value is required when Expected Value Comes From is A fixed value.',
           'MISSING_REQUIRED_FIELD'
@@ -216,7 +216,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when RECORD_FORMULA_MISSING {
         return issue(
-          rule,
+          check,
           'ExpectedRecordFormula__c',
           'Expected Formula (on this record) is required when Expected Value Comes From is A formula on this record.',
           'INVALID_FORMULA'
@@ -224,7 +224,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when ANOTHER_QUERY_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonQuery__c',
           'Comparison Query is required when Expected Value Comes From is Comparison query.',
           'INVALID_SOQL_TEMPLATE'
@@ -232,7 +232,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when ANOTHER_QUERY_FIELD_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonQueryField__c',
           'Comparison Query Field is required for non-aggregate queries.',
           'MISSING_REQUIRED_FIELD'
@@ -241,7 +241,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       // ── Compare two queries ──
       when DUAL_PRIMARY_QUERY_MISSING {
         return issue(
-          rule,
+          check,
           'SourceQuery__c',
           'Source Query is required for Compare two queries checks.',
           'INVALID_SOQL_TEMPLATE'
@@ -249,7 +249,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_COMPARE_QUERY_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonQuery__c',
           'Comparison Query is required for Compare two queries checks.',
           'INVALID_SOQL_TEMPLATE'
@@ -257,7 +257,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_PRIMARY_FIELD_MISSING {
         return issue(
-          rule,
+          check,
           'SourceQueryField__c',
           'Source Query Field is required for non-aggregate source queries.',
           'MISSING_REQUIRED_FIELD'
@@ -265,7 +265,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_COMPARE_FIELD_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonQueryField__c',
           'Comparison Query Field is required for non-aggregate comparison queries.',
           'MISSING_REQUIRED_FIELD'
@@ -273,7 +273,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_OPERATOR_MISSING {
         return issue(
-          rule,
+          check,
           'ComparisonOperator__c',
           'Comparison operator is required for Compare two queries checks.',
           'INVALID_OPERATOR'
@@ -281,7 +281,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_OPERATOR_INVALID {
         return issue(
-          rule,
+          check,
           'ComparisonOperator__c',
           'Comparison operator "' + val + '" is not recognized.',
           'INVALID_OPERATOR'
@@ -289,7 +289,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_MULTI_ROWS_MISSING {
         return issue(
-          rule,
+          check,
           'QueryResultHandling__c',
           'How To Interpret Query Results is required for Compare two queries checks.',
           'MISSING_REQUIRED_FIELD'
@@ -297,7 +297,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_MULTI_ROWS_INVALID {
         return issue(
-          rule,
+          check,
           'QueryResultHandling__c',
           'Compare two queries requires How To Interpret Query Results to be Expect one row or aggregate result, or Compare query results as lists.',
           'INVALID_OPERATOR'
@@ -305,7 +305,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_LIST_MODE_NEEDS_LIST_OPERATOR {
         return issue(
-          rule,
+          check,
           'ComparisonOperator__c',
           'Compare query results as lists mode requires a list operator: Lists overlap, List contains all, or Exact list match.',
           'INVALID_OPERATOR'
@@ -313,7 +313,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when DUAL_ONE_RESULT_NO_LIST_OPERATOR {
         return issue(
-          rule,
+          check,
           'ComparisonOperator__c',
           'List operators (Lists overlap, List contains all, Exact list match) require Compare query results as lists mode.',
           'INVALID_OPERATOR'
@@ -322,7 +322,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       // ── Apex ──
       when APEX_CLASS_MISSING {
         return issue(
-          rule,
+          check,
           'ApexClass__c',
           'Apex Class Name is required for Apex checks.',
           'APEX_CLASS_NOT_FOUND'
@@ -330,15 +330,15 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when APEX_CLASS_INVALID {
         return issue(
-          rule,
+          check,
           'ApexClass__c',
-          'Apex Class Name must identify an instantiable class implementing RecordHealthCheckRule.',
+          'Apex Class Name must identify an instantiable class implementing RecordHealthCheck.',
           'APEX_CLASS_NOT_FOUND'
         );
       }
       when APEX_PARAMS_INVALID {
         return issue(
-          rule,
+          check,
           'ApexParametersJson__c',
           'Apex Parameters must contain a valid JSON object.',
           'INVALID_APEX_PARAMETERS'
@@ -347,7 +347,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       // ── Cross-type ──
       when MAX_ROWS_INVALID {
         return issue(
-          rule,
+          check,
           'MaxQueryRows__c',
           'Max Rows Override must be a whole number between 1 and ' +
             FRAMEWORK_MAX_ROWS +
@@ -357,7 +357,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when EMPTY_VALUE_HANDLING_INVALID {
         return issue(
-          rule,
+          check,
           'EmptyValueHandling__c',
           'If Field Value Is Empty "' +
             val +
@@ -367,7 +367,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       }
       when NO_ROWS_RESULT_INVALID {
         return issue(
-          rule,
+          check,
           'NoRowsResult__c',
           'Empty Result Behavior "' +
             val +
@@ -378,7 +378,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
       when else {
         // Every FindingCode is mapped above; this is defensive only.
         return issue(
-          rule,
+          check,
           null,
           'This check could not be validated.',
           'INVALID_CONFIG'
@@ -388,14 +388,14 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
   }
 
   private static RecordHealthCheckMetadataValidator.ValidationIssue issue(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     String fieldName,
     String message,
     String reasonCode
   ) {
     return new RecordHealthCheckMetadataValidator.ValidationIssue(
       'ERROR',
-      rule.DeveloperName,
+      check.DeveloperName,
       fieldName,
       message,
       reasonCode

@@ -1,15 +1,15 @@
 # Configure action links
 
 > [!NOTE]
-> On this page, turn a failed Rule into a useful next step by pairing a clear Fix Message with a safe, context-aware action link when navigation genuinely helps.
+> On this page, turn a failed Check into a useful next step by pairing a clear Fix Message with a safe, context-aware action link when navigation genuinely helps.
 >
 > **Reference**
 >
 > - This guide covers allowed URL formats, merge tokens, and link patterns.
-> - For the field definitions, use the [Rule fields reference](../metadata/02-fields-check-rule.md).
+> - For the field definitions, use the [Check fields reference](../metadata/02-fields-check.md).
 
-Use **Fix Message**, **Action Label**, and **Action URL** to turn a failed Rule into a clear next
-step. The Rule can guide a user to a Salesforce record, related list, report, Knowledge article,
+Use **Fix Message**, **Action Label**, and **Action URL** to turn a failed Check into a clear next
+step. The Check can guide a user to a Salesforce record, related list, report, Knowledge article,
 external site, or prefilled create page instead of requiring the user to search for the destination.
 
 ## What you will learn
@@ -21,11 +21,11 @@ external site, or prefilled create page instead of requiring the user to search 
 | Open a verified Salesforce or HTTPS destination | **Action URL** (`ActionUrl__c`) |
 | Reuse the current record or parent values in guidance | Merge tokens for record and parent fields, each with an optional fallback value |
 
-These settings are configured on the Rule:
+These settings are configured on the Check:
 
-- [**Action Label** (`ActionLabel__c`)](../metadata/02-fields-check-rule.md#action-label-actionlabel__c)
-- [**Action URL** (`ActionUrl__c`)](../metadata/02-fields-check-rule.md#action-url-actionurl__c)
-- [**Fix Message** (`FixMessage__c`)](../metadata/02-fields-check-rule.md#fix-message-fixmessage__c)
+- [**Action Label** (`ActionLabel__c`)](../metadata/02-fields-check.md#action-label-actionlabel__c)
+- [**Action URL** (`ActionUrl__c`)](../metadata/02-fields-check.md#action-url-actionurl__c)
+- [**Fix Message** (`FixMessage__c`)](../metadata/02-fields-check.md#fix-message-fixmessage__c)
 
 These fields render only on `FAIL` rows, not on `PASS`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`
 rows.
@@ -35,7 +35,7 @@ create a record on the destination page and choose to save it.
 
 ## What users see
 
-When a Rule fails, the card can show:
+When a Check fails, the card can show:
 
 - A link, using **Action Label**
 - Supporting text, using **Fix Message**
@@ -47,7 +47,7 @@ If **Action Label** is blank and the URL is valid, the link label defaults to `F
 ## Allowed URL formats
 
 Record Health Check checks the resolved Action URL, after merge tokens are inserted and
-URL-encoded, against these rules.
+URL-encoded, against these checks.
 
 | Pattern | Allowed? |
 | --- | --- |
@@ -67,7 +67,7 @@ Unsafe URLs are dropped. **Fix Message** (`FixMessage__c`) can still render.
 ## Merge tokens
 
 **Action Label**, **Fix Message**, and **Action URL** all support merge tokens. Action Label and
-Fix Message use display tokens (including result tokens after the Rule finishes). Action URL uses
+Fix Message use display tokens (including result tokens after the Check finishes). Action URL uses
 URL tokens and URL-encodes each inserted value. Result tokens are not allowed in Action URL.
 
 ```text
@@ -84,7 +84,7 @@ Action Label examples (keep them short; the field is 80 characters):
 ```text
 Review {!record.Name}
 Edit {!record.Name fallback="this account"}
-Open {!rhcRule.checkTitle}
+Open {!rhcCheck.checkTitle}
 ```
 
 The engine resolves token values before showing the label or link. Values substituted into URLs are
@@ -92,7 +92,7 @@ URL-encoded. Relationship paths can traverse up to five levels. Custom fields ar
 field exists in the target org and the running user can read it; replace `Customer_Tier__c` with a
 real field API name from your data model.
 
-For the full namespace list and fallback rules, see
+For the full namespace list and fallback checks, see
 [Reference: Merge tokens](../reference/contracts/02-merge-tokens.md).
 
 ## Common link patterns
@@ -159,7 +159,7 @@ A report link is org-specific. A report Id from one org does not work in another
 
 ### Missing Contact email
 
-Use this when a failed Rule means a user needs to fix related Contacts.
+Use this when a failed Check means a user needs to fix related Contacts.
 
 | Setup field | Value |
 | --- | --- |
@@ -169,7 +169,7 @@ Use this when a failed Rule means a user needs to fix related Contacts.
 
 ### High-priority open Cases
 
-Use this when a failed Rule means a user needs to review a filtered report.
+Use this when a failed Check means a user needs to review a filtered report.
 
 | Setup field | Value |
 | --- | --- |
@@ -194,11 +194,11 @@ Use this when the next step is a help page outside Salesforce.
 - [ ] Report links use the report Id from the target org.
 - [ ] Merge tokens refer to fields readable on the current record.
 - [ ] Fix Message still makes sense if the link is hidden.
-- [ ] The Rule has a useful failure message before the action link.
+- [ ] The Check has a useful failure message before the action link.
 
 ## Related
 
-- [Configure Check Sets and Rules](03-configure-check-sets-and-rules.md): every card and Check Set setting
-- [Rule fields](../metadata/02-fields-check-rule.md): field definitions for `ActionLabel__c`, `ActionUrl__c`, and `FixMessage__c`
+- [Configure Check Sets and Checks](03-configure-check-sets-and-checks.md): every card and Check Set setting
+- [Check fields](../metadata/02-fields-check.md): field definitions for `ActionLabel__c`, `ActionUrl__c`, and `FixMessage__c`
 - [Field limits](../reference/contracts/04-field-limits.md): character limits for these fields
-- [Troubleshoot with Show Diagnostics](07-troubleshoot-with-show-diagnostics.md): troubleshooting a Rule that fails to evaluate
+- [Troubleshoot with Show Diagnostics](07-troubleshoot-with-show-diagnostics.md): troubleshooting a Check that fails to evaluate

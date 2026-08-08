@@ -1,11 +1,11 @@
 # Reference: Apex scope orchestration (L4)
 
 > [!NOTE]
-> On this page, look up the L4 classes that resolve a Check Set or Rule selection and evaluate
+> On this page, look up the L4 classes that resolve a Check Set or Check selection and evaluate
 > one complete ordered record scope.
 
 This page is part of the [Apex class reference](README.md). For the architecture story, see
-[Architecture § How one Rule is evaluated](../framework/01-architecture.md#6-how-one-rule-is-evaluated).
+[Architecture § How one Check is evaluated](../framework/01-architecture.md#6-how-one-check-is-evaluated).
 
 ## Scope orchestration (L4)
 
@@ -23,10 +23,10 @@ envelope.
 
 | Member | Purpose |
 | --- | --- |
-| `evaluate(...)` | Run one qualified Rule or Check Set selection over a detached record scope |
+| `evaluate(...)` | Run one qualified Check or Check Set selection over a detached record scope |
 
 **Notable behavior:**
-- **Important:** the card evaluates one Rule per Apex transaction; Apex and Flow may evaluate a whole
+- **Important:** the card evaluates one Check per Apex transaction; Apex and Flow may evaluate a whole
   Check Set in one call. Do not assume identical governor budgets across those surfaces.
 - **Important:** selection identities are Custom Metadata `QualifiedApiName` values.
 
@@ -37,8 +37,8 @@ envelope.
 **Role:** Selection, request budgets, applicability, and prerequisite planning.
 **Type:** Service class · `public with sharing`
 
-Decides which Rules run, which records are in scope, and whether applicability or prerequisite
-checks skip a Rule before evaluation.
+Decides which Checks run, which records are in scope, and whether applicability or prerequisite
+checks skip a Check before evaluation.
 
 **Notable behavior:**
 - **Important:** an applicability miss returns `SKIPPED` with a Reason Code; it is not a Fail.
@@ -57,7 +57,7 @@ Dispatches `FORMULA`, `SOQL`, `COMPARE_QUERIES`, and `APEX` to the matching L3 e
 **Role:** Internal field-planning support used by the scope pipeline.
 **Type:** Service class · `public with sharing`
 
-Builds the approved set of readable record fields needed by a Rule before
+Builds the approved set of readable record fields needed by a Check before
 `RecordHealthCheckScopePipeline` performs its scope-wide user-mode load. Public callers use
 `RecordHealthCheck.evaluate(request)` and do not call the planner directly.
 
@@ -65,7 +65,7 @@ Builds the approved set of readable record fields needed by a Rule before
 
 | Member | Purpose |
 | --- | --- |
-| `collectRecordFields(...)` | Plan the record fields needed by a Rule before the scope-wide user-mode load |
+| `collectRecordFields(...)` | Plan the record fields needed by a Check before the scope-wide user-mode load |
 
 **Notable behavior:**
 - **Important:** candidate fields are resolved through describe metadata before entering dynamic SOQL;
@@ -86,8 +86,8 @@ requested record Id.
 **Role:** Rewrites validated query templates for scope-wide execution.
 **Type:** Service class · `public with sharing`
 
-Transforms a Rule's SOQL template so one query can serve every record in the scope without changing
-the Rule author's intent.
+Transforms a Check's SOQL template so one query can serve every record in the scope without changing
+the Check author's intent.
 
 ### `RecordHealthCheckScopeResultSupport`
 

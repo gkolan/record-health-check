@@ -9,7 +9,7 @@ Record Health Check does not replace these native Salesforce tools. It fills a d
 advisory guidance at read time, for questions that a save-time or duplicate-time mechanism cannot
 answer.
 
-## The one rule that decides most of it
+## The one check that decides most of it
 
 > [!IMPORTANT]
 > Record Health Check never blocks a save. It evaluates a record after it already exists, and a
@@ -25,12 +25,12 @@ that depends on data outside the record being saved, belongs to Record Health Ch
 
 | Property | Validation Rule | Duplicate Rule | Flow error message / before-save Flow | Record Health Check |
 | --- | --- | --- | --- | --- |
-| When it runs | At save, in the save transaction | At save, when a matching rule fires | At save (before-save) or after save (Flow error message on a screen/record-triggered Flow) | On read: page load or user request; also callable from Apex, Flow, or a schedule |
+| When it runs | At save, in the save transaction | At save, when a Matching Rule fires | At save (before-save) or after save (Flow error message on a screen/record-triggered Flow) | On read: page load or user request; also callable from Apex, Flow, or a schedule |
 | Can it block the save? | Yes | Yes (block or warn, configurable) | Before-save Flow can block; a Flow error message on save can block | No. It is read-only and has no DML on the evaluated record |
-| Scope of data it can see | The record being saved, and formula-reachable related fields | Configured matching fields across a defined duplicate rule scope | The record being saved, and whatever the Flow queries | The current record, related records, aggregates, two independent SOQL queries, or custom Apex, including records unrelated by lookup |
-| Can it evaluate records that existed before the rule did? | No. It only fires on a DML event | No. It only fires on a DML event | Only if built as a scheduled or on-demand Flow, not natively retroactive | Yes. Evaluation is not bound to a DML event, so it can review every existing record on read or on demand |
+| Scope of data it can see | The record being saved, and formula-reachable related fields | Configured matching fields across a defined Duplicate Rule scope | The record being saved, and whatever the Flow queries | The current record, related records, aggregates, two independent SOQL queries, or custom Apex, including records unrelated by lookup |
+| Can it evaluate records that existed before the check did? | No. It only fires on a DML event | No. It only fires on a DML event | Only if built as a scheduled or on-demand Flow, not natively retroactive | Yes. Evaluation is not bound to a DML event, so it can review every existing record on read or on demand |
 | Where the result appears | An error banner blocking save | A duplicate warning or block on save | An error banner (before-save) or the record after a triggered Flow runs | A Lightning record-page card, or a typed Apex/Flow response |
-| Configuration model | Formula in Setup | Matching Rule + Duplicate Rule in Setup | Flow Builder | Custom Metadata (Check Set + Rule), deployable and version-controlled |
+| Configuration model | Formula in Setup | Matching Rule + Duplicate Rule in Setup | Flow Builder | Custom Metadata (Check Set + Check), deployable and version-controlled |
 | Failure severity | Binary: blocks or does not | Binary or warn, per Duplicate Rule | Binary: blocks or does not (before-save); Flow can vary downstream handling | Three severities on `FAIL` (Failed, Warning, Info), plus distinct Skipped, Unable to Check, and System Error outcomes |
 | Stable status and Reason Code for automation | No, only pass/block | No, only match/no-match | Depends on Flow design | Yes: status and Reason Code, versioned independently of display text. See [Reason Codes](../reference/contracts/01-reason-codes.md) |
 
@@ -52,7 +52,7 @@ that depends on data outside the record being saved, belongs to Record Health Ch
 A Validation Rule, a blocking Duplicate Rule, and a before-save Flow all share one property: a
 malformed condition blocks every save that matches it, org-wide, immediately. Record Health Check's
 advisory boundary is what makes richer administrator-authored logic (arbitrary SOQL, cross-object
-aggregates, custom Apex) tolerable: a misconfigured Rule becomes a documented status on one card
+aggregates, custom Apex) tolerable: a misconfigured Check becomes a documented status on one card
 (`UNABLE_TO_EVALUATE` or `ERROR` with a Reason Code), not a block on every save in the org. See
 [Architecture: Position in the platform](../reference/framework/01-architecture.md#1-position-in-the-platform)
 for the full comparison.
@@ -63,12 +63,12 @@ Combine them. A common pattern:
 
 1. A Validation Rule or before-save Flow enforces the non-negotiable minimum at save time (for
    example, an Account must have an Industry).
-2. A Record Health Check Rule reviews the fuller readiness picture on read (for example, whether the
+2. A Record Health Check reviews the fuller readiness picture on read (for example, whether the
    Account has adequate Contact coverage, recent activity, and no open high-priority Cases), and
    guides the user toward the fix without blocking anything.
 
-Record Health Check Rules can even read the same fields a Validation Rule checks; there is no
-conflict, because a Rule result never changes what Salesforce allows to be saved.
+Record Health Checks can even read the same fields a Validation Rule checks; there is no
+conflict, because a Check result never changes what Salesforce allows to be saved.
 
 ## Related
 
@@ -76,4 +76,4 @@ conflict, because a Rule result never changes what Salesforce allows to be saved
 - [How Record Health Check works](../installation/01-how-it-works.md)
 - [Reason Codes](../reference/contracts/01-reason-codes.md)
 - [FAQ](02-faq.md)
-- [Configure Check Sets and Rules](03-configure-check-sets-and-rules.md)
+- [Configure Check Sets and Checks](03-configure-check-sets-and-checks.md)

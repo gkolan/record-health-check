@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/** Test-only scratch-org harness that runs each Check Set or Rule separately. */
+/** Test-only scratch-org harness that runs each Check Set or Check separately. */
 public class RecordHealthCheckExhaustiveSmoke implements Queueable {
   private Id recordId;
   private String itemName;
@@ -31,11 +31,11 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
     return jobs;
   }
 
-  public static List<Id> startRules(Id recordId, Integer batchOffset) {
+  public static List<Id> startChecks(Id recordId, Integer batchOffset) {
     List<Id> jobs = new List<Id>();
-    for (Record_Health_Check_Rule__mdt item : [
+    for (Record_Health_Check__mdt item : [
       SELECT QualifiedApiName
-      FROM Record_Health_Check_Rule__mdt
+      FROM Record_Health_Check__mdt
       ORDER BY DeveloperName
       LIMIT 50
       OFFSET :batchOffset
@@ -46,7 +46,7 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
           new RecordHealthCheckExhaustiveSmoke(
             recordId,
             item.QualifiedApiName,
-            'RULE'
+            'CHECK'
           )
         )
       );
@@ -86,7 +86,7 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
         outcome.put('results', summarize(result.results));
       } else {
         RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-          RecordHealthCheckRequest.forRule(itemName, recordId)
+          RecordHealthCheckRequest.forCheck(itemName, recordId)
             .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
         );
         RecordHealthCheckResultItem result = response.results[0];
@@ -105,7 +105,7 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
     }
     upsert new RHC_Event_Export__c(
       EventId__c = mode + ':' + itemName,
-      RuleName__c = itemName,
+      CheckName__c = itemName,
       Status__c = (String) outcome.get('status'),
       ReasonCode__c = (String) outcome.get('reasonCode'),
       Threw__c = outcome.get('threw') == true,
@@ -123,7 +123,7 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
     for (RecordHealthCheckResultItem result : results) {
       summary.add(
         new Map<String, Object>{
-          'name' => result.evaluation.ruleQualifiedApiName,
+          'name' => result.evaluation.checkQualifiedApiName,
           'status' => result.evaluation.status,
           'reasonCode' => result.evaluation.reasonCode,
           'message' => result.display == null
@@ -156,7 +156,7 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
     List<RHC_Event_Export__c> rows = [
       SELECT EventId__c, Payload__c
       FROM RHC_Event_Export__c
-      WHERE EventId__c LIKE 'SET:%' OR EventId__c LIKE 'RULE:%'
+      WHERE EventId__c LIKE 'SET:%' OR EventId__c LIKE 'CHECK:%'
       ORDER BY EventId__c
     ];
     Integer concerningRows = 0;

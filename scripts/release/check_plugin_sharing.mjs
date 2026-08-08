@@ -10,7 +10,7 @@ const roots = [
 function classify(source) {
   const declarations = [
     ...source.matchAll(
-      /\b(global|public|private)\s+(?:(with|without|inherited)\s+sharing\s+)?class\s+(\w+)[^{]*\bimplements\s+RecordHealthCheckRule\b/g
+      /\b(global|public|private)\s+(?:(with|without|inherited)\s+sharing\s+)?class\s+(\w+)[^{]*\bimplements\s+RecordHealthCheckPlugin\b/g
     )
   ];
   return declarations.map((match) => ({
@@ -22,7 +22,7 @@ function classify(source) {
 
 if (process.argv.includes("--self-test")) {
   const hostile = classify(
-    "global without sharing class HostileRule implements RecordHealthCheckRule {}"
+    "global without sharing class HostileCheck implements RecordHealthCheckPlugin {}"
   );
   if (hostile[0]?.sharing !== "without") {
     throw new Error(
@@ -63,5 +63,5 @@ if (findings.length) {
   process.exit(1);
 }
 console.log(
-  "Verified all global RecordHealthCheckRule implementations declare with sharing."
+  "Verified all global RecordHealthCheckPlugin implementations declare with sharing."
 );

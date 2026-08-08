@@ -8,7 +8,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
 
   /** Populates display values and their provenance from already-fetched rows. */
   public static void setComparisonValues(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     List<SObject> primaryRows,
@@ -16,7 +16,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     String mode
   ) {
     setComparisonValues(
-      rule,
+      check,
       record,
       result,
       primaryRows,
@@ -29,7 +29,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
 
   /** Populates display values and their provenance from already-fetched rows. */
   public static void setComparisonValues(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     List<SObject> primaryRows,
@@ -41,9 +41,9 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     SObject primaryRow = primaryRows.isEmpty() ? null : primaryRows[0];
     SObject comparisonRow = comparisonRows.isEmpty() ? null : comparisonRows[0];
     String displayFormat = RecordHealthCheckDisplayFormat.formatForRow(
-      rule.DisplayValueFormat__c,
+      check.DisplayValueFormat__c,
       primaryRow,
-      rule.SourceQueryField__c
+      check.SourceQueryField__c
     );
     String primaryIsoCode = RecordHealthCheckDisplayFormat.currencyIsoCodeFor(
       primaryRow,
@@ -56,7 +56,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
 
     if (mode == 'ONE_RESULT') {
       setSingleComparisonValues(
-        rule,
+        check,
         result,
         primaryRows,
         comparisonRows,
@@ -70,7 +70,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
       );
     } else {
       setListComparisonValues(
-        rule,
+        check,
         record,
         result,
         primaryRows,
@@ -79,14 +79,14 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
       );
     }
     RecordHealthCheckTemplateService.applyFoundExpectedText(
-      rule,
+      check,
       record,
       result
     );
   }
 
   private static void setSingleComparisonValues(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,
     List<SObject> primaryRows,
     List<SObject> comparisonRows,
@@ -100,25 +100,25 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
   ) {
     Object primaryValue = primaryIsZeroCount
       ? 0
-      : resolveSingleValue(primaryRows, rule.SourceQueryField__c, 'primary');
+      : resolveSingleValue(primaryRows, check.SourceQueryField__c, 'primary');
     Object comparisonValue = comparisonIsZeroCount
       ? 0
       : resolveSingleValue(
           comparisonRows,
-          rule.ComparisonQueryField__c,
+          check.ComparisonQueryField__c,
           'comparison'
         );
     Object displayPrimaryValue = RecordHealthCheckDisplayFormat.valueForDisplay(
       primaryValue,
-      rule.DisplayValueFormat__c,
+      check.DisplayValueFormat__c,
       primaryRow,
-      rule.SourceQueryField__c
+      check.SourceQueryField__c
     );
     Object displayComparisonValue = RecordHealthCheckDisplayFormat.valueForDisplay(
       comparisonValue,
-      rule.DisplayValueFormat__c,
+      check.DisplayValueFormat__c,
       comparisonRow,
-      rule.ComparisonQueryField__c
+      check.ComparisonQueryField__c
     );
     result.actualValue = RecordHealthCheckComparisonDisplay.formatValue(
       displayPrimaryValue,
@@ -126,19 +126,19 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
       primaryIsoCode
     );
     result.expectedValue = RecordHealthCheckComparisonDisplay.describeExpected(
-      rule.ComparisonOperator__c,
+      check.ComparisonOperator__c,
       displayComparisonValue,
       displayFormat,
       comparisonIsoCode
     );
     result.actualValueSource = valueSource(
-      rule.SourceQueryField__c,
+      check.SourceQueryField__c,
       'Primary query',
       primaryValue,
       primaryRows.size()
     );
     result.expectedValueSource = valueSource(
-      rule.ComparisonQueryField__c,
+      check.ComparisonQueryField__c,
       'Comparison query',
       comparisonValue,
       comparisonRows.size()
@@ -159,7 +159,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
   }
 
   private static void setListComparisonValues(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     List<SObject> primaryRows,
@@ -168,40 +168,40 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
   ) {
     List<Object> primaryList = RecordHealthCheckValueResolver.singleValueList(
       primaryRows,
-      rule.SourceQueryField__c
+      check.SourceQueryField__c
     );
     List<Object> comparisonList = RecordHealthCheckValueResolver.singleValueList(
       comparisonRows,
-      rule.ComparisonQueryField__c
+      check.ComparisonQueryField__c
     );
     result.actualValue = RecordHealthCheckComparisonDisplay.formatList(
       RecordHealthCheckDisplayFormat.valuesForDisplay(
         primaryList,
-        rule.DisplayValueFormat__c,
+        check.DisplayValueFormat__c,
         primaryRows,
-        rule.SourceQueryField__c
+        check.SourceQueryField__c
       ),
       displayFormat,
       RecordHealthCheckDisplayFormat.currencyIsoCodesFor(primaryRows, record)
     );
     result.expectedValue = RecordHealthCheckComparisonDisplay.describeExpectedList(
-      rule.ComparisonOperator__c,
+      check.ComparisonOperator__c,
       RecordHealthCheckDisplayFormat.valuesForDisplay(
         comparisonList,
-        rule.DisplayValueFormat__c,
+        check.DisplayValueFormat__c,
         comparisonRows,
-        rule.ComparisonQueryField__c
+        check.ComparisonQueryField__c
       ),
       displayFormat,
       RecordHealthCheckDisplayFormat.currencyIsoCodesFor(comparisonRows, record)
     );
     result.actualValueSource = listValueSource(
-      rule.SourceQueryField__c,
+      check.SourceQueryField__c,
       'Primary query',
       primaryList.size()
     );
     result.expectedValueSource = listValueSource(
-      rule.ComparisonQueryField__c,
+      check.ComparisonQueryField__c,
       'Comparison query',
       comparisonList.size()
     );
@@ -221,12 +221,12 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
 
   /** Compares the single value resolved from each query. */
   public static Boolean evaluateSingleVsSingle(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<SObject> primaryRows,
     List<SObject> comparisonRows
   ) {
     return evaluateSingleVsSingle(
-      rule,
+      check,
       primaryRows,
       comparisonRows,
       false,
@@ -236,7 +236,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
 
   /** Compares the single value resolved from each query. */
   public static Boolean evaluateSingleVsSingle(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<SObject> primaryRows,
     List<SObject> comparisonRows,
     Boolean primaryIsZeroCount,
@@ -244,26 +244,26 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
   ) {
     Object primaryValue = primaryIsZeroCount
       ? 0
-      : resolveSingleValue(primaryRows, rule.SourceQueryField__c, 'primary');
+      : resolveSingleValue(primaryRows, check.SourceQueryField__c, 'primary');
     Object comparisonValue = comparisonIsZeroCount
       ? 0
       : resolveSingleValue(
           comparisonRows,
-          rule.ComparisonQueryField__c,
+          check.ComparisonQueryField__c,
           'comparison'
         );
     if (primaryValue == null || comparisonValue == null) {
-      if (rule.EmptyValueHandling__c == 'AS_BLANK') {
+      if (check.EmptyValueHandling__c == 'AS_BLANK') {
         primaryValue = primaryValue != null ? primaryValue : '';
         comparisonValue = comparisonValue != null ? comparisonValue : '';
-      } else if (rule.EmptyValueHandling__c == 'AS_NO_MATCH') {
+      } else if (check.EmptyValueHandling__c == 'AS_NO_MATCH') {
         return false;
       } else {
         return null;
       }
     }
     return RecordHealthCheckComparisonEngine.applySingleValueComparison(
-      rule.ComparisonOperator__c,
+      check.ComparisonOperator__c,
       primaryValue,
       comparisonValue
     );
@@ -301,41 +301,41 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     }
   }
 
-  /** Compares two query result lists using the rule's configured list operator. */
+  /** Compares two query result lists using the check's configured list operator. */
   public static Boolean evaluateListVsList(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<SObject> primaryRows,
     List<SObject> comparisonRows
   ) {
     if (primaryRows.isEmpty() || comparisonRows.isEmpty()) {
       return RecordHealthCheckComparisonEngine.resolveEmptyBehavior(
-        rule.NoRowsResult__c
+        check.NoRowsResult__c
       );
     }
     List<String> primaryList = toStringList(
       primaryRows,
-      rule.SourceQueryField__c,
+      check.SourceQueryField__c,
       'primary',
-      rule.EmptyValueHandling__c
+      check.EmptyValueHandling__c
     );
     List<String> comparisonList = toStringList(
       comparisonRows,
-      rule.ComparisonQueryField__c,
+      check.ComparisonQueryField__c,
       'comparison',
-      rule.EmptyValueHandling__c
+      check.EmptyValueHandling__c
     );
     if (primaryList.isEmpty() || comparisonList.isEmpty()) {
       return null;
     }
     Set<String> primarySet = normalizedSet(primaryList);
     Set<String> comparisonSet = normalizedSet(comparisonList);
-    if (rule.ComparisonOperator__c == 'LISTS_OVERLAP') {
+    if (check.ComparisonOperator__c == 'LISTS_OVERLAP') {
       return overlaps(primarySet, comparisonSet);
     }
-    if (rule.ComparisonOperator__c == 'LISTS_CONTAIN_ALL') {
+    if (check.ComparisonOperator__c == 'LISTS_CONTAIN_ALL') {
       return comparisonSet.containsAll(primarySet);
     }
-    if (rule.ComparisonOperator__c == 'LISTS_MATCH_EXACTLY') {
+    if (check.ComparisonOperator__c == 'LISTS_MATCH_EXACTLY') {
       return frequencyMapsEqual(
         toFrequencyMap(primaryList),
         toFrequencyMap(comparisonList)
@@ -344,7 +344,7 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     throw new RecordHealthCheckEvaluatorException(
       'INVALID_OPERATOR',
       'Comparison operator "' +
-        rule.ComparisonOperator__c +
+        check.ComparisonOperator__c +
         '" is not valid for Compare as lists on Compare two queries.' +
         ' Use Lists overlap, List contains all, or Exact list match.'
     );

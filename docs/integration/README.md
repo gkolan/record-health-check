@@ -11,7 +11,7 @@
 Use this page to decide where a readiness decision belongs: a Lightning record page, Flow,
 Apex, or an independent subscriber receiving an after-commit lifecycle event.
 
-Record Health Check uses the same metadata-defined Check Sets and Rules across those surfaces. The
+Record Health Check uses the same metadata-defined Check Sets and Checks across those surfaces. The
 integration choice changes how the evaluation starts and how the caller receives the result; it
 does not create a second configuration model.
 
@@ -34,7 +34,7 @@ recipes, use [Platform Event subscriptions](../platform-events/README.md).
 | Make an immediate or asynchronous decision in code | [API examples](../api/README.md) | Choose synchronous Apex, Queueable, Batch, or Scheduled Apex |
 | Branch in automation without custom Apex | [Flow actions](../integration/02-flow-actions.md) | Configure an Action and Decision element with explicit status paths |
 | Notify independent automation after commit | [Platform Event subscriptions](../platform-events/README.md) | Build a Flow or Apex subscriber and handle replay or duplicate delivery |
-| Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/01-recent-activity.md) | Write the class used by a Verify with Apex Rule |
+| Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/01-recent-activity.md) | Write the class used by a Verify with Apex Check |
 
 ## What Record Health Check is
 
@@ -43,12 +43,12 @@ Record Health Check is a synchronous evaluation framework for Salesforce records
 | Concept | Meaning |
 | --- | --- |
 | **Check Set** | The parent configuration and normal unit of execution |
-| **Rule** | One ordered check inside a Check Set |
+| **Check** | One ordered check inside a Check Set |
 | Immediate response | A run returns structured status data immediately |
 | Lifecycle events | Optional events announce completed runs after the transaction commits |
 | Access | Evaluation respects the running user's Salesforce access |
 
-Start with a Check Set. Use a single Rule only when your process intentionally needs one specific
+Start with a Check Set. Use a single Check only when your process intentionally needs one specific
 check rather than the complete configured health assessment.
 
 ## What it is not
@@ -68,18 +68,18 @@ check rather than the complete configured health assessment.
 | Goal | Start here | Immediate output | Optional event source |
 | --- | --- | --- | --- |
 | Show health on a record page | [Lightning component](01-lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
-| Make a code-level decision | [Apex API](../api/01-apex-api.md) | Typed Rule or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
+| Make a code-level decision | [Apex API](../api/01-apex-api.md) | Typed Check or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
 | Branch in automation without code | [Flow actions](02-flow-actions.md) | Flow output variables and JSON | `FLOW` |
 | React asynchronously or export results | [Platform events](03-lifecycle-events.md) | Event body | Depends on the publisher |
-| Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/01-recent-activity.md) | Normal Rule result | Inherits the calling run |
+| Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/01-recent-activity.md) | Normal Check result | Inherits the calling run |
 
 ## Evaluation model
 
 ```text
 Check Set
-├── Rule A
-├── Rule B
-└── Rule C
+├── Check A
+├── Check B
+└── Check C
 
 evaluate(request) -> RecordHealthCheckResponse
                      ├── summary with outcome counts
@@ -128,7 +128,7 @@ For method overloads, fields, limits, and exceptions, use the [Apex API referenc
 2. Provide **Check Set Qualified API Name** and **Record ID**.
 3. Add a Decision element with explicit branches for the returned **Status**.
 4. Connect the fault path.
-5. Use the count outputs or Result JSON when the decision needs Rule-level detail.
+5. Use the count outputs or Result JSON when the decision needs Check-level detail.
 
 For every input and output, use the [Flow actions reference](02-flow-actions.md).
 
@@ -145,7 +145,7 @@ that an event subscriber completed.
 Lifecycle publication is off by default; error-log publication is on by default:
 
 - Check Set **Publish User Run Event** enables one completed Set event.
-- Rule **Publish User Result Event** enables one event for that server-finalized Rule.
+- Check **Publish User Result Event** enables one event for that server-finalized Check.
 - Check Set **Publish Error Log Event** publishes Framework `ERROR` diagnostics; uncheck it to opt
   that Check Set out without changing Salesforce debug logs.
 - Automatic Lightning page-load runs never publish.
@@ -155,10 +155,10 @@ Lifecycle publication is off by default; error-log publication is on by default:
 | Limit | Value |
 | --- | --- |
 | Records in one public Apex or Flow call | 200 |
-| Concurrent Lightning Rule evaluations | 5 |
+| Concurrent Lightning Check evaluations | 5 |
 | Platform-event publish chunk | 100 |
 
-For a Set request, planned evaluations equal records × active Rules.
+For a Set request, planned evaluations equal records × active Checks.
 
 ## Design for failures
 
@@ -166,8 +166,8 @@ Handle these cases separately:
 
 | Case | Status / handling | Notes |
 | --- | --- | --- |
-| Valid unhealthy result | `FAIL` | The Rule ran and found something that needs attention |
-| Intentional non-run | `SKIPPED` | Applicability or a dependency kept the Rule from running |
+| Valid unhealthy result | `FAIL` | The Check ran and found something that needs attention |
+| Intentional non-run | `SKIPPED` | Applicability or a dependency kept the Check from running |
 | No reliable conclusion | `UNABLE_TO_EVALUATE` | Card label: **Unable to Check**; Setup says **Unable to Evaluate** |
 | Unexpected execution problem | `ERROR` | Card label: **System Error** |
 | Exception before a response | Thrown fault | Invalid request, missing access, or a governor limit |
@@ -183,7 +183,7 @@ automation on those fields rather than administrator-authored message text.
 2. Verify every status branch your integration handles.
 3. Test with users who have different record and field access.
 4. Confirm request volume stays within evaluation and event allocations.
-5. Enable publication for one Set or Rule at a time.
+5. Enable publication for one Set or Check at a time.
 6. Verify commit, rollback, duplicate-processing, and subscriber-failure behavior.
 
 ## Next steps
@@ -195,4 +195,4 @@ automation on those fields rather than administrator-authored message text.
 - [Platform Event subscriptions](../platform-events/README.md)
 - [Lifecycle event behavior](03-lifecycle-events.md)
 - [Reason Codes](../reference/contracts/01-reason-codes.md)
-- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
+- [Configure Check Sets and Checks](../guides/03-configure-check-sets-and-checks.md)

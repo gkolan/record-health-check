@@ -2,7 +2,7 @@
 public with sharing class RecordHealthCheckEvaluatorRegistry {
   private interface ScopeEvaluator {
     Map<Id, RecordHealthCheckInternalResult> evaluate(
-      Record_Health_Check_Rule__mdt rule,
+      Record_Health_Check__mdt check,
       List<Id> recordIds,
       Map<Id, SObject> recordsById,
       RecordHealthCheckScopePipeline.SelectionContext context,
@@ -22,55 +22,55 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
     };
   }
 
-  /** Evaluates one Rule against its applicable scope. */
+  /** Evaluates one Check against its applicable scope. */
   public Map<Id, RecordHealthCheckInternalResult> evaluateScope(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<Id> recordIds,
     Map<Id, SObject> recordsById,
     RecordHealthCheckScopePipeline.SelectionContext context,
     String runId
   ) {
-    ScopeEvaluator evaluator = evaluatorsByType.get(rule.EvaluationType__c);
+    ScopeEvaluator evaluator = evaluatorsByType.get(check.EvaluationType__c);
     if (evaluator == null) {
       throw new RecordHealthCheckEvaluatorException(
         'INVALID_CHECK_TYPE',
         'No framework evaluator is registered for ' +
-          rule.EvaluationType__c +
+          check.EvaluationType__c +
           '.'
       );
     }
-    return evaluator.evaluate(rule, recordIds, recordsById, context, runId);
+    return evaluator.evaluate(check, recordIds, recordsById, context, runId);
   }
 
   private class QueryAdapter implements ScopeEvaluator {
     public Map<Id, RecordHealthCheckInternalResult> evaluate(
-      Record_Health_Check_Rule__mdt rule,
+      Record_Health_Check__mdt check,
       List<Id> recordIds,
       Map<Id, SObject> recordsById,
       RecordHealthCheckScopePipeline.SelectionContext context,
       String runId
     ) {
       return new RecordHealthCheckSoqlEvaluator()
-        .evaluateScope(rule, recordIds, recordsById);
+        .evaluateScope(check, recordIds, recordsById);
     }
   }
 
   private class CompareQueriesAdapter implements ScopeEvaluator {
     public Map<Id, RecordHealthCheckInternalResult> evaluate(
-      Record_Health_Check_Rule__mdt rule,
+      Record_Health_Check__mdt check,
       List<Id> recordIds,
       Map<Id, SObject> recordsById,
       RecordHealthCheckScopePipeline.SelectionContext context,
       String runId
     ) {
       return new RecordHealthCheckCompareQueriesEvaluator()
-        .evaluateScope(rule, recordIds, recordsById);
+        .evaluateScope(check, recordIds, recordsById);
     }
   }
 
   private class FormulaAdapter implements ScopeEvaluator {
     public Map<Id, RecordHealthCheckInternalResult> evaluate(
-      Record_Health_Check_Rule__mdt rule,
+      Record_Health_Check__mdt check,
       List<Id> recordIds,
       Map<Id, SObject> recordsById,
       RecordHealthCheckScopePipeline.SelectionContext context,
@@ -81,7 +81,7 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
       for (Id recordId : recordIds) {
         results.put(
           recordId,
-          evaluator.evaluate(rule, recordId, recordsById.get(recordId))
+          evaluator.evaluate(check, recordId, recordsById.get(recordId))
         );
       }
       return results;
@@ -90,7 +90,7 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
 
   private class ApexAdapter implements ScopeEvaluator {
     public Map<Id, RecordHealthCheckInternalResult> evaluate(
-      Record_Health_Check_Rule__mdt rule,
+      Record_Health_Check__mdt check,
       List<Id> recordIds,
       Map<Id, SObject> recordsById,
       RecordHealthCheckScopePipeline.SelectionContext context,
@@ -98,7 +98,7 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
     ) {
       return new RecordHealthCheckApexEvaluator()
         .evaluateScope(
-          rule,
+          check,
           recordIds,
           recordsById,
           context.objectApiName,

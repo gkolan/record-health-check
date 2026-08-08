@@ -11,34 +11,34 @@ const fixtureDirectory = path.join(
   "main/default/customMetadata"
 );
 const examplePattern =
-  /^Record_Health_Check_(?:Set|Rule)__mdt\.Example_.+\.md-meta\.xml$/;
+  /^(?:Record_Health_Check_Set__mdt|Record_Health_Check__mdt)\.Example_.+\.md-meta\.xml$/;
 
 const expectedCoreExamples = [
   "Record_Health_Check_Set__mdt.Example_Account_Profile_Readiness.md-meta.xml",
   "Record_Health_Check_Set__mdt.Example_Account_Relationship_Risk.md-meta.xml",
   "Record_Health_Check_Set__mdt.Example_Contact_Relationship_Readiness.md-meta.xml",
   "Record_Health_Check_Set__mdt.Example_Opportunity_Deal_Readiness.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Profile_Phone_Available.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Profile_Website_Available.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Profile_Industry_Classified.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Profile_Billing_Address.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Contact_RR_Email.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Contact_RR_Phone.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Contact_RR_Title.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Contact_RR_Mailing_City.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Amount.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Close_Date.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Next_Step.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Opportunity_DR_Probability.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Executive_Sponsorship.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Account_Owner_Active.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Industry_Aligns_With_Parent.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Open_Deals_Have_Contacts.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Contacts_Have_Email.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Customer_Engagement_Current.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Pipeline_Protects_Revenue.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_No_High_Priority_Issues.md-meta.xml",
-  "Record_Health_Check_Rule__mdt.Example_Channel_Partner_Governance.md-meta.xml"
+  "Record_Health_Check__mdt.Example_Profile_Phone_Available.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Profile_Website_Available.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Profile_Industry_Classified.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Profile_Billing_Address.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Contact_RR_Email.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Contact_RR_Phone.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Contact_RR_Title.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Contact_RR_Mailing_City.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Opportunity_DR_Amount.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Opportunity_DR_Close_Date.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Opportunity_DR_Next_Step.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Opportunity_DR_Probability.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Executive_Sponsorship.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Account_Owner_Active.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Industry_Aligns_With_Parent.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Open_Deals_Have_Contacts.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Contacts_Have_Email.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Customer_Engagement_Current.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Pipeline_Protects_Revenue.md-meta.xml",
+  "Record_Health_Check__mdt.Example_No_High_Priority_Issues.md-meta.xml",
+  "Record_Health_Check__mdt.Example_Channel_Partner_Governance.md-meta.xml"
 ].sort();
 
 const expectedCardTitles = {

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ActionLabel__c</fullName>
+    <label>Action Label</label>
+    <description
+  >Optional user-facing text for the action link displayed when this Check fails. Use a short verb phrase that describes the destination, such as "Review {!record.Name}" or "Create support case". Current-record merge tokens are resolved before display and may traverse relationships, for example {!record.Name} or {!record.Owner.Name}. Action URL controls whether the link appears. When Action URL is set and this field is blank, the link is labeled "Fix this".</description>
+    <type>Text</type>
+    <length>80</length>
+    <inlineHelpText
+  >Optional text for the failure action link, such as "Review {!record.Name}". Supports {!record.FieldName} merge tokens. Requires Action URL; blank uses "Fix this".</inlineHelpText>
+    <required>false</required>
+</CustomField>

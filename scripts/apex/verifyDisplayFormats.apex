@@ -1,4 +1,4 @@
-// Runs every Rule in the "Account Display Formats" Check Set against the seeded
+// Runs every Check in the "Account Display Formats" Check Set against the seeded
 // Account and prints the Found and Expected chips, so each Display: Value Format
 // can be checked by eye.
 //
@@ -22,13 +22,13 @@ if (targets.isEmpty()) {
 }
 
 Account target = targets[0];
-Map<String, String> formatByRule = new Map<String, String>();
-for (Record_Health_Check_Rule__mdt rule : [
+Map<String, String> formatByCheck = new Map<String, String>();
+for (Record_Health_Check__mdt check : [
   SELECT DeveloperName, DisplayValueFormat__c
-  FROM Record_Health_Check_Rule__mdt
+  FROM Record_Health_Check__mdt
   WHERE Record_Health_Check_Set__r.DeveloperName = :setName
 ]) {
-  formatByRule.put(rule.DeveloperName, rule.DisplayValueFormat__c);
+  formatByCheck.put(check.DeveloperName, check.DisplayValueFormat__c);
 }
 
 RecordHealthCheckDefinitionResponse definition = RecordHealthCheckController.getCheckDefinitions(
@@ -39,7 +39,7 @@ RecordHealthCheckDefinitionResponse definition = RecordHealthCheckController.get
 System.assertEquals(
   13,
   definition.checks.size(),
-  'The maintained display-format fixture must contain all 13 Rules.'
+  'The maintained display-format fixture must contain all 13 Checks.'
 );
 
 System.debug(
@@ -48,7 +48,7 @@ System.debug(
     definition.displayTitle +
     ' — ' +
     definition.checks.size() +
-    ' Rules against ' +
+    ' Checks against ' +
     target.Name
 );
 
@@ -61,7 +61,7 @@ for (RecordHealthCheckDefinition check : definition.checks) {
     'display-format-verify',
     'SCRIPT'
   );
-  String format = formatByRule.get(check.developerName);
+  String format = formatByCheck.get(check.developerName);
   formatsSeen.add(format);
   System.debug(
     LoggingLevel.INFO,

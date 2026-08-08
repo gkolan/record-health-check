@@ -11,12 +11,12 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
   static void pluginScopeMutationIsRolledBackAndRemainsFatal() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     Integer accountCount = [SELECT COUNT() FROM Account];
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Mutation_Attack',
         'MasterLabel' => 'Mutation Attack',
         'CheckTitle__c' => 'Mutation Attack',
-        'ApexClass__c' => 'RecordHealthCheckEvaluationMutationRule',
+        'ApexClass__c' => 'RecordHealthCheckEvaluationMutationCheck',
         'FailureSeverity__c' => 'ERROR',
         'UnableToEvaluateMessage__c' => 'Unable.'
       }
@@ -26,7 +26,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     try {
       new RecordHealthCheckApexEvaluator()
         .evaluateScope(
-          rule,
+          check,
           new List<Id>{ accountRecord.Id },
           new Map<Id, SObject>{ accountRecord.Id => accountRecord },
           'Account',
@@ -57,12 +57,12 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
   @IsTest
   static void pluginConstructorMutationIsFatalInScopeMode() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Constructor_Mutation_Attack',
         'MasterLabel' => 'Constructor Mutation Attack',
         'CheckTitle__c' => 'Constructor Mutation Attack',
-        'ApexClass__c' => 'RecordHealthCheckConstructorMutationRule',
+        'ApexClass__c' => 'RHCConstructorMutationCheck',
         'FailureSeverity__c' => 'ERROR',
         'UnableToEvaluateMessage__c' => 'Unable.'
       }
@@ -72,7 +72,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     try {
       new RecordHealthCheckApexEvaluator()
         .evaluateScope(
-          rule,
+          check,
           new List<Id>{ accountRecord.Id },
           new Map<Id, SObject>{ accountRecord.Id => accountRecord },
           'Account',
@@ -96,7 +96,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     evaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>();
     evaluator.scopeExecutionActive = true;
     Account record = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'COMPARE_TWO_QUERIES',
         'SourceQuery__c' => 'SELECT Id FROM Account',
@@ -110,7 +110,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     Test.startTest();
     RecordHealthCheckInternalResult result = evaluator
       .withRunContext(new RecordHealthCheckRunContext('compare-attack', 'TEST'))
-      .evaluate(rule, record.Id, record);
+      .evaluate(check, record.Id, record);
     Test.stopTest();
 
     Assert.areEqual(
@@ -123,7 +123,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
   @IsTest
   static void compareScopeUsesDefaultRowBudgetWhenUnconfigured() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Default_Row_Budget',
         'MasterLabel' => 'Default Row Budget',
@@ -140,7 +140,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     Test.startTest();
     result = new RecordHealthCheckCompareQueriesEvaluator()
       .evaluateScope(
-        rule,
+        check,
         new List<Id>{ accountRecord.Id },
         new Map<Id, SObject>{ accountRecord.Id => accountRecord }
       )
@@ -194,13 +194,13 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
 
     Assert.isNull(
       value,
-      'A correlation alias must never be mistaken for the Rule business value.'
+      'A correlation alias must never be mistaken for the Check business value.'
     );
   }
 
   @IsTest
   static void comparisonEngineHandlesNullAndAbsentListValues() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ComparisonOperator__c' => 'LIST_CONTAINS_ANY',
         'EmptyValueHandling__c' => 'AS_NO_MATCH'
@@ -209,7 +209,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
 
     Test.startTest();
     Integer nullCount = RecordHealthCheckComparisonEngine.countFailingRows(
-      rule,
+      check,
       null,
       'expected'
     );
@@ -217,7 +217,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
       'LIST_CONTAINS_ANY',
       'attacker-value',
       new List<Object>{ 'allowed-value' },
-      rule
+      check
     );
     Test.stopTest();
 
@@ -258,7 +258,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Profile_Readiness'
       ),
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Profile_Phone_Available'
       ),
       accountRecord.Id,
@@ -281,15 +281,15 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
 
   @IsTest
   static void queryInjectionTextIsTreatedOnlyAsAnIdentity() {
-    String hostileIdentity = 'Missing_Rule\' OR DeveloperName != null';
+    String hostileIdentity = 'Missing_Check\' OR DeveloperName != null';
 
     Test.startTest();
     try {
       RecordHealthCheck.evaluate(
-        RecordHealthCheckRequest.forRule(hostileIdentity, UserInfo.getUserId())
+        RecordHealthCheckRequest.forCheck(hostileIdentity, UserInfo.getUserId())
       );
       Assert.fail(
-        'A fabricated Rule identity must not select another metadata record.'
+        'A fabricated Check identity must not select another metadata record.'
       );
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(

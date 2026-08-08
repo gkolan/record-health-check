@@ -31,7 +31,7 @@ and `EmptyValueHandling__c` / `NoRowsResult__c` resolution. Throws
 | `describeExpected(...)` / `describeExpectedForActual(...)` | Operator phrase plus the formatted operand |
 
 **Notable behavior:**
-- Each display method has an overload that takes the Rule's `DisplayValueFormat__c`. The no-format
+- Each display method has an overload that takes the Check's `DisplayValueFormat__c`. The no-format
  overloads render on `Auto`. The rendering itself lives in
  [`RecordHealthCheckDisplayFormat`](#recordhealthcheckdisplayformat); this class owns the operator
  phrasing and the list preview cap.
@@ -44,7 +44,7 @@ and `EmptyValueHandling__c` / `NoRowsResult__c` resolution. Throws
 **Role:** Renders Found and Expected values as the text shown on the card chips.
 **Type:** Shared service · `public with sharing`
 
-Applies the Rule's **Display: Value Format** (`DisplayValueFormat__c`). On `Auto` a value is
+Applies the Check's **Display: Value Format** (`DisplayValueFormat__c`). On `Auto` a value is
 humanized from its Apex type; a named format such as `Currency` or `Raw` overrides that. Formatting
 is display only - `RecordHealthCheckComparisonEngine` decides pass and fail from the raw typed
 values, so no format can move a check between pass and fail.
@@ -56,7 +56,7 @@ values, so no format can move a check between pass and fail.
 | `render(value, format, isoCode)` | One value rendered for the chosen format and currency |
 | `isFormatApiName(format)` | Whether a name is one of the ten official, uppercase format API values |
 | `isDisplayedNumberOne(value)` | Whether locale-formatted display text represents exactly one, used when a rendered count needs singular or plural wording |
-| `formatForField(...)` / `formatForRow(...)` | The format a field's Setup definition suggests, used when the Rule is on Auto |
+| `formatForField(...)` / `formatForRow(...)` | The format a field's Setup definition suggests, used when the Check is on Auto |
 | `valueForDisplay(...)` / `valuesForDisplay(...)` | Picklist labels or raw typed values prepared for one value or a list |
 | `currencyIsoCodeFrom(row)` | The currency a row's amounts belong to, in an org with more than one |
 | `currencyIsoCodeFor(row, record, fieldPath)` | The same, walking a relationship path when needed and falling back to the card record when the query read that record without selecting `CurrencyIsoCode` |
@@ -71,7 +71,7 @@ values, so no format can move a check between pass and fail.
  display only.
 - An aggregate row such as `SUM(Amount)` is labelled with the org's corporate currency, which is
  what Salesforce converts an aggregate into.
-- Each side of a comparison keeps its own currency: a Compare two queries Rule, and a Query Rule
+- Each side of a comparison keeps its own currency: a Compare two queries Check, and a Query Check
  whose Expected value comes from a comparison query, read a currency per side rather than sharing
  the Found side's.
 - ISO date text that names an impossible date, such as `2026-02-30`, keeps its original spelling.
@@ -227,7 +227,7 @@ points call `flush()` so ERROR platform events are not lost when
 
 **Notable behavior:**
 - **Important:** `captureErrorEvent` deliberately never carries field values (actual/expected) into the
- `Record_Health_Check_Log__e` event - only identifying context (run id, Check Set/Rule
+ `Record_Health_Check_Log__e` event - only identifying context (run id, Check Set/Check
  names, record id, exception type/message/stack) - because those raw values belong to the Show
  Diagnostics admin-detail channel, not a platform event any subscriber with object access could read.
  `enterSubscriberContext()` is a one-way loop guard a subscriber processing this same event must

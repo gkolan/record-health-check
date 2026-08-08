@@ -22,7 +22,7 @@
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >All seventeen single-query example rules from the docs, ordered simplest to most complex: COUNT gates through list checks and compare two queries.</value>
+    >All seventeen single-query example checks from the docs, ordered simplest to most complex: COUNT gates through list checks and compare two queries.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

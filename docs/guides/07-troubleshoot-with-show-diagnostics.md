@@ -6,9 +6,9 @@
 > **Reference**
 >
 > - This page is the primary source for Show Diagnostics and the F12 console output.
-> - For every other Check Set field, use the [Configure Check Sets and Rules](03-configure-check-sets-and-rules.md#3-check-set-fields).
+> - For every other Check Set field, use the [Configure Check Sets and Checks](03-configure-check-sets-and-checks.md#3-check-set-fields).
 
-Use this guide when a Rule shows **Unable to Check**, behaves differently between users, or needs
+Use this guide when a Check shows **Unable to Check**, behaves differently between users, or needs
 additional runtime evidence. Temporarily enable **Show Diagnostics** and test with authorized
 troubleshooting access.
 
@@ -62,11 +62,11 @@ troubleshooting information. The Record Health Check Admin Permission Set includ
 
 | Capability | View Diagnostics required | Show Diagnostics required | What the authorized user receives |
 | --- | --- | --- | --- |
-| Formula **Passes when** | Yes | No | The Formula Rule's pass condition when the row uses the Framework's default Formula comparison display. Users without View Diagnostics see the business message instead of the formula expression. |
+| Formula **Passes when** | Yes | No | The Formula Check's pass condition when the row uses the Framework's default Formula comparison display. Users without View Diagnostics see the business message instead of the formula expression. |
 | Result troubleshooting line | Yes | Yes | Status, Reason Code, duration, and Evaluation Type beneath each result. |
-| **Troubleshooting detail** | Yes | Yes | Technical context for a Rule that returned `UNABLE_TO_EVALUATE` or `ERROR`, when detail is available. |
+| **Troubleshooting detail** | Yes | Yes | Technical context for a Check that returned `UNABLE_TO_EVALUATE` or `ERROR`, when detail is available. |
 | Browser-console prompt | Yes | Yes | The **Check console (F12) for diagnostics** message on the card. |
-| `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, and a table of Rule results in the browser console. |
+| `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, and a table of Check results in the browser console. |
 | Found and Expected source detail | Yes | Yes | `actualValueDetail` and `expectedValueDetail` notes inside the console's `[RHC] Source detail` group. These explain where displayed values came from and never appear on the card. |
 
 The Custom Permission does not grant record or field access. Record Health Check still evaluates
@@ -103,8 +103,8 @@ Developer Name to distinguish multiple Record Health Check cards on the same Lig
 | --- | --- |
 | **Outcome summary** | A count such as `3 Passed, 2 Failed · 847ms total`. |
 | **Run metadata** | Run ID, Check Set Developer Name, Record ID, User ID, and timestamp for matching Apex logs. |
-| **Results table** | Every Rule with its Status, Failure Severity, Reason Code, Found / Expected values, duration, and Evaluation Type. |
-| **`[RHC] Source detail` group** | Found and Expected source notes for each Rule that has diagnostic detail, identified by Check Title, Developer Name, and Status. The console does not create an empty group. |
+| **Results table** | Every Check with its Status, Failure Severity, Reason Code, Found / Expected values, duration, and Evaluation Type. |
+| **`[RHC] Source detail` group** | Found and Expected source notes for each Check that has diagnostic detail, identified by Check Title, Developer Name, and Status. The console does not create an empty group. |
 
 Use the **Run ID** to match Apex log entries when Apex logging is enabled for your user.
 
@@ -115,7 +115,7 @@ include the following evidence:
 
 - the expected behavior and the actual behavior;
 - exact reproduction steps;
-- the Check Set Qualified API Name and Rule Developer Name;
+- the Check Set Qualified API Name and Check Developer Name;
 - the displayed Status, Reason Code, and message;
 - the redacted `[RHC]` console report; and
 - a redacted screenshot or screen recording when the problem appears on the card.
@@ -139,5 +139,5 @@ through the [Security policy](../../.github/SECURITY.md), not through a public i
 ## Related
 
 - [Install and verify](../installation/02-install-and-verify.md): first install and permission assignment
-- [Configuration guide: Check Set fields](03-configure-check-sets-and-rules.md#3-check-set-fields): every Check Set field
-- [Configuration guide: Troubleshooting](03-configure-check-sets-and-rules.md#13-troubleshooting): when a check fails or cannot run
+- [Configuration guide: Check Set fields](03-configure-check-sets-and-checks.md#3-check-set-fields): every Check Set field
+- [Configuration guide: Troubleshooting](03-configure-check-sets-and-checks.md#13-troubleshooting): when a check fails or cannot run

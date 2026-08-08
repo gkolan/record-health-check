@@ -14,7 +14,7 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckTestDataFactory.createAccount('Second Query Account');
     RecordHealthCheckSoqlEvaluator soql = new RecordHealthCheckSoqlEvaluator();
-    Record_Health_Check_Rule__mdt invalidListFormula = queryRule(
+    Record_Health_Check__mdt invalidListFormula = queryCheck(
       'Soql_Invalid_List_Formula'
     );
     invalidListFormula.ComparisonOperator__c = 'LIST_CONTAINS_ANY';
@@ -27,9 +27,7 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
       soql.evaluate(invalidListFormula, accountRecord.Id, accountRecord),
       'INVALID_FORMULA'
     );
-    Record_Health_Check_Rule__mdt query = queryRule(
-      'Soql_Multiple_Primary_Rows'
-    );
+    Record_Health_Check__mdt query = queryCheck('Soql_Multiple_Primary_Rows');
     query.SourceQuery__c = 'SELECT Name FROM Account';
     query.SourceQueryField__c = 'Name';
     assertReason(
@@ -37,14 +35,14 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
       'MULTIPLE_ROWS_RETURNED'
     );
 
-    query = queryRule('Soql_Invalid_Comparison_Formula');
+    query = queryCheck('Soql_Invalid_Comparison_Formula');
     query.ExpectedValueSource__c = 'RECORD_FORMULA';
     query.ExpectedRecordFormula__c = 'Not A Formula(';
     assertReason(
       soql.evaluate(query, accountRecord.Id, accountRecord),
       'INVALID_FORMULA'
     );
-    query = queryRule('Soql_Empty_Comparison_Query');
+    query = queryCheck('Soql_Empty_Comparison_Query');
     query.ExpectedValueSource__c = 'COMPARISON_QUERY';
     query.ComparisonQuery__c = 'SELECT BillingCity FROM Account WHERE Name = \'does not exist\'';
     query.ComparisonQueryField__c = 'BillingCity';
@@ -134,11 +132,11 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -147,7 +145,7 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'FormulaResultType__c' => 'AUTO',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',
@@ -160,12 +158,12 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
   @IsTest
   static void evaluatorMapsPlatformQueryFailuresToStableConfigurationResult() {
     Account accountRecord = [SELECT Id, Name FROM Account LIMIT 1];
-    Record_Health_Check_Rule__mdt rule = queryRule('Invalid_Query');
-    rule.SourceQuery__c = 'SELECT DefinitelyMissing__c FROM Account';
+    Record_Health_Check__mdt check = queryCheck('Invalid_Query');
+    check.SourceQuery__c = 'SELECT DefinitelyMissing__c FROM Account';
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
-      .evaluate(rule, accountRecord.Id, accountRecord);
+      .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
     Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
@@ -176,15 +174,15 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt queryRule(String developerName) {
-    Record_Health_Check_Rule__mdt rule = baseRule(developerName, 'QUERY');
-    rule.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    rule.SourceQueryField__c = 'BillingCity';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    rule.ExpectedValueSource__c = 'FIXED_VALUE';
-    rule.ExpectedFixedValue__c = 'Chicago';
-    return rule;
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
   }
 
   private static void assertUnable(

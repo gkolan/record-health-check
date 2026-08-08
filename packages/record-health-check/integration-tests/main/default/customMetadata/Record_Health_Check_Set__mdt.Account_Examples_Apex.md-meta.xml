@@ -22,7 +22,7 @@
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >The Apex example rules from the docs, ordered simplest to most complex: recent activity, open opportunity health, strategic readiness score, and an inactive-approver check (inactive by default: it requires the Advanced Approvals package).</value>
+    >The Apex example checks from the docs, ordered simplest to most complex: recent activity, open opportunity health, strategic readiness score, and an inactive-approver check (inactive by default: it requires the Advanced Approvals package).</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

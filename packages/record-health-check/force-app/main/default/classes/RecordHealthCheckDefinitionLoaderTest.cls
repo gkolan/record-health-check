@@ -2,68 +2,161 @@
 @IsTest
 private class RecordHealthCheckDefinitionLoaderTest {
   @IsTest
-  static void selectsOnlyFrameworkMaximumRules() {
-    List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>();
-    for (Integer index = 0; index < 30; index++) {
-      rules.add(
-        RecordHealthCheckTestDataFactory.rule(
-          new Map<String, Object>{ 'DeveloperName' => 'Rule_' + index }
-        )
+  static void selectsOnlyFrameworkMaximumChecks() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
+      for (Integer index = 0; index < 30; index++) {
+        checks.add(
+          RecordHealthCheckTestDataFactory.check(
+            new Map<String, Object>{ 'DeveloperName' => 'Check_' + index }
+          )
+        );
+      }
+
+      Test.startTest();
+      List<Record_Health_Check__mdt> selected = RecordHealthCheckDefinitionLoader.selectChecksForRun(
+        checks
+      );
+      Test.stopTest();
+
+      Assert.areEqual(
+        RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS,
+        selected.size(),
+        'The run must remain capped at the framework maximum.'
       );
     }
-
-    Test.startTest();
-    List<Record_Health_Check_Rule__mdt> selected = RecordHealthCheckDefinitionLoader.selectRulesForRun(
-      rules
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS,
-      selected.size(),
-      'The run must remain capped at the framework maximum.'
-    );
   }
 
   @IsTest
   static void validatesRequiredCardTitleAndInactiveOnlySets() {
-    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
-      new Map<String, Object>{
-        'IsActive__c' => true,
-        'ObjectApiName__c' => 'Account',
-        'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
-        'SkippedChecksDisplay__c' => 'SHOW_COUNT_ONLY',
-        'CardRunMode__c' => 'RUN_ON_LOAD',
-        'CardRevealMode__c' => 'ALL_AT_ONCE',
-        'CardTitle__c' => null,
-        'FoundExpectedDisplay__c' => 'ON_DEMAND'
-      }
-    );
-    Id accountId =
-      Account.SObjectType.getDescribe(SObjectDescribeOptions.DEFERRED)
-        .getKeyPrefix() + '000000000000';
-
-    try {
-      RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
-        checkSet,
-        'Missing_Title',
-        accountId
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+        new Map<String, Object>{
+          'IsActive__c' => true,
+          'ObjectApiName__c' => 'Account',
+          'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+          'SkippedChecksDisplay__c' => 'SHOW_COUNT_ONLY',
+          'CardRunMode__c' => 'RUN_ON_LOAD',
+          'CardRevealMode__c' => 'ALL_AT_ONCE',
+          'CardTitle__c' => null,
+          'FoundExpectedDisplay__c' => 'ON_DEMAND'
+        }
       );
-      Assert.fail('A blank Card Title must be rejected.');
-    } catch (RecordHealthCheckConfigService.ConfigException error) {
-      Assert.isTrue(error.getMessage().contains('Card Title'));
-    }
+      Id accountId =
+        Account.SObjectType.getDescribe(SObjectDescribeOptions.DEFERRED)
+          .getKeyPrefix() + '000000000000';
 
-    if (RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
       try {
-        RecordHealthCheckDefinitionLoader.validateActiveRulesForDefinition(
-          new List<Record_Health_Check_Rule__mdt>(),
+        RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
+          checkSet,
+          'Missing_Title',
+          accountId
+        );
+        Assert.fail('A blank Card Title must be rejected.');
+      } catch (RecordHealthCheckConfigService.ConfigException error) {
+        Assert.isTrue(error.getMessage().contains('Card Title'));
+      }
+
+      try {
+        RecordHealthCheckDefinitionLoader.validateActiveChecksForDefinition(
+          new List<Record_Health_Check__mdt>(),
           'Example_Account_Relationship_Risk'
         );
-        Assert.fail('An inactive-only Set must be rejected.');
+        Assert.fail('A Set without active Checks must be rejected.');
       } catch (RecordHealthCheckConfigService.ConfigException error) {
-        Assert.isTrue(error.getMessage().contains('inactive'));
+        Assert.isTrue(
+          error.getMessage().contains('1 inactive'),
+          'The packaged inactive Check count should help the admin diagnose the empty run.'
+        );
       }
+    }
+  }
+
+  @IsTest
+  static void appliesDefinitionPresentationPolicies() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      List<String> inactiveLabels = RecordHealthCheckDefinitionLoader.inactiveCheckLabelsForDiagnostics(
+        true,
+        1,
+        'Example_Account_Relationship_Risk'
+      );
+
+      Assert.areEqual(
+        1,
+        inactiveLabels.size(),
+        'Diagnostics should include the packaged inactive Check label.'
+      );
+      Assert.isTrue(
+        String.isNotBlank(inactiveLabels[0]),
+        'The diagnostics label should be useful to an administrator.'
+      );
+      Assert.areEqual(
+        0,
+        RecordHealthCheckDefinitionLoader.inactiveCheckLabelsForDiagnostics(
+            false,
+            1,
+            'Example_Account_Relationship_Risk'
+          )
+          .size(),
+        'Check labels are configuration detail and must stay hidden without diagnostics.'
+      );
+
+      Map<String, String> categoryLabels = new Map<String, String>{
+        'DATA_QUALITY' => 'Data Quality'
+      };
+      Assert.areEqual(
+        'Data Quality',
+        RecordHealthCheckDefinitionLoader.categoryLabelFor(
+          categoryLabels,
+          'DATA_QUALITY'
+        )
+      );
+      Assert.areEqual(
+        null,
+        RecordHealthCheckDefinitionLoader.categoryLabelFor(categoryLabels, ' '),
+        'A blank category has no display label.'
+      );
+      Assert.areEqual(
+        'Required_Parent',
+        RecordHealthCheckDefinitionLoader.normalizedPrerequisite(
+          '  Required_Parent  '
+        ),
+        'Prerequisite names should be normalized before dependency evaluation.'
+      );
+      Assert.areEqual(
+        null,
+        RecordHealthCheckDefinitionLoader.normalizedPrerequisite(null),
+        'A missing prerequisite should remain absent.'
+      );
+    }
+  }
+
+  @IsTest
+  static void logsOnlyWhenFrameworkLimitIsExceeded() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      Integer initialDmlStatements = Limits.getDmlStatements();
+
+      RecordHealthCheckDefinitionLoader.logCheckLimitExceededWhenNeeded(
+        'Example_Account_Relationship_Risk',
+        UserInfo.getUserId(),
+        RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS
+      );
+      RecordHealthCheckDefinitionLoader.logCheckLimitExceededWhenNeeded(
+        'Example_Account_Relationship_Risk',
+        UserInfo.getUserId(),
+        RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS + 1
+      );
+
+      Assert.areEqual(
+        initialDmlStatements,
+        Limits.getDmlStatements(),
+        'The limit warning should remain a buffered logger call with no direct DML.'
+      );
+      Assert.areEqual(
+        0,
+        RecordHealthCheckLogger.pendingEventCount(),
+        'WARN events must not enter the ERROR platform-event buffer.'
+      );
     }
   }
 }

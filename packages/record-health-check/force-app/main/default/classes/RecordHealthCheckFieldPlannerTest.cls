@@ -3,7 +3,7 @@
 private class RecordHealthCheckFieldPlannerTest {
   @IsTest
   static void collectsMergeFormulaAndRelationshipFields() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'FORMULA',
         'PassConditionFormula__c' => 'CONTAINS(Website, "example.com") && NOT(ISBLANK(Parent.Name))',
@@ -13,7 +13,7 @@ private class RecordHealthCheckFieldPlannerTest {
 
     Test.startTest();
     Set<String> fields = new RecordHealthCheckFieldPlanner()
-      .collectRecordFields(rule, Account.SObjectType);
+      .collectRecordFields(check, Account.SObjectType);
     Test.stopTest();
 
     Assert.isTrue(fields.contains('Id'), 'Every record query must select Id.');
@@ -45,7 +45,7 @@ private class RecordHealthCheckFieldPlannerTest {
 
     Test.startTest();
     Set<String> fields = planner.collectRecordFields(
-      RecordHealthCheckTestDataFactory.rule(
+      RecordHealthCheckTestDataFactory.check(
         new Map<String, Object>{
           'EvaluationType__c' => 'FORMULA',
           'PassConditionFormula__c' => 'ExpectedRevenue > 0'
@@ -79,7 +79,7 @@ private class RecordHealthCheckFieldPlannerTest {
 
     Test.startTest();
     Set<String> cyclic = planner.collectRecordFields(
-      RecordHealthCheckTestDataFactory.rule(
+      RecordHealthCheckTestDataFactory.check(
         new Map<String, Object>{
           'EvaluationType__c' => 'FORMULA',
           'PassConditionFormula__c' => 'ExpectedRevenue > 0'
@@ -91,7 +91,7 @@ private class RecordHealthCheckFieldPlannerTest {
       'ExpectedRevenue' => ''
     };
     Set<String> blank = planner.collectRecordFields(
-      RecordHealthCheckTestDataFactory.rule(
+      RecordHealthCheckTestDataFactory.check(
         new Map<String, Object>{
           'EvaluationType__c' => 'FORMULA',
           'PassConditionFormula__c' => 'ExpectedRevenue > 0'
@@ -120,7 +120,7 @@ private class RecordHealthCheckFieldPlannerTest {
     Test.startTest();
     Set<String> fields = new RecordHealthCheckFieldPlanner()
       .collectRecordFields(
-        RecordHealthCheckTestDataFactory.rule(
+        RecordHealthCheckTestDataFactory.check(
           new Map<String, Object>{
             'EvaluationType__c' => 'FORMULA',
             'PassConditionFormula__c' => 'Missing__c + Parent.Missing__c + MissingRelationship.Field__c'
@@ -152,7 +152,7 @@ private class RecordHealthCheckFieldPlannerTest {
 
     Test.startTest();
     Set<String> fields = planner.collectRecordFields(
-      RecordHealthCheckTestDataFactory.rule(
+      RecordHealthCheckTestDataFactory.check(
         new Map<String, Object>{
           'EvaluationType__c' => 'FORMULA',
           'PassConditionFormula__c' => 'AnnualRevenue > 0'
@@ -175,7 +175,7 @@ private class RecordHealthCheckFieldPlannerTest {
     Test.startTest();
     Set<String> fields = new RecordHealthCheckFieldPlanner()
       .collectRecordFields(
-        RecordHealthCheckTestDataFactory.rule(
+        RecordHealthCheckTestDataFactory.check(
           new Map<String, Object>{
             'EvaluationType__c' => 'FORMULA',
             'PassConditionFormula__c' => 'ExpectedRevenue > 0'
@@ -197,9 +197,86 @@ private class RecordHealthCheckFieldPlannerTest {
     planner.multiCurrencyOrganizationOverride = true;
 
     Set<String> fields = planner.collectRecordFields(
-      RecordHealthCheckTestDataFactory.rule(new Map<String, Object>()),
+      RecordHealthCheckTestDataFactory.check(new Map<String, Object>()),
       Account.SObjectType
     );
     Assert.isTrue(fields.contains('Id'));
+  }
+
+  @IsTest
+  static void collectsApplicabilityFormulaOperands() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'ApplicabilityMode__c' => 'WHEN_FORMULA_TRUE',
+        'ApplicabilityFormula__c' => 'AnnualRevenue > 0'
+      }
+    );
+
+    Test.startTest();
+    Set<String> fields = new RecordHealthCheckFieldPlanner()
+      .collectRecordFields(check, Account.SObjectType);
+    Test.stopTest();
+
+    Assert.isTrue(
+      fields.contains('AnnualRevenue'),
+      'Applicability formula operands must be loaded before evaluation.'
+    );
+  }
+
+  @IsTest
+  static void collectsQueryEvaluatorRecordFormulaOperands() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'EvaluationType__c' => 'QUERY',
+        'FindInListFormula__c' => 'BillingCity',
+        'ExpectedRecordFormula__c' => 'AnnualRevenue'
+      }
+    );
+
+    Test.startTest();
+    Set<String> fields = new RecordHealthCheckFieldPlanner()
+      .collectRecordFields(check, Account.SObjectType);
+    Test.stopTest();
+
+    Assert.isTrue(
+      fields.contains('BillingCity'),
+      'The list-membership record formula operand must be loaded.'
+    );
+    Assert.isTrue(
+      fields.contains('AnnualRevenue'),
+      'The expected record-formula operand must be loaded.'
+    );
+  }
+
+  @IsTest
+  static void separatesFieldsDeniedByRunningUserFls() {
+    User minimumAccessUser = RecordHealthCheckPersonaTestDataFactory.createMinimumAccessUser(
+      'flsplan'
+    );
+    RecordHealthCheckFieldPlanner.FieldPlan plan;
+
+    Test.startTest();
+    System.runAs(minimumAccessUser) {
+      plan = new RecordHealthCheckFieldPlanner()
+        .planRecordFields(
+          RecordHealthCheckTestDataFactory.check(
+            new Map<String, Object>{
+              'EvaluationType__c' => 'FORMULA',
+              'PassConditionFormula__c' => 'AnnualRevenue > 0'
+            }
+          ),
+          Account.SObjectType
+        );
+    }
+    Test.stopTest();
+
+    Assert.isFalse(
+      plan.selectedFields.contains('AnnualRevenue'),
+      'A field denied by FLS must not enter the user-mode record query.'
+    );
+    Assert.isTrue(
+      plan.inaccessibleFields.contains('AnnualRevenue'),
+      'The denied field must be retained in the inaccessible-field plan for an aligned result.'
+    );
   }
 }

@@ -1,6 +1,6 @@
 /** Shared validation for every qualified metadata-identity boundary. */
 public with sharing class RecordHealthCheckQualifiedIdentity {
-  /** Trims and bounds one Rule or Check Set QualifiedApiName. */
+  /** Trims and bounds one Check or Check Set QualifiedApiName. */
   public static String normalize(String supplied, String label) {
     if (String.isBlank(supplied)) {
       throw new IllegalArgumentException(

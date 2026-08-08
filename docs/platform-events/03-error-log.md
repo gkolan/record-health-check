@@ -14,7 +14,7 @@ storing diagnostics. Review the [Log event metadata reference](../metadata/05-ev
 complete field contract and limitations.
 
 Create a protected destination with a unique Event ID. Useful fields include Run ID, occurred time,
-error code, Check Set and Rule API names, Record ID, User ID, exception type, message, stack trace,
+error code, Check Set and Check API names, Record ID, User ID, exception type, message, stack trace,
 contract version, and Framework version. Separate access to messages and stack traces from general run
 history.
 
@@ -79,6 +79,6 @@ logs and platform exception monitoring available.
 ## Related
 
 - [Log event metadata](../metadata/05-event-log.md)
-- [Rule Result subscription](02-rule-result.md)
+- [Check Result subscription](02-check-result.md)
 - [Lifecycle event behavior](../integration/03-lifecycle-events.md)
 - [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md)

@@ -6,7 +6,7 @@
 > subscribers, and verify a release before and after it ships.
 
 Use this page after [Install and verify](../installation/02-install-and-verify.md) and
-[Configure Check Sets and Rules](03-configure-check-sets-and-rules.md) have already produced a working
+[Configure Check Sets and Checks](03-configure-check-sets-and-checks.md) have already produced a working
 Check Set. This guide covers the ongoing operational discipline of running it in a live org, not the
 initial setup.
 
@@ -18,10 +18,10 @@ one-time switch.
 
 | Practice | Why it matters |
 | --- | --- |
-| Enable **Publish User Run Event** and **Publish User Result Event** one Check Set or Rule at a time | Isolates a volume spike to one source instead of the whole org |
+| Enable **Publish User Run Event** and **Publish User Result Event** one Check Set or Check at a time | Isolates a volume spike to one source instead of the whole org |
 | Review org Platform Event allocation usage on a schedule, not only when a limit is hit | High-volume event allocations are shared across every publisher in the org, not owned by Record Health Check alone |
 | Keep **Publish Error Log Event** on unless a specific Check Set's errors are noisy and already handled elsewhere | It defaults on so Framework failures stay observable; opting out removes that visibility for that Check Set |
-| Audit which Check Sets and Rules have publication enabled at least quarterly | Configuration drifts as Rules are copied or repurposed; an old test Rule with publication still on wastes allocation |
+| Audit which Check Sets and Checks have publication enabled at least quarterly | Configuration drifts as Checks are copied or repurposed; an old test Check with publication still on wastes allocation |
 | Confirm automatic page-load runs are not publishing | They cannot, by design, but a new integration built directly against the Lightning component's data should not assume otherwise |
 
 See [Lifecycle events: Admin checklist before enabling](../integration/03-lifecycle-events.md#admin-checklist-before-enabling)
@@ -47,13 +47,13 @@ investigation workflow.
 
 ## Configuration backup cadence
 
-Check Set and Rule configuration is Custom Metadata, so it deploys and version-controls like any
+Check Set and Check configuration is Custom Metadata, so it deploys and version-controls like any
 other metadata, but a production org can still drift from source through direct Setup edits.
 Establish a cadence, not a one-time export:
 
 | Cadence | Action |
 | --- | --- |
-| Before every deployment | Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record, per [Upgrade and revalidate: Before you start](../installation/04-upgrading.md#before-you-start) |
+| Before every deployment | Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) record, per [Upgrade and revalidate: Before you start](../installation/04-upgrading.md#before-you-start) |
 | On a recurring schedule (for example, weekly) | Export current production configuration even between deployments, to catch drift from direct Setup edits |
 | Before any planned removal | Follow [Preserve the configuration first](../installation/06-uninstall-and-rollback.md#preserve-the-configuration-first) |
 | After any bulk Setup edit session | Re-export immediately so the backup reflects the edit, not the state before it |
@@ -73,7 +73,7 @@ means it can go unnoticed unless something is watching for it deliberately.
 | Subscriber processing errors (Flow fault paths, Apex trigger exceptions) | Independent of publication success; a published event can still fail to process |
 | Duplicate or replayed event handling | Platform events are not exactly-once; confirm subscribers key on `EventId__c` for idempotency |
 | `Record_Health_Check_Log__e` access list | Confirm only the intended subscriber or integration user still has access, since this event carries restricted error detail |
-| Event volume trend per Check Set and Rule | A sudden increase usually means a new caller, a changed run frequency, or a misconfigured automatic trigger upstream of a deliberate run |
+| Event volume trend per Check Set and Check | A sudden increase usually means a new caller, a changed run frequency, or a misconfigured automatic trigger upstream of a deliberate run |
 
 See [Lifecycle events: Subscriber failure guidance](../integration/03-lifecycle-events.md#subscriber-failure-guidance)
 for symptom-to-cause mapping, and
@@ -86,7 +86,7 @@ Run this checklist after every deployment, and periodically between deployments 
 on the health check:
 
 - [ ] Open each active Lightning record page and confirm the intended Check Set appears.
-- [ ] Run a known-passing record and confirm the expected Rules pass without exposing diagnostic
+- [ ] Run a known-passing record and confirm the expected Checks pass without exposing diagnostic
       detail.
 - [ ] Run a known-failing record and confirm the expected severity, Found/Expected values, and
       action link appear.

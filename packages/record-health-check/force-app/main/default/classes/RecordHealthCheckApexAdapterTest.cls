@@ -9,7 +9,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
-      .evaluate(ruleFor(null, null), record.Id, record);
+      .evaluate(checkFor(null, null), record.Id, record);
     Test.stopTest();
 
     assertReason(result, 'APEX_CLASS_NOT_FOUND');
@@ -23,7 +23,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
-      .evaluate(ruleFor('Class_That_Does_Not_Exist', null), record.Id, record);
+      .evaluate(checkFor('Class_That_Does_Not_Exist', null), record.Id, record);
     Test.stopTest();
 
     assertReason(result, 'APEX_CLASS_NOT_FOUND');
@@ -37,7 +37,11 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
-      .evaluate(ruleFor('RecordHealthCheckConstants', null), record.Id, record);
+      .evaluate(
+        checkFor('RecordHealthCheckConstants', null),
+        record.Id,
+        record
+      );
     Test.stopTest();
 
     assertReason(result, 'APEX_CLASS_NOT_FOUND');
@@ -52,7 +56,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
       .evaluate(
-        ruleFor('AccountHasRecentActivityCheck', '[1,2]'),
+        checkFor('AccountHasRecentActivityCheck', '[1,2]'),
         record.Id,
         record
       );
@@ -70,7 +74,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
       .evaluate(
-        ruleFor('AccountHasRecentActivityCheck', '{broken'),
+        checkFor('AccountHasRecentActivityCheck', '{broken'),
         record.Id,
         record
       );
@@ -87,7 +91,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
-      .evaluate(ruleFor('AccountHasRecentActivityCheck', '{}'), null, record);
+      .evaluate(checkFor('AccountHasRecentActivityCheck', '{}'), null, record);
     Test.stopTest();
 
     assertReason(result, 'APEX_EVALUATOR_ERROR');
@@ -103,7 +107,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult result = evaluator.evaluate(
-      ruleFor('AccountHasRecentActivityCheck', '{"daysBack":30}'),
+      checkFor('AccountHasRecentActivityCheck', '{"daysBack":30}'),
       record.Id,
       record
     );
@@ -126,16 +130,16 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Constructor failure'
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'ApexClass__c' => 'RecordHealthCheckConstructorFailureRule',
+        'ApexClass__c' => 'RecordHealthCheckConstructorFailureCheck',
         'UnableToEvaluateMessage__c' => null
       }
     );
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
-      .evaluate(rule, accountRecord.Id, accountRecord);
+      .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
     Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
@@ -143,7 +147,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     Assert.areEqual(
       'This check could not be evaluated. Contact your administrator.',
       result.message,
-      'A constructor failure must use the safe fallback when no Rule message is configured.'
+      'A constructor failure must use the safe fallback when no Check message is configured.'
     );
     Assert.isTrue(
       result.detailMessage.contains('Expected constructor failure'),
@@ -182,7 +186,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
     assertReason(
       evaluator.evaluate(
-        apexRule('A_Blank', null, null),
+        apexCheck('A_Blank', null, null),
         accountRecord.Id,
         accountRecord
       ),
@@ -190,7 +194,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     );
     assertReason(
       evaluator.evaluate(
-        apexRule('A_Missing', 'MissingClassName', null),
+        apexCheck('A_Missing', 'MissingClassName', null),
         accountRecord.Id,
         accountRecord
       ),
@@ -198,13 +202,13 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     );
     assertReason(
       evaluator.evaluate(
-        apexRule('A_Not_Interface', 'RecordHealthCheckInternalResult', null),
+        apexCheck('A_Not_Interface', 'RecordHealthCheckInternalResult', null),
         accountRecord.Id,
         accountRecord
       ),
       'APEX_CLASS_NOT_FOUND'
     );
-    Record_Health_Check_Rule__mdt finalizeRule = apexRule(
+    Record_Health_Check__mdt finalizeCheck = apexCheck(
       'A_Finalize',
       'CoreTestPlugin',
       null
@@ -213,7 +217,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     RecordHealthCheckInternalResult invalidStatus = new RecordHealthCheckInternalResult();
     invalidStatus.status = 'NOT_REAL';
     assertReason(
-      finalizeResult(finalizeRule, accountRecord, fallback, invalidStatus),
+      finalizeResult(finalizeCheck, accountRecord, fallback, invalidStatus),
       'APEX_EVALUATOR_ERROR'
     );
 
@@ -221,7 +225,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     skippedStatus.status = 'SKIPPED';
     assertStatus(
       finalizeResult(
-        finalizeRule,
+        finalizeCheck,
         accountRecord,
         new RecordHealthCheckInternalResult(),
         skippedStatus
@@ -232,7 +236,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     missingActual.status = 'PASS';
     missingActual.expectedValue = '0 missing';
     RecordHealthCheckInternalResult missingActualResult = finalizeResult(
-      finalizeRule,
+      finalizeCheck,
       accountRecord,
       new RecordHealthCheckInternalResult(),
       missingActual
@@ -247,7 +251,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     missingExpected.status = 'FAIL';
     missingExpected.actualValue = '1 missing';
     RecordHealthCheckInternalResult missingExpectedResult = finalizeResult(
-      finalizeRule,
+      finalizeCheck,
       accountRecord,
       new RecordHealthCheckInternalResult(),
       missingExpected
@@ -265,7 +269,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     typedValues.expectedDisplayValue = Decimal.valueOf('0.80');
     typedValues.expectedDisplayFormat = 'RATIO_PERCENT';
     RecordHealthCheckInternalResult typedResult = finalizeResult(
-      finalizeRule,
+      finalizeCheck,
       accountRecord,
       new RecordHealthCheckInternalResult(),
       typedValues
@@ -280,7 +284,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     explicitStringsWin.actualDisplayValue = Decimal.valueOf('0.75');
     explicitStringsWin.actualDisplayFormat = 'not-a-format';
     RecordHealthCheckInternalResult explicitResult = finalizeResult(
-      finalizeRule,
+      finalizeCheck,
       accountRecord,
       new RecordHealthCheckInternalResult(),
       explicitStringsWin
@@ -294,7 +298,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     invalidTypedFormat.actualDisplayFormat = 'ratio_percent';
     invalidTypedFormat.expectedValue = '80%';
     RecordHealthCheckInternalResult invalidTypedResult = finalizeResult(
-      finalizeRule,
+      finalizeCheck,
       accountRecord,
       new RecordHealthCheckInternalResult(),
       invalidTypedFormat
@@ -305,19 +309,19 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       invalidTypedResult.detailMessage
     );
 
-    Record_Health_Check_Rule__mdt defaultMessagesRule = apexRule(
+    Record_Health_Check__mdt defaultMessagesCheck = apexCheck(
       'A_Default_Messages',
       'CoreTestPlugin',
       null
     );
-    defaultMessagesRule.FailureMessage__c = null;
-    defaultMessagesRule.UnableToEvaluateMessage__c = null;
+    defaultMessagesCheck.FailureMessage__c = null;
+    defaultMessagesCheck.UnableToEvaluateMessage__c = null;
     RecordHealthCheckInternalResult failed = new RecordHealthCheckInternalResult();
     failed.status = 'FAIL';
     failed.actualValue = 'Found';
     failed.expectedValue = 'Expected';
     RecordHealthCheckInternalResult defaultFailure = finalizeResult(
-      defaultMessagesRule,
+      defaultMessagesCheck,
       accountRecord,
       new RecordHealthCheckInternalResult(),
       failed
@@ -331,7 +335,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     RecordHealthCheckInternalResult unsupported = new RecordHealthCheckInternalResult();
     unsupported.status = 'UNSUPPORTED';
     RecordHealthCheckInternalResult defaultUnable = finalizeResult(
-      defaultMessagesRule,
+      defaultMessagesCheck,
       accountRecord,
       new RecordHealthCheckInternalResult(),
       unsupported
@@ -343,13 +347,13 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     );
   }
   private static RecordHealthCheckInternalResult finalizeResult(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult fallbackResult,
     RecordHealthCheckInternalResult apexResult
   ) {
     return RecordHealthCheckApexResultFinalizer.finalizeResult(
-      rule,
+      check,
       record,
       fallbackResult,
       apexResult,
@@ -357,21 +361,21 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt apexRule(
+  private static Record_Health_Check__mdt apexCheck(
     String developerName,
     String className,
     String parametersJson
   ) {
-    Record_Health_Check_Rule__mdt rule = ruleFor(className, parametersJson);
-    rule.DeveloperName = developerName;
-    return rule;
+    Record_Health_Check__mdt check = checkFor(className, parametersJson);
+    check.DeveloperName = developerName;
+    return check;
   }
 
-  private static Record_Health_Check_Rule__mdt ruleFor(
+  private static Record_Health_Check__mdt checkFor(
     String className,
     String parametersJson
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Apex_Scope_Test',
         'MasterLabel' => 'Apex Scope Test',

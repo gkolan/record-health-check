@@ -51,15 +51,15 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
    * - FindInListFormula__c as the primary value for list-membership checks.
    */
   public RecordHealthCheckInternalResult evaluate(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Id recordId,
     SObject record
   ) {
     Long startMs = System.currentTimeMillis();
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
-    result.ruleDeveloperName = rule.DeveloperName;
-    result.label = rule.CheckTitle__c;
-    result.priority = rule.EvaluationOrder__c;
+    result.checkDeveloperName = check.DeveloperName;
+    result.label = check.CheckTitle__c;
+    result.priority = check.EvaluationOrder__c;
     result.evaluatorType = 'FORMULA';
 
     try {
@@ -67,12 +67,12 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
       // FormulaEval will surface an exception if a field is inaccessible;
       // we catch that below and map it to FIELD_NOT_ACCESSIBLE.
       Boolean evalResult = (Boolean) evaluateFormula(
-        rule.PassConditionFormula__c,
+        check.PassConditionFormula__c,
         record
       );
-      result = applyEvaluationResult(rule, record, result, evalResult);
+      result = applyEvaluationResult(check, record, result, evalResult);
     } catch (Exception ex) {
-      result = applyEvaluationException(rule, result, ex);
+      result = applyEvaluationException(check, result, ex);
     }
 
     result.durationMs = System.currentTimeMillis() - startMs;
@@ -80,7 +80,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   }
 
   private RecordHealthCheckInternalResult applyEvaluationException(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,
     Exception ex
   ) {
@@ -94,13 +94,13 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
     } else {
       result.reasonCode = 'INVALID_FORMULA';
     }
-    result.message = safeCannotEvaluateMessage(rule);
+    result.message = safeCannotEvaluateMessage(check);
     result.detailMessage = ex.getMessage();
     return result;
   }
 
   private RecordHealthCheckInternalResult applyEvaluationResult(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     Boolean evalResult
@@ -112,7 +112,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
       // so we surface it as UNABLE_TO_EVALUATE instead.
       result.status = 'UNABLE_TO_EVALUATE';
       result.reasonCode = 'INVALID_FORMULA';
-      result.message = safeCannotEvaluateMessage(rule);
+      result.message = safeCannotEvaluateMessage(check);
       result.detailMessage = 'Formula returned null. The formula may reference a null relationship or an inaccessible field.';
     } else {
       Boolean passed = evalResult;
@@ -123,7 +123,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
       // has declared explicit Found/Expected single-value formulas, those resolved
       // values replace the echo so a balance check can show readable numbers.
       RecordHealthCheckFormulaDisplay.apply(
-        rule,
+        check,
         record,
         result,
         this,
@@ -133,11 +133,11 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
         result.status = 'PASS';
       } else {
         result.status = 'FAIL';
-        result.severity = rule.FailureSeverity__c;
+        result.severity = check.FailureSeverity__c;
         result.message = resolveMergeFields(
-          rule.FailureMessage__c,
+          check.FailureMessage__c,
           record,
-          rule,
+          check,
           result,
           true
         );
@@ -147,7 +147,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   }
 
   /**
-   * Evaluates the applicability formula for a rule.
+   * Evaluates the applicability formula for a check.
    * Returns
    * true — gate passes, main evaluator should run
    * false — gate fails, return SKIPPED
@@ -369,7 +369,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   /**
    * Resolves {!record.FieldName} merge tokens in a message string using the record's
    * field values. Valid tokens whose field value is null render as an empty string;
-   * malformed or unsupported tokens are rejected during rule loading.
+   * malformed or unsupported tokens are rejected during check loading.
    */
   public String resolveMergeFields(String template, SObject record) {
     return RecordHealthCheckTemplateService.resolveDisplay(
@@ -381,7 +381,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   public String resolveMergeFields(
     String template,
     SObject record,
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,
     Boolean resultFinalized
   ) {
@@ -389,7 +389,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
       template,
       new RecordHealthCheckMergeContext()
         .withRecord(record)
-        .withRule(rule)
+        .withCheck(check)
         .withResult(result, resultFinalized)
         .withRun(runContext)
     );
@@ -411,22 +411,22 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   public String resolveUrlMergeFields(
     String template,
     SObject record,
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result
   ) {
     return RecordHealthCheckTemplateService.resolveUrl(
       template,
       new RecordHealthCheckMergeContext()
         .withRecord(record)
-        .withRule(rule)
+        .withCheck(check)
         .withResult(result, true)
         .withRun(runContext)
     );
   }
 
-  private String safeCannotEvaluateMessage(Record_Health_Check_Rule__mdt rule) {
-    return String.isNotBlank(rule.UnableToEvaluateMessage__c)
-      ? rule.UnableToEvaluateMessage__c
+  private String safeCannotEvaluateMessage(Record_Health_Check__mdt check) {
+    return String.isNotBlank(check.UnableToEvaluateMessage__c)
+      ? check.UnableToEvaluateMessage__c
       : 'This check could not be evaluated. Contact your administrator.';
   }
 

@@ -3,13 +3,13 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopeDisplayTest {
-  private static final String PHONE_RULE = 'Example_Profile_Phone_Available';
+  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
 
   @IsTest
   static void displayFinalizationHandlesActionTemplateFailure() {
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
     result.status = RecordHealthCheckStatus.FAIL;
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ActionUrl__c' => '/{!bad.value}' // rejected-token-fixture: intentional invalid namespace
       }
@@ -18,7 +18,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     Test.startTest();
     new RecordHealthCheckScopeResultSupport()
       .finalizeDisplay(
-        rule,
+        check,
         RecordHealthCheckTestDataFactory.account(
           new Map<String, Object>{ 'Name' => 'Action' }
         ),
@@ -42,8 +42,8 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     result.status = RecordHealthCheckStatus.FAIL;
     result.expectedValue = 'Name = "Acme"';
     result.expectedValueLabel = RecordHealthCheckInternalResult.PASSES_WHEN_LABEL;
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
-      new Map<String, Object>{ 'QualifiedApiName' => 'Example.Rule' }
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'QualifiedApiName' => 'Example.Check' }
     );
 
     Test.startTest();
@@ -51,7 +51,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     System.runAs(userWithoutPermission) {
       item = new RecordHealthCheckScopeResultSupport()
         .toItem(
-          rule,
+          check,
           userWithoutPermission.Id,
           result,
           RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
@@ -78,7 +78,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     result.status = RecordHealthCheckStatus.FAIL;
     result.reasonCode = 'TEST_REASON';
     result.detailMessage = 'Diagnostic detail';
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ActionUrl__c' => '/lightning/page/home',
         'EvaluationType__c' => 'QUERY',
@@ -90,7 +90,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     System.runAs(diagnosticsUser) {
       new RecordHealthCheckScopeResultSupport()
         .finalizeDisplay(
-          rule,
+          check,
           RecordHealthCheckTestDataFactory.account(
             new Map<String, Object>{ 'Name' => 'Action' }
           ),
@@ -120,7 +120,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     Test.startTest();
     new RecordHealthCheckScopeResultSupport()
       .finalizeDisplay(
-        RecordHealthCheckTestDataFactory.rule(new Map<String, Object>()),
+        RecordHealthCheckTestDataFactory.check(new Map<String, Object>()),
         null,
         null,
         false
@@ -144,14 +144,14 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
     result.status = RecordHealthCheckStatus.FAIL;
     result.message = 'Account {!record.Name} needs contacts';
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>()
     );
 
     Test.startTest();
     new RecordHealthCheckScopeResultSupport()
       .finalizeDisplay(
-        rule,
+        check,
         RecordHealthCheckTestDataFactory.account(
           new Map<String, Object>{ 'Name' => 'Acme {Labs}' }
         ),
@@ -169,14 +169,14 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
 
   @IsTest
   static void itemConversionHandlesMissingEvaluatorResult() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
-      new Map<String, Object>{ 'QualifiedApiName' => 'Example.Rule' }
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'QualifiedApiName' => 'Example.Check' }
     );
 
     Test.startTest();
     RecordHealthCheckResultItem item = new RecordHealthCheckScopeResultSupport()
       .toItem(
-        rule,
+        check,
         UserInfo.getUserId(),
         null,
         RecordHealthCheckResultMode.EVALUATION
@@ -196,7 +196,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
       '{}',
       AggregateResult.class
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>()
     );
     RecordHealthCheckScopeResultSupport resultSupport = new RecordHealthCheckScopeResultSupport();
@@ -204,7 +204,9 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     Test.startTest();
     Integer emptyCount = resultSupport.aggregateCount(emptyAggregate);
     String unsafeScheme = resultSupport.sanitizeActionUrl('http://example.com');
-    RecordHealthCheckInternalResult skipped = resultSupport.skippedResult(rule);
+    RecordHealthCheckInternalResult skipped = resultSupport.skippedResult(
+      check
+    );
     Test.stopTest();
 
     Assert.areEqual(0, emptyCount);
@@ -226,11 +228,11 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     return context;
   }
 
-  private static Record_Health_Check_Rule__mdt queryCountRule(
+  private static Record_Health_Check__mdt queryCountCheck(
     String developerName,
     String failureMessage
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => developerName,
         'DeveloperName' => developerName,
@@ -254,27 +256,27 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt buildRuleWithPrerequisite(
+  private static Record_Health_Check__mdt buildCheckWithPrerequisite(
     String prerequisiteName
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'DeveloperName' => 'Rule_B',
-        'QualifiedApiName' => 'namespace__Rule_B',
-        'PrerequisiteRule__c' => prerequisiteName
+        'DeveloperName' => 'Check_B',
+        'QualifiedApiName' => 'namespace__Check_B',
+        'PrerequisiteCheck__c' => prerequisiteName
       }
     );
   }
 
   private static RecordHealthCheckResultItem buildPrerequisiteResultItem(
     Id recordId,
-    String qualifiedRuleName,
+    String qualifiedCheckName,
     String status
   ) {
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = new RecordHealthCheckEvaluationResult();
     item.evaluation.recordId = recordId;
-    item.evaluation.ruleQualifiedApiName = qualifiedRuleName;
+    item.evaluation.checkQualifiedApiName = qualifiedCheckName;
     item.evaluation.status = status;
     return item;
   }

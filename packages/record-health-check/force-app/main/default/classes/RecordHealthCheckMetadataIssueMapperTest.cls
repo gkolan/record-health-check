@@ -3,12 +3,12 @@
 private class RecordHealthCheckMetadataIssueMapperTest {
   @IsTest
   static void mapsFormulaFindingToOriginalContract() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{ 'DeveloperName' => 'Missing_Formula' }
     );
-    List<RecordHealthCheckRuleValidator.Finding> findings = new List<RecordHealthCheckRuleValidator.Finding>{
-      new RecordHealthCheckRuleValidator.Finding(
-        RecordHealthCheckRuleValidator.FindingCode.FORMULA_MISSING,
+    List<RecordHealthCheckValidator.Finding> findings = new List<RecordHealthCheckValidator.Finding>{
+      new RecordHealthCheckValidator.Finding(
+        RecordHealthCheckValidator.FindingCode.FORMULA_MISSING,
         null
       )
     };
@@ -16,7 +16,7 @@ private class RecordHealthCheckMetadataIssueMapperTest {
     Test.startTest();
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataIssueMapper.toIssues(
       findings,
-      rule
+      check
     );
     Test.stopTest();
 

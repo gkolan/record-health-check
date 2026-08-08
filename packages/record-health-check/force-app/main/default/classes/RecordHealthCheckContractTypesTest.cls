@@ -4,15 +4,15 @@
 @IsTest
 private with sharing class RecordHealthCheckContractTypesTest {
   private static final String SAMPLE_CHECK_SET = 'Example_Set';
-  private static final String SAMPLE_RULE = 'Example_Rule';
+  private static final String SAMPLE_CHECK = 'Example_Check';
 
   @IsTest
   static void selectionFactoriesEnforceExactlyOneQualifiedIdentity() {
     RecordHealthCheckSelection checkSetSelection = RecordHealthCheckSelection.forCheckSet(
       SAMPLE_CHECK_SET
     );
-    RecordHealthCheckSelection ruleSelection = RecordHealthCheckSelection.forRule(
-      '  Subscriber_Rule  '
+    RecordHealthCheckSelection checkSelection = RecordHealthCheckSelection.forCheck(
+      '  Subscriber_Check  '
     );
 
     Assert.areEqual(
@@ -21,25 +21,25 @@ private with sharing class RecordHealthCheckContractTypesTest {
       'The Check Set factory should populate only the qualified Check Set identity.'
     );
     Assert.isNull(
-      checkSetSelection.ruleQualifiedApiName,
-      'A Check Set selection must not also carry a Rule identity.'
+      checkSetSelection.checkQualifiedApiName,
+      'A Check Set selection must not also carry a Check identity.'
     );
     Assert.areEqual(
-      'Subscriber_Rule',
-      ruleSelection.ruleQualifiedApiName,
-      'The Rule factory should canonicalize a subscriber QualifiedApiName.'
+      'Subscriber_Check',
+      checkSelection.checkQualifiedApiName,
+      'The Check factory should canonicalize a subscriber QualifiedApiName.'
     );
     Assert.isNull(
-      ruleSelection.checkSetQualifiedApiName,
-      'A Rule selection must not also carry a Check Set identity.'
+      checkSelection.checkSetQualifiedApiName,
+      'A Check selection must not also carry a Check Set identity.'
     );
   }
 
   @IsTest
   static void selectionFactoryRejectsBlankAndOverlongIdentity() {
     try {
-      RecordHealthCheckSelection.forRule(' ');
-      Assert.fail('A blank Rule identity should be rejected.');
+      RecordHealthCheckSelection.forCheck(' ');
+      Assert.fail('A blank Check identity should be rejected.');
     } catch (RecordHealthCheckSelection.RecordHealthCheckSelectionException error) {
       Assert.isTrue(
         error.getMessage().contains('QualifiedApiName is required'),
@@ -76,8 +76,8 @@ private with sharing class RecordHealthCheckContractTypesTest {
       Account.SObjectType,
       2
     );
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-      SAMPLE_RULE,
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+      SAMPLE_CHECK,
       new List<Id>{ firstId }
     );
 
@@ -156,8 +156,8 @@ private with sharing class RecordHealthCheckContractTypesTest {
     hostile += '\r\n';
 
     Test.startTest();
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-        SAMPLE_RULE,
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+        SAMPLE_CHECK,
         RecordHealthCheckTestDataFactory.syntheticId(Account.SObjectType, 1)
       )
       .withRunId(hostile);
@@ -189,7 +189,7 @@ private with sharing class RecordHealthCheckContractTypesTest {
       Account.SObjectType,
       1
     );
-    evaluation.ruleQualifiedApiName = SAMPLE_RULE;
+    evaluation.checkQualifiedApiName = SAMPLE_CHECK;
     evaluation.status = RecordHealthCheckStatus.PASS;
     evaluation.reasonCode = 'FORMULA_TRUE';
     evaluation.found = RecordHealthCheckValue.ofBoolean(true);
@@ -411,16 +411,16 @@ private with sharing class RecordHealthCheckContractTypesTest {
       'Account',
       null,
       null,
-      'Rule_A',
+      'Check_A',
       'Set_A',
       'run-1'
     );
-    RecordHealthCheckRequest oneRecordRequest = RecordHealthCheckRequest.forRule(
-      'Rule_A',
+    RecordHealthCheckRequest oneRecordRequest = RecordHealthCheckRequest.forCheck(
+      'Check_A',
       RecordHealthCheckTestDataFactory.syntheticId(Account.SObjectType, 1)
     );
     try {
-      RecordHealthCheckRequest.forRule('Rule_A', (List<Id>) null);
+      RecordHealthCheckRequest.forCheck('Check_A', (List<Id>) null);
       Assert.fail('A null record collection must be rejected.');
     } catch (RecordHealthCheckRequest.RecordHealthCheckRequestException error) {
       Assert.areEqual(
@@ -440,7 +440,7 @@ private with sharing class RecordHealthCheckContractTypesTest {
     Assert.areEqual(
       1,
       oneRecordRequest.recordIds.size(),
-      'The single-record Rule factory must preserve its record Id.'
+      'The single-record Check factory must preserve its record Id.'
     );
   }
 
@@ -458,7 +458,7 @@ private with sharing class RecordHealthCheckContractTypesTest {
       'Account',
       new List<Id>{ null, accountId, accountId },
       new Map<String, Object>{ 'threshold' => 3 },
-      'Rule_A',
+      'Check_A',
       'Set_A',
       'run-2'
     );
@@ -466,12 +466,12 @@ private with sharing class RecordHealthCheckContractTypesTest {
     Assert.areEqual(
       new List<Id>{ accountId },
       scope.recordIds,
-      'Null and duplicate record Ids must not enter a Rule scope.'
+      'Null and duplicate record Ids must not enter a Check scope.'
     );
     Assert.areEqual(
       3,
       scope.parameters.get('threshold'),
-      'Rule parameters must remain available through a detached map.'
+      'Check parameters must remain available through a detached map.'
     );
 
     try {
@@ -479,7 +479,7 @@ private with sharing class RecordHealthCheckContractTypesTest {
         'Account',
         new List<Id>{ contactId },
         null,
-        'Rule_A',
+        'Check_A',
         'Set_A',
         'run-3'
       );

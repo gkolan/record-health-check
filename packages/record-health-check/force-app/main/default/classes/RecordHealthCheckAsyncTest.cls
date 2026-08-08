@@ -125,6 +125,47 @@ private with sharing class RecordHealthCheckAsyncTest {
   }
 
   @IsTest
+  static void shouldExecuteScheduledRequestThroughBatchAdapter() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Scheduled execution contract'
+    );
+    RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Account_Profile_Readiness'
+      ),
+      new List<Id>{ accountRecord.Id },
+      RecordHealthCheckEventPublication.NONE
+    );
+
+    Test.startTest();
+    scheduled.execute((SchedulableContext) null);
+    Test.stopTest();
+
+    List<AsyncApexJob> batchJobs = [
+      SELECT Status, NumberOfErrors
+      FROM AsyncApexJob
+      WHERE ApexClass.Name = 'RecordHealthCheckBatch'
+      ORDER BY CreatedDate DESC
+      LIMIT 1
+    ];
+    Assert.areEqual(
+      1,
+      batchJobs.size(),
+      'Scheduled execution must submit exactly one observable framework Batch job.'
+    );
+    Assert.areEqual(
+      'Completed',
+      batchJobs[0].Status,
+      'The scheduled framework Batch must complete.'
+    );
+    Assert.areEqual(
+      0,
+      batchJobs[0].NumberOfErrors,
+      'The scheduled framework Batch must finish without errors.'
+    );
+  }
+
+  @IsTest
   static void frameworkQueueableCompletesAgainstARealCheckSet() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Framework Queueable happy path'

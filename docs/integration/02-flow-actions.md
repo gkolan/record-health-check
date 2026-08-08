@@ -4,24 +4,24 @@
 > On this page, build a Flow that runs the right scope of health check, branches on its Framework Status, and keeps evaluation faults separate from ordinary readiness outcomes.
 
 Use the packaged Flow actions to evaluate a Salesforce record without writing Apex. A Flow can run
-one Rule or a complete Check Set, then use a Decision element to respond to the result.
+one Check or a complete Check Set, then use a Decision element to respond to the result.
 
-Start with the Check Set action unless your Flow intentionally needs only one specific Rule.
+Start with the Check Set action unless your Flow intentionally needs only one specific Check.
 
 Salesforce can bulk an invocable action into one transaction. Each packaged action accepts at most
 200 request records per call (`RecordHealthCheck.MAX_FLOW_RECORDS_PER_CALL`); the Framework's
-25-Rule cap still applies to the health-check work inside each request.
+25-Check cap still applies to the health-check work inside each request.
 
 ## Choose the right Flow action
 
 | What does your Flow need? | Action | What you will receive |
 | --- | --- | --- |
-| The complete health assessment configured for a record | **Run Record Health Check Set** | Overall status, outcome counts, and every Rule result as JSON |
-| One specific health decision | **Run Record Health Check Rule** | Rule Status, Reason Code, and the complete result as JSON |
+| The complete health assessment configured for a record | **Run Record Health Check Set** | Overall status, outcome counts, and every Check result as JSON |
+| One specific health decision | **Run Record Health Check** | Check Status, Reason Code, and the complete result as JSON |
 
 > [!TIP]
 > A Check Set is the normal starting point because it keeps the Flow aligned with the same ordered
-> Rules users see on the Lightning record page.
+> Checks users see on the Lightning record page.
 
 ## Build your first Flow
 
@@ -51,12 +51,12 @@ same two invocable methods Flow Builder calls and prints their Status, counts, R
 contract version. To demonstrate visually in Flow Builder, create an autolaunched Flow with an
 Account record-ID input, add **Run Record Health Check Set**, use
 `Account_Data_Quality` as **Check Set API Name**, and branch on the returned Status. Add a second
-Action using **Run Record Health Check Rule** and `Account_DQ_BillingCity` to show a predictable
+Action using **Run Record Health Check** and `Account_DQ_BillingCity` to show a predictable
 `PASS` result.
 
 ### Before you begin
 
-- Create or install an active Check Set with at least one active Rule.
+- Create or install an active Check Set with at least one active Check.
 - Assign the Flow's running user the **Record Health Check User** Permission Set, or equivalent
   access to the packaged Flow action and `RecordHealthCheck` Apex class.
 - Query or copy the Check Set's exact **Qualified API Name**. It can be `Account_Readiness`,
@@ -106,7 +106,7 @@ and access model that the activated Flow will use.
 | --- | --- |
 | Healthy record | The Flow follows the `PASS` path |
 | Unhealthy record | The Flow follows the `FAIL` path |
-| Rule that does not apply | The Flow follows the `SKIPPED` path |
+| Check that does not apply | The Flow follows the `SKIPPED` path |
 | User missing required record or field access | The Flow handles `UNABLE_TO_EVALUATE` or the documented fault path |
 | Invalid API name | The action returns **Success** false, with a safe error type and message |
 
@@ -116,7 +116,7 @@ Both actions appear under the **Record Health Check** category in Flow Builder.
 
 ### Run Record Health Check Set
 
-This action runs every active Rule in one Check Set. Its Apex implementation is
+This action runs every active Check in one Check Set. Its Apex implementation is
 `RecordHealthCheckRunSetFlowAction`.
 
 #### Inputs
@@ -135,12 +135,12 @@ This action runs every active Rule in one Check Set. Its Apex implementation is
 | **Error Type** | `VALIDATION`, `LIMIT`, or `EXECUTION` for a recoverable input failure | Route stable error categories without parsing text |
 | **Error Message** | Safe explanation when Success is false | Log or display administrator guidance |
 | **Status** | Overall Check Set result | Branch in a Decision element |
-| **Passed Count** | Number of Rules that passed | Display or record a summary |
-| **Failed Count** | Number of Rules that found an unhealthy condition | Decide whether review is required |
-| **Skipped Count** | Number of Rules that did not apply or did not run | Identify intentionally omitted checks |
-| **Unable Count** | Number of Rules that could not reach a reliable conclusion | Route for configuration or access review |
-| **System Error Count** | Number of Rules with unexpected execution problems | Route for technical investigation |
-| **Result JSON** | Complete serialized `RecordHealthCheckResponse` for the input record | Use only when downstream automation needs Rule-level fields not exposed separately |
+| **Passed Count** | Number of Checks that passed | Display or record a summary |
+| **Failed Count** | Number of Checks that found an unhealthy condition | Decide whether review is required |
+| **Skipped Count** | Number of Checks that did not apply or did not run | Identify intentionally omitted checks |
+| **Unable Count** | Number of Checks that could not reach a reliable conclusion | Route for configuration or access review |
+| **System Error Count** | Number of Checks with unexpected execution problems | Route for technical investigation |
+| **Result JSON** | Complete serialized `RecordHealthCheckResponse` for the input record | Use only when downstream automation needs Check-level fields not exposed separately |
 | **Contract Version** | Version carried by the returned response | Preserve and inspect it when a long-lived integration stores or forwards the response |
 
 The overall Set status reflects the most serious contained result:
@@ -149,18 +149,18 @@ The overall Set status reflects the most serious contained result:
 ERROR → UNABLE_TO_EVALUATE → FAIL → PASS → SKIPPED
 ```
 
-For example, one Rule that is unable to evaluate makes the Set status `UNABLE_TO_EVALUATE`, even
-when other Rules pass.
+For example, one Check that is unable to evaluate makes the Set status `UNABLE_TO_EVALUATE`, even
+when other Checks pass.
 
-### Run Record Health Check Rule
+### Run Record Health Check
 
-This action runs one Rule. Its Apex implementation is `RecordHealthCheckRunRuleFlowAction`.
+This action runs one Check. Its Apex implementation is `RecordHealthCheckRunCheckFlowAction`.
 
 #### Inputs
 
 | Input | Required | What to provide |
 | --- | --- | --- |
-| **Rule Qualified API Name** | Yes | Rule `QualifiedApiName`, such as `rhc__Billing_City_Is_Populated` in a namespaced install |
+| **Check Qualified API Name** | Yes | Check `QualifiedApiName`, such as `rhc__Billing_City_Is_Populated` in a namespaced install |
 | **Record ID** | Yes | ID of the Salesforce record to evaluate |
 | **Event Publication** | Yes | Choose `NONE`, `ACTIONABLE`, or `ALL`. Use `NONE` when the Flow must not publish lifecycle events. |
 
@@ -184,7 +184,7 @@ The success value is `PASS`, not `SUCCESS`.
 | --- | --- | --- |
 | `PASS` | The configured health condition is satisfied | No |
 | `FAIL` | Evaluation completed and found an unhealthy business condition | No |
-| `SKIPPED` | The Rule intentionally did not run because of applicability, dependency, or stop behavior | No |
+| `SKIPPED` | The Check intentionally did not run because of applicability, dependency, or stop behavior | No |
 | `UNABLE_TO_EVALUATE` | Configuration, access, dependency, or available data prevented a reliable conclusion | No |
 | `ERROR` | An unexpected evaluator or platform problem occurred | No; route the returned status, then investigate |
 
@@ -215,7 +215,7 @@ call.
 | --- | ---: | --- |
 | Flow requests | 200 | Split the collection across transactions |
 
-The 200-request cap limits the incoming Flow collection. Every Rule can consume SOQL, formula
+The 200-request cap limits the incoming Flow collection. Every Check can consume SOQL, formula
 evaluation, Apex, and heap resources inside the same Flow transaction. Choose a smaller collection
 or Check Set when the Flow transaction cannot support the expanded work.
 
@@ -230,7 +230,7 @@ associated with that transaction and prevents Publish After Commit events from b
 | `VALIDATION` or `EXECUTION` response | The supplied input is missing, malformed, or could not be evaluated | Inspect Error Message, then verify the exact `QualifiedApiName` and activation |
 | Salesforce access fault or unable result | The running user lacks required record, object, field, or Apex access | Grant only the required access and retest in the same Flow context |
 | Governor-limit fault | The transaction has insufficient remaining Salesforce limits | Reduce other work or run the evaluation in a separate transaction |
-| `FAIL` returned as a normal output | The Rule found an unhealthy business condition | Route the status with a Decision element; keep the fault connector for invalid requests and transaction failures |
+| `FAIL` returned as a normal output | The Check found an unhealthy business condition | Route the status with a Decision element; keep the fault connector for invalid requests and transaction failures |
 
 Use the [reason-code reference](../reference/contracts/01-reason-codes.md) when the action returns a code you do
 not recognize.
@@ -243,8 +243,8 @@ independent subscriber needs an after-commit notification.
 | Action | Event | Enable with | Quantity |
 | --- | --- | --- | --- |
 | Check Set action | `Record_Health_Check_Set_Run__e` | Check Set **Publish User Run Event** | One per evaluated record |
-| Check Set action | `Record_Health_Check_Rule_Result__e` | Each Rule's **Publish User Result Event** | One per enabled finalized Rule |
-| Rule action | `Record_Health_Check_Rule_Result__e` | Rule **Publish User Result Event** | One per completed Rule request |
+| Check Set action | `Record_Health_Check_Result__e` | Each Check's **Publish User Result Event** | One per enabled finalized Check |
+| Check action | `Record_Health_Check_Result__e` | Check **Publish User Result Event** | One per completed Check request |
 
 Flow-published events use `Source__c = FLOW`. Publication is off by default, best effort, and does
 not change the synchronous result. A successful Flow action does not prove that an asynchronous
@@ -273,7 +273,7 @@ fields they do not recognize. No Flow action is deprecated.
 ## Related
 
 - [Integration overview](../integration/README.md)
-- [Create your first Rule](../installation/03-create-your-first-rule.md)
+- [Create your first Check](../installation/03-create-your-first-check.md)
 - [Reason Codes](../reference/contracts/01-reason-codes.md)
 - [Lifecycle events](03-lifecycle-events.md)
 - [Apex API](../api/01-apex-api.md)

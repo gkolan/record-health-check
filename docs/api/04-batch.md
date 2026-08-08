@@ -75,8 +75,8 @@ public with sharing class AccountHealthBatch
 }
 ```
 
-Choose the scope size from the number and shape of active Rules. For a Check Set with several
-Formula Rules, the planned-evaluation ceiling may require a much smaller scope than the public
+Choose the scope size from the number and shape of active Checks. For a Check Set with several
+Formula Checks, the planned-evaluation ceiling may require a much smaller scope than the public
 record ceiling.
 
 Run the batch with an explicitly reviewed scope size:
@@ -102,7 +102,7 @@ and can repeat lifecycle events even though health evaluation itself is read-onl
 An uncaught scope failure is logged with stable reason `BATCH_SCOPE_FAILED`, flushed through the
 configured error-event channel, and rethrown so the platform job remains visibly failed.
 
-Do not create a per-record fallback when a Rule cannot evaluate in bulk. Resolve unsupported
+Do not create a per-record fallback when a Check cannot evaluate in bulk. Resolve unsupported
 shapes in memory or return the documented unable status.
 
 ## Test the batch

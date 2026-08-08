@@ -4,7 +4,7 @@
 > On this page, choose the Flow entry point and open the complete how-to for inputs, outputs,
 > Decision paths, and fault handling.
 
-Flow Builder exposes **Run Record Health Check Set** and **Run Record Health Check Rule** in the
+Flow Builder exposes **Run Record Health Check Set** and **Run Record Health Check** in the
 **Record Health Check** action category. Both actions use the same request contract as Apex
 (`QualifiedApiName`, record ID, explicit event publication).
 

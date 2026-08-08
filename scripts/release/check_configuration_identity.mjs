@@ -68,7 +68,7 @@ const failures = [];
 
 for (const parameter of [
   "String checkSetQualifiedApiName",
-  "String ruleQualifiedApiName"
+  "String checkQualifiedApiName"
 ]) {
   if (!controller.includes(parameter)) {
     failures.push(
@@ -77,7 +77,7 @@ for (const parameter of [
   }
 }
 
-for (const retiredKey of ["checkSetDeveloperName:", "ruleDeveloperName:"]) {
+for (const retiredKey of ["checkSetDeveloperName:", "checkDeveloperName:"]) {
   if (component.includes(retiredKey) || runner.includes(retiredKey)) {
     failures.push(`Lightning Apex payload uses prohibited key: ${retiredKey}`);
   }
@@ -85,7 +85,7 @@ for (const retiredKey of ["checkSetDeveloperName:", "ruleDeveloperName:"]) {
 
 for (const requiredKey of [
   "checkSetQualifiedApiName:",
-  "ruleQualifiedApiName:"
+  "checkQualifiedApiName:"
 ]) {
   if (!component.includes(requiredKey) && !runner.includes(requiredKey)) {
     failures.push(

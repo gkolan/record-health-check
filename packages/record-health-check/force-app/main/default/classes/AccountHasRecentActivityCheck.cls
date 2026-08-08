@@ -4,21 +4,21 @@
  */
 
 /**
- * Example implementation of RecordHealthCheckRule: has the Account been touched
+ * Example implementation of RecordHealthCheckPlugin: has the Account been touched
  * recently? At least one completed Task or logged Event inside a configurable
- * look-back window, tuned per Rule through ApexParametersJson__c, for example
+ * look-back window, tuned per Check through ApexParametersJson__c, for example
  * {"daysBack": 90}.
  *
  * This is the reference implementation for the plugin contract, so it is
- * written the way every Rule should be: all data loading happens ABOVE the
+ * written the way every Check should be: all data loading happens ABOVE the
  * loop, and the loop does computation only. Two queries serve the whole scope,
  * whether that scope holds one record or two hundred.
  *
- * Failure message, severity, and label all come from the Rule metadata. This
+ * Failure message, severity, and label all come from the Check metadata. This
  * class decides PASS or FAIL and reports the values behind that decision; it
  * never stamps identity, severity, or anything the user sees.
  */
-global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckRule {
+global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckPlugin {
   private static final Integer DEFAULT_DAYS_BACK = 30;
   private static final Integer MIN_DAYS_BACK = 1;
   private static final Integer MAX_DAYS_BACK = 3650;

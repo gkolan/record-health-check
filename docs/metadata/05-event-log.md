@@ -12,11 +12,11 @@ Use this event for restricted technical operations and support, not readiness wo
 | --- | --- |
 | Persisted error history | Persist Framework errors beyond debug-log and Platform Event retention |
 | Technical alerting | Notify a restricted support channel when a new error Code or exception appears |
-| Incident correlation | Group errors by Run ID, Salesforce record, Check Set, Rule, user, and Framework version |
+| Incident correlation | Group errors by Run ID, Salesforce record, Check Set, Check, user, and Framework version |
 | Release monitoring | Compare error rates before and after a Framework or configuration deployment |
 | Reproduction support | Use record and metadata identifiers to reproduce a failure under controlled access |
 
-Use the Log event for ERROR diagnostics; use Rule Result and Set Run events for finalized
+Use the Log event for ERROR diagnostics; use Check Result and Set Run events for finalized
 outcomes.
 
 The packaged User and Admin Permission Sets do **not** grant create or read access on
@@ -63,7 +63,7 @@ events; Salesforce debug-log output is unchanged.
 | Stack Trace | `StackTrace__c` | Long Text Area(32,768) | Optional | Cleaned-up Apex stack trace. |
 | Record ID | `RecordId__c` | Text(18) | Optional | Salesforce record being evaluated, when known. |
 | Check Set Developer Name | `CheckSetDeveloperName__c` | Text(120) | Optional | Check Set `DeveloperName` associated with the error. |
-| Rule Developer Name | `RuleDeveloperName__c` | Text(120) | Optional | Rule `DeveloperName` associated with the error. |
+| Check Developer Name | `CheckDeveloperName__c` | Text(120) | Optional | Check `DeveloperName` associated with the error. |
 | User ID | `UserId__c` | Text(18) | Optional | Running Salesforce user from `UserInfo.getUserId()`. |
 
 ## Example event body
@@ -78,7 +78,7 @@ events; Salesforce debug-log output is unchanged.
   "Level__c": "ERROR",
   "Code__c": "APEX_EVALUATOR_ERROR",
   "CheckSetDeveloperName__c": "Account_Readiness",
-  "RuleDeveloperName__c": "Account_Strategic_Readiness",
+  "CheckDeveloperName__c": "Account_Strategic_Readiness",
   "RecordId__c": "001000000000001AAA",
   "UserId__c": "005000000000001AAA",
   "ExceptionType__c": "System.QueryException",
@@ -128,13 +128,13 @@ repeat.
 | Publish acceptance does not prove delivery, persistence, alerting, or investigation. | Monitor the subscriber and every downstream destination independently. |
 | Platform Event retention is temporary. | Persist events in a subscriber-owned store when long-term history is required. |
 | Record ID or metadata name can be blank when the failure occurred before that context was known. | Treat those fields as optional during correlation. |
-| `Code__c` can contain Framework-internal codes. | Use the public [Reason Code registry](../reference/contracts/01-reason-codes.md) only for public Rule outcomes. |
+| `Code__c` can contain Framework-internal codes. | Use the public [Reason Code registry](../reference/contracts/01-reason-codes.md) only for public Check outcomes. |
 
 ## Related
 
 - [Subscribe with Flow or Apex](../platform-events/03-error-log.md)
 - [Lifecycle-events overview](../integration/03-lifecycle-events.md)
 - [Check Set Run Platform Event](03-event-set-run.md)
-- [Rule Result Platform Event](04-event-rule-result.md)
+- [Check Result Platform Event](04-event-check-result.md)
 - [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md)
 - [Reason Codes](../reference/contracts/01-reason-codes.md)

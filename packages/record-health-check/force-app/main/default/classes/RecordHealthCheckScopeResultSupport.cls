@@ -3,7 +3,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
   private RecordHealthCheckFormulaEvaluator formulaEvaluator = new RecordHealthCheckFormulaEvaluator();
 
   public void finalizeDisplay(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     Boolean showDiagnostics
@@ -15,39 +15,39 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       result.message = formulaEvaluator.resolveMergeFields(
         result.message,
         record,
-        rule,
+        check,
         result,
         true
       );
     }
     if (result.status == RecordHealthCheckStatus.FAIL && record != null) {
-      result.fixInstructions = String.isBlank(rule.FixMessage__c)
+      result.fixInstructions = String.isBlank(check.FixMessage__c)
         ? null
         : formulaEvaluator.resolveMergeFields(
-            rule.FixMessage__c,
+            check.FixMessage__c,
             record,
-            rule,
+            check,
             result,
             true
           );
-      if (String.isNotBlank(rule.ActionUrl__c)) {
+      if (String.isNotBlank(check.ActionUrl__c)) {
         try {
           String url = sanitizeActionUrl(
             formulaEvaluator.resolveUrlMergeFields(
-              rule.ActionUrl__c,
+              check.ActionUrl__c,
               record,
-              rule,
+              check,
               result
             )
           );
           if (url != null) {
             result.actionUrl = url;
-            result.actionLabel = String.isBlank(rule.ActionLabel__c)
+            result.actionLabel = String.isBlank(check.ActionLabel__c)
               ? 'Fix this'
               : formulaEvaluator.resolveMergeFields(
-                  rule.ActionLabel__c,
+                  check.ActionLabel__c,
                   record,
-                  rule,
+                  check,
                   result,
                   true
                 );
@@ -66,7 +66,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       result.adminDetail.reasonCode = result.reasonCode;
       result.adminDetail.message = result.detailMessage;
       RecordHealthCheckDiagnosticTrace.populate(
-        rule,
+        check,
         record,
         result,
         result.adminDetail
@@ -98,11 +98,11 @@ public with sharing class RecordHealthCheckScopeResultSupport {
   }
 
   public RecordHealthCheckInternalResult findPrerequisiteBlock(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Id recordId,
     Map<String, RecordHealthCheckResultItem> itemsByIdentity
   ) {
-    String prerequisiteName = rule.PrerequisiteRule__c;
+    String prerequisiteName = check.PrerequisiteCheck__c;
     if (String.isBlank(prerequisiteName)) {
       return null;
     }
@@ -111,16 +111,16 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     );
     if (
       prior == null &&
-      String.isNotBlank(rule.QualifiedApiName) &&
-      rule.QualifiedApiName.contains('__')
+      String.isNotBlank(check.QualifiedApiName) &&
+      check.QualifiedApiName.contains('__')
     ) {
-      String namespacePrefix = rule.QualifiedApiName.substringBefore('__');
+      String namespacePrefix = check.QualifiedApiName.substringBefore('__');
       prior = itemsByIdentity.get(
         itemKey(recordId, namespacePrefix + '__' + prerequisiteName)
       );
     }
     if (prior == null) {
-      // A qualified single-Rule request intentionally has no results from the
+      // A qualified single-Check request intentionally has no results from the
       // rest of its owning Check Set. Missing history is unknown, not evidence
       // that the prerequisite failed. Full Check Set requests still enforce
       // every prerequisite that produced a prior result.
@@ -136,28 +136,28 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     result.status = RecordHealthCheckStatus.SKIPPED;
     result.reasonCode = RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET;
     result.message =
-      'Skipped because Prerequisite Rule "' +
+      'Skipped because Prerequisite Check "' +
       prerequisiteName +
       '" did not pass.';
     return result;
   }
 
   public RecordHealthCheckInternalResult applicabilityResult(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record
   ) {
     if (
-      String.isBlank(rule.ApplicabilityMode__c) ||
-      rule.ApplicabilityMode__c == 'ALL_RECORDS'
+      String.isBlank(check.ApplicabilityMode__c) ||
+      check.ApplicabilityMode__c == 'ALL_RECORDS'
     ) {
       return null;
     }
-    if (rule.ApplicabilityMode__c != 'WHEN_FORMULA_TRUE') {
-      return unavailableResult(rule, 'APPLICABILITY_NOT_MIGRATED');
+    if (check.ApplicabilityMode__c != 'WHEN_FORMULA_TRUE') {
+      return unavailableResult(check, 'APPLICABILITY_NOT_MIGRATED');
     }
     String[] reasonCode = new List<String>{ null };
     Boolean applies = formulaEvaluator.evaluateApplicabilityFormula(
-      rule.ApplicabilityFormula__c,
+      check.ApplicabilityFormula__c,
       record,
       reasonCode
     );
@@ -172,23 +172,23 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       ? 'APPLICABILITY_NOT_MET'
       : reasonCode[0];
     result.message = applies == false
-      ? rule.ApplicabilityNotMetMessage__c
-      : rule.UnableToEvaluateMessage__c;
+      ? check.ApplicabilityNotMetMessage__c
+      : check.UnableToEvaluateMessage__c;
     return result;
   }
 
   public Map<Id, RecordHealthCheckInternalResult> applicabilityResults(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<Id> recordIds,
     Map<Id, SObject> recordsById
   ) {
     Map<Id, RecordHealthCheckInternalResult> results = new Map<Id, RecordHealthCheckInternalResult>();
-    if (rule.ApplicabilityMode__c != 'WHEN_COUNT_QUERY_MATCHES') {
+    if (check.ApplicabilityMode__c != 'WHEN_COUNT_QUERY_MATCHES') {
       for (Id recordId : recordIds) {
         SObject record = recordsById.get(recordId);
         if (record != null) {
           RecordHealthCheckInternalResult result = applicabilityResult(
-            rule,
+            check,
             record
           );
           if (result != null) {
@@ -202,13 +202,13 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     try {
       if (
         !RecordHealthCheckSoqlTemplate.isSingleCountQuery(
-          rule.ApplicabilityCountQuery__c
-        ) || rule.ApplicabilityCountThreshold__c == null
+          check.ApplicabilityCountQuery__c
+        ) || check.ApplicabilityCountThreshold__c == null
       ) {
-        return unavailableForScope(rule, recordIds, 'INVALID_SOQL_TEMPLATE');
+        return unavailableForScope(check, recordIds, 'INVALID_SOQL_TEMPLATE');
       }
       RecordHealthCheckBulkQuerySupport.Result scopeCounts = RecordHealthCheckBulkQuerySupport.execute(
-        rule.ApplicabilityCountQuery__c,
+        check.ApplicabilityCountQuery__c,
         recordsById,
         RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
       );
@@ -221,30 +221,30 @@ public with sharing class RecordHealthCheckScopeResultSupport {
           ? 0
           : aggregateCount((AggregateResult) rows[0]);
         Boolean applies = compareCount(
-          rule.ApplicabilityCountOperator__c,
+          check.ApplicabilityCountOperator__c,
           count,
-          (Integer) rule.ApplicabilityCountThreshold__c
+          (Integer) check.ApplicabilityCountThreshold__c
         );
         if (applies == null) {
-          results.put(recordId, unavailableResult(rule, 'INVALID_OPERATOR'));
+          results.put(recordId, unavailableResult(check, 'INVALID_OPERATOR'));
         } else if (!applies) {
           results.put(
             recordId,
-            rule.EvaluationType__c == 'COMPARE_TWO_QUERIES'
+            check.EvaluationType__c == 'COMPARE_TWO_QUERIES'
               ? RecordHealthCheckQueryEvaluatorSupport.buildEmptyResult(
-                  rule,
+                  check,
                   new RecordHealthCheckInternalResult(),
                   null
                 )
-              : skippedResult(rule)
+              : skippedResult(check)
           );
         }
       }
       return results;
     } catch (RecordHealthCheckEvaluatorException ex) {
-      return unavailableForScope(rule, recordIds, ex.reasonCode);
+      return unavailableForScope(check, recordIds, ex.reasonCode);
     } catch (Exception ex) {
-      return unavailableForScope(rule, recordIds, 'UNABLE_TO_EVALUATE');
+      return unavailableForScope(check, recordIds, 'UNABLE_TO_EVALUATE');
     }
   }
 
@@ -285,37 +285,37 @@ public with sharing class RecordHealthCheckScopeResultSupport {
   }
 
   public Map<Id, RecordHealthCheckInternalResult> unavailableForScope(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<Id> recordIds,
     String reasonCode
   ) {
     Map<Id, RecordHealthCheckInternalResult> results = new Map<Id, RecordHealthCheckInternalResult>();
     for (Id recordId : recordIds) {
-      results.put(recordId, unavailableResult(rule, reasonCode));
+      results.put(recordId, unavailableResult(check, reasonCode));
     }
     return results;
   }
 
   public RecordHealthCheckInternalResult skippedResult(
-    Record_Health_Check_Rule__mdt rule
+    Record_Health_Check__mdt check
   ) {
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
     result.status = RecordHealthCheckStatus.SKIPPED;
     result.reasonCode = RecordHealthCheckReasonCodes.NOT_APPLICABLE_BY_COUNT;
-    result.message = String.isNotBlank(rule.ApplicabilityNotMetMessage__c)
-      ? rule.ApplicabilityNotMetMessage__c
+    result.message = String.isNotBlank(check.ApplicabilityNotMetMessage__c)
+      ? check.ApplicabilityNotMetMessage__c
       : 'This check does not apply because its count threshold was not met.';
     return result;
   }
 
   public RecordHealthCheckInternalResult unavailableResult(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     String reasonCode
   ) {
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
     result.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
     result.reasonCode = reasonCode;
-    result.message = rule.UnableToEvaluateMessage__c;
+    result.message = check.UnableToEvaluateMessage__c;
     return result;
   }
 
@@ -329,17 +329,17 @@ public with sharing class RecordHealthCheckScopeResultSupport {
   }
 
   public RecordHealthCheckResultItem toItem(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Id recordId,
     RecordHealthCheckInternalResult internalResult,
     RecordHealthCheckResultMode resultMode
   ) {
     if (internalResult == null) {
-      internalResult = unavailableResult(rule, 'UNABLE_TO_EVALUATE');
+      internalResult = unavailableResult(check, 'UNABLE_TO_EVALUATE');
     }
     RecordHealthCheckEvaluationResult evaluation = new RecordHealthCheckEvaluationResult();
     evaluation.recordId = recordId;
-    evaluation.ruleQualifiedApiName = rule.QualifiedApiName;
+    evaluation.checkQualifiedApiName = check.QualifiedApiName;
     evaluation.status = internalResult.status;
     evaluation.severity = String.isBlank(internalResult.severity)
       ? internalResult.severity
@@ -358,10 +358,10 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     evaluation.comparisonOperator = internalResult.evaluationComparisonOperator;
     if (
       evaluation.comparisonOperator == null &&
-      (rule.EvaluationType__c == 'QUERY' ||
-      rule.EvaluationType__c == 'COMPARE_TWO_QUERIES')
+      (check.EvaluationType__c == 'QUERY' ||
+      check.EvaluationType__c == 'COMPARE_TWO_QUERIES')
     ) {
-      evaluation.comparisonOperator = rule.ComparisonOperator__c;
+      evaluation.comparisonOperator = check.ComparisonOperator__c;
     }
 
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
@@ -390,7 +390,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     return item;
   }
 
-  private String itemKey(Id recordId, String ruleQualifiedApiName) {
-    return String.valueOf(recordId) + '|' + ruleQualifiedApiName;
+  private String itemKey(Id recordId, String checkQualifiedApiName) {
+    return String.valueOf(recordId) + '|' + checkQualifiedApiName;
   }
 }

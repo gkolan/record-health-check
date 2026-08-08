@@ -11,10 +11,10 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       Account.SObjectType,
       1
     );
-    RecordHealthCheckRunRuleFlowAction.Request ruleRequest = new RecordHealthCheckRunRuleFlowAction.Request();
-    ruleRequest.ruleQualifiedApiName = 'Missing.Rule';
-    ruleRequest.recordId = recordId;
-    ruleRequest.eventPublication = 'NONE';
+    RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
+    checkRequest.checkQualifiedApiName = 'Missing.Check';
+    checkRequest.recordId = recordId;
+    checkRequest.eventPublication = 'NONE';
     RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
     setRequest.checkSetQualifiedApiName = 'Missing.Set';
     setRequest.recordId = recordId;
@@ -22,13 +22,13 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
 
     RecordHealthCheckAccess.setRunPermissionForTest(false);
     try {
-      List<RecordHealthCheckRunRuleFlowAction.Response> ruleOutputs = RecordHealthCheckRunRuleFlowAction.runRule(
-        new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleRequest }
+      List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
+        new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
       );
       List<RecordHealthCheckRunSetFlowAction.Response> setOutputs = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('AUTHORIZATION', ruleOutputs[0].errorType);
+      Assert.areEqual('AUTHORIZATION', checkOutputs[0].errorType);
       Assert.areEqual('AUTHORIZATION', setOutputs[0].errorType);
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
@@ -41,38 +41,35 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       Account.SObjectType,
       1
     );
-    RecordHealthCheckRunRuleFlowAction.Request ruleRequest = new RecordHealthCheckRunRuleFlowAction.Request();
-    ruleRequest.ruleQualifiedApiName = 'Missing.Rule';
-    ruleRequest.recordId = recordId;
-    ruleRequest.eventPublication = 'NONE';
+    RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
+    checkRequest.checkQualifiedApiName = 'Missing.Check';
+    checkRequest.recordId = recordId;
+    checkRequest.eventPublication = 'NONE';
     RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
     setRequest.checkSetQualifiedApiName = 'Missing.Set';
     setRequest.recordId = recordId;
     setRequest.eventPublication = 'NONE';
 
     Test.startTest();
-    List<RecordHealthCheckRunRuleFlowAction.Response> ruleOutputs = RecordHealthCheckRunRuleFlowAction.runRule(
-      new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleRequest }
+    List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
+      new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
     );
     List<RecordHealthCheckRunSetFlowAction.Response> setOutputs = RecordHealthCheckRunSetFlowAction.runSet(
       new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
     );
     Test.stopTest();
 
-    Assert.areEqual('EXECUTION', ruleOutputs[0].errorType);
+    Assert.areEqual('EXECUTION', checkOutputs[0].errorType);
     Assert.areEqual('EXECUTION', setOutputs[0].errorType);
   }
 
   @IsTest
   static void flowExecutorPropagatesFatalPluginSideEffects() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Flow fatal side-effect propagation'
     );
     String groupKey = RecordHealthCheckFlowGroupExecutor.key(
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Profile_Phone_Available'
       ),
       'NONE'
@@ -84,7 +81,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       RecordHealthCheckFlowGroupExecutor.evaluate(
         groupKey,
         new List<Id>{ accountRecord.Id },
-        RecordHealthCheckFlowGroupExecutor.SelectionKind.RULE
+        RecordHealthCheckFlowGroupExecutor.SelectionKind.CHECK
       );
       Assert.fail('A fatal plugin side effect must escape the Flow executor.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
@@ -114,26 +111,26 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       Account.SObjectType,
       1
     );
-    RecordHealthCheckRunRuleFlowAction.Request ruleRequest = new RecordHealthCheckRunRuleFlowAction.Request();
-    ruleRequest.ruleQualifiedApiName = '  Missing.Rule  ';
-    ruleRequest.recordId = recordId;
+    RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
+    checkRequest.checkQualifiedApiName = '  Missing.Check  ';
+    checkRequest.recordId = recordId;
     RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
     setRequest.checkSetQualifiedApiName = overlongIdentity();
     setRequest.recordId = recordId;
 
     Test.startTest();
-    List<RecordHealthCheckRunRuleFlowAction.Response> ruleOutputs = RecordHealthCheckRunRuleFlowAction.runRule(
-      new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleRequest }
+    List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
+      new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
     );
     List<RecordHealthCheckRunSetFlowAction.Response> setOutputs = RecordHealthCheckRunSetFlowAction.runSet(
       new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
     );
     Test.stopTest();
 
-    Assert.areEqual('Missing.Rule', ruleRequest.ruleQualifiedApiName);
+    Assert.areEqual('Missing.Check', checkRequest.checkQualifiedApiName);
     Assert.areEqual(
       'VALIDATION',
-      ruleOutputs[0].errorType,
+      checkOutputs[0].errorType,
       'Missing required Event Publication must be a validation error.'
     );
     Assert.areEqual('VALIDATION', setOutputs[0].errorType);
@@ -144,31 +141,28 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
 
   @IsTest
   static void flowActionsMapAlignmentAndPayloadBoundaryFailures() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Flow boundary fixture'
     );
-    RecordHealthCheckRunRuleFlowAction.Request ruleRequest = new RecordHealthCheckRunRuleFlowAction.Request();
-    ruleRequest.ruleQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedRuleName(
+    RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
+    checkRequest.checkQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       'Example_Profile_Phone_Available'
     );
-    ruleRequest.recordId = accountRecord.Id;
-    ruleRequest.eventPublication = 'NONE';
+    checkRequest.recordId = accountRecord.Id;
+    checkRequest.eventPublication = 'NONE';
     RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
     setRequest.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Account_Data_Quality'
+      'Example_Account_Profile_Readiness'
     );
     setRequest.recordId = accountRecord.Id;
     setRequest.eventPublication = 'NONE';
 
     try {
       RecordHealthCheckFlowSupport.itemsByRecordOverride = new Map<Id, List<RecordHealthCheckResultItem>>();
-      List<RecordHealthCheckRunRuleFlowAction.Response> missingRule = RecordHealthCheckRunRuleFlowAction.runRule(
-        new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleRequest }
+      List<RecordHealthCheckRunCheckFlowAction.Response> missingCheck = RecordHealthCheckRunCheckFlowAction.runCheck(
+        new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
       );
-      Assert.areEqual('EXECUTION', missingRule[0].errorType);
+      Assert.areEqual('EXECUTION', missingCheck[0].errorType);
 
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = true;
@@ -189,13 +183,13 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
 
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
       RecordHealthCheckFlowSupport.payloadBudgetStartOverride = RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS;
-      List<RecordHealthCheckRunRuleFlowAction.Response> oversizedRule = RecordHealthCheckRunRuleFlowAction.runRule(
-        new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleRequest }
+      List<RecordHealthCheckRunCheckFlowAction.Response> oversizedCheck = RecordHealthCheckRunCheckFlowAction.runCheck(
+        new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
       );
       List<RecordHealthCheckRunSetFlowAction.Response> oversizedSet = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('LIMIT', oversizedRule[0].errorType);
+      Assert.areEqual('LIMIT', oversizedCheck[0].errorType);
       Assert.areEqual('LIMIT', oversizedSet[0].errorType);
     } finally {
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
@@ -205,26 +199,26 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
   }
 
   @IsTest
-  static void rejectsExcessiveRuleGroupsBeforeEvaluation() {
+  static void rejectsExcessiveCheckGroupsBeforeEvaluation() {
     Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
       Account.SObjectType,
       1
     );
-    List<RecordHealthCheckRunRuleFlowAction.Request> requests = new List<RecordHealthCheckRunRuleFlowAction.Request>();
+    List<RecordHealthCheckRunCheckFlowAction.Request> requests = new List<RecordHealthCheckRunCheckFlowAction.Request>();
     for (
       Integer index = 0;
       index <= RecordHealthCheckConstants.MAX_FLOW_GROUPS;
       index++
     ) {
-      RecordHealthCheckRunRuleFlowAction.Request input = new RecordHealthCheckRunRuleFlowAction.Request();
-      input.ruleQualifiedApiName = 'Hostile.Rule.' + index;
+      RecordHealthCheckRunCheckFlowAction.Request input = new RecordHealthCheckRunCheckFlowAction.Request();
+      input.checkQualifiedApiName = 'Hostile.Check.' + index;
       input.recordId = recordId;
       input.eventPublication = 'NONE';
       requests.add(input);
     }
 
     Test.startTest();
-    List<RecordHealthCheckRunRuleFlowAction.Response> outputs = RecordHealthCheckRunRuleFlowAction.runRule(
+    List<RecordHealthCheckRunCheckFlowAction.Response> outputs = RecordHealthCheckRunCheckFlowAction.runCheck(
       requests
     );
     Test.stopTest();
@@ -234,7 +228,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       outputs.size(),
       'Outputs must stay aligned.'
     );
-    for (RecordHealthCheckRunRuleFlowAction.Response output : outputs) {
+    for (RecordHealthCheckRunCheckFlowAction.Response output : outputs) {
       Assert.isFalse(output.isSuccess, 'No excessive group may execute.');
       Assert.areEqual('LIMIT', output.errorType, 'Fan-out is a limit error.');
       Assert.isTrue(
@@ -376,28 +370,28 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
   }
 
   @IsTest
-  static void excessiveRuleGroupsPreserveExistingValidationErrors() {
+  static void excessiveCheckGroupsPreserveExistingValidationErrors() {
     Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
       Account.SObjectType,
       1
     );
-    List<RecordHealthCheckRunRuleFlowAction.Request> requests = new List<RecordHealthCheckRunRuleFlowAction.Request>{
-      new RecordHealthCheckRunRuleFlowAction.Request()
+    List<RecordHealthCheckRunCheckFlowAction.Request> requests = new List<RecordHealthCheckRunCheckFlowAction.Request>{
+      new RecordHealthCheckRunCheckFlowAction.Request()
     };
     for (
       Integer index = 0;
       index <= RecordHealthCheckConstants.MAX_FLOW_GROUPS;
       index++
     ) {
-      RecordHealthCheckRunRuleFlowAction.Request input = new RecordHealthCheckRunRuleFlowAction.Request();
-      input.ruleQualifiedApiName = 'Hostile.Rule.' + index;
+      RecordHealthCheckRunCheckFlowAction.Request input = new RecordHealthCheckRunCheckFlowAction.Request();
+      input.checkQualifiedApiName = 'Hostile.Check.' + index;
       input.recordId = recordId;
       input.eventPublication = 'NONE';
       requests.add(input);
     }
 
     Test.startTest();
-    List<RecordHealthCheckRunRuleFlowAction.Response> outputs = RecordHealthCheckRunRuleFlowAction.runRule(
+    List<RecordHealthCheckRunCheckFlowAction.Response> outputs = RecordHealthCheckRunCheckFlowAction.runCheck(
       requests
     );
     Test.stopTest();
@@ -416,20 +410,17 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
 
   @IsTest
   static void bulkifiesTwoHundredDuplicateRows() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Two hundred duplicate Flow rows'
     );
-    List<RecordHealthCheckRunRuleFlowAction.Request> requests = new List<RecordHealthCheckRunRuleFlowAction.Request>();
+    List<RecordHealthCheckRunCheckFlowAction.Request> requests = new List<RecordHealthCheckRunCheckFlowAction.Request>();
     for (
       Integer index = 0;
       index < RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
       index++
     ) {
-      RecordHealthCheckRunRuleFlowAction.Request input = new RecordHealthCheckRunRuleFlowAction.Request();
-      input.ruleQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckRunCheckFlowAction.Request input = new RecordHealthCheckRunCheckFlowAction.Request();
+      input.checkQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Profile_Phone_Available'
       );
       input.recordId = accountRecord.Id;
@@ -439,7 +430,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
 
     Test.startTest();
     Integer queriesBefore = Limits.getQueries();
-    List<RecordHealthCheckRunRuleFlowAction.Response> outputs = RecordHealthCheckRunRuleFlowAction.runRule(
+    List<RecordHealthCheckRunCheckFlowAction.Response> outputs = RecordHealthCheckRunCheckFlowAction.runCheck(
       requests
     );
     Integer queriesUsed = Limits.getQueries() - queriesBefore;
@@ -450,7 +441,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       queriesUsed <= 20,
       'One group must use a bounded query budget; used=' + queriesUsed
     );
-    for (RecordHealthCheckRunRuleFlowAction.Response output : outputs) {
+    for (RecordHealthCheckRunCheckFlowAction.Response output : outputs) {
       Assert.isTrue(
         output.isSuccess,
         'Every duplicate row must reuse the result.'

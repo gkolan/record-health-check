@@ -112,16 +112,16 @@ public with sharing class RecordHealthCheckComparisonEngine {
     String operator,
     Object primary,
     Object comparison,
-    Record_Health_Check_Rule__mdt rule
+    Record_Health_Check__mdt check
   ) {
     // Handle null per EmptyValueHandling__c
     if (primary == null || comparison == null) {
-      if (rule.EmptyValueHandling__c == 'AS_BLANK') {
+      if (check.EmptyValueHandling__c == 'AS_BLANK') {
         // Substitute null with '' and continue with the real operator
         primary = primary != null ? primary : '';
         comparison = comparison != null ? comparison : '';
       } else {
-        return applyEmptyValueHandling(rule.EmptyValueHandling__c);
+        return applyEmptyValueHandling(check.EmptyValueHandling__c);
       }
     }
 
@@ -129,21 +129,21 @@ public with sharing class RecordHealthCheckComparisonEngine {
   }
 
   public static Boolean applyMultiRecordComparison(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<Object> primaryList,
     Object comparisonValue,
     List<Object> comparisonList
   ) {
     if (primaryList.isEmpty()) {
-      return resolveEmptyBehavior(rule.NoRowsResult__c);
+      return resolveEmptyBehavior(check.NoRowsResult__c);
     }
 
-    String mode = rule.QueryResultHandling__c;
+    String mode = check.QueryResultHandling__c;
 
     if (mode == 'ANY_ROW_PASSES') {
       Boolean sawEvaluableRecord = false;
       for (Object val : primaryList) {
-        Boolean match = applyRecordComparison(rule, val, comparisonValue);
+        Boolean match = applyRecordComparison(check, val, comparisonValue);
         if (match == null) {
           continue;
         }
@@ -161,7 +161,7 @@ public with sharing class RecordHealthCheckComparisonEngine {
     if (mode == 'ALL_ROWS_PASS') {
       Boolean sawEvaluableRecord = false;
       for (Object val : primaryList) {
-        Boolean match = applyRecordComparison(rule, val, comparisonValue);
+        Boolean match = applyRecordComparison(check, val, comparisonValue);
         if (match == null) {
           continue;
         }
@@ -178,7 +178,7 @@ public with sharing class RecordHealthCheckComparisonEngine {
 
     if (mode == 'COMPARE_AS_LISTS') {
       // CompareAsLists requires two separate queries — use CheckType CompareTwoQueries.
-      // ConfigService.validateQueryRule blocks this at config time; guard at runtime too.
+      // ConfigService.validateQueryCheck blocks this at config time; guard at runtime too.
       throw new RecordHealthCheckEvaluatorException(
         'INVALID_OPERATOR',
         'Compare query results as lists is only supported when Check Type is Compare two queries.'
@@ -197,7 +197,7 @@ public with sharing class RecordHealthCheckComparisonEngine {
    * operator returns null) are not counted as failing.
    */
   public static Integer countFailingRows(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<Object> primaryList,
     Object comparisonValue
   ) {
@@ -206,7 +206,7 @@ public with sharing class RecordHealthCheckComparisonEngine {
       return 0;
     }
     for (Object val : primaryList) {
-      if (applyRecordComparison(rule, val, comparisonValue) == false) {
+      if (applyRecordComparison(check, val, comparisonValue) == false) {
         failing++;
       }
     }
@@ -214,24 +214,24 @@ public with sharing class RecordHealthCheckComparisonEngine {
   }
 
   public static Boolean applyRecordComparison(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Object primary,
     Object comparison
   ) {
-    if (primary == null && rule.EmptyValueHandling__c == 'SKIP_RECORD') {
+    if (primary == null && check.EmptyValueHandling__c == 'SKIP_RECORD') {
       return null;
     }
     if (
-      rule.ComparisonOperator__c == 'IS_BLANK' ||
-      rule.ComparisonOperator__c == 'IS_NOT_BLANK'
+      check.ComparisonOperator__c == 'IS_BLANK' ||
+      check.ComparisonOperator__c == 'IS_NOT_BLANK'
     ) {
-      return applyUnaryComparison(rule.ComparisonOperator__c, primary);
+      return applyUnaryComparison(check.ComparisonOperator__c, primary);
     }
     return applySingleComparisonNullSafe(
-      rule.ComparisonOperator__c,
+      check.ComparisonOperator__c,
       primary,
       comparison,
-      rule
+      check
     );
   }
 
@@ -239,10 +239,10 @@ public with sharing class RecordHealthCheckComparisonEngine {
     String operator,
     Object primary,
     Object comparison,
-    Record_Health_Check_Rule__mdt rule
+    Record_Health_Check__mdt check
   ) {
     if (primary == null) {
-      String nb = rule.EmptyValueHandling__c;
+      String nb = check.EmptyValueHandling__c;
       if (nb == 'SKIP_RECORD') {
         return null;
       }
@@ -253,23 +253,23 @@ public with sharing class RecordHealthCheckComparisonEngine {
         primary = '';
       }
     }
-    return applySingleComparison(operator, primary, comparison, rule);
+    return applySingleComparison(operator, primary, comparison, check);
   }
 
   public static Boolean applyListComparison(
     String operator,
     Object primaryValue,
     List<Object> comparisonList,
-    Record_Health_Check_Rule__mdt rule
+    Record_Health_Check__mdt check
   ) {
     if (comparisonList == null || comparisonList.isEmpty()) {
-      return resolveEmptyBehavior(rule.NoRowsResult__c);
+      return resolveEmptyBehavior(check.NoRowsResult__c);
     }
 
     if (primaryValue == null) {
-      if (rule.EmptyValueHandling__c == 'AS_BLANK') {
+      if (check.EmptyValueHandling__c == 'AS_BLANK') {
         primaryValue = '';
-      } else if (rule.EmptyValueHandling__c == 'AS_NO_MATCH') {
+      } else if (check.EmptyValueHandling__c == 'AS_NO_MATCH') {
         return operator == 'LIST_CONTAINS_NONE';
       } else {
         return null;

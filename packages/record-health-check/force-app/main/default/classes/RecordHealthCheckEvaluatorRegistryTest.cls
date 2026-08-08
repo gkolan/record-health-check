@@ -2,7 +2,7 @@
 private with sharing class RecordHealthCheckEvaluatorRegistryTest {
   @IsTest
   static void shouldRejectUnregisteredEvaluationType() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{ 'EvaluationType__c' => 'UNKNOWN' }
     );
 
@@ -10,7 +10,7 @@ private with sharing class RecordHealthCheckEvaluatorRegistryTest {
     try {
       new RecordHealthCheckEvaluatorRegistry()
         .evaluateScope(
-          rule,
+          check,
           new List<Id>(),
           new Map<Id, SObject>(),
           new RecordHealthCheckScopePipeline.SelectionContext(),

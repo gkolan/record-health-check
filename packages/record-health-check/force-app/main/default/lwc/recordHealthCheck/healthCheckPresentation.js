@@ -399,7 +399,7 @@ export function buildSummaryStats(checks, tooltipKeys = new Set()) {
   );
 }
 
-/** Visible label for checks that have no Rule category when others do. */
+/** Visible label for checks that have no Check category when others do. */
 export function uncategorizedSummaryLabel(count) {
   return count === 1 ? "Other" : "Others";
 }

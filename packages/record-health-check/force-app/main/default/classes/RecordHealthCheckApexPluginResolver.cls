@@ -1,28 +1,26 @@
-/** Resolves one configured Apex Rule implementation and its parameters. */
+/** Resolves one configured Apex Check implementation and its parameters. */
 public with sharing class RecordHealthCheckApexPluginResolver {
   /** Returns a validated plugin instance, reusing the configuration cache. */
-  public static RecordHealthCheckRule resolve(
-    Record_Health_Check_Rule__mdt rule
+  public static RecordHealthCheckPlugin resolve(
+    Record_Health_Check__mdt check
   ) {
-    Type evaluatorType = configuredType(rule.ApexClass__c);
+    Type evaluatorType = configuredType(check.ApexClass__c);
     Object instance = RecordHealthCheckConfigValidator.takeValidatedPlugin(
-      rule.ApexClass__c
+      check.ApexClass__c
     );
     if (instance == null) {
       instance = instantiatePlugin(evaluatorType);
     }
-    return requireRule(instance);
+    return requireCheck(instance);
   }
 
   /** Returns the configured JSON object, or an empty parameter map. */
-  public static Map<String, Object> parameters(
-    Record_Health_Check_Rule__mdt rule
-  ) {
-    if (String.isBlank(rule.ApexParametersJson__c)) {
+  public static Map<String, Object> parameters(Record_Health_Check__mdt check) {
+    if (String.isBlank(check.ApexParametersJson__c)) {
       return new Map<String, Object>();
     }
     try {
-      Object parsed = JSON.deserializeUntyped(rule.ApexParametersJson__c);
+      Object parsed = JSON.deserializeUntyped(check.ApexParametersJson__c);
       if (!(parsed instanceof Map<String, Object>)) {
         throw configurationError(
           'INVALID_APEX_PARAMETERS',
@@ -62,14 +60,14 @@ public with sharing class RecordHealthCheckApexPluginResolver {
     }
   }
 
-  private static RecordHealthCheckRule requireRule(Object instance) {
-    if (!(instance instanceof RecordHealthCheckRule)) {
+  private static RecordHealthCheckPlugin requireCheck(Object instance) {
+    if (!(instance instanceof RecordHealthCheckPlugin)) {
       throw configurationError(
         'APEX_CLASS_NOT_FOUND',
-        'The configured class does not implement RecordHealthCheckRule.'
+        'The configured class does not implement RecordHealthCheckPlugin.'
       );
     }
-    return (RecordHealthCheckRule) instance;
+    return (RecordHealthCheckPlugin) instance;
   }
 
   private static PluginConfigurationException configurationError(

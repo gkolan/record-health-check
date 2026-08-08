@@ -94,9 +94,9 @@ realistic department, address, reporting-line, email, and business-context data.
 The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
 relationships, and health-check outcomes remain deterministic.
 
-The setup also verifies all eight Rule outcomes before you open the org:
+The setup also verifies all eight Check outcomes before you open the org:
 
-| What the Rule reviews | Expected outcome |
+| What the Check reviews | Expected outcome |
 | --- | --- |
 | Executive sponsorship | Pass |
 | Account owner is active | Failed |
@@ -107,7 +107,7 @@ The setup also verifies all eight Rule outcomes before you open the org:
 | No high-priority customer issues | Failed |
 | Channel-partner governance | Skipped because Acme is a direct customer |
 
-The pipeline Rule also demonstrates useful evidence: it shows `$70,000` as Found and `$375,000` as
+The pipeline Check also demonstrates useful evidence: it shows `$70,000` as Found and `$375,000` as
 Expected, then explains the revenue-protection gap.
 
 ## Step 2: Open and test the experience
@@ -128,7 +128,7 @@ The demo is ready when:
 
 - the setup command completes without an error;
 - Acme Corporation opens on the prepared Account page;
-- the summary shows three passed, four failed, and one skipped Rule; and
+- the summary shows three passed, four failed, and one skipped Check; and
 - the expanded results explain the known Acme data in the tables above.
 
 These outcomes prove the prepared demo. They do not certify a separate sandbox or production org;
@@ -176,6 +176,6 @@ development](../contributing/source-development.md), which is a different workfl
 | Your next goal | Continue with |
 | --- | --- |
 | Install in a sandbox or production org you control | [Install and verify in your org](02-install-and-verify.md) |
-| Build a small Rule of your own | [Create your first Rule](03-create-your-first-rule.md) |
+| Build a small Check of your own | [Create your first Check](03-create-your-first-check.md) |
 | Understand another evaluation pattern | [Examples library](../examples/README.md) |
 | Investigate a result that differs from this page | [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md) |

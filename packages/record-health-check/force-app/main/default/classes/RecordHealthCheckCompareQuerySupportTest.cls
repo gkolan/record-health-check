@@ -12,11 +12,11 @@ private class RecordHealthCheckCompareQuerySupportTest {
         new Map<String, Object>{ 'BillingCity' => 'Chicago' }
       )
     };
-    Record_Health_Check_Rule__mdt rule = comparisonRule();
+    Record_Health_Check__mdt check = comparisonCheck();
 
     Assert.isTrue(
       RecordHealthCheckCompareQuerySupport.evaluateSingleVsSingle(
-        rule,
+        check,
         rows,
         rows,
         false,
@@ -24,10 +24,10 @@ private class RecordHealthCheckCompareQuerySupportTest {
       )
     );
 
-    rule.QueryResultHandling__c = 'COMPARE_AS_LISTS';
-    rule.ComparisonOperator__c = 'LISTS_MATCH_EXACTLY';
+    check.QueryResultHandling__c = 'COMPARE_AS_LISTS';
+    check.ComparisonOperator__c = 'LISTS_MATCH_EXACTLY';
     Assert.isTrue(
-      RecordHealthCheckCompareQuerySupport.evaluateListVsList(rule, rows, rows)
+      RecordHealthCheckCompareQuerySupport.evaluateListVsList(check, rows, rows)
     );
   }
 
@@ -62,8 +62,8 @@ private class RecordHealthCheckCompareQuerySupportTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt comparisonRule() {
-    return RecordHealthCheckTestDataFactory.rule(
+  private static Record_Health_Check__mdt comparisonCheck() {
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Compare_Query_Support',
         'MasterLabel' => 'Compare Query Support',

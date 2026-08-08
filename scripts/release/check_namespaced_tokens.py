@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TOKEN = re.compile(r"\{!([A-Za-z_][A-Za-z0-9_.]*)\}")
-NAMESPACES = {"record", "rhcRule", "rhcSet", "rhcResult", "rhcRun"}
+NAMESPACES = {"record", "rhcCheck", "rhcSet", "rhcResult", "rhcRun"}
 COMPUTED = {
     "failCount": "rhcResult.failedRecordCount",
     "totalCount": "rhcResult.totalRecordCount",

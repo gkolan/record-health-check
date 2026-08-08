@@ -11,22 +11,22 @@ private with sharing class RHCScopePipelineFailureTest {
     Account account = RecordHealthCheckTestDataFactory.createAccount(
       'Pipeline defensive boundaries'
     );
-    Record_Health_Check_Rule__mdt rule = queryCountRule();
+    Record_Health_Check__mdt check = queryCountCheck();
 
     RecordHealthCheckScopePipeline planningPipeline = new RecordHealthCheckScopePipeline();
     planningPipeline.planningFailureOverride = true;
     planningPipeline.loadRecordsForTest(
       'Account',
       new List<Id>{ account.Id },
-      new List<Record_Health_Check_Rule__mdt>{ rule }
+      new List<Record_Health_Check__mdt>{ check }
     );
 
     RecordHealthCheckScopePipeline evaluatorPipeline = new RecordHealthCheckScopePipeline();
     RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'EVALUATOR';
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
     try {
-      evaluatorPipeline.evaluateRule(
-        rule,
+      evaluatorPipeline.evaluateCheck(
+        check,
         evaluationContext(),
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account },
@@ -55,8 +55,8 @@ private with sharing class RHCScopePipelineFailureTest {
     return context;
   }
 
-  private static Record_Health_Check_Rule__mdt queryCountRule() {
-    return RecordHealthCheckTestDataFactory.rule(
+  private static Record_Health_Check__mdt queryCountCheck() {
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => 'Pipeline_Defensive_Boundaries',
         'DeveloperName' => 'Pipeline_Defensive_Boundaries',

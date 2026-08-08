@@ -1,15 +1,15 @@
 # 04 · Stalled Approval Identifies Inactive Approvers
 
 > [!NOTE]
-> On this page, build a defensive Apex Rule that identifies inactive users on pending approval steps, names the people blocking progress, and returns a safe outcome when approval data is unavailable.
+> On this page, build a defensive Apex Check that identifies inactive users on pending approval steps, names the people blocking progress, and returns a safe outcome when approval data is unavailable.
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/evaluation/04-apex-rule-contract.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../reference/evaluation/04-apex-check-contract.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > The supporting Apex class for this example lives under `integration-tests/`. It does not install
-> with the Framework package. Deploy or copy the class when you want this Rule in an org.
+> with the Framework package. Deploy or copy the class when you want this Check in an org.
 
 ## Scenario
 
@@ -30,8 +30,8 @@ A Salesforce administrator opens a record whose approval has stopped moving.
 | --- | --- |
 | Inspect approval-related Salesforce data | Apex follows approval assignments to participating users. |
 | Account for product-specific objects | The implementation isolates assumptions that depend on licensed Salesforce features. |
-| Return a safe operational result | The Rule distinguishes inactive participants from an inability to inspect approval data. |
-| Stop a Check Set after a system error | The Check Set can prevent later Rules from running after an unexpected `ERROR`. |
+| Return a safe operational result | The Check distinguishes inactive participants from an inability to inspect approval data. |
+| Stop a Check Set after a system error | The Check Set can prevent later Checks from running after an unexpected `ERROR`. |
 
 ## What the card shows
 
@@ -52,7 +52,7 @@ A Salesforce administrator opens a record whose approval has stopped moving.
 ## What Record Health Check passes to Apex
 
 Shared scope inputs are documented once in the
-[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Rule receives the
+[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Check receives the
 evaluated record Ids and package-specific object/field names in JSON.
 
 ```apex
@@ -65,7 +65,7 @@ the supplied record Id instead of joining it into the query text.
 ## Step 1:
 ## Step 1: Understand the parameters
 
-This Rule uses one JSON object with the package-specific object and field names:
+This Check uses one JSON object with the package-specific object and field names:
 
 ```json
 {
@@ -80,13 +80,13 @@ This Rule uses one JSON object with the package-specific object and field names:
 After deploying the class:
 
 1. In Object Manager, confirm every illustrative `sbaa__*` API name and status value in your org.
-2. Open **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**.
-3. Create or edit the Rule record.
-4. Paste the corrected object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`).
+2. Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**.
+3. Create or edit the Check record.
+4. Paste the corrected object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check** (`Record_Health_Check__mdt`).
 
 Record Health Check parses the JSON and supplies the named settings as `scope.parameters`.
 Blank settings use the class defaults, and an empty status list uses `Requested`. See
-[Parameter parsing patterns](../../reference/evaluation/04-apex-rule-contract.md#scope)
+[Parameter parsing patterns](../../reference/evaluation/04-apex-check-contract.md#scope)
 for validation and type-conversion guidance.
 
 ## Implementation summary
@@ -113,7 +113,7 @@ This is the complete class deployed by the pack. Comments explain the Record Hea
  */
 
 /**
- * Example RecordHealthCheckRule that flags pending approval steps whose assigned
+ * Example RecordHealthCheck that flags pending approval steps whose assigned
  * user is inactive, and names the offending user(s) in the failure message.
  * Built for Salesforce Advanced Approvals (managed package "sbaa"), but every
  * object and field API name is read dynamically and may be overridden through
@@ -124,7 +124,7 @@ This is the complete class deployed by the pack. Comments explain the Record Hea
  * "userField":"sbaa__User__c","statusField":"sbaa__Status__c",
  * "pendingStatuses":["Requested"]}
  */
-global with sharing class ApprovalInactiveApproverCheck implements RecordHealthCheckRule {
+global with sharing class ApprovalInactiveApproverCheck implements RecordHealthCheckPlugin {
   @TestVisible
   private static final String DEFAULT_APPROVAL_OBJECT = 'sbaa__Approval__c';
   @TestVisible
@@ -375,7 +375,7 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `ruleDeveloperName` | `String` | Qualified Rule identity (property name is historical; value is the Rule QualifiedApiName) |
+| `checkDeveloperName` | `String` | Qualified Check identity (property name is historical; value is the Check QualifiedApiName) |
 | `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
@@ -390,51 +390,51 @@ status factory and typed values:
 | `comparisonOperator` | The operator behind the decision, such as `EQUALS` |
 | `expected` | A typed `RecordHealthCheckValue` describing the passing requirement |
 
-For applicability, configure **Applies To** on the Rule so Record Health Check skips before Apex
+For applicability, configure **Applies To** on the Check so Record Health Check skips before Apex
 runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/evaluation/04-apex-rule-contract.md#outcome).
+[Returning an outcome](../../reference/evaluation/04-apex-check-contract.md#outcome).
 
 
-## Step 3: Configure the Rule
+## Step 3: Configure the Check
 
-In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**, create the Rule:
+In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check-rule.md#developer-name-developername) | `Approval_No_Inactive_Approvers` |
-| **Label** | [`MasterLabel`](../../metadata/02-fields-check-rule.md#label-masterlabel) | No Inactive Approvers In Chain |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check-rule.md#check-title-checktitle__c) | No Inactive Approvers In Chain |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../metadata/02-fields-check-rule.md#apex-class-apexclass__c) | `ApprovalInactiveApproverCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/02-fields-check-rule.md#apex-parameters-json-apexparametersjson__c) | `{"approvalObject":"sbaa__Approval__c","targetField":"sbaa__TargetRecordId__c","userField":"sbaa__User__c","statusField":"sbaa__Status__c","pendingStatuses":["Requested"]}` (**Confirm in your org**) |
+| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check.md#developer-name-developername) | `Approval_No_Inactive_Approvers` |
+| **Label** | [`MasterLabel`](../../metadata/02-fields-check.md#label-masterlabel) | No Inactive Approvers In Chain |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
+| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check.md#check-title-checktitle__c) | No Inactive Approvers In Chain |
+| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check.md#evaluation-type-evaluationtype__c) | Verify with Apex |
+| **Apex Class** | [`ApexClass__c`](../../metadata/02-fields-check.md#apex-class-apexclass__c) | `ApprovalInactiveApproverCheck` |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/02-fields-check.md#apex-parameters-json-apexparametersjson__c) | `{"approvalObject":"sbaa__Approval__c","targetField":"sbaa__TargetRecordId__c","userField":"sbaa__User__c","statusField":"sbaa__Status__c","pendingStatuses":["Requested"]}` (**Confirm in your org**) |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check-rule.md#check-description-checkdescription__c) | Fails when a pending Advanced Approvals step is assigned to an inactive user. Confirm all object and class API names before activation. |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | One or more pending approval steps are assigned to an inactive user. Reassign the approver before submitting for approval. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Could not check approvers: confirm Advanced Approvals is installed and the object and field API names in Apex Parameters (JSON) are correct for this org. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check-rule.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Rule** | [`PrerequisiteRule__c`](../../metadata/02-fields-check-rule.md#prerequisite-rule-prerequisiterule__c) | Leave blank unless another Rule first proves an approval request exists. |
-| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Reassign each inactive approver named in the failure message to an active user. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check-rule.md#action-label-actionlabel__c) | Leave blank until the org's approval-management destination is verified. |
-| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check-rule.md#action-url-actionurl__c) | Leave blank; managed-package pages and URLs can vary by installed version. |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `40` |
-| **Active** | [`IsActive__c`](../../metadata/02-fields-check-rule.md#active-isactive__c) | Unchecked: activate only after confirming object and class API names and tests. |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check.md#check-description-checkdescription__c) | Fails when a pending Advanced Approvals step is assigned to an inactive user. Confirm all object and class API names before activation. |
+| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check.md#failure-severity-failureseverity__c) | Critical |
+| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check.md#message-when-failed-failuremessage__c) | One or more pending approval steps are assigned to an inactive user. Reassign the approver before submitting for approval. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Could not check approvers: confirm Advanced Approvals is installed and the object and field API names in Apex Parameters (JSON) are correct for this org. |
+| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/02-fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank unless another Check first proves an approval request exists. |
+| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check.md#fix-message-fixmessage__c) | Reassign each inactive approver named in the failure message to an active user. |
+| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check.md#action-label-actionlabel__c) | Leave blank until the org's approval-management destination is verified. |
+| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check.md#action-url-actionurl__c) | Leave blank; managed-package pages and URLs can vary by installed version. |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check.md#evaluation-order-evaluationorder__c) | `40` |
+| **Active** | [`IsActive__c`](../../metadata/02-fields-check.md#active-isactive__c) | Unchecked: activate only after confirming object and class API names and tests. |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 > [!IMPORTANT]
-> Leave the Rule **inactive** while you configure and test this example. Before activation, verify
+> Leave the Check **inactive** while you configure and test this example. Before activation, verify
 > `approvalObject`, `targetField`, `userField`, `statusField`, and `pendingStatuses` against the
 > installed product's fields in **Setup → Object Manager** (**Confirm in your org**).
 
 The class supplies a failure message that names inactive users, so it replaces **Message When
-Failed** when the Rule fails. Keep the metadata message as a safe general message in case the class
+Failed** when the Check fails. Keep the metadata message as a safe general message in case the class
 cannot provide names. Formula, Query, and Compare two queries fields do not apply.
 
 ## Check Set configuration
@@ -452,12 +452,12 @@ Use these Check Set values:
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |
 | **Found/Expected Display** | On demand |
-| **Stop after a system error** | Checked; later Rules do not run after this Rule returns `ERROR` |
+| **Stop after a system error** | Checked; later Checks do not run after this Check returns `ERROR` |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |
 | **Active** | Checked |
 
-The Check Set can remain active while you build this example, but leave this Rule inactive until
+The Check Set can remain active while you build this example, but leave this Check inactive until
 you verify its Advanced Approvals API names and complete the tests below.
 **Stop after a system error** affects only `ERROR`; it does not stop the Check Set after `FAIL`,
 `SKIPPED`, or `UNABLE_TO_EVALUATE`.
@@ -489,10 +489,10 @@ The approval and User queries run in user mode, so the result follows the runnin
 
 - Use the real end-user Permission Sets and approval-row visibility.
 
-## Step 4: Test the Rule
+## Step 4: Test the Check
 
 1. In Object Manager, verify and replace every illustrative `sbaa__*` API name in Apex Parameters (JSON).
-2. Deploy the pack (or class), activate the Rule, and open a record with a pending step assigned to an inactive user. Confirm Critical and the named approver.
+2. Deploy the pack (or class), activate the Check, and open a record with a pending step assigned to an inactive user. Confirm Critical and the named approver.
 3. Reassign to an active user, rerun, and confirm a pass.
 4. In an org without Advanced Approvals (or with wrong API names), confirm unable to evaluate.
 5. Repeat with the intended end-user profile and confirm row and User visibility follow its access.
@@ -505,7 +505,7 @@ record supported by the confirmed Advanced Approvals target-field configuration:
 ```apex
 Id targetRecordId = '006XXXXXXXXXXXXXXX';
 RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-  RecordHealthCheckRequest.forRule(
+  RecordHealthCheckRequest.forCheck(
     'Approval_No_Inactive_Approvers',
     targetRecordId
   ).withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
@@ -513,21 +513,21 @@ RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
 System.debug(LoggingLevel.INFO, JSON.serializePretty(response));
 ```
 
-The `006` prefix is only an Opportunity illustration. Use the object configured for this Rule.
+The `006` prefix is only an Opportunity illustration. Use the object configured for this Check.
 Confirm `status`, Found, Expected, message, and any Reason Code.
 
 ### Lightning record page
 
 1. Add **Record Health Check** to the target object's Lightning record page.
 2. Select `Account_Apex_Readiness` only if its Check Set object matches that page; otherwise create a
-   Check Set for the confirmed target object and assign the Rule to it.
+   Check Set for the confirmed target object and assign the Check to it.
 3. Save and activate the page, click **Run** or **Rerun**, and compare the result with Execute Anonymous.
 
 ## Failures, remedies, and customization
 
 | Reason or symptom | What to verify |
 | --- | --- |
-| `OBJECT_NOT_FOUND` | Install the Framework or correct `approvalObject`; keep the Rule inactive. |
+| `OBJECT_NOT_FOUND` | Install the Framework or correct `approvalObject`; keep the Check inactive. |
 | `INVALID_SOQL_TEMPLATE` | Correct field names, field types, and pending statuses in Object Manager. |
 | Too few inactive users | Check approval-row sharing, User visibility, and the status list. |
 | The Found list is truncated | The framework limits list previews for readability. Use authorized diagnostics or the approval records to review the complete assignment set. |

@@ -22,7 +22,7 @@
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Shipped examples for every SOQL aggregate the framework supports: COUNT(), COUNT(DISTINCT field), SUM, AVG, MIN, and MAX. Each rule uses One row or aggregate with a single-value comparison operator.</value>
+    >Shipped examples for every SOQL aggregate the framework supports: COUNT(), COUNT(DISTINCT field), SUM, AVG, MIN, and MAX. Each check uses One row or aggregate with a single-value comparison operator.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

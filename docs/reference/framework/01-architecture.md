@@ -1,11 +1,11 @@
 # Reference: Architecture
 
 > [!NOTE]
-> On this page, review the whole Record Health Check architecture: where it sits relative to save-time automation, the configuration model, the runtime path of a single Rule, the security and limit model, the contracts other systems bind to, and which class owns each behavior.
+> On this page, review the whole Record Health Check architecture: where it sits relative to save-time automation, the configuration model, the runtime path of a single Check, the security and limit model, the contracts other systems bind to, and which class owns each behavior.
 
-Record Health Check evaluates Custom Metadata Rules against the Salesforce record on a Lightning
+Record Health Check evaluates Custom Metadata Checks against the Salesforce record on a Lightning
 page or a bounded record scope supplied by Apex or Flow. It returns a status, reason code, and
-optional display content per Rule and record. Rules are grouped into a **Check Set** bound to one
+optional display content per Check and record. Checks are grouped into a **Check Set** bound to one
 object. Evaluation is read-only and runs in the calling user's context. The same Apex engine serves
 the Lightning Web Component, the public Apex API, and two Flow actions.
 
@@ -20,9 +20,9 @@ outside that model:
 
 | Property | Design consequence |
 | --- | --- |
-| Retroactive | Rules must evaluate records committed before the Rule existed, so evaluation cannot be bound to a DML event |
+| Retroactive | Checks must evaluate records committed before the Check existed, so evaluation cannot be bound to a DML event |
 | Contextual | Inputs include related records, aggregates, and time windows, so evaluation needs SOQL beyond the record being viewed |
-| Advisory | Evaluation performs no DML on the evaluated record and cannot fail a save, so a Rule failure has no transactional effect |
+| Advisory | Evaluation performs no DML on the evaluated record and cannot fail a save, so a Check failure has no transactional effect |
 
 | Mechanism | Evaluates | Failure effect |
 | --- | --- | --- |
@@ -31,17 +31,17 @@ outside that model:
 | Record Health Check | One record on read, per Check Set | Returns `FAIL` at the configured severity, with no transactional effect |
 
 The advisory boundary is what makes administrator-authored formulas and SOQL tolerable in this
-Framework: a malformed Rule becomes a documented status on one card, while the same input inside
+Framework: a malformed Check becomes a documented status on one card, while the same input inside
 a Validation Rule or trigger would block saves org-wide.
 
 ## 2. Design principles
 
 | # | Principle | Consequence in the code |
 | --- | --- | --- |
-| 1 | Configuration over code | Rule semantics live in Custom Metadata; the Apex engine stays generic |
+| 1 | Configuration over code | Check semantics live in Custom Metadata; the Apex engine stays generic |
 | 2 | Fail visible, never silent | Every failure returns a documented status and a stable reason code |
 | 3 | Security is not optional | SOQL runs `WITH USER_MODE`; `WITH SYSTEM_MODE` is rejected before execution |
-| 4 | Hard limits by design | Rules per Check Set, query rows, merge tokens, and message size all have fixed maximums |
+| 4 | Hard limits by design | Checks per Check Set, query rows, merge tokens, and message size all have fixed maximums |
 | 5 | One source of truth per fact | Allowed values and caps are shared by runtime checks and deploy-time validation |
 | 6 | Stable versioned responses | Integrations key on reason codes and version fields, never on display wording |
 | 7 | Plain language | Public names and messages use Salesforce Setup terms |
@@ -50,11 +50,11 @@ a Validation Rule or trigger would block saves org-wide.
 
 | Surface | Role |
 | --- | --- |
-| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) | Rule definitions, display settings, optional lifecycle publication, and default-on error publication |
+| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) | Check definitions, display settings, optional lifecycle publication, and default-on error publication |
 | Apex engine and four evaluators | Formula, Query, Compare two queries, and Apex evaluation |
-| Lightning Web Component | Record-page card, one Apex call per Rule, progressive reveal |
+| Lightning Web Component | Record-page card, one Apex call per Check, progressive reveal |
 | Public Apex API, asynchronous adapters, and two invocable Flow actions | The same engine for automation and integrations |
-| `Record_Health_Check_Set_Run__e` and `Record_Health_Check_Rule_Result__e` | Optional lifecycle events after deliberate runs |
+| `Record_Health_Check_Set_Run__e` and `Record_Health_Check_Result__e` | Optional lifecycle events after deliberate runs |
 | `Record_Health_Check_Log__e` | `ERROR` detail published through `RecordHealthCheckLogger.flush()` |
 | Two Permission Sets and two Custom Permissions | Separate run access (**Record Health Check Run** (`Record_Health_Check_Run`)) from diagnostics access (**Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`)) |
 
@@ -64,7 +64,7 @@ follow-on automation belong to platform event subscribers.
 ## 4. The configuration model
 
 Configuration is Custom Metadata, so it deploys as metadata, consumes no record storage, and its
-SOQL does not count against the query governor limits that Rule queries do.
+SOQL does not count against the query governor limits that Check queries do.
 
 ```text
 Record_Health_Check_Set__mdt          one card on one object
@@ -74,19 +74,19 @@ Record_Health_Check_Set__mdt          one card on one object
   PublishUserRunEvent__c                  whether a completed run publishes an event
   PublishErrorLogEvent__c             whether ERROR logs publish events (default on)
       |
-      | one Check Set has many Rules (metadata relationship)
+      | one Check Set has many Checks (metadata relationship)
       v
-Record_Health_Check_Rule__mdt         one row on the card
+Record_Health_Check__mdt         one row on the card
   EvaluationType__c                   FORMULA | QUERY | COMPARE_TWO_QUERIES | APEX
-  ApplicabilityMode__c                whether this Rule applies to this record at all
-  PrerequisiteRule__c                 another Rule that must pass first
+  ApplicabilityMode__c                whether this Check applies to this record at all
+  PrerequisiteCheck__c                 another Check that must pass first
   ComparisonOperator__c               how Found is compared to Expected
   FailureSeverity__c                  CRITICAL | WARNING | INFO
   CheckTitle__c, FailureMessage__c    what the user reads
 ```
 
-A Rule always belongs to a Check Set, and the server enforces that relationship on every call. A
-caller cannot evaluate a Rule by name outside its Check Set, and cannot evaluate a Rule whose Check
+A Check always belongs to a Check Set, and the server enforces that relationship on every call. A
+caller cannot evaluate a Check by name outside its Check Set, and cannot evaluate a Check whose Check
 Set is inactive or points at a different object.
 
 | Evaluation Type | Input | Evaluation mechanism |
@@ -94,7 +94,7 @@ Set is inactive or points at a different object.
 | `FORMULA` | Fields on the record and fields reachable by Salesforce formula syntax | `FormulaEval` evaluates the Boolean Pass Condition directly |
 | `QUERY` | One administrator-authored SOQL query | Rows or an aggregate reduced by `QueryResultHandling__c`, then the operator |
 | `COMPARE_TWO_QUERIES` | Two administrator-authored SOQL queries | One value from each side is compared, or both result sets are compared as lists |
-| `APEX` | A class implementing `RecordHealthCheckRule` | One bulk plugin call returns a typed outcome for every requested record ID |
+| `APEX` | A class implementing `RecordHealthCheckPlugin` | One bulk plugin call returns a typed outcome for every requested record ID |
 
 ## 5. Layers
 
@@ -108,7 +108,7 @@ L5  Entry points
 
 L4  Scope pipeline
     RecordHealthCheckScopePipeline
-    Owns: rule loading, prerequisites, applicability, evaluator choice,
+    Owns: check loading, prerequisites, applicability, evaluator choice,
           result shaping, diagnostics visibility
 
 L3  Evaluators
@@ -121,7 +121,7 @@ L2  Shared services
 
 L1  Results and definitions
     Request, Response, EvaluationResult, ResultDisplay, Definition,
-    Scope, Outcome, Value, Rule interface, AdminDetail
+    Scope, Outcome, Value, Check interface, AdminDetail
 ```
 
 The Lightning controller, the public Apex API, and the Flow actions all call the same scope pipeline. There
@@ -157,31 +157,31 @@ Production callers use these owners directly. Tests target the same owner. A pri
 forwarder is not retained to preserve an older class shape, and the 500-line architecture check is
 a review ceiling rather than the reason these boundaries exist.
 
-## 6. How one Rule is evaluated
+## 6. How one Check is evaluated
 
 Every surface ends up in `RecordHealthCheckScopePipeline.evaluate`, which returns one ordered
-response for the selected Rule or Check Set and record scope. Catchable per-Rule failures become a
+response for the selected Check or Check Set and record scope. Catchable per-Check failures become a
 status and a reason code. Request-contract violations and Apex governor limit exceptions can still
 fault the caller.
 
-1. **Normalize the request.** Qualified Check Set or Rule identity and run id are trimmed and
+1. **Normalize the request.** Qualified Check Set or Check identity and run id are trimmed and
    length-capped before anything else uses them. The public request contract rejects null record
    IDs before evaluation; the Lightning boundary reports missing record context safely.
-2. **Load the Rule inside its Check Set.** Inactive Rules are loaded too, so the result can say
-   `RULE_INACTIVE` rather than the misleading `RULE_NOT_FOUND`.
+2. **Load the Check inside its Check Set.** Inactive Checks are loaded too, so the result can say
+   `CHECK_INACTIVE` rather than the misleading `CHECK_NOT_FOUND`.
 3. **Confirm the Check Set context.** The Check Set must be active and must target the object of the
    record being evaluated, otherwise the result is `CONFIG_INACTIVE` or `OBJECT_MISMATCH`. This step
    also reads `ShowDiagnostics__c` for the run.
-4. **Apply the prerequisite Rule.** If the Rule names a prerequisite, that Rule is evaluated first. A
+4. **Apply the prerequisite Check.** If the Check names a prerequisite, that Check is evaluated first. A
    prerequisite that does not pass produces `SKIPPED` with `PREREQUISITE_NOT_MET`. A loop in the
    configuration produces `CIRCULAR_DEPENDENCY` instead of recursing.
-5. **Validate the Rule for this run.** Runtime validation confirms the Rule's fields are complete and
+5. **Validate the Check for this run.** Runtime validation confirms the Check's fields are complete and
    consistent for its Evaluation Type, and returns `INVALID_CONFIG` when they are not.
-6. **Load the record.** The query runs `WITH USER_MODE` and selects only the fields the Rule needs,
+6. **Load the record.** The query runs `WITH USER_MODE` and selects only the fields the Check needs,
    including fields found by walking formula dependencies. No access produces
    `RECORD_NOT_ACCESSIBLE`, not a thrown exception.
 7. **Apply the applicability check.** `ALL_RECORDS`, `WHEN_FORMULA_TRUE`, or
-   `WHEN_COUNT_QUERY_MATCHES` decides whether this Rule applies to this record right now. A Rule that
+   `WHEN_COUNT_QUERY_MATCHES` decides whether this Check applies to this record right now. A Check that
    does not apply is `SKIPPED` with the administrator's configured message.
 8. **Route to the evaluator.** Formula, SOQL, Compare two queries, or Apex produces Found, Expected,
    and a status.
@@ -198,7 +198,7 @@ fault the caller.
     the running user holds the diagnostics permission.
 
 Two caches keep a single transaction efficient without leaking between runs. Describe results are
-reused for the whole transaction. Rule results are reused only while one top-level evaluation walks
+reused for the whole transaction. Check results are reused only while one top-level evaluation walks
 its prerequisite chain, then cleared, so a later call in the same transaction never sees a stale
 result.
 
@@ -207,9 +207,9 @@ result.
 | Entry point | Used by | What it adds around the engine |
 | --- | --- | --- |
 | `RecordHealthCheck.evaluate(request)` | Apex, batch, scheduled jobs, tests | Qualified selection, detached scope, result mode, event publication, and run id |
-| `RecordHealthCheckRunRuleFlowAction` | Flow Builder | Invocable inputs and a versioned response, including result JSON |
+| `RecordHealthCheckRunCheckFlowAction` | Flow Builder | Invocable inputs and a versioned response, including result JSON |
 | `RecordHealthCheckRunSetFlowAction` | Flow Builder | The same for a whole Check Set |
-| `RecordHealthCheckController` | The Lightning card | Availability, definitions, one evaluate call per Rule, and `completeRun` |
+| `RecordHealthCheckController` | The Lightning card | Availability, definitions, one evaluate call per Check, and `completeRun` |
 
 Each entry point supplies a **source** value that travels with the run. Publishable programmatic
 and deliberate sources include `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`,
@@ -218,7 +218,7 @@ controller keeps non-publishable, so page views generate no lifecycle-event volu
 request only the two Lightning values, and the server substitutes `RUN_ON_LOAD` for anything else.
 
 **Lightning record page:** the component calls `getCheckDefinitions` once, then `evaluateCheck` once
-per Rule, at most five calls in flight, so each Rule is its own Apex transaction. On a
+per Check, at most five calls in flight, so each Check is its own Apex transaction. On a
 `USER_INITIATED` run, `completeRun` re-evaluates the Check Set server-side and publishes the Set
 completed event with counts computed from that re-evaluation, not from browser-supplied results.
 
@@ -230,13 +230,13 @@ lifecycle and log platform events is the one intentional write on that path.
 
 ## 8. Results and contracts
 
-Every Rule returns exactly one status, with a stable reason code where one applies.
+Every Check returns exactly one status, with a stable reason code where one applies.
 
 | Status | Meaning |
 | --- | --- |
 | `PASS` | The configured comparison held |
 | `FAIL` | The comparison did not hold, carrying the `FailureSeverity__c` value |
-| `SKIPPED` | The applicability check excluded the record, or a prerequisite Rule did not pass |
+| `SKIPPED` | The applicability check excluded the record, or a prerequisite Check did not pass |
 | `UNABLE_TO_EVALUATE` | Configuration, access, or input data prevented a determinate answer |
 | `ERROR` | An unhandled evaluator or platform failure, normalized at the boundary |
 
@@ -264,7 +264,7 @@ model (Permission Sets, persistence, events, plugins, and fix links), see
 | --- | --- |
 | Record and field access | The running user's own access, enforced by `WITH USER_MODE` on every query |
 | Administrator-authored SOQL | Template checks reject DML keywords and `WITH SYSTEM_MODE`, then inject `WITH USER_MODE` in the correct position |
-| Rule scope | A Rule is always loaded through its Check Set, so no caller can evaluate an arbitrary or inactive Rule by name |
+| Check scope | A Check is always loaded through its Check Set, so no caller can evaluate an arbitrary or inactive Check by name |
 | Merge tokens | Only known tokens resolve, with caps on token count and completed message size |
 | Fix links | Same-org relative paths or `https://` only, length-capped, and checked again in the component before use as a link |
 | Diagnostics detail | Requires the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission and a Check Set that enables Show Diagnostics |
@@ -282,8 +282,8 @@ Stored field capacities live in [Field limits](../contracts/04-field-limits.md);
 
 | What is capped | Cap | Enforcement point |
 | --- | --- | --- |
-| Rules per Check Set | 25 | `RecordHealthCheckConfigService` truncates and logs a warning; the deploy-time audit reports it |
-| Rows returned by one Rule query | 2,000 | `RecordHealthCheckSoqlTemplate` rewrites the outer `LIMIT` |
+| Checks per Check Set | 25 | `RecordHealthCheckConfigService` truncates and logs a warning; the deploy-time audit reports it |
+| Rows returned by one Check query | 2,000 | `RecordHealthCheckSoqlTemplate` rewrites the outer `LIMIT` |
 | Records per Apex or Flow request | 200 | `RecordHealthCheck` and both invocable actions before dispatch |
 | Merge tokens in one message | 100 | `RecordHealthCheckTemplateService`, returning `TOKEN_LIMIT_EXCEEDED` |
 | Resolved message length | 20,000 characters | `RecordHealthCheckTemplateService`, returning `RESOLVED_TEMPLATE_TOO_LONG` |
@@ -293,7 +293,7 @@ Stored field capacities live in [Field limits](../contracts/04-field-limits.md);
 
 Each cap converts a limit that would otherwise surface as an uncatchable governor exception into a
 documented reason code. The `FormulaEval` counter accumulates across the whole transaction rather
-than resetting per Rule, because the platform limit is transaction-wide: a per-Rule counter would let
+than resetting per Check, because the platform limit is transaction-wide: a per-Check counter would let
 a loop in Flow or batch Apex drive the Framework count to zero while the real count kept climbing.
 
 ## 11. Validation happens twice
@@ -303,8 +303,8 @@ The same allowed values and caps are checked at two different moments, and both 
 
 | When | Class | What happens on failure |
 | --- | --- | --- |
-| A Rule runs | `RecordHealthCheckConfigService` with `RecordHealthCheckRuleValidator` | The Rule returns `UNABLE_TO_EVALUATE` with `INVALID_CONFIG` |
-| Deploy or CI | `RecordHealthCheckMetadataValidator` | The audit reports the misconfigured Rule before anyone sees the card |
+| A Check runs | `RecordHealthCheckConfigService` with `RecordHealthCheckValidator` | The Check returns `UNABLE_TO_EVALUATE` with `INVALID_CONFIG` |
+| Deploy or CI | `RecordHealthCheckMetadataValidator` | The audit reports the misconfigured Check before anyone sees the card |
 
 ## 12. Observability
 
@@ -313,10 +313,10 @@ The same allowed values and caps are checked at two different moments, and both 
 | Structured `[RHC]` debug lines | Salesforce debug logs | Every line carries the run id and the running user |
 | `Record_Health_Check_Log__e` | Platform event subscribers and monitoring tools | `ERROR` detail held during the run and published by `flush()` |
 | `Record_Health_Check_Set_Run__e` | Platform event subscribers | Published after a deliberate run when the Check Set enables publication |
-| `Record_Health_Check_Rule_Result__e` | Platform event subscribers | Published per Rule when that Rule enables publication |
+| `Record_Health_Check_Result__e` | Platform event subscribers | Published per Check when that Check enables publication |
 | Show Diagnostics on the card | The Lightning record page | Requires the diagnostics Custom Permission |
 
-Publication is optional per Check Set and per Rule, limited to deliberate runs, and best effort. Events
+Publication is optional per Check Set and per Check, limited to deliberate runs, and best effort. Events
 publish in chunks of 100, and a failed publish is logged as a warning rather than failing the run. A
 subscriber cannot cause a loop, because a run happening inside a subscriber context does not publish
 again.
@@ -325,8 +325,8 @@ again.
 
 | Extension | Applies when |
 | --- | --- |
-| Formula, Query, or Compare two queries Rules | The condition is expressible in Custom Metadata with the shipped operators |
-| A class implementing `RecordHealthCheckRule` | The condition needs Apex control flow or multiple Salesforce queries; plugins cannot make callouts |
+| Formula, Query, or Compare two queries Checks | The condition is expressible in Custom Metadata with the shipped operators |
+| A class implementing `RecordHealthCheckPlugin` | The condition needs Apex control flow or multiple Salesforce queries; plugins cannot make callouts |
 | Flow actions and the Apex API | Evaluation is driven by automation rather than a record page |
 | Platform event subscribers | Results must be persisted, forwarded, or acted on after the run |
 
@@ -349,7 +349,7 @@ Operational consequences:
 
 - The Framework package ships four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`)
   with matching integration-test sample copies under `packages/record-health-check/integration-tests/`.
-- Check Sets and Rules are Custom Metadata, so they deploy between orgs and version control
+- Check Sets and Checks are Custom Metadata, so they deploy between orgs and version control
   alongside the classes they configure.
 - Qualified API Names are the external contract identifiers used by the Apex API, Flow actions,
   Lightning component, and event bodies. Exact identities prevent namespace-dependent fallback.
@@ -367,21 +367,21 @@ currency per row. Aggregate amounts use the corporate currency Salesforce uses f
 Single-currency orgs show a symbol, while orgs with multiple currencies lead with the ISO code.
 
 The Framework does not convert currencies or normalize cross-currency comparisons. Comparisons use
-the typed values Salesforce returns. Currency conversion, dated exchange rates, and business rules
-for comparing unlike currencies remain the responsibility of the Rule query, formula, or Apex
+the typed values Salesforce returns. Currency conversion, dated exchange rates, and business checks
+for comparing unlike currencies remain the responsibility of the Check query, formula, or Apex
 plugin. See [Display value format](../contracts/03-display-value-format.md#currency).
 
 ## 15. Design decisions
 
 | Decision | Rationale |
 | --- | --- |
-| One Rule per Apex call from the card | Isolates each Rule in its own transaction and lets results render as they complete |
+| One Check per Apex call from the card | Isolates each Check in its own transaction and lets results render as they complete |
 | Counts recomputed server-side in `completeRun` | Event data a subscriber acts on cannot depend on values supplied by the browser |
 | Automatic card loads cannot publish events | Page views would otherwise generate unbounded event volume from no deliberate action |
 | Catchable evaluation failures become results | Every surface consumes one result shape; request-contract violations and uncatchable governor failures still fault the transaction |
 | Allowed values in one constants class | Runtime and deploy-time validation read the same approved list of values |
 | Administrator SOQL is templated, not executed as authored | `WITH USER_MODE` injection, DML rejection, and the row limit must happen before execution |
-| Rule results cached only inside one top-level run | Prerequisite chains avoid re-evaluation without leaking stale results into a later run in the same transaction |
+| Check results cached only inside one top-level run | Prerequisite chains avoid re-evaluation without leaking stale results into a later run in the same transaction |
 
 ## 16. Out of scope
 
@@ -392,7 +392,7 @@ plugin. See [Display value format](../contracts/03-display-value-format.md#curre
 - Large explicit populations use `RecordHealthCheckBatch`; each execute scope remains bounded by
   the same engine and governor budgets as every other request.
 - No REST API. Apex, Flow, the Lightning Web Component, and platform events are the supported
-  surfaces, and the documentation standard rules out publishing an OpenAPI document for them.
+  surfaces, and the documentation standard checks out publishing an OpenAPI document for them.
 
 ## 17. Class ownership map
 
@@ -404,7 +404,7 @@ For longer per-class descriptions, see [Reference: Apex classes](../apex/README.
 | Class | Responsibility |
 | --- | --- |
 | `RecordHealthCheck` | Public `evaluate(request)` entry point |
-| `RecordHealthCheckRunRuleFlowAction` and `RecordHealthCheckRunSetFlowAction` | Packaged Flow actions |
+| `RecordHealthCheckRunCheckFlowAction` and `RecordHealthCheckRunSetFlowAction` | Packaged Flow actions |
 | `RecordHealthCheckQueueable`, `RecordHealthCheckBatch`, and `RecordHealthCheckScheduled` | Packaged asynchronous and scheduled adapters over the public request contract |
 | `RecordHealthCheckAsyncSupport` | Shared asynchronous input validation and request construction |
 | `RecordHealthCheckFlowSupport` | Shared Flow normalization, aligned-result lookup, and summary status logic |
@@ -413,15 +413,15 @@ For longer per-class descriptions, see [Reference: Apex classes](../apex/README.
 | `RecordHealthCheckScopePipeline` | Qualified selection, scope planning, ordered evaluation, and response assembly |
 | `RecordHealthCheckEvaluatorRegistry` | Type-to-adapter dispatch through one scope-level evaluator contract |
 | `RecordHealthCheckFieldPlanner` | Plans the record fields needed by the scope-wide user-mode load |
-| `RecordHealthCheckLifecyclePublisher` | Optional Set and Rule platform events |
+| `RecordHealthCheckLifecyclePublisher` | Optional Set and Check platform events |
 | `RecordHealthCheckRunContext` | Values carried for the duration of one run |
 
 ### Configuration and validation
 
 | Class | Responsibility |
 | --- | --- |
-| `RecordHealthCheckConfigService` | Load Check Sets and Rules; build definition and availability responses |
-| `RecordHealthCheckRuleValidator` | Per-Rule checks at the moment a Rule runs |
+| `RecordHealthCheckConfigService` | Load Check Sets and Checks; build definition and availability responses |
+| `RecordHealthCheckValidator` | Per-Check checks at the moment a Check runs |
 | `RecordHealthCheckMetadataValidator` | Deploy-time and CI metadata audit |
 | `RecordHealthCheckConfigValidator` and `RecordHealthCheckConstants` | Shared helpers, allowed values, and caps |
 | `RecordHealthCheckReasonCodes` | Restricted reason-code helpers |
@@ -442,7 +442,7 @@ For longer per-class descriptions, see [Reference: Apex classes](../apex/README.
 | `RecordHealthCheckSoqlTemplate` | SOQL safety checks, row limit, and `WITH USER_MODE` injection |
 | `RecordHealthCheckValueResolver` | Convert and compare values safely |
 | `RecordHealthCheckDescribeCache` | Describe results reused within one transaction |
-| `AccountHasRecentActivityCheck` | An evaluator used by the Demo `Example_Customer_Engagement_Current` Rule and integration-test samples |
+| `AccountHasRecentActivityCheck` | An evaluator used by the Demo `Example_Customer_Engagement_Current` Check and integration-test samples |
 
 ### Merge tokens
 
@@ -458,13 +458,13 @@ For longer per-class descriptions, see [Reference: Apex classes](../apex/README.
 | Class | Responsibility |
 | --- | --- |
 | `RecordHealthCheckLogger` | `[RHC]` log lines, held `ERROR` entries, and `flush()` to the log event |
-| `RecordHealthCheckDiagnosticTrace` | Authorized Rule configuration, merge-resolution, and query diagnostics |
+| `RecordHealthCheckDiagnosticTrace` | Authorized Check configuration, merge-resolution, and query diagnostics |
 | `RecordHealthCheckSettingsProvider` | Runtime publication settings for lifecycle events and diagnostic logs |
 | `RecordHealthCheckAccess` | The diagnostics permission check |
 | `RecordHealthCheckValueSource` | Comparison diagnostic detail |
 | `RecordHealthCheckSetPicklist` | Check Set picker in Lightning App Builder |
-| `RecordHealthCheckScope` | The records a custom Rule is asked about, plus its parameters. Read-only |
-| `RecordHealthCheckOutcome` | What a custom Rule returns for one record: a verdict and its values |
+| `RecordHealthCheckScope` | The records a custom Check is asked about, plus its parameters. Read-only |
+| `RecordHealthCheckOutcome` | What a custom Check returns for one record: a verdict and its values |
 | `RecordHealthCheckValue` | A typed Found or Expected value with one stored format per data type |
 | `RecordHealthCheckEvaluationResult` and `RecordHealthCheckResultDisplay` | Separate machine evaluation data from optional human rendering |
 | `RecordHealthCheckResultItem` | Evaluation data plus optional display content |
@@ -472,16 +472,16 @@ For longer per-class descriptions, see [Reference: Apex classes](../apex/README.
 | `RecordHealthCheckSelection`, `RecordHealthCheckQualifiedIdentity`, `RecordHealthCheckOptions`, `RecordHealthCheckExecutionOrigin`, and `RecordHealthCheckRequest` | Validated qualified identities, immutable request construction, execution options, and caller attribution |
 | `RecordHealthCheckResponse` and `RecordHealthCheckRunSummary` | Shared response envelope and terminal status totals |
 | `RecordHealthCheckScopePipeline` | Resolves qualified selections and evaluates one ordered record scope |
-| `RecordHealthCheckRuleContractTest` and `RecordHealthCheckRuleContractTestData` | Behavioral plugin evidence across multiple scope sizes and an optional controlled permission test data |
+| `RecordHealthCheckContractTest` and `RecordHealthCheckContractTestData` | Behavioral plugin evidence across multiple scope sizes and an optional controlled permission test data |
 | `RecordHealthCheckStatus` | The status values: PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, ERROR |
 | `RecordHealthCheckResultMode` | Selects how much data a result carries |
 | `RecordHealthCheckEventPublication` | Whether a programmatic run publishes lifecycle Platform Events |
-| `RecordHealthCheckPluginDispatch` | Runs a custom Rule and holds it to its contract, including the write check that blocks DML, callouts, email, events, and async work |
+| `RecordHealthCheckPluginDispatch` | Runs a custom Check and holds it to its contract, including the write check that blocks DML, callouts, email, events, and async work |
 | `RecordHealthCheckBulkQuerySupport` | Internal scope-wide SOQL rewriting and per-record row attribution |
 | `RecordHealthCheckBulkQueryRewriter` | Internal query rewriting for scope-wide execution |
 | `RecordHealthCheckDefinition` and `RecordHealthCheckDefinitionResponse` | Definition response for the Lightning card |
 | `RecordHealthCheckAdminDetail` | Structured diagnostics detail |
-| `RecordHealthCheckRule` | Bulk custom Apex evaluator interface |
+| `RecordHealthCheck` | Bulk custom Apex evaluator interface |
 | `RecordHealthCheckEvaluatorException` | Evaluator failure carrying a reason code |
 
 ### Lightning Web Component
@@ -499,8 +499,8 @@ One bundle, four modules. Keep them together as one component.
 
 | What you need | Where to look |
 | --- | --- |
-| Field definitions and caps | [Check Set fields](../../metadata/01-fields-check-set.md), [Rule fields](../../metadata/02-fields-check-rule.md), [Field limits](../contracts/04-field-limits.md) |
-| Evaluation Type contracts | [Formula](../evaluation/01-formula.md), [Query](../evaluation/02-query.md), [Compare two queries](../evaluation/03-compare-two-queries.md), [Apex](../evaluation/04-apex-rule-contract.md) |
+| Field definitions and caps | [Check Set fields](../../metadata/01-fields-check-set.md), [Check fields](../../metadata/02-fields-check.md), [Field limits](../contracts/04-field-limits.md) |
+| Evaluation Type contracts | [Formula](../evaluation/01-formula.md), [Query](../evaluation/02-query.md), [Compare two queries](../evaluation/03-compare-two-queries.md), [Apex](../evaluation/04-apex-check-contract.md) |
 | Calling surfaces | [Apex API](../../api/01-apex-api.md), [Flow actions](../../integration/02-flow-actions.md), [Lightning component](../../integration/01-lightning-component.md) |
 | Events | [Lifecycle events](../../integration/03-lifecycle-events.md), [Log event](../../metadata/05-event-log.md) |
 | Result terms and codes | [Reason codes](../contracts/01-reason-codes.md), [Merge tokens](../contracts/02-merge-tokens.md) |
@@ -511,5 +511,5 @@ One bundle, four modules. Keep them together as one component.
 
 - [Documentation index](../../README.md)
 - [Integration overview](../../integration/README.md)
-- [Configure Check Sets and Rules](../../guides/03-configure-check-sets-and-rules.md)
+- [Configure Check Sets and Checks](../../guides/03-configure-check-sets-and-checks.md)
 - [Troubleshoot with Show Diagnostics](../../guides/07-troubleshoot-with-show-diagnostics.md)

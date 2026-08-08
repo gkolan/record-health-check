@@ -27,29 +27,29 @@ public virtual with sharing class RecordHealthCheckSettingsProvider {
     return !settings.isEmpty() && settings[0].PublishUserRunEvent__c == true;
   }
 
-  /** Returns Rules enabled for interactive result-event publication. */
-  public virtual Set<String> publishedRuleNames(
+  /** Returns Checks enabled for interactive result-event publication. */
+  public virtual Set<String> publishedCheckNames(
     String checkSetQualifiedApiName
   ) {
-    Set<String> enabledRules = new Set<String>();
+    Set<String> enabledChecks = new Set<String>();
     // code-analyzer-suppress-next-line ApexCRUDViolation: This reads core-owned Custom Metadata publication settings, not business records.
     for (
-      Record_Health_Check_Rule__mdt rule : queryPublishedRules(
+      Record_Health_Check__mdt check : queryPublishedChecks(
         checkSetQualifiedApiName
       )
     ) {
-      enabledRules.add(rule.QualifiedApiName);
+      enabledChecks.add(check.QualifiedApiName);
     }
-    return enabledRules;
+    return enabledChecks;
   }
 
   /** Query method kept overridable so metadata-backed publication filtering stays independently testable. */
-  protected virtual List<Record_Health_Check_Rule__mdt> queryPublishedRules(
+  protected virtual List<Record_Health_Check__mdt> queryPublishedChecks(
     String checkSetQualifiedApiName
   ) {
     return [
       SELECT QualifiedApiName
-      FROM Record_Health_Check_Rule__mdt
+      FROM Record_Health_Check__mdt
       WHERE
         Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
         AND PublishUserResultEvent__c = TRUE

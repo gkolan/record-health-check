@@ -13,7 +13,7 @@ private with sharing class RecordHealthCheckContractRegistryTest {
       RecordHealthCheckReasonCodes.isDiagnosticsOnly(
         RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET
       ),
-      'Ordinary Rule outcomes must remain visible to normal callers.'
+      'Ordinary Check outcomes must remain visible to normal callers.'
     );
   }
 

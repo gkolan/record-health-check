@@ -42,7 +42,7 @@ public class RecordHealthCheckTemplateService {
   }
 
   /**
-   * Applies the Rule's Display: Found Text and Display: Expected Text to the
+   * Applies the Check's Display: Found Text and Display: Expected Text to the
    * Found and Expected values the Framework wrote, for any Evaluation Type
    * where the Framework owns those two values.
    *
@@ -56,26 +56,26 @@ public class RecordHealthCheckTemplateService {
    * through here.
    */
   public static void applyFoundExpectedText(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result
   ) {
-    applyFoundExpectedText(rule, record, result, null, null);
+    applyFoundExpectedText(check, record, result, null, null);
   }
 
   /** Applies Found/Expected prose with optional multi-row summary counts. */
   public static void applyFoundExpectedText(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     Integer failedRecordCount,
     Integer totalRecordCount
   ) {
     if (
-      rule == null ||
+      check == null ||
       result == null ||
-      (String.isBlank(rule.DisplayFoundText__c) &&
-      String.isBlank(rule.DisplayExpectedText__c))
+      (String.isBlank(check.DisplayFoundText__c) &&
+      String.isBlank(check.DisplayExpectedText__c))
     ) {
       return;
     }
@@ -89,12 +89,12 @@ public class RecordHealthCheckTemplateService {
     context.failedRecordCount = failedRecordCount;
     context.totalRecordCount = totalRecordCount;
 
-    if (String.isNotBlank(rule.DisplayFoundText__c)) {
-      result.actualValue = resolveDisplay(rule.DisplayFoundText__c, context);
+    if (String.isNotBlank(check.DisplayFoundText__c)) {
+      result.actualValue = resolveDisplay(check.DisplayFoundText__c, context);
     }
-    if (String.isNotBlank(rule.DisplayExpectedText__c)) {
+    if (String.isNotBlank(check.DisplayExpectedText__c)) {
       result.expectedValue = resolveDisplay(
-        rule.DisplayExpectedText__c,
+        check.DisplayExpectedText__c,
         context
       );
       // The Framework's own caption described what it wrote. Author wording

@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > Use this page to build requests for the synchronous Record Health Check Apex entry
-> point. A request selects one qualified Check Set or Rule and supplies the complete record scope.
+> point. A request selects one qualified Check Set or Check and supplies the complete record scope.
 
 ## Basic Apex pattern
 
@@ -27,11 +27,11 @@ The example collects business failures for the caller to handle. In production, 
 the approved notification, persistence, or coordinating service for your use case. Do not write
 record details to a debug log.
 
-Evaluate one Rule by its Custom Metadata `QualifiedApiName`:
+Evaluate one Check by its Custom Metadata `QualifiedApiName`:
 
 ```apex
 RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-  RecordHealthCheckRequest.forRule('Customer_Contact_Required', accountId)
+  RecordHealthCheckRequest.forCheck('Customer_Contact_Required', accountId)
 );
 ```
 
@@ -47,8 +47,8 @@ IDs. The factories are:
 | --- | --- |
 | `forCheckSet(qualifiedApiName, recordId)` | One Check Set and one record |
 | `forCheckSet(qualifiedApiName, recordIds)` | One Check Set and a record scope |
-| `forRule(qualifiedApiName, recordId)` | One Rule and one record |
-| `forRule(qualifiedApiName, recordIds)` | One Rule and a record scope |
+| `forCheck(qualifiedApiName, recordId)` | One Check and one record |
+| `forCheck(qualifiedApiName, recordIds)` | One Check and a record scope |
 
 Options are applied with fluent methods:
 
@@ -72,7 +72,7 @@ Every call returns `RecordHealthCheckResponse` with:
 | --- | --- |
 | `runId` | Correlation ID for this evaluation |
 | `recordIds` | Normalized record scope |
-| `ruleQualifiedApiNames` | Ordered Rules selected for the run |
+| `checkQualifiedApiNames` | Ordered Checks selected for the run |
 | `results` | Ordered `RecordHealthCheckResultItem` entries |
 | `summary` | Counts and aggregate run status |
 
@@ -86,7 +86,7 @@ receive untyped `Object` values.
 | --- | --- | --- | --- | --- |
 | Authorization | Throws `AuthorizationException` | Stable `NOT_AUTHORIZED` Aura error | Aligned `AUTHORIZATION` output | Submission/execution fails before work |
 | Invalid request or configuration | Throws a stable contract exception | Safe configuration or load error | Aligned validation/evaluation output | Job fails and is platform-visible |
-| Record visibility or field access | Contained per-record or per-Rule result | Same contained result | Same contained result | Same contained result within the scope |
+| Record visibility or field access | Contained per-record or per-Check result | Same contained result | Same contained result | Same contained result within the scope |
 | Evaluator defect | Contained stable error where attributable | Safe stable error item | Aligned evaluation output | Scope follows the adapter failure channel |
 | Forbidden plugin write (DML, callout, email, event, or async work) | Fatal; mutation is rolled back | Fatal | Fatal | Job/scope fails |
 
@@ -104,16 +104,16 @@ or use `ALL` when an integration needs every result.
 
 - Every public execution entry point requires the **Record Health Check Run** (`Record_Health_Check_Run`) custom permission.
 - One request accepts at most `RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE` records.
-- Query, compare-query, and conforming Apex Rules run once for the complete scope.
-- Formula Rules use one platform Formula evaluation per expression and record, so the
+- Query, compare-query, and conforming Apex Checks run once for the complete scope.
+- Formula Checks use one platform Formula evaluation per expression and record, so the
   request planner may require a smaller scope.
 - Record and query access runs in user mode. Subscriber Apex plugins must enforce
-  their own user-mode access and should extend `RecordHealthCheckRuleContractTest`.
+  their own user-mode access and should extend `RecordHealthCheckContractTest`.
 - `MaxQueryRows__c` is a per-scope budget.
 
 ## Flow adapters
 
-The Rule and Check Set Flow actions are thin adapters over the same request API. Their
+The Check and Check Set Flow actions are thin adapters over the same request API. Their
 publication input defaults to `NONE`; set it explicitly when the Flow is intended to
 publish lifecycle events.
 
@@ -127,7 +127,7 @@ selection fan-out.
 ## Related
 
 - [API examples](README.md)
-- [Apex plugin contract](../reference/evaluation/04-apex-rule-contract.md)
+- [Apex plugin contract](../reference/evaluation/04-apex-check-contract.md)
 - [Apex class catalog](../reference/apex/README.md)
 - [Flow API](02-flow.md)
 - [Upgrade guide](../installation/04-upgrading.md)

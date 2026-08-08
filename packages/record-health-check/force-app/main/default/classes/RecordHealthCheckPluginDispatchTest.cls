@@ -6,7 +6,7 @@
 /**
  * Adversarial tests for the extension boundary.
  *
- * A custom Rule is third-party code running inside the framework's transaction.
+ * A custom Check is third-party code running inside the framework's transaction.
  * These tests assume it is hostile rather than merely careless, because the
  * guarantee the product sells is that a health check never changes anything,
  * and a guarantee that only holds for well-behaved code is not a guarantee.
@@ -19,7 +19,7 @@ private class RecordHealthCheckPluginDispatchTest {
   // ─── Test doubles ──────────────────────────────────────────────────────────
 
   /** Behaves. The control case. */
-  private class WellBehavedRule implements RecordHealthCheckRule {
+  private class WellBehavedCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -32,7 +32,7 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   /** Mutates a record, which is the one thing the framework promises never happens. */
-  private class MutatingRule implements RecordHealthCheckRule {
+  private class MutatingCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -52,7 +52,7 @@ private class RecordHealthCheckPluginDispatchTest {
    * exceptions into results before checking for side effects would commit the
    * mutation and report a tidy ERROR row alongside it.
    */
-  private class MutateThenThrowRule implements RecordHealthCheckRule {
+  private class MutateThenThrowCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -63,8 +63,8 @@ private class RecordHealthCheckPluginDispatchTest {
     }
   }
 
-  /** Throws, but changes nothing. Attributable to the rule, so it may become results. */
-  private class ThrowingRule implements RecordHealthCheckRule {
+  /** Throws, but changes nothing. Attributable to the check, so it may become results. */
+  private class ThrowingCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -73,7 +73,7 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   /** Answers about a record it was never asked about. */
-  private class ExtraKeyRule implements RecordHealthCheckRule {
+  private class ExtraKeyCheck implements RecordHealthCheckPlugin {
     public Id foreignId;
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
@@ -88,7 +88,7 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   /** Silently drops a record, which without validation would simply vanish from the report. */
-  private class SkippingRule implements RecordHealthCheckRule {
+  private class SkippingCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -102,7 +102,7 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   /** Returns nothing at all. */
-  private class NullRule implements RecordHealthCheckRule {
+  private class NullCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -130,7 +130,7 @@ private class RecordHealthCheckPluginDispatchTest {
       'Account',
       new List<Id>(new Map<Id, Account>(accounts).keySet()),
       null,
-      'Test_Rule',
+      'Test_Check',
       'Test_Set',
       'run-test'
     );
@@ -145,7 +145,7 @@ private class RecordHealthCheckPluginDispatchTest {
     Test.startTest();
     try {
       RecordHealthCheckPluginDispatch.instantiate(
-        Type.forName(RecordHealthCheckConstructorMutationRule.class.getName())
+        Type.forName(RHCConstructorMutationCheck.class.getName())
       );
       Assert.fail('Constructor DML must be detected as a plugin side effect.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
@@ -172,10 +172,10 @@ private class RecordHealthCheckPluginDispatchTest {
   @IsTest
   static void pluginInstantiationRejectsNullAndNonContractTypes() {
     Test.startTest();
-    RecordHealthCheckRule nullType = RecordHealthCheckPluginDispatch.instantiate(
+    RecordHealthCheckPlugin nullType = RecordHealthCheckPluginDispatch.instantiate(
       null
     );
-    RecordHealthCheckRule wrongType = RecordHealthCheckPluginDispatch.instantiate(
+    RecordHealthCheckPlugin wrongType = RecordHealthCheckPluginDispatch.instantiate(
       Type.forName('RecordHealthCheckConstants')
     );
     Test.stopTest();
@@ -194,7 +194,7 @@ private class RecordHealthCheckPluginDispatchTest {
 
     Test.startTest();
     for (Integer i = 0; i < 10; i++) {
-      RecordHealthCheckRule plugin = RecordHealthCheckPluginDispatch.instantiate(
+      RecordHealthCheckPlugin plugin = RecordHealthCheckPluginDispatch.instantiate(
         pluginType
       );
       if (plugin != null) {
@@ -211,7 +211,7 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   @IsTest
-  static void mutatingRuleIsStoppedAndTheChangeIsRolledBack() {
+  static void mutatingCheckIsStoppedAndTheChangeIsRolledBack() {
     List<Account> accounts = makeAccounts(1);
     Id accountId = accounts[0].Id;
 
@@ -220,7 +220,7 @@ private class RecordHealthCheckPluginDispatchTest {
     String reasonCode;
     try {
       RecordHealthCheckPluginDispatch.run(
-        new MutatingRule(),
+        new MutatingCheck(),
         scopeFor(accounts)
       );
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
@@ -261,7 +261,7 @@ private class RecordHealthCheckPluginDispatchTest {
     String reasonCode;
     try {
       RecordHealthCheckPluginDispatch.run(
-        new MutateThenThrowRule(),
+        new MutateThenThrowCheck(),
         scopeFor(accounts)
       );
       Assert.isTrue(false, 'Expected the run to fail.');
@@ -290,7 +290,7 @@ private class RecordHealthCheckPluginDispatchTest {
     String reasonCode;
     try {
       RecordHealthCheckPluginDispatch.run(
-        new ThrowingRule(),
+        new ThrowingCheck(),
         scopeFor(accounts)
       );
     } catch (RecordHealthCheckPluginDispatch.ContractException ex) {
@@ -306,12 +306,12 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   @IsTest
-  static void wellBehavedRuleIsNotFlaggedAsASideEffect() {
+  static void wellBehavedCheckIsNotFlaggedAsASideEffect() {
     List<Account> accounts = makeAccounts(25);
 
     Test.startTest();
     Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
-      new WellBehavedRule(),
+      new WellBehavedCheck(),
       scopeFor(accounts)
     );
     Test.stopTest();
@@ -332,7 +332,7 @@ private class RecordHealthCheckPluginDispatchTest {
     Test.startTest();
     for (Integer i = 0; i < 10; i++) {
       Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
-        new WellBehavedRule(),
+        new WellBehavedCheck(),
         scope
       );
       if (outcomes.size() == 1) {
@@ -360,13 +360,13 @@ private class RecordHealthCheckPluginDispatchTest {
     List<Account> inScope = makeAccounts(3);
     List<Account> outOfScope = makeAccounts(1);
 
-    ExtraKeyRule rule = new ExtraKeyRule();
-    rule.foreignId = outOfScope[0].Id;
+    ExtraKeyCheck check = new ExtraKeyCheck();
+    check.foreignId = outOfScope[0].Id;
 
     Test.startTest();
     String reasonCode;
     try {
-      RecordHealthCheckPluginDispatch.run(rule, scopeFor(inScope));
+      RecordHealthCheckPluginDispatch.run(check, scopeFor(inScope));
     } catch (RecordHealthCheckPluginDispatch.ContractException ex) {
       reasonCode = ex.reasonCode;
     }
@@ -387,7 +387,7 @@ private class RecordHealthCheckPluginDispatchTest {
 
     Test.startTest();
     Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
-      new SkippingRule(),
+      new SkippingCheck(),
       scope
     );
     Test.stopTest();
@@ -417,7 +417,7 @@ private class RecordHealthCheckPluginDispatchTest {
     Test.startTest();
     String reasonCode;
     try {
-      RecordHealthCheckPluginDispatch.run(new NullRule(), scopeFor(accounts));
+      RecordHealthCheckPluginDispatch.run(new NullCheck(), scopeFor(accounts));
     } catch (RecordHealthCheckPluginDispatch.ContractException ex) {
       reasonCode = ex.reasonCode;
     }

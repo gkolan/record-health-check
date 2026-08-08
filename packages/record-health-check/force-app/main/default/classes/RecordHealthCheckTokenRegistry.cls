@@ -7,12 +7,12 @@
 public class RecordHealthCheckTokenRegistry {
   public static final Set<String> NAMESPACES = new Set<String>{
     'record',
-    'rhcRule',
+    'rhcCheck',
     'rhcSet',
     'rhcResult',
     'rhcRun'
   };
-  public static final Set<String> RULE_PROPERTIES = new Set<String>{
+  public static final Set<String> CHECK_PROPERTIES = new Set<String>{
     'developerName',
     'masterLabel',
     'checkTitle',
@@ -50,8 +50,8 @@ public class RecordHealthCheckTokenRegistry {
     if (namespaceName == 'record') {
       return String.isNotBlank(property);
     }
-    if (namespaceName == 'rhcRule') {
-      return RULE_PROPERTIES.contains(property);
+    if (namespaceName == 'rhcCheck') {
+      return CHECK_PROPERTIES.contains(property);
     }
     if (namespaceName == 'rhcSet') {
       return SET_PROPERTIES.contains(property);

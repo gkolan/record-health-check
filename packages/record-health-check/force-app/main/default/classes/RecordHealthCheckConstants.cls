@@ -26,7 +26,7 @@ public with sharing class RecordHealthCheckConstants {
   /** Maximum explicit record population accepted by packaged Batch and Scheduled adapters. */
   public static final Integer MAX_ASYNC_RECORDS = 2000;
 
-  /** Maximum distinct Rule or Check Set evaluations one Flow transaction may request. */
+  /** Maximum distinct Check or Check Set evaluations one Flow transaction may request. */
   public static final Integer MAX_FLOW_GROUPS = 10;
 
   /** Maximum aggregate serialized result characters returned by one Flow action invocation. */
@@ -84,7 +84,7 @@ public with sharing class RecordHealthCheckConstants {
     }
   }
 
-  // ─── Rule level ────────────────────────────────────────────────────────────
+  // ─── Check level ────────────────────────────────────────────────────────────
 
   private static final Set<String> VALID_CHECK_TYPES_INTERNAL = new Set<String>{
     'FORMULA',

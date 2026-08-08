@@ -2,7 +2,7 @@
 @IsTest
 private class RHCPluginScopeIntegrityTest {
   /** Tries to keep the scope and mutate it later. */
-  private class ScopeHoardingRule implements RecordHealthCheckRule {
+  private class ScopeHoardingCheck implements RecordHealthCheckPlugin {
     public RecordHealthCheckScope captured;
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
@@ -36,7 +36,7 @@ private class RHCPluginScopeIntegrityTest {
       'Account',
       new List<Id>(new Map<Id, Account>(accounts).keySet()),
       null,
-      'Test_Rule',
+      'Test_Check',
       'Test_Set',
       'run-test'
     );
@@ -49,14 +49,14 @@ private class RHCPluginScopeIntegrityTest {
   static void mutatingTheScopeDoesNotAffectTheEngine() {
     List<Account> accounts = makeAccounts(3);
     RecordHealthCheckScope scope = scopeFor(accounts);
-    ScopeHoardingRule rule = new ScopeHoardingRule();
+    ScopeHoardingCheck check = new ScopeHoardingCheck();
 
     Test.startTest();
-    // The rule clears the list and injects a parameter, but both act on copies,
+    // The check clears the list and injects a parameter, but both act on copies,
     // so its own loop still sees all three records and it returns a complete
     // result. That it succeeds is the point: the tampering had no effect at all.
     Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
-      rule,
+      check,
       scope
     );
     Test.stopTest();
@@ -74,33 +74,35 @@ private class RHCPluginScopeIntegrityTest {
   @IsTest
   static void nestedParametersAreDeeplyDetached() {
     Map<String, Object> nested = new Map<String, Object>{
-      'rules' => new List<Object>{ new Map<String, Object>{ 'threshold' => 3 } }
+      'checks' => new List<Object>{
+        new Map<String, Object>{ 'threshold' => 3 }
+      }
     };
     RecordHealthCheckScope scope = new RecordHealthCheckScope(
       'Account',
       null,
       nested,
-      'Test_Rule',
+      'Test_Check',
       'Test_Set',
       'run-test'
     );
 
-    ((Map<String, Object>) ((List<Object>) nested.get('rules'))[0])
+    ((Map<String, Object>) ((List<Object>) nested.get('checks'))[0])
       .put('threshold', 9);
     Map<String, Object> returned = scope.parameters;
-    ((Map<String, Object>) ((List<Object>) returned.get('rules'))[0])
+    ((Map<String, Object>) ((List<Object>) returned.get('checks'))[0])
       .put('threshold', 12);
 
-    Map<String, Object> storedRule = (Map<String, Object>) ((List<Object>) scope
-      .parameters.get('rules'))[0];
+    Map<String, Object> storedCheck = (Map<String, Object>) ((List<Object>) scope
+      .parameters.get('checks'))[0];
     Assert.areEqual(
       3,
-      storedRule.get('threshold'),
+      storedCheck.get('threshold'),
       'Neither constructor input nor returned nested values may mutate scope state.'
     );
   }
 
-  /** A Rule is authored against one object, so a mixed scope is rejected before dispatch. */
+  /** A Check is authored against one object, so a mixed scope is rejected before dispatch. */
   @IsTest
   static void mixedObjectTypesAreRejectedAtScopeConstruction() {
     Account account = RecordHealthCheckTestDataFactory.account(
@@ -119,7 +121,7 @@ private class RHCPluginScopeIntegrityTest {
         'Account',
         new List<Id>{ account.Id, contact.Id },
         null,
-        'Test_Rule',
+        'Test_Check',
         null,
         null
       );
@@ -141,7 +143,7 @@ private class RHCPluginScopeIntegrityTest {
       'Account',
       new List<Id>{ ids[2], ids[0], ids[2], ids[1], ids[0] },
       null,
-      'Test_Rule',
+      'Test_Check',
       null,
       null
     );
@@ -159,7 +161,7 @@ private class RHCPluginScopeIntegrityTest {
       'Account',
       new List<Id>{ accounts[0].Id, null, null },
       null,
-      'Test_Rule',
+      'Test_Check',
       null,
       null
     );

@@ -15,7 +15,7 @@ immutable candidates for the same semantic release.
 All subscriber-facing install URLs, CLI scripts, and CI gates read from
 [`config/package-releases.json`](../config/package-releases.json).
 
-Rules:
+Checks:
 
 1. `stable.subscriberPackageVersionId` must always refer to a **promoted** version.
 2. Never update `stable` merely because package-version creation produced a new candidate `04t`.
@@ -46,7 +46,7 @@ Before any Salesforce operation, run `npm run check:toolchain`. Before creating 
 package candidate, the repository scripts check the authoritative Dev Hub limits and stop rather
 than consume the last required capacity. Package verification deletes only the orgs it created; use
 `--keep-org` solely for an intentional, time-bounded investigation and delete that org afterward.
-See [Salesforce operations standard](SALESFORCE_OPERATIONS.md) for the mandatory lifecycle rules and
+See [Salesforce operations standard](SALESFORCE_OPERATIONS.md) for the mandatory lifecycle checks and
 the redacted migration record.
 
 ## Create a package candidate
@@ -112,11 +112,11 @@ and configure the public install redirect (`recordhealthcheck.com/install`) to t
 
 Current promoted subscriber package version ID: see `config/package-releases.json`.
 
-## Demo Example Check Sets and Rules
+## Demo Example Check Sets and Checks
 
-The 25 `Example_` Check Sets and Rules ship **inside** the package, from
+The 25 `Example_` Check Sets and Checks ship **inside** the package, from
 `packages/record-health-check/force-app/main/default/customMetadata`. A subscriber gets four Demo
-Check Sets and 21 Rules on install, with no extra step. `check:package-boundary` enforces that they
+Check Sets and 21 Checks on install, with no extra step. `check:package-boundary` enforces that they
 stay there and stay byte-identical to their `integration-tests` copies.
 
 Do not move them to an unpackaged directory and do not add `unpackagedMetadata` to
@@ -130,5 +130,5 @@ owned, come from `scripts/subscriber/data`, and must never be packaged.
 
 Salesforce package versions are immutable. Roll forward with a corrected package version when a
 schema or installed metadata change cannot be safely reversed. For an application-only regression,
-install the previously supported version only when Salesforce package ancestry and upgrade rules
+install the previously supported version only when Salesforce package ancestry and upgrade checks
 permit it. Document data or configuration remediation separately.

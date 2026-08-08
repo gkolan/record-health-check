@@ -185,7 +185,7 @@ public with sharing class RecordHealthCheckLogger {
         Level__c = lvl.name(),
         Code__c = sanitize(event, 120),
         CheckSetDeveloperName__c = checkSetDeveloperName,
-        RuleDeveloperName__c = sanitize(checkName, 120),
+        CheckDeveloperName__c = sanitize(checkName, 120),
         RecordId__c = recordId,
         ExceptionType__c = ex == null ? null : sanitize(ex.getTypeName(), 120),
         Message__c = buildMessage(fields, ex),
@@ -309,7 +309,7 @@ public with sharing class RecordHealthCheckLogger {
 
   /**
    * Renders one structured, greppable line
-   * [RHC] WARN METADATA_INVALID | runId=.. user=.. checkSet=.. rule=.. <fields>
+   * [RHC] WARN METADATA_INVALID | runId=.. user=.. checkSet=.. check=.. <fields>
    * Fields are sorted by key so output is deterministic regardless of map order.
    */
   private String render(
@@ -326,7 +326,7 @@ public with sharing class RecordHealthCheckLogger {
       parts.add('checkSet=' + checkSetDeveloperName);
     }
     if (String.isNotBlank(checkName)) {
-      parts.add('rule=' + sanitize(checkName, 120));
+      parts.add('check=' + sanitize(checkName, 120));
     }
     if (recordId != null) {
       parts.add('record=' + recordId);

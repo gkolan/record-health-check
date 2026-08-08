@@ -28,19 +28,19 @@ RecordHealthCheckResponse setResult = RecordHealthCheck.evaluate(
     .withRunId('demo-apex-set-' + String.valueOf(Datetime.now().getTime()))
 );
 System.assertNotEquals(null, setResult, 'The Check Set API must return a result.');
-System.assert(!setResult.results.isEmpty(), 'The demo Check Set must run at least one Rule.');
+System.assert(!setResult.results.isEmpty(), 'The demo Check Set must run at least one Check.');
 
-RecordHealthCheckResponse ruleResult = RecordHealthCheck.evaluate(
-  RecordHealthCheckRequest.forRule(
+RecordHealthCheckResponse checkResult = RecordHealthCheck.evaluate(
+  RecordHealthCheckRequest.forCheck(
       'Account_DQ_BillingCity',
       demoAccount.Id
     )
-    .withRunId('demo-apex-rule-' + String.valueOf(Datetime.now().getTime()))
+    .withRunId('demo-apex-check-' + String.valueOf(Datetime.now().getTime()))
 );
 System.assertEquals(
   'PASS',
-  ruleResult.results[0].evaluation.status,
-  'The seeded Billing City Rule should pass.'
+  checkResult.results[0].evaluation.status,
+  'The seeded Billing City Check should pass.'
 );
 
 System.debug(
@@ -51,8 +51,8 @@ System.debug(
         'passedCount' => setResult.summary.passed,
         'failedCount' => setResult.summary.failed,
         'unableCount' => setResult.summary.unable,
-        'ruleStatus' => ruleResult.results[0].evaluation.status,
-        'ruleReasonCode' => ruleResult.results[0].evaluation.reasonCode
+        'checkStatus' => checkResult.results[0].evaluation.status,
+        'checkReasonCode' => checkResult.results[0].evaluation.reasonCode
       }
     )
 );

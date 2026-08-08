@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > On this page, learn how Record Health Check formats Found and Expected values for display: the
-> **Display: Value Format** choices on a Rule, and the automatic handling of blanks, numbers,
+> **Display: Value Format** choices on a Check, and the automatic handling of blanks, numbers,
 > currency, Booleans, dates, picklist labels, multi-select picklists, and list previews.
 >
 > **Reference**
@@ -18,12 +18,12 @@
 
 When any Evaluation Type finishes, the Framework can turn typed Found and Expected values into
 short display text for the card chips. The goal is readable comparison values without changing how
-the Rule decides pass or fail. Apex plugins return `RecordHealthCheckValue` objects through
+the Check decides pass or fail. Apex plugins return `RecordHealthCheckValue` objects through
 `RecordHealthCheckOutcome`; they do not author rendered strings or bypass the shared formatter.
 
 ## Choosing a format
 
-**Display: Value Format** (`DisplayValueFormat__c`) on the Rule sets how both Found and Expected are
+**Display: Value Format** (`DisplayValueFormat__c`) on the Check sets how both Found and Expected are
 written. Leave it on **Auto** and the Framework works the format out from the field definition and
 value type. Name a format when the business meaning requires a specific presentation.
 
@@ -41,23 +41,23 @@ value type. Name a format when the business meaning requires a specific presenta
 | Raw | The value exactly as written | `0012345` → `0012345` |
 
 One format covers both sides of the comparison, so Found and Expected always read in the same units.
-A Rule that names Currency shows `$70,000.00` against `at least $50,000.00`, never one of each.
+A Check that names Currency shows `$70,000.00` against `at least $50,000.00`, never one of each.
 
 Text and Raw both return the value as written and neither humanizes anything. They are kept apart
-so a Rule records why the author chose it: Text for names and free
+so a Check records why the author chose it: Text for names and free
 text, Raw for identifiers, external keys, and codes.
 
 `PERCENT` follows Salesforce Percent-field semantics and does not multiply. `RATIO_PERCENT` is the
 explicit fraction format; it does not clamp values, so `1.4` renders as `140%`. The format applies
 to list entries and to the operator phrase as well, and it never affects whether
-a Rule passes or fails. Pass and fail are decided from the raw typed values before any of this runs.
+a Check passes or fails. Pass and fail are decided from the raw typed values before any of this runs.
 
 ### When a format does not fit the value
 
 Naming a format that cannot apply is not an error. The value is shown with its original spelling
 instead, so a display choice can never break a card:
 
-| Rule sets | Value | Display text |
+| Check sets | Value | Display text |
 | --- | --- | --- |
 | Currency | `001A2B3C4D5E6F7G` | `001A2B3C4D5E6F7G` |
 | Number | `Technology` | `Technology` |
@@ -96,9 +96,9 @@ On **Auto**, a queried field that has a display shape of its own decides the for
 | Picklist | The label visible to the running user | `In_Progress` → `In Progress` |
 | Multi-select picklist | Visible labels in stored order | `Hot;Warm` → `Hot, Warm` |
 
-Naming a format on the Rule always wins over the field definition, so Number on a Currency field
+Naming a format on the Check always wins over the field definition, so Number on a Currency field
 drops the symbol as asked. Field types without a shape of their own - Number, Text, Checkbox, Date,
-Date/Time - fall through to the type rules below.
+Date/Time - fall through to the type checks below.
 
 Picklist label resolution uses the field's global definition. It works for dependent picklists too;
 record-type filtering does not change the label for a stored value. If a stored or inactive value is
@@ -106,19 +106,19 @@ not returned by the field definition, the API value is shown unchanged. Labels f
 user's language when Salesforce supplies a translated label. Comparisons still use API values.
 
 A value with no single source field behind it, such as `SUM(Amount)`, has no definition to read, so
-it uses the type rules below. Name Currency on the Rule when an aggregate should read as money.
+it uses the type checks below. Name Currency on the Check when an aggregate should read as money.
 
 On a list-membership check the value under test comes from **Find in List Formula**, not a query row,
 so the field definition is read from the record the card is on. A Find in List Formula that names a
 field, such as `AnnualRevenue`, therefore reads as money on Auto. A longer expression has no single
-field behind it, so it stays on the type rules; name a format on the Rule when one is needed.
+field behind it, so it stays on the type checks; name a format on the Check when one is needed.
 
 ## Auto: Typed values
 
 When there is no field definition to read, and the Framework still has the Apex type, it formats
 from that type:
 
-| Type | Display rule | Example |
+| Type | Display check | Example |
 | --- | --- | --- |
 | Boolean | `Yes` or `No` | `true` → `Yes` |
 | Date | Running user's locale date format | `2026-07-04` typed Date → locale date such as `7/4/2026` |
@@ -141,7 +141,7 @@ Display: Value Format to Number.
 
 Fixed Custom Metadata operands and other flattened strings are recognized in this order:
 
-| Shape | Display rule | Example |
+| Shape | Display check | Example |
 | --- | --- | --- |
 | Boolean text | Case-insensitive `true` / `false` → `Yes` / `No` | `False` → `No` |
 | ISO date `YYYY-MM-DD` | Same locale date format as a typed Date, when the parts name a real date | `2026-07-04` → locale date; `2026-02-30` unchanged |
@@ -162,14 +162,14 @@ what the value means.
 ## Locale
 
 Numbers, currency, dates, and date/times follow the **running user's** locale and time zone, read at
-the moment the Rule is evaluated:
+the moment the Check is evaluated:
 
 | Running user's locale | `70000.0` on Number | `1234.56` in euros |
 | --- | --- | --- |
 | English (US) | `70,000` | `€1,234.56` |
 | German (Germany) | `70.000` | `€1.234,56` |
 
-Two users can therefore see the same Rule write the same value differently. That is expected: the
+Two users can therefore see the same Check write the same value differently. That is expected: the
 underlying value and the pass or fail outcome are identical.
 
 Boolean Yes/No text and operator phrases are Custom Labels. Their packaged English values can be
@@ -201,11 +201,11 @@ them on a card.
 | A query over the record the card is on | That record's currency |
 | A query whose rows carry `CurrencyIsoCode` | The currency on the row read for that side |
 | A relationship field such as `Account.AnnualRevenue` | The related Account's currency, not the outer query row's currency |
-| A Formula Rule | The record's currency |
+| A Formula Check | The record's currency |
 | An aggregate such as `SUM(Amount)` | Salesforce converts an aggregate to the corporate currency, and the chip follows |
 | A query over a different object without `CurrencyIsoCode` | The running user's currency, rather than borrowing an unrelated record's |
 
-Each side of a comparison keeps its own currency. On a Compare two queries Rule, and on a Query Rule
+Each side of a comparison keeps its own currency. On a Compare two queries Check, and on a Query Check
 whose Expected value comes from a comparison query, the two sides are separate queries and may hold
 separate currencies. They share one format, but each keeps its own currency, so a pipeline total
 converted to the corporate currency does not get labelled with the currency of the record it is
@@ -225,26 +225,26 @@ List comparisons render through `formatList`:
 | Up to 10 values | `[value1, value2, …]` with each entry formatted like a single value |
 | More than 10 values | First 10 entries, then `… (N total)` inside the brackets |
 
-Every entry uses the Rule's Display: Value Format, so a list of amounts reads consistently, and each
+Every entry uses the Check's Display: Value Format, so a list of amounts reads consistently, and each
 entry carries the currency of the row it came from.
 
 ## What this formatter does not change
 
 - Pass and fail decisions still use the raw typed values and operators. No Display: Value Format
-  choice can move a Rule between pass and fail.
+  choice can move a Check between pass and fail.
 - Ordinary text, Salesforce Ids, postal codes, phone-style strings, and other non-matching shapes
   keep their exact characters.
 - Administrator-authored **Display: Found Text** and **Display: Expected Text** templates are merge
   token templates; they are not re-run through this formatter after tokens resolve. They read the
   already-formatted values through `{!rhcResult.foundValue}` and `{!rhcResult.expectedValue}`, so a
-  Rule can quote a formatted amount inside its own wording.
+  Check can quote a formatted amount inside its own wording.
 - Merge tokens in messages and Action URLs use
   [merge-token resolution](02-merge-tokens.md), not `formatValue`.
 - A raw record token can opt into this catalog inline, for example
   `{!record.Amount format="CURRENCY" fallback="Not available"}`.
 - **Formula Result Type** (`FormulaResultType__c`) is a different setting. It declares the type a
-  formula returns so the Rule can calculate with it; Display: Value Format only decides how the
-  result is written. A Formula Rule can set Formula Result Type to Number and Display: Value Format
+  formula returns so the Check can calculate with it; Display: Value Format only decides how the
+  result is written. A Formula Check can set Formula Result Type to Number and Display: Value Format
   to Currency at the same time.
 
 Prefer returning the typed amount from a display formula and choosing **Currency** here. Building
@@ -261,8 +261,8 @@ cannot follow the running user's locale, and cannot distinguish currencies in a 
 ## Related
 
 - [Reference: Apex classes](../apex/05-shared-services.md#recordhealthcheckdisplayformat):
-  `RecordHealthCheckDisplayFormat` rendering rules and `formatValue` / `formatList` ownership
-- [Reference: Query](../evaluation/02-query.md): Found and Expected on Query Rules
+  `RecordHealthCheckDisplayFormat` rendering checks and `formatValue` / `formatList` ownership
+- [Reference: Query](../evaluation/02-query.md): Found and Expected on Query Checks
 - [Reference: Formula](../evaluation/01-formula.md): optional Found and Expected display formulas
 - [Reference: Compare two queries](../evaluation/03-compare-two-queries.md): two-sided Found and Expected
-- [Reference: Apex](../evaluation/04-apex-rule-contract.md): plugin-authored Found and Expected strings
+- [Reference: Apex](../evaluation/04-apex-check-contract.md): plugin-authored Found and Expected strings

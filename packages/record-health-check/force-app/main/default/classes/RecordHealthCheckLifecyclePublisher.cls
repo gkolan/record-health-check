@@ -52,22 +52,22 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
       return;
     }
     Boolean publishSet = isRunPublicationEnabled(checkSetQualifiedApiName);
-    Set<String> enabledRules = settingsProvider.publishedRuleNames(
+    Set<String> enabledChecks = settingsProvider.publishedCheckNames(
       checkSetQualifiedApiName
     );
     RecordHealthCheckResponse filtered = new RecordHealthCheckResponse();
     filtered.runId = response.runId;
     filtered.recordIds.addAll(response.recordIds);
-    filtered.ruleQualifiedApiNames.addAll(response.ruleQualifiedApiNames);
+    filtered.checkQualifiedApiNames.addAll(response.checkQualifiedApiNames);
     filtered.summary = response.summary;
     for (RecordHealthCheckResultItem item : response.results) {
       if (
         item != null &&
         item.evaluation != null &&
-        String.isNotBlank(item.evaluation.ruleQualifiedApiName) &&
-        (enabledRules.contains(item.evaluation.ruleQualifiedApiName) ||
-        enabledRules.contains(
-          item.evaluation.ruleQualifiedApiName.substringAfter('__')
+        String.isNotBlank(item.evaluation.checkQualifiedApiName) &&
+        (enabledChecks.contains(item.evaluation.checkQualifiedApiName) ||
+        enabledChecks.contains(
+          item.evaluation.checkQualifiedApiName.substringAfter('__')
         ))
       ) {
         filtered.results.add(item);
@@ -123,19 +123,19 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
       return;
     }
 
-    List<Record_Health_Check_Rule_Result__e> ruleEvents = new List<Record_Health_Check_Rule_Result__e>();
+    List<Record_Health_Check_Result__e> checkEvents = new List<Record_Health_Check_Result__e>();
     for (RecordHealthCheckResultItem item : selected) {
       RecordHealthCheckEvaluationResult evaluation = item.evaluation;
-      ruleEvents.add(
-        new Record_Health_Check_Rule_Result__e(
+      checkEvents.add(
+        new Record_Health_Check_Result__e(
           ContractVersion__c = CONTRACT_VERSION,
           EventId__c = newEventId(
             response.runId,
-            evaluation.ruleQualifiedApiName + '-' + evaluation.recordId
+            evaluation.checkQualifiedApiName + '-' + evaluation.recordId
           ),
           RunId__c = response.runId,
           CheckSetQualifiedApiName__c = checkSetQualifiedApiName,
-          RuleQualifiedApiName__c = evaluation.ruleQualifiedApiName,
+          CheckQualifiedApiName__c = evaluation.checkQualifiedApiName,
           Status__c = evaluation.status,
           ReasonCode__c = evaluation.reasonCode,
           Severity__c = evaluation.severity,
@@ -149,7 +149,7 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
         )
       );
     }
-    publishRuleEvents(ruleEvents);
+    publishCheckEvents(checkEvents);
 
     if (publishSet != true) {
       return;
@@ -206,8 +206,8 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
           OccurredAt__c = System.now(),
           Source__c = source,
           FrameworkVersion__c = FRAMEWORK_VERSION,
-          EligibleRuleCount__c = response.ruleQualifiedApiNames.size(),
-          EvaluatedRuleCount__c = summary.total(),
+          EligibleCheckCount__c = response.checkQualifiedApiNames.size(),
+          EvaluatedCheckCount__c = summary.total(),
           PassedCount__c = summary.passed,
           FailedCount__c = summary.failed,
           SkippedCount__c = summary.skipped,
@@ -236,18 +236,18 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
   }
 
   @TestVisible
-  private static void publishRuleEvents(
-    List<Record_Health_Check_Rule_Result__e> events
+  private static void publishCheckEvents(
+    List<Record_Health_Check_Result__e> events
   ) {
     for (
       Integer start = 0; start < events.size(); start += PUBLISH_CHUNK_SIZE
     ) {
       Integer finish = Math.min(start + PUBLISH_CHUNK_SIZE, events.size());
-      List<Record_Health_Check_Rule_Result__e> chunk = new List<Record_Health_Check_Rule_Result__e>();
+      List<Record_Health_Check_Result__e> chunk = new List<Record_Health_Check_Result__e>();
       for (Integer index = start; index < finish; index++) {
         chunk.add(events[index]);
       }
-      inspect(EventBus.publish(chunk), 'RULE_RESULT_PUBLISH_FAILED');
+      inspect(EventBus.publish(chunk), 'CHECK_RESULT_PUBLISH_FAILED');
     }
   }
 

@@ -6,7 +6,10 @@ const classRoot = "packages/record-health-check/force-app/main/default/classes";
 // review; reductions must lower these values in the same change.
 const maxMethodLines = 416;
 const maxDecisionPoints = 51;
-const approvedProductionRhcNames = new Set(["RHCMetadataDependencyValidator"]);
+const approvedProductionRhcNames = new Set([
+  "RHCConstructorMutationCheck",
+  "RHCMetadataDependencyValidator"
+]);
 const failures = [];
 let globalMembers = 0;
 let methods = 0;

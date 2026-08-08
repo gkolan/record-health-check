@@ -4,7 +4,7 @@
 > On this page, find the shortest path from your Salesforce goal to the Record Health Check
 > guidance that will help you finish the job.
 
-Record Health Check is a **metadata-driven Framework**. Check Sets and Rules are defined in Custom
+Record Health Check is a **metadata-driven Framework**. Check Sets and Checks are defined in Custom
 Metadata. The Lightning record-page card shows advisory results. The same checks can run from Apex
 or Flow. The Framework never blocks a save and never writes the evaluated record.
 
@@ -15,11 +15,11 @@ need below.
 
 | Step | Task | Expected result |
 | ---: | --- | --- |
-| 1 | [Learn how it works](installation/01-how-it-works.md) | You can explain Check Set vs Rule, and that the Framework does not block saves |
+| 1 | [Learn how it works](installation/01-how-it-works.md) | You can explain Check Set vs Check, and that the Framework does not block saves |
 | 2 | [Install and verify in your org](installation/02-install-and-verify.md) | A Record Health Check card appears on a sandbox record page |
-| 3 | [Create your first Rule](installation/03-create-your-first-rule.md) | The card evaluates one Rule you configured in Setup |
+| 3 | [Create your first Check](installation/03-create-your-first-check.md) | The card evaluates one Check you configured in Setup |
 | 4 | [Choose another example](examples/README.md) | You pick an Evaluation Type based on where the data lives |
-| 5 | [Review the configuration guide](guides/03-configure-check-sets-and-rules.md) | The Check Set is ready for broader testing |
+| 5 | [Review the configuration guide](guides/03-configure-check-sets-and-checks.md) | The Check Set is ready for broader testing |
 
 Prefer to evaluate known records and outcomes in a separate org? Use
 [Deploy to a demo scratch org](installation/05-create-rhc-scratch-org.md).
@@ -33,9 +33,9 @@ Prefer to evaluate known records and outcomes in a separate org? Use
 | Revalidate or upgrade an existing org | [Revalidate an installation](installation/04-upgrading.md) | How to back up configuration and verify after upgrade |
 | Remove the Framework | [Uninstall and rollback](installation/06-uninstall-and-rollback.md) | How to remove placements, subscribers, and the package |
 | Answer a common question first | [FAQ](guides/02-faq.md) | Short answers on saves, editions, install paths, and Demo Check Sets |
-| Create my first Rule in Setup | [Create your first Rule](installation/03-create-your-first-rule.md) | How to author a Formula Rule and test Pass and Fail |
+| Create my first Check in Setup | [Create your first Check](installation/03-create-your-first-check.md) | How to author a Formula Check and test Pass and Fail |
 | Copy a practical example | [Examples library](examples/README.md) | How to choose an Evaluation Type and adapt a tested pattern |
-| Configure advanced Check Set / Rule behavior | [Configure Check Sets and Rules](guides/03-configure-check-sets-and-rules.md) | How to design a full readiness review |
+| Configure advanced Check Set / Check behavior | [Configure Check Sets and Checks](guides/03-configure-check-sets-and-checks.md) | How to design a full readiness review |
 | Add action links | [Configure action links](guides/04-configure-action-links.md) | How to pair Fix Message with Action Label and URL |
 | Troubleshoot an unexpected result | [Troubleshoot with Show Diagnostics](guides/07-troubleshoot-with-show-diagnostics.md) | How to reveal authorized diagnostics safely |
 | Keep a production org healthy | [Operate in production](guides/08-operate-in-production.md) | Day-2 monitoring and diagnostics hygiene |
@@ -44,7 +44,7 @@ Prefer to evaluate known records and outcomes in a separate org? Use
 | Choose Lightning, Apex, Flow, or events | [Integration overview](integration/README.md) | Which surface fits the readiness decision |
 | Call `evaluate` from Apex | [Apex API](api/01-apex-api.md) | How to invoke Check Sets from code |
 | Call checks from Flow | [Flow actions](integration/02-flow-actions.md) | How to configure an Action and Decision path |
-| Write an Apex Rule plugin | [Apex Rule contract](reference/evaluation/04-apex-rule-contract.md) | The plugin interface and verification expectations |
+| Write an Apex Check plugin | [Apex Check contract](reference/evaluation/04-apex-check-contract.md) | The plugin interface and verification expectations |
 | Subscribe to lifecycle events | [Platform Event subscriptions](platform-events/README.md) | How to build a Flow or Apex subscriber |
 | Compare to Validation Rules / Duplicate Rules / Flow | [Compare to native Salesforce](guides/01-compare-to-native-salesforce.md) | When advisory health checks fit versus blocking tools |
 | Review security and data access | [Security and data access](reference/framework/02-security.md) | USER_MODE, permission sets, diagnostics, and plugins |
@@ -68,7 +68,7 @@ Prefer to evaluate known records and outcomes in a separate org? Use
 - Record Health Check reports readiness; it does **not** block a Salesforce record from being saved.
 - A normal business issue returns `FAIL`. An unexpected execution problem returns `ERROR`.
 - Formula and query evaluation uses the running user's Salesforce access.
-- Lifecycle-event publication for Set Run / Rule Result is off by default (Error Log defaults on).
+- Lifecycle-event publication for Set Run / Check Result is off by default (Error Log defaults on).
 - The Framework ships four Demo Check Sets (`Example_…`, card titles prefixed with `Demo:`).
   Use the [examples library](examples/README.md) for teaching patterns.
 

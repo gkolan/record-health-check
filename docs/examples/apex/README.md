@@ -1,7 +1,7 @@
 # Apex examples
 
 > [!NOTE]
-> On this page, choose a practical Apex Rule for readiness logic that requires several Salesforce objects, configurable calculations, or defensive runtime behavior.
+> On this page, choose a practical Apex Check for readiness logic that requires several Salesforce objects, configurable calculations, or defensive runtime behavior.
 
 Use **Verify with Apex** when Formula, Query, and Compare two queries cannot express the business
 decision clearly. An Apex plugin receives a bulk scope and administrator-controlled JSON
@@ -24,12 +24,12 @@ want those behaviors.
 ## What Record Health Check passes to Apex
 
 Every Apex example uses the same bulk scope contract. Full detail lives in
-[Apex Rule contract](../../reference/evaluation/04-apex-rule-contract.md).
+[Apex Check contract](../../reference/evaluation/04-apex-check-contract.md).
 
 | Input in Apex | Where it comes from |
 | --- | --- |
 | `scope.recordIds` | The records being evaluated in this run (one Id on the card; up to 200 from Apex or Flow) |
-| `scope.parameters` | **Apex Parameters (JSON)** (`ApexParametersJson__c`) on the Rule |
+| `scope.parameters` | **Apex Parameters (JSON)** (`ApexParametersJson__c`) on the Check |
 
 Leave the evaluated record Id out of the parameter JSON. Copy `scope.recordIds` once and bind it in
 SOQL so one query serves the whole scope:
@@ -46,11 +46,11 @@ schema, and carefully handled product dependencies, but it also requires secure 
 Apex test coverage.
 
 For the plugin interface, context, parameters, result contract, security, and deployment checklist,
-use [Reference: Apex](../../reference/evaluation/04-apex-rule-contract.md).
+use [Reference: Apex](../../reference/evaluation/04-apex-check-contract.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Apex](../../reference/evaluation/04-apex-rule-contract.md)
+- [Reference: Apex](../../reference/evaluation/04-apex-check-contract.md)
 - [Apex API](../../api/01-apex-api.md)
-- [Rule fields](../../metadata/02-fields-check-rule.md)
+- [Check fields](../../metadata/02-fields-check.md)

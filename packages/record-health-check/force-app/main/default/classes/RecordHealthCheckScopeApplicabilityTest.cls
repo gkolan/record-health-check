@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopeApplicabilityTest {
-  private static final String PHONE_RULE = 'Example_Profile_Phone_Available';
+  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
 
   @TestSetup
   static void setupRunPermission() {
@@ -12,14 +12,11 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
   @IsTest
   static void helperBranchesCoverEmptyScopeApplicabilityAndComparisons() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     RecordHealthCheckScopeResultSupport resultSupport = new RecordHealthCheckScopeResultSupport();
     Account record = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Applicability' }
     );
-    Record_Health_Check_Rule__mdt falseRule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt falseCheck = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ApplicabilityMode__c' => 'WHEN_FORMULA_TRUE',
         'ApplicabilityFormula__c' => 'FALSE',
@@ -27,7 +24,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
         'UnableToEvaluateMessage__c' => 'Unable'
       }
     );
-    Record_Health_Check_Rule__mdt invalidRule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt invalidCheck = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ApplicabilityMode__c' => 'WHEN_FORMULA_TRUE',
         'ApplicabilityFormula__c' => 'NOT_VALID(',
@@ -38,21 +35,21 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
     Test.startTest();
     RecordHealthCheckResponse emptyResponse = RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forRule(
-        RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+      RecordHealthCheckRequest.forCheck(
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
         new List<Id>()
       )
     );
     RecordHealthCheckInternalResult skipped = resultSupport.applicabilityResult(
-      falseRule,
+      falseCheck,
       record
     );
     RecordHealthCheckInternalResult unable = resultSupport.applicabilityResult(
-      invalidRule,
+      invalidCheck,
       record
     );
     RecordHealthCheckInternalResult applicable = resultSupport.applicabilityResult(
-      RecordHealthCheckTestDataFactory.rule(
+      RecordHealthCheckTestDataFactory.check(
         new Map<String, Object>{
           'ApplicabilityMode__c' => 'WHEN_FORMULA_TRUE',
           'ApplicabilityFormula__c' => 'TRUE'
@@ -98,9 +95,6 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
   @IsTest
   static void countApplicabilityQueriesOnceAndSkipsBeforeEvaluation() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account applicable = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Applicable', 'AnnualRevenue' => 100 }
     );
@@ -121,8 +115,8 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
         }
       )
     );
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Pipeline_Protects_Revenue'
       ),
       new List<Id>{ skipped.Id, applicable.Id }
@@ -155,7 +149,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
   @IsTest
   static void defensiveHelpersPreserveStableResults() {
     RecordHealthCheckScopeResultSupport resultSupport = new RecordHealthCheckScopeResultSupport();
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ApplicabilityMode__c' => 'WHEN_COUNT_QUERY_MATCHES',
         'ApplicabilityNotMetMessage__c' => 'Not applicable.',
@@ -165,12 +159,14 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult notMigrated = resultSupport.applicabilityResult(
-      rule,
+      check,
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Applicability' }
       )
     );
-    RecordHealthCheckInternalResult skipped = resultSupport.skippedResult(rule);
+    RecordHealthCheckInternalResult skipped = resultSupport.skippedResult(
+      check
+    );
     Boolean invalidComparison = resultSupport.compareCount('UNKNOWN', 1, 1);
     String blankUrl = resultSupport.sanitizeActionUrl(' ');
     String unsafeUrl = resultSupport.sanitizeActionUrl('//example.com');
@@ -195,7 +191,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
         new Map<String, Object>{ 'Name' => 'Count applicability' }
       )
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ApplicabilityMode__c' => 'WHEN_COUNT_QUERY_MATCHES',
         'ApplicabilityCountQuery__c' => 'SELECT Id FROM Contact',
@@ -207,7 +203,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.startTest();
     Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckScopeResultSupport()
       .applicabilityResults(
-        rule,
+        check,
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account }
       );
@@ -226,7 +222,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
         new Map<String, Object>{ 'Name' => 'Unknown count operator' }
       )
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'FORMULA',
         'ApplicabilityMode__c' => 'WHEN_COUNT_QUERY_MATCHES',
@@ -240,13 +236,184 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.startTest();
     Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckScopeResultSupport()
       .applicabilityResults(
-        rule,
+        check,
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account }
       );
     Test.stopTest();
 
     Assert.areEqual('INVALID_OPERATOR', results.get(account.Id).reasonCode);
+  }
+
+  @IsTest
+  static void formulaApplicabilityCollectsSkippedRecordsByIdentity() {
+    Account account = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Formula applicability false' }
+    );
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'ApplicabilityMode__c' => 'WHEN_FORMULA_TRUE',
+        'ApplicabilityFormula__c' => 'FALSE',
+        'ApplicabilityNotMetMessage__c' => 'Formula did not apply.'
+      }
+    );
+
+    Test.startTest();
+    Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckScopeResultSupport()
+      .applicabilityResults(
+        check,
+        new List<Id>{ account.Id },
+        new Map<Id, SObject>{ account.Id => account }
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      1,
+      results.size(),
+      'A false formula should produce one applicability result for its record.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckStatus.SKIPPED,
+      results.get(account.Id).status,
+      'A false applicability formula should skip the matching record.'
+    );
+  }
+
+  @IsTest
+  static void countApplicabilityIgnoresRecordsNotLoadedIntoScope() {
+    Id missingId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      73
+    );
+    Record_Health_Check__mdt check = countApplicabilityCheck(
+      'FORMULA',
+      'GREATER_THAN',
+      0
+    );
+
+    Test.startTest();
+    Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckScopeResultSupport()
+      .applicabilityResults(
+        check,
+        new List<Id>{ missingId },
+        new Map<Id, SObject>()
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      0,
+      results.size(),
+      'A record absent from the loaded scope should not receive an applicability verdict.'
+    );
+  }
+
+  @IsTest
+  static void compareCheckUsesNoRowsBehaviorWhenCountThresholdIsNotMet() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'Compare applicability below threshold'
+    );
+    Record_Health_Check__mdt check = countApplicabilityCheck(
+      'COMPARE_TWO_QUERIES',
+      'GREATER_THAN',
+      0
+    );
+    check.NoRowsResult__c = 'FAIL';
+    check.FailureSeverity__c = 'WARNING';
+    check.FailureMessage__c = 'No applicable rows.';
+
+    Test.startTest();
+    Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckScopeResultSupport()
+      .applicabilityResults(
+        check,
+        new List<Id>{ account.Id },
+        new Map<Id, SObject>{ account.Id => account }
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.FAIL,
+      results.get(account.Id).status,
+      'A compare Check should apply its configured no-rows behavior when the threshold is not met.'
+    );
+    Assert.areEqual(
+      'No applicable rows.',
+      results.get(account.Id).message,
+      'The configured no-rows failure message should be preserved.'
+    );
+  }
+
+  @IsTest
+  static void countApplicabilityPreservesBulkQueryFailureReason() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      Account account = RecordHealthCheckTestDataFactory.createAccount(
+        'Unsupported applicability query'
+      );
+      Record_Health_Check__mdt check = countApplicabilityCheck(
+        'FORMULA',
+        'GREATER_THAN',
+        0
+      );
+      check.ApplicabilityCountQuery__c = 'SELECT COUNT(Id) FROM Contact WHERE AccountId = {!record.Id} AND LastName = {!record.Name}';
+
+      Test.startTest();
+      Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckScopeResultSupport()
+        .applicabilityResults(
+          check,
+          new List<Id>{ account.Id },
+          new Map<Id, SObject>{ account.Id => account }
+        );
+      Test.stopTest();
+
+      Assert.areEqual(
+        'UNSUPPORTED_BULK_QUERY_SHAPE',
+        results.get(account.Id).reasonCode,
+        'The bulk-query failure reason should remain actionable for every scoped record.'
+      );
+    }
+  }
+
+  @IsTest
+  static void countApplicabilityMapsUnexpectedScopeFailure() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+        Account.SObjectType,
+        74
+      );
+      Record_Health_Check__mdt check = countApplicabilityCheck(
+        'FORMULA',
+        'GREATER_THAN',
+        0
+      );
+
+      Test.startTest();
+      Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckScopeResultSupport()
+        .applicabilityResults(check, new List<Id>{ accountId }, null);
+      Test.stopTest();
+
+      Assert.areEqual(
+        'UNABLE_TO_EVALUATE',
+        results.get(accountId).reasonCode,
+        'An unexpected scope failure should produce the stable defensive reason.'
+      );
+    }
+  }
+
+  private static Record_Health_Check__mdt countApplicabilityCheck(
+    String evaluationType,
+    String countOperator,
+    Integer threshold
+  ) {
+    return RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'EvaluationType__c' => evaluationType,
+        'ApplicabilityMode__c' => 'WHEN_COUNT_QUERY_MATCHES',
+        'ApplicabilityCountQuery__c' => 'SELECT COUNT(Id) total FROM Contact WHERE AccountId = {!record.Id}',
+        'ApplicabilityCountOperator__c' => countOperator,
+        'ApplicabilityCountThreshold__c' => threshold,
+        'ApplicabilityNotMetMessage__c' => 'Count threshold not met.',
+        'UnableToEvaluateMessage__c' => 'Unable.'
+      }
+    );
   }
 
   private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {
@@ -257,11 +424,11 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     return context;
   }
 
-  private static Record_Health_Check_Rule__mdt queryCountRule(
+  private static Record_Health_Check__mdt queryCountCheck(
     String developerName,
     String failureMessage
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => developerName,
         'DeveloperName' => developerName,
@@ -285,27 +452,27 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt buildRuleWithPrerequisite(
+  private static Record_Health_Check__mdt buildCheckWithPrerequisite(
     String prerequisiteName
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'DeveloperName' => 'Rule_B',
-        'QualifiedApiName' => 'namespace__Rule_B',
-        'PrerequisiteRule__c' => prerequisiteName
+        'DeveloperName' => 'Check_B',
+        'QualifiedApiName' => 'namespace__Check_B',
+        'PrerequisiteCheck__c' => prerequisiteName
       }
     );
   }
 
   private static RecordHealthCheckResultItem buildPrerequisiteResultItem(
     Id recordId,
-    String qualifiedRuleName,
+    String qualifiedCheckName,
     String status
   ) {
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = new RecordHealthCheckEvaluationResult();
     item.evaluation.recordId = recordId;
-    item.evaluation.ruleQualifiedApiName = qualifiedRuleName;
+    item.evaluation.checkQualifiedApiName = qualifiedCheckName;
     item.evaluation.status = status;
     return item;
   }

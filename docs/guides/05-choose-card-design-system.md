@@ -24,7 +24,7 @@ The design system may change color, radius, spacing, and elevation. Record Healt
 - semantic structure and heading order;
 - keyboard navigation and focus behavior;
 - assistive labels and live-region announcements;
-- Rule ordering, statuses, actions, and diagnostics;
+- Check ordering, statuses, actions, and diagnostics;
 - responsive behavior and record-page configuration.
 
 ## Verification checklist

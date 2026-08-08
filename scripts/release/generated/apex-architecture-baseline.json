@@ -1,5 +1,23 @@
 {
   "maximumApexClassLines": 500,
+  "maximumApexClassLinesByFile": {
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAsyncTest.cls": {
+      "maximum": 517,
+      "category": "focused asynchronous contract test suite no-growth ceiling"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckBulkQuerySupportTest.cls": {
+      "maximum": 538,
+      "category": "focused bulk-query contract test suite no-growth ceiling"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckControllerTest.cls": {
+      "maximum": 514,
+      "category": "focused controller contract test suite no-growth ceiling"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopeEvaluationTest.cls": {
+      "maximum": 618,
+      "category": "focused scope-evaluation contract test suite no-growth ceiling"
+    }
+  },
   "testVisible": {
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAccess.cls": {
       "maximum": 2,
@@ -36,6 +54,10 @@
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckLifecyclePublisher.cls": {
       "maximum": 3,
       "category": "settings supply and platform-event publication test-only access"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckDefinitionLoader.cls": {
+      "maximum": 4,
+      "category": "definition-loader diagnostic and presentation helper test-only access"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckQueueable.cls": {
       "maximum": 2,

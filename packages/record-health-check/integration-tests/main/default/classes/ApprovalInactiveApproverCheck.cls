@@ -4,7 +4,7 @@
  */
 
 /**
- * Example RecordHealthCheckRule — flags pending approval steps whose assigned
+ * Example RecordHealthCheckPlugin — flags pending approval steps whose assigned
  * user is inactive and returns the offending users as a typed Found list.
  * Built for Salesforce Advanced Approvals (managed package "sbaa"), but every
  * object and field API name is read dynamically and may be overridden through
@@ -15,7 +15,7 @@
  * "userField":"sbaa__User__c","statusField":"sbaa__Status__c",
  * "pendingStatuses":["Requested"]}
  */
-global with sharing class ApprovalInactiveApproverCheck implements RecordHealthCheckRule {
+global with sharing class ApprovalInactiveApproverCheck implements RecordHealthCheckPlugin {
   @TestVisible
   private static final String DEFAULT_APPROVAL_OBJECT = 'sbaa__Approval__c';
   @TestVisible

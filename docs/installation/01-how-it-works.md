@@ -25,7 +25,7 @@ need to know whether the answer came from an Account field, related records, or 
 A **Check Set** is the whole card. It brings together the questions that support one review, such as
 Account Relationship & Risk.
 
-A **Rule** is one question on that card. Each Rule decides what to examine, when the question
+A **Check** is one question on that card. Each Check decides what to examine, when the question
 applies, and what guidance to show when the record needs attention.
 
 Administrators define both as Salesforce Custom Metadata. That means the configuration can be
@@ -36,16 +36,16 @@ question into the component.
 
 | Outcome | What it tells the user |
 | --- | --- |
-| **Pass** | The record meets the Rule |
-| **Failed**, **Warning**, or **Info** | The Rule found something worth the user's attention; the label reflects its importance |
-| **Skipped** | The Rule does not apply to this record or is waiting on another Rule |
+| **Pass** | The record meets the Check |
+| **Failed**, **Warning**, or **Info** | The Check found something worth the user's attention; the label reflects its importance |
+| **Skipped** | The Check does not apply to this record or is waiting on another Check |
 | **Unable to Check** | Access, configuration, or available data prevented a reliable answer |
 | **System Error** | An unexpected technical problem prevented the check from completing |
 
-These distinctions keep the result honest. A Rule that does not apply is not treated as a pass, and
-a Rule the Framework could not evaluate is not treated as a failure in the business data.
+These distinctions keep the result honest. A Check that does not apply is not treated as a pass, and
+a Check the Framework could not evaluate is not treated as a failure in the business data.
 
-## Where a Rule can find its answer
+## Where a Check can find its answer
 
 | The question depends on | The Framework can |
 | --- | --- |
@@ -59,7 +59,7 @@ the [examples library](../examples/README.md) helps you choose the simplest reli
 
 ## What users see when attention is needed
 
-A useful failure does more than display a red status. A Rule can show:
+A useful failure does more than display a red status. A Check can show:
 
 - what the Framework **Found**;
 - what it **Expected**;
@@ -92,8 +92,8 @@ remain off during normal use.
 
 If the card is missing, confirm that it was added and activated on the correct Lightning record
 page. If a Check Set is unavailable, confirm that it is active and uses the same Salesforce object
-as the page. If a Rule cannot provide an answer, check the explanation on the card and the running
-user's access before changing the Rule.
+as the page. If a Check cannot provide an answer, check the explanation on the card and the running
+user's access before changing the Check.
 
 ## Next steps
 
@@ -101,5 +101,5 @@ user's access before changing the Rule.
 | --- | --- |
 | Add the Framework to an org you already use | [Install and verify in your org](02-install-and-verify.md) |
 | Evaluate a prepared scenario in a separate org | [Deploy to a demo scratch org](05-create-rhc-scratch-org.md) |
-| Build one small check in Salesforce Setup | [Create your first Rule](03-create-your-first-rule.md) |
+| Build one small check in Salesforce Setup | [Create your first Check](03-create-your-first-check.md) |
 | Compare this approach with blocking Salesforce tools | [Compare to native Salesforce](../guides/01-compare-to-native-salesforce.md) |

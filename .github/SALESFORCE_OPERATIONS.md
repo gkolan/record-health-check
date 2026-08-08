@@ -31,7 +31,7 @@ theme contract is:
 - SLDS 1: gray card header, 0.75rem radius, and card shadow.
 - SLDS 2: transparent card header, no border, and no card shadow.
 
-This table contains no reusable credential. Future evidence must follow the same rule.
+This table contains no reusable credential. Future evidence must follow the same check.
 
 ## Scratch-org capacity and cleanup
 

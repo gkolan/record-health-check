@@ -17,7 +17,7 @@ public class RecordHealthCheckInternalResult {
   // labels) behind Record_Health_Check_View_Diagnostics — business users see the
   // failure message and any display-formula Found/Expected chips only.
   @AuraEnabled
-  public String ruleDeveloperName;
+  public String checkDeveloperName;
   // Server-side only (not @AuraEnabled): the record this result was evaluated
   // against; stamped onto the lifecycle and diagnostics platform events when set.
   public Id recordId;

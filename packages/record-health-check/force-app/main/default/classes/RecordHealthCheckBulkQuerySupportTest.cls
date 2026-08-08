@@ -27,6 +27,48 @@ private with sharing class RecordHealthCheckBulkQuerySupportTest {
   }
 
   @IsTest
+  static void classifierRejectsSelfQueryWithUnsupportedLimit() {
+    Test.startTest();
+    String strategy = RecordHealthCheckBulkQuerySupport.classify(
+      'SELECT Id FROM Account WHERE Id = {!record.Id} LIMIT 2'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,
+      strategy,
+      'A self-correlated limit larger than one has no per-record contract.'
+    );
+  }
+
+  @IsTest
+  static void selfAggregateCountsEachScopedRecord() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'Self aggregate count'
+    );
+    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
+
+    Test.startTest();
+    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT COUNT() total FROM Account WHERE Id = {!record.Id}',
+      records,
+      10
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      1,
+      result.rowsByRecordId.get(account.Id).size(),
+      'A self aggregate should return one correlated aggregate row.'
+    );
+    Assert.areEqual(
+      1,
+      result.rowsByRecordId.get(account.Id)[0].get('total'),
+      'The aggregate should count the scoped Account exactly once.'
+    );
+  }
+
+  @IsTest
   static void selfAndChildAggregateExecuteOnceAndSeedZeroRows() {
     Account withChild = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'With Child', 'Rating' => 'Warm' }
@@ -394,7 +436,7 @@ private with sharing class RecordHealthCheckBulkQuerySupportTest {
     Test.startTest();
     try {
       RecordHealthCheckBulkQuerySupport.execute(
-        'SELECT Id, {!record.Id} tokenValue FROM Account',
+        'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND LastName = {!record.Name}',
         records,
         10
       );

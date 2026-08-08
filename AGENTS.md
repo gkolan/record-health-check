@@ -1,6 +1,6 @@
-# Repository operating rules
+# Repository operating checks
 
-These rules apply to every AI coding agent and automated contributor working in this repository.
+These checks apply to every AI coding agent and automated contributor working in this repository.
 
 ## Salesforce toolchain
 
@@ -29,6 +29,26 @@ These rules apply to every AI coding agent and automated contributor working in 
   subscriber-style org. Do not treat one shape as evidence for the other.
 - Capture org ID, alias, username, namespace shape, expiration, deployment/test IDs, and outcomes as
   redacted evidence. Do not capture passwords or tokens.
+
+## RHC org roles and development topology
+
+- The Git repository is the authoritative source for the entire Record Health Check project. An org
+  must never become the only location of a metadata or code change.
+- Use the persistent Dev Hub org at `https://devhubrhc-dev-ed.my.salesforce.com/` as the primary RHC
+  development and integration org. Reconcile every intentional org change back into the repository
+  before continuing development or creating a package version.
+- The namespace-registry org is
+  `https://recordhealthcheck-dev-ed.develop.my.salesforce.com/`. Its role is to retain ownership of
+  the registered `rhc` namespace and its Namespace Registry relationship with the Dev Hub. Do not
+  use this org for ordinary development, source deployment, package installation, test data, or
+  release validation.
+- Create occasional namespaced scratch orgs from the RHC Dev Hub when isolated `rhc` namespace
+  compilation or behavior must be proven. The Dev Hub creates and owns these scratch orgs by using
+  the linked namespace; scratch orgs are not created in or owned by the namespace-registry org.
+- Continue to use clean no-namespace scratch orgs for subscriber-style source and package-install
+  verification. Namespaced and no-namespace evidence are separate release gates.
+- Keep the namespace-registry org authenticated only for namespace administration or recovery. Do
+  not make routine workflows depend on interactive access to it.
 
 ## Package release management
 

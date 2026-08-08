@@ -14,7 +14,7 @@ retest that experience before changing the package.
 
 Keep:
 
-- an export of your Record Health Check Sets and Rules;
+- an export of your Record Health Check Sets and Checks;
 - the currently installed package version;
 - a list of Lightning pages that contain the card and the Check Set selected on each page;
 - the users assigned **Record Health Check User** and **Record Health Check Admin**;
@@ -39,7 +39,7 @@ Open the current installation link from
 [`config/package-releases.json`](../../config/package-releases.json), sign in to the validation
 sandbox, and follow the Salesforce upgrade prompts.
 
-Keep the organization's own Check Sets and Rules. A package upgrade should not silently replace
+Keep the organization's own Check Sets and Checks. A package upgrade should not silently replace
 configuration your organization owns. Compare the upgraded configuration with the export if
 anything appears missing, blank, inactive, or unexpectedly changed.
 
@@ -65,15 +65,15 @@ macOS, and Linux.
 | What to verify | What success looks like |
 | --- | --- |
 | Lightning pages | Each page still shows the intended Check Set |
-| Passing scenario | The expected Rules pass |
+| Passing scenario | The expected Checks pass |
 | Attention scenario | The same guidance, severity, Found, Expected, and action remain meaningful |
 | Regular user | The user can run the card without seeing diagnostic detail |
 | Framework administrator | Show Diagnostics is available only when intentionally enabled |
-| Organization-owned configuration | Check Sets and Rules match the approved pre-upgrade configuration |
+| Organization-owned configuration | Check Sets and Checks match the approved pre-upgrade configuration |
 | Flow or Apex automation | Every caller still receives and handles the expected outcomes |
 | Event subscribers | Publication and downstream behavior remain intentional and do not duplicate work |
 
-Investigate a changed Rule result before approving production. The cause may be the package,
+Investigate a changed Check result before approving production. The cause may be the package,
 configuration, user access, or changed Salesforce data; the retained before-and-after record helps
 you distinguish them.
 
@@ -100,7 +100,7 @@ Set.
 | --- | --- |
 | The package did not install | The first Salesforce installation error and any missing org feature or dependency it names |
 | A Check Set is missing | The configuration export, Active setting, target object, and Lightning page selection |
-| A Rule changed outcome | The underlying record data, the user's access, and the Rule configuration |
+| A Check changed outcome | The underlying record data, the user's access, and the Check configuration |
 | A user lost access | Permission-set assignments and the user's record, object, and field access |
 | Automation stopped working | The Flow or Apex error, the outcome it received, and its permission assignments |
 | Event-driven work changed | Event publication settings, duplicate handling, and subscriber errors |
@@ -114,7 +114,7 @@ If the upgraded sandbox cannot be approved:
 
 1. stop connected automation that could act on unverified results;
 2. restore the previously approved package version when Salesforce permits that path;
-3. restore the exported Check Sets and Rules;
+3. restore the exported Check Sets and Checks;
 4. restore Lightning page selections and permission assignments; and
 5. rerun the retained passing and attention scenarios.
 

@@ -1,4 +1,4 @@
-/** Tests authorized Rule configuration and resolution trace serialization. */
+/** Tests authorized Check configuration and resolution trace serialization. */
 @IsTest
 private class RecordHealthCheckDiagnosticTraceTest {
   @IsTest
@@ -11,7 +11,7 @@ private class RecordHealthCheckDiagnosticTraceTest {
         )
       }
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'QUERY',
         'SourceQuery__c' => 'SELECT Id FROM Account WHERE Id = {!record.Id}',
@@ -24,7 +24,7 @@ private class RecordHealthCheckDiagnosticTraceTest {
     RecordHealthCheckAdminDetail detail = new RecordHealthCheckAdminDetail();
 
     Test.startTest();
-    RecordHealthCheckDiagnosticTrace.populate(rule, record, result, detail);
+    RecordHealthCheckDiagnosticTrace.populate(check, record, result, detail);
     Test.stopTest();
 
     Assert.isTrue(detail.configurationJson.contains('sourceQueryTemplate'));
@@ -34,7 +34,7 @@ private class RecordHealthCheckDiagnosticTraceTest {
 
   @IsTest
   static void shouldCaptureQueryResolutionFailure() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'QUERY',
         'SourceQuery__c' => 'SELECT Id FROM Account WHERE Name = {!record.Missing__c}'
@@ -44,7 +44,7 @@ private class RecordHealthCheckDiagnosticTraceTest {
 
     Test.startTest();
     RecordHealthCheckDiagnosticTrace.populate(
-      rule,
+      check,
       RecordHealthCheckTestDataFactory.account(new Map<String, Object>()),
       new RecordHealthCheckInternalResult(),
       detail

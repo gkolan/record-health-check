@@ -23,7 +23,7 @@ private class RecordHealthCheckMetadataValidatorTest {
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new RecordHealthCheckMetadataValidator()
       .validateRecords(
         new List<Record_Health_Check_Set__mdt>{ checkSet },
-        new List<Record_Health_Check_Rule__mdt>()
+        new List<Record_Health_Check__mdt>()
       );
 
     Boolean found = false;
@@ -70,7 +70,7 @@ private class RecordHealthCheckMetadataValidatorTest {
       )
     };
 
-    Record_Health_Check_Rule__mdt missingBasics = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt missingBasics = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Missing_Basics',
         'MasterLabel' => 'Missing Basics',
@@ -78,27 +78,27 @@ private class RecordHealthCheckMetadataValidatorTest {
       }
     );
 
-    Record_Health_Check_Rule__mdt invalidType = baseRule(
+    Record_Health_Check__mdt invalidType = baseCheck(
       'Invalid_Type_For_Validator',
       'Unknown'
     );
     invalidType.Record_Health_Check_Set__c = setAId;
 
-    Record_Health_Check_Rule__mdt invalidApplicability = baseRule(
+    Record_Health_Check__mdt invalidApplicability = baseCheck(
       'Invalid_Applicability_For_Validator',
       'FORMULA'
     );
     invalidApplicability.Record_Health_Check_Set__c = setAId;
     invalidApplicability.ApplicabilityMode__c = 'WhenLucky';
 
-    Record_Health_Check_Rule__mdt missingFormula = baseRule(
+    Record_Health_Check__mdt missingFormula = baseCheck(
       'Missing_Formula_For_Validator',
       'FORMULA'
     );
     missingFormula.Record_Health_Check_Set__c = setAId;
     missingFormula.PassConditionFormula__c = null;
 
-    Record_Health_Check_Rule__mdt invalidQuery = queryRule(
+    Record_Health_Check__mdt invalidQuery = queryCheck(
       'Invalid_Query_For_Validator'
     );
     invalidQuery.Record_Health_Check_Set__c = setAId;
@@ -113,45 +113,45 @@ private class RecordHealthCheckMetadataValidatorTest {
     invalidQuery.EmptyValueHandling__c = 'InvalidNullBehavior';
     invalidQuery.NoRowsResult__c = 'InvalidEmptyBehavior';
 
-    Record_Health_Check_Rule__mdt queryMissingOperator = queryRule(
+    Record_Health_Check__mdt queryMissingOperator = queryCheck(
       'Validator_Query_Missing_Operator'
     );
     queryMissingOperator.Record_Health_Check_Set__c = setAId;
     queryMissingOperator.ComparisonOperator__c = null;
 
-    Record_Health_Check_Rule__mdt queryUnknownOperator = queryRule(
+    Record_Health_Check__mdt queryUnknownOperator = queryCheck(
       'Validator_Query_Unknown_Operator'
     );
     queryUnknownOperator.Record_Health_Check_Set__c = setAId;
     queryUnknownOperator.ComparisonOperator__c = 'Around';
 
-    Record_Health_Check_Rule__mdt queryMissingMode = queryRule(
+    Record_Health_Check__mdt queryMissingMode = queryCheck(
       'Validator_Query_Missing_Mode'
     );
     queryMissingMode.Record_Health_Check_Set__c = setAId;
     queryMissingMode.QueryResultHandling__c = null;
 
-    Record_Health_Check_Rule__mdt queryMissingStatic = queryRule(
+    Record_Health_Check__mdt queryMissingStatic = queryCheck(
       'Validator_Query_Missing_Static'
     );
     queryMissingStatic.Record_Health_Check_Set__c = setAId;
     queryMissingStatic.ExpectedFixedValue__c = null;
 
-    Record_Health_Check_Rule__mdt queryMissingFormula = queryRule(
+    Record_Health_Check__mdt queryMissingFormula = queryCheck(
       'Validator_Query_Missing_Formula'
     );
     queryMissingFormula.Record_Health_Check_Set__c = setAId;
     queryMissingFormula.ExpectedValueSource__c = 'RECORD_FORMULA';
     queryMissingFormula.ExpectedRecordFormula__c = null;
 
-    Record_Health_Check_Rule__mdt queryMissingComparisonQuery = queryRule(
+    Record_Health_Check__mdt queryMissingComparisonQuery = queryCheck(
       'Validator_Query_Missing_Comparison_Query'
     );
     queryMissingComparisonQuery.Record_Health_Check_Set__c = setAId;
     queryMissingComparisonQuery.ExpectedValueSource__c = 'COMPARISON_QUERY';
     queryMissingComparisonQuery.ComparisonQuery__c = null;
 
-    Record_Health_Check_Rule__mdt invalidListQuery = queryRule(
+    Record_Health_Check__mdt invalidListQuery = queryCheck(
       'Invalid_List_Query_For_Validator'
     );
     invalidListQuery.Record_Health_Check_Set__c = setAId;
@@ -159,14 +159,14 @@ private class RecordHealthCheckMetadataValidatorTest {
     invalidListQuery.FindInListFormula__c = null;
     invalidListQuery.ComparisonQuery__c = null;
 
-    Record_Health_Check_Rule__mdt invalidApex = baseRule(
+    Record_Health_Check__mdt invalidApex = baseCheck(
       'Invalid_Apex_For_Validator',
       'APEX'
     );
     invalidApex.Record_Health_Check_Set__c = setAId;
     invalidApex.ApexClass__c = null;
 
-    Record_Health_Check_Rule__mdt invalidDual = validDualRule(
+    Record_Health_Check__mdt invalidDual = validDualCheck(
       'Invalid_Dual_For_Validator'
     );
     invalidDual.Record_Health_Check_Set__c = setAId;
@@ -175,86 +175,86 @@ private class RecordHealthCheckMetadataValidatorTest {
     invalidDual.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
     invalidDual.QueryResultHandling__c = 'ONE_RESULT';
 
-    Record_Health_Check_Rule__mdt dualMissingOperator = validDualRule(
+    Record_Health_Check__mdt dualMissingOperator = validDualCheck(
       'Validator_Dual_Missing_Operator'
     );
     dualMissingOperator.Record_Health_Check_Set__c = setAId;
     dualMissingOperator.ComparisonOperator__c = null;
 
-    Record_Health_Check_Rule__mdt dualUnknownOperator = validDualRule(
+    Record_Health_Check__mdt dualUnknownOperator = validDualCheck(
       'Validator_Dual_Unknown_Operator'
     );
     dualUnknownOperator.Record_Health_Check_Set__c = setAId;
     dualUnknownOperator.ComparisonOperator__c = 'Around';
 
-    Record_Health_Check_Rule__mdt dualMissingMode = validDualRule(
+    Record_Health_Check__mdt dualMissingMode = validDualCheck(
       'Validator_Dual_Missing_Mode'
     );
     dualMissingMode.Record_Health_Check_Set__c = setAId;
     dualMissingMode.QueryResultHandling__c = null;
 
-    Record_Health_Check_Rule__mdt dualUnknownMode = validDualRule(
+    Record_Health_Check__mdt dualUnknownMode = validDualCheck(
       'Validator_Dual_Unknown_Mode'
     );
     dualUnknownMode.Record_Health_Check_Set__c = setAId;
     dualUnknownMode.QueryResultHandling__c = 'ANY_ROW_PASSES';
 
-    Record_Health_Check_Rule__mdt dualBadListMode = validDualRule(
+    Record_Health_Check__mdt dualBadListMode = validDualCheck(
       'Validator_Dual_Bad_List_Mode'
     );
     dualBadListMode.Record_Health_Check_Set__c = setAId;
     dualBadListMode.QueryResultHandling__c = 'COMPARE_AS_LISTS';
     dualBadListMode.ComparisonOperator__c = 'EQUALS';
 
-    Record_Health_Check_Rule__mdt missingDependency = baseRule(
+    Record_Health_Check__mdt missingDependency = baseCheck(
       'Missing_Dependency_For_Validator',
       'FORMULA'
     );
     missingDependency.Record_Health_Check_Set__c = setAId;
-    missingDependency.PrerequisiteRule__c = 'No_Such_Rule';
+    missingDependency.PrerequisiteCheck__c = 'No_Such_Check';
 
-    Record_Health_Check_Rule__mdt sameSetDependency = baseRule(
+    Record_Health_Check__mdt sameSetDependency = baseCheck(
       'Same_Set_Dependency_For_Validator',
       'FORMULA'
     );
     sameSetDependency.Record_Health_Check_Set__c = setAId;
     sameSetDependency.EvaluationOrder__c = 5;
-    sameSetDependency.PrerequisiteRule__c = 'Invalid_Type_For_Validator';
+    sameSetDependency.PrerequisiteCheck__c = 'Invalid_Type_For_Validator';
 
-    Record_Health_Check_Rule__mdt cycleA = baseRule(
+    Record_Health_Check__mdt cycleA = baseCheck(
       'Cycle_A_For_Validator',
       'FORMULA'
     );
     cycleA.Record_Health_Check_Set__c = setAId;
     cycleA.EvaluationOrder__c = null;
-    cycleA.PrerequisiteRule__c = 'Cycle_B_For_Validator';
+    cycleA.PrerequisiteCheck__c = 'Cycle_B_For_Validator';
 
-    Record_Health_Check_Rule__mdt cycleB = baseRule(
+    Record_Health_Check__mdt cycleB = baseCheck(
       'Cycle_B_For_Validator',
       'FORMULA'
     );
     cycleB.Record_Health_Check_Set__c = setAId;
     cycleB.EvaluationOrder__c = null;
-    cycleB.PrerequisiteRule__c = 'Cycle_A_For_Validator';
+    cycleB.PrerequisiteCheck__c = 'Cycle_A_For_Validator';
 
-    Record_Health_Check_Rule__mdt crossSetTarget = baseRule(
+    Record_Health_Check__mdt crossSetTarget = baseCheck(
       'Cross_Set_Target_For_Validator',
       'FORMULA'
     );
     crossSetTarget.Record_Health_Check_Set__c = setBId;
     crossSetTarget.EvaluationOrder__c = 1;
 
-    Record_Health_Check_Rule__mdt crossSetSource = baseRule(
+    Record_Health_Check__mdt crossSetSource = baseCheck(
       'Cross_Set_Source_For_Validator',
       'FORMULA'
     );
     crossSetSource.Record_Health_Check_Set__c = setAId;
     crossSetSource.EvaluationOrder__c = 2;
-    crossSetSource.PrerequisiteRule__c = 'Cross_Set_Target_For_Validator';
+    crossSetSource.PrerequisiteCheck__c = 'Cross_Set_Target_For_Validator';
 
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = validator.validateRecords(
       checkSets,
-      new List<Record_Health_Check_Rule__mdt>{
+      new List<Record_Health_Check__mdt>{
         missingBasics,
         invalidType,
         invalidApplicability,
@@ -299,75 +299,75 @@ private class RecordHealthCheckMetadataValidatorTest {
   static void metadataValidatorCoversRemainingValidationBranches() {
     RecordHealthCheckMetadataValidator validator = new RecordHealthCheckMetadataValidator();
     Id setId = Id.valueOf('m00' + '000000000003');
-    List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>();
+    List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
 
     for (Integer i = 0; i < 26; i++) {
-      Record_Health_Check_Rule__mdt limitRule = baseRule(
-        'Limit_Rule_' + i,
+      Record_Health_Check__mdt limitCheck = baseCheck(
+        'Limit_Check_' + i,
         'FORMULA'
       );
-      limitRule.Record_Health_Check_Set__c = setId;
-      limitRule.EvaluationOrder__c = i;
+      limitCheck.Record_Health_Check_Set__c = setId;
+      limitCheck.EvaluationOrder__c = i;
       if (i == 0) {
-        limitRule.PrerequisiteRule__c = 'Limit_Rule_25';
+        limitCheck.PrerequisiteCheck__c = 'Limit_Check_25';
       }
-      rules.add(limitRule);
+      checks.add(limitCheck);
     }
 
-    Record_Health_Check_Rule__mdt rule = baseRule(
+    Record_Health_Check__mdt check = baseCheck(
       'Metadata_App_Formula',
       'FORMULA'
     );
-    rule.Record_Health_Check_Set__c = setId;
-    rule.ApplicabilityMode__c = 'WHEN_FORMULA_TRUE';
-    rule.ApplicabilityFormula__c = null;
-    rules.add(rule);
+    check.Record_Health_Check_Set__c = setId;
+    check.ApplicabilityMode__c = 'WHEN_FORMULA_TRUE';
+    check.ApplicabilityFormula__c = null;
+    checks.add(check);
 
     for (Integer variant = 0; variant < 4; variant++) {
-      rule = baseRule('Metadata_App_Soql_' + variant, 'FORMULA');
-      rule.Record_Health_Check_Set__c = setId;
-      rule.ApplicabilityMode__c = 'WHEN_COUNT_QUERY_MATCHES';
+      check = baseCheck('Metadata_App_Soql_' + variant, 'FORMULA');
+      check.Record_Health_Check_Set__c = setId;
+      check.ApplicabilityMode__c = 'WHEN_COUNT_QUERY_MATCHES';
       if (variant > 0) {
-        rule.ApplicabilityCountQuery__c = variant == 1
+        check.ApplicabilityCountQuery__c = variant == 1
           ? 'SELECT Id FROM Account'
           : 'SELECT COUNT(Id) FROM Account';
       }
       if (variant > 1) {
-        rule.ApplicabilityCountOperator__c = variant == 2
+        check.ApplicabilityCountOperator__c = variant == 2
           ? 'Around'
           : 'GREATER_THAN';
       }
-      rules.add(rule);
+      checks.add(check);
     }
 
-    rule = queryRule('Metadata_Query_Missing_Primary_Field');
-    rule.Record_Health_Check_Set__c = setId;
-    rule.SourceQueryField__c = null;
-    rules.add(rule);
-    rule = queryRule('Metadata_Query_Invalid_Mode');
-    rule.Record_Health_Check_Set__c = setId;
-    rule.QueryResultHandling__c = 'Nope';
-    rules.add(rule);
-    rule = queryRule('Metadata_Query_Invalid_Source');
-    rule.Record_Health_Check_Set__c = setId;
-    rule.ExpectedValueSource__c = 'Magic';
-    rules.add(rule);
-    rule = queryRule('Metadata_Query_Result_Missing_Field');
-    rule.Record_Health_Check_Set__c = setId;
-    rule.ExpectedValueSource__c = 'COMPARISON_QUERY';
-    rule.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
-    rule.ComparisonQueryField__c = null;
-    rules.add(rule);
-    rule = apexRule('Metadata_Apex_Invalid', 'String', '[]');
-    rule.Record_Health_Check_Set__c = setId;
-    rules.add(rule);
-    rule = validDualRule('Metadata_Dual_Missing_Fields');
-    rule.Record_Health_Check_Set__c = setId;
-    rule.SourceQuery__c = 'SELECT BillingCity FROM Account';
-    rule.SourceQueryField__c = null;
-    rule.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
-    rule.ComparisonQueryField__c = null;
-    rules.add(rule);
+    check = queryCheck('Metadata_Query_Missing_Primary_Field');
+    check.Record_Health_Check_Set__c = setId;
+    check.SourceQueryField__c = null;
+    checks.add(check);
+    check = queryCheck('Metadata_Query_Invalid_Mode');
+    check.Record_Health_Check_Set__c = setId;
+    check.QueryResultHandling__c = 'Nope';
+    checks.add(check);
+    check = queryCheck('Metadata_Query_Invalid_Source');
+    check.Record_Health_Check_Set__c = setId;
+    check.ExpectedValueSource__c = 'Magic';
+    checks.add(check);
+    check = queryCheck('Metadata_Query_Result_Missing_Field');
+    check.Record_Health_Check_Set__c = setId;
+    check.ExpectedValueSource__c = 'COMPARISON_QUERY';
+    check.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
+    check.ComparisonQueryField__c = null;
+    checks.add(check);
+    check = apexCheck('Metadata_Apex_Invalid', 'String', '[]');
+    check.Record_Health_Check_Set__c = setId;
+    checks.add(check);
+    check = validDualCheck('Metadata_Dual_Missing_Fields');
+    check.Record_Health_Check_Set__c = setId;
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account';
+    check.SourceQueryField__c = null;
+    check.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
+    check.ComparisonQueryField__c = null;
+    checks.add(check);
 
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = validator.validateRecords(
       new List<Record_Health_Check_Set__mdt>{
@@ -383,7 +383,7 @@ private class RecordHealthCheckMetadataValidatorTest {
           }
         )
       },
-      rules
+      checks
     );
     Set<String> reasonCodes = new Set<String>();
     for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
@@ -394,11 +394,11 @@ private class RecordHealthCheckMetadataValidatorTest {
     Assert.isTrue(reasonCodes.contains('INVALID_APEX_PARAMETERS'));
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -407,7 +407,7 @@ private class RecordHealthCheckMetadataValidatorTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',
         'NoRowsResult__c' => 'FAIL',
@@ -416,42 +416,40 @@ private class RecordHealthCheckMetadataValidatorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt queryRule(String developerName) {
-    Record_Health_Check_Rule__mdt rule = baseRule(developerName, 'QUERY');
-    rule.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    rule.SourceQueryField__c = 'BillingCity';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    rule.ExpectedValueSource__c = 'FIXED_VALUE';
-    rule.ExpectedFixedValue__c = 'Chicago';
-    return rule;
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
   }
 
-  private static Record_Health_Check_Rule__mdt dualRule(String developerName) {
-    return baseRule(developerName, 'COMPARE_TWO_QUERIES');
+  private static Record_Health_Check__mdt dualCheck(String developerName) {
+    return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
   }
 
-  private static Record_Health_Check_Rule__mdt validDualRule(
-    String developerName
-  ) {
-    Record_Health_Check_Rule__mdt rule = dualRule(developerName);
-    rule.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    rule.SourceQueryField__c = 'totalCount';
-    rule.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    rule.ComparisonQueryField__c = 'totalCount';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    return rule;
+  private static Record_Health_Check__mdt validDualCheck(String developerName) {
+    Record_Health_Check__mdt check = dualCheck(developerName);
+    check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.SourceQueryField__c = 'totalCount';
+    check.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.ComparisonQueryField__c = 'totalCount';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    return check;
   }
 
-  private static Record_Health_Check_Rule__mdt apexRule(
+  private static Record_Health_Check__mdt apexCheck(
     String developerName,
     String className,
     String parameters
   ) {
-    Record_Health_Check_Rule__mdt rule = baseRule(developerName, 'APEX');
-    rule.ApexClass__c = className;
-    rule.ApexParametersJson__c = parameters;
-    return rule;
+    Record_Health_Check__mdt check = baseCheck(developerName, 'APEX');
+    check.ApexClass__c = className;
+    check.ApexParametersJson__c = parameters;
+    return check;
   }
 }

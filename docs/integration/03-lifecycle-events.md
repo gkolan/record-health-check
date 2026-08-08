@@ -1,25 +1,25 @@
 # Lifecycle events
 
 > [!NOTE]
-> On this page, decide whether a subscriber needs Check Set Run or Rule Result lifecycle events and enable an after-commit contract without making the Lightning, Flow, or Apex caller wait.
+> On this page, decide whether a subscriber needs Check Set Run or Check Result lifecycle events and enable an after-commit contract without making the Lightning, Flow, or Apex caller wait.
 
 Use lifecycle events when an independent subscriber needs completion information after an explicit
 Record Health Check run. This reference documents publication behavior, event bodies,
 permissions, retention, replay, and subscriber requirements.
 
-Start with the **Check Set Run** event when the subscriber needs one summary per review. Add **Rule
-Result** events only when the subscriber needs per-Rule status, reason, and severity.
+Start with the **Check Set Run** event when the subscriber needs one summary per review. Add **Check
+Result** events only when the subscriber needs per-Check status, reason, and severity.
 
 ## Choose the event detail
 
 | Subscriber needs… | Event | Start with |
 | --- | --- | --- |
 | One summary for a completed Check Set | [`Record_Health_Check_Set_Run__e`](../metadata/03-event-set-run.md) | Check Set **Publish User Run Event** |
-| One result for each selected Rule | [`Record_Health_Check_Rule_Result__e`](../metadata/04-event-rule-result.md) | Rule **Publish User Result Event** |
+| One result for each selected Check | [`Record_Health_Check_Result__e`](../metadata/04-event-check-result.md) | Check **Publish User Result Event** |
 | Restricted Framework error diagnostics | [`Record_Health_Check_Log__e`](../metadata/05-event-log.md) | Check Set **Publish Error Log Event** (default on; uncheck to opt out) |
 | The immediate decision in the current transaction | Neither lifecycle event | Use the Lightning, Apex, or Flow response instead |
 
-The Set Run and Rule Result events are **high-volume Platform Events** configured as **Publish
+The Set Run and Check Result events are **high-volume Platform Events** configured as **Publish
 After Commit**. They carry the
 evaluated record's ID in `RecordId__c` when one is available, but exclude queries, messages, user
 identity, and field values. Automatic record-page checks never publish;
@@ -33,7 +33,7 @@ result instead.
 
 ## What these events are
 
-- Minimal completion facts for one Check Set run and its server-finalized Rule results.
+- Minimal completion facts for one Check Set run and its server-finalized Check results.
 - A way for subscribers to build history, notifications, exports, analytics, or other automation
   without coupling to the health-check call itself.
 
@@ -53,13 +53,13 @@ For the end-to-end model, start with [Integrate Record Health Check](../integrat
    choose Flow, Apex, or Pub/Sub API as the subscriber technology. Custom fields on these platform
    events are not field-level-security permissionable; granting event object access is enough for
    field visibility in subscriber UIs. The User and Admin Permission Sets grant create/read on Set
-   Run and Rule Result events. They do **not** grant `Record_Health_Check_Log__e`; grant Log object
+   Run and Check Result events. They do **not** grant `Record_Health_Check_Log__e`; grant Log object
    access separately to the users or integration that subscribe to error diagnostics.
-2. In a sandbox, enable **Publish User Run Event** on one Check Set. Leave Rule publication off for the
+2. In a sandbox, enable **Publish User Run Event** on one Check Set. Leave Check publication off for the
    first test.
 3. Subscribe before clicking Run or Rerun; automatic page load cannot publish.
 4. Verify one `COMPLETED` Set event after commit, then test rollback, replay, and duplicate handling.
-5. Enable individual Rule events only after the Set subscriber is operating within event
+5. Enable individual Check events only after the Set subscriber is operating within event
    allocations.
 
 ## When events publish
@@ -80,14 +80,14 @@ runs. Automatic Lightning record-page runs never publish.
 | `RUN_ON_LOAD` | Lightning automatic page load; controller keeps publication off |
 
 Lightning automatic loads never publish. Programmatic callers publish only when they select a
-publication mode other than `NONE` and Check Set / Rule metadata permits the event. Event
+publication mode other than `NONE` and Check Set / Check metadata permits the event. Event
 subscribers call `enterSubscriberContext()` so nested Framework work does not publish again.
 
 Keeping page-load publication off protects platform-event allocations. Subscriber context keeps a
 subscriber from publishing another lifecycle event indefinitely. Each published event still carries
 the caller's source so operators can see which entry point produced it.
 
-Publish failures are logged and **do not** change Rule or Check Set results.
+Publish failures are logged and **do not** change Check or Check Set results.
 
 Events are chunked in batches of **100** (`PUBLISH_CHUNK_SIZE`).
 
@@ -101,7 +101,7 @@ Set out.
 | Metadata | Field | Default | What it controls |
 | --- | --- | --- | --- |
 | Check Set | **Publish User Run Event** (`PublishUserRunEvent__c`) | Off | One `Record_Health_Check_Set_Run__e` per evaluated record after a completed deliberate LWC, Apex, or Flow run |
-| Rule | **Publish User Result Event** (`PublishUserResultEvent__c`) | Off | One `Record_Health_Check_Rule_Result__e` per server-finalized Rule result in a deliberate LWC, Apex, or Flow run |
+| Check | **Publish User Result Event** (`PublishUserResultEvent__c`) | Off | One `Record_Health_Check_Result__e` per server-finalized Check result in a deliberate LWC, Apex, or Flow run |
 | Check Set | **Publish Error Log Event** (`PublishErrorLogEvent__c`) | On | A `Record_Health_Check_Log__e` for each Framework `ERROR` associated with the Check Set |
 
 Page-load card evaluations never publish lifecycle events even if their checkboxes are on. Error
@@ -109,8 +109,8 @@ Log events are independent of deliberate-run source restrictions and publish imm
 `ERROR` is captured. If the Framework cannot resolve a Check Set, Log publication remains enabled.
 
 For a user-initiated Lightning run, the completion call publishes the outcomes returned by the
-progressive browser evaluation after filtering them to the requested record and the Rules in the
-resolved Check Set. It does not re-evaluate the Rules in the completion transaction. Treat these
+progressive browser evaluation after filtering them to the requested record and the Checks in the
+resolved Check Set. It does not re-evaluate the Checks in the completion transaction. Treat these
 Lightning lifecycle events as advisory monitoring data: subscribers that make security-sensitive or
 business-critical changes must re-evaluate the record through a server-side Apex or Flow entry
 point before acting. Apex- and Flow-originated lifecycle events are produced directly from their
@@ -133,7 +133,7 @@ schema; an incompatible event-field change requires a new contract version.
 
 ## What is never included on an event
 
-The Set Run and Rule Result events intentionally omit:
+The Set Run and Check Result events intentionally omit:
 
 - User Id
 - User-facing messages
@@ -152,7 +152,7 @@ Salesforce data under their own security model using the Record ID, metadata Qua
 | Platform Event | Detailed reference | Purpose |
 | --- | --- | --- |
 | `Record_Health_Check_Set_Run__e` | [Check Set Run Platform Event](../metadata/03-event-set-run.md) | One completion summary and outcome counts for a Check Set run |
-| `Record_Health_Check_Rule_Result__e` | [Rule Result Platform Event](../metadata/04-event-rule-result.md) | One finalized public Rule outcome |
+| `Record_Health_Check_Result__e` | [Check Result Platform Event](../metadata/04-event-check-result.md) | One finalized public Check outcome |
 | `Record_Health_Check_Log__e` | [Log Platform Event](../metadata/05-event-log.md) | Restricted Framework `ERROR` diagnostics |
 
 ## Admin checklist before enabling
@@ -179,10 +179,10 @@ Salesforce data under their own security model using the Record ID, metadata Qua
 `Record_Health_Check_Log__e` serves a different purpose from the two lifecycle-result events. It
 carries restricted Framework `ERROR` diagnostics and uses **Publish Immediately**.
 
-| Property | Lifecycle events (Set / Rule) | Diagnostics event (Log) |
+| Property | Lifecycle events (Set / Check) | Diagnostics event (Log) |
 | --- | --- | --- |
 | Purpose | Completion facts | Errors that need reproducing |
-| Default | Optional per Set/Rule (off) | **On by default**; opt out per Check Set with `PublishErrorLogEvent__c` |
+| Default | Optional per Set/Check (off) | **On by default**; opt out per Check Set with `PublishErrorLogEvent__c` |
 | Publish behavior | Publish After Commit | **Publish Immediately**: survives the rollback a failing check triggers |
 | Carries error detail | No: record ID + counts/status only | Yes: record ID plus message, exception type, stack trace |
 | Level | All completed runs | `ERROR` only |
@@ -200,9 +200,9 @@ Event reference](../metadata/05-event-log.md).
 - [Flow actions](02-flow-actions.md)
 - [Lightning component](01-lightning-component.md)
 - [Check Set fields](../metadata/01-fields-check-set.md): Publish User Run Event and Publish Error Log Event
-- [Rule fields](../metadata/02-fields-check-rule.md): Publish User Result Event
+- [Check fields](../metadata/02-fields-check.md): Publish User Result Event
 - [Check Set Run Platform Event](../metadata/03-event-set-run.md)
-- [Rule Result Platform Event](../metadata/04-event-rule-result.md)
+- [Check Result Platform Event](../metadata/04-event-check-result.md)
 - [Log Platform Event](../metadata/05-event-log.md)
 - [Revalidate an installation](../installation/04-upgrading.md)
 - [Reason Codes](../reference/contracts/01-reason-codes.md)

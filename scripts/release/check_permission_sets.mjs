@@ -19,14 +19,14 @@ const expected = {
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
       "RecordHealthCheckMetadataValidator",
-      "RecordHealthCheckRunRuleFlowAction",
+      "RecordHealthCheckRunCheckFlowAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
       "RecordHealthCheckScheduled",
       "RecordHealthCheckSetPicklist"
     ],
     objects: [
-      "Record_Health_Check_Rule_Result__e",
+      "Record_Health_Check_Result__e",
       "Record_Health_Check_Set_Run__e"
     ],
     customPermissions: [
@@ -34,7 +34,7 @@ const expected = {
       "Record_Health_Check_View_Diagnostics"
     ],
     customMetadataTypes: [
-      "Record_Health_Check_Rule__mdt",
+      "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"
     ]
   },
@@ -43,18 +43,18 @@ const expected = {
       "RecordHealthCheck",
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
-      "RecordHealthCheckRunRuleFlowAction",
+      "RecordHealthCheckRunCheckFlowAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
       "RecordHealthCheckScheduled"
     ],
     objects: [
-      "Record_Health_Check_Rule_Result__e",
+      "Record_Health_Check_Result__e",
       "Record_Health_Check_Set_Run__e"
     ],
     customPermissions: ["Record_Health_Check_Run"],
     customMetadataTypes: [
-      "Record_Health_Check_Rule__mdt",
+      "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"
     ]
   }

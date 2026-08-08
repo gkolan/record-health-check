@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>PublishUserResultEvent__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description
+  >Publishes this Check result only after a user presses Run in the record-page component.</description>
+    <inlineHelpText
+  >Publish after a user presses Run. Merely viewing the page never publishes; Apex, Flow, batch, scheduled, and agent callers use request options.</inlineHelpText>
+    <label>Publish User Result Event</label>
+    <type>Checkbox</type>
+</CustomField>

@@ -7,7 +7,7 @@
 private class RecordHealthCheckTemplateParserTest {
   @IsTest
   static void parsesCanonicalNamespacesAndSpans() {
-    String template = '{!record.Name format="TEXT" fallback="Unnamed account"} {!rhcRule.checkTitle}';
+    String template = '{!record.Name format="TEXT" fallback="Unnamed account"} {!rhcCheck.checkTitle}';
     List<RecordHealthCheckToken> tokens = RecordHealthCheckTemplateService.parse(
       template
     );
@@ -20,7 +20,7 @@ private class RecordHealthCheckTemplateParserTest {
       '{!record.Name format="TEXT" fallback="Unnamed account"}',
       template.substring(tokens[0].startIndex, tokens[0].endIndex)
     );
-    Assert.areEqual('rhcRule', tokens[1].namespaceName);
+    Assert.areEqual('rhcCheck', tokens[1].namespaceName);
   }
 
   @IsTest
@@ -51,7 +51,7 @@ private class RecordHealthCheckTemplateParserTest {
           )
       );
       System.Assert.fail(
-        'Resolution must enforce the same attribute rules as validation.'
+        'Resolution must enforce the same attribute checks as validation.'
       );
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
       Assert.areEqual('MALFORMED_TOKEN', ex.reasonCode);
@@ -102,16 +102,16 @@ private class RecordHealthCheckTemplateParserTest {
       'DISPLAY',
       'UNSUPPORTED_TOKEN_NAMESPACE'
     );
-    assertIssue('{!rhcRule.title}', 'DISPLAY', 'UNKNOWN_TOKEN_PROPERTY');
+    assertIssue('{!rhcCheck.title}', 'DISPLAY', 'UNKNOWN_TOKEN_PROPERTY');
     assertIssue(
-      '{!rhcRule.checkTitle}',
+      '{!rhcCheck.checkTitle}',
       'SOQL',
       'TOKEN_NOT_ALLOWED_ON_SURFACE'
     );
   }
 
   @IsTest
-  static void coversTemplateLimitsMalformedSyntaxAndRelationshipRules() {
+  static void coversTemplateLimitsMalformedSyntaxAndRelationshipChecks() {
     String tooManyTokens = '';
     for (Integer index = 0; index < 101; index++) {
       tooManyTokens += '{!record.Name}';
@@ -173,7 +173,7 @@ private class RecordHealthCheckTemplateParserTest {
   static void coversUnavailableContextsAndAssertValid() {
     List<String> templates = new List<String>{
       '{!record.Name}',
-      '{!rhcRule.checkTitle}',
+      '{!rhcCheck.checkTitle}',
       '{!rhcSet.cardTitle}',
       '{!rhcResult.status}',
       '{!rhcRun.runId}'

@@ -31,22 +31,22 @@ System.assertNotEquals(
   'The Set action must expose Status to Flow.'
 );
 
-RecordHealthCheckRunRuleFlowAction.Request ruleRequest = new RecordHealthCheckRunRuleFlowAction.Request();
-ruleRequest.ruleQualifiedApiName = 'Account_DQ_BillingCity';
-ruleRequest.recordId = accountId;
-ruleRequest.eventPublication = 'NONE';
-List<RecordHealthCheckRunRuleFlowAction.Response> ruleResponses = RecordHealthCheckRunRuleFlowAction.runRule(
-  new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleRequest }
+RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
+checkRequest.checkQualifiedApiName = 'Account_DQ_BillingCity';
+checkRequest.recordId = accountId;
+checkRequest.eventPublication = 'NONE';
+List<RecordHealthCheckRunCheckFlowAction.Response> checkResponses = RecordHealthCheckRunCheckFlowAction.runCheck(
+  new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
 );
 System.assertEquals(
   1,
-  ruleResponses.size(),
-  'The Rule action returns one response per request.'
+  checkResponses.size(),
+  'The Check action returns one response per request.'
 );
 System.assertEquals(
   'PASS',
-  ruleResponses[0].status,
-  'The seeded Billing City Rule should pass.'
+  checkResponses[0].status,
+  'The seeded Billing City Check should pass.'
 );
 
 System.debug(
@@ -57,9 +57,9 @@ System.debug(
       'setStatus' => setResponses[0].status,
       'passedCount' => setResponses[0].passedCount,
       'failedCount' => setResponses[0].failedCount,
-      'ruleStatus' => ruleResponses[0].status,
-      'ruleReasonCode' => ruleResponses[0].reasonCode,
-      'contractVersion' => ruleResponses[0].contractVersion
+      'checkStatus' => checkResponses[0].status,
+      'checkReasonCode' => checkResponses[0].reasonCode,
+      'contractVersion' => checkResponses[0].contractVersion
     }
   )
 );

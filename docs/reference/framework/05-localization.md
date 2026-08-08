@@ -5,7 +5,7 @@
 > Translation Workbench, what an administrator must translate by hand, and why comparisons never
 > change based on the running user's language.
 
-Use this page when planning a multi-language rollout, or when two users report seeing the same Rule
+Use this page when planning a multi-language rollout, or when two users report seeing the same Check
 in different wording and you need to know whether that is expected.
 
 ## Two kinds of text, two owners
@@ -13,11 +13,11 @@ in different wording and you need to know whether that is expected.
 | Text | Owner | Translatable through Translation Workbench |
 | --- | --- | --- |
 | Framework labels: status words, operator phrases, Boolean Yes/No wording | Record Health Check (Custom Labels) | Yes |
-| Administrator-authored Rule content: Check Title, Card Title, Failure Message, Fix Message, Action Label | The org's administrator (plain text fields) | No, not automatically. An org that needs multiple languages must author or translate this content itself |
+| Administrator-authored Check content: Check Title, Card Title, Failure Message, Fix Message, Action Label | The org's administrator (plain text fields) | No, not automatically. An org that needs multiple languages must author or translate this content itself |
 
 Framework-owned wording ships as Salesforce Custom Labels, which Translation Workbench can translate
-without touching a Rule's logic. Administrator-authored fields are ordinary Custom Metadata text
-fields; Salesforce does not translate their content for you, and a Rule has only one
+without touching a Check's logic. Administrator-authored fields are ordinary Custom Metadata text
+fields; Salesforce does not translate their content for you, and a Check has only one
 `FailureMessage__c` value regardless of who is reading it. See
 [Display value format: Locale](../contracts/03-display-value-format.md#locale) for the boundary between
 these two categories in the rendering pipeline.
@@ -25,7 +25,7 @@ these two categories in the rendering pipeline.
 ## What is locale-aware automatically
 
 Display value formatting reads the **running user's** locale, time zone, and language at the moment
-a Rule evaluates, not the author's locale and not a fixed org default.
+a Check evaluates, not the author's locale and not a fixed org default.
 
 | Display element | Locale-aware behavior |
 | --- | --- |
@@ -35,30 +35,30 @@ a Rule evaluates, not the author's locale and not a fixed org default.
 | Picklist labels | Rendered in the running user's language when Salesforce has a translated label for that value |
 | Boolean Yes/No, operator phrases | Framework Custom Labels; translated per the org's Translation Workbench configuration |
 
-Two users viewing the same Rule result at the same moment can see different formatted text for
+Two users viewing the same Check result at the same moment can see different formatted text for
 Found and Expected while the underlying value and the Pass/Fail outcome stay identical. That is
 expected: formatting is a presentation concern layered on top of a comparison that already
-finished. See [Display value format](../contracts/03-display-value-format.md) for every formatting rule.
+finished. See [Display value format](../contracts/03-display-value-format.md) for every formatting check.
 
 ## Comparisons always use API values, never labels
 
 Pass/Fail decisions compare the raw values Salesforce returns, such as a picklist's stored API
-value, never the translated label a user happens to see. A Rule that compares `Industry` to
+value, never the translated label a user happens to see. A Check that compares `Industry` to
 `Technology` compares the API value `Technology`, regardless of which language label a French or
-German user sees on their own screen. This is what makes a Rule's outcome stable across every
+German user sees on their own screen. This is what makes a Check's outcome stable across every
 language the org supports.
 
 ## What an administrator must translate by hand
 
 Salesforce Translation Workbench does not translate values inside Custom Metadata text fields. If a
-multi-language org needs a Rule's message to read correctly in more than one language, choose one
+multi-language org needs a Check's message to read correctly in more than one language, choose one
 of these approaches:
 
 | Approach | Trade-off |
 | --- | --- |
 | Author the message in the org's dominant language and accept it will not localize | Simplest; acceptable when most users share one language |
-| Create parallel Check Sets or Rules per language and route by profile, permission set, or page assignment | More configuration, but every user gets a fully native message; no Framework support required |
-| Have the Rule author write English (or another shared language) and rely on the record's own locale-aware Found/Expected formatting to carry most of the meaning | Reduces, but does not remove, the need for translated prose |
+| Create parallel Check Sets or Checks per language and route by profile, permission set, or page assignment | More configuration, but every user gets a fully native message; no Framework support required |
+| Have the Check author write English (or another shared language) and rely on the record's own locale-aware Found/Expected formatting to carry most of the meaning | Reduces, but does not remove, the need for translated prose |
 
 Record Health Check ships no built-in mechanism for translating administrator-authored message
 content per running-user language, because that content is business policy the org owns, not
@@ -69,7 +69,7 @@ Framework behavior.
 Merge tokens insert live Salesforce values into a message; they do not translate the surrounding
 template text. `{!record.Name}` resolves to whatever the field holds regardless of language, and a
 result token such as `{!rhcResult.foundValue}` already contains the display-formatted (and
-therefore locale-aware) text produced by the rules in
+therefore locale-aware) text produced by the checks in
 [Display value format](../contracts/03-display-value-format.md). Add a quoted `fallback` when a token
 might be blank in some languages' data, for example
 `{!record.Name fallback="this record"}`, so the completed sentence still reads correctly. See
@@ -80,6 +80,6 @@ might be blank in some languages' data, for example
 - [Display value format](../contracts/03-display-value-format.md)
 - [Reference: Merge tokens](../contracts/02-merge-tokens.md)
 - [Reference: Compatibility](04-compatibility.md)
-- [Configure Check Sets and Rules](../../guides/03-configure-check-sets-and-rules.md)
+- [Configure Check Sets and Checks](../../guides/03-configure-check-sets-and-checks.md)
 - [FAQ: single-currency and multi-currency orgs](../../guides/02-faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs)
 - [Create the demo scratch org: Currency mode](../../installation/05-create-rhc-scratch-org.md#currency-mode)

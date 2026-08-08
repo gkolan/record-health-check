@@ -8,26 +8,26 @@ public with sharing class RHCMetadataDependencyValidator {
 
   public static List<RecordHealthCheckMetadataValidator.ValidationIssue> validate(
     String checkSetName,
-    List<Record_Health_Check_Rule__mdt> rules,
-    Map<String, Record_Health_Check_Rule__mdt> rulesByDevName
+    List<Record_Health_Check__mdt> checks,
+    Map<String, Record_Health_Check__mdt> checksByDevName
   ) {
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new List<RecordHealthCheckMetadataValidator.ValidationIssue>();
     Map<String, String> dependsOnMap = new Map<String, String>(); // devName → dependsOnDevName
 
-    for (Record_Health_Check_Rule__mdt rule : rules) {
-      if (String.isBlank(rule.PrerequisiteRule__c)) {
+    for (Record_Health_Check__mdt check : checks) {
+      if (String.isBlank(check.PrerequisiteCheck__c)) {
         continue;
       }
 
-      String depDevName = rule.PrerequisiteRule__c.trim();
-      Record_Health_Check_Rule__mdt dep = rulesByDevName.get(depDevName);
+      String depDevName = check.PrerequisiteCheck__c.trim();
+      Record_Health_Check__mdt dep = checksByDevName.get(depDevName);
 
       if (dep == null) {
         issues.add(
           issue(
-            rule,
-            'PrerequisiteRule__c',
-            'Prerequisite Rule must reference an existing rule DeveloperName. ' +
+            check,
+            'PrerequisiteCheck__c',
+            'Prerequisite Check must reference an existing check DeveloperName. ' +
               '"' +
               depDevName +
               '" was not found.',
@@ -39,12 +39,12 @@ public with sharing class RHCMetadataDependencyValidator {
 
       // Must be in same Check Set. Use the relationship field value directly;
       // parent relationship traversal is not supported for all custom metadata operations.
-      if (dep.Record_Health_Check_Set__c != rule.Record_Health_Check_Set__c) {
+      if (dep.Record_Health_Check_Set__c != check.Record_Health_Check_Set__c) {
         issues.add(
           issue(
-            rule,
-            'PrerequisiteRule__c',
-            'Prerequisite Rule must reference a rule in the same Check Set. ' +
+            check,
+            'PrerequisiteCheck__c',
+            'Prerequisite Check must reference a check in the same Check Set. ' +
               '"' +
               depDevName +
               '" belongs to a different Check Set.',
@@ -58,20 +58,20 @@ public with sharing class RHCMetadataDependencyValidator {
       if (
         dep != null &&
         dep.EvaluationOrder__c != null &&
-        rule.EvaluationOrder__c != null &&
-        dep.EvaluationOrder__c >= rule.EvaluationOrder__c
+        check.EvaluationOrder__c != null &&
+        dep.EvaluationOrder__c >= check.EvaluationOrder__c
       ) {
         issues.add(
           issue(
-            rule,
-            'PrerequisiteRule__c',
-            'Prerequisite Rule must reference a rule with a strictly lower Evaluation Order. ' +
+            check,
+            'PrerequisiteCheck__c',
+            'Prerequisite Check must reference a check with a strictly lower Evaluation Order. ' +
               '"' +
               depDevName +
               '" has Evaluation Order ' +
               dep.EvaluationOrder__c +
-              ' which is not lower than this rule\'s Evaluation Order ' +
-              rule.EvaluationOrder__c +
+              ' which is not lower than this check\'s Evaluation Order ' +
+              check.EvaluationOrder__c +
               '.',
             'INVALID_DEPENDENCY'
           )
@@ -79,7 +79,7 @@ public with sharing class RHCMetadataDependencyValidator {
         continue;
       }
 
-      dependsOnMap.put(rule.DeveloperName, depDevName);
+      dependsOnMap.put(check.DeveloperName, depDevName);
     }
 
     // Cycle detection using DFS
@@ -97,7 +97,7 @@ public with sharing class RHCMetadataDependencyValidator {
         if (!cycle.isEmpty()) {
           // cycle is the closed walk (e.g. [A, B, C, A]); the repeated start
           // node makes cycleStr read as a full loop ("A → B → C → A"). Dedupe
-          // the members when emitting issues so each rule in the cycle gets
+          // the members when emitting issues so each check in the cycle gets
           // exactly one issue row rather than the start node getting two.
           // For display, drop the repeated closing node: "A → B → C" not "A → B → C → A".
           List<String> cycleForDisplay = new List<String>(cycle);
@@ -113,12 +113,12 @@ public with sharing class RHCMetadataDependencyValidator {
             if (!reportedMembers.add(cycleMember)) {
               continue;
             }
-            Record_Health_Check_Rule__mdt r = rulesByDevName.get(cycleMember);
+            Record_Health_Check__mdt r = checksByDevName.get(cycleMember);
             if (r != null) {
               issues.add(
                 issue(
                   r,
-                  'PrerequisiteRule__c',
+                  'PrerequisiteCheck__c',
                   'Dependency cycle detected: ' + cycleStr,
                   'INVALID_DEPENDENCY'
                 )
@@ -160,14 +160,14 @@ public with sharing class RHCMetadataDependencyValidator {
   }
 
   private static RecordHealthCheckMetadataValidator.ValidationIssue issue(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     String fieldName,
     String message,
     String reasonCode
   ) {
     return new RecordHealthCheckMetadataValidator.ValidationIssue(
       'ERROR',
-      rule.DeveloperName,
+      check.DeveloperName,
       fieldName,
       message,
       reasonCode

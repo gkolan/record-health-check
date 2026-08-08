@@ -7,27 +7,27 @@ private class RecordHealthCheckExhaustiveSmokeTest {
   }
 
   @IsTest
-  static void setAndRuleExecutionsPersistOutcomes() {
+  static void setAndCheckExecutionsPersistOutcomes() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Exhaustive execution'
     );
     String setName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
       'Example_Account_Profile_Readiness'
     );
-    String ruleName = RecordHealthCheckTestDataFactory.qualifiedRuleName(
+    String checkName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       'Example_Profile_Phone_Available'
     );
 
     Test.startTest();
     new RecordHealthCheckExhaustiveSmoke(accountRecord.Id, setName, 'SET')
       .execute(new FakeQueueableContext());
-    new RecordHealthCheckExhaustiveSmoke(accountRecord.Id, ruleName, 'RULE')
+    new RecordHealthCheckExhaustiveSmoke(accountRecord.Id, checkName, 'CHECK')
       .execute(new FakeQueueableContext());
     Test.stopTest();
 
     Set<String> expectedIds = new Set<String>{
       'SET:' + setName,
-      'RULE:' + ruleName
+      'CHECK:' + checkName
     };
     List<RHC_Event_Export__c> rows = [
       SELECT EventId__c, Threw__c, Payload__c
@@ -48,7 +48,7 @@ private class RecordHealthCheckExhaustiveSmokeTest {
   }
 
   @IsTest
-  static void invalidRulePersistsExceptionInsteadOfThrowing() {
+  static void invalidCheckPersistsExceptionInsteadOfThrowing() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Exhaustive exception'
     );
@@ -56,8 +56,8 @@ private class RecordHealthCheckExhaustiveSmokeTest {
     Test.startTest();
     new RecordHealthCheckExhaustiveSmoke(
         accountRecord.Id,
-        'Missing_Rule',
-        'RULE'
+        'Missing_Check',
+        'CHECK'
       )
       .execute(new FakeQueueableContext());
     Test.stopTest();
@@ -65,11 +65,11 @@ private class RecordHealthCheckExhaustiveSmokeTest {
     RHC_Event_Export__c row = [
       SELECT Threw__c, ExceptionType__c, Payload__c
       FROM RHC_Event_Export__c
-      WHERE EventId__c = 'RULE:Missing_Rule'
+      WHERE EventId__c = 'CHECK:Missing_Check'
     ];
     Assert.isTrue(
       row.Threw__c,
-      'A missing Rule should be captured as a thrown outcome.'
+      'A missing Check should be captured as a thrown outcome.'
     );
     Assert.isNotNull(
       row.ExceptionType__c,
@@ -106,14 +106,14 @@ private class RecordHealthCheckExhaustiveSmokeTest {
     );
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = new RecordHealthCheckEvaluationResult();
-    item.evaluation.ruleQualifiedApiName = 'Coverage_Rule';
+    item.evaluation.checkQualifiedApiName = 'Coverage_Check';
     item.evaluation.status = RecordHealthCheckStatus.PASS;
     item.evaluation.reasonCode = 'APEX_PASS';
     item.display = new RecordHealthCheckResultDisplay();
     item.display.renderedMessage = 'Passed.';
     RecordHealthCheckResultItem itemWithoutDisplay = new RecordHealthCheckResultItem();
     itemWithoutDisplay.evaluation = new RecordHealthCheckEvaluationResult();
-    itemWithoutDisplay.evaluation.ruleQualifiedApiName = 'Coverage_Rule_No_Display';
+    itemWithoutDisplay.evaluation.checkQualifiedApiName = 'Coverage_Check_No_Display';
     itemWithoutDisplay.evaluation.status = RecordHealthCheckStatus.SKIPPED;
     List<Object> populated = RecordHealthCheckExhaustiveSmoke.summarize(
       new List<RecordHealthCheckResultItem>{ item, itemWithoutDisplay }
@@ -154,16 +154,16 @@ private class RecordHealthCheckExhaustiveSmokeTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Exhaustive enqueue'
     );
-    Integer ruleCount = [SELECT COUNT() FROM Record_Health_Check_Rule__mdt];
-    Integer finalRuleOffset = ruleCount > 0 ? ruleCount - 1 : 0;
+    Integer checkCount = [SELECT COUNT() FROM Record_Health_Check__mdt];
+    Integer finalCheckOffset = checkCount > 0 ? checkCount - 1 : 0;
 
     Test.startTest();
     List<Id> setJobs = RecordHealthCheckExhaustiveSmoke.startSets(
       accountRecord.Id
     );
-    List<Id> ruleJobs = RecordHealthCheckExhaustiveSmoke.startRules(
+    List<Id> checkJobs = RecordHealthCheckExhaustiveSmoke.startChecks(
       accountRecord.Id,
-      finalRuleOffset
+      finalCheckOffset
     );
     Test.stopTest();
 
@@ -172,16 +172,16 @@ private class RecordHealthCheckExhaustiveSmokeTest {
       'Configured Check Sets should enqueue traceable jobs.'
     );
     Assert.isFalse(
-      ruleJobs.isEmpty(),
-      'The final configured Rule should enqueue a traceable job.'
+      checkJobs.isEmpty(),
+      'The final configured Check should enqueue a traceable job.'
     );
     Assert.isNotNull(
       setJobs[0],
       'A Set job should expose its AsyncApexJob identity.'
     );
     Assert.isNotNull(
-      ruleJobs[0],
-      'A Rule job should expose its AsyncApexJob identity.'
+      checkJobs[0],
+      'A Check job should expose its AsyncApexJob identity.'
     );
   }
 
@@ -197,7 +197,7 @@ private class RecordHealthCheckExhaustiveSmokeTest {
         ),
         RHCIntegrationTestDataFactory.eventExport(
           new Map<String, Object>{
-            'EventId__c' => 'RULE:Concern',
+            'EventId__c' => 'CHECK:Concern',
             'Payload__c' => '{"status":"ERROR","threw":true}'
           }
         )
@@ -213,7 +213,7 @@ private class RecordHealthCheckExhaustiveSmokeTest {
       [
         SELECT COUNT()
         FROM RHC_Event_Export__c
-        WHERE EventId__c IN ('SET:Healthy', 'RULE:Concern')
+        WHERE EventId__c IN ('SET:Healthy', 'CHECK:Concern')
       ],
       'Reporting must not mutate persisted outcomes.'
     );

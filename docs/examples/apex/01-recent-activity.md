@@ -1,11 +1,11 @@
 # 01 · Account Is Ready for Customer Follow-up
 
 > [!NOTE]
-> On this page, build one Apex Rule that brings completed Tasks and Events into a single Account follow-up result while keeping the activity window configurable in Custom Metadata.
+> On this page, build one Apex Check that brings completed Tasks and Events into a single Account follow-up result while keeping the activity window configurable in Custom Metadata.
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/evaluation/04-apex-rule-contract.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../reference/evaluation/04-apex-check-contract.md) for the complete setup fields and behavior.
 
 ## Scenario
 
@@ -24,7 +24,7 @@ An account manager opens an Account before a customer call and wants to know whe
 
 | Skill | How this example teaches it |
 | --- | --- |
-| Choose Apex for multi-object logic | The Rule evaluates completed Tasks and Events together. |
+| Choose Apex for multi-object logic | The Check evaluates completed Tasks and Events together. |
 | Accept administrator-controlled parameters | JSON configures the recent-activity window without changing Apex. |
 | Return a clear Framework result | The class supplies status, **Found**, **Expected**, and user guidance. |
 
@@ -35,7 +35,7 @@ An account manager opens an Account before a customer call and wants to know whe
 | **Status** | `PASS` | `FAIL` |
 | **Found** | Combined visible activity count | `0` |
 | **Expected** | `1` | `1` |
-| **Message** | No failure message | The Rule's configured Warning message |
+| **Message** | No failure message | The Check's configured Warning message |
 
 Found reports the combined number of qualifying Tasks and Events. Expected reports the minimum
 passing count. The failure guidance tells the user which activity types and configured window to
@@ -47,13 +47,13 @@ review.
 | --- | --- |
 | **Verify with Apex** | Best fit. One class can review completed Tasks and Events, apply the administrator's date window, and return one status. |
 | **Verify with a formula** using Last Activity Date | Can read the Account's Last Activity Date but cannot apply separate Task and Event filters. |
-| **Verify with a query** in two separate Rules | Would show separate Task and Event results instead of one recent-activity status. |
+| **Verify with a query** in two separate Checks | Would show separate Task and Event results instead of one recent-activity status. |
 | **Compare two queries** | Can compare the Task and Event counts but cannot pass when either count is greater than zero. |
 
 ## What Record Health Check passes to Apex
 
 Shared scope inputs (`scope.recordIds`, `scope.parameters`) are documented once in the
-[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Rule receives Account
+[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Check receives Account
 Ids and a `daysBack` parameter.
 
 ```apex
@@ -66,7 +66,7 @@ Event query, and then returns one outcome for every map key.
 ## Step 1:
 ## Step 1: Understand the parameters
 
-Use Rule parameters to change the activity window without editing the Apex class. This Rule uses:
+Use Check parameters to change the activity window without editing the Apex class. This Check uses:
 
 ```json
 {
@@ -76,14 +76,14 @@ Use Rule parameters to change the activity window without editing the Apex class
 
 After deploying the class:
 
-1. Open **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**.
-2. Create or edit the Rule record.
-3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`).
+1. Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**.
+2. Create or edit the Check record.
+3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check** (`Record_Health_Check__mdt`).
 
 Record Health Check parses the JSON automatically and passes it to the class as
 `scope.parameters`, a map of parameter names to values. The class uses 30 days only when `daysBack`
-is absent. A supplied null, nonnumeric, or out-of-range value returns `INVALID_CONFIG`; the configured Rule explicitly uses 90 days. See
-[Parameter parsing patterns](../../reference/evaluation/04-apex-rule-contract.md#scope)
+is absent. A supplied null, nonnumeric, or out-of-range value returns `INVALID_CONFIG`; the configured Check explicitly uses 90 days. See
+[Parameter parsing patterns](../../reference/evaluation/04-apex-check-contract.md#scope)
 for validation and type-conversion guidance.
 
 ## Step 2: Create the Apex class
@@ -101,21 +101,21 @@ Expected.
  */
 
 /**
- * Example implementation of RecordHealthCheckRule: has the Account been touched
+ * Example implementation of RecordHealthCheck: has the Account been touched
  * recently? At least one completed Task or logged Event inside a configurable
- * look-back window, tuned per Rule through ApexParametersJson__c, for example
+ * look-back window, tuned per Check through ApexParametersJson__c, for example
  * {"daysBack": 90}.
  *
  * This is the reference implementation for the plugin contract, so it is
- * written the way every Rule should be: all data loading happens ABOVE the
+ * written the way every Check should be: all data loading happens ABOVE the
  * loop, and the loop does computation only. Two queries serve the whole scope,
  * whether that scope holds one record or two hundred.
  *
- * Failure message, severity, and label all come from the Rule metadata. This
+ * Failure message, severity, and label all come from the Check metadata. This
  * class decides PASS or FAIL and reports the values behind that decision; it
  * never stamps identity, severity, or anything the user sees.
  */
-global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckRule {
+global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckPlugin {
   private static final Integer DEFAULT_DAYS_BACK = 30;
   private static final Integer MIN_DAYS_BACK = 1;
   private static final Integer MAX_DAYS_BACK = 3650;
@@ -267,7 +267,7 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope, such as `Account` |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `ruleDeveloperName` | `String` | Qualified Rule identity (property name is historical; value is the Rule QualifiedApiName) |
+| `checkDeveloperName` | `String` | Qualified Check identity (property name is historical; value is the Check QualifiedApiName) |
 | `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
@@ -282,43 +282,43 @@ status factory and typed values:
 | `comparisonOperator` | The operator behind the decision, such as `GREATER_THAN_OR_EQUAL` |
 | `expected` | A typed `RecordHealthCheckValue` describing the passing requirement |
 
-For applicability, configure **Applies To** on the Rule so Record Health Check skips before Apex
+For applicability, configure **Applies To** on the Check so Record Health Check skips before Apex
 runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/evaluation/04-apex-rule-contract.md#outcome).
+[Returning an outcome](../../reference/evaluation/04-apex-check-contract.md#outcome).
 
 
-## Step 3: Configure the Rule
+## Step 3: Configure the Check
 
-In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**, create the Rule:
+In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check-rule.md#developer-name-developername) | `Has_Recent_Activity` |
-| **Label** | [`MasterLabel`](../../metadata/02-fields-check-rule.md#label-masterlabel) | Has Recent Activity |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check-rule.md#check-title-checktitle__c) | Has Recent Activity |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../metadata/02-fields-check-rule.md#apex-class-apexclass__c) | `AccountHasRecentActivityCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/02-fields-check-rule.md#apex-parameters-json-apexparametersjson__c) | `{"daysBack": 90}` |
+| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check.md#developer-name-developername) | `Has_Recent_Activity` |
+| **Label** | [`MasterLabel`](../../metadata/02-fields-check.md#label-masterlabel) | Has Recent Activity |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
+| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check.md#check-title-checktitle__c) | Has Recent Activity |
+| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check.md#evaluation-type-evaluationtype__c) | Verify with Apex |
+| **Apex Class** | [`ApexClass__c`](../../metadata/02-fields-check.md#apex-class-apexclass__c) | `AccountHasRecentActivityCheck` |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/02-fields-check.md#apex-parameters-json-apexparametersjson__c) | `{"daysBack": 90}` |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check-rule.md#check-description-checkdescription__c) | Checks for a completed Task or Event related to the Account inside the selected number of days. |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | Names the record, then asks for a completed Task or Event in the window: copy it from below the table |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check recent activity. Confirm the running user can read Tasks and Events. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check-rule.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Rule** | [`PrerequisiteRule__c`](../../metadata/02-fields-check-rule.md#prerequisite-rule-prerequisiterule__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Review the Account activity timeline. If no completed Task or Event falls inside the 90-day window, log the activity and rerun the check. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check-rule.md#action-label-actionlabel__c) | `Log account activity` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check-rule.md#action-url-actionurl__c) | `/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `10` |
-| **Active** | [`IsActive__c`](../../metadata/02-fields-check-rule.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check.md#check-description-checkdescription__c) | Checks for a completed Task or Event related to the Account inside the selected number of days. |
+| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check.md#message-when-failed-failuremessage__c) | Names the record, then asks for a completed Task or Event in the window: copy it from below the table |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check recent activity. Confirm the running user can read Tasks and Events. |
+| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/02-fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check.md#fix-message-fixmessage__c) | Review the Account activity timeline. If no completed Task or Event falls inside the 90-day window, log the activity and rerun the check. |
+| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check.md#action-label-actionlabel__c) | `Log account activity` |
+| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check.md#action-url-actionurl__c) | `/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check.md#evaluation-order-evaluationorder__c) | `10` |
+| **Active** | [`IsActive__c`](../../metadata/02-fields-check.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 Copy this value into **Message When Failed**:
 
@@ -385,7 +385,7 @@ The Apex class turns the activity counts and effective date window into these us
 | **Found** | Found shows the combined number of visible completed Tasks and Events inside the effective activity window. |
 | **Expected** | Expected shows the minimum required activity count: `1`. |
 
-Invalid `daysBack` values return `UNABLE_TO_EVALUATE` with `INVALID_CONFIG`. Test configuration changes before activation because the card intentionally shows the count comparison, not the parameter value. The Rule supplies the
+Invalid `daysBack` values return `UNABLE_TO_EVALUATE` with `INVALID_CONFIG`. Test configuration changes before activation because the card intentionally shows the count comparison, not the parameter value. The Check supplies the
 label, severity, failure message, and display formatting.
 
 ## Security and access
@@ -394,15 +394,15 @@ The class uses sharing and user-mode queries so its result follows the running u
 
 - Task and Event plus `WhatId`, `IsClosed`, and `ActivityDate`.
 
-- Record sharing and restriction rules decide which activities contribute to the counts. Two users can legitimately see different results for the same Account.
+- Salesforce sharing and Restriction Rules decide which activities contribute to the counts. Two users can legitimately see different results for the same Account.
 
 - Insufficient object or field access must show **Unable to evaluate**. It is not proof that no activity exists.
 
-- Keep `evaluate` free of DML and callouts because the card may run the Rule more than once.
+- Keep `evaluate` free of DML and callouts because the card may run the Check more than once.
 
-- Run the Rule with the Permission Sets and activity visibility assigned to the intended users.
+- Run the Check with the Permission Sets and activity visibility assigned to the intended users.
 
-## Step 4: Test the Rule
+## Step 4: Test the Check
 
 1. Remove or push outside the window every completed Task and logged Event. Confirm Warning.
 2. Add either back inside the window, rerun, and confirm a pass.
@@ -416,7 +416,7 @@ Window** (replace the placeholder with an Account ID):
 ```apex
 Id accountId = '001XXXXXXXXXXXXXXX';
 RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-  RecordHealthCheckRequest.forRule('Has_Recent_Activity', accountId)
+  RecordHealthCheckRequest.forCheck('Has_Recent_Activity', accountId)
     .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
 );
 System.debug(LoggingLevel.INFO, JSON.serializePretty(response));
@@ -433,17 +433,17 @@ System.debug(LoggingLevel.INFO, JSON.serializePretty(response));
 
 | Symptom or reason | What to verify |
 | --- | --- |
-| `APEX_CLASS_NOT_FOUND` | Deploy `AccountHasRecentActivityCheck`, confirm the class name in **Apex Class**, and confirm it implements `RecordHealthCheckRule`. |
+| `APEX_CLASS_NOT_FOUND` | Deploy `AccountHasRecentActivityCheck`, confirm the class name in **Apex Class**, and confirm it implements `RecordHealthCheckPlugin`. |
 | `APEX_EVALUATOR_ERROR` | Confirm the running user can read Task/Event and the queried fields; inspect authorized diagnostics for the underlying exception. |
 | A known Task does not count | Confirm it is closed, its `WhatId` is this Account, its `ActivityDate` is inside the effective window, and the running user can see it. |
 | `INVALID_CONFIG` | Correct a null, nonnumeric, or out-of-range `daysBack`. Omit the key only when the deliberate 30-day default is appropriate. |
 
-## Customize this Rule
+## Customize this Check
 
 Change `daysBack` in JSON to change the window without deploying code. Change the Task or Event
 filters only when your definition of activity differs, and update the class tests and explanatory
 copy at the same time. If `LastActivityDate` alone answers the business question, replace this Apex
-Rule with a simpler Verify with a formula.
+Check with a simpler Verify with a formula.
 
 ## Related
 

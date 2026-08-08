@@ -40,8 +40,8 @@ if (!releaseWorkflow.includes(`code-analyzer@${policy.codeAnalyzerPlugin}`)) {
   );
 }
 
-const agentRules = readFileSync(resolve(root, "AGENTS.md"), "utf8");
-if (!agentRules.includes(`Salesforce CLI ${policy.salesforceCli}`)) {
+const agentChecks = readFileSync(resolve(root, "AGENTS.md"), "utf8");
+if (!agentChecks.includes(`Salesforce CLI ${policy.salesforceCli}`)) {
   fail("AGENTS.md must name the pinned Salesforce CLI release.");
 }
 for (const instructions of [

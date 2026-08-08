@@ -108,7 +108,7 @@ private class RecordHealthCheckDisplayCurrencyTest {
   @IsTest
   static void currencyHonoursSymbolIsoStyleAndMinorUnits() {
     // Rendering per currency code rather than only the org's own currency, so
-    // the symbol table, the ISO fallback, and the minor-unit rules are all
+    // the symbol table, the ISO fallback, and the minor-unit checks are all
     // exercised in a single-currency org.
     System.runAs(userWithLocale('en_US', 'rhciso')) {
       Assert.areEqual(

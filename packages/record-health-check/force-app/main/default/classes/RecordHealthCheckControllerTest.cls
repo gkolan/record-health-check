@@ -13,10 +13,14 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void getCheckDefinitionsReturnsDefinitionResponse() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    String expectedTitle = [
+      SELECT CardTitle__c
+      FROM Record_Health_Check_Set__mdt
+      WHERE DeveloperName = 'Example_Account_Relationship_Risk'
+      LIMIT 1
+    ]
+    .CardTitle__c;
 
     Test.startTest();
     RecordHealthCheckDefinitionResponse response = RecordHealthCheckController.getCheckDefinitions(
@@ -29,7 +33,7 @@ private class RecordHealthCheckControllerTest {
     Test.stopTest();
 
     Assert.areEqual(
-      'Account Relationship & Risk Health Check',
+      expectedTitle,
       response.displayTitle,
       'The definition response should use the packaged Check Set title.'
     );
@@ -171,7 +175,7 @@ private class RecordHealthCheckControllerTest {
     Test.startTest();
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
       'Any_Set',
-      'Any_Rule',
+      'Any_Check',
       UserInfo.getUserId(),
       'invalid-source',
       'ATTACKER_CONTROLLED_SOURCE'
@@ -218,11 +222,11 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void completionResponseRejectsDuplicateRuleResults() {
+  static void completionResponseRejectsDuplicateCheckResults() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckEvaluationResult evaluation = new RecordHealthCheckEvaluationResult();
     evaluation.recordId = accountRecord.Id;
-    evaluation.ruleQualifiedApiName = 'Rule_A';
+    evaluation.checkQualifiedApiName = 'Check_A';
     evaluation.status = RecordHealthCheckStatus.FAIL;
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = evaluation;
@@ -231,7 +235,7 @@ private class RecordHealthCheckControllerTest {
     RecordHealthCheckResponse response = RecordHealthCheckController.completionResponse(
       'dedupe-run',
       accountRecord.Id,
-      new Set<String>{ 'Rule_A' },
+      new Set<String>{ 'Check_A' },
       new List<RecordHealthCheckResultItem>{ item, item }
     );
     Test.stopTest();
@@ -239,7 +243,7 @@ private class RecordHealthCheckControllerTest {
     Assert.areEqual(
       1,
       response.results.size(),
-      'One configured Rule may contribute only one completion result.'
+      'One configured Check may contribute only one completion result.'
     );
     Assert.areEqual(
       1,
@@ -271,17 +275,14 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void evaluateCheckDoesNotThrowForMissingRule() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void evaluateCheckDoesNotThrowForMissingCheck() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
 
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Relationship_Risk'
       ),
-      'Missing_Rule',
+      'Missing_Check',
       accountRecord.Id,
       'test-run-3',
       RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
@@ -292,10 +293,7 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void evaluateCheckReturnsPackagedRuleAndCompletesMembership() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void evaluateCheckReturnsPackagedCheckAndCompletesMembership() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Controller success'
     );
@@ -305,7 +303,7 @@ private class RecordHealthCheckControllerTest {
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Profile_Readiness'
       ),
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Profile_Phone_Available'
       ),
       accountRecord.Id,
@@ -314,7 +312,7 @@ private class RecordHealthCheckControllerTest {
     );
     Test.stopTest();
 
-    Assert.isNotNull(result, 'A configured Rule should return a result item.');
+    Assert.isNotNull(result, 'A configured Check should return a result item.');
     Assert.areEqual(
       accountRecord.Id,
       result.evaluation.recordId,
@@ -323,12 +321,14 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void evaluateCheckRejectsNamespaceRelativeRuleIdentity() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void evaluateCheckSupportsUserInitiatedOrigin() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      'Controller namespace identity'
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{
+          'Name' => 'Controller user initiated',
+          'Phone' => '312-555-0199'
+        }
+      )
     );
 
     Test.startTest();
@@ -336,7 +336,66 @@ private class RecordHealthCheckControllerTest {
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Profile_Readiness'
       ),
-      'Example_Profile_Phone_Available',
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
+        'Example_Profile_Phone_Available'
+      ),
+      accountRecord.Id,
+      'controller-user-initiated',
+      RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.PASS,
+      result.evaluation.status,
+      'A valid user-initiated Check evaluation should retain its business verdict.'
+    );
+    Assert.areEqual(
+      accountRecord.Id,
+      result.evaluation.recordId,
+      'The user-initiated result must retain the requested record.'
+    );
+  }
+
+  @IsTest
+  static void controllerRejectsUserWithoutRunPermission() {
+    Test.startTest();
+    RecordHealthCheckAccess.setRunPermissionForTest(false);
+    try {
+      try {
+        RecordHealthCheckController.getCheckSetAvailabilityForRecord(null);
+        Assert.fail('A user without the run permission must be rejected.');
+      } catch (AuraHandledException error) {
+        Assert.isTrue(
+          error.getMessage().contains('NOT_AUTHORIZED'),
+          'The controller should expose only the stable authorization reason.'
+        );
+      }
+    } finally {
+      RecordHealthCheckAccess.setRunPermissionForTest(null);
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void evaluateCheckRejectsNamespaceRelativeCheckIdentity() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Controller namespace identity'
+    );
+    String developerName = 'Example_Profile_Phone_Available';
+    String exactQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
+      developerName
+    );
+    String invalidQualifiedApiName = exactQualifiedApiName == developerName
+      ? 'invalid__' + developerName
+      : developerName;
+
+    Test.startTest();
+    RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Account_Profile_Readiness'
+      ),
+      invalidQualifiedApiName,
       accountRecord.Id,
       'controller-namespace-identity',
       RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
@@ -346,7 +405,7 @@ private class RecordHealthCheckControllerTest {
     Assert.areEqual(
       'APEX_EVALUATOR_ERROR',
       result.evaluation.reasonCode,
-      'Every entry point must reject a Rule identity that is not its exact Qualified API Name.'
+      'Every entry point must reject a Check identity that is not its exact Qualified API Name.'
     );
     Assert.areEqual(
       accountRecord.Id,
@@ -357,9 +416,6 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void lwcPublicationRequiresUserInitiationAndMetadataOptIn() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     Integer beforeDml = Limits.getDmlStatements();
 
@@ -367,7 +423,7 @@ private class RecordHealthCheckControllerTest {
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Relationship_Risk'
       ),
-      'Missing_Rule',
+      'Missing_Check',
       accountRecord.Id,
       'automatic-run',
       RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
@@ -382,19 +438,19 @@ private class RecordHealthCheckControllerTest {
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Relationship_Risk'
       ),
-      'Missing_Rule',
+      'Missing_Check',
       accountRecord.Id,
       'user-run',
       RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED
     );
     // This counts DML statements as a proxy for published events. It stays at
     // one because RecordHealthCheckPluginDispatch takes its side-effect
-    // savepoint only when a custom Apex Rule actually runs, and this single
-    // Rule is not one.
+    // savepoint only when a custom Apex Check actually runs, and this single
+    // Check is not one.
     Assert.areEqual(
       beforeDml,
       Limits.getDmlStatements(),
-      'Per-Rule browser calls must not publish before the run completes.'
+      'Per-Check browser calls must not publish before the run completes.'
     );
     Assert.areNotEqual(
       null,
@@ -412,8 +468,8 @@ private class RecordHealthCheckControllerTest {
       JSON.serialize(new List<RecordHealthCheckResultItem>{ result })
     );
     // Two DML statements: the Set completion event and the side-effect
-    // savepoint for the Apex Rule that runs in this fixture. Missing_Rule is not
-    // a returned Rule identity, so the publication override emits no Rule event.
+    // savepoint for the Apex Check that runs in this fixture. Missing_Check is not
+    // a returned Check identity, so the publication override emits no Check event.
     Assert.areEqual(
       beforeDml + 1,
       Limits.getDmlStatements(),
@@ -423,9 +479,6 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void getCheckSetAvailabilityForRecordReflectsObjectScopedMetadata() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
 
     Test.startTest();

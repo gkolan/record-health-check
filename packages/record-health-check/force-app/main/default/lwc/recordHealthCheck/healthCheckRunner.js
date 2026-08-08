@@ -153,7 +153,7 @@ export class HealthCheckRunner {
     for (const name of cycleNames) {
       const check = checkMap[name];
       if (check) {
-        const prereqName = check.dependsOnRuleDeveloperName;
+        const prereqName = check.dependsOnCheckDeveloperName;
         this._resultBuffer[name] = synthesizeResult(
           check,
           "UNABLE_TO_EVALUATE",
@@ -242,34 +242,35 @@ export class HealthCheckRunner {
   async _runOneCheck(check, taskMap, checkMap, runCheck, token) {
     if (this._stopped || token !== this._runToken) return;
 
-    // Enforce the Prerequisite Rule before calling Apex.
-    if (check.dependsOnRuleDeveloperName) {
-      const prerequisiteRule = checkMap[check.dependsOnRuleDeveloperName];
-      if (!prerequisiteRule) {
+    // Enforce the Prerequisite Check before calling Apex.
+    if (check.dependsOnCheckDeveloperName) {
+      const prerequisiteCheck = checkMap[check.dependsOnCheckDeveloperName];
+      if (!prerequisiteCheck) {
         const skipped = synthesizeResult(
           check,
           "SKIPPED",
           "DEPENDENCY_NOT_IN_RUN",
-          `Skipped because Prerequisite Rule "${check.dependsOnRuleDeveloperName}" was not included in the Framework run.`
+          `Skipped because Prerequisite Check "${check.dependsOnCheckDeveloperName}" was not included in the Framework run.`
         );
         this._resultBuffer[check.developerName] = skipped;
         this._drain(token);
         return;
       }
-      if (!taskMap[check.dependsOnRuleDeveloperName]) {
-        runCheck(prerequisiteRule);
+      if (!taskMap[check.dependsOnCheckDeveloperName]) {
+        runCheck(prerequisiteCheck);
       }
-      await taskMap[check.dependsOnRuleDeveloperName];
+      await taskMap[check.dependsOnCheckDeveloperName];
       if (this._stopped || token !== this._runToken) return;
-      const prereqResult = this._resultBuffer[check.dependsOnRuleDeveloperName];
+      const prereqResult =
+        this._resultBuffer[check.dependsOnCheckDeveloperName];
       if (!prereqResult || prereqResult.status !== "PASS") {
         const prereqLabel =
-          prerequisiteRule.label || check.dependsOnRuleDeveloperName;
+          prerequisiteCheck.label || check.dependsOnCheckDeveloperName;
         const skipped = synthesizeResult(
           check,
           "SKIPPED",
           "PREREQUISITE_NOT_MET",
-          `Skipped because Prerequisite Rule "${prereqLabel}" did not pass.`
+          `Skipped because Prerequisite Check "${prereqLabel}" did not pass.`
         );
         this._resultBuffer[check.developerName] = skipped;
         this._drain(token);
@@ -296,7 +297,7 @@ export class HealthCheckRunner {
     try {
       result = await this.evaluateCheck({
         checkSetQualifiedApiName: this.host.checkSetName,
-        ruleQualifiedApiName: check.qualifiedApiName,
+        checkQualifiedApiName: check.qualifiedApiName,
         recordId: this.host.recordId,
         runId: this._runId,
         source: this._source

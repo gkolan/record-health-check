@@ -44,24 +44,24 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
   }
 
   public static RecordHealthCheckInternalResult buildEmptyResult(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,
     RecordHealthCheckValueSource.Detail actualValueSource
   ) {
     result.actualValueSource = actualValueSource;
-    String behavior = rule.NoRowsResult__c;
+    String behavior = check.NoRowsResult__c;
     if (behavior == 'PASS') {
       result.status = 'PASS';
     } else if (behavior == 'FAIL') {
       result.status = 'FAIL';
-      result.severity = rule.FailureSeverity__c;
-      result.message = String.isNotBlank(rule.FailureMessage__c)
-        ? rule.FailureMessage__c
+      result.severity = check.FailureSeverity__c;
+      result.message = String.isNotBlank(check.FailureMessage__c)
+        ? check.FailureMessage__c
         : 'No matching records found.';
     } else if (behavior == 'UNABLE_TO_EVALUATE') {
       result.status = 'UNABLE_TO_EVALUATE';
       result.reasonCode = 'NO_ROWS_RETURNED';
-      result.message = safeCannotEvaluateMessage(rule);
+      result.message = safeCannotEvaluateMessage(check);
     } else {
       result.status = 'SKIPPED';
       result.reasonCode = 'APPLICABILITY_NOT_MET';
@@ -80,18 +80,18 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
   }
 
   public static String safeCannotEvaluateMessage(
-    Record_Health_Check_Rule__mdt rule
+    Record_Health_Check__mdt check
   ) {
-    return String.isNotBlank(rule.UnableToEvaluateMessage__c)
-      ? rule.UnableToEvaluateMessage__c
+    return String.isNotBlank(check.UnableToEvaluateMessage__c)
+      ? check.UnableToEvaluateMessage__c
       : 'This check could not be evaluated. Contact your administrator.';
   }
 
   /** Returns a best-effort plural label for the source query's object. */
-  public static String pluralizeObject(Record_Health_Check_Rule__mdt rule) {
+  public static String pluralizeObject(Record_Health_Check__mdt check) {
     String objectName;
-    if (String.isNotBlank(rule.SourceQuery__c)) {
-      Matcher matcher = FROM_OBJECT_PATTERN.matcher(rule.SourceQuery__c);
+    if (String.isNotBlank(check.SourceQuery__c)) {
+      Matcher matcher = FROM_OBJECT_PATTERN.matcher(check.SourceQuery__c);
       if (matcher.find()) {
         objectName = matcher.group(1);
       }

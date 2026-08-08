@@ -3,25 +3,25 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopePrerequisiteTest {
-  private static final String PHONE_RULE = 'Example_Profile_Phone_Available';
+  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
 
   @IsTest
-  static void missingPrerequisiteDoesNotBlockSingleRuleSelection() {
+  static void missingPrerequisiteDoesNotBlockSingleCheckSelection() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Missing Prerequisite' }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
-    Record_Health_Check_Rule__mdt ruleWithPrerequisite = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt checkWithPrerequisite = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'DeveloperName' => 'Rule_B',
-        'PrerequisiteRule__c' => 'Rule_A'
+        'DeveloperName' => 'Check_B',
+        'PrerequisiteCheck__c' => 'Check_A'
       }
     );
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckScopeResultSupport()
       .findPrerequisiteBlock(
-        ruleWithPrerequisite,
+        checkWithPrerequisite,
         account.Id,
         new Map<String, RecordHealthCheckResultItem>()
       );
@@ -29,41 +29,41 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
 
     Assert.isNull(
       result,
-      'A qualified single-Rule request has no prerequisite history and must not invent a failed dependency.'
+      'A qualified single-Check request has no prerequisite history and must not invent a failed dependency.'
     );
   }
 
   @IsTest
-  static void passingPrerequisiteAllowsDependentRule() {
+  static void passingPrerequisiteAllowsDependentCheck() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Passing Prerequisite' }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
     RecordHealthCheckResultItem prerequisiteResult = buildPrerequisiteResultItem(
       account.Id,
-      'Rule_A',
+      'Check_A',
       RecordHealthCheckStatus.PASS
     );
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckScopeResultSupport()
       .findPrerequisiteBlock(
-        buildRuleWithPrerequisite('Rule_A'),
+        buildCheckWithPrerequisite('Check_A'),
         account.Id,
         new Map<String, RecordHealthCheckResultItem>{
-          String.valueOf(account.Id) + '|Rule_A' => prerequisiteResult
+          String.valueOf(account.Id) + '|Check_A' => prerequisiteResult
         }
       );
     Test.stopTest();
 
     Assert.isNull(
       result,
-      'Only a PASS result from the Prerequisite Rule may allow the Rule to run.'
+      'Only a PASS result from the Prerequisite Check may allow the Check to run.'
     );
   }
 
   @IsTest
-  static void everyNonPassingPrerequisiteStatusSkipsDependentRule() {
+  static void everyNonPassingPrerequisiteStatusSkipsDependentCheck() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Non-Passing Prerequisite' }
     );
@@ -79,27 +79,27 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     for (String status : terminalStatuses) {
       RecordHealthCheckResultItem prerequisiteResult = buildPrerequisiteResultItem(
         account.Id,
-        'namespace__Rule_A',
+        'namespace__Check_A',
         status
       );
       RecordHealthCheckInternalResult result = new RecordHealthCheckScopeResultSupport()
         .findPrerequisiteBlock(
-          buildRuleWithPrerequisite('Rule_A'),
+          buildCheckWithPrerequisite('Check_A'),
           account.Id,
           new Map<String, RecordHealthCheckResultItem>{
             String.valueOf(account.Id) +
-            '|namespace__Rule_A' => prerequisiteResult
+            '|namespace__Check_A' => prerequisiteResult
           }
         );
       Assert.areEqual(
         RecordHealthCheckStatus.SKIPPED,
         result.status,
-        status + ' must block the Rule that requires the Prerequisite Rule.'
+        status + ' must block the Check that requires the Prerequisite Check.'
       );
       Assert.areEqual(
         RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET,
         result.reasonCode,
-        status + ' means the Prerequisite Rule ran but did not pass.'
+        status + ' means the Prerequisite Check ran but did not pass.'
       );
     }
     Test.stopTest();
@@ -117,14 +117,14 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
       new List<Account>{ first, second }
     );
     Map<String, RecordHealthCheckResultItem> priorItems = new Map<String, RecordHealthCheckResultItem>{
-      String.valueOf(first.Id) + '|Rule_A' => buildPrerequisiteResultItem(
+      String.valueOf(first.Id) + '|Check_A' => buildPrerequisiteResultItem(
         first.Id,
-        'Rule_A',
+        'Check_A',
         RecordHealthCheckStatus.PASS
       ),
-      String.valueOf(second.Id) + '|Rule_A' => buildPrerequisiteResultItem(
+      String.valueOf(second.Id) + '|Check_A' => buildPrerequisiteResultItem(
         second.Id,
-        'Rule_A',
+        'Check_A',
         RecordHealthCheckStatus.FAIL
       )
     };
@@ -132,12 +132,12 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     Test.startTest();
     RecordHealthCheckScopeResultSupport resultSupport = new RecordHealthCheckScopeResultSupport();
     RecordHealthCheckInternalResult firstResult = resultSupport.findPrerequisiteBlock(
-      buildRuleWithPrerequisite('Rule_A'),
+      buildCheckWithPrerequisite('Check_A'),
       first.Id,
       priorItems
     );
     RecordHealthCheckInternalResult secondResult = resultSupport.findPrerequisiteBlock(
-      buildRuleWithPrerequisite('Rule_A'),
+      buildCheckWithPrerequisite('Check_A'),
       second.Id,
       priorItems
     );
@@ -145,7 +145,7 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
 
     Assert.isNull(
       firstResult,
-      'The record whose Prerequisite Rule passed may proceed.'
+      'The record whose Prerequisite Check passed may proceed.'
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET,
@@ -163,14 +163,14 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     );
     RecordHealthCheckResultItem spoofed = buildPrerequisiteResultItem(
       account.Id,
-      'Rule_A',
+      'Check_A',
       RecordHealthCheckStatus.PASS
     );
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckScopeResultSupport()
       .findPrerequisiteBlock(
-        buildRuleWithPrerequisite('Rule_A'),
+        buildCheckWithPrerequisite('Check_A'),
         account.Id,
         new Map<String, RecordHealthCheckResultItem>{
           'attacker-controlled-key' => spoofed
@@ -192,11 +192,11 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     return context;
   }
 
-  private static Record_Health_Check_Rule__mdt queryCountRule(
+  private static Record_Health_Check__mdt queryCountCheck(
     String developerName,
     String failureMessage
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => developerName,
         'DeveloperName' => developerName,
@@ -220,27 +220,27 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt buildRuleWithPrerequisite(
+  private static Record_Health_Check__mdt buildCheckWithPrerequisite(
     String prerequisiteName
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'DeveloperName' => 'Rule_B',
-        'QualifiedApiName' => 'namespace__Rule_B',
-        'PrerequisiteRule__c' => prerequisiteName
+        'DeveloperName' => 'Check_B',
+        'QualifiedApiName' => 'namespace__Check_B',
+        'PrerequisiteCheck__c' => prerequisiteName
       }
     );
   }
 
   private static RecordHealthCheckResultItem buildPrerequisiteResultItem(
     Id recordId,
-    String qualifiedRuleName,
+    String qualifiedCheckName,
     String status
   ) {
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = new RecordHealthCheckEvaluationResult();
     item.evaluation.recordId = recordId;
-    item.evaluation.ruleQualifiedApiName = qualifiedRuleName;
+    item.evaluation.checkQualifiedApiName = qualifiedCheckName;
     item.evaluation.status = status;
     return item;
   }

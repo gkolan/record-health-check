@@ -1,4 +1,4 @@
-// Verifies the deterministic Account demo and every expected Rule outcome.
+// Verifies the deterministic Account demo and every expected Check outcome.
 Account demoAccount = [
   SELECT Id
   FROM Account
@@ -97,40 +97,40 @@ Map<String, String> expectedStatuses = new Map<String, String>{
 };
 Map<String, String> expectedQualifiedStatuses = new Map<String, String>();
 Set<String> expectedDeveloperNames = expectedStatuses.keySet();
-for (rhc__Record_Health_Check_Rule__mdt rule : [
+for (rhc__Record_Health_Check__mdt check : [
   SELECT DeveloperName, QualifiedApiName
-  FROM rhc__Record_Health_Check_Rule__mdt
+  FROM rhc__Record_Health_Check__mdt
   WHERE DeveloperName IN :expectedDeveloperNames
 ]) {
   expectedQualifiedStatuses.put(
-    rule.QualifiedApiName,
-    expectedStatuses.get(rule.DeveloperName)
+    check.QualifiedApiName,
+    expectedStatuses.get(check.DeveloperName)
   );
 }
 if (expectedQualifiedStatuses.size() != expectedStatuses.size()) {
-  throw new StringException('The demo Rule metadata is incomplete.');
+  throw new StringException('The demo Check metadata is incomplete.');
 }
 for (rhc.RecordHealthCheckResultItem item : response.results) {
-  String ruleName = item.evaluation.ruleQualifiedApiName;
-  if (!expectedQualifiedStatuses.containsKey(ruleName)) {
-    throw new StringException('Unexpected Rule result: ' + ruleName + '.');
+  String checkName = item.evaluation.checkQualifiedApiName;
+  if (!expectedQualifiedStatuses.containsKey(checkName)) {
+    throw new StringException('Unexpected Check result: ' + checkName + '.');
   }
-  if (item.evaluation.status != expectedQualifiedStatuses.get(ruleName)) {
+  if (item.evaluation.status != expectedQualifiedStatuses.get(checkName)) {
     throw new StringException(
       'Unexpected status for ' +
-        ruleName +
+        checkName +
         ': expected ' +
-        expectedQualifiedStatuses.get(ruleName) +
+        expectedQualifiedStatuses.get(checkName) +
         ' but found ' +
         item.evaluation.status +
         '.'
     );
   }
-  expectedQualifiedStatuses.remove(ruleName);
+  expectedQualifiedStatuses.remove(checkName);
 }
 if (!expectedQualifiedStatuses.isEmpty()) {
   throw new StringException(
-    'The demo response omitted Rule results: ' +
+    'The demo response omitted Check results: ' +
       String.join(new List<String>(expectedQualifiedStatuses.keySet()), ', ') +
       '.'
   );

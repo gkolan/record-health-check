@@ -53,7 +53,7 @@ public with sharing class RecordHealthCheckController {
 
   /**
    * Returns Check Set display settings and ordered check definitions.
-   * Not cacheable: metadata edits to Check Sets/Rules appear on the next
+   * Not cacheable: metadata edits to Check Sets/Checks appear on the next
    * component load without requiring a page refresh.
    * Throws AuraHandledException for all component-level failures:
    * CONFIG_NOT_FOUND, CONFIG_INACTIVE, OBJECT_MISMATCH,
@@ -63,7 +63,7 @@ public with sharing class RecordHealthCheckController {
    * @param checkSetQualifiedApiName Exact QualifiedApiName of the Check Set.
    * @param recordId Record for which definitions will be evaluated.
    * @param runId Optional client correlation identifier.
-   * @return Display settings and ordered Rule definitions.
+   * @return Display settings and ordered Check definitions.
    * @throws AuraHandledException for configuration or unexpected load failures.
    */
   @AuraEnabled
@@ -133,11 +133,11 @@ public with sharing class RecordHealthCheckController {
 
   /**
    * Evaluates a single check and returns one split evaluation/display item.
-   * checkSetQualifiedApiName is validated server-side to confirm the Rule belongs to the
-   * named Check Set, preventing direct invocation of arbitrary rules.
+   * checkSetQualifiedApiName is validated server-side to confirm the Check belongs to the
+   * named Check Set, preventing direct invocation of arbitrary checks.
    *
    * @param checkSetQualifiedApiName Exact QualifiedApiName of the parent Check Set.
-   * @param ruleQualifiedApiName Exact QualifiedApiName of the Rule.
+   * @param checkQualifiedApiName Exact QualifiedApiName of the Check.
    * @param recordId Record to evaluate.
    * @param runId Optional client correlation identifier.
    * @param source Exact browser execution source.
@@ -146,7 +146,7 @@ public with sharing class RecordHealthCheckController {
   @AuraEnabled
   public static RecordHealthCheckResultItem evaluateCheck(
     String checkSetQualifiedApiName,
-    String ruleQualifiedApiName,
+    String checkQualifiedApiName,
     Id recordId,
     String runId,
     String source
@@ -156,16 +156,16 @@ public with sharing class RecordHealthCheckController {
       checkSetQualifiedApiName,
       80
     );
-    ruleQualifiedApiName = RecordHealthCheckLogger.normalizeIdentifier(
-      ruleQualifiedApiName,
+    checkQualifiedApiName = RecordHealthCheckLogger.normalizeIdentifier(
+      checkQualifiedApiName,
       80
     );
     runId = RecordHealthCheckLogger.normalizeIdentifier(runId, 120);
     try {
       String effectiveSource = normalizeLwcSource(source);
-      validateRuleMembership(checkSetQualifiedApiName, ruleQualifiedApiName);
-      RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-          ruleQualifiedApiName,
+      validateCheckMembership(checkSetQualifiedApiName, checkQualifiedApiName);
+      RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+          checkQualifiedApiName,
           recordId
         )
         .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
@@ -188,13 +188,13 @@ public with sharing class RecordHealthCheckController {
         runId,
         checkSetQualifiedApiName,
         recordId,
-        ruleQualifiedApiName,
+        checkQualifiedApiName,
         'CONTROLLER_BOUNDARY_ERROR',
         null,
         ex
       );
       RecordHealthCheckEvaluationResult evaluation = new RecordHealthCheckEvaluationResult();
-      evaluation.ruleQualifiedApiName = ruleQualifiedApiName;
+      evaluation.checkQualifiedApiName = checkQualifiedApiName;
       evaluation.recordId = recordId;
       evaluation.status = RecordHealthCheckStatus.ERROR;
       evaluation.reasonCode = 'APEX_EVALUATOR_ERROR';
@@ -216,7 +216,7 @@ public with sharing class RecordHealthCheckController {
    * @param runId Client correlation identifier for the completed run.
    * @param source Exact browser execution source.
    * @param recordId Record evaluated by the completed run.
-   * @param resultsJson Client-returned result items, filtered to the record and resolved Rules.
+   * @param resultsJson Client-returned result items, filtered to the record and resolved Checks.
    * @throws AuraHandledException if completion cannot be performed safely.
    */
   @AuraEnabled
@@ -254,9 +254,9 @@ public with sharing class RecordHealthCheckController {
         effectiveCheckSetName,
         recordId
       );
-      Set<String> allowedRuleNames = new Set<String>();
+      Set<String> allowedCheckNames = new Set<String>();
       for (RecordHealthCheckDefinition definition : definitions.checks) {
-        allowedRuleNames.add(definition.qualifiedApiName);
+        allowedCheckNames.add(definition.qualifiedApiName);
       }
       List<RecordHealthCheckResultItem> completedItems = (List<RecordHealthCheckResultItem>) JSON.deserialize(
         resultsJson,
@@ -265,7 +265,7 @@ public with sharing class RecordHealthCheckController {
       RecordHealthCheckResponse response = completionResponse(
         effectiveRunId,
         recordId,
-        allowedRuleNames,
+        allowedCheckNames,
         completedItems
       );
       RecordHealthCheckLifecyclePublisher.publishInteractiveResponse(
@@ -297,37 +297,37 @@ public with sharing class RecordHealthCheckController {
   private static RecordHealthCheckResponse completionResponse(
     String runId,
     Id recordId,
-    Set<String> allowedRuleNames,
+    Set<String> allowedCheckNames,
     List<RecordHealthCheckResultItem> completedItems
   ) {
     RecordHealthCheckResponse response = new RecordHealthCheckResponse();
     response.runId = runId;
     response.recordIds.add(recordId);
-    Set<String> acceptedRuleNames = new Set<String>();
+    Set<String> acceptedCheckNames = new Set<String>();
     List<RecordHealthCheckResultItem> candidateItems = completedItems;
     if (candidateItems == null) {
       candidateItems = new List<RecordHealthCheckResultItem>();
     }
-    Set<String> configuredRuleNames = allowedRuleNames;
-    if (configuredRuleNames == null) {
-      configuredRuleNames = new Set<String>();
+    Set<String> configuredCheckNames = allowedCheckNames;
+    if (configuredCheckNames == null) {
+      configuredCheckNames = new Set<String>();
     }
     for (RecordHealthCheckResultItem item : candidateItems) {
-      String ruleName = item?.evaluation?.ruleQualifiedApiName;
+      String checkName = item?.evaluation?.checkQualifiedApiName;
       if (
         item?.evaluation == null ||
         item.evaluation.recordId != recordId ||
-        String.isBlank(ruleName) ||
-        !configuredRuleNames.contains(ruleName) ||
-        acceptedRuleNames.contains(ruleName)
+        String.isBlank(checkName) ||
+        !configuredCheckNames.contains(checkName) ||
+        acceptedCheckNames.contains(checkName)
       ) {
         continue;
       }
-      acceptedRuleNames.add(ruleName);
+      acceptedCheckNames.add(checkName);
       response.results.add(item);
       response.summary.add(item.evaluation.status);
     }
-    response.ruleQualifiedApiNames.addAll(acceptedRuleNames);
+    response.checkQualifiedApiNames.addAll(acceptedCheckNames);
     return response;
   }
 
@@ -356,24 +356,24 @@ public with sharing class RecordHealthCheckController {
     );
   }
 
-  private static void validateRuleMembership(
+  private static void validateCheckMembership(
     String checkSetQualifiedApiName,
-    String ruleQualifiedApiName
+    String checkQualifiedApiName
   ) {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced before the component is exposed.
-    List<Record_Health_Check_Rule__mdt> rules = [
+    List<Record_Health_Check__mdt> checks = [
       SELECT Record_Health_Check_Set__r.QualifiedApiName
-      FROM Record_Health_Check_Rule__mdt
-      WHERE QualifiedApiName = :ruleQualifiedApiName
+      FROM Record_Health_Check__mdt
+      WHERE QualifiedApiName = :checkQualifiedApiName
       LIMIT 1
     ];
     if (
-      rules.isEmpty() ||
-      rules[0].Record_Health_Check_Set__r.QualifiedApiName !=
+      checks.isEmpty() ||
+      checks[0].Record_Health_Check_Set__r.QualifiedApiName !=
       checkSetQualifiedApiName
     ) {
       throw new RecordHealthCheckControllerException(
-        'The selected Rule does not belong to the selected Check Set.'
+        'The selected Check does not belong to the selected Check Set.'
       );
     }
   }

@@ -14,21 +14,21 @@ public class RecordHealthCheckReasonCodes {
   public static final String DEPENDENCY_NOT_IN_RUN = 'DEPENDENCY_NOT_IN_RUN';
 
   // ─── Extension contract ────────────────────────────────────────────────────
-  // Engine-generated outcomes for a custom Apex Rule that broke its contract.
+  // Engine-generated outcomes for a custom Apex Check that broke its contract.
   // A consumer must never have to read a message to understand an outcome, so
   // every one of these is stable and additive: renaming one is a breaking change.
 
-  /** The Rule returned no entry for a record it was asked about. */
+  /** The Check returned no entry for a record it was asked about. */
   public static final String PLUGIN_RESULT_MISSING = 'PLUGIN_RESULT_MISSING';
 
-  /** The Rule returned an entry for a record it was not asked about. Fails the whole scope. */
+  /** The Check returned an entry for a record it was not asked about. Fails the whole scope. */
   public static final String PLUGIN_RESULT_UNKNOWN_KEY = 'PLUGIN_RESULT_UNKNOWN_KEY';
 
-  /** The Rule threw and did not handle it. The engine cannot attribute it to one record. */
+  /** The Check threw and did not handle it. The engine cannot attribute it to one record. */
   public static final String PLUGIN_THREW = 'PLUGIN_THREW';
 
   /**
-   * The Rule changed something. Outranks every other outcome, including an
+   * The Check changed something. Outranks every other outcome, including an
    * exception, and is never converted into results: the only way to undo the
    * change is to let the transaction fail.
    */

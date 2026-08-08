@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopePipelineTest {
-  private static final String PHONE_RULE = 'Example_Profile_Phone_Available';
+  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
 
   @TestSetup
   static void setupRunPermission() {
@@ -11,10 +11,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   }
 
   @IsTest
-  static void qualifiedRuleEvaluatesDeduplicatedScopeInInputOrder() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void qualifiedCheckEvaluatesDeduplicatedScopeInInputOrder() {
     Account first = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'First', 'Phone' => '312-555-0100' }
     );
@@ -25,8 +22,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
       new List<Account>{ first, second }
     );
 
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
       new List<Id>{ second.Id, first.Id, second.Id }
     );
 
@@ -42,7 +39,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       2,
       response.results.size(),
-      'One Rule should return one item per record.'
+      'One Check should return one item per record.'
     );
     Assert.areEqual(
       second.Id,
@@ -67,15 +64,12 @@ private with sharing class RecordHealthCheckScopePipelineTest {
 
   @IsTest
   static void displayModeAddsDisplayWithoutChangingEnvelope() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Missing Phone' }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-        RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
         account.Id
       )
       .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY);
@@ -85,7 +79,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       1,
       response.results.size(),
-      'The Rule should return one result item.'
+      'The Check should return one result item.'
     );
     Assert.areEqual(
       RecordHealthCheckStatus.FAIL,
@@ -104,9 +98,6 @@ private with sharing class RecordHealthCheckScopePipelineTest {
 
   @IsTest
   static void summaryModeOmitsPassingItemsButRetainsCounts() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'Passing Phone',
@@ -114,8 +105,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-        RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
         account.Id
       )
       .withResultMode(RecordHealthCheckResultMode.SUMMARY);
@@ -125,7 +116,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       1,
       response.summary.passed,
-      'The summary should count a passing Rule.'
+      'The summary should count a passing Check.'
     );
     Assert.areEqual(
       0,
@@ -136,9 +127,6 @@ private with sharing class RecordHealthCheckScopePipelineTest {
 
   @IsTest
   static void publicationOptionsAreCallerDrivenAndFilterBeforeMetadata() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'Silent Default',
@@ -148,8 +136,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     RecordHealthCheckTestDataFactory.createAccount(account);
     Integer beforeDefault = Limits.getDmlStatements();
     RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forRule(
-        RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+      RecordHealthCheckRequest.forCheck(
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
         account.Id
       )
     );
@@ -161,8 +149,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
 
     Integer beforeActionable = Limits.getDmlStatements();
     RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forRule(
-          RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+      RecordHealthCheckRequest.forCheck(
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
           account.Id
         )
         .withEventPublication(RecordHealthCheckEventPublication.ACTIONABLE)
@@ -175,8 +163,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
 
     Integer beforeAll = Limits.getDmlStatements();
     RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forRule(
-          RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+      RecordHealthCheckRequest.forCheck(
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
           account.Id
         )
         .withEventPublication(RecordHealthCheckEventPublication.ALL)
@@ -189,21 +177,18 @@ private with sharing class RecordHealthCheckScopePipelineTest {
 
   @IsTest
   static void rejectsUnknownIdentityAndWrongRecordType() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     try {
       RecordHealthCheck.evaluate(
-        RecordHealthCheckRequest.forRule(
-          'Definitely_Missing_Rule',
+        RecordHealthCheckRequest.forCheck(
+          'Definitely_Missing_Check',
           new List<Id>()
         )
       );
-      Assert.fail('An unknown qualified Rule identity should be rejected.');
+      Assert.fail('An unknown qualified Check identity should be rejected.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(
         error.getMessage().contains('was not found'),
-        'The error should identify the missing Rule.'
+        'The error should identify the missing Check.'
       );
     }
 
@@ -213,12 +198,12 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     RecordHealthCheckTestDataFactory.createContact(contact);
     try {
       RecordHealthCheck.evaluate(
-        RecordHealthCheckRequest.forRule(
-          RecordHealthCheckTestDataFactory.qualifiedRuleName(PHONE_RULE),
+        RecordHealthCheckRequest.forCheck(
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
           contact.Id
         )
       );
-      Assert.fail('A Contact should not run through an Account Rule.');
+      Assert.fail('A Contact should not run through an Account Check.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(
         error.getMessage().contains('not Contact'),
@@ -240,6 +225,69 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     }
   }
 
+  @IsTest
+  static void rejectsScopeLargerThanFrameworkCeilingBeforeEvaluation() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+    List<Id> oversizedScope = new List<Id>();
+    for (
+      Integer index = 0;
+      index <= RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
+      index++
+    ) {
+      oversizedScope.add(accountId);
+    }
+
+    Test.startTest();
+    try {
+      RecordHealthCheck.evaluate(
+        RecordHealthCheckRequest.forCheck(
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+          oversizedScope
+        )
+      );
+      Assert.fail('A scope above the documented ceiling must be rejected.');
+    } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
+      Assert.isTrue(
+        error.getMessage().contains('MAX_RECORDS_PER_SCOPE_EXCEEDED'),
+        'The error should expose the stable scope-ceiling reason.'
+      );
+      Assert.isTrue(
+        error.getMessage()
+          .contains('suppliedCount=' + String.valueOf(oversizedScope.size())),
+        'The error should report the exact supplied record count.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void callerRunIdIsPreservedForEmptyScope() {
+    String callerRunId = 'caller-correlation-id';
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+        new List<Id>()
+      )
+      .withRunId(callerRunId);
+
+    Test.startTest();
+    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(request);
+    Test.stopTest();
+
+    Assert.areEqual(
+      callerRunId,
+      response.runId,
+      'A caller-supplied correlation identifier must be retained unchanged.'
+    );
+    Assert.areEqual(
+      0,
+      response.results.size(),
+      'An empty scope should return no evaluation items.'
+    );
+  }
+
   private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
     context.objectApiName = 'Account';
@@ -248,11 +296,11 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     return context;
   }
 
-  private static Record_Health_Check_Rule__mdt queryCountRule(
+  private static Record_Health_Check__mdt queryCountCheck(
     String developerName,
     String failureMessage
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => developerName,
         'DeveloperName' => developerName,
@@ -276,27 +324,27 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt buildRuleWithPrerequisite(
+  private static Record_Health_Check__mdt buildCheckWithPrerequisite(
     String prerequisiteName
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'DeveloperName' => 'Rule_B',
-        'QualifiedApiName' => 'namespace__Rule_B',
-        'PrerequisiteRule__c' => prerequisiteName
+        'DeveloperName' => 'Check_B',
+        'QualifiedApiName' => 'namespace__Check_B',
+        'PrerequisiteCheck__c' => prerequisiteName
       }
     );
   }
 
   private static RecordHealthCheckResultItem buildPrerequisiteResultItem(
     Id recordId,
-    String qualifiedRuleName,
+    String qualifiedCheckName,
     String status
   ) {
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = new RecordHealthCheckEvaluationResult();
     item.evaluation.recordId = recordId;
-    item.evaluation.ruleQualifiedApiName = qualifiedRuleName;
+    item.evaluation.checkQualifiedApiName = qualifiedCheckName;
     item.evaluation.status = status;
     return item;
   }

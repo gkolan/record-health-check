@@ -141,7 +141,7 @@ private class AccountHasRecentActivityCheckTest {
     Assert.areEqual(
       RecordHealthCheckStatus.PASS,
       decimalResult.status,
-      'A recent Event must satisfy the Rule with a Decimal window.'
+      'A recent Event must satisfy the Check with a Decimal window.'
     );
     Assert.areEqual(
       RecordHealthCheckStatus.UNABLE_TO_EVALUATE,

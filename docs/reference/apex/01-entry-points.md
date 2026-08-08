@@ -14,7 +14,7 @@ This page is part of the [Apex class reference](README.md). For the architecture
 **Role:** Single public Apex request API.
 **Type:** Service class · `global with sharing`
 
-Runs one qualified Rule or Check Set selection over a detached record scope. The request carries its
+Runs one qualified Check or Check Set selection over a detached record scope. The request carries its
 result mode, event-publication choice, and optional correlation id explicitly.
 
 **Key members:**
@@ -24,7 +24,7 @@ result mode, event-publication choice, and optional correlation id explicitly.
 | `evaluate(RecordHealthCheckRequest)` | Evaluate one qualified selection and return the common response envelope |
 
 **Notable behavior:**
-- **When to use it:** any Apex process that needs typed results for one Rule or every active Rule in
+- **When to use it:** any Apex process that needs typed results for one Check or every active Check in
   one Check Set.
 - **Important:** selection identities are Custom Metadata `QualifiedApiName` values, not labels or bare
   names chosen with `LIMIT 1`.
@@ -45,8 +45,8 @@ inputs, supplies Lightning lifecycle sources, and delegates to `RecordHealthChec
 | Member | Purpose |
 | --- | --- |
 | `getCheckSetAvailabilityForRecord(recordId)` | Active/inactive Check Sets for the record's object (setup banner) |
-| `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)` | Display settings and ordered Rule definitions for the card |
-| `evaluateCheck(checkSetQualifiedApiName, ruleQualifiedApiName, recordId, runId, source)` | One Rule evaluation (one Apex transaction per Rule from the card) |
+| `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)` | Display settings and ordered Check definitions for the card |
+| `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)` | One Check evaluation (one Apex transaction per Check from the card) |
 | `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)` | After a user-initiated run: re-evaluates server-side and publishes the Set completed event |
 
 **Notable behavior:**
@@ -55,18 +55,18 @@ inputs, supplies Lightning lifecycle sources, and delegates to `RecordHealthChec
 - **Important:** `getCheckDefinitions` distinguishes a caught `ConfigException` (logged at `DEBUG`,
  reason code passed through as-is) from any other exception (logged at `ERROR`, always rethrown as
  `LOAD_FAILED`) so a real governor-limit or NPE failure is never mistaken by the card for a genuine
- missing-Check-Set condition. `completeRun` also ignores any Rule results the browser tried to pass
+ missing-Check-Set condition. `completeRun` also ignores any Check results the browser tried to pass
  in - it always re-evaluates server-side before publishing, since a lifecycle event must reflect
  server-side counts.
 
 **See also:** [Lightning component](../../integration/01-lightning-component.md)
 
-### `RecordHealthCheckRunRuleFlowAction`
+### `RecordHealthCheckRunCheckFlowAction`
 
-**Role:** Packaged Flow action "Run Record Health Check Rule".
+**Role:** Packaged Flow action "Run Record Health Check".
 **Type:** Invocable Flow action · `public with sharing`
 
-Invocable wrapper around the scope pipeline for one qualified Rule per request. It returns the common
+Invocable wrapper around the scope pipeline for one qualified Check per request. It returns the common
 evaluation fields and JSON response for advanced consumers.
 
 **Notable behavior:**
@@ -89,13 +89,13 @@ shared summary counts and JSON response.
 
 ### `RecordHealthCheckLifecyclePublisher`
 
-**Role:** Optional Set Run and Rule Result platform events.
+**Role:** Optional Set Run and Check Result platform events.
 **Type:** Service class · `public with sharing`
 
 Publishes deliberate-run lifecycle events. Shipped callers attribute `APEX_API`, `FLOW`,
 `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT` on `Source__c`.
 `RUN_ON_LOAD` is never published (Lightning keeps page-load publication off). Honors Check Set
-`PublishUserRunEvent__c` and Rule `PublishUserResultEvent__c`. Publishes in batches of 100, never
+`PublishUserRunEvent__c` and Check `PublishUserResultEvent__c`. Publishes in batches of 100, never
 fails the health-check run when publish fails, and blocks publication in subscriber context to
 prevent loops.
 
@@ -104,7 +104,7 @@ prevent loops.
 | Member | Purpose |
 | --- | --- |
 | `CONTRACT_VERSION`, `FRAMEWORK_VERSION`, `SOURCE_*`, `PUBLISH_CHUNK_SIZE` | Event contract, Framework version, source attribution values, and the 100-row publish batch size |
-| `publishResponse(...)` | Publish Rule and optional Set events for a deliberate programmatic run |
+| `publishResponse(...)` | Publish Check and optional Set events for a deliberate programmatic run |
 | `publishInteractiveResponse(...)` | Publish filtered outcomes for an explicit Lightning Run / Rerun |
 | `isRunPublicationEnabled(...)` | Whether the Check Set's `PublishUserRunEvent__c` allows Set publication |
 | `enterSubscriberContext()` | Prevent nested republication from event subscribers |

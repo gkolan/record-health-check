@@ -6,7 +6,7 @@
 /**
  * Renders Found and Expected values as display text for the card chips.
  *
- * Three things decide the wording, in order. A format the Rule names (Currency,
+ * Three things decide the wording, in order. A format the Check names (Currency,
  * Number, Percent, …) always wins. Otherwise, on "Auto", a queried field whose
  * Setup definition has a display shape of its own decides — a Currency field
  * reads as money. Failing both, the value is humanized from its Apex type, the
@@ -22,7 +22,7 @@
  * and its sibling describe methods; those stay the public entry points.
  */
 public with sharing class RecordHealthCheckDisplayFormat {
-  // ─── Format API names (Record_Health_Check_Rule__mdt.DisplayValueFormat__c) ──
+  // ─── Format API names (Record_Health_Check__mdt.DisplayValueFormat__c) ──
 
   public static final String FORMAT_AUTO = 'AUTO';
   public static final String FORMAT_NUMBER = 'NUMBER';
@@ -36,7 +36,7 @@ public with sharing class RecordHealthCheckDisplayFormat {
   public static final String FORMAT_RAW = 'RAW';
 
   /**
-   * Every format the Rule field accepts. A value outside this set is treated as
+   * Every format the Check field accepts. A value outside this set is treated as
    * "Auto" so a future picklist entry falls back to today's behavior instead of
    * breaking a card. The restricted picklist blocks unknown values at deploy
    * time; this set is the runtime backstop.
@@ -73,7 +73,7 @@ public with sharing class RecordHealthCheckDisplayFormat {
   // ─── Entry point ──────────────────────────────────────────────────────────
 
   /**
-   * Renders one value using the Rule's chosen format, in the running user's
+   * Renders one value using the Check's chosen format, in the running user's
    * currency when the format is Currency.
    */
   public static String render(Object value, String format) {
@@ -81,11 +81,11 @@ public with sharing class RecordHealthCheckDisplayFormat {
   }
 
   /**
-   * Renders one value using the Rule's chosen format. A null or whitespace-only
+   * Renders one value using the Check's chosen format. A null or whitespace-only
    * value always reads "(blank)", including under Raw, so an empty chip is never
    * silently blank on the card.
    *
-   * `isoCode` names the currency an amount belongs to, for a Currency Rule in a
+   * `isoCode` names the currency an amount belongs to, for a Currency Check in a
    * multi-currency org. Leave it blank to use the running user's currency; it is
    * ignored by every other format.
    */
@@ -405,7 +405,7 @@ public with sharing class RecordHealthCheckDisplayFormat {
 
   /**
    * The currency an amount should be shown in: the one the record carries when
-   * the Rule supplied it, otherwise the running user's currency. In a
+   * the Check supplied it, otherwise the running user's currency. In a
    * single-currency org the user's currency is the org currency.
    */
   private static String resolveIsoCode(String isoCode) {

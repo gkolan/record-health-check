@@ -273,7 +273,7 @@
 /* ── Summary stats bar ─────────────────────────────────────────────────────── */
 /* Category blocks are true full-width rows (padding on the group, not the bar)
    so separators span edge-to-edge like .rhc-row. Each group is position:relative
-   so summary-pill tooltips hang under that category — same model as rule rows. */
+   so summary-pill tooltips hang under that category — same model as check rows. */
 .rhc-stats-bar {
   display: flex;
   flex-direction: column;
@@ -319,7 +319,7 @@
 
 /* Grid stack: pill label + nubbin host share one cell. The footer anchor stays
    position:static so its tooltip bubble (::after) escapes to the category group
-   and spans that row's width (like rule-row tooltips). The nubbin host is a later
+   and spans that row's width (like check-row tooltips). The nubbin host is a later
    sibling of the anchor so the arrow is driven by the anchor's own :hover/
    :focus-visible and fades in together with the bubble. */
 .rhc-summary-pill {
@@ -343,7 +343,7 @@
 .rhc-stat__nubbin {
   position: absolute;
   /* Drop past the group's bottom padding so the arrow lands at the bubble's top
-     edge (which hangs below the group), matching the rule-row nubbin gap. */
+     edge (which hangs below the group), matching the check-row nubbin gap. */
   top: calc(100% + var(--rhc-stats-group-pad-y) + 0.25rem);
   left: 50%;
   width: var(--slds-g-sizing-3, 0.5rem);
@@ -363,7 +363,7 @@
 }
 
 /* Drive the nubbin from the anchor's own dwell/focus-visible state (it is a later
-   sibling), mirroring the rule row's ::before, so the arrow and the bubble fade in
+   sibling), mirroring the check row's ::before, so the arrow and the bubble fade in
    together instead of on a separate pill-hover timer. */
 .rhc-tooltip-anchor--footer.rhc-tooltip-anchor--dwell
   ~ .rhc-stat__nubbin-host
@@ -540,7 +540,7 @@
   content: "?";
 }
 
-/* Hollow ring: the Rule exists on the Check Set but never ran. */
+/* Hollow ring: the Check exists on the Check Set but never ran. */
 .rhc-status-icon--inactive {
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--slds-g-color-neutral-base-60, #b0adab);
@@ -697,7 +697,7 @@
   color: var(--slds-g-color-neutral-base-40, #706e6b);
 }
 
-/* Thin rule separating the message/action zone from the comparison evidence on a
+/* Thin check separating the message/action zone from the comparison evidence on a
    busy inline row. */
 .rhc-row__divider {
   width: 100%;
@@ -971,7 +971,7 @@
 
 /* Summary pill tooltip: the anchor stays position:static so the bubble escapes to
    the category group (position:relative) and spans that row's width, matching the
-   rule-row model. It opens downward by default; JS adds --flip-up near the bottom
+   check-row model. It opens downward by default; JS adds --flip-up near the bottom
    of the viewport to open it upward instead. */
 .rhc-tooltip-anchor--footer {
   position: static;
@@ -1012,7 +1012,7 @@
 /* Bordered "nubbin" pointing up from the bubble to the row it describes: a
    square with two bordered edges rotated 45°, so the apex carries the same
    border as the bubble. z-index above the bubble hides the seam where they
-   meet. Re-enables ::before, which the base rule turns off for other tooltips. */
+   meet. Re-enables ::before, which the base check turns off for other tooltips. */
 .rhc-tooltip-anchor--row::before {
   content: "";
   top: calc(100% + 0.25rem);
@@ -1045,7 +1045,7 @@
 /* ── Flip up ──────────────────────────────────────────────────────────────────
    The JS controller adds --flip-up on hover/focus when the anchor sits near the
    bottom of the viewport, so the tooltip opens ABOVE the anchor instead of below
-   and its arrow points down. Applies uniformly to rule rows and summary pills. */
+   and its arrow points down. Applies uniformly to check rows and summary pills. */
 .rhc-tooltip-anchor--flip-up {
   --rhc-tooltip-transform: translateY(-0.25rem);
 }
@@ -1057,7 +1057,7 @@
 
 /* Flip the arrow to sit above the anchor and point down. border-bottom/right +
    rotate(45deg) makes the apex point downward (mirror of the default up arrow).
-   Covers the rule row's ::before nubbin and the summary pill's sibling nubbin. */
+   Covers the check row's ::before nubbin and the summary pill's sibling nubbin. */
 .rhc-tooltip-anchor--row.rhc-tooltip-anchor--flip-up::before {
   top: auto;
   bottom: calc(100% + 0.25rem);

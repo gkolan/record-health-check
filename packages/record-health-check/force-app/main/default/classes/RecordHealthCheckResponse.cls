@@ -1,5 +1,5 @@
 /**
- * Stable response envelope shared by Rule and Check Set selections.
+ * Stable response envelope shared by Check and Check Set selections.
  */
 global class RecordHealthCheckResponse {
   @AuraEnabled
@@ -9,8 +9,8 @@ global class RecordHealthCheckResponse {
   /** Ordered normalized record scope. */
   global List<Id> recordIds = new List<Id>();
   @AuraEnabled
-  /** Ordered qualified Rule identities selected for evaluation. */
-  global List<String> ruleQualifiedApiNames = new List<String>();
+  /** Ordered qualified Check identities selected for evaluation. */
+  global List<String> checkQualifiedApiNames = new List<String>();
   @AuraEnabled
   /** Ordered result items included by the selected result mode. */
   global List<RecordHealthCheckResultItem> results = new List<RecordHealthCheckResultItem>();

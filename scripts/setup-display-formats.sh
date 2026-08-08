@@ -4,7 +4,7 @@
 #
 # Deploys the Framework plus the integration-test fixtures, seeds an Account and
 # Opportunity chosen so each format has something to show, then prints the Found
-# and Expected chips for every Rule.
+# and Expected chips for every Check.
 #
 # Prefer Git Bash on Windows. The VAR=value prefix is bash/zsh only.
 #
@@ -56,7 +56,7 @@ sf project deploy start \
   --target-org "$TARGET_ALIAS" \
   --wait 30
 
-echo "==> Deploying the display-format sample Check Set and Rules..."
+echo "==> Deploying the display-format sample Check Set and Checks..."
 # Samples live outside the packaged directory and never ship to a customer org.
 sf project deploy start \
   --source-dir "$PACKAGE_ROOT/integration-tests" \
@@ -84,7 +84,7 @@ if grep -q '"MultiCurrency"' "$SCRATCH_DEF"; then
     --values "IsoCode=EUR ConversionRate=0.92 DecimalPlaces=2 IsActive=true" >/dev/null
 fi
 
-echo "==> Seeding the Account and Opportunity the Rules read..."
+echo "==> Seeding the Account and Opportunity the Checks read..."
 SEED_LOG="$(sf apex run --target-org "$TARGET_ALIAS" --file scripts/apex/setupDisplayFormatData.apex 2>&1)"
 
 # Only USER_DEBUG lines are real output; the log also echoes the script source back.
@@ -93,7 +93,7 @@ ACCOUNT_URL="$(printf '%s\n' "$SEED_LOG" |
   grep -oE 'RHC_DISPLAY_FORMAT_ACCOUNT_URL=.*' |
   sed 's/RHC_DISPLAY_FORMAT_ACCOUNT_URL=//' | tail -1)"
 
-echo "==> Running every Rule and printing the Found and Expected chips..."
+echo "==> Running every Check and printing the Found and Expected chips..."
 echo
 sf apex run \
   --target-org "$TARGET_ALIAS" \

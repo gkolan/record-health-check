@@ -180,7 +180,9 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
     RecordHealthCheckResponse result = new RecordHealthCheckResponse();
     result.runId = groupedResponse.runId;
     result.recordIds.add(recordId);
-    result.ruleQualifiedApiNames.addAll(groupedResponse.ruleQualifiedApiNames);
+    result.checkQualifiedApiNames.addAll(
+      groupedResponse.checkQualifiedApiNames
+    );
     List<RecordHealthCheckResultItem> items = itemsByRecord == null
       ? null
       : itemsByRecord.get(recordId);

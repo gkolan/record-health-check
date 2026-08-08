@@ -26,9 +26,9 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
 
 ## Contents (high level)
 
-- Sample Check Sets and Rules, including a retained copy of the four Demo `Example_` Check Sets
+- Sample Check Sets and Checks, including a retained copy of the four Demo `Example_` Check Sets
   that also ship in `force-app`
-- `Account_Display_Formats`: one Check Set whose Rules cover every **Display: Value Format**
+- `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
 - Platform-event triggers used only in CI orgs
@@ -72,10 +72,10 @@ any missing format and prints every Found and Expected value for inspection.
 Two anonymous Apex scripts provide repeatable demonstrations without adding demo-only classes to
 the installed Framework:
 
-| Script                           | Demonstrates                                                                                             |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `scripts/demo_apex_api.apex`     | `RecordHealthCheck.evaluate(request)`, typed responses, correlation IDs, and status handling             |
-| `scripts/demo_flow_actions.apex` | The exact `@InvocableMethod` Set and Rule actions exposed in Flow Builder, including their output fields |
+| Script                           | Demonstrates                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `scripts/demo_apex_api.apex`     | `RecordHealthCheck.evaluate(request)`, typed responses, correlation IDs, and status handling              |
+| `scripts/demo_flow_actions.apex` | The exact `@InvocableMethod` Set and Check actions exposed in Flow Builder, including their output fields |
 
 Deploy Framework before the samples, then run the scripts in order. Work from the nested package
 project or pass full paths from the repository root:

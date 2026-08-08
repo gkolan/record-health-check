@@ -14,7 +14,7 @@ grouped equivalent at all.
 This script is the inventory and the gate. Every template must map to exactly one
 named strategy in docs/architecture/bulk-query-grammar.md. `--check` exits non-zero
 when a template is UNCLASSIFIED or when the committed inventory would change, so a
-new Rule authored in an unsupported shape fails CI rather than silently falling back
+new Check authored in an unsupported shape fails CI rather than silently falling back
 to one query per record.
 
 It reads metadata only. No network dependencies, idempotent.
@@ -190,7 +190,7 @@ def classify(soql):
 def collect():
     rows = []
     for package, source in SOURCES:
-        for path in sorted(source.glob("Record_Health_Check_Rule__mdt.*.md-meta.xml")):
+        for path in sorted(source.glob("Record_Health_Check__mdt.*.md-meta.xml")):
             root = ET.parse(path).getroot()
             developer_name = path.name.split("__mdt.")[1][: -len(".md-meta.xml")]
             for values in root.findall("m:values", NS):
@@ -205,7 +205,7 @@ def collect():
                 rows.append(
                     {
                         "package": package,
-                        "rule": developer_name,
+                        "check": developer_name,
                         "field": field_node.text,
                         "soql": soql,
                         "strategy": strategy,
@@ -215,7 +215,7 @@ def collect():
                         "bareCount": bool(RE_COUNT_EMPTY.search(soql)),
                     }
                 )
-    rows.sort(key=lambda r: (r["strategy"], r["package"], r["rule"], r["field"]))
+    rows.sort(key=lambda r: (r["strategy"], r["package"], r["check"], r["field"]))
     return rows
 
 
@@ -255,12 +255,12 @@ def render(rows):
         "",
         "## Templates",
         "",
-        "| Strategy | Package | Rule | Field | Correlation | Note |",
+        "| Strategy | Package | Check | Field | Correlation | Note |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
     for row in rows:
         lines.append(
-            f"| `{row['strategy']}` | {row['package']} | `{row['rule']}` | "
+            f"| `{row['strategy']}` | {row['package']} | `{row['check']}` | "
             f"`{row['field']}` | `{row['correlation']}` | {row['note']} |"
         )
     lines.append("")
@@ -372,7 +372,7 @@ def main():
             stale.append(JSON_OUTPUT.relative_to(ROOT))
         for row in unclassified:
             print(
-                f"UNCLASSIFIED {row['package']} {row['rule']}.{row['field']}: {row['note']}\n"
+                f"UNCLASSIFIED {row['package']} {row['check']}.{row['field']}: {row['note']}\n"
                 f"  {row['soql']}",
                 file=sys.stderr,
             )

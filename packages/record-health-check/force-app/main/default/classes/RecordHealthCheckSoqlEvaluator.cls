@@ -29,49 +29,51 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
   // ─── Public entry point ───────────────────────────────────────────────────
 
   public RecordHealthCheckInternalResult evaluate(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Id recordId,
     SObject record
   ) {
     Long startMs = System.currentTimeMillis();
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
-    result.ruleDeveloperName = rule.DeveloperName;
-    result.label = rule.CheckTitle__c;
-    result.priority = rule.EvaluationOrder__c;
+    result.checkDeveloperName = check.DeveloperName;
+    result.label = check.CheckTitle__c;
+    result.priority = check.EvaluationOrder__c;
     result.evaluatorType = 'QUERY';
 
     try {
-      result = doEvaluate(rule, recordId, record, result);
+      result = doEvaluate(check, recordId, record, result);
     } catch (Exception ex) {
-      result = applyEvaluationException(rule, result, ex);
+      result = applyEvaluationException(check, result, ex);
     }
 
     result.durationMs = System.currentTimeMillis() - startMs;
     return result;
   }
 
-  /** Evaluates one QUERY Rule for a complete record scope with constant query cost. */
+  /** Evaluates one QUERY Check for a complete record scope with constant query cost. */
   public Map<Id, RecordHealthCheckInternalResult> evaluateScope(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<Id> recordIds,
     Map<Id, SObject> loadedRecords
   ) {
     scopeRowsByBoundSoql = new Map<String, List<SObject>>();
     scopeZeroCountSoql = new Set<String>();
     scopeExecutionActive = true;
-    Integer maxRows = rule.MaxQueryRows__c != null
-      ? (Integer) rule.MaxQueryRows__c
+    Integer maxRows = check.MaxQueryRows__c != null
+      ? (Integer) check.MaxQueryRows__c
       : DEFAULT_MAX_ROWS;
     try {
       Boolean isListOperator =
-        rule.ComparisonOperator__c == 'LIST_CONTAINS_ANY' ||
-        rule.ComparisonOperator__c == 'LIST_CONTAINS_NONE';
+        check.ComparisonOperator__c == 'LIST_CONTAINS_ANY' ||
+        check.ComparisonOperator__c == 'LIST_CONTAINS_NONE';
       if (!isListOperator) {
-        cacheScopeRows(rule.SourceQuery__c, recordIds, loadedRecords, maxRows);
+        cacheScopeRows(check.SourceQuery__c, recordIds, loadedRecords, maxRows);
       }
-      if (isListOperator || rule.ExpectedValueSource__c == 'COMPARISON_QUERY') {
+      if (
+        isListOperator || check.ExpectedValueSource__c == 'COMPARISON_QUERY'
+      ) {
         cacheScopeRows(
-          rule.ComparisonQuery__c,
+          check.ComparisonQuery__c,
           recordIds,
           loadedRecords,
           maxRows
@@ -82,7 +84,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
       for (Id recordId : recordIds) {
         results.put(
           recordId,
-          evaluate(rule, recordId, loadedRecords.get(recordId))
+          evaluate(check, recordId, loadedRecords.get(recordId))
         );
       }
       return results;
@@ -126,7 +128,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
   }
 
   private RecordHealthCheckInternalResult applyEvaluationException(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,
     Exception ex
   ) {
@@ -139,7 +141,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
       result.reasonCode = 'APEX_EVALUATOR_ERROR';
     }
     result.message = RecordHealthCheckQueryEvaluatorSupport.safeCannotEvaluateMessage(
-      rule
+      check
     );
     result.detailMessage = ex.getMessage();
     return result;
@@ -148,13 +150,13 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
   // ─── Framework evaluation ──────────────────────────────────────────────────────
 
   private RecordHealthCheckInternalResult doEvaluate(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Id recordId,
     SObject record,
     RecordHealthCheckInternalResult result
   ) {
     return RecordHealthCheckSoqlEvaluation.evaluate(
-      rule,
+      check,
       recordId,
       record,
       result,
@@ -223,7 +225,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
   // ─── Empty / null result behavior ────────────────────────────────────────
 
   public RecordHealthCheckInternalResult buildEmptyOrNullResult(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,
     List<Object> primaryList
   ) {
@@ -231,7 +233,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
     // result set. Record which one it was, so the value source note reads e.g.
     // "Contacts → 0 rows (query returned no matching rows)".
     result.actualValueSource = new RecordHealthCheckValueSource.Detail(
-      describePrimarySource(rule),
+      describePrimarySource(check),
       RecordHealthCheckValueSource.rowCount(
         primaryList != null ? primaryList.size() : 0
       ),
@@ -239,7 +241,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
     );
 
     return RecordHealthCheckQueryEvaluatorSupport.buildEmptyResult(
-      rule,
+      check,
       result,
       result.actualValueSource
     );
@@ -265,7 +267,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
   // Derived Found summary for an "every record must pass" check when the admin
   // authored no override: "1 of 5 Contacts did not pass".
   public String deriveFoundSummary(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Integer failing,
     Integer total
   ) {
@@ -273,37 +275,37 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
       ' of ' +
       total +
       ' ' +
-      RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(rule) +
+      RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(check) +
       ' did not pass';
   }
 
   // Names the primary/Found source: a field, the value under test, or a generic
   // query-result label when neither is configured.
-  public String describePrimarySource(Record_Health_Check_Rule__mdt rule) {
-    if (String.isNotBlank(rule.SourceQueryField__c)) {
-      return rule.SourceQueryField__c;
+  public String describePrimarySource(Record_Health_Check__mdt check) {
+    if (String.isNotBlank(check.SourceQueryField__c)) {
+      return check.SourceQueryField__c;
     }
-    if (String.isNotBlank(rule.FindInListFormula__c)) {
+    if (String.isNotBlank(check.FindInListFormula__c)) {
       return 'Value under test';
     }
     return 'Query result';
   }
 
   // Names the source of the "Expected" operand.
-  public String describeComparisonSource(Record_Health_Check_Rule__mdt rule) {
-    if (rule.ExpectedValueSource__c == 'FIXED_VALUE') {
+  public String describeComparisonSource(Record_Health_Check__mdt check) {
+    if (check.ExpectedValueSource__c == 'FIXED_VALUE') {
       return 'Fixed value';
     }
-    if (rule.ExpectedValueSource__c == 'RECORD_FORMULA') {
+    if (check.ExpectedValueSource__c == 'RECORD_FORMULA') {
       return 'Formula on this record';
     }
-    if (rule.ExpectedValueSource__c == 'COMPARISON_QUERY') {
-      return String.isNotBlank(rule.ComparisonQueryField__c)
-        ? 'Comparison query (' + rule.ComparisonQueryField__c + ')'
+    if (check.ExpectedValueSource__c == 'COMPARISON_QUERY') {
+      return String.isNotBlank(check.ComparisonQueryField__c)
+        ? 'Comparison query (' + check.ComparisonQueryField__c + ')'
         : 'Comparison query';
     }
-    if (String.isNotBlank(rule.ComparisonQueryField__c)) {
-      return rule.ComparisonQueryField__c;
+    if (String.isNotBlank(check.ComparisonQueryField__c)) {
+      return check.ComparisonQueryField__c;
     }
     return 'Comparison';
   }

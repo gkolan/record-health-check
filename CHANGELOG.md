@@ -13,14 +13,14 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 
 ### Evaluation and integration
 
-- Formula, Query, Compare two queries, and bulk Apex Rule plugins use one bounded evaluation
+- Formula, Query, Compare two queries, and bulk Apex Check plugins use one bounded evaluation
   pipeline for Lightning, Apex, and Flow.
 - `RecordHealthCheck.evaluate(RecordHealthCheckRequest)` returns ordered, typed evaluation results
   with optional display content.
-- Apex plugins implement `RecordHealthCheckRule`, receive one `RecordHealthCheckScope`, and return
+- Apex plugins implement `RecordHealthCheck`, receive one `RecordHealthCheckScope`, and return
   one `RecordHealthCheckOutcome` per requested record ID.
-- Flow actions expose Rule and Check Set evaluation without requiring custom Apex.
-- Optional Set Run, Rule Result, and Error Log Platform Events carry independent machine-readable
+- Flow actions expose Check and Check Set evaluation without requiring custom Apex.
+- Optional Set Run, Check Result, and Error Log Platform Events carry independent machine-readable
   contract versions.
 
 ### Trust and safety
@@ -32,7 +32,7 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
   specific restricted reason.
 - Merge tokens use explicit namespaces, typed fallbacks, bounded resolution, and safe Action URL
   handling.
-- Rules per run, records per request, query rows, FormulaEval work, token count, and completed text
+- Checks per run, records per request, query rows, FormulaEval work, token count, and completed text
   all have documented limits.
 
 ### Administrator experience
@@ -59,7 +59,7 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 For installation and verification, start with
 [Install and verify](docs/installation/02-install-and-verify.md). For the public contracts, use the
 [Apex API](docs/api/01-apex-api.md), [Flow actions](docs/integration/02-flow-actions.md), and
-[Apex Rule plugin reference](docs/reference/evaluation/04-apex-rule-contract.md).
+[Apex Check plugin reference](docs/reference/evaluation/04-apex-check-contract.md).
 
 ## [2.0.0] - 2026-08-04
 

@@ -97,7 +97,7 @@ private class RHCDisplayCurrencyComparisonTest {
       );
     }
 
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'DVF_Compare_Queries_Currency',
         'MasterLabel' => 'DVF_Compare_Queries_Currency',
@@ -113,7 +113,7 @@ private class RHCDisplayCurrencyComparisonTest {
 
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
     RecordHealthCheckCompareQuerySupport.setComparisonValues(
-      rule,
+      check,
       card,
       result,
       primaryRows,
@@ -167,7 +167,7 @@ private class RHCDisplayCurrencyComparisonTest {
       WHERE Id = :card.Id
     ];
 
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'DVF_Query_Comparison_Currency',
         'MasterLabel' => 'DVF_Query_Comparison_Currency',
@@ -187,7 +187,7 @@ private class RHCDisplayCurrencyComparisonTest {
     );
 
     RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
-      .evaluate(rule, card.Id, record);
+      .evaluate(check, card.Id, record);
 
     Assert.areEqual(
       'PASS',

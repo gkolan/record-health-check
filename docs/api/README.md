@@ -43,7 +43,7 @@ transactions.
 ## Shared request contract
 
 Every Apex example builds a `RecordHealthCheckRequest` and calls
-`RecordHealthCheck.evaluate(request)`. A request selects one qualified Check Set or Rule, includes
+`RecordHealthCheck.evaluate(request)`. A request selects one qualified Check Set or Check, includes
 the complete record scope, and declares whether lifecycle events should publish.
 
 The default publication mode is `NONE`. Use `ACTIONABLE` to publish `FAIL`,

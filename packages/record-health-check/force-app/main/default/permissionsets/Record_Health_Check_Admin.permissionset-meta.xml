@@ -2,7 +2,7 @@
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Record Health Check Admin</label>
     <description
-  >Configure Record Health Check, run metadata validation, and view diagnostic result details. For administrators who maintain Check Sets and Rules.</description>
+  >Configure Record Health Check, run metadata validation, and view diagnostic result details. For administrators who maintain Check Sets and Checks.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <customPermissions>
         <enabled>true</enabled>
@@ -14,7 +14,7 @@
     </customPermissions>
     <customMetadataTypeAccesses>
         <enabled>true</enabled>
-        <name>Record_Health_Check_Rule__mdt</name>
+        <name>Record_Health_Check__mdt</name>
     </customMetadataTypeAccesses>
     <customMetadataTypeAccesses>
         <enabled>true</enabled>
@@ -37,7 +37,7 @@
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
-        <apexClass>RecordHealthCheckRunRuleFlowAction</apexClass>
+        <apexClass>RecordHealthCheckRunCheckFlowAction</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
@@ -71,7 +71,7 @@
         <allowEdit>false</allowEdit>
         <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
-        <object>Record_Health_Check_Rule_Result__e</object>
+        <object>Record_Health_Check_Result__e</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
 </PermissionSet>

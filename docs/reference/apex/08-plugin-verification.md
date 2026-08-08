@@ -1,4 +1,4 @@
-# Reference: Verify an Apex Rule plugin
+# Reference: Verify an Apex Check plugin
 
 > [!NOTE]
 > The bulk interface makes efficient plugins possible. It cannot inspect a subscriber's
@@ -9,9 +9,9 @@
 | Layer | Evidence | Limitation |
 | --- | --- | --- |
 | Contract | One plugin call receives the complete record scope | A plugin can still query inside its own loop |
-| Verification | `RecordHealthCheckRuleContractTest` measures several scope sizes | External authors must run and maintain the test |
+| Verification | `RecordHealthCheckContractTest` measures several scope sizes | External authors must run and maintain the test |
 | Observation | A monitor can record query, row, CPU, and heap changes | One observation does not establish a growth pattern |
-| Policy | Administrators can explicitly exclude a Rule or fail a scan | Exclusion must never happen silently |
+| Policy | Administrators can explicitly exclude a Check or fail a scan | Exclusion must never happen silently |
 
 The contract test checks scopes of 1, 10, 50, and 200 records. It checks approximate query
 stability, complete result coverage, forbidden writes, and optional permission test data.
@@ -43,24 +43,24 @@ query for user-mode CRUD/FLS enforcement before deployment.
 
 Copy these two files and replace the example names and data factory:
 
-- `scripts/templates/RecordHealthCheckRule.template.cls`
-- `scripts/templates/RecordHealthCheckRuleContractTest.template.cls`
+- `scripts/templates/RecordHealthCheckPlugin.template.cls`
+- `scripts/templates/RecordHealthCheckContractTest.template.cls`
 
-The Rule template seeds every requested ID, performs one grouped user-mode query, overlays
+The Check template seeds every requested ID, performs one grouped user-mode query, overlays
 the grouped results, and isolates record-specific failures. The test template is already
 wired to the reusable contract test.
 
-## Reporting rules
+## Reporting checks
 
-- Do not silently disable a Rule because monitoring looks suspicious. Fail clearly or use
+- Do not silently disable a Check because monitoring looks suspicious. Fail clearly or use
   an explicit administrator setting.
 - Do not infer a complexity class from one measurement. Report the measured resource
-  change and whether the Rule has passed the multi-size contract test.
-- Measure a full supported Check Set as well as each Rule before publishing a capacity
+  change and whether the Check has passed the multi-size contract test.
+- Measure a full supported Check Set as well as each Check before publishing a capacity
   claim.
 
 ## Related
 
-- [Apex plugin contract](../evaluation/04-apex-rule-contract.md)
+- [Apex plugin contract](../evaluation/04-apex-check-contract.md)
 - [Apex API](../../api/01-apex-api.md)
 - [Apex class catalog](README.md)

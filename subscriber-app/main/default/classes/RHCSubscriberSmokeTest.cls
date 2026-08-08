@@ -47,7 +47,7 @@ private class RHCSubscriberSmokeTest {
     System.assertNotEquals(null, response, 'Evaluate must return a response.');
     System.assert(
       !response.results.isEmpty(),
-      'The Demo Check Set must return at least one Rule result.'
+      'The Demo Check Set must return at least one Check result.'
     );
     System.assert(
       response.summary.passed +

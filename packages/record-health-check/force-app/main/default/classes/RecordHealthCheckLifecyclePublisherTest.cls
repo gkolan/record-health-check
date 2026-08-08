@@ -3,20 +3,20 @@
 private class RecordHealthCheckLifecyclePublisherTest {
   private class FixedSettingsProvider extends RecordHealthCheckSettingsProvider {
     private Boolean publishRun;
-    private Set<String> ruleNames;
-    FixedSettingsProvider(Boolean publishRun, Set<String> ruleNames) {
+    private Set<String> checkNames;
+    FixedSettingsProvider(Boolean publishRun, Set<String> checkNames) {
       this.publishRun = publishRun;
-      this.ruleNames = ruleNames;
+      this.checkNames = checkNames;
     }
     public override Boolean isRunPublicationEnabled(
       String checkSetQualifiedApiName
     ) {
       return publishRun;
     }
-    public override Set<String> publishedRuleNames(
+    public override Set<String> publishedCheckNames(
       String checkSetQualifiedApiName
     ) {
-      return ruleNames;
+      return checkNames;
     }
   }
 
@@ -30,7 +30,7 @@ private class RecordHealthCheckLifecyclePublisherTest {
     response.results.add(malformed);
     RecordHealthCheckLifecyclePublisher.settingsProvider = new FixedSettingsProvider(
       false,
-      new Set<String>{ 'Allowed_Rule' }
+      new Set<String>{ 'Allowed_Check' }
     );
     Integer beforeDml = Limits.getDmlStatements();
 
@@ -74,14 +74,14 @@ private class RecordHealthCheckLifecyclePublisherTest {
       Account.SObjectType,
       1
     );
-    evaluation.ruleQualifiedApiName = 'Account_DQ_BillingCity';
+    evaluation.checkQualifiedApiName = 'Account_DQ_BillingCity';
     evaluation.status = status;
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = evaluation;
     RecordHealthCheckResponse result = new RecordHealthCheckResponse();
     result.runId = 'run-test';
     result.recordIds.add(evaluation.recordId);
-    result.ruleQualifiedApiNames.add(evaluation.ruleQualifiedApiName);
+    result.checkQualifiedApiNames.add(evaluation.checkQualifiedApiName);
     result.results.add(item);
     result.summary.add(status);
     return result;
@@ -147,8 +147,8 @@ private class RecordHealthCheckLifecyclePublisherTest {
   }
 
   @IsTest
-  static void ruleEventsPublishInBoundedChunks() {
-    List<Record_Health_Check_Rule_Result__e> events = new List<Record_Health_Check_Rule_Result__e>();
+  static void checkEventsPublishInBoundedChunks() {
+    List<Record_Health_Check_Result__e> events = new List<Record_Health_Check_Result__e>();
     for (
       Integer index = 0;
       index <= RecordHealthCheckLifecyclePublisher.PUBLISH_CHUNK_SIZE;
@@ -157,17 +157,17 @@ private class RecordHealthCheckLifecyclePublisherTest {
       events.add(eventRecord('chunk-' + index));
     }
     Integer beforeDml = Limits.getDmlStatements();
-    RecordHealthCheckLifecyclePublisher.publishRuleEvents(events);
+    RecordHealthCheckLifecyclePublisher.publishCheckEvents(events);
     Assert.areEqual(beforeDml + 2, Limits.getDmlStatements());
   }
 
   @IsTest
   static void partialPublishFailureIsInspectedWithoutThrowing() {
-    List<Record_Health_Check_Rule_Result__e> events = new List<Record_Health_Check_Rule_Result__e>{
+    List<Record_Health_Check_Result__e> events = new List<Record_Health_Check_Result__e>{
       eventRecord('valid-event'),
       eventRecord(null)
     };
-    RecordHealthCheckLifecyclePublisher.publishRuleEvents(events);
+    RecordHealthCheckLifecyclePublisher.publishCheckEvents(events);
   }
 
   @IsTest
@@ -188,7 +188,7 @@ private class RecordHealthCheckLifecyclePublisherTest {
   }
 
   @IsTest
-  static void interactivePublicationFiltersRulesAndPublishesMultiRecordRun() {
+  static void interactivePublicationFiltersChecksAndPublishesMultiRecordRun() {
     RecordHealthCheckResponse result = response('FAIL');
     result.results[0].evaluation.recordId = null;
     result.recordIds.add(
@@ -210,7 +210,7 @@ private class RecordHealthCheckLifecyclePublisherTest {
     Assert.areEqual(
       beforeDml + 2,
       Limits.getDmlStatements(),
-      'A selected Rule and enabled Check Set must publish both event types.'
+      'A selected Check and enabled Check Set must publish both event types.'
     );
     Test.stopTest();
   }
@@ -241,15 +241,13 @@ private class RecordHealthCheckLifecyclePublisherTest {
     );
   }
 
-  private static Record_Health_Check_Rule_Result__e eventRecord(
-    String eventId
-  ) {
-    return new Record_Health_Check_Rule_Result__e(
+  private static Record_Health_Check_Result__e eventRecord(String eventId) {
+    return new Record_Health_Check_Result__e(
       ContractVersion__c = RecordHealthCheckLifecyclePublisher.CONTRACT_VERSION,
       EventId__c = eventId,
       RunId__c = 'test-run',
       CheckSetQualifiedApiName__c = 'Test_Set',
-      RuleQualifiedApiName__c = 'Test_Rule',
+      CheckQualifiedApiName__c = 'Test_Check',
       Status__c = 'PASS',
       OccurredAt__c = System.now(),
       Source__c = 'APEX_API',

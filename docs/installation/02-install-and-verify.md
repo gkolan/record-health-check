@@ -107,16 +107,16 @@ administrator test does not prove that an everyday user has the right access.
 
 Select **Run** if the card is waiting. Then review the result as a user would:
 
-- Does every Rule communicate a clear outcome?
+- Does every Check communicate a clear outcome?
 - Do **Found** and **Expected** explain why attention is needed?
-- Does a skipped Rule explain why it does not apply?
+- Does a skipped Check explain why it does not apply?
 - Can the user understand the suggested next step without leaving the record?
 
-A Rule can show **Pass**, **Failed**, **Warning**, **Info**, **Skipped**, **Unable to Check**, or
+A Check can show **Pass**, **Failed**, **Warning**, **Info**, **Skipped**, **Unable to Check**, or
 **System Error**. A business condition that needs attention should appear as Failed, Warning, or
 Info. Unable to Check and System Error mean the Framework could not give a reliable business answer.
 
-For one final confidence check, change a field used by a Demo Rule on a record you can safely edit.
+For one final confidence check, change a field used by a Demo Check on a record you can safely edit.
 Save the record and select **Rerun**. The result should follow the saved Salesforce data. The
 Framework should not change the record itself.
 
@@ -125,11 +125,11 @@ Framework should not change the record itself.
 - **Setup → Installed Packages** lists Record Health Check;
 - the intended user can see and run the card;
 - the card is active on the correct Lightning record page;
-- each Rule communicates an understandable outcome; and
+- each Check communicates an understandable outcome; and
 - rerunning the Check Set reflects a saved change to the record.
 
 At this point, the installation is proven. The Demo Check Set is still teaching content, not your
-organization's policy. Review it before wider use, or [create your first Rule](03-create-your-first-rule.md)
+organization's policy. Review it before wider use, or [create your first Check](03-create-your-first-check.md)
 around a decision your users actually make.
 
 ## If the result is not what you expected
@@ -140,8 +140,8 @@ around a decision your users actually make.
 | Record Health Check is missing in Lightning App Builder | Confirm the package appears in **Setup → Installed Packages**, then look under **Custom** components |
 | No Check Set is available | Use a Demo Check Set for the same object as the record page, such as an Account Demo Check Set on an Account page |
 | A user cannot see or run the card | Confirm that the user has **Record Health Check User** and can read the record and fields being checked |
-| A Rule shows **Unable to Check** | Read the explanation on the card, then check the user's access and the Rule configuration |
-| A Rule shows **System Error** | Ask a Framework administrator to enable Show Diagnostics temporarily and capture the diagnostic details |
+| A Check shows **Unable to Check** | Read the explanation on the card, then check the user's access and the Check configuration |
+| A Check shows **System Error** | Ask a Framework administrator to enable Show Diagnostics temporarily and capture the diagnostic details |
 | Salesforce reports a conflict with `RecordHealthCheckController` | The org already contains an unpackaged copy of the Framework; install into an org that has not received that source deployment |
 
 For a guided investigation, see [Troubleshoot with Show
@@ -176,7 +176,7 @@ continue with [Step 3](#step-3-add-a-meaningful-check-to-a-record-page).
 | Your next goal | Continue with |
 | --- | --- |
 | Prove the complete prepared experience in a separate org | [Deploy to a demo scratch org](05-create-rhc-scratch-org.md) |
-| Build a small check that belongs to your organization | [Create your first Rule](03-create-your-first-rule.md) |
+| Build a small check that belongs to your organization | [Create your first Check](03-create-your-first-check.md) |
 | Adapt a tested pattern | [Examples library](../examples/README.md) |
 | Review security before production | [Security and data access](../reference/framework/02-security.md) |
 | Revalidate after an upgrade | [Upgrade and revalidate](04-upgrading.md) |

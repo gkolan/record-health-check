@@ -12,9 +12,6 @@ private class RecordHealthCheckConfigValidationTest {
 
   @IsTest
   static void configServiceCoversRemainingValidationBranches() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
 
@@ -32,106 +29,110 @@ private class RecordHealthCheckConfigValidationTest {
       RecordHealthCheckConfigService.RC_INVALID_CONFIG
     );
 
-    Record_Health_Check_Rule__mdt rule = baseRule('Missing_Basics', 'FORMULA');
-    rule.CheckTitle__c = null;
+    Record_Health_Check__mdt check = baseCheck('Missing_Basics', 'FORMULA');
+    check.CheckTitle__c = null;
     assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       RecordHealthCheckConfigService.RC_INVALID_CONFIG
     );
-    rule = baseRule('Missing_Failure', 'FORMULA');
-    rule.FailureMessage__c = null;
+    check = baseCheck('Missing_Failure', 'FORMULA');
+    check.FailureMessage__c = null;
     assertUnable(
-      service.validateRuleForEvaluation(rule),
-      RecordHealthCheckConfigService.RC_INVALID_CONFIG
-    );
-
-    rule = baseRule('App_Formula_Missing', 'FORMULA');
-    rule.ApplicabilityMode__c = 'WHEN_FORMULA_TRUE';
-    rule.ApplicabilityFormula__c = null;
-    assertUnable(service.validateRuleForEvaluation(rule), 'INVALID_FORMULA');
-
-    rule = baseRule('App_Soql_Missing', 'FORMULA');
-    rule.ApplicabilityMode__c = 'WHEN_COUNT_QUERY_MATCHES';
-    assertUnable(
-      service.validateRuleForEvaluation(rule),
-      'INVALID_SOQL_TEMPLATE'
-    );
-    rule.ApplicabilityCountQuery__c = 'SELECT Id FROM Account';
-    assertUnable(
-      service.validateRuleForEvaluation(rule),
-      'INVALID_SOQL_TEMPLATE'
-    );
-    rule.ApplicabilityCountQuery__c = 'SELECT COUNT(Id) FROM Contact';
-    assertUnable(service.validateRuleForEvaluation(rule), 'INVALID_OPERATOR');
-    rule.ApplicabilityCountOperator__c = 'Around';
-    assertUnable(service.validateRuleForEvaluation(rule), 'INVALID_OPERATOR');
-    rule.ApplicabilityCountOperator__c = 'GREATER_THAN';
-    assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       RecordHealthCheckConfigService.RC_INVALID_CONFIG
     );
 
-    rule = queryRule('Query_Missing_Primary_Field');
-    rule.SourceQueryField__c = null;
+    check = baseCheck('App_Formula_Missing', 'FORMULA');
+    check.ApplicabilityMode__c = 'WHEN_FORMULA_TRUE';
+    check.ApplicabilityFormula__c = null;
+    assertUnable(service.validateCheckForEvaluation(check), 'INVALID_FORMULA');
+
+    check = baseCheck('App_Soql_Missing', 'FORMULA');
+    check.ApplicabilityMode__c = 'WHEN_COUNT_QUERY_MATCHES';
     assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       'INVALID_SOQL_TEMPLATE'
     );
-    rule = queryRule('Query_Invalid_Mode');
-    rule.QueryResultHandling__c = 'Nope';
+    check.ApplicabilityCountQuery__c = 'SELECT Id FROM Account';
     assertUnable(
-      service.validateRuleForEvaluation(rule),
-      RecordHealthCheckConfigService.RC_INVALID_CONFIG
-    );
-    rule = queryRule('Query_Invalid_Source');
-    rule.ExpectedValueSource__c = 'Magic';
-    assertUnable(
-      service.validateRuleForEvaluation(rule),
-      RecordHealthCheckConfigService.RC_INVALID_CONFIG
-    );
-    rule = queryRule('Query_Result_Missing_Field');
-    rule.ExpectedValueSource__c = 'COMPARISON_QUERY';
-    rule.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
-    rule.ComparisonQueryField__c = null;
-    assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       'INVALID_SOQL_TEMPLATE'
     );
-    rule = queryRule('Query_List_Missing_Field');
-    rule.ComparisonOperator__c = 'LIST_CONTAINS_ANY';
-    rule.QueryResultHandling__c = 'COMPARE_AS_LISTS';
-    rule.SourceQuery__c = null;
-    rule.FindInListFormula__c = 'BillingCity';
-    rule.ComparisonQuery__c = 'SELECT MailingCity FROM Contact';
-    rule.ComparisonQueryField__c = null;
+    check.ApplicabilityCountQuery__c = 'SELECT COUNT(Id) FROM Contact';
+    assertUnable(service.validateCheckForEvaluation(check), 'INVALID_OPERATOR');
+    check.ApplicabilityCountOperator__c = 'Around';
+    assertUnable(service.validateCheckForEvaluation(check), 'INVALID_OPERATOR');
+    check.ApplicabilityCountOperator__c = 'GREATER_THAN';
     assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
+      RecordHealthCheckConfigService.RC_INVALID_CONFIG
+    );
+
+    check = queryCheck('Query_Missing_Primary_Field');
+    check.SourceQueryField__c = null;
+    assertUnable(
+      service.validateCheckForEvaluation(check),
+      'INVALID_SOQL_TEMPLATE'
+    );
+    check = queryCheck('Query_Invalid_Mode');
+    check.QueryResultHandling__c = 'Nope';
+    assertUnable(
+      service.validateCheckForEvaluation(check),
+      RecordHealthCheckConfigService.RC_INVALID_CONFIG
+    );
+    check = queryCheck('Query_Invalid_Source');
+    check.ExpectedValueSource__c = 'Magic';
+    assertUnable(
+      service.validateCheckForEvaluation(check),
+      RecordHealthCheckConfigService.RC_INVALID_CONFIG
+    );
+    check = queryCheck('Query_Result_Missing_Field');
+    check.ExpectedValueSource__c = 'COMPARISON_QUERY';
+    check.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
+    check.ComparisonQueryField__c = null;
+    assertUnable(
+      service.validateCheckForEvaluation(check),
+      'INVALID_SOQL_TEMPLATE'
+    );
+    check = queryCheck('Query_List_Missing_Field');
+    check.ComparisonOperator__c = 'LIST_CONTAINS_ANY';
+    check.QueryResultHandling__c = 'COMPARE_AS_LISTS';
+    check.SourceQuery__c = null;
+    check.FindInListFormula__c = 'BillingCity';
+    check.ComparisonQuery__c = 'SELECT MailingCity FROM Contact';
+    check.ComparisonQueryField__c = null;
+    assertUnable(
+      service.validateCheckForEvaluation(check),
       'INVALID_SOQL_TEMPLATE'
     );
 
-    rule = apexRule('Apex_Invalid_Class', 'String', '{}');
+    check = apexCheck('Apex_Invalid_Class', 'String', '{}');
     assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       'APEX_CLASS_NOT_FOUND'
     );
-    rule = apexRule('Apex_Invalid_Json', 'AccountHasRecentActivityCheck', '[]');
+    check = apexCheck(
+      'Apex_Invalid_Json',
+      'AccountHasRecentActivityCheck',
+      '[]'
+    );
     assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       'INVALID_APEX_PARAMETERS'
     );
 
-    rule = validDualRule('Dual_Missing_Primary_Field');
-    rule.SourceQuery__c = 'SELECT BillingCity FROM Account';
-    rule.SourceQueryField__c = null;
+    check = validDualCheck('Dual_Missing_Primary_Field');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account';
+    check.SourceQueryField__c = null;
     assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       'INVALID_SOQL_TEMPLATE'
     );
-    rule = validDualRule('Dual_Missing_Comparison_Field');
-    rule.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
-    rule.ComparisonQueryField__c = null;
+    check = validDualCheck('Dual_Missing_Comparison_Field');
+    check.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
+    check.ComparisonQueryField__c = null;
     assertUnable(
-      service.validateRuleForEvaluation(rule),
+      service.validateCheckForEvaluation(check),
       'INVALID_SOQL_TEMPLATE'
     );
   }
@@ -168,37 +169,37 @@ private class RecordHealthCheckConfigValidationTest {
   }
 
   @IsTest
-  static void lookupAndEmptyRuleHelpersCoverMissingConfigurations() {
+  static void lookupAndEmptyCheckHelpersCoverMissingConfigurations() {
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
 
     Test.startTest();
     String blankParent = service.findCheckSetDeveloperName(' ');
-    String missingParent = service.findCheckSetDeveloperName('No_Such_Rule');
+    String missingParent = service.findCheckSetDeveloperName('No_Such_Check');
     RecordHealthCheckSetAvailability blankAvailability = service.getCheckSetAvailabilityForObject(
       ' '
     );
     try {
-      RecordHealthCheckDefinitionLoader.validateActiveRulesForDefinition(
-        new List<Record_Health_Check_Rule__mdt>(),
-        'No_Rules'
+      RecordHealthCheckDefinitionLoader.validateActiveChecksForDefinition(
+        new List<Record_Health_Check__mdt>(),
+        'No_Checks'
       );
-      Assert.fail('A Check Set without active Rules must be rejected.');
+      Assert.fail('A Check Set without active Checks must be rejected.');
     } catch (RecordHealthCheckConfigService.ConfigException error) {
       Assert.areEqual(
         RecordHealthCheckConfigService.RC_NO_ACTIVE_CHECKS,
         error.reasonCode,
-        'The empty Rule list should use NO_ACTIVE_CHECKS.'
+        'The empty Check list should use NO_ACTIVE_CHECKS.'
       );
     }
     Test.stopTest();
 
     Assert.isNull(
       blankParent,
-      'A blank Rule identity should not resolve a Check Set.'
+      'A blank Check identity should not resolve a Check Set.'
     );
     Assert.isNull(
       missingParent,
-      'An unknown Rule identity should not resolve a Check Set.'
+      'An unknown Check identity should not resolve a Check Set.'
     );
     Assert.isFalse(
       blankAvailability.hasActive,
@@ -241,11 +242,11 @@ private class RecordHealthCheckConfigValidationTest {
     }
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -254,7 +255,7 @@ private class RecordHealthCheckConfigValidationTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',
         'NoRowsResult__c' => 'FAIL',
@@ -263,43 +264,41 @@ private class RecordHealthCheckConfigValidationTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt queryRule(String developerName) {
-    Record_Health_Check_Rule__mdt rule = baseRule(developerName, 'QUERY');
-    rule.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    rule.SourceQueryField__c = 'BillingCity';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    rule.ExpectedValueSource__c = 'FIXED_VALUE';
-    rule.ExpectedFixedValue__c = 'Chicago';
-    return rule;
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
   }
 
-  private static Record_Health_Check_Rule__mdt dualRule(String developerName) {
-    return baseRule(developerName, 'COMPARE_TWO_QUERIES');
+  private static Record_Health_Check__mdt dualCheck(String developerName) {
+    return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
   }
 
-  private static Record_Health_Check_Rule__mdt validDualRule(
-    String developerName
-  ) {
-    Record_Health_Check_Rule__mdt rule = dualRule(developerName);
-    rule.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    rule.SourceQueryField__c = 'totalCount';
-    rule.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    rule.ComparisonQueryField__c = 'totalCount';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    return rule;
+  private static Record_Health_Check__mdt validDualCheck(String developerName) {
+    Record_Health_Check__mdt check = dualCheck(developerName);
+    check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.SourceQueryField__c = 'totalCount';
+    check.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.ComparisonQueryField__c = 'totalCount';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    return check;
   }
 
-  private static Record_Health_Check_Rule__mdt apexRule(
+  private static Record_Health_Check__mdt apexCheck(
     String developerName,
     String className,
     String parameters
   ) {
-    Record_Health_Check_Rule__mdt rule = baseRule(developerName, 'APEX');
-    rule.ApexClass__c = className;
-    rule.ApexParametersJson__c = parameters;
-    return rule;
+    Record_Health_Check__mdt check = baseCheck(developerName, 'APEX');
+    check.ApexClass__c = className;
+    check.ApexParametersJson__c = parameters;
+    return check;
   }
 
   private static void assertUnable(

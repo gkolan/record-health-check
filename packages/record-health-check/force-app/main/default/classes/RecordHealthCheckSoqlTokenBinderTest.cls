@@ -46,4 +46,41 @@ private class RecordHealthCheckSoqlTokenBinderTest {
     }
     Test.stopTest();
   }
+
+  @IsTest
+  static void bindsUnquotedMultiSelectAsIncludesOperand() {
+    Schema.SObjectType quickTextType = Schema.getGlobalDescribe()
+      .get('QuickText');
+    Schema.DescribeFieldResult channelField = quickTextType
+      .getDescribe()
+      .fields.getMap()
+      .get('Channel')
+      .getDescribe();
+    List<Schema.PicklistEntry> entries = channelField.getPicklistValues();
+    Assert.isTrue(
+      entries.size() >= 2,
+      'QuickText.Channel should expose multiple standard channel values.'
+    );
+    String firstValue = entries[0].getValue();
+    String secondValue = entries[1].getValue();
+    SObject quickTextRow = quickTextType.newSObject();
+    quickTextRow.put('Channel', firstValue + ';' + secondValue);
+
+    Test.startTest();
+    String bound = RecordHealthCheckSoqlTokenBinder.bindTokens(
+      'SELECT Id FROM QuickText WHERE Channel INCLUDES {!record.Channel}',
+      quickTextRow
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'SELECT Id FROM QuickText WHERE Channel INCLUDES (\'' +
+        firstValue +
+        '\', \'' +
+        secondValue +
+        '\')',
+      bound,
+      'Each multi-select API value should become a separately quoted INCLUDES operand.'
+    );
+  }
 }

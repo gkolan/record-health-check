@@ -14,18 +14,18 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
 
-    Record_Health_Check_Rule__mdt passRule = baseRule('F_Pass', 'FORMULA');
-    passRule.PassConditionFormula__c = 'NOT(ISBLANK(BillingCity))';
+    Record_Health_Check__mdt passCheck = baseCheck('F_Pass', 'FORMULA');
+    passCheck.PassConditionFormula__c = 'NOT(ISBLANK(BillingCity))';
     assertStatus(
-      evaluator.evaluate(passRule, accountRecord.Id, accountRecord),
+      evaluator.evaluate(passCheck, accountRecord.Id, accountRecord),
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt failRule = baseRule('F_Fail', 'FORMULA');
-    failRule.PassConditionFormula__c = 'ISBLANK(BillingCity)';
-    failRule.FailureMessage__c = '{!record.Name} city is {!record.BillingCity}.';
+    Record_Health_Check__mdt failCheck = baseCheck('F_Fail', 'FORMULA');
+    failCheck.PassConditionFormula__c = 'ISBLANK(BillingCity)';
+    failCheck.FailureMessage__c = '{!record.Name} city is {!record.BillingCity}.';
     RecordHealthCheckInternalResult failResult = evaluator.evaluate(
-      failRule,
+      failCheck,
       accountRecord.Id,
       accountRecord
     );
@@ -44,10 +44,7 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
       'Formula FAIL condition carries the "Passes when" key'
     );
 
-    Record_Health_Check_Rule__mdt nonBoolean = baseRule(
-      'F_Non_Boolean',
-      'FORMULA'
-    );
+    Record_Health_Check__mdt nonBoolean = baseCheck('F_Non_Boolean', 'FORMULA');
     nonBoolean.PassConditionFormula__c = 'BillingCity';
     assertReason(
       evaluator.evaluate(nonBoolean, accountRecord.Id, accountRecord),
@@ -191,15 +188,15 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
   @IsTest
   static void formulaEvaluatorFallsBackWhenDisplayFormulaInvalid() {
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
-    Record_Health_Check_Rule__mdt rule = baseRule('Invalid_Display', 'FORMULA');
-    rule.DisplayFoundFormula__c = 'Not A Formula(';
+    Record_Health_Check__mdt check = baseCheck('Invalid_Display', 'FORMULA');
+    check.DisplayFoundFormula__c = 'Not A Formula(';
     Account accountRecord = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Fallback' }
     );
 
     Test.startTest();
     RecordHealthCheckInternalResult result = evaluator.evaluate(
-      rule,
+      check,
       RecordHealthCheckTestDataFactory.syntheticId(Account.SObjectType, 1),
       accountRecord
     );
@@ -267,11 +264,11 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -280,7 +277,7 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'FormulaResultType__c' => 'AUTO',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',

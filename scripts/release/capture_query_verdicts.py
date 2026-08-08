@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Capture normalized verdicts for every query-bearing Rule in a scratch org.
+"""Capture normalized verdicts for every query-bearing Check in a scratch org.
 
 The committed bulk-query inventory is the coverage contract. This tool reads the
 exhaustive smoke results persisted by the integration-test harness, keeps only
-verdict fields that T4-T6 must preserve, and fails if any inventoried Rule is
+verdict fields that T4-T6 must preserve, and fails if any inventoried Check is
 missing. Run it before and after the evaluator rewrite and diff the JSON files.
 """
 
@@ -23,8 +23,8 @@ ROOT = Path(__file__).resolve().parents[2]
 INVENTORY = ROOT / "scripts/release/generated/bulk-query-shape-inventory.json"
 DEFAULT_OUTPUT = ROOT / "scripts/release/generated/query-verdict-baseline.json"
 FIXTURE_SCRIPT = ROOT / "packages/record-health-check/integration-tests/scripts/query_verdict_fixture.apex"
-RULE_LAUNCHERS = tuple(
-    ROOT / f"packages/record-health-check/integration-tests/scripts/exhaustive_smoke_rules_{offset}.apex"
+CHECK_LAUNCHERS = tuple(
+    ROOT / f"packages/record-health-check/integration-tests/scripts/exhaustive_smoke_checks_{offset}.apex"
     for offset in (0, 50, 100, 150)
 )
 
@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--refresh-results",
         action="store_true",
-        help="Recreate the deterministic fixture and rerun every Rule before capture",
+        help="Recreate the deterministic fixture and rerun every Check before capture",
     )
     return parser.parse_args()
 
@@ -71,7 +71,7 @@ def run_sf(command: list[str]) -> dict[str, object]:
     return response
 
 
-def wait_for_rule_jobs(target_org: str, started_at: str) -> None:
+def wait_for_check_jobs(target_org: str, started_at: str) -> None:
     soql = (
         "SELECT Id, Status, NumberOfErrors, ExtendedStatus FROM AsyncApexJob "
         "WHERE ApexClass.Name = 'RecordHealthCheckExhaustiveSmoke' "
@@ -107,17 +107,17 @@ def refresh_smoke_results(target_org: str) -> None:
     run_sf(
         ["apex", "run", "--file", str(FIXTURE_SCRIPT), "--target-org", target_org]
     )
-    for launcher in RULE_LAUNCHERS:
+    for launcher in CHECK_LAUNCHERS:
         started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         run_sf(["apex", "run", "--file", str(launcher), "--target-org", target_org])
-        wait_for_rule_jobs(target_org, started_at)
+        wait_for_check_jobs(target_org, started_at)
 
 
 def query_smoke_results(target_org: str, namespace: str) -> list[dict[str, object]]:
     prefix = f"{namespace}__" if namespace else ""
     event_field = f"{prefix}EventId__c"
     verdict_fields = [
-        f"{prefix}RuleName__c",
+        f"{prefix}CheckName__c",
         f"{prefix}Status__c",
         f"{prefix}ReasonCode__c",
         f"{prefix}Threw__c",
@@ -126,7 +126,7 @@ def query_smoke_results(target_org: str, namespace: str) -> list[dict[str, objec
     export_object = f"{prefix}RHC_Event_Export__c"
     soql = (
         f"SELECT {event_field}, {', '.join(verdict_fields)} FROM {export_object} "
-        f"WHERE {event_field} LIKE 'RULE:%' ORDER BY {event_field}"
+        f"WHERE {event_field} LIKE 'CHECK:%' ORDER BY {event_field}"
     )
     command = [
         "data",
@@ -141,7 +141,7 @@ def query_smoke_results(target_org: str, namespace: str) -> list[dict[str, objec
 
 
 def normalized_result(payload: dict[str, object]) -> dict[str, object]:
-    result: dict[str, object] = {"rule": payload["name"]}
+    result: dict[str, object] = {"check": payload["name"]}
     for key in ("status", "reasonCode", "threw", "exceptionType"):
         if payload.get(key) is not None and not (key == "threw" and payload[key] is False):
             result[key] = payload[key]
@@ -160,16 +160,16 @@ def main() -> int:
     inventory_bytes = INVENTORY.read_bytes()
     inventory = json.loads(inventory_bytes)
 
-    fields_by_rule: dict[str, list[str]] = {}
+    fields_by_check: dict[str, list[str]] = {}
     for item in inventory:
-        fields_by_rule.setdefault(item["rule"], []).append(item["field"])
+        fields_by_check.setdefault(item["check"], []).append(item["field"])
 
-    smoke_by_rule: dict[str, dict[str, object]] = {}
+    smoke_by_check: dict[str, dict[str, object]] = {}
     prefix = f"{args.namespace}__" if args.namespace else ""
     smoke_rows = query_smoke_results(args.target_org, args.namespace)
     for row in smoke_rows:
-        rule_name = str(row[f"{prefix}RuleName__c"]).split("__", 1)[-1]
-        payload: dict[str, object] = {"name": rule_name}
+        check_name = str(row[f"{prefix}CheckName__c"]).split("__", 1)[-1]
+        payload: dict[str, object] = {"name": check_name}
         for key, field in (
             ("status", "Status__c"),
             ("reasonCode", "ReasonCode__c"),
@@ -177,29 +177,29 @@ def main() -> int:
             ("exceptionType", "ExceptionType__c"),
         ):
             payload[key] = row.get(f"{prefix}{field}")
-        smoke_by_rule[rule_name] = payload
+        smoke_by_check[check_name] = payload
 
-    expected_rules = set(fields_by_rule)
-    missing = sorted(expected_rules - set(smoke_by_rule))
+    expected_checks = set(fields_by_check)
+    missing = sorted(expected_checks - set(smoke_by_check))
     if missing:
         print(
-            "Missing exhaustive-smoke results for query-bearing Rules: "
+            "Missing exhaustive-smoke results for query-bearing Checks: "
             + ", ".join(missing),
             file=sys.stderr,
         )
         return 1
 
     results = []
-    for rule in sorted(expected_rules):
-        result = normalized_result(smoke_by_rule[rule])
-        result["queryFields"] = sorted(fields_by_rule[rule])
+    for check in sorted(expected_checks):
+        result = normalized_result(smoke_by_check[check])
+        result["queryFields"] = sorted(fields_by_check[check])
         results.append(result)
 
     output = {
         "schemaVersion": 1,
         "inventorySha256": hashlib.sha256(inventory_bytes).hexdigest(),
         "templateCount": len(inventory),
-        "ruleCount": len(expected_rules),
+        "checkCount": len(expected_checks),
         "results": results,
     }
     if args.compare_to is not None:
@@ -218,12 +218,12 @@ def main() -> int:
         except ValueError:
             display_path = args.output
         print(
-            f"Captured {len(expected_rules)} Rule verdicts covering "
+            f"Captured {len(expected_checks)} Check verdicts covering "
             f"{len(inventory)} query templates to {display_path}"
         )
     else:
         print(
-            f"Verified {len(expected_rules)} Rule verdicts covering "
+            f"Verified {len(expected_checks)} Check verdicts covering "
             f"{len(inventory)} query templates without modifying the baseline."
         )
     return 0

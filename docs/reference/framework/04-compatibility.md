@@ -56,14 +56,14 @@ version.
 
 Supported. Found and Expected values render with the correct currency per side and per list row.
 The Framework does not convert currencies or normalize cross-currency comparisons; that remains the
-responsibility of the Rule's query, formula, or Apex plugin. See
+responsibility of the Check's query, formula, or Apex plugin. See
 [Display value format: Currency](../contracts/03-display-value-format.md#currency).
 
 ## Translation Workbench
 
 Framework-owned labels (status text, operator phrases, Boolean Yes/No wording) support Salesforce
-Translation Workbench. Administrator-authored Rule content (messages, Check Titles, Card Titles) is
-plain text and is not automatically translated; an org that needs translated Rule content must
+Translation Workbench. Administrator-authored Check content (messages, Check Titles, Card Titles) is
+plain text and is not automatically translated; an org that needs translated Check content must
 author it per language or build its own translation layer. See
 [Reference: Localization](05-localization.md).
 
@@ -71,7 +71,7 @@ author it per language or build its own translation layer. See
 
 - Named Credential, External Service, or REST API compatibility: Record Health Check has no REST
   API surface. See [Architecture: Out of scope](01-architecture.md#16-out-of-scope).
-- Shield Platform Encryption interaction with encrypted fields read by a Rule: not evaluated by this
+- Shield Platform Encryption interaction with encrypted fields read by a Check: not evaluated by this
   project.
 - Multi-org, Salesforce-to-Salesforce, or omni-channel routing interactions: out of scope for the
   Framework, which evaluates one record in one org per call.

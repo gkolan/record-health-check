@@ -17,11 +17,11 @@ public class RecordHealthCheckTemplateValueResolver {
       }
       return resolveFieldPath(context.record, token.propertyPath);
     }
-    if (token.namespaceName == 'rhcRule') {
-      if (context.rule == null) {
-        unavailable(token, 'Rule metadata is not available.');
+    if (token.namespaceName == 'rhcCheck') {
+      if (context.check == null) {
+        unavailable(token, 'Check metadata is not available.');
       }
-      return ruleValue(context.rule, token.propertyPath);
+      return checkValue(context.check, token.propertyPath);
     }
     if (token.namespaceName == 'rhcSet') {
       if (context.checkSet == null) {
@@ -69,33 +69,33 @@ public class RecordHealthCheckTemplateValueResolver {
     return current.get(parts[parts.size() - 1]);
   }
 
-  public static Object ruleValue(
-    Record_Health_Check_Rule__mdt rule,
+  public static Object checkValue(
+    Record_Health_Check__mdt check,
     String property
   ) {
     if (property == 'developerName') {
-      return rule.DeveloperName;
+      return check.DeveloperName;
     }
     if (property == 'masterLabel') {
-      return rule.MasterLabel;
+      return check.MasterLabel;
     }
     if (property == 'checkTitle') {
-      return rule.CheckTitle__c;
+      return check.CheckTitle__c;
     }
     if (property == 'checkDescription') {
-      return rule.CheckDescription__c;
+      return check.CheckDescription__c;
     }
     if (property == 'category') {
-      return displayLabel(String.valueOf(dynamicGet(rule, 'Category__c')));
+      return displayLabel(String.valueOf(dynamicGet(check, 'Category__c')));
     }
     if (property == 'evaluationType') {
-      return displayLabel(String.valueOf(rule.EvaluationType__c));
+      return displayLabel(String.valueOf(check.EvaluationType__c));
     }
     if (property == 'failureSeverity') {
-      return displayLabel(String.valueOf(rule.FailureSeverity__c));
+      return displayLabel(String.valueOf(check.FailureSeverity__c));
     }
     if (property == 'evaluationOrder') {
-      return rule.EvaluationOrder__c;
+      return check.EvaluationOrder__c;
     }
     return null;
   }

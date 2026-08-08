@@ -257,25 +257,25 @@ private with sharing class RecordHealthCheckSoqlEdgeTest {
 
   @IsTest
   static void helperLabelsAndTimeParsingCoverFallbackBranches() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>()
     );
 
     Test.startTest();
     String genericPlural = RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(
-      rule
+      check
     );
-    rule.SourceQuery__c = 'SELECT Id FROM Category';
+    check.SourceQuery__c = 'SELECT Id FROM Category';
     String yPlural = RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(
-      rule
+      check
     );
-    rule.SourceQuery__c = 'SELECT Id FROM Box';
+    check.SourceQuery__c = 'SELECT Id FROM Box';
     String esPlural = RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(
-      rule
+      check
     );
-    rule.SourceQuery__c = 'SELECT Id FROM Widget';
+    check.SourceQuery__c = 'SELECT Id FROM Widget';
     String regularPlural = RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(
-      rule
+      check
     );
     Time exact = RecordHealthCheckSoqlBindValueResolver.parseTimeFallback(
       '12:30:15Z'
@@ -329,7 +329,7 @@ private with sharing class RecordHealthCheckSoqlEdgeTest {
   @IsTest
   static void relationshipDescribeAndComparisonLabelsCoverAllPaths() {
     RecordHealthCheckSoqlEvaluator evaluator = new RecordHealthCheckSoqlEvaluator();
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>()
     );
     Test.startTest();
@@ -354,14 +354,14 @@ private with sharing class RecordHealthCheckSoqlEdgeTest {
       RecordHealthCheckTestDataFactory.account(new Map<String, Object>()),
       'Parent.Name'
     );
-    rule.ExpectedValueSource__c = 'COMPARISON_QUERY';
-    String genericQuery = evaluator.describeComparisonSource(rule);
-    rule.ComparisonQueryField__c = 'Name';
-    String namedQuery = evaluator.describeComparisonSource(rule);
-    rule.ExpectedValueSource__c = null;
-    String namedFallback = evaluator.describeComparisonSource(rule);
-    rule.ComparisonQueryField__c = null;
-    String genericFallback = evaluator.describeComparisonSource(rule);
+    check.ExpectedValueSource__c = 'COMPARISON_QUERY';
+    String genericQuery = evaluator.describeComparisonSource(check);
+    check.ComparisonQueryField__c = 'Name';
+    String namedQuery = evaluator.describeComparisonSource(check);
+    check.ExpectedValueSource__c = null;
+    String namedFallback = evaluator.describeComparisonSource(check);
+    check.ComparisonQueryField__c = null;
+    String genericFallback = evaluator.describeComparisonSource(check);
     try {
       RecordHealthCheckSoqlBindValueResolver.parseTimeFallback('12:30');
       Assert.fail('A short Time fallback must be rejected.');

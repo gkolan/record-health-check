@@ -7,7 +7,7 @@ export default defineConfig([
       ...sldsCssPlugin()
     },
     extends: ["@salesforce-ux/slds/recommended"],
-    rules: {
+    checks: {
       "@salesforce-ux/slds/no-hardcoded-values-slds2": "off",
       "@salesforce-ux/slds/no-slds-class-overrides": "error",
       "@salesforce-ux/slds/enforce-sds-to-slds-hooks": "error",

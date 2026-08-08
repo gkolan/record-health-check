@@ -35,7 +35,7 @@ public with sharing class RecordHealthCheckSandboxRunner {
    * Produces a compact JSON summary suitable for debug logs and AsyncApexJob review.
    *
    * @param response Response to summarize.
-   * @return JSON containing the run ID, scope size, Rule count, and status totals.
+   * @return JSON containing the run ID, scope size, Check count, and status totals.
    */
   public static String summarize(RecordHealthCheckResponse response) {
     if (response == null) {
@@ -47,7 +47,7 @@ public with sharing class RecordHealthCheckSandboxRunner {
       new Map<String, Object>{
         'runId' => response.runId,
         'recordCount' => response.recordIds.size(),
-        'ruleCount' => response.ruleQualifiedApiNames.size(),
+        'checkCount' => response.checkQualifiedApiNames.size(),
         'passed' => response.summary.passed,
         'failed' => response.summary.failed,
         'skipped' => response.summary.skipped,

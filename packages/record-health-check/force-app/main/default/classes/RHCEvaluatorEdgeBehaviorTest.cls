@@ -20,7 +20,7 @@ private class RHCEvaluatorEdgeBehaviorTest {
     List<SObject> emptyRows = new List<SObject>();
 
     RecordHealthCheckSoqlEvaluator soql = new RecordHealthCheckSoqlEvaluator();
-    Record_Health_Check_Rule__mdt query = queryRule('Helper_Query');
+    Record_Health_Check__mdt query = queryCheck('Helper_Query');
     query.NoRowsResult__c = 'FAIL';
 
     RecordHealthCheckSoqlTokenBinder.validateNoDisallowedKeywords(
@@ -125,7 +125,7 @@ private class RHCEvaluatorEdgeBehaviorTest {
         query
       )
     );
-    Record_Health_Check_Rule__mdt missingMeansNoMatch = query.clone();
+    Record_Health_Check__mdt missingMeansNoMatch = query.clone();
     missingMeansNoMatch.EmptyValueHandling__c = 'AS_NO_MATCH';
     Assert.areEqual(
       false,
@@ -157,20 +157,18 @@ private class RHCEvaluatorEdgeBehaviorTest {
       )
     );
 
-    Record_Health_Check_Rule__mdt emptyPassRule = queryRule(
-      'Helper_Empty_Pass'
-    );
-    emptyPassRule.NoRowsResult__c = 'PASS';
+    Record_Health_Check__mdt emptyPassCheck = queryCheck('Helper_Empty_Pass');
+    emptyPassCheck.NoRowsResult__c = 'PASS';
     Assert.areEqual(
       true,
       RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
-        emptyPassRule,
+        emptyPassCheck,
         emptyRows,
         'x',
         null
       )
     );
-    Record_Health_Check_Rule__mdt anySkipped = queryRule('Helper_Any_Skipped');
+    Record_Health_Check__mdt anySkipped = queryCheck('Helper_Any_Skipped');
     anySkipped.QueryResultHandling__c = 'ANY_ROW_PASSES';
     anySkipped.EmptyValueHandling__c = 'SKIP_RECORD';
     Assert.areEqual(
@@ -182,7 +180,7 @@ private class RHCEvaluatorEdgeBehaviorTest {
         null
       )
     );
-    Record_Health_Check_Rule__mdt allSkipped = anySkipped.clone();
+    Record_Health_Check__mdt allSkipped = anySkipped.clone();
     allSkipped.DeveloperName = 'Helper_All_Skipped';
     allSkipped.QueryResultHandling__c = 'ALL_ROWS_PASS';
     Assert.areEqual(
@@ -194,7 +192,7 @@ private class RHCEvaluatorEdgeBehaviorTest {
         null
       )
     );
-    Record_Health_Check_Rule__mdt badMode = anySkipped.clone();
+    Record_Health_Check__mdt badMode = anySkipped.clone();
     badMode.DeveloperName = 'Helper_Bad_Mode';
     badMode.QueryResultHandling__c = 'Nope';
     try {
@@ -299,11 +297,11 @@ private class RHCEvaluatorEdgeBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -312,7 +310,7 @@ private class RHCEvaluatorEdgeBehaviorTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'FormulaResultType__c' => 'AUTO',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',
@@ -322,15 +320,15 @@ private class RHCEvaluatorEdgeBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt queryRule(String developerName) {
-    Record_Health_Check_Rule__mdt rule = baseRule(developerName, 'QUERY');
-    rule.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    rule.SourceQueryField__c = 'BillingCity';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    rule.ExpectedValueSource__c = 'FIXED_VALUE';
-    rule.ExpectedFixedValue__c = 'Chicago';
-    return rule;
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
   }
 
   private static void assertUnable(

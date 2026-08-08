@@ -9,12 +9,12 @@
 >
 > - This page is the source of truth for merge-token behavior; configuration guides and examples
 >   link here rather than restating the full contract.
-> - For field-level Setup examples, use the [Rule field reference](../../metadata/02-fields-check-rule.md).
+> - For field-level Setup examples, use the [Check field reference](../../metadata/02-fields-check.md).
 >   For Action URL patterns, use [Configure action links](../../guides/04-configure-action-links.md).
 
 A merge token is a placeholder in a failure message, Fix Message, Action Label, Action URL, Found
-or Expected display text, or SOQL template. When the Rule runs, Record Health Check replaces the
-placeholder with a live value from the current record, Rule, Check Set, result, or run.
+or Expected display text, or SOQL template. When the Check runs, Record Health Check replaces the
+placeholder with a live value from the current record, Check, Check Set, result, or run.
 
 Merge tokens use a namespace and property:
 
@@ -24,7 +24,7 @@ Merge tokens use a namespace and property:
 
 | Part | Meaning |
 | --- | --- |
-| Namespace | Where the value comes from: `record`, `rhcRule`, `rhcSet`, `rhcResult`, or `rhcRun` |
+| Namespace | Where the value comes from: `record`, `rhcCheck`, `rhcSet`, `rhcResult`, or `rhcRun` |
 | Property | Which field or metadata value to insert, such as `Name` or `checkTitle` |
 
 Raw record-field tokens also support quoted `format` and `fallback` attributes:
@@ -69,7 +69,7 @@ Most messages and queries use the current record:
 {!record.BillingCountry}
 ```
 
-After the Rule finishes, use result and run values in the completed message:
+After the Check finishes, use result and run values in the completed message:
 
 ```text
 {!rhcResult.foundValue}
@@ -77,10 +77,10 @@ After the Rule finishes, use result and run values in the completed message:
 {!rhcRun.runId}
 ```
 
-Use Rule and Check Set tokens when the message should name the check or card:
+Use Check and Check Set tokens when the message should name the check or card:
 
 ```text
-{!rhcRule.checkTitle}
+{!rhcCheck.checkTitle}
 {!rhcSet.cardTitle}
 ```
 
@@ -94,8 +94,8 @@ Blank tokens behave differently in display text (including Action Label), Action
 
 | Surface | Where it appears | Allowed namespaces |
 | --- | --- | --- |
-| Display text | **Message When Failed**, **Message When Unable To Evaluate**, **Message When Not Applicable**, **Fix Message**, **Action Label** (80 characters; defaults to `Fix this` when blank and Action URL is valid), **Display: Found Text**, and **Display: Expected Text** | `record`, `rhcRule`, `rhcSet`, `rhcResult`, `rhcRun` when that data exists in the current phase |
-| Action URL | **Action URL** on a Rule | `record`, `rhcRule`, `rhcSet`, `rhcRun` (result tokens are not allowed); each inserted value is URL-encoded before the URL safety check |
+| Display text | **Message When Failed**, **Message When Unable To Evaluate**, **Message When Not Applicable**, **Fix Message**, **Action Label** (80 characters; defaults to `Fix this` when blank and Action URL is valid), **Display: Found Text**, and **Display: Expected Text** | `record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun` when that data exists in the current phase |
+| Action URL | **Action URL** on a Check | `record`, `rhcCheck`, `rhcSet`, `rhcRun` (result tokens are not allowed); each inserted value is URL-encoded before the URL safety check |
 | SOQL | Source Query, Comparison Query, and applicability count queries | `record` only |
 
 ## Namespaces and properties
@@ -103,9 +103,9 @@ Blank tokens behave differently in display text (including Action Label), Action
 | Namespace | Source | Properties |
 | --- | --- | --- |
 | `record` | Current Salesforce record | Any readable field API path, such as `Name`, `AnnualRevenue`, or `Owner.Name` |
-| `rhcRule` | Current Rule metadata | `developerName`, `masterLabel`, `checkTitle`, `checkDescription`, `category`, `evaluationType`, `failureSeverity`, `evaluationOrder` |
+| `rhcCheck` | Current Check metadata | `developerName`, `masterLabel`, `checkTitle`, `checkDescription`, `category`, `evaluationType`, `failureSeverity`, `evaluationOrder` |
 | `rhcSet` | Current Check Set metadata | `developerName`, `masterLabel`, `cardTitle`, `cardSubtitle`, `objectApiName` |
-| `rhcResult` | Finalized Rule result; available after the evaluator finishes | `status`, `foundValue`, `foundValuePluralSuffix`, `expectedValue`, `failedRecordCount`, `totalRecordCount`, `reasonCode` |
+| `rhcResult` | Finalized Check result; available after the evaluator finishes | `status`, `foundValue`, `foundValuePluralSuffix`, `expectedValue`, `failedRecordCount`, `totalRecordCount`, `reasonCode` |
 | `rhcRun` | Current run context | `runId`, `source`, `startedAt`, `completedAt`, `durationMs` |
 
 `foundValuePluralSuffix` exists so a multi-row summary can render "1 Contact" versus "2 Contacts"
@@ -137,7 +137,7 @@ wrong:
 {!record.Industry fallback="Technology"}
 ```
 
-When a Rule evaluates a record, `{!record.Id}` already has a value, so SOQL and Action URLs use
+When a Check evaluates a record, `{!record.Id}` already has a value, so SOQL and Action URLs use
 the bare token:
 
 ```sql
@@ -166,7 +166,7 @@ fallbacks in SOQL return `MISSING_BIND_VALUE` rather than running a misleading q
   `'A;B;C'`, unquoted expands to an `INCLUDES (...)` list.
 - The same field may appear both quoted and unquoted in one template; each form is substituted
   independently.
-- The running user must be able to read every token field, or the Rule returns
+- The running user must be able to read every token field, or the Check returns
   `UNABLE_TO_EVALUATE`.
 
 ## Related Reason Codes
@@ -182,16 +182,16 @@ fallbacks in SOQL return `MISSING_BIND_VALUE` rather than running a misleading q
 | `TOKEN_NOT_AVAILABLE_IN_PHASE` | `rhcResult` used before the evaluator finishes, or a record relationship path exceeds five parent lookups |
 
 When **Action URL** resolves to more than 2,000 characters, the link is suppressed and Fix Message
-can still render. URL scheme and path rules live in
+can still render. URL scheme and path checks live in
 [Configure action links](../../guides/04-configure-action-links.md#allowed-url-formats).
 
 Full outcome list lives in [Reason Codes](01-reason-codes.md).
 
 ## Related
 
-- [Configure Check Sets and Rules: Merge tokens](../../guides/03-configure-check-sets-and-rules.md#11-merge-tokens)
+- [Configure Check Sets and Checks: Merge tokens](../../guides/03-configure-check-sets-and-checks.md#11-merge-tokens)
 - [Configure action links](../../guides/04-configure-action-links.md)
-- [Rule fields](../../metadata/02-fields-check-rule.md)
+- [Check fields](../../metadata/02-fields-check.md)
 - [Query reference](../evaluation/02-query.md)
 - [Field limits](04-field-limits.md)
 - [Reason Codes](01-reason-codes.md)

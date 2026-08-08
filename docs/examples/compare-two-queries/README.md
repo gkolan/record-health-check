@@ -1,7 +1,7 @@
 # Compare two queries examples
 
 > [!NOTE]
-> On this page, choose a practical Rule for comparing two independent SOQL results as counts or lists without writing custom Apex.
+> On this page, choose a practical Check for comparing two independent SOQL results as counts or lists without writing custom Apex.
 
 Use **Compare two queries** when both sides of the readiness decision come from related Salesforce
 records. The Framework can compare two aggregate values or determine whether two returned lists
@@ -32,5 +32,5 @@ For both query shapes, compatible operators, no-row behavior, security, and limi
 
 - [All practical examples](../README.md)
 - [Reference: Compare two queries](../../reference/evaluation/03-compare-two-queries.md)
-- [Rule fields](../../metadata/02-fields-check-rule.md)
-- [Configure Check Sets and Rules](../../guides/03-configure-check-sets-and-rules.md)
+- [Check fields](../../metadata/02-fields-check.md)
+- [Configure Check Sets and Checks](../../guides/03-configure-check-sets-and-checks.md)

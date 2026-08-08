@@ -56,14 +56,14 @@ def field_link(object_name, label, field):
     page = (
         "../../metadata/01-fields-check-set.md"
         if object_name == "Record_Health_Check_Set__mdt"
-        else "../../metadata/02-fields-check-rule.md"
+        else "../../metadata/02-fields-check.md"
     )
     anchor = github_anchor(f"{label} ({field})")
     return f"[`{field}`]({page}#{anchor})"
 
 
 rows = []
-for object_name in ("Record_Health_Check_Set__mdt", "Record_Health_Check_Rule__mdt"):
+for object_name in ("Record_Health_Check_Set__mdt", "Record_Health_Check__mdt"):
     for path in sorted((OBJECTS / object_name / "fields").glob("*.field-meta.xml")):
         root = ET.parse(path).getroot()
         field = text(root, "fullName")
@@ -97,9 +97,9 @@ for object_name in ("Record_Health_Check_Set__mdt", "Record_Health_Check_Rule__m
         )
 
 set_rows = [row for row in rows if row[0] == "Record_Health_Check_Set__mdt"]
-rule_rows = [row for row in rows if row[0] == "Record_Health_Check_Rule__mdt"]
+check_rows = [row for row in rows if row[0] == "Record_Health_Check__mdt"]
 set_text_rows = [row for row in set_rows if row[2] in {"Text", "LongTextArea"}]
-rule_text_rows = [row for row in rule_rows if row[2] in {"Text", "LongTextArea"}]
+check_text_rows = [row for row in check_rows if row[2] in {"Text", "LongTextArea"}]
 non_text_rows = [row for row in rows if row[2] not in {"Text", "LongTextArea"}]
 
 
@@ -127,7 +127,7 @@ def append_non_text_groups(lines, selected_rows):
         ]
     )
     for (object_name, field_type, constraint), links in groups.items():
-        owner = "Check Set" if object_name == "Record_Health_Check_Set__mdt" else "Rule"
+        owner = "Check Set" if object_name == "Record_Health_Check_Set__mdt" else "Check"
         display_type = "Metadata relationship" if field_type == "MetadataRelationship" else field_type
         lines.append(f"| {owner} | {display_type} | {constraint} | {', '.join(links)} |")
 
@@ -139,21 +139,21 @@ lines = [
     "",
     "<!-- Generated from shipped Salesforce metadata by scripts/release/generate_field_size_registry.py. -->",
     "",
-    "Use this page when Salesforce will not save or deploy a Custom Metadata value, when a Rule returns `UNABLE_TO_EVALUATE` because displayed text became too long, or when a configured action link does not appear. Most fields have only the Salesforce limit. A smaller group can grow when the Framework inserts record or result values into merge tokens such as `{!record.Name}`.",
+    "Use this page when Salesforce will not save or deploy a Custom Metadata value, when a Check returns `UNABLE_TO_EVALUATE` because displayed text became too long, or when a configured action link does not appear. Most fields have only the Salesforce limit. A smaller group can grow when the Framework inserts record or result values into merge tokens such as `{!record.Name}`.",
     "",
     "## Start with what happened",
     "",
     "| What you observe | Which limit matters | What to do |",
     "| --- | --- | --- |",
     "| Salesforce will not save or deploy the Custom Metadata value | **What Salesforce accepts** | Find the field below and shorten or correct the value so it matches the Salesforce field type and limit. |",
-    "| A Rule returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG` | **Completed text limit** | Shorten the configured text or the Salesforce values inserted by its merge tokens. |",
-    "| A failed Rule does not show its configured action link | The `ActionUrl__c` limit and URL rules | Keep the final URL within 2,000 characters and use a same-org relative URL or an `https://` URL. |",
+    "| A Check returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG` | **Completed text limit** | Shorten the configured text or the Salesforce values inserted by its merge tokens. |",
+    "| A failed Check does not show its configured action link | The `ActionUrl__c` limit and URL checks | Keep the final URL within 2,000 characters and use a same-org relative URL or an `https://` URL. |",
     "",
     "## Why the Framework limits completed text",
     "",
     'Some fields contain a message template rather than the final words a user sees. The Framework creates the **completed text** by replacing merge tokens with Salesforce data. For example, `{!record.Name}` is replaced with the current record\'s Name when populated. Add a quoted `fallback` attribute when a blank value needs a substitute, as in `{!record.Name fallback="Unnamed record"}`.',
     "",
-    "A saved template can therefore be short while the completed text becomes much larger. `FailureMessage__c` might contain `Account {!record.Name} needs review.`, but the Account Name is not inserted until the Rule runs.",
+    "A saved template can therefore be short while the completed text becomes much larger. `FailureMessage__c` might contain `Account {!record.Name} needs review.`, but the Account Name is not inserted until the Check runs.",
     "",
     "The Framework limits one completed value to 20,000 characters so a merge token cannot create an unexpectedly large result, response, or demand on Salesforce transaction resources. A predictable ceiling also keeps the Lightning card and calling integrations from receiving unbounded display text.",
     "",
@@ -170,12 +170,12 @@ append_table(lines, set_text_rows)
 lines.extend(
     [
         "",
-        "## Rule text limits",
+        "## Check text limits",
         "",
-        "These are the Rule fields where character count can prevent a value from being saved or can affect Framework output. Select an API name to learn which Evaluation Type uses it and how it affects the result.",
+        "These are the Check fields where character count can prevent a value from being saved or can affect Framework output. Select an API name to learn which Evaluation Type uses it and how it affects the result.",
     ]
 )
-append_table(lines, rule_text_rows)
+append_table(lines, check_text_rows)
 lines += [
     "",
     "## Fields controlled by something other than character count",
@@ -186,21 +186,21 @@ lines += [
 append_non_text_groups(lines, non_text_rows)
 lines += [
     "",
-    f"This page covers all **{len(set_rows)} Check Set fields** and **{len(rule_rows)} Rule fields** in the shipped Custom Metadata definitions.",
+    f"This page covers all **{len(set_rows)} Check Set fields** and **{len(check_rows)} Check fields** in the shipped Custom Metadata definitions.",
     "",
     "## If the limit is exceeded",
     "",
     "Salesforce rejects a value that does not fit its Custom Metadata field. The Framework does not receive that configuration, so correct the source value and deploy again.",
     "",
-    "When inserted values make display text longer than 20,000 characters, the Rule returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG`. Shorten the configured message or review the Salesforce fields used by its merge tokens. The Framework does not cut off the message because partial guidance could mislead the user.",
+    "When inserted values make display text longer than 20,000 characters, the Check returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG`. Shorten the configured message or review the Salesforce fields used by its merge tokens. The Framework does not cut off the message because partial guidance could mislead the user.",
     "",
-    "When an action URL is unsafe or longer than 2,000 characters, the Rule can still return `FAIL` and show its Fix Message, but the Framework leaves out the link. An authorized administrator can use Show Diagnostics to investigate the resolved URL.",
+    "When an action URL is unsafe or longer than 2,000 characters, the Check can still return `FAIL` and show its Fix Message, but the Framework leaves out the link. An authorized administrator can use Show Diagnostics to investigate the resolved URL.",
     "",
     "## Related",
     "",
     "- [Check Set fields](../../metadata/01-fields-check-set.md)",
-    "- [Rule fields](../../metadata/02-fields-check-rule.md)",
-    "- [Configuration guide](../../guides/03-configure-check-sets-and-rules.md)",
+    "- [Check fields](../../metadata/02-fields-check.md)",
+    "- [Configuration guide](../../guides/03-configure-check-sets-and-checks.md)",
     "- [Architecture](../framework/01-architecture.md)",
     "",
 ]

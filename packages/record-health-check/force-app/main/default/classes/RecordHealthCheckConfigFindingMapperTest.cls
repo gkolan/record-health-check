@@ -1,18 +1,18 @@
-/** Focused tests for runtime rule-finding mapping. */
+/** Focused tests for runtime check-finding mapping. */
 @IsTest
 private class RecordHealthCheckConfigFindingMapperTest {
   @IsTest
   static void mapsMissingFormulaToUnableResult() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Missing_Formula',
         'CheckTitle__c' => 'Missing formula',
         'EvaluationType__c' => 'FORMULA'
       }
     );
-    List<RecordHealthCheckRuleValidator.Finding> findings = new List<RecordHealthCheckRuleValidator.Finding>{
-      new RecordHealthCheckRuleValidator.Finding(
-        RecordHealthCheckRuleValidator.FindingCode.FORMULA_MISSING,
+    List<RecordHealthCheckValidator.Finding> findings = new List<RecordHealthCheckValidator.Finding>{
+      new RecordHealthCheckValidator.Finding(
+        RecordHealthCheckValidator.FindingCode.FORMULA_MISSING,
         null
       )
     };
@@ -20,14 +20,14 @@ private class RecordHealthCheckConfigFindingMapperTest {
     Test.startTest();
     RecordHealthCheckInternalResult result = RecordHealthCheckConfigFindingMapper.firstResult(
       findings,
-      rule
+      check
     );
     Test.stopTest();
 
     Assert.areEqual(
       'UNABLE_TO_EVALUATE',
       result.status,
-      'Invalid rules remain unable.'
+      'Invalid checks remain unable.'
     );
     Assert.areEqual(
       'INVALID_FORMULA',

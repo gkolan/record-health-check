@@ -16,7 +16,7 @@ open an individual field only when you need its exact details.
 | Does another process need the completed run? | Should a deliberate run publish one summary event? | [Publish User Run Event](#publish-user-run-event-publishuserrunevent__c) |
 | Should Framework errors publish automatically? | Keep the default error-event stream, or opt this Check Set out? | [Publish Error Log Event](#publish-error-log-event-publisherrorlogevent__c) |
 
-For the complete creation flow, use [Create your first Rule](../installation/03-create-your-first-rule.md).
+For the complete creation flow, use [Create your first Check](../installation/03-create-your-first-check.md).
 
 ## Field index
 
@@ -193,7 +193,7 @@ For the complete creation flow, use [Create your first Rule](../installation/03-
 | Always required | No |
 | Default | **Unchecked**: `false` |
 | Used when | Optional for every Check Set; affects unexpected system errors, not `FAIL` or `SKIPPED`. |
-| Description | <p>When checked, the run stops as soon as a Rule reaches `ERROR`. It does not stop for `FAIL`, `SKIPPED`, or `UNABLE_TO_EVALUATE`; those are completed business, applicability, or expected unable-to-decide outcomes, so later Rules can still provide useful evidence.</p><p>Leave unchecked when independent Rules should continue after one unexpected system problem. Check it when later Rules depend on a healthy technical path or continuing could repeat the same failing operation. Sequential Lightning evaluation is required when this option is checked so the component can see each result before starting the next Rule.</p> |
+| Description | <p>When checked, the run stops as soon as a Check reaches `ERROR`. It does not stop for `FAIL`, `SKIPPED`, or `UNABLE_TO_EVALUATE`; those are completed business, applicability, or expected unable-to-decide outcomes, so later Checks can still provide useful evidence.</p><p>Leave unchecked when independent Checks should continue after one unexpected system problem. Check it when later Checks depend on a healthy technical path or continuing could repeat the same failing operation. Sequential Lightning evaluation is required when this option is checked so the component can see each result before starting the next Check.</p> |
 | Help text | <p>Checked = stop the whole run on an unexpected system error. Does not stop on a normal Fail or Skip.</p><p>Off by default.</p> |
 | Allowed values | **Checked**: `true`<br>**Unchecked**: `false` |
 
@@ -301,6 +301,6 @@ For the complete creation flow, use [Create your first Rule](../installation/03-
 
 ## Related
 
-- [Rule fields](02-fields-check-rule.md)
-- [Create your first Rule](../installation/03-create-your-first-rule.md)
-- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
+- [Check fields](02-fields-check.md)
+- [Create your first Check](../installation/03-create-your-first-check.md)
+- [Configure Check Sets and Checks](../guides/03-configure-check-sets-and-checks.md)

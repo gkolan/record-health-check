@@ -3,7 +3,7 @@ public with sharing class RecordHealthCheckComparisonDisplay {
   // ─── Human-readable comparison descriptions (actual vs expected) ──────────
   // These build the actualValue / expectedValue strings shown alongside a
   // non-passing result so the user sees what the record produced versus what
-  // the rule required, without an admin hand-authoring it into FailureMessage__c.
+  // the check required, without an admin hand-authoring it into FailureMessage__c.
 
   /**
    * Maps a operator API name to a sentence-friendly verb phrase. The phrases
@@ -70,27 +70,27 @@ public with sharing class RecordHealthCheckComparisonDisplay {
    * background and horizontal padding already distinguish values from prose.
    *
    * This overload renders with Display: Value Format on "Auto". Callers that
-   * have the Rule pass its DisplayValueFormat__c to the overload below.
+   * have the Check pass its DisplayValueFormat__c to the overload below.
    */
   public static String formatValue(Object value) {
     return formatValue(value, null);
   }
 
   /**
-   * Renders a single value using the Rule's Display: Value Format.
+   * Renders a single value using the Check's Display: Value Format.
    *
    * On "Auto" the value is humanized from its Apex type: numbers gain the
    * running user's grouping separators, Booleans read Yes/No, and dates and
    * date/times render in the user's locale and time zone. A named format
    * (Currency, Percent, Raw, …) overrides that and is applied instead. The
-   * rendering rules live in RecordHealthCheckDisplayFormat.
+   * rendering checks live in RecordHealthCheckDisplayFormat.
    */
   public static String formatValue(Object value, String displayFormat) {
     return formatValue(value, displayFormat, null);
   }
 
   /**
-   * Renders a single value using the Rule's Display: Value Format, showing a
+   * Renders a single value using the Check's Display: Value Format, showing a
    * Currency value in the currency named by `isoCode`. Leave `isoCode` blank to
    * use the running user's currency.
    */
@@ -112,7 +112,7 @@ public with sharing class RecordHealthCheckComparisonDisplay {
   }
 
   /**
-   * Renders a list using the Rule's Display: Value Format, capped so a large
+   * Renders a list using the Check's Display: Value Format, capped so a large
    * query result stays readable. Every entry uses the same format, so a list of
    * amounts reads consistently.
    */
@@ -187,7 +187,7 @@ public with sharing class RecordHealthCheckComparisonDisplay {
     return describeExpected(operator, comparison, displayFormat, null);
   }
 
-  /** Expected-value description using the Rule's Display: Value Format. */
+  /** Expected-value description using the Check's Display: Value Format. */
   public static String describeExpected(
     String operator,
     Object comparison,
@@ -274,7 +274,7 @@ public with sharing class RecordHealthCheckComparisonDisplay {
     );
   }
 
-  /** Expected-value list description using the Rule's Display: Value Format. */
+  /** Expected-value list description using the Check's Display: Value Format. */
   public static String describeExpectedList(
     String operator,
     List<Object> comparison,

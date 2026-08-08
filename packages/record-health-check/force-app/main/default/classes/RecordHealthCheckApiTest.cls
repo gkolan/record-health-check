@@ -12,14 +12,11 @@ private class RecordHealthCheckApiTest {
   }
 
   @IsTest
-  static void evaluateRuleReturnsStableEnvelope() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void evaluateCheckReturnsStableEnvelope() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forRule(
-        RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckRequest.forCheck(
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(
           'Example_Profile_Phone_Available'
         ),
         accountRecord.Id
@@ -27,23 +24,20 @@ private class RecordHealthCheckApiTest {
     );
     Assert.areEqual(1, response.results.size());
     Assert.areEqual(
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Profile_Phone_Available'
       ),
-      response.results[0].evaluation.ruleQualifiedApiName
+      response.results[0].evaluation.checkQualifiedApiName
     );
     Assert.areNotEqual(null, response.results[0].evaluation.status);
   }
 
   @IsTest
   static void explicitRunIdIsPreserved() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forRule(
-          RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckRequest.forCheck(
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(
             'Example_Profile_Phone_Available'
           ),
           accountRecord.Id
@@ -97,7 +91,7 @@ private class RecordHealthCheckApiTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     try {
       RecordHealthCheck.evaluate(
-        RecordHealthCheckRequest.forRule('No_Such_Check', accountRecord.Id)
+        RecordHealthCheckRequest.forCheck('No_Such_Check', accountRecord.Id)
       );
       Assert.isTrue(false, 'Expected unknown identity to fail.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException expected) {
@@ -107,14 +101,11 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void evaluateSetReturnsCountsAndResults() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheckSet(
           RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-            'Account_Data_Quality'
+            'Example_Account_Profile_Readiness'
           ),
           accountRecord.Id
         )
@@ -134,16 +125,13 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void scopePreservesInputOrder() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account first = RecordHealthCheckTestDataFactory.getHealthyAccount();
     Account second = RecordHealthCheckTestDataFactory.createAccount(
       'Second account'
     );
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forRule(
-        RecordHealthCheckTestDataFactory.qualifiedRuleName(
+      RecordHealthCheckRequest.forCheck(
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(
           'Example_Profile_Phone_Available'
         ),
         new List<Id>{ first.Id, second.Id }
@@ -155,9 +143,6 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void scopeLimitNamesCeilingAndSuppliedCount() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     List<Id> ids = new List<Id>();
     for (
@@ -169,8 +154,8 @@ private class RecordHealthCheckApiTest {
     }
     try {
       RecordHealthCheck.evaluate(
-        RecordHealthCheckRequest.forRule(
-          RecordHealthCheckTestDataFactory.qualifiedRuleName(
+        RecordHealthCheckRequest.forCheck(
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(
             'Example_Profile_Phone_Available'
           ),
           ids
@@ -184,19 +169,16 @@ private class RecordHealthCheckApiTest {
   }
 
   @IsTest
-  static void ruleFlowAdapterReturnsAlignedV2Response() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void checkFlowAdapterReturnsAlignedV2Response() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    RecordHealthCheckRunRuleFlowAction.Request input = new RecordHealthCheckRunRuleFlowAction.Request();
-    input.ruleQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedRuleName(
+    RecordHealthCheckRunCheckFlowAction.Request input = new RecordHealthCheckRunCheckFlowAction.Request();
+    input.checkQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       'Example_Profile_Phone_Available'
     );
     input.recordId = accountRecord.Id;
     input.eventPublication = 'NONE';
-    List<RecordHealthCheckRunRuleFlowAction.Response> outputs = RecordHealthCheckRunRuleFlowAction.runRule(
-      new List<RecordHealthCheckRunRuleFlowAction.Request>{ input }
+    List<RecordHealthCheckRunCheckFlowAction.Response> outputs = RecordHealthCheckRunCheckFlowAction.runCheck(
+      new List<RecordHealthCheckRunCheckFlowAction.Request>{ input }
     );
     Assert.areEqual(1, outputs.size());
     Assert.areEqual('2.0', outputs[0].contractVersion);
@@ -206,13 +188,10 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void setFlowAdapterReturnsPerRecordCounts() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckRunSetFlowAction.Request input = new RecordHealthCheckRunSetFlowAction.Request();
     input.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Account_Data_Quality'
+      'Example_Account_Profile_Readiness'
     );
     input.recordId = accountRecord.Id;
     input.eventPublication = 'NONE';
@@ -227,36 +206,33 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void flowAdaptersReturnExecutionErrorsForUnknownSelections() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    RecordHealthCheckRunRuleFlowAction.Request ruleInput = new RecordHealthCheckRunRuleFlowAction.Request();
-    ruleInput.ruleQualifiedApiName = 'Unknown.Rule';
-    ruleInput.recordId = accountRecord.Id;
-    ruleInput.eventPublication = 'NONE';
+    RecordHealthCheckRunCheckFlowAction.Request checkInput = new RecordHealthCheckRunCheckFlowAction.Request();
+    checkInput.checkQualifiedApiName = 'Unknown.Check';
+    checkInput.recordId = accountRecord.Id;
+    checkInput.eventPublication = 'NONE';
     RecordHealthCheckRunSetFlowAction.Request setInput = new RecordHealthCheckRunSetFlowAction.Request();
     setInput.checkSetQualifiedApiName = 'Unknown.Set';
     setInput.recordId = accountRecord.Id;
     setInput.eventPublication = 'NONE';
 
     Test.startTest();
-    List<RecordHealthCheckRunRuleFlowAction.Response> ruleOutputs = RecordHealthCheckRunRuleFlowAction.runRule(
-      new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleInput }
+    List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
+      new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkInput }
     );
     List<RecordHealthCheckRunSetFlowAction.Response> setOutputs = RecordHealthCheckRunSetFlowAction.runSet(
       new List<RecordHealthCheckRunSetFlowAction.Request>{ setInput }
     );
     Test.stopTest();
 
-    assertRuleFlowError(ruleOutputs, 'EXECUTION', 'could not be evaluated');
+    assertCheckFlowError(checkOutputs, 'EXECUTION', 'could not be evaluated');
     assertSetFlowError(setOutputs, 'EXECUTION', 'could not be evaluated');
   }
 
   @IsTest
-  static void ruleFlowAdapterRejectsInvalidBoundaries() {
-    RecordHealthCheckRunRuleFlowAction.Request invalid = new RecordHealthCheckRunRuleFlowAction.Request();
-    List<RecordHealthCheckRunRuleFlowAction.Request> excessive = new List<RecordHealthCheckRunRuleFlowAction.Request>();
+  static void checkFlowAdapterRejectsInvalidBoundaries() {
+    RecordHealthCheckRunCheckFlowAction.Request invalid = new RecordHealthCheckRunCheckFlowAction.Request();
+    List<RecordHealthCheckRunCheckFlowAction.Request> excessive = new List<RecordHealthCheckRunCheckFlowAction.Request>();
     for (
       Integer index = 0;
       index <= RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
@@ -268,18 +244,18 @@ private class RecordHealthCheckApiTest {
     Test.startTest();
     Assert.areEqual(
       0,
-      RecordHealthCheckRunRuleFlowAction.runRule(null).size(),
+      RecordHealthCheckRunCheckFlowAction.runCheck(null).size(),
       'Null input should return no responses.'
     );
-    assertRuleFlowError(
-      RecordHealthCheckRunRuleFlowAction.runRule(
-        new List<RecordHealthCheckRunRuleFlowAction.Request>{ invalid }
+    assertCheckFlowError(
+      RecordHealthCheckRunCheckFlowAction.runCheck(
+        new List<RecordHealthCheckRunCheckFlowAction.Request>{ invalid }
       ),
       'VALIDATION',
       'required'
     );
-    assertRuleFlowError(
-      RecordHealthCheckRunRuleFlowAction.runRule(excessive),
+    assertCheckFlowError(
+      RecordHealthCheckRunCheckFlowAction.runCheck(excessive),
       'LIMIT',
       'MAX_RECORDS_PER_SCOPE_EXCEEDED'
     );
@@ -302,7 +278,7 @@ private class RecordHealthCheckApiTest {
   }
 
   @IsTest
-  static void ruleFlowAdapterCoversPublicationAndMissingResultHelpers() {
+  static void checkFlowAdapterCoversPublicationAndMissingResultHelpers() {
     Test.startTest();
     RecordHealthCheckEventPublication actionable = RecordHealthCheckFlowSupport.publication(
       'ACTIONABLE'
@@ -423,8 +399,8 @@ private class RecordHealthCheckApiTest {
     return RecordHealthCheckFlowSupport.overallStatus(summary);
   }
 
-  private static void assertRuleFlowError(
-    List<RecordHealthCheckRunRuleFlowAction.Response> responses,
+  private static void assertCheckFlowError(
+    List<RecordHealthCheckRunCheckFlowAction.Response> responses,
     String expectedType,
     String expectedMessage
   ) {

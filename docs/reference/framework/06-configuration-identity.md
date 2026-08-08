@@ -5,7 +5,7 @@
 > Check Sets clearly labeled so administrators can distinguish starter content from org policy.
 
 Apply this standard whenever code, Flow, Lightning, events, tests, examples, or documentation
-identifies a Check Set or Rule.
+identifies a Check Set or Check.
 
 ## What ships where
 
@@ -44,12 +44,12 @@ FROM rhc__Record_Health_Check_Set__mdt
 ORDER BY QualifiedApiName
 ```
 
-Use the corresponding Rule query for Rule entry points. Store or pass the returned
+Use the corresponding Check query for Check entry points. Store or pass the returned
 `QualifiedApiName` exactly.
 
 > [!NOTE]
 > The `rhc__` in the `FROM` clause names the packaged Custom Metadata **Type**, which subscriber code
-> must always qualify. That is a separate matter from the record **identity** rules below: never add
+> must always qualify. That is a separate matter from the record **identity** checks below: never add
 > or remove a namespace on the `QualifiedApiName` value itself.
 
 ## Prohibited identity behavior
@@ -75,7 +75,7 @@ Set. It is not the public selection contract.
 
 `packages/record-health-check/force-app` contains the engine, Lightning component, permissions,
 Custom Metadata Type definitions, public APIs, reusable evaluator code, and the four shipped
-`Example_` Demo Check Sets (with their Rules). Those records are teaching and sandbox-ready starters.
+`Example_` Demo Check Sets (with their Checks). Those records are teaching and sandbox-ready starters.
 
 The same Demo records are mirrored under
 `packages/record-health-check/integration-tests/main/default/customMetadata` so local and CI sample

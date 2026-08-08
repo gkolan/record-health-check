@@ -22,6 +22,18 @@ private class RecordHealthCheckDescribeCacheTest {
       'The resolved field should preserve its describe metadata.'
     );
   }
+
+  @IsTest
+  static void rejectsAmbiguousNamespacedFieldSuffix() {
+    Assert.isNull(
+      RecordHealthCheckDescribeCache.resolveField(
+        Record_Health_Check__mdt.SObjectType,
+        'c'
+      ),
+      'A suffix shared by multiple Custom Metadata fields must not resolve ambiguously.'
+    );
+  }
+
   @IsTest
   static void cachesObjectAndFieldDescribeAcrossRepeatedCalls() {
     RecordHealthCheckDescribeCache.clearForTest();

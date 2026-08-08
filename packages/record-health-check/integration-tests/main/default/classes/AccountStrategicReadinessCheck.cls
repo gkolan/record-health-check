@@ -4,11 +4,11 @@
  */
 
 /**
- * Reference RecordHealthCheckRule — weighted readiness score for Strategic Accounts.
+ * Reference RecordHealthCheckPlugin — weighted readiness score for Strategic Accounts.
  * Example implementation retained here only as an integration-test fixture.
  * {"minScore": 80, "activityDaysBack": 60}
  */
-global with sharing class AccountStrategicReadinessCheck implements RecordHealthCheckRule {
+global with sharing class AccountStrategicReadinessCheck implements RecordHealthCheckPlugin {
   private static final Integer DEFAULT_MIN_SCORE = 80;
   private static final Integer DEFAULT_ACTIVITY_DAYS = 30;
   private static final Integer MIN_SCORE = 1;

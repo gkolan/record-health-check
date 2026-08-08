@@ -10,14 +10,14 @@ the [examples library](../examples/README.md).
 
 **Looking up Setup fields?** Use [Metadata reference](../metadata/README.md), not this folder.
 
-**Writing an Apex Rule plugin?** Use [Apex Rule contract](evaluation/04-apex-rule-contract.md).
+**Writing an Apex Check plugin?** Use [Apex Check contract](evaluation/04-apex-check-contract.md).
 **Maintaining Framework Apex classes?** Use the [Apex class reference](apex/README.md).
 
 ## Recommended path - Framework
 
 | Step | Reference | What it provides |
 | ---: | --- | --- |
-| 1 | [Architecture](framework/01-architecture.md) | Principles, layers, Rule path, entry points, limits |
+| 1 | [Architecture](framework/01-architecture.md) | Principles, layers, Check path, entry points, limits |
 | 2 | [Security and data access](framework/02-security.md) | USER_MODE, Permission Sets, diagnostics, plugins |
 | 3 | [Data model](framework/03-data-model.md) | ERD and relationship summary |
 | 4 | [Compatibility](framework/04-compatibility.md) | Editions, Lightning Experience, API version |
@@ -43,7 +43,7 @@ Terms: [Glossary](01-glossary.md).
 | 1 | Verify with a formula | [Formula](evaluation/01-formula.md) |
 | 2 | Verify with a query | [Query](evaluation/02-query.md) |
 | 3 | Compare two queries | [Compare two queries](evaluation/03-compare-two-queries.md) |
-| 4 | Verify with Apex | [Apex Rule contract](evaluation/04-apex-rule-contract.md) |
+| 4 | Verify with Apex | [Apex Check contract](evaluation/04-apex-check-contract.md) |
 
 ## Apex class guides
 
@@ -52,7 +52,7 @@ Layer index (L5→L1): [Apex classes](apex/README.md).
 ## Related
 
 - [Documentation home](../README.md)
-- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
+- [Configure Check Sets and Checks](../guides/03-configure-check-sets-and-checks.md)
 - [Examples library](../examples/README.md)
 - [Integration overview](../integration/README.md)
 - [Metadata field references](../metadata/README.md)

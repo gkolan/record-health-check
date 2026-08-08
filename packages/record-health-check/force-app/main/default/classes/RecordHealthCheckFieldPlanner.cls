@@ -25,68 +25,68 @@ public with sharing class RecordHealthCheckFieldPlanner {
   private Set<String> inaccessibleFieldsBeingPlanned;
 
   public Set<String> collectRecordFields(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Schema.SObjectType objectType
   ) {
-    return planRecordFields(rule, objectType).selectedFields;
+    return planRecordFields(check, objectType).selectedFields;
   }
 
   /**
-   * Plans the selectable and inaccessible record fields for one Rule.
+   * Plans the selectable and inaccessible record fields for one Check.
    *
-   * @param rule Rule whose runtime surfaces may reference record fields.
+   * @param check Check whose runtime surfaces may reference record fields.
    * @param objectType Root record type selected by the owning Check Set.
-   * @return Per-Rule field plan used to isolate FLS failures.
+   * @return Per-Check field plan used to isolate FLS failures.
    */
   public FieldPlan planRecordFields(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Schema.SObjectType objectType
   ) {
     inaccessibleFieldsBeingPlanned = new Set<String>();
     Set<String> fields = new Set<String>{ 'Id' };
 
-    // Token syntax and registry membership were validated when the rule loaded;
+    // Token syntax and registry membership were validated when the check loaded;
     // collect the referenced record fields needed for message rendering.
-    addMergeFields(fields, objectType, rule.FailureMessage__c);
-    addMergeFields(fields, objectType, rule.UnableToEvaluateMessage__c);
-    addMergeFields(fields, objectType, rule.ApplicabilityNotMetMessage__c);
+    addMergeFields(fields, objectType, check.FailureMessage__c);
+    addMergeFields(fields, objectType, check.UnableToEvaluateMessage__c);
+    addMergeFields(fields, objectType, check.ApplicabilityNotMetMessage__c);
     // Remediation link fields may carry {!record.FieldName} tokens (including relationship
     // paths like {!record.Owner.ManagerId}); load their fields so the token resolves.
-    addMergeFields(fields, objectType, rule.ActionUrl__c);
-    addMergeFields(fields, objectType, rule.ActionLabel__c);
-    addMergeFields(fields, objectType, rule.FixMessage__c);
-    addMergeFields(fields, objectType, rule.SourceQuery__c);
-    addMergeFields(fields, objectType, rule.ComparisonQuery__c);
-    addMergeFields(fields, objectType, rule.ApplicabilityCountQuery__c);
+    addMergeFields(fields, objectType, check.ActionUrl__c);
+    addMergeFields(fields, objectType, check.ActionLabel__c);
+    addMergeFields(fields, objectType, check.FixMessage__c);
+    addMergeFields(fields, objectType, check.SourceQuery__c);
+    addMergeFields(fields, objectType, check.ComparisonQuery__c);
+    addMergeFields(fields, objectType, check.ApplicabilityCountQuery__c);
     // Author wording for the Found / Expected values may reference record fields
     // alongside the computed count and value tokens. Every Evaluation Type whose
     // Found / Expected values the Framework writes can carry it.
-    addMergeFields(fields, objectType, rule.DisplayFoundText__c);
-    addMergeFields(fields, objectType, rule.DisplayExpectedText__c);
+    addMergeFields(fields, objectType, check.DisplayFoundText__c);
+    addMergeFields(fields, objectType, check.DisplayExpectedText__c);
 
-    if (rule.EvaluationType__c == 'FORMULA') {
-      addFormulaFields(fields, objectType, rule.PassConditionFormula__c);
+    if (check.EvaluationType__c == 'FORMULA') {
+      addFormulaFields(fields, objectType, check.PassConditionFormula__c);
       // Optional Found / Expected single-value formulas get the SAME calculated-field
       // dependency expansion as the pass/fail formula, so a balance check whose
       // operands are formula fields can display resolved numbers instead of UNABLE.
-      addFormulaFields(fields, objectType, rule.DisplayFoundFormula__c);
-      addFormulaFields(fields, objectType, rule.DisplayExpectedFormula__c);
+      addFormulaFields(fields, objectType, check.DisplayFoundFormula__c);
+      addFormulaFields(fields, objectType, check.DisplayExpectedFormula__c);
     }
-    if (rule.EvaluationType__c == 'QUERY') {
+    if (check.EvaluationType__c == 'QUERY') {
       // List checks read the single-value from FindInListFormula__c; RecordFormula compares to ExpectedRecordFormula__c.
-      addFormulaFields(fields, objectType, rule.FindInListFormula__c);
-      addFormulaFields(fields, objectType, rule.ExpectedRecordFormula__c);
+      addFormulaFields(fields, objectType, check.FindInListFormula__c);
+      addFormulaFields(fields, objectType, check.ExpectedRecordFormula__c);
     }
     // CompareTwoQueries: both sides are SOQL — merge tokens already handled above
-    if (rule.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
-      addFormulaFields(fields, objectType, rule.ApplicabilityFormula__c);
+    if (check.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
+      addFormulaFields(fields, objectType, check.ApplicabilityFormula__c);
     }
 
     // In an org with more than one currency, an amount is shown in the record's
-    // own currency, so the record has to carry it. Asked for whatever the Rule's
+    // own currency, so the record has to carry it. Asked for whatever the Check's
     // Display: Value Format says, because Auto may still resolve to Currency
     // from the field's own definition. One standard field on a query that
-    // already selects the Rule's fields.
+    // already selects the Check's fields.
     fields.addAll(
       shouldSelectCurrencyField(
           multiCurrencyOrganizationOverride == null
@@ -443,7 +443,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     private String relationshipPrefix;
   }
 
-  /** Per-Rule field requirements separated by the running user's access. */
+  /** Per-Check field requirements separated by the running user's access. */
   public class FieldPlan {
     public Set<String> selectedFields = new Set<String>();
     public Set<String> inaccessibleFields = new Set<String>();

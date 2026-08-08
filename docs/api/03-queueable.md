@@ -98,7 +98,7 @@ enqueueing or use Batch Apex when the population requires multiple scopes.
 
 The Queueable runs with the effective access of the user who enqueued it. Assign the packaged User
 or Admin permission set for the adapter class, run permission, and framework Custom Metadata
-access; separately grant the business-object access required by the selected Rules.
+access; separately grant the business-object access required by the selected Checks.
 
 ## Test the Queueable
 

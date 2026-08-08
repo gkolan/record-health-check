@@ -1,23 +1,23 @@
 # Draft configuration with AI
 
 > [!NOTE]
-> On this page, give an AI assistant enough Framework and Salesforce context to draft reviewable Check Set and Rule configuration without inventing fields, values, or unsupported behavior.
+> On this page, give an AI assistant enough Framework and Salesforce context to draft reviewable Check Set and Check configuration without inventing fields, values, or unsupported behavior.
 
 > [!IMPORTANT]
 > **This is not a Setup walkthrough.** Paste [§2 System prompt](#2-system-prompt-copy-into-a-gemini-gem-or-custom-gpt) into your assistant, review the tables it returns, then enter approved values in Salesforce using
-> [Create your first Rule](../installation/03-create-your-first-rule.md) or the
-> [Check Set](../metadata/01-fields-check-set.md) / [Rule](../metadata/02-fields-check-rule.md) field
+> [Create your first Check](../installation/03-create-your-first-check.md) or the
+> [Check Set](../metadata/01-fields-check-set.md) / [Check](../metadata/02-fields-check.md) field
 > references. For human configuration teaching, start with
-> [Configure Check Sets and Rules](03-configure-check-sets-and-rules.md).
+> [Configure Check Sets and Checks](03-configure-check-sets-and-checks.md).
 
-This file is the single source for AI assistants translating business requirements into correct Custom Metadata configuration. Paste the output tables into Setup; see [Create your first Rule: Step 2](../installation/03-create-your-first-rule.md#step-2-create-the-rule). For every field explained, see [Configure Check Sets and Rules](03-configure-check-sets-and-rules.md). For exact field behavior, use the [Check Set fields](../metadata/01-fields-check-set.md) and [Rule fields](../metadata/02-fields-check-rule.md) references. Write explanations in direct, plain language and define Salesforce terms when a reader may not know them.
+This file is the single source for AI assistants translating business requirements into correct Custom Metadata configuration. Paste the output tables into Setup; see [Create your first Check: Step 2](../installation/03-create-your-first-check.md#step-2-create-the-check). For every field explained, see [Configure Check Sets and Checks](03-configure-check-sets-and-checks.md). For exact field behavior, use the [Check Set fields](../metadata/01-fields-check-set.md) and [Check fields](../metadata/02-fields-check.md) references. Write explanations in direct, plain language and define Salesforce terms when a reader may not know them.
 
 ## 1. What this Framework does
 
 Record Health Check is a **read-time, advisory** Lightning card on **record pages**. Check Sets
-(**Record Health Check Set** (`Record_Health_Check_Set__mdt`)) and Rules (**Record Health Check Rule** (`Record_Health_Check_Rule__mdt`)) live in Custom Metadata.
+(**Record Health Check Set** (`Record_Health_Check_Set__mdt`)) and Checks (**Record Health Check** (`Record_Health_Check__mdt`)) live in Custom Metadata.
 
-The component evaluates the current record and shows each Rule as **Pass**, **Fail** (card labels
+The component evaluates the current record and shows each Check as **Pass**, **Fail** (card labels
 **Failed**, **Warning**, or **Info** by severity), **Skipped**, **Unable to Check**, or
 **System Error**. Setup and API use **Unable to Evaluate** / `UNABLE_TO_EVALUATE` and `ERROR` for the
 last two statuses. It does not block saves. Use it when data should be healthy but
@@ -29,7 +29,7 @@ records.
 ```text
 You are a Salesforce Record Health Check configuration assistant.
 
-Your job: translate business requirements into Custom Metadata for Record_Health_Check_Set__mdt (Check Sets) and Record_Health_Check_Rule__mdt (Rules).
+Your job: translate business requirements into Custom Metadata for Record_Health_Check_Set__mdt (Check Sets) and Record_Health_Check__mdt (Checks).
 
 ALWAYS output recommendations in this structure:
 
@@ -39,7 +39,7 @@ One sentence: what the check does and when it runs.
 ## Check Set (create or reuse)
 Table: API field name | Value | Notes (Setup label in parentheses)
 
-## Rule
+## Check
 Table: API field name | Value | Notes
 
 ## Pattern
@@ -51,10 +51,10 @@ When EvaluationType__c = APEX: list bulk SOQL and objects to read, JSON keys for
 ## Applicability & dependencies
 Only if not ALL_RECORDS / no dependency.
 
-## Why not a validation rule?
+## Why not a Validation Rule?
 One sentence when relevant.
 
-RULES YOU MUST FOLLOW:
+CHECKS YOU MUST FOLLOW:
 1. Use exact API names (__c suffix) in configuration tables.
 2. EvaluationType__c values: FORMULA | QUERY | COMPARE_TWO_QUERIES | APEX (not Setup labels).
 3. Formula checks: PassConditionFormula__c must return Boolean true/false. Ignore ExpectedValueSource__c, ComparisonOperator__c, SourceQuery__c.
@@ -62,9 +62,9 @@ RULES YOU MUST FOLLOW:
 5. COMPARE_TWO_QUERIES: both sides from SOQL; no ExpectedValueSource__c.
 6. SOQL aggregates SUM/AVG/MIN/MAX/COUNT_DISTINCT require an alias; bare COUNT() does not.
 7. SOQL merge tokens: `{!record.FieldApiName}` on the current record (e.g. `{!record.Id}`, `{!record.Name}`). Add a quoted `fallback` attribute when a blank value needs a substitute (e.g. `{!record.AnnualRevenue fallback="0"}`, `{!record.Customer_Tier__c fallback="Standard"}`).
-8. Max 25 active Rules per Check Set per run. Use applicability checks to reduce noise.
-9. Health checks are advisory: recommend validation rules when the user needs save-time blocking.
-10. If metadata cannot express the Rule, recommend Apex (`RecordHealthCheckRule`) and say what the class must do. Cite a shipped example from https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/ (1=multi-object OR, 2=child aggregation, 3=composite score). For save-time field format or required-field rules, recommend validation rules.
+8. Max 25 active Checks per Check Set per run. Use applicability checks to reduce noise.
+9. Health checks are advisory: recommend Validation Rules when the user needs save-time blocking.
+10. If metadata cannot express the Check, recommend Apex (`RecordHealthCheck`) and say what the class must do. Cite a shipped example from https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/ (1=multi-object OR, 2=child aggregation, 3=composite score). For save-time field format or required-field checks, recommend Validation Rules.
 11. QueryResultHandling__c = ONE_RESULT for aggregates and single COUNT(); ANY_ROW_PASSES / ALL_ROWS_PASS for row-by-row; COMPARE_AS_LISTS for list operators.
 12. LIST_CONTAINS_ANY / LIST_CONTAINS_NONE: primary single value from FindInListFormula__c, list from ComparisonQuery__c (not SourceQuery__c). PassConditionFormula__c is record-formula-only.
 13. Use field API names the user provided, or mark unverified names as placeholders to confirm in Setup.
@@ -73,7 +73,7 @@ DECISION ORDER:
 - On-record only, no SOQL → FORMULA
 - One SOQL result vs static / formula / second query → QUERY
 - Two SOQL results compared → COMPARE_TWO_QUERIES
-- Complex date math or scoring → APEX. A Rule plugin must not perform DML, callouts, asynchronous enqueueing, or event publication.
+- Complex date math or scoring → APEX. A Check plugin must not perform DML, callouts, asynchronous enqueueing, or event publication.
 
 When unsure, ask one clarifying question: base object, child relationship, threshold static or per-record, and whether zero related rows should pass, fail, or skip.
 ```
@@ -81,7 +81,7 @@ When unsure, ask one clarifying question: base object, child relationship, thres
 ## 3. Decision tree
 
 ```text
-User describes a business rule
+User describes a business check
 │
 ├─ Answer is only on the current record (or Parent.Field via formula)?
 │  └─ YES → EvaluationType__c = FORMULA
@@ -105,8 +105,8 @@ User describes a business rule
 │
 └─ Needs code or an unsupported Salesforce-data shape?
    └─ EvaluationType__c = APEX
-      ApexClass__c = class implementing RecordHealthCheckRule
-      ApexParametersJson__c = optional JSON object for per-Rule configuration
+      ApexClass__c = class implementing RecordHealthCheck
+      ApexParametersJson__c = optional JSON object for per-Check configuration
       See https://github.com/gkolan/record-health-check/blob/main/docs/examples/README.md#example-catalog for the apex examples
 ```
 
@@ -118,13 +118,13 @@ User describes a business rule
 | 2 Child aggregation | Same child must fail combined conditions | `AccountOpenOpportunityHealthCheck` | `apex/02-open-opportunity-health.md` |
 | 3 Composite | Weighted score, one collapsed indicator | *(reference: user deploys)* | `apex/03-strategic-readiness.md` |
 
-For phone/email format or required-field-on-save rules, recommend **validation rules**.
+For phone/email format or required-field-on-save checks, recommend **Validation Rules**.
 
 When recommending Apex, also output a **Class sketch** section: what to query, what `status` to return, useful Found/Expected values for `PASS` / `FAIL`, and suggested `ApexParametersJson__c` keys.
 
 ### Validation rule vs health check
 
-| If the rule… | Recommend |
+| If the check… | Recommend |
 | --- | --- |
 | Must be true **to save**; single record; willing to block user | **Validation rule** (not this Framework) |
 | Must be true; needs automation or cross-object writes on save | **Flow / Apex trigger** |
@@ -136,7 +136,7 @@ Every LLM response configuring metadata should include these sections.
 
 ### 4.1 Summary
 
-Plain English: what passes, what fails, what object, when the rule runs.
+Plain English: what passes, what fails, what object, when the check runs.
 
 ### 4.2 Check Set table
 
@@ -161,7 +161,7 @@ Minimum fields when creating a new Check Set:
 
 **Component wiring:** In Lightning App Builder, select the intended **Check Set** for the record page. The stored LWC property is `checkSetName` and holds the Check Set's `QualifiedApiName`; Apex controller methods receive that qualified identity.
 
-### 4.3 Rule table
+### 4.3 Check table
 
 Always include (all Evaluation Types):
 
@@ -206,7 +206,7 @@ Apex example.
 
 ### 4.5 Class sketch (Apex only)
 
-When `EvaluationType__c` = `APEX`, add a section after the Rule table. See [Apex reference](../reference/evaluation/04-apex-rule-contract.md) for full patterns.
+When `EvaluationType__c` = `APEX`, add a section after the Check table. See [Apex reference](../reference/evaluation/04-apex-check-contract.md) for full patterns.
 
 | Item | What to include |
 | ---- | --------------- |
@@ -215,9 +215,9 @@ When `EvaluationType__c` = `APEX`, add a section after the Rule table. See [Apex
 | JSON defaults | Apex constants + `ApexParametersJson__c` keys (e.g. `daysBack`) with bounds |
 | Shipped vs custom | Use a shipped class only when its documented object and parameters match the requirement |
 | Outcome | Return exactly one `RecordHealthCheckOutcome` per scoped record ID; attach Found/Expected values when they explain the verdict |
-| Applicability | Why `ApplicabilityMode__c` is not `ALL_RECORDS` if the Rule only runs when a condition is met |
+| Applicability | Why `ApplicabilityMode__c` is not `ALL_RECORDS` if the Check only runs when a condition is met |
 
-## 5. Rule fields by Evaluation Type
+## 5. Check fields by Evaluation Type
 
 ### 5.1 Formula (`EvaluationType__c` = `FORMULA`)
 
@@ -290,18 +290,18 @@ List operators for `COMPARE_AS_LISTS`: `LISTS_OVERLAP`, `LISTS_CONTAIN_ALL`, `LI
 
 ### 5.4 Apex (`EvaluationType__c` = `APEX`)
 
-Full walkthroughs: [Apex examples](../examples/README.md#apex-examples) · [Recent Account activity](../examples/apex/01-recent-activity.md) · [Apex reference](../reference/evaluation/04-apex-rule-contract.md)
+Full walkthroughs: [Apex examples](../examples/README.md#apex-examples) · [Recent Account activity](../examples/apex/01-recent-activity.md) · [Apex reference](../reference/evaluation/04-apex-check-contract.md)
 
 | API field | Required | Notes |
 | --- | --- | --- |
-| `ApexClass__c` | Yes | Class implementing `RecordHealthCheckRule`: deploy before activating Rule |
+| `ApexClass__c` | Yes | Class implementing `RecordHealthCheckPlugin`: deploy before activating Check |
 | `ApexParametersJson__c` | No | JSON **object** (not array), e.g. `{"daysBack": 90}`, `{"minDigits": 10}`, `{"staleDays": 30}` |
 
-**Apex interface summary:** Full patterns: [Apex reference](../reference/evaluation/04-apex-rule-contract.md).
+**Apex interface summary:** Full patterns: [Apex reference](../reference/evaluation/04-apex-check-contract.md).
 
 ```apex
 global with sharing class AccountExampleCheck
-  implements RecordHealthCheckRule {
+  implements RecordHealthCheckPlugin {
   global Map<Id, RecordHealthCheckOutcome> evaluate(
     RecordHealthCheckScope scope
   ) {
@@ -333,9 +333,9 @@ global with sharing class AccountExampleCheck
   these forbidden writes.
 - Catch record-specific problems when one record can fail independently; an uncaught exception
   affects the complete scope.
-- Pair the Rule with `RecordHealthCheckRuleContractTest` so bulk, access, mutation, forbidden-write,
+- Pair the Check with `RecordHealthCheckContractTest` so bulk, access, mutation, forbidden-write,
   and limit behavior is verified before deployment.
-- Use `WHEN_FORMULA_TRUE` or `WHEN_COUNT_QUERY_MATCHES` when the Rule should not run for every record.
+- Use `WHEN_FORMULA_TRUE` or `WHEN_COUNT_QUERY_MATCHES` when the Check should not run for every record.
 
 **Shipped classes:**
 
@@ -346,7 +346,7 @@ global with sharing class AccountExampleCheck
 
 Recommend only the shipped class names listed above. For composite scoring, name a **new** class and include a Class sketch for implementation (see [example 3](https://github.com/gkolan/record-health-check/blob/main/docs/examples/apex/03-strategic-readiness.md)).
 
-### 5.5 Applicability (all rules)
+### 5.5 Applicability (all checks)
 
 | `ApplicabilityMode__c` | Additional fields |
 | --- | --- |
@@ -358,7 +358,7 @@ Recommend only the shipped class names listed above. For composite scoring, name
 
 | API field | Value |
 | --- | --- |
-| `PrerequisiteRule__c` | `DeveloperName` of prerequisite Rule in same Check Set (must have lower `EvaluationOrder__c`) |
+| `PrerequisiteCheck__c` | `DeveloperName` of prerequisite Check in same Check Set (must have lower `EvaluationOrder__c`) |
 
 Prerequisite must return `PASS` or dependent is `SKIPPED`.
 
@@ -398,7 +398,7 @@ Prerequisite must return `PASS` or dependent is `SKIPPED`.
 | Account field in child list | QUERY | COMPARE_AS_LISTS | LIST_CONTAINS_ANY + FindInListFormula |
 | Field not in reference list | QUERY | COMPARE_AS_LISTS | LIST_CONTAINS_NONE |
 | Two lists overlap / contain / match | COMPARE_TWO_QUERIES | COMPARE_AS_LISTS | LISTS_OVERLAP / LISTS_CONTAIN_ALL / LISTS_MATCH_EXACTLY |
-| Type-specific rule only | FORMULA | | Applicability Formula: `ISPICKVAL(Type, "Partner")` |
+| Type-specific check only | FORMULA | | Applicability Formula: `ISPICKVAL(Type, "Partner")` |
 | Run only when children exist | | | Applicability SOQL: COUNT > 0 |
 | Recent activity (Task or Event) | APEX | | `AccountHasRecentActivityCheck` |
 | Unhealthy child rows (combined) | APEX | | `AccountOpenOpportunityHealthCheck` |
@@ -426,10 +426,10 @@ Prerequisite must return `PASS` or dependent is `SKIPPED`.
 | `SELECT SUM(x) FROM ...` without alias | Framework cannot read column | Add alias: `SUM(Amount) totalAmt` + `SourceQueryField__c = totalAmt` |
 | Multiplier on COMPARE_TWO_QUERIES right side | Both sides are raw query values only | Use QUERY + RECORD_FORMULA, or APEX |
 | Blocking save on fail | Product is read-time only | Validation rule or Flow |
-| More than 25 active rules | Hard cap per run | Split Check Sets or deactivate low-value rules |
+| More than 25 active checks | Hard cap per run | Split Check Sets or deactivate low-value checks |
 | Org-wide batch audit | No packaged scheduler | Apex batch calling `RecordHealthCheck.evaluate(request)` |
 
-## 9. SOQL rules for LLMs
+## 9. SOQL checks for LLMs
 
 ### Merge tokens
 
@@ -596,9 +596,9 @@ Include a **Class sketch** when outputting this pattern. Full reference code: [a
 | Item | Convention | Example |
 | --- | --- | --- |
 | Check Set `DeveloperName` | `Object_Purpose` | `Account_Pipeline_Health` |
-| Rule `DeveloperName` | `Object_ShortDescription` | `Account_Pipeline_Meets_15x_Revenue` |
-| Rule `MasterLabel` | Spaces, readable in Setup | `Sales Pipeline Meets 1.5x Revenue` |
-| Rule `CheckTitle__c` | User-facing, concise | `Open pipeline ≥ 1.5× revenue` |
+| Check `DeveloperName` | `Object_ShortDescription` | `Account_Pipeline_Meets_15x_Revenue` |
+| Check `MasterLabel` | Spaces, readable in Setup | `Sales Pipeline Meets 1.5x Revenue` |
+| Check `CheckTitle__c` | User-facing, concise | `Open pipeline ≥ 1.5× revenue` |
 | `EvaluationOrder__c` | Gaps of 10 | 10, 20, 30 (dependencies: prerequisite lower) |
 
 ## 12. Example library (reference for LLMs)
@@ -617,7 +617,7 @@ select a distinct pattern, then output configuration the reader can create in Sa
 
 | Limit | Value |
 | --- | --- |
-| Active rules per run | 25 (lowest `EvaluationOrder__c` first) |
+| Active checks per run | 25 (lowest `EvaluationOrder__c` first) |
 | SOQL rows per query | 2000 default (`MaxQueryRows__c` can lower, not raise) |
 | Formula eval calls per Apex transaction | 100 platform; framework guards at ~95 |
 | Concurrent evaluate calls (LWC) | 5 when Stop after a system error is off |
@@ -631,30 +631,30 @@ select a distinct pattern, then output configuration the reader can create in Sa
 3. **Threshold**: fixed number or derived from a field on the record?
 4. **Zero related rows**: should that pass, fail, or skip the check?
 5. **Blank threshold field**: skip or fail (e.g. no `AnnualRevenue`)?
-6. **Blocking**: if user says "must not save", recommend validation rule instead.
+6. **Blocking**: if user says "must not save", recommend Validation Rule instead.
 
 ## 15. Deeper documentation map
 
-- [Configure Check Sets and Rules](03-configure-check-sets-and-rules.md): every Setup field explained
-- [Configuration guide: what it can check](03-configure-check-sets-and-rules.md#2-what-it-can-check): when to use which Evaluation Type
+- [Configure Check Sets and Checks](03-configure-check-sets-and-checks.md): every Setup field explained
+- [Configuration guide: what it can check](03-configure-check-sets-and-checks.md#2-what-it-can-check): when to use which Evaluation Type
 - [Examples README](https://github.com/gkolan/record-health-check/blob/main/docs/examples/README.md): pattern matrix, merge tokens, and copy-paste examples by type
 - [Reason Codes](../reference/contracts/01-reason-codes.md): stable Framework outcomes and investigation guidance
-- [Create your first Rule](../installation/03-create-your-first-rule.md): install and first Rule
+- [Create your first Check](../installation/03-create-your-first-check.md): install and first Check
 
 ## 16. Gemini gem checklist
 
 When building a Gemini gem for this project:
 
 1. Upload this file as primary knowledge.
-2. Add `03-configure-check-sets-and-rules.md` and `https://github.com/gkolan/record-health-check/blob/main/docs/examples/README.md` as secondary knowledge.
+2. Add `03-configure-check-sets-and-checks.md` and `https://github.com/gkolan/record-health-check/blob/main/docs/examples/README.md` as secondary knowledge.
 3. Paste Section 2 (system prompt) into gem instructions.
 4. Tell users to paste: base object, fields involved, pass/fail semantics, and whether zero children should pass or skip.
 5. Require gem output to use Section 4 tables (API names, not Setup-only labels).
-6. Link humans to [Create your first Rule](../installation/03-create-your-first-rule.md) for entering metadata in Setup.
+6. Link humans to [Create your first Check](../installation/03-create-your-first-check.md) for entering metadata in Setup.
 
 ## Related
 
-- [Configure Check Sets and Rules](03-configure-check-sets-and-rules.md)
+- [Configure Check Sets and Checks](03-configure-check-sets-and-checks.md)
 - [Metadata reference](../metadata/README.md)
-- [Apex reference](../reference/evaluation/04-apex-rule-contract.md)
+- [Apex reference](../reference/evaluation/04-apex-check-contract.md)
 - [Reason Codes](../reference/contracts/01-reason-codes.md)

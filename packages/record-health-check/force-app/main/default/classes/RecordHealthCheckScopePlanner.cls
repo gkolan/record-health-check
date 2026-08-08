@@ -10,28 +10,28 @@ public with sharing class RecordHealthCheckScopePlanner {
         'A qualified selection is required.'
       );
     }
-    if (String.isNotBlank(selection.ruleQualifiedApiName)) {
-      return resolveRule(selection.ruleQualifiedApiName);
+    if (String.isNotBlank(selection.checkQualifiedApiName)) {
+      return resolveCheck(selection.checkQualifiedApiName);
     }
     return resolveCheckSet(selection.checkSetQualifiedApiName);
   }
 
-  public RecordHealthCheckScopePipeline.SelectionContext resolveRule(
+  public RecordHealthCheckScopePipeline.SelectionContext resolveCheck(
     String qualifiedApiName
   ) {
-    List<Record_Health_Check_Rule__mdt> rules = queryRules(
+    List<Record_Health_Check__mdt> checks = queryChecks(
       'QualifiedApiName = :qualifiedApiName',
       qualifiedApiName
     );
-    if (rules.isEmpty()) {
+    if (checks.isEmpty()) {
       throw new RecordHealthCheckScopePipeline.ScopePipelineException(
-        'Rule "' + qualifiedApiName + '" was not found.'
+        'Check "' + qualifiedApiName + '" was not found.'
       );
     }
-    RecordHealthCheckScopePipeline.SelectionContext context = contextFromRule(
-      rules[0]
+    RecordHealthCheckScopePipeline.SelectionContext context = contextFromCheck(
+      checks[0]
     );
-    context.rules.add(rules[0]);
+    context.checks.add(checks[0]);
     return context;
   }
 
@@ -60,7 +60,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     context.checkSetActive = checkSet.IsActive__c;
     context.objectApiName = checkSet.ObjectApiName__c;
     context.showDiagnostics = checkSet.ShowDiagnostics__c == true;
-    context.rules = queryRules(
+    context.checks = queryChecks(
       'Record_Health_Check_Set__r.QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
       qualifiedApiName
     );
@@ -84,59 +84,59 @@ public with sharing class RecordHealthCheckScopePlanner {
     return checkSets[0];
   }
 
-  public List<Record_Health_Check_Rule__mdt> queryRules(
+  public List<Record_Health_Check__mdt> queryChecks(
     String predicate,
     String qualifiedApiName
   ) {
-    List<String> ruleFields = new List<String>();
+    List<String> checkFields = new List<String>();
     for (
-      Schema.SObjectField field : Schema.SObjectType.Record_Health_Check_Rule__mdt.fields
+      Schema.SObjectField field : Schema.SObjectType.Record_Health_Check__mdt.fields
         .getMap()
         .values()
     ) {
-      ruleFields.add(
+      checkFields.add(
         RecordHealthCheckDescribeCache.describeField(field).getName()
       );
     }
-    ruleFields.sort();
+    checkFields.sort();
     String query =
       'SELECT ' +
-      String.join(ruleFields, ', ') +
+      String.join(checkFields, ', ') +
       ', Record_Health_Check_Set__r.QualifiedApiName, ' +
       'Record_Health_Check_Set__r.DeveloperName, Record_Health_Check_Set__r.IsActive__c, ' +
       'Record_Health_Check_Set__r.ObjectApiName__c, Record_Health_Check_Set__r.ShowDiagnostics__c ' +
-      'FROM Record_Health_Check_Rule__mdt WHERE ' +
+      'FROM Record_Health_Check__mdt WHERE ' +
       predicate +
       ' ORDER BY EvaluationOrder__c ASC NULLS LAST, DeveloperName ASC LIMIT ' +
       String.valueOf(RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS + 1);
-    List<Record_Health_Check_Rule__mdt> rules = Database.queryWithBinds(
+    List<Record_Health_Check__mdt> checks = Database.queryWithBinds(
       query,
       new Map<String, Object>{ 'qualifiedApiName' => qualifiedApiName },
       AccessLevel.USER_MODE
     );
-    enforceRuleLimit(rules);
-    return rules;
+    enforceCheckLimit(checks);
+    return checks;
   }
 
-  public void enforceRuleLimit(List<Record_Health_Check_Rule__mdt> rules) {
-    if (rules.size() > RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS) {
+  public void enforceCheckLimit(List<Record_Health_Check__mdt> checks) {
+    if (checks.size() > RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS) {
       throw new RecordHealthCheckScopePipeline.ScopePipelineException(
         'FRAMEWORK_MAX_CHECKS_EXCEEDED: suppliedCount=' +
-          rules.size() +
+          checks.size() +
           ', ceiling=' +
           RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS
       );
     }
   }
 
-  public RecordHealthCheckScopePipeline.SelectionContext contextFromRule(
-    Record_Health_Check_Rule__mdt rule
+  public RecordHealthCheckScopePipeline.SelectionContext contextFromCheck(
+    Record_Health_Check__mdt check
   ) {
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
-    SObject parent = rule.getSObject('Record_Health_Check_Set__r');
+    SObject parent = check.getSObject('Record_Health_Check_Set__r');
     if (parent == null) {
       throw new RecordHealthCheckScopePipeline.ScopePipelineException(
-        'The selected Rule has no owning Check Set.'
+        'The selected Check has no owning Check Set.'
       );
     }
     context.checkSetQualifiedApiName = (String) parent.get('QualifiedApiName');
@@ -191,35 +191,35 @@ public with sharing class RecordHealthCheckScopePlanner {
   }
 
   public void enforceFormulaBudget(
-    List<Record_Health_Check_Rule__mdt> rules,
+    List<Record_Health_Check__mdt> checks,
     Integer recordCount
   ) {
     Integer plannedCalls = 0;
-    for (Record_Health_Check_Rule__mdt rule : rules) {
-      if (rule.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
+    for (Record_Health_Check__mdt check : checks) {
+      if (check.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
         plannedCalls += recordCount;
       }
-      if (rule.EvaluationType__c == 'FORMULA') {
+      if (check.EvaluationType__c == 'FORMULA') {
         plannedCalls += recordCount;
         plannedCalls += plannedDisplayFormulaCalls(
-          rule.DisplayFoundFormula__c,
-          rule.FormulaResultType__c,
+          check.DisplayFoundFormula__c,
+          check.FormulaResultType__c,
           recordCount
         );
         plannedCalls += plannedDisplayFormulaCalls(
-          rule.DisplayExpectedFormula__c,
-          rule.FormulaResultType__c,
+          check.DisplayExpectedFormula__c,
+          check.FormulaResultType__c,
           recordCount
         );
-      } else if (rule.EvaluationType__c == 'QUERY') {
+      } else if (check.EvaluationType__c == 'QUERY') {
         plannedCalls += plannedDisplayFormulaCalls(
-          rule.FindInListFormula__c,
-          rule.FormulaResultType__c,
+          check.FindInListFormula__c,
+          check.FormulaResultType__c,
           recordCount
         );
         plannedCalls += plannedDisplayFormulaCalls(
-          rule.ExpectedRecordFormula__c,
-          rule.FormulaResultType__c,
+          check.ExpectedRecordFormula__c,
+          check.FormulaResultType__c,
           recordCount
         );
       }
@@ -235,17 +235,17 @@ public with sharing class RecordHealthCheckScopePlanner {
           ' remain in the safe transaction budget (' +
           callsUsed +
           ' already used). ' +
-          'Reduce the record scope or selected Formula Rules.'
+          'Reduce the record scope or selected Formula Checks.'
       );
     }
   }
 
   public void enforcePluginSavepointBudget(
-    List<Record_Health_Check_Rule__mdt> rules
+    List<Record_Health_Check__mdt> checks
   ) {
     Integer requiredDmlStatements = 0;
-    for (Record_Health_Check_Rule__mdt rule : rules) {
-      if (rule.EvaluationType__c == 'APEX') {
+    for (Record_Health_Check__mdt check : checks) {
+      if (check.EvaluationType__c == 'APEX') {
         // Validation constructs the plugin under one savepoint; dispatch runs
         // it under a second. Both count against the DML statement limit.
         requiredDmlStatements += 2;
@@ -265,21 +265,21 @@ public with sharing class RecordHealthCheckScopePlanner {
 
   /** Reserves transaction-wide query, DML/publication, and heap capacity. */
   public void enforceTransactionBudget(
-    List<Record_Health_Check_Rule__mdt> rules,
+    List<Record_Health_Check__mdt> checks,
     Integer recordCount,
     RecordHealthCheckEventPublication publication
   ) {
     Integer requiredQueries = recordCount > 0 ? 1 : 0;
     Integer requiredDml = 0;
-    for (Record_Health_Check_Rule__mdt rule : rules) {
-      if (rule.ApplicabilityMode__c == 'WHEN_COUNT_QUERY_MATCHES') {
+    for (Record_Health_Check__mdt check : checks) {
+      if (check.ApplicabilityMode__c == 'WHEN_COUNT_QUERY_MATCHES') {
         requiredQueries++;
       }
-      if (rule.EvaluationType__c == 'QUERY') {
+      if (check.EvaluationType__c == 'QUERY') {
         requiredQueries++;
-      } else if (rule.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
+      } else if (check.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
         requiredQueries += 2;
-      } else if (rule.EvaluationType__c == 'APEX') {
+      } else if (check.EvaluationType__c == 'APEX') {
         requiredDml += 2;
       }
     }
@@ -287,7 +287,7 @@ public with sharing class RecordHealthCheckScopePlanner {
       publication != null &&
       publication != RecordHealthCheckEventPublication.NONE
     ) {
-      requiredDml += ceilingDivide(recordCount * rules.size(), 100);
+      requiredDml += ceilingDivide(recordCount * checks.size(), 100);
       requiredDml += ceilingDivide(recordCount, 100);
     }
     Integer remainingQueries = Limits.getLimitQueries() - Limits.getQueries();
@@ -305,7 +305,7 @@ public with sharing class RecordHealthCheckScopePlanner {
           remainingDml
       );
     }
-    Integer projectedHeap = recordCount * rules.size() * 768;
+    Integer projectedHeap = recordCount * checks.size() * 768;
     Integer remainingHeap = Limits.getLimitHeapSize() - Limits.getHeapSize();
     if (projectedHeap > remainingHeap) {
       throw new RecordHealthCheckScopePipeline.ScopePipelineException(

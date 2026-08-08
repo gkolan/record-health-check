@@ -23,7 +23,7 @@ private class RecordHealthCheckSandboxAsyncTest {
     );
     Assert.isFalse(
       response.results.isEmpty(),
-      'The Check Set should return Rule results.'
+      'The Check Set should return Check results.'
     );
     Assert.isTrue(
       RecordHealthCheckSandboxRunner.summarize(response)

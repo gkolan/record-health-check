@@ -6,7 +6,7 @@ then uninstall it without leaving broken pages or processes behind.
 
 ## Before you start
 
-Uninstalling removes the card, Check Set and Rule configuration types, permission sets, and
+Uninstalling removes the card, Check Set and Check configuration types, permission sets, and
 automation entry points. Before making that change, identify where the Framework is used:
 
 1. List every Lightning record page that contains the **Record Health Check** card.
@@ -17,11 +17,11 @@ automation entry points. Before making that change, identify where the Framework
 
 ## Preserve the configuration first
 
-Check Sets and Rules contain the questions, messages, and guidance your organization authored.
+Check Sets and Checks contain the questions, messages, and guidance your organization authored.
 Export them before removing anything:
 
 1. Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) record.
-2. Export every **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record.
+2. Export every **Record Health Check** (`Record_Health_Check__mdt`) record.
 3. Record which Lightning record pages had the component placed, and which Check Set each one
    selected.
 
@@ -46,13 +46,13 @@ If your organization does not connect Record Health Check to Flow, Apex, schedul
 Events, continue to Step 3. Otherwise, work with the automation owner to disable those dependencies
 before uninstalling:
 
-1. Deactivate or delete Flows that call **Run Record Health Check Rule** or **Run Record Health
+1. Deactivate or delete Flows that call **Run Record Health Check** or **Run Record Health
    Check Set**.
 2. Deactivate or delete platform-event-triggered Flows subscribed to
-   `Record_Health_Check_Set_Run__e`, `Record_Health_Check_Rule_Result__e`, or
+   `Record_Health_Check_Set_Run__e`, `Record_Health_Check_Result__e`, or
    `Record_Health_Check_Log__e`.
 3. Remove or stop scheduling any Apex class that calls the public
-   `RecordHealthCheck.evaluate(...)` API, implements `RecordHealthCheckRule`, or subscribes to the
+   `RecordHealthCheck.evaluate(...)` API, implements `RecordHealthCheckPlugin`, or subscribes to the
    platform events above.
 4. Remove any scheduled job created from `RecordHealthCheckScheduled`.
 
@@ -125,7 +125,7 @@ installer should follow [Step 4](#step-4-uninstall-the-package).
 | Check | Expected result |
 | --- | --- |
 | Open a record page that previously had the card | No Record Health Check component appears, and Lightning App Builder no longer offers it |
-| Search Setup for `Record Health Check` object and Apex references | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
+| Search Setup for `Record Health Check` object and Apex references | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check** (`Record_Health_Check__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
 | Review Permission Sets | **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`) no longer exist or have no assignees |
 | Review scheduled jobs | No job references `RecordHealthCheckScheduled` |
 | Review Flow and Apex subscribers | No automation still references the removed platform events or Apex classes |
@@ -137,7 +137,7 @@ backup:
 
 1. Reinstall the package (or redeploy the source) following
    [Install and verify in your org](02-install-and-verify.md).
-2. Restore the exported **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) records.
+2. Restore the exported **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) records.
 3. Reassign **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`) to the users identified in
    [Before you start](#before-you-start).
 4. Re-add the Lightning component to the record pages that had it.

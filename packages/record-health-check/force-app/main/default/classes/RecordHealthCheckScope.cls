@@ -4,7 +4,7 @@
  */
 
 /**
- * The unit of work handed to a Rule: the records to evaluate, and the context
+ * The unit of work handed to a Check: the records to evaluate, and the context
  * needed to evaluate them.
  *
  * The scope is read-only. Fields are exposed through getters and `recordIds`
@@ -22,8 +22,8 @@
 global class RecordHealthCheckScope {
   /** Object shared by every requested record ID. */
   global String objectApiName { get; private set; }
-  /** Qualified Rule identity. */
-  global String ruleDeveloperName { get; private set; }
+  /** Qualified Check identity. */
+  global String checkDeveloperName { get; private set; }
   /** Qualified parent Check Set identity. */
   global String checkSetDeveloperName { get; private set; }
   /** Correlation identifier for this evaluation. */
@@ -62,18 +62,18 @@ global class RecordHealthCheckScope {
   /**
    * Built by the engine only. Duplicate Ids are removed here, preserving first
    * occurrence, and a scope mixing object types is rejected before any
-   * evaluator sees it, because a Rule is authored against one object.
+   * evaluator sees it, because a Check is authored against one object.
    */
   global RecordHealthCheckScope(
     String objectApiName,
     List<Id> recordIds,
     Map<String, Object> parameters,
-    String ruleDeveloperName,
+    String checkDeveloperName,
     String checkSetDeveloperName,
     String runId
   ) {
     this.objectApiName = objectApiName;
-    this.ruleDeveloperName = ruleDeveloperName;
+    this.checkDeveloperName = checkDeveloperName;
     this.checkSetDeveloperName = checkSetDeveloperName;
     this.runId = runId;
     this.parametersInternal = copyParameters(parameters);

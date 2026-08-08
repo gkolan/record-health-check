@@ -22,20 +22,20 @@ private with sharing class RecordHealthCheckBulkEvaluatorsTest {
     );
     List<Id> recordIds = new List<Id>{ withContact.Id, withoutContact.Id };
     Map<Id, SObject> records = loadAccounts(recordIds);
-    Record_Health_Check_Rule__mdt rule = countRule('QUERY');
-    rule.ExpectedValueSource__c = 'FIXED_VALUE';
-    rule.ExpectedFixedValue__c = '0';
-    rule.ComparisonOperator__c = 'GREATER_THAN';
+    Record_Health_Check__mdt check = countCheck('QUERY');
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = '0';
+    check.ComparisonOperator__c = 'GREATER_THAN';
 
     RecordHealthCheckDisplayCurrencyResolver.corporateCurrency();
     Integer beforeQueries = Limits.getQueries();
     Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckSoqlEvaluator()
-      .evaluateScope(rule, recordIds, records);
+      .evaluateScope(check, recordIds, records);
 
     Assert.areEqual(
       1,
       Limits.getQueries() - beforeQueries,
-      'A QUERY Rule should execute once for the full scope.'
+      'A QUERY Check should execute once for the full scope.'
     );
     Assert.areEqual(
       RecordHealthCheckStatus.PASS,
@@ -70,15 +70,15 @@ private with sharing class RecordHealthCheckBulkEvaluatorsTest {
     );
     List<Id> recordIds = new List<Id>{ balancedZero.Id, unbalanced.Id };
     Map<Id, SObject> records = loadAccounts(recordIds);
-    Record_Health_Check_Rule__mdt rule = countRule('COMPARE_TWO_QUERIES');
-    rule.ComparisonQuery__c = 'SELECT COUNT() total FROM Opportunity WHERE AccountId = {!record.Id}';
-    rule.ComparisonQueryField__c = 'total';
-    rule.ComparisonOperator__c = 'EQUALS';
+    Record_Health_Check__mdt check = countCheck('COMPARE_TWO_QUERIES');
+    check.ComparisonQuery__c = 'SELECT COUNT() total FROM Opportunity WHERE AccountId = {!record.Id}';
+    check.ComparisonQueryField__c = 'total';
+    check.ComparisonOperator__c = 'EQUALS';
 
     RecordHealthCheckDisplayCurrencyResolver.corporateCurrency();
     Integer beforeQueries = Limits.getQueries();
     Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckCompareQueriesEvaluator()
-      .evaluateScope(rule, recordIds, records);
+      .evaluateScope(check, recordIds, records);
 
     Assert.areEqual(
       2,
@@ -97,10 +97,8 @@ private with sharing class RecordHealthCheckBulkEvaluatorsTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt countRule(
-    String evaluationType
-  ) {
-    return RecordHealthCheckTestDataFactory.rule(
+  private static Record_Health_Check__mdt countCheck(String evaluationType) {
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Bulk_Count',
         'MasterLabel' => 'Bulk Count',

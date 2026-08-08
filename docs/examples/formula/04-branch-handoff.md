@@ -1,7 +1,7 @@
 # 04 · Branch Account Is Ready for Handoff
 
 > [!NOTE]
-> On this page, create a Formula Rule that reads the parent Account's Billing City and gives users a direct action link when headquarters information blocks a branch handoff.
+> On this page, create a Formula Check that reads the parent Account's Billing City and gives users a direct action link when headquarters information blocks a branch handoff.
 >
 > **Setup reference**
 >
@@ -26,7 +26,7 @@ A seller is preparing a branch Account for territory or service handoff.
 | --- | --- |
 | Read a parent Salesforce record | The formula follows the Account parent relationship. |
 | Check a handoff dependency | The branch passes only when headquarters information is ready. |
-| Give users a direct next action | The Rule can link from the branch to the record that needs attention. |
+| Give users a direct next action | The Check can link from the branch to the record that needs attention. |
 
 ## Why use Verify with a formula
 
@@ -42,37 +42,37 @@ A seller is preparing a branch Account for territory or service handoff.
 
 - Blocking the branch save would stop the user on the wrong record.
 
-## Configure the Rule
+## Configure the Check
 
-In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**, create the Rule:
+In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check-rule.md#developer-name-developername) | `Parent_Account_Has_Billing_City` |
-| **Label** | [`MasterLabel`](../../metadata/02-fields-check-rule.md#label-masterlabel) | Parent Account Has Billing City |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check-rule.md#check-title-checktitle__c) | Parent Account Has Billing City |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | Verify with a formula |
-| **Pass Condition** | [`PassConditionFormula__c`](../../metadata/02-fields-check-rule.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(Parent.BillingCity))` |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check-rule.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../metadata/02-fields-check-rule.md#applies-when-formula-applicabilityformula__c) | `NOT(ISBLANK(ParentId))` |
+| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check.md#developer-name-developername) | `Parent_Account_Has_Billing_City` |
+| **Label** | [`MasterLabel`](../../metadata/02-fields-check.md#label-masterlabel) | Parent Account Has Billing City |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
+| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check.md#check-title-checktitle__c) | Parent Account Has Billing City |
+| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check.md#evaluation-type-evaluationtype__c) | Verify with a formula |
+| **Pass Condition** | [`PassConditionFormula__c`](../../metadata/02-fields-check.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(Parent.BillingCity))` |
+| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check.md#applies-to-applicabilitymode__c) | When a formula is true |
+| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../metadata/02-fields-check.md#applies-when-formula-applicabilityformula__c) | `NOT(ISBLANK(ParentId))` |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check-rule.md#check-description-checkdescription__c) | Checks whether the parent Account has Billing City populated. |
-| **Category** | [`Category__c`](../../metadata/02-fields-check-rule.md#category-category__c) | Completeness |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | The parent account is missing Billing City. Update Billing City on the parent Account. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to read the parent Billing City. |
-| **Prerequisite Rule** | [`PrerequisiteRule__c`](../../metadata/02-fields-check-rule.md#prerequisite-rule-prerequisiterule__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Open the parent Account and enter Billing City. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check-rule.md#action-label-actionlabel__c) | `Edit parent billing address` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check-rule.md#action-url-actionurl__c) | Edit page for the parent Account, with a fallback Id: copy it from below the table |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `70` |
-| **Active** | [`IsActive__c`](../../metadata/02-fields-check-rule.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check.md#check-description-checkdescription__c) | Checks whether the parent Account has Billing City populated. |
+| **Category** | [`Category__c`](../../metadata/02-fields-check.md#category-category__c) | Completeness |
+| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check.md#message-when-failed-failuremessage__c) | The parent account is missing Billing City. Update Billing City on the parent Account. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to read the parent Billing City. |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/02-fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check.md#fix-message-fixmessage__c) | Open the parent Account and enter Billing City. |
+| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check.md#action-label-actionlabel__c) | `Edit parent billing address` |
+| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check.md#action-url-actionurl__c) | Edit page for the parent Account, with a fallback Id: copy it from below the table |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check.md#evaluation-order-evaluationorder__c) | `70` |
+| **Active** | [`IsActive__c`](../../metadata/02-fields-check.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 Copy this value into **Action URL**:
 
@@ -122,17 +122,17 @@ Formula applicability and the parent-field check become these Framework outcomes
 
 Record Health Check reads the parent Account and its Billing City with the running user's Salesforce access.
 
-- If the user cannot read the parent Account or Billing City, the Rule may show **Unable to evaluate**. It does not treat a value the user cannot access as blank.
+- If the user cannot read the parent Account or Billing City, the Check may show **Unable to evaluate**. It does not treat a value the user cannot access as blank.
 
 - The **Edit parent billing address** link opens the parent Account. It does not give the user permission to edit the Account or Billing City.
 
 Before activation, test both a blank and populated parent Billing City as a handoff user with the access your team plans to provide.
 
-## Test the Rule
+## Test the Check
 
 1. On a child Account, clear Billing City on the parent. Confirm Warning.
 2. Populate the parent's Billing City, rerun, and confirm a pass.
-3. Clear Parent Account and confirm the Rule is skipped.
+3. Clear Parent Account and confirm the Check is skipped.
 4. Repeat the child Account test as a user who cannot read the parent's Billing City and confirm the access result does not expose the hidden value.
 
 ## Failures and remedies
@@ -140,7 +140,7 @@ Before activation, test both a blank and populated parent Billing City as a hand
 | What the user sees | What to check |
 | --- | --- |
 | An expected value fails | Confirm the field values, field types, and blank or picklist functions used by the formula. |
-| The Rule runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition. |
+| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition. |
 | **Unable to evaluate** | Confirm the formula syntax and the running user's access to every referenced field. |
 
 ## Related

@@ -3,7 +3,7 @@
 > [!NOTE]
 > On this page, choose a Record Health Check event and build a Flow or Apex subscriber that handles duplicate delivery, access, retention, and subscriber failures.
 
-Record Health Check publishes three Platform Events. Check Set Run and Rule Result events announce
+Record Health Check publishes three Platform Events. Check Set Run and Check Result events announce
 finalized outcomes after the publishing transaction commits. Log events report restricted
 Framework errors immediately when error-event publication is enabled.
 
@@ -12,11 +12,11 @@ Framework errors immediately when error-event publication is enabled.
 | Step | Event guide | Publish behavior |
 | ---: | --- | --- |
 | 1 | [Check Set Run](01-check-set-run.md) | Publish After Commit - one completion summary |
-| 2 | [Rule Result](02-rule-result.md) | Publish After Commit - one outcome per selected Rule |
+| 2 | [Check Result](02-check-result.md) | Publish After Commit - one outcome per selected Check |
 | 3 | [Log](03-error-log.md) | Publish Immediately - restricted Framework errors |
 
-Start with Check Set Run when counts and overall completion are sufficient. Add Rule Result only
-when automation needs Rule-level status, severity, or Reason Code. Restrict Log subscribers because
+Start with Check Set Run when counts and overall completion are sufficient. Add Check Result only
+when automation needs Check-level status, severity, or Reason Code. Restrict Log subscribers because
 messages and stack traces can contain organization-specific information.
 
 ## Pick a task
@@ -24,7 +24,7 @@ messages and stack traces can contain organization-specific information.
 | I want to… | Guide |
 | --- | --- |
 | One completion summary for a Check Set | [01 - Check Set Run](01-check-set-run.md) |
-| One finalized outcome for each Rule | [02 - Rule Result](02-rule-result.md) |
+| One finalized outcome for each Check | [02 - Check Result](02-check-result.md) |
 | Restricted Framework error diagnostics | [03 - Log](03-error-log.md) |
 
 ## Choose Flow or Apex

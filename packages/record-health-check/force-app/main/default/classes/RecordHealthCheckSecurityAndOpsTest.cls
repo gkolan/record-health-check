@@ -19,7 +19,7 @@ private class RecordHealthCheckSecurityAndOpsTest {
 
   @IsTest
   static void fieldPlanningIgnoresLiteralsAndInvalidMessageTokens() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'FORMULA',
         'PassConditionFormula__c' => 'CONTAINS(Website, "example.com") && NOT(ISBLANK(Parent.Name))',
@@ -28,7 +28,7 @@ private class RecordHealthCheckSecurityAndOpsTest {
     );
 
     Set<String> fields = new RecordHealthCheckFieldPlanner()
-      .collectRecordFields(rule, Account.SObjectType);
+      .collectRecordFields(check, Account.SObjectType);
 
     Assert.isTrue(fields.contains('Website'));
     Assert.isTrue(fields.contains('Parent.Name'));
@@ -38,40 +38,44 @@ private class RecordHealthCheckSecurityAndOpsTest {
 
   @IsTest
   static void sharedValidatorCoversObjectsPluginsAndJson() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Assert.isTrue(
-      RecordHealthCheckConfigValidator.isValidObjectApiName('Account')
+      RecordHealthCheckConfigValidator.isValidObjectApiName('Account'),
+      'A standard object API name must be recognized.'
     );
-    Assert.isTrue(
-      !RecordHealthCheckConfigValidator.isValidObjectApiName('Nope__c')
+    Assert.isFalse(
+      RecordHealthCheckConfigValidator.isValidObjectApiName('Nope__c'),
+      'An unknown object API name must be rejected.'
     );
     Assert.isTrue(
       RecordHealthCheckConfigValidator.isValidApexPlugin(
         'AccountHasRecentActivityCheck'
-      )
+      ),
+      'A packaged Check implementation must be accepted.'
     );
-    Assert.isTrue(
-      !RecordHealthCheckConfigValidator.isValidApexPlugin('String')
+    Assert.isFalse(
+      RecordHealthCheckConfigValidator.isValidApexPlugin('String'),
+      'A platform type that does not implement the Check contract must be rejected.'
     );
     Assert.isFalse(
       RecordHealthCheckConfigValidator.isValidApexPlugin(
         'Class_That_Does_Not_Exist'
       ),
-      'An unresolved Apex class must not be accepted as a Rule plugin.'
+      'An unresolved Apex class must not be accepted as a Check plugin.'
     );
     Assert.isFalse(
       RecordHealthCheckConfigValidator.isValidApexPlugin(
         'RecordHealthCheckConstants'
       ),
-      'A constructible class that does not implement the Rule contract must be rejected.'
+      'A constructible class that does not implement the Check contract must be rejected.'
     );
     Assert.isTrue(
-      RecordHealthCheckConfigValidator.isJsonObject('{"daysBack":90}')
+      RecordHealthCheckConfigValidator.isJsonObject('{"daysBack":90}'),
+      'A JSON object must be accepted as plugin parameters.'
     );
-    Assert.isTrue(!RecordHealthCheckConfigValidator.isJsonObject('[1,2,3]'));
-
+    Assert.isFalse(
+      RecordHealthCheckConfigValidator.isJsonObject('[1,2,3]'),
+      'A JSON array must not be accepted as plugin parameters.'
+    );
     Assert.areEqual(
       'CUSTOM',
       RecordHealthCheckConstants.toLwcSeverity('CUSTOM'),
@@ -116,18 +120,70 @@ private class RecordHealthCheckSecurityAndOpsTest {
   @IsTest
   static void sharedMappingsCoverEveryNamedValue() {
     Test.startTest();
+    String automatic = RecordHealthCheckConstants.toLwcTriggerMode(
+      'RUN_ON_LOAD'
+    );
+    String manual = RecordHealthCheckConstants.toLwcTriggerMode(
+      'RUN_ON_REQUEST'
+    );
+    String oneAtATime = RecordHealthCheckConstants.toLwcRevealMode(
+      'ONE_BY_ONE'
+    );
+    String allAtOnce = RecordHealthCheckConstants.toLwcRevealMode(
+      'ALL_AT_ONCE'
+    );
+    String hide = RecordHealthCheckConstants.toLwcDisplayMode(
+      'SHOW_COUNT_ONLY'
+    );
+    String show = RecordHealthCheckConstants.toLwcDisplayMode(
+      'SHOW_EACH_CHECK'
+    );
     String failuresOnly = RecordHealthCheckConstants.toLwcComparisonDisplay(
       'FAILURES_ONLY'
     );
     String allRows = RecordHealthCheckConstants.toLwcComparisonDisplay(
       'ALL_ROWS'
     );
+    String onDemand = RecordHealthCheckConstants.toLwcComparisonDisplay(
+      'ON_DEMAND'
+    );
+    String warning = RecordHealthCheckConstants.toLwcSeverity('WARNING');
     String info = RecordHealthCheckConstants.toLwcSeverity('INFO');
     String critical = RecordHealthCheckConstants.toLwcSeverity('CRITICAL');
     String formula = RecordHealthCheckConstants.toLwcEvaluatorType('FORMULA');
     String query = RecordHealthCheckConstants.toLwcEvaluatorType('QUERY');
+    String apex = RecordHealthCheckConstants.toLwcEvaluatorType('APEX');
+    String compareTwoQueries = RecordHealthCheckConstants.toLwcEvaluatorType(
+      'COMPARE_TWO_QUERIES'
+    );
     Test.stopTest();
 
+    Assert.areEqual(
+      'Automatic',
+      automatic,
+      'Run-on-load must map to Automatic.'
+    );
+    Assert.areEqual('Manual', manual, 'Run-on-request must map to Manual.');
+    Assert.areEqual(
+      'OneAtATime',
+      oneAtATime,
+      'One-by-one reveal must map to OneAtATime.'
+    );
+    Assert.areEqual(
+      'AllAtOnce',
+      allAtOnce,
+      'All-at-once reveal must retain its LWC value.'
+    );
+    Assert.areEqual(
+      'Hide',
+      hide,
+      'Count-only display must hide individual checks.'
+    );
+    Assert.areEqual(
+      'Show',
+      show,
+      'Per-check display must show individual checks.'
+    );
     Assert.areEqual(
       'FailuresOnly',
       failuresOnly,
@@ -137,6 +193,16 @@ private class RecordHealthCheckSecurityAndOpsTest {
       'AllRows',
       allRows,
       'All-rows mapping should match the LWC contract.'
+    );
+    Assert.areEqual(
+      'OnDemand',
+      onDemand,
+      'On-demand comparison display must retain its LWC value.'
+    );
+    Assert.areEqual(
+      'Warning',
+      warning,
+      'Warning severity must retain its LWC value.'
     );
     Assert.areEqual(
       'Info',
@@ -157,6 +223,12 @@ private class RecordHealthCheckSecurityAndOpsTest {
       'Query',
       query,
       'Query evaluator should match the LWC contract.'
+    );
+    Assert.areEqual('Apex', apex, 'Apex evaluation must retain its LWC value.');
+    Assert.areEqual(
+      'CompareTwoQueries',
+      compareTwoQueries,
+      'Two-query evaluation must retain its LWC value.'
     );
   }
 
@@ -186,14 +258,14 @@ private class RecordHealthCheckSecurityAndOpsTest {
   }
 
   @IsTest
-  static void templateValidationReturnsNullWhenRuleMissing() {
+  static void templateValidationReturnsNullWhenCheckMissing() {
     Test.startTest();
     RecordHealthCheckTokenIssue issue = RecordHealthCheckConfigValidator.firstTemplateIssue(
       null
     );
     Test.stopTest();
 
-    Assert.isNull(issue, 'A missing Rule has no template to validate.');
+    Assert.isNull(issue, 'A missing Check has no template to validate.');
   }
 
   @IsTest
@@ -201,7 +273,7 @@ private class RecordHealthCheckSecurityAndOpsTest {
     Test.startTest();
     try {
       RecordHealthCheckConfigValidator.isValidApexPlugin(
-        'RecordHealthCheckConstructorMutationRule'
+        'RHCConstructorMutationCheck'
       );
       Assert.fail('A plugin constructor mutation must abort validation.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {

@@ -4,11 +4,11 @@
  */
 
 /**
- * Example RecordHealthCheckRule — flags open Opportunities that are simultaneously
+ * Example RecordHealthCheckPlugin — flags open Opportunities that are simultaneously
  * stale, missing Next Step, and not closing this quarter. Tunable via
  * {"staleDays": 30}
  */
-global with sharing class AccountOpenOpportunityHealthCheck implements RecordHealthCheckRule {
+global with sharing class AccountOpenOpportunityHealthCheck implements RecordHealthCheckPlugin {
   private static final Integer DEFAULT_STALE_DAYS = 30;
   private static final Integer MIN_STALE_DAYS = 1;
   private static final Integer MAX_STALE_DAYS = 3650;

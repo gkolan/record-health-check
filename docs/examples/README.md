@@ -1,7 +1,7 @@
 # Record Health Check examples
 
 > [!NOTE]
-> On this page, turn the question you want to answer about a Salesforce record into the right Evaluation Type and a practical Rule you can adapt with confidence.
+> On this page, turn the question you want to answer about a Salesforce record into the right Evaluation Type and a practical Check you can adapt with confidence.
 
 Use these examples to build a health check for a Salesforce record. Each example starts with a
 business question, explains which Evaluation Type fits, lists the Setup values, and shows how to
@@ -34,13 +34,13 @@ Start with where the information for your check is stored.
 
 1. Open an example that resembles your business requirement.
 2. Read **Why use this Evaluation Type** to confirm that it is the right approach.
-3. Copy the values from **Configure the Rule** into **Setup → Custom Metadata Types → Record
-   Health Check Rule → Manage Records**.
+3. Copy the values from **Configure the Check** into **Setup → Custom Metadata Types → Record
+   Health Check Check → Manage Records**.
 4. Replace the sample fields, values, and messages with the ones approved for your organization.
-5. Follow **Test the Rule** and confirm both a passing and a failing result before activating it.
+5. Follow **Test the Check** and confirm both a passing and a failing result before activating it.
 
 The shared [reference folder](../reference/README.md) keeps all Evaluation Type contracts in one place. Use
-the practical examples when you are learning or building a Rule. Use a reference when you need all
+the practical examples when you are learning or building a Check. Use a reference when you need all
 available settings, operators, limits, or result behavior.
 
 | Evaluation Type | Start with | Detailed reference |
@@ -48,25 +48,25 @@ available settings, operators, limits, or result behavior.
 | [Verify with a formula](formula/README.md) | [Seller research readiness](formula/01-account-research-ready.md) | [Formula reference](../reference/evaluation/01-formula.md) |
 | [Verify with a query](query/README.md) | [Customer handoff](query/01-customer-contact.md) | [Query reference](../reference/evaluation/02-query.md) |
 | [Compare two queries](compare-two-queries/README.md) | [Opportunity Contact Role coverage](compare-two-queries/01-opportunity-contact-role-coverage.md) | [Compare two queries reference](../reference/evaluation/03-compare-two-queries.md) |
-| [Verify with Apex](apex/README.md) | [Recent Account activity](apex/01-recent-activity.md) | [Apex reference](../reference/evaluation/04-apex-rule-contract.md) |
+| [Verify with Apex](apex/README.md) | [Recent Account activity](apex/01-recent-activity.md) | [Apex reference](../reference/evaluation/04-apex-check-contract.md) |
 
 ## Formula examples
 
-Choose **Verify with a formula** when the Rule can read everything it needs from the current record
+Choose **Verify with a formula** when the Check can read everything it needs from the current record
 or a parent relationship. A formula is usually the simplest option and does not require Apex.
 
 | Example | What it checks | What you will learn |
 | --- | --- | --- |
-| [Seller research readiness](formula/01-account-research-ready.md) | An Account has a Phone or Website | Allow either of two fields to satisfy a Rule |
+| [Seller research readiness](formula/01-account-research-ready.md) | An Account has a Phone or Website | Allow either of two fields to satisfy a Check |
 | [Billing address review](formula/02-billing-address-ready.md) | Required billing-address fields are populated | Require several fields together |
-| [Partner regional assignment](formula/03-partner-regional-assignment.md) | Partner Accounts have regional-assignment information | Run a Rule only for matching records |
+| [Partner regional assignment](formula/03-partner-regional-assignment.md) | Partner Accounts have regional-assignment information | Run a Check only for matching records |
 | [Branch handoff](formula/04-branch-handoff.md) | A branch has the headquarters information needed for handoff | Read a parent record and link users to it |
 | [Small-business program eligibility](formula/05-program-eligibility.md) | Employee count meets a program limit | Compare a number and explain the found and expected values |
 
 ## Query examples
 
 Choose **Verify with a query** when the answer depends on related Salesforce records. One query can
-return a count, a field value, or a list for the Rule to evaluate.
+return a count, a field value, or a list for the Check to evaluate.
 
 | Example | What it checks | What you will learn |
 | --- | --- | --- |
@@ -80,7 +80,7 @@ return a count, a field value, or a list for the Rule to evaluate.
 
 ## Compare-two-queries examples
 
-Choose **Compare two queries** when both sides of the decision come from related records. The Rule
+Choose **Compare two queries** when both sides of the decision come from related records. The Check
 can compare two counts or determine whether two lists match, contain the same values, or overlap.
 
 | Example | What it checks | What you will learn |
@@ -91,7 +91,7 @@ can compare two counts or determine whether two lists match, contain the same va
 
 ## Apex examples
 
-Choose **Verify with Apex** when the Rule needs calculations, several steps, or Salesforce behavior
+Choose **Verify with Apex** when the Check needs calculations, several steps, or Salesforce behavior
 that the other Evaluation Types cannot express clearly. Apex examples require development and test
 coverage before deployment.
 
@@ -105,22 +105,22 @@ coverage before deployment.
 ## Framework functionality covered
 
 The library is organized so each practical example adds a different Framework technique. Examples
-may use the same Salesforce object, but they do not repeat the same Rule pattern.
+may use the same Salesforce object, but they do not repeat the same Check pattern.
 
 | Example | Distinct Framework depth |
 | --- | --- |
 | [Seller research readiness](formula/01-account-research-ready.md) | Formula `OR`, optional alternatives, and an edit action |
 | [Billing address review](formula/02-billing-address-ready.md) | Formula `AND` with display-only Found and Expected formulas |
-| [Partner regional assignment](formula/03-partner-regional-assignment.md) | Formula applicability, `SKIPPED`, and count-only display for passed Rules |
+| [Partner regional assignment](formula/03-partner-regional-assignment.md) | Formula applicability, `SKIPPED`, and count-only display for passed Checks |
 | [Branch handoff](formula/04-branch-handoff.md) | Parent relationship fields and a parent-record action URL |
 | [Small-business program eligibility](formula/05-program-eligibility.md) | Numeric Formula comparison with Found/Expected visible on every result |
 | [Customer handoff](query/01-customer-contact.md) | Aggregate `COUNT()` compared with a fixed minimum |
 | [Pipeline next steps](query/02-opportunity-next-steps.md) | `ALL_ROWS_PASS`, **Is not empty**, no-row `SKIPPED`, and empty-field failure |
 | [Meaningful pipeline](query/03-significant-opportunity.md) | `ANY_ROW_PASSES` compared with an Account formula and formula applicability |
 | [Forecast amounts](query/04-forecast-amounts.md) | Numeric `ALL_ROWS_PASS` with result-summary merge tokens |
-| [Placeholder email cleanup](query/05-placeholder-contact-emails.md) | Text exclusion, ignored blank fields, and a prerequisite Rule |
+| [Placeholder email cleanup](query/05-placeholder-contact-emails.md) | Text exclusion, ignored blank fields, and a prerequisite Check |
 | [Account Owner team membership](query/06-account-owner-team-membership.md) | Query list-membership mode using a record formula and Comparison Query |
-| [Case review capacity](query/07-high-priority-case-capacity.md) | Aggregate upper limit plus optional Rule Result and Check Set Run lifecycle events |
+| [Case review capacity](query/07-high-priority-case-capacity.md) | Aggregate upper limit plus optional Check Result and Check Set Run lifecycle events |
 | [Opportunity Contact Role coverage](compare-two-queries/01-opportunity-contact-role-coverage.md) | Aggregate alias, two-query equality, and count-query applicability |
 | [Open-pipeline product continuity](compare-two-queries/02-open-pipeline-product-continuity.md) | Two lists compared with **Lists overlap** |
 | [Account Team coverage](compare-two-queries/03-account-team-opportunity-coverage.md) | Two lists compared with **Lists contain all** and no-row failure |
@@ -130,12 +130,12 @@ may use the same Salesforce object, but they do not repeat the same Rule pattern
 | [Inactive approval participants](apex/04-inactive-approver.md) | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior |
 
 The reference pages document additional operators and limits that do not need a separate business
-example. The library favors a smaller set of credible, clearly differentiated Rules over one page
+example. The library favors a smaller set of credible, clearly differentiated Checks over one page
 for every possible picklist value.
 
 ## Related documentation
 
-- [Create your first Rule](../installation/03-create-your-first-rule.md)
-- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
-- [Rule fields](../metadata/02-fields-check-rule.md)
+- [Create your first Check](../installation/03-create-your-first-check.md)
+- [Configure Check Sets and Checks](../guides/03-configure-check-sets-and-checks.md)
+- [Check fields](../metadata/02-fields-check.md)
 - [Check Set fields](../metadata/01-fields-check-set.md)

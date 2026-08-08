@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopeEvaluationTest {
-  private static final String PHONE_RULE = 'Example_Profile_Phone_Available';
+  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
 
   @TestSetup
   static void setupRunPermission() {
@@ -18,7 +18,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
     context.objectApiName = 'Account';
     context.showDiagnostics = false;
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Unmigrated',
         'QualifiedApiName' => 'Unmigrated',
@@ -34,8 +34,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
 
     Test.startTest();
-    pipeline.evaluateRule(
-      rule,
+    pipeline.evaluateCheck(
+      check,
       context,
       new List<Id>{ accountRecord.Id },
       new Map<Id, SObject>{ accountRecord.Id => accountRecord },
@@ -59,10 +59,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
   }
 
   @IsTest
-  static void queryRuleUsesOneScopeQueryAndPreservesPerRecordVerdicts() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void queryCheckUsesOneScopeQueryAndPreservesPerRecordVerdicts() {
     Account passing = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Passing Contacts' }
     );
@@ -89,8 +86,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
         )
       }
     );
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Contacts_Have_Email'
       ),
       new List<Id>{ failing.Id, passing.Id }
@@ -125,9 +122,6 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void apexPluginIsInvokedOnceForTheNarrowedScope() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Account active = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Recent Activity' }
     );
@@ -147,8 +141,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
         }
       )
     );
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forRule(
-      RecordHealthCheckTestDataFactory.qualifiedRuleName(
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Customer_Engagement_Current'
       ),
       new List<Id>{ inactive.Id, active.Id }
@@ -187,7 +181,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     context.objectApiName = 'Account';
     context.checkSetDeveloperName = 'Synthetic_Set';
     context.showDiagnostics = false;
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => 'Synthetic.Unsupported',
         'DeveloperName' => 'Unsupported',
@@ -203,8 +197,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
     Test.startTest();
     new RecordHealthCheckScopePipeline()
-      .evaluateRule(
-        rule,
+      .evaluateCheck(
+        check,
         context,
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account },
@@ -230,7 +224,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     context.objectApiName = 'Account';
     context.checkSetDeveloperName = 'Synthetic_Set';
     context.showDiagnostics = false;
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => 'Synthetic.Absent',
         'DeveloperName' => 'Absent',
@@ -249,8 +243,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
     Test.startTest();
     new RecordHealthCheckScopePipeline()
-      .evaluateRule(
-        rule,
+      .evaluateCheck(
+        check,
         context,
         new List<Id>{ deletedAccount.Id },
         new Map<Id, SObject>(),
@@ -268,7 +262,132 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
   }
 
   @IsTest
-  static void runtimeValidationRejectsHalfConfiguredRulesBeforeEvaluation() {
+  static void inaccessibleFieldReturnsAlignedResultForVisibleRecord() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'Visible record with inaccessible field'
+    );
+    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
+
+    Test.startTest();
+    new RecordHealthCheckScopePipeline()
+      .evaluateCheck(
+        queryCountCheck('Inaccessible_Field', 'Unable to read field.'),
+        evaluationContext(),
+        new List<Id>{ account.Id },
+        new Map<Id, SObject>{ account.Id => account },
+        true,
+        RecordHealthCheckResultMode.EVALUATION,
+        'field-access-denied',
+        items
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      1,
+      items.size(),
+      'The visible record must retain one result.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.CANNOT_EVALUATE,
+      items.values()[0].evaluation.reasonCode,
+      'A field-access failure should be redacted from callers without diagnostic-detail access.'
+    );
+  }
+
+  @IsTest
+  static void inaccessibleFieldPreservesMissingRecordReason() {
+    Account deletedAccount = RecordHealthCheckTestDataFactory.createDeletedAccount(
+      'Missing record with inaccessible field'
+    );
+    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
+
+    Test.startTest();
+    new RecordHealthCheckScopePipeline()
+      .evaluateCheck(
+        queryCountCheck('Missing_Inaccessible_Field', 'Unable to read record.'),
+        evaluationContext(),
+        new List<Id>{ deletedAccount.Id },
+        new Map<Id, SObject>(),
+        true,
+        RecordHealthCheckResultMode.EVALUATION,
+        'missing-field-access-denied',
+        items
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      1,
+      items.size(),
+      'The missing record must retain one result.'
+    );
+    Assert.areEqual(
+      'RECORD_NOT_VISIBLE',
+      items.values()[0].evaluation.reasonCode,
+      'Record visibility should remain the reason when no record was loaded.'
+    );
+  }
+
+  @IsTest
+  static void failedPrerequisiteSkipsEvaluationAndBuildsDisplay() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'Blocked dependent check'
+    );
+    Record_Health_Check__mdt check = queryCountCheck(
+      'Dependent_Check',
+      'Dependent check failed.'
+    );
+    check.QualifiedApiName = 'namespace__Dependent_Check';
+    check.PrerequisiteCheck__c = 'Prerequisite_Check';
+    RecordHealthCheckScopePipeline.SelectionContext context = evaluationContext();
+    context.showDiagnostics = true;
+    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>{
+      String.valueOf(account.Id) +
+      '|namespace__Prerequisite_Check' => buildPrerequisiteResultItem(
+        account.Id,
+        'namespace__Prerequisite_Check',
+        RecordHealthCheckStatus.FAIL
+      )
+    };
+
+    Test.startTest();
+    new RecordHealthCheckScopePipeline()
+      .evaluateCheck(
+        check,
+        context,
+        new List<Id>{ account.Id },
+        new Map<Id, SObject>{ account.Id => account },
+        false,
+        RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY,
+        'blocked-prerequisite',
+        items
+      );
+    Test.stopTest();
+
+    RecordHealthCheckResultItem dependent = items.get(
+      String.valueOf(account.Id) + '|namespace__Dependent_Check'
+    );
+    Assert.isNotNull(
+      dependent,
+      'The dependent Check must retain an aligned item.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckStatus.SKIPPED,
+      dependent.evaluation.status,
+      'A failed prerequisite must skip the dependent Check.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET,
+      dependent.evaluation.reasonCode,
+      'The dependent result should preserve the prerequisite reason.'
+    );
+    Assert.isNotNull(
+      dependent.display,
+      'Display mode should still return display content for a skipped Check.'
+    );
+  }
+
+  @IsTest
+  static void runtimeValidationRejectsHalfConfiguredChecksBeforeEvaluation() {
     Account first = RecordHealthCheckTestDataFactory.createAccount(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Half configured one' }
@@ -279,18 +398,18 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
         new Map<String, Object>{ 'Name' => 'Half configured two' }
       )
     );
-    Record_Health_Check_Rule__mdt rule = queryCountRule(
+    Record_Health_Check__mdt check = queryCountCheck(
       'Half_Configured',
       'Invalid configuration.'
     );
-    rule.ComparisonOperator__c = 'DROP_TABLE';
+    check.ComparisonOperator__c = 'DROP_TABLE';
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
     RecordHealthCheckScopePipeline.SelectionContext context = evaluationContext();
 
     Test.startTest();
     new RecordHealthCheckScopePipeline()
-      .evaluateRule(
-        rule,
+      .evaluateCheck(
+        check,
         context,
         new List<Id>{ first.Id, second.Id },
         new Map<Id, SObject>{ first.Id => first, second.Id => second },
@@ -322,7 +441,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
         new Map<String, Object>{ 'Name' => 'Acme {Labs}' }
       )
     );
-    Record_Health_Check_Rule__mdt rule = queryCountRule(
+    Record_Health_Check__mdt check = queryCountCheck(
       'Brace_Query',
       'Account {!record.Name} needs contacts'
     );
@@ -330,8 +449,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
     Test.startTest();
     new RecordHealthCheckScopePipeline()
-      .evaluateRule(
-        rule,
+      .evaluateCheck(
+        check,
         evaluationContext(),
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account },
@@ -346,7 +465,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     Assert.areEqual(
       RecordHealthCheckStatus.FAIL,
       item.evaluation.status,
-      'An Account with no Contacts must fail the positive-count Rule.'
+      'An Account with no Contacts must fail the positive-count Check.'
     );
     Assert.areEqual(
       'Account Acme {Labs} needs contacts',
@@ -360,18 +479,18 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     Account account = RecordHealthCheckTestDataFactory.createAccount(
       'Unsupported bulk shape'
     );
-    Record_Health_Check_Rule__mdt rule = queryCountRule(
+    Record_Health_Check__mdt check = queryCountCheck(
       'Unsupported_Bulk_Shape',
       'Unsupported.'
     );
-    rule.SourceQuery__c = 'SELECT Industry FROM Account WHERE Id != {!record.Id}';
-    rule.SourceQueryField__c = 'Industry';
+    check.SourceQuery__c = 'SELECT Industry FROM Account WHERE Id != {!record.Id}';
+    check.SourceQueryField__c = 'Industry';
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
 
     Test.startTest();
     new RecordHealthCheckScopePipeline()
-      .evaluateRule(
-        rule,
+      .evaluateCheck(
+        check,
         evaluationContext(),
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account },
@@ -397,22 +516,22 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
         new Map<String, Object>{ 'Name' => 'Compare {Brace}' }
       )
     );
-    Record_Health_Check_Rule__mdt rule = queryCountRule(
+    Record_Health_Check__mdt check = queryCountCheck(
       'Brace_Compare',
       'Account {!record.Name} has mismatched coverage'
     );
-    rule.EvaluationType__c = 'COMPARE_TWO_QUERIES';
-    rule.ComparisonQuery__c = 'SELECT COUNT() total FROM Opportunity WHERE AccountId = {!record.Id}';
-    rule.ComparisonQueryField__c = 'total';
-    rule.ComparisonOperator__c = 'NOT_EQUALS';
-    rule.ExpectedValueSource__c = null;
-    rule.ExpectedFixedValue__c = null;
+    check.EvaluationType__c = 'COMPARE_TWO_QUERIES';
+    check.ComparisonQuery__c = 'SELECT COUNT() total FROM Opportunity WHERE AccountId = {!record.Id}';
+    check.ComparisonQueryField__c = 'total';
+    check.ComparisonOperator__c = 'NOT_EQUALS';
+    check.ExpectedValueSource__c = null;
+    check.ExpectedFixedValue__c = null;
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
 
     Test.startTest();
     new RecordHealthCheckScopePipeline()
-      .evaluateRule(
-        rule,
+      .evaluateCheck(
+        check,
         evaluationContext(),
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account },
@@ -444,11 +563,11 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     return context;
   }
 
-  private static Record_Health_Check_Rule__mdt queryCountRule(
+  private static Record_Health_Check__mdt queryCountCheck(
     String developerName,
     String failureMessage
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => developerName,
         'DeveloperName' => developerName,
@@ -472,27 +591,27 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt buildRuleWithPrerequisite(
+  private static Record_Health_Check__mdt buildCheckWithPrerequisite(
     String prerequisiteName
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'DeveloperName' => 'Rule_B',
-        'QualifiedApiName' => 'namespace__Rule_B',
-        'PrerequisiteRule__c' => prerequisiteName
+        'DeveloperName' => 'Check_B',
+        'QualifiedApiName' => 'namespace__Check_B',
+        'PrerequisiteCheck__c' => prerequisiteName
       }
     );
   }
 
   private static RecordHealthCheckResultItem buildPrerequisiteResultItem(
     Id recordId,
-    String qualifiedRuleName,
+    String qualifiedCheckName,
     String status
   ) {
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = new RecordHealthCheckEvaluationResult();
     item.evaluation.recordId = recordId;
-    item.evaluation.ruleQualifiedApiName = qualifiedRuleName;
+    item.evaluation.checkQualifiedApiName = qualifiedCheckName;
     item.evaluation.status = status;
     return item;
   }

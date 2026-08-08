@@ -35,9 +35,9 @@ public class RecordHealthCheckTestDataFactory {
     return (User) buildRecord(User.SObjectType, fields);
   }
 
-  public static Record_Health_Check_Rule__mdt rule(Map<String, Object> fields) {
-    return (Record_Health_Check_Rule__mdt) buildRecord(
-      Record_Health_Check_Rule__mdt.SObjectType,
+  public static Record_Health_Check__mdt check(Map<String, Object> fields) {
+    return (Record_Health_Check__mdt) buildRecord(
+      Record_Health_Check__mdt.SObjectType,
       fields
     );
   }
@@ -112,10 +112,10 @@ public class RecordHealthCheckTestDataFactory {
     return result;
   }
 
-  public static String qualifiedRuleName(String developerName) {
+  public static String qualifiedCheckName(String developerName) {
     return [
       SELECT QualifiedApiName
-      FROM Record_Health_Check_Rule__mdt
+      FROM Record_Health_Check__mdt
       WHERE DeveloperName = :developerName
       LIMIT 1
     ]
@@ -164,7 +164,7 @@ public class RecordHealthCheckTestDataFactory {
     );
 
     populateRequiredFields(healthyAccount);
-    insertAllowingDuplicateRules(new List<SObject>{ healthyAccount });
+    insertAllowingDuplicates(new List<SObject>{ healthyAccount });
   }
 
   public static void createCoverageTestRecords() {
@@ -203,25 +203,25 @@ public class RecordHealthCheckTestDataFactory {
 
   public static Account createAccount(Account accountRecord) {
     populateRequiredFields(accountRecord);
-    insertAllowingDuplicateRules(new List<SObject>{ accountRecord });
+    insertAllowingDuplicates(new List<SObject>{ accountRecord });
     return accountRecord;
   }
 
   /** Persists arbitrary test records while keeping test DML at one review point. */
   public static void createRecords(List<SObject> records) {
-    insertAllowingDuplicateRules(records);
+    insertAllowingDuplicates(records);
   }
 
   public static void createAccounts(List<Account> records) {
     List<SObject> values = new List<SObject>();
     values.addAll(records);
-    insertAllowingDuplicateRules(values);
+    insertAllowingDuplicates(values);
   }
 
   public static void createOpportunities(List<Opportunity> records) {
     List<SObject> values = new List<SObject>();
     values.addAll(records);
-    insertAllowingDuplicateRules(values);
+    insertAllowingDuplicates(values);
   }
 
   public static User createMinimumAccessUser(String alias) {
@@ -310,13 +310,13 @@ public class RecordHealthCheckTestDataFactory {
       Amount = amount
     );
     populateRequiredFields(opportunityRecord);
-    insertAllowingDuplicateRules(new List<SObject>{ opportunityRecord });
+    insertAllowingDuplicates(new List<SObject>{ opportunityRecord });
     return opportunityRecord;
   }
 
   public static Opportunity createOpportunity(Opportunity opportunity) {
     List<SObject> values = new List<SObject>{ opportunity };
-    insertAllowingDuplicateRules(values);
+    insertAllowingDuplicates(values);
     return opportunity;
   }
 
@@ -337,7 +337,7 @@ public class RecordHealthCheckTestDataFactory {
 
   public static Task createTask(Task taskRecord) {
     populateRequiredFields(taskRecord);
-    insertAllowingDuplicateRules(new List<SObject>{ taskRecord });
+    insertAllowingDuplicates(new List<SObject>{ taskRecord });
     return taskRecord;
   }
 
@@ -347,7 +347,7 @@ public class RecordHealthCheckTestDataFactory {
 
   public static Event createEvent(Event eventRecord) {
     populateRequiredFields(eventRecord);
-    insertAllowingDuplicateRules(new List<SObject>{ eventRecord });
+    insertAllowingDuplicates(new List<SObject>{ eventRecord });
     return eventRecord;
   }
 
@@ -361,7 +361,7 @@ public class RecordHealthCheckTestDataFactory {
       populateRequiredFields(contactRecord);
       records.add(contactRecord);
     }
-    insertAllowingDuplicateRules(records);
+    insertAllowingDuplicates(records);
     return contacts;
   }
 
@@ -370,7 +370,7 @@ public class RecordHealthCheckTestDataFactory {
     return token.length() > 8 ? token.right(8) : token;
   }
 
-  private static void insertAllowingDuplicateRules(List<SObject> records) {
+  private static void insertAllowingDuplicates(List<SObject> records) {
     Database.DMLOptions dmlOptions = new Database.DMLOptions();
     dmlOptions.DuplicateRuleHeader.allowSave = true;
     dmlOptions.DuplicateRuleHeader.runAsCurrentUser = true;

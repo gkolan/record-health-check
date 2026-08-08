@@ -6,7 +6,7 @@
 /** The single public execution entry point for Record Health Check 2.0. */
 global with sharing class RecordHealthCheck {
   /**
-   * Executes one qualified Rule or Check Set request through the scope pipeline.
+   * Executes one qualified Check or Check Set request through the scope pipeline.
    *
    * @param request Immutable qualified selection, record IDs, and options.
    * @return One ordered response envelope for every selector and scope size.

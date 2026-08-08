@@ -16,7 +16,7 @@ notification. Confirm whether callers depend on the future method only to cross 
 boundary or also depend on behavior that is not documented.
 
 Do not pass credentials, record contents, or other sensitive values into the replacement job. Pass
-the qualified Check Set or Rule name, the bounded record IDs, and a correlation value the caller is
+the qualified Check Set or Check name, the bounded record IDs, and a correlation value the caller is
 allowed to retain.
 
 ## Quick start: Replace the future method

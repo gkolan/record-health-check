@@ -5,56 +5,56 @@
 
 /** Shared validation helpers used at runtime and in CI; they do not change org data. */
 public with sharing class RecordHealthCheckConfigValidator {
-  private static Map<String, RecordHealthCheckRule> validatedPluginInstances = new Map<String, RecordHealthCheckRule>();
+  private static Map<String, RecordHealthCheckPlugin> validatedPluginInstances = new Map<String, RecordHealthCheckPlugin>();
   public static RecordHealthCheckTokenIssue firstTemplateIssue(
-    Record_Health_Check_Rule__mdt rule
+    Record_Health_Check__mdt check
   ) {
-    if (rule == null) {
+    if (check == null) {
       return null;
     }
     List<List<Object>> templates = new List<List<Object>>{
       new List<Object>{
-        rule.FailureMessage__c,
+        check.FailureMessage__c,
         RecordHealthCheckTemplateService.SURFACE_DISPLAY
       },
       new List<Object>{
-        rule.UnableToEvaluateMessage__c,
+        check.UnableToEvaluateMessage__c,
         RecordHealthCheckTemplateService.SURFACE_DISPLAY
       },
       new List<Object>{
-        rule.ApplicabilityNotMetMessage__c,
+        check.ApplicabilityNotMetMessage__c,
         RecordHealthCheckTemplateService.SURFACE_DISPLAY
       },
       new List<Object>{
-        rule.FixMessage__c,
+        check.FixMessage__c,
         RecordHealthCheckTemplateService.SURFACE_DISPLAY
       },
       new List<Object>{
-        rule.ActionLabel__c,
+        check.ActionLabel__c,
         RecordHealthCheckTemplateService.SURFACE_DISPLAY
       },
       new List<Object>{
-        rule.DisplayFoundText__c,
+        check.DisplayFoundText__c,
         RecordHealthCheckTemplateService.SURFACE_DISPLAY
       },
       new List<Object>{
-        rule.DisplayExpectedText__c,
+        check.DisplayExpectedText__c,
         RecordHealthCheckTemplateService.SURFACE_DISPLAY
       },
       new List<Object>{
-        rule.ActionUrl__c,
+        check.ActionUrl__c,
         RecordHealthCheckTemplateService.SURFACE_URL
       },
       new List<Object>{
-        rule.SourceQuery__c,
+        check.SourceQuery__c,
         RecordHealthCheckTemplateService.SURFACE_SOQL
       },
       new List<Object>{
-        rule.ComparisonQuery__c,
+        check.ComparisonQuery__c,
         RecordHealthCheckTemplateService.SURFACE_SOQL
       },
       new List<Object>{
-        rule.ApplicabilityCountQuery__c,
+        check.ApplicabilityCountQuery__c,
         RecordHealthCheckTemplateService.SURFACE_SOQL
       }
     };
@@ -84,7 +84,7 @@ public with sharing class RecordHealthCheckConfigValidator {
       if (pluginType == null) {
         return false;
       }
-      RecordHealthCheckRule instance = RecordHealthCheckPluginDispatch.instantiate(
+      RecordHealthCheckPlugin instance = RecordHealthCheckPluginDispatch.instantiate(
         pluginType
       );
       if (instance == null) {
@@ -99,13 +99,13 @@ public with sharing class RecordHealthCheckConfigValidator {
     }
   }
 
-  public static RecordHealthCheckRule takeValidatedPlugin(String className) {
-    RecordHealthCheckRule instance = validatedPluginInstances.get(className);
+  public static RecordHealthCheckPlugin takeValidatedPlugin(String className) {
+    RecordHealthCheckPlugin instance = validatedPluginInstances.get(className);
     validatedPluginInstances.remove(className);
     return instance;
   }
 
-  /** Releases a validated plugin instance when later validation rejects its Rule. */
+  /** Releases a validated plugin instance when later validation rejects its Check. */
   public static void discardValidatedPlugin(String className) {
     if (String.isNotBlank(className)) {
       validatedPluginInstances.remove(className);
@@ -115,7 +115,7 @@ public with sharing class RecordHealthCheckConfigValidator {
   @TestVisible
   private static void cachePluginForTest(
     String className,
-    RecordHealthCheckRule instance
+    RecordHealthCheckPlugin instance
   ) {
     validatedPluginInstances.put(className, instance);
   }

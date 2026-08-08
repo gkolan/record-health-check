@@ -6,11 +6,11 @@
 /**
  * What a plugin returns for one record: a verdict and its values. Nothing else.
  *
- * A plugin does not stamp `recordId`, `ruleDeveloperName`, or `severity`.
+ * A plugin does not stamp `recordId`, `checkDeveloperName`, or `severity`.
  * Identity comes from the map key and the scope; severity comes from
  * `FailureSeverity__c`. That removes a whole class of disagreement a
  * plugin-authored result would otherwise allow: a map key naming record A whose
- * body claims record B, or a scope dispatching Rule X whose result claims Rule
+ * body claims record B, or a scope dispatching Check X whose result claims Check
  * Y. The engine wraps each outcome into an Evaluation Result, so the two can
  * never disagree.
  *
@@ -53,7 +53,7 @@ global class RecordHealthCheckOutcome {
   }
 
   /**
-   * The rule ran correctly but could not reach a verdict: data, access, or
+   * The check ran correctly but could not reach a verdict: data, access, or
    * runtime conditions rather than a defect. Distinct from ERROR, which the
    * engine reserves for a broken plugin contract.
    */

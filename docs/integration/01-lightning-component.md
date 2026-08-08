@@ -9,7 +9,7 @@ publish lifecycle events.
 
 The **Record Health Check** Lightning Web Component supports both experiences. Automatic page-load
 evaluation is read-only and never publishes. An explicit **Run** or **Rerun** is a deliberate user
-action and can publish when the Check Set and Rules enable publication.
+action and can publish when the Check Set and Checks enable publication.
 
 The component is available only on Lightning record pages. App and Home pages do not provide the
 `recordId` required for evaluation, so the component intentionally does not appear in their App
@@ -25,7 +25,7 @@ Builder palettes.
 ## What the component is
 
 - A record-page component that displays and coordinates runs for one configured Check Set.
-- A transient view of Set and Rule results under the current user's access.
+- A transient view of Set and Check results under the current user's access.
 - An optional event publisher only when the user explicitly clicks Run or Rerun.
 
 ## What the component is not
@@ -42,7 +42,7 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 ## Prerequisites and quick start
 
 1. Assign the **Record Health Check User** (`Record_Health_Check_User`) Permission Set to the viewer
-   and grant access to the record and fields used by the selected Rules.
+   and grant access to the record and fields used by the selected Checks.
 2. In Lightning App Builder, open a **record page** and add **Record Health Check**, then select an
    active Check Set for that object. The component is listed only while you are editing a record
    page; it is not offered on App Pages or Home Pages because it has no record to evaluate there.
@@ -52,22 +52,22 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 5. Confirm the card returns rows and summary counts. Click Run or Rerun only when an explicit run is
    intended.
 
-For installation details, use [Create your first Rule](../installation/03-create-your-first-rule.md). Advanced
+For installation details, use [Create your first Check](../installation/03-create-your-first-check.md). Advanced
 diagnostic values additionally require **Show Diagnostics** and the
 **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission.
 
 ## Behavior matrix
 
-| Component action | Source | Set event | Rule events |
+| Component action | Source | Set event | Check events |
 | --- | --- | --- | --- |
 | Automatic page-load run | `RUN_ON_LOAD` | Never | Never |
-| User clicks Run | `USER_INITIATED` | Enabled Check Set | Enabled Rules |
-| User clicks Rerun | `USER_INITIATED` | Enabled Check Set | Enabled Rules |
+| User clicks Run | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
+| User clicks Rerun | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
 
 Lifecycle Custom Metadata switches remain off by default:
 
 - `PublishUserRunEvent__c` enables one Set Run completion event for the Check Set.
-- `PublishUserResultEvent__c` enables a Rule Result event for that Rule.
+- `PublishUserResultEvent__c` enables a Check Result event for that Check.
 
 Error Log events use a separate default-on Check Set setting. `PublishErrorLogEvent__c` publishes
 Framework `ERROR` diagnostics from automatic and deliberate runs; uncheck it to opt that Check Set
@@ -104,33 +104,33 @@ After every row resolves, a Set with publication enabled can produce `Record_Hea
 [Check Set Run event fields](../metadata/03-event-set-run.md#fields)
 for the complete field list.
 
-### Rule Result event
+### Check Result event
 
-Each server-finalized Rule with publication enabled can produce `Record_Health_Check_Rule_Result__e` with
+Each server-finalized Check with publication enabled can produce `Record_Health_Check_Result__e` with
 `Source__c = USER_INITIATED`. See
-[Rule Result event fields](../metadata/04-event-rule-result.md#fields)
+[Check Result event fields](../metadata/04-event-check-result.md#fields)
 for the complete field list.
 
 ## Why publication happens in two stages
 
-The component evaluates Rules through separate Apex requests so it can enforce dependencies,
+The component evaluates Checks through separate Apex requests so it can enforce dependencies,
 control concurrency, stop after system errors, and progressively reveal results.
 
 When **Stop after a system error** is unchecked, the component allows up to five evaluations at a
 time so the card can finish promptly without flooding the browser or Salesforce with one request per
-Rule all at once. When it is checked, evaluation becomes sequential; the component must know whether
-the current Rule returned `ERROR` before deciding whether the next Rule is allowed to start.
+Check all at once. When it is checked, evaluation becomes sequential; the component must know whether
+the current Check returned `ERROR` before deciding whether the next Check is allowed to start.
 
 For an explicit run:
 
-1. Each server-finalized Rule result can publish its own Rule Result event after that Apex request commits.
+1. Each server-finalized Check result can publish its own Check Result event after that Apex request commits.
 2. When every row has resolved, the component makes one completion call.
 3. That call can publish one aggregate Set Run event after its transaction commits.
 
 Results the client determines without calling Apex, such as a dependency skip, count toward the Set
-totals but do not create a separate Rule Result event, because no server Rule evaluation finalized.
+totals but do not create a separate Check Result event, because no server Check evaluation finalized.
 
-Within one server evaluation, a prerequisite shared by multiple dependent Rules is memoized and
+Within one server evaluation, a prerequisite shared by multiple dependent Checks is memoized and
 evaluated once. The cache is cleared when that top-level evaluation finishes; a later Run or Rerun
 starts from current record data.
 
@@ -159,5 +159,5 @@ change.
 - [Platform events](03-lifecycle-events.md)
 - [Apex API](../api/01-apex-api.md)
 - [Flow actions](02-flow-actions.md)
-- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
+- [Configure Check Sets and Checks](../guides/03-configure-check-sets-and-checks.md)
 - [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md)

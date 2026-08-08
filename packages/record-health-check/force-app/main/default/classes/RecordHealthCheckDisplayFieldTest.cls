@@ -97,7 +97,7 @@ private class RecordHealthCheckDisplayFieldTest {
     Assert.areEqual(
       CURRENCY_FORMAT,
       RecordHealthCheckDisplayFormat.formatForRow(AUTO, row, 'Amount'),
-      'On Auto a Currency field renders as money without a Rule change'
+      'On Auto a Currency field renders as money without a Check change'
     );
     Assert.areEqual(
       PERCENT_FORMAT,
@@ -299,32 +299,90 @@ private class RecordHealthCheckDisplayFieldTest {
   }
 
   @IsTest
-  static void autoMultiPicklistLabelsRemainFinalDisplayText() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
-    Schema.SObjectType exportType = RecordHealthCheckSchemaTestDataFactory.globalDescribeType(
-      'RHC_Event_Export__c'
+  static void fieldResolutionPreservesValuesWithoutPicklistMetadata() {
+    RecordHealthCheckDisplayFieldResolver.Resolution missingDescribe = RecordHealthCheckDisplayFieldResolver.resolve(
+      'Original value',
+      null
     );
-    Assert.isNotNull(exportType, 'The integration export fixture must exist.');
-    SObject row = exportType.newSObject();
-    String tagsFieldApiName = RecordHealthCheckSchemaTestDataFactory.fieldApiNameOnType(
-      exportType,
-      'Tags__c'
+    Assert.areEqual('Original value', missingDescribe.value);
+    Assert.isFalse(
+      missingDescribe.isFinalText,
+      'A value without field metadata has not been converted to final label text.'
     );
-    row.put(tagsFieldApiName, 'A;B');
 
-    Object displayValue = RecordHealthCheckDisplayFormat.valueForDisplay(
-      'A;B',
-      AUTO,
-      row,
-      tagsFieldApiName
+    Schema.DescribeFieldResult textField = Account.Name.getDescribe();
+    RecordHealthCheckDisplayFieldResolver.Resolution textResolution = RecordHealthCheckDisplayFieldResolver.resolve(
+      'Account name',
+      textField
+    );
+    Assert.areEqual('Account name', textResolution.value);
+    Assert.isFalse(
+      textResolution.isFinalText,
+      'A non-picklist value should pass through without becoming final label text.'
+    );
+  }
+
+  @IsTest
+  static void autoMultiPicklistLabelsRemainFinalDisplayText() {
+    Schema.SObjectType quickTextType = Schema.getGlobalDescribe()
+      .get('QuickText');
+    Assert.isNotNull(
+      quickTextType,
+      'QuickText is a standard Salesforce object used for this core-only describe test.'
+    );
+    Schema.DescribeFieldResult channelField = quickTextType
+      .getDescribe()
+      .fields.getMap()
+      .get('Channel')
+      .getDescribe();
+    List<Schema.PicklistEntry> entries = channelField.getPicklistValues();
+    Assert.isTrue(
+      entries.size() >= 2,
+      'QuickText.Channel should expose multiple standard channel values.'
+    );
+    String stored = entries[0].getValue() + ';' + entries[1].getValue();
+
+    RecordHealthCheckDisplayFieldResolver.Resolution resolution = RecordHealthCheckDisplayFieldResolver.resolve(
+      stored,
+      channelField
     );
 
     Assert.areEqual(
-      'Alpha, Beta',
+      entries[0].getLabel() + ', ' + entries[1].getLabel(),
+      resolution.value,
+      'Each stored channel should resolve to its running-user-visible label.'
+    );
+    Assert.isTrue(
+      resolution.isFinalText,
+      'Resolved multi-select labels must be treated as final display text.'
+    );
+
+    SObject quickTextRow = quickTextType.newSObject();
+    quickTextRow.put('Channel', stored);
+    Object displayValue = RecordHealthCheckDisplayFormat.valueForDisplay(
+      stored,
+      AUTO,
+      quickTextRow,
+      'Channel'
+    );
+    Assert.areEqual(
+      entries[0].getLabel() + ', ' + entries[1].getLabel(),
       RecordHealthCheckDisplayFormat.render(displayValue, AUTO),
-      'Resolved labels must not be parsed again as stored multi-picklist values.'
+      'Resolved labels must render as final text rather than being parsed as stored API values again.'
+    );
+
+    RecordHealthCheckDisplayFieldResolver.Resolution blankResolution = RecordHealthCheckDisplayFieldResolver.resolve(
+      ' ; ',
+      channelField
+    );
+    Assert.areEqual(
+      ' ; ',
+      blankResolution.value,
+      'A value containing no selections should preserve its original stored representation.'
+    );
+    Assert.isFalse(
+      blankResolution.isFinalText,
+      'An unresolved blank selection is not final label text.'
     );
   }
 }

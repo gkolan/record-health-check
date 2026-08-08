@@ -11,7 +11,7 @@ private class RecordHealthCheckSoqlEvaluationTest {
       new Map<String, Object>{ 'Name' => 'Evaluation account' }
     );
     record = RecordHealthCheckTestDataFactory.createAccount(record);
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Soql_Evaluation_Unary',
         'MasterLabel' => 'SOQL Evaluation Unary',
@@ -26,7 +26,7 @@ private class RecordHealthCheckSoqlEvaluationTest {
 
     Test.startTest();
     result = RecordHealthCheckSoqlEvaluation.evaluate(
-      rule,
+      check,
       record.Id,
       record,
       result,

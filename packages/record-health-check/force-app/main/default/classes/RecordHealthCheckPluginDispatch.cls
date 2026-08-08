@@ -4,7 +4,7 @@
  */
 
 /**
- * Invokes a custom Apex Rule and holds it to its contract.
+ * Invokes a custom Apex Check and holds it to its contract.
  *
  * Every guarantee the extension boundary makes is enforced here, in one place,
  * so there is no second path a caller could use to reach a plugin without them.
@@ -47,7 +47,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
    * evaluation. Constructors are executable Apex and therefore part of the
    * extension boundary, not configuration-only reflection.
    */
-  public static RecordHealthCheckRule instantiate(Type pluginType) {
+  public static RecordHealthCheckPlugin instantiate(Type pluginType) {
     if (pluginType == null) {
       return null;
     }
@@ -83,8 +83,8 @@ public with sharing class RecordHealthCheckPluginDispatch {
     if (constructionFailure != null) {
       throw constructionFailure;
     }
-    return instance instanceof RecordHealthCheckRule
-      ? (RecordHealthCheckRule) instance
+    return instance instanceof RecordHealthCheckPlugin
+      ? (RecordHealthCheckPlugin) instance
       : null;
   }
 
@@ -95,7 +95,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
    *         the caller must let it propagate so the transaction rolls back.
    */
   public static Map<Id, RecordHealthCheckOutcome> run(
-    RecordHealthCheckRule plugin,
+    RecordHealthCheckPlugin plugin,
     RecordHealthCheckScope scope
   ) {
     // Taken BEFORE the counters are captured, because setting a savepoint is
@@ -110,7 +110,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     //
     // Deliberately one per invocation rather than one shared across the
     // transaction. Each boundary releases its savepoint as soon as the plugin
-    // returns, so sequential Rules do not accumulate active savepoints.
+    // returns, so sequential Checks do not accumulate active savepoints.
     //
     // A shared savepoint was tried and is wrong: rolling back to the first
     // savepoint of the transaction undoes everything since, not just the
@@ -159,7 +159,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     }
 
     if (pluginFailure != null) {
-      // No prohibited effect, so the throw is attributable to the rule and can
+      // No prohibited effect, so the throw is attributable to the check and can
       // safely become results. The engine cannot tell WHICH record caused it,
       // so the whole scope is affected; only the plugin can isolate per record.
       throw newContractException(
@@ -228,7 +228,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
   /**
    * Completeness, split by whose fault it is.
    *
-   * A missing key is one record's ERROR. An unrecognized key fails the Rule for
+   * A missing key is one record's ERROR. An unrecognized key fails the Check for
    * the entire scope: a malformed response is not partially trustworthy, and a
    * plugin confused about which records it was handed is not one whose other
    * answers should be believed. That trade is deliberately fail-closed, so one

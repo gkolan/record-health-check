@@ -79,20 +79,20 @@ private class RecordHealthCheckTemplateServiceTest {
     Account record = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => '   ', 'NumberOfEmployees' => 0 }
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{ 'CheckDescription__c' => null }
     );
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
     result.actualValue = null;
     RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
       .withRecord(record)
-      .withRule(rule)
+      .withCheck(check)
       .withResult(result, true);
 
     Assert.areEqual(
       'Unnamed account | Independent account | No description | Not measured',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!record.Name fallback="Unnamed account"} | {!record.Parent.Name fallback="Independent account"} | {!rhcRule.checkDescription fallback="No description"} | {!rhcResult.foundValue fallback="Not measured"}',
+        '{!record.Name fallback="Unnamed account"} | {!record.Parent.Name fallback="Independent account"} | {!rhcCheck.checkDescription fallback="No description"} | {!rhcResult.foundValue fallback="Not measured"}',
         context
       )
     );
@@ -152,14 +152,14 @@ private class RecordHealthCheckTemplateServiceTest {
   }
 
   @IsTest
-  static void resolvesRecordRuleAndResultWithoutRecursiveExpansion() {
+  static void resolvesRecordCheckAndResultWithoutRecursiveExpansion() {
     Account record = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'Acme',
         'Description' => '{!record.Name}'
       }
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Stable_Name',
         'MasterLabel' => 'Setup Label',
@@ -179,7 +179,7 @@ private class RecordHealthCheckTemplateServiceTest {
     run.durationMs = 1000;
     RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
       .withRecord(record)
-      .withRule(rule)
+      .withCheck(check)
       .withResult(result, true)
       .withRun(run);
     context.failedRecordCount = 2;
@@ -188,7 +188,7 @@ private class RecordHealthCheckTemplateServiceTest {
     Assert.areEqual(
       'Acme | {!record.Name} | Stable_Name | Setup Label | Visible title | Critical | FAIL | 2/5 | run-123/APEX_API/1000',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!record.Name} | {!record.Description} | {!rhcRule.developerName} | {!rhcRule.masterLabel} | {!rhcRule.checkTitle} | {!rhcRule.failureSeverity} | {!rhcResult.status} | {!rhcResult.failedRecordCount}/{!rhcResult.totalRecordCount} | {!rhcRun.runId}/{!rhcRun.source}/{!rhcRun.durationMs}',
+        '{!record.Name} | {!record.Description} | {!rhcCheck.developerName} | {!rhcCheck.masterLabel} | {!rhcCheck.checkTitle} | {!rhcCheck.failureSeverity} | {!rhcResult.status} | {!rhcResult.failedRecordCount}/{!rhcResult.totalRecordCount} | {!rhcRun.runId}/{!rhcRun.source}/{!rhcRun.durationMs}',
         context
       )
     );
@@ -331,8 +331,8 @@ private class RecordHealthCheckTemplateServiceTest {
   }
 
   @IsTest
-  static void resolvesRemainingRulePropertiesAndNullRelationship() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+  static void resolvesRemainingCheckPropertiesAndNullRelationship() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'CheckDescription__c' => 'Description',
         'Category__c' => 'DATA_QUALITY',
@@ -341,7 +341,7 @@ private class RecordHealthCheckTemplateServiceTest {
       }
     );
     RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
-      .withRule(rule)
+      .withCheck(check)
       .withRecord(
         RecordHealthCheckTestDataFactory.account(
           new Map<String, Object>{ 'Name' => 'Child' }
@@ -350,15 +350,15 @@ private class RecordHealthCheckTemplateServiceTest {
     Assert.areEqual(
       'Description|Data Quality|Compare Two Queries|42|',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcRule.checkDescription}|{!rhcRule.category}|{!rhcRule.evaluationType}|{!rhcRule.evaluationOrder}|{!record.Parent.Name}',
+        '{!rhcCheck.checkDescription}|{!rhcCheck.category}|{!rhcCheck.evaluationType}|{!rhcCheck.evaluationOrder}|{!record.Parent.Name}',
         context
       )
     );
-    rule.Category__c = null;
+    check.Category__c = null;
     Assert.areEqual(
       '',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcRule.category}',
+        '{!rhcCheck.category}',
         context
       )
     );
@@ -377,8 +377,8 @@ private class RecordHealthCheckTemplateServiceTest {
     );
 
     Test.startTest();
-    Object unknownRule = RecordHealthCheckTemplateValueResolver.ruleValue(
-      RecordHealthCheckTestDataFactory.rule(new Map<String, Object>()),
+    Object unknownCheck = RecordHealthCheckTemplateValueResolver.checkValue(
+      RecordHealthCheckTestDataFactory.check(new Map<String, Object>()),
       'futureProperty'
     );
     Object unknownSet = RecordHealthCheckTemplateValueResolver.setValue(
@@ -406,7 +406,7 @@ private class RecordHealthCheckTemplateServiceTest {
     );
     Test.stopTest();
 
-    Assert.isNull(unknownRule);
+    Assert.isNull(unknownCheck);
     Assert.isNull(unknownSet);
     Assert.areEqual(
       '',

@@ -2,7 +2,7 @@
 private class RecordHealthCheckApexResultFinalizerTest {
   @IsTest
   static void rejectsUnsupportedPluginStatus() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'ApexClass__c' => 'ExamplePlugin',
         'UnableToEvaluateMessage__c' => 'Safe plugin error'
@@ -13,7 +13,7 @@ private class RecordHealthCheckApexResultFinalizerTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult result = RecordHealthCheckApexResultFinalizer.finalizeResult(
-      rule,
+      check,
       RecordHealthCheckTestDataFactory.account(null),
       new RecordHealthCheckInternalResult(),
       pluginResult,

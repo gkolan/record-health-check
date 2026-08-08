@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopePlannerTest {
-  private static final String PHONE_RULE = 'Example_Profile_Phone_Available';
+  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
 
   @IsTest
   static void missingSelectionIsRejected() {
@@ -36,14 +36,14 @@ private with sharing class RecordHealthCheckScopePlannerTest {
   }
 
   @IsTest
-  static void ruleWithoutOwningCheckSetIsRejected() {
+  static void checkWithoutOwningCheckSetIsRejected() {
     Test.startTest();
     try {
       new RecordHealthCheckScopePlanner()
-        .contextFromRule(
-          RecordHealthCheckTestDataFactory.rule(new Map<String, Object>())
+        .contextFromCheck(
+          RecordHealthCheckTestDataFactory.check(new Map<String, Object>())
         );
-      Assert.fail('A Rule without an owning Check Set must be rejected.');
+      Assert.fail('A Check without an owning Check Set must be rejected.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(
         error.getMessage().contains('owning Check Set'),
@@ -75,7 +75,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
 
   @IsTest
   static void formulaBudgetRejectsOversizedPlan() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'FORMULA',
         'ApplicabilityMode__c' => 'WHEN_FORMULA_TRUE',
@@ -88,7 +88,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
     try {
       new RecordHealthCheckScopePlanner()
         .enforceFormulaBudget(
-          new List<Record_Health_Check_Rule__mdt>{ rule },
+          new List<Record_Health_Check__mdt>{ check },
           RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE
         );
       Assert.fail('An oversized FormulaEval plan must be rejected.');
@@ -104,7 +104,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
   @IsTest
   static void formulaBudgetAccountsForCallsAlreadyUsed() {
     Integer originalCount = RecordHealthCheckFormulaEvaluator.formulaEvalCallCount;
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{ 'EvaluationType__c' => 'FORMULA' }
     );
 
@@ -112,12 +112,9 @@ private with sharing class RecordHealthCheckScopePlannerTest {
     try {
       RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET;
       new RecordHealthCheckScopePlanner()
-        .enforceFormulaBudget(
-          new List<Record_Health_Check_Rule__mdt>{ rule },
-          1
-        );
+        .enforceFormulaBudget(new List<Record_Health_Check__mdt>{ check }, 1);
       Assert.fail(
-        'A spent transaction budget must reject another Formula Rule.'
+        'A spent transaction budget must reject another Formula Check.'
       );
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(
@@ -132,11 +129,11 @@ private with sharing class RecordHealthCheckScopePlannerTest {
 
   @IsTest
   static void pluginBudgetCountsConstructionAndExecutionSavepoints() {
-    List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>();
-    Integer apexRuleCount = (Limits.getLimitDmlStatements() / 2) + 1;
-    for (Integer index = 0; index < apexRuleCount; index++) {
-      rules.add(
-        RecordHealthCheckTestDataFactory.rule(
+    List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
+    Integer apexCheckCount = (Limits.getLimitDmlStatements() / 2) + 1;
+    for (Integer index = 0; index < apexCheckCount; index++) {
+      checks.add(
+        RecordHealthCheckTestDataFactory.check(
           new Map<String, Object>{ 'EvaluationType__c' => 'APEX' }
         )
       );
@@ -144,7 +141,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
 
     Test.startTest();
     try {
-      new RecordHealthCheckScopePlanner().enforcePluginSavepointBudget(rules);
+      new RecordHealthCheckScopePlanner().enforcePluginSavepointBudget(checks);
       Assert.fail('An oversized plugin savepoint plan must be rejected.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(
@@ -152,7 +149,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
         'The error must use the stable savepoint-budget reason.'
       );
       Assert.isTrue(
-        error.getMessage().contains('required=' + apexRuleCount * 2),
+        error.getMessage().contains('required=' + apexCheckCount * 2),
         'The required budget must include construction and execution savepoints.'
       );
     }
@@ -161,10 +158,10 @@ private with sharing class RecordHealthCheckScopePlannerTest {
 
   @IsTest
   static void transactionBudgetRejectsExcessiveQueries() {
-    List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>();
+    List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
     for (Integer index = 0; index < Limits.getLimitQueries(); index++) {
-      rules.add(
-        RecordHealthCheckTestDataFactory.rule(
+      checks.add(
+        RecordHealthCheckTestDataFactory.check(
           new Map<String, Object>{ 'EvaluationType__c' => 'QUERY' }
         )
       );
@@ -174,7 +171,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
     try {
       new RecordHealthCheckScopePlanner()
         .enforceTransactionBudget(
-          rules,
+          checks,
           1,
           RecordHealthCheckEventPublication.NONE
         );
@@ -197,15 +194,15 @@ private with sharing class RecordHealthCheckScopePlannerTest {
   @IsTest
   static void transactionBudgetRejectsProjectedHeap() {
     Integer oversizedRecordCount = (Limits.getLimitHeapSize() / 768) + 1;
-    List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>{
-      RecordHealthCheckTestDataFactory.rule(new Map<String, Object>())
+    List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>{
+      RecordHealthCheckTestDataFactory.check(new Map<String, Object>())
     };
 
     Test.startTest();
     try {
       new RecordHealthCheckScopePlanner()
         .enforceTransactionBudget(
-          rules,
+          checks,
           oversizedRecordCount,
           RecordHealthCheckEventPublication.NONE
         );
@@ -266,7 +263,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
       'Account',
       new List<Id>{ first, second, first },
       new Map<String, Object>(),
-      'Synthetic.Rule',
+      'Synthetic.Check',
       'Synthetic.Set',
       'scope-order-test'
     );
@@ -319,22 +316,22 @@ private with sharing class RecordHealthCheckScopePlannerTest {
   }
 
   @IsTest
-  static void ruleLimitRejectsTwentySixRules() {
-    List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>();
+  static void checkLimitRejectsTwentySixChecks() {
+    List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
     for (
       Integer index = 0;
       index <= RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
       index++
     ) {
-      rules.add(
-        RecordHealthCheckTestDataFactory.rule(new Map<String, Object>())
+      checks.add(
+        RecordHealthCheckTestDataFactory.check(new Map<String, Object>())
       );
     }
 
     Test.startTest();
     try {
-      new RecordHealthCheckScopePlanner().enforceRuleLimit(rules);
-      Assert.fail('Twenty-six Rules must exceed the Framework limit.');
+      new RecordHealthCheckScopePlanner().enforceCheckLimit(checks);
+      Assert.fail('Twenty-six Checks must exceed the Framework limit.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(
         error.getMessage().contains('FRAMEWORK_MAX_CHECKS_EXCEEDED'),
@@ -375,11 +372,11 @@ private with sharing class RecordHealthCheckScopePlannerTest {
     return context;
   }
 
-  private static Record_Health_Check_Rule__mdt queryCountRule(
+  private static Record_Health_Check__mdt queryCountCheck(
     String developerName,
     String failureMessage
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'QualifiedApiName' => developerName,
         'DeveloperName' => developerName,
@@ -403,27 +400,27 @@ private with sharing class RecordHealthCheckScopePlannerTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt buildRuleWithPrerequisite(
+  private static Record_Health_Check__mdt buildCheckWithPrerequisite(
     String prerequisiteName
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'DeveloperName' => 'Rule_B',
-        'QualifiedApiName' => 'namespace__Rule_B',
-        'PrerequisiteRule__c' => prerequisiteName
+        'DeveloperName' => 'Check_B',
+        'QualifiedApiName' => 'namespace__Check_B',
+        'PrerequisiteCheck__c' => prerequisiteName
       }
     );
   }
 
   private static RecordHealthCheckResultItem buildPrerequisiteResultItem(
     Id recordId,
-    String qualifiedRuleName,
+    String qualifiedCheckName,
     String status
   ) {
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     item.evaluation = new RecordHealthCheckEvaluationResult();
     item.evaluation.recordId = recordId;
-    item.evaluation.ruleQualifiedApiName = qualifiedRuleName;
+    item.evaluation.checkQualifiedApiName = qualifiedCheckName;
     item.evaluation.status = status;
     return item;
   }

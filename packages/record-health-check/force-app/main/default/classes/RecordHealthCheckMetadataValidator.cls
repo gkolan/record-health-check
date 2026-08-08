@@ -40,14 +40,14 @@ public with sharing class RecordHealthCheckMetadataValidator {
   // Valid-value sets and caps are owned by RecordHealthCheckConstants so this
   // deploy-time validator and RecordHealthCheckConfigService (runtime) can never
   // get out of sync. Local aliases keep the call sites below readable.
-  // The per-type rule-validation decision tree lives in RecordHealthCheckRuleValidator;
+  // The per-type check-validation decision tree lives in RecordHealthCheckValidator;
   // this class keeps the baseline + Check Set + dependency-graph checks (inline) plus a
   // collect-all adapter (toIssue). The operator/source/null-empty value sets live with
   // those producers.
   // ─── Public API ───────────────────────────────────────────────────────────
 
   /**
-   * Validates all active Check Sets and Rules in the org.
+   * Validates all active Check Sets and Checks in the org.
    * Returns a list of ValidationIssues — empty list means everything is valid.
    */
   public List<ValidationIssue> validate() {
@@ -69,7 +69,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
     ];
 
     // code-analyzer-suppress-next-line ApexCRUDViolation: Validator intentionally reads framework Custom Metadata setup records.
-    List<Record_Health_Check_Rule__mdt> allRules = [
+    List<Record_Health_Check__mdt> allChecks = [
       SELECT
         DeveloperName,
         MasterLabel,
@@ -101,7 +101,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         ApexClass__c,
         ApexParametersJson__c,
         MaxQueryRows__c,
-        PrerequisiteRule__c,
+        PrerequisiteCheck__c,
         ApplicabilityMode__c,
         ApplicabilityFormula__c,
         ApplicabilityNotMetMessage__c,
@@ -109,7 +109,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         ApplicabilityCountOperator__c,
         ApplicabilityCountThreshold__c,
         Record_Health_Check_Set__c
-      FROM Record_Health_Check_Rule__mdt
+      FROM Record_Health_Check__mdt
       WHERE IsActive__c = TRUE
       ORDER BY
         Record_Health_Check_Set__c ASC,
@@ -117,14 +117,14 @@ public with sharing class RecordHealthCheckMetadataValidator {
         DeveloperName ASC
     ];
 
-    return validateRecords(checkSets, allRules);
+    return validateRecords(checkSets, allChecks);
   }
 
   /**
    * Machine-readable entry point for setup tooling and CI.
    *
    * Deliberately not `@AuraEnabled`: this serializes the full validation
-   * of every Check Set and Rule — query, Apex class, and formula surfaces —
+   * of every Check Set and Check — query, Apex class, and formula surfaces —
    * which is admin/setup information, not per-record data. Exposing it to the
    * LWC/Aura surface would hand that config detail to any user who can invoke
    * component Apex, with no permission gate. CI and setup tooling call this
@@ -138,7 +138,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
   @TestVisible
   private List<ValidationIssue> validateRecords(
     List<Record_Health_Check_Set__mdt> checkSets,
-    List<Record_Health_Check_Rule__mdt> allRules
+    List<Record_Health_Check__mdt> allChecks
   ) {
     List<ValidationIssue> issues = new List<ValidationIssue>();
 
@@ -148,26 +148,24 @@ public with sharing class RecordHealthCheckMetadataValidator {
       issues.addAll(validateCheckSet(cs));
     }
 
-    // Group rules by Check Set for dependency validation
-    Map<String, List<Record_Health_Check_Rule__mdt>> rulesByCheckSet = new Map<String, List<Record_Health_Check_Rule__mdt>>();
-    Map<String, Record_Health_Check_Rule__mdt> rulesByDevName = new Map<String, Record_Health_Check_Rule__mdt>();
+    // Group checks by Check Set for dependency validation
+    Map<String, List<Record_Health_Check__mdt>> checksByCheckSet = new Map<String, List<Record_Health_Check__mdt>>();
+    Map<String, Record_Health_Check__mdt> checksByDevName = new Map<String, Record_Health_Check__mdt>();
 
-    for (Record_Health_Check_Rule__mdt rule : allRules) {
-      String csName = String.valueOf(rule.Record_Health_Check_Set__c);
-      if (!rulesByCheckSet.containsKey(csName)) {
-        rulesByCheckSet.put(csName, new List<Record_Health_Check_Rule__mdt>());
+    for (Record_Health_Check__mdt check : allChecks) {
+      String csName = String.valueOf(check.Record_Health_Check_Set__c);
+      if (!checksByCheckSet.containsKey(csName)) {
+        checksByCheckSet.put(csName, new List<Record_Health_Check__mdt>());
       }
-      rulesByCheckSet.get(csName).add(rule);
-      rulesByDevName.put(rule.DeveloperName, rule);
-      issues.addAll(validateRule(rule));
+      checksByCheckSet.get(csName).add(check);
+      checksByDevName.put(check.DeveloperName, check);
+      issues.addAll(validateCheck(check));
     }
 
     // Dependency graph validation per Check Set
-    for (String csName : rulesByCheckSet.keySet()) {
-      List<Record_Health_Check_Rule__mdt> setRules = rulesByCheckSet.get(
-        csName
-      );
-      if (setRules.size() > RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS) {
+    for (String csName : checksByCheckSet.keySet()) {
+      List<Record_Health_Check__mdt> setChecks = checksByCheckSet.get(csName);
+      if (setChecks.size() > RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS) {
         issues.add(
           new ValidationIssue(
             'WARNING',
@@ -175,7 +173,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
             null,
             'Only the first ' +
               RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS +
-              ' active rules are included in a run; remaining rules are omitted.',
+              ' active checks are included in a run; remaining checks are omitted.',
             'CHECK_LIMIT_EXCEEDED'
           )
         );
@@ -185,26 +183,26 @@ public with sharing class RecordHealthCheckMetadataValidator {
           i < RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
           i++
         ) {
-          included.add(setRules[i].DeveloperName);
+          included.add(setChecks[i].DeveloperName);
         }
         for (
           Integer i = 0;
           i < RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
           i++
         ) {
-          Record_Health_Check_Rule__mdt includedRule = setRules[i];
+          Record_Health_Check__mdt includedCheck = setChecks[i];
           if (
-            String.isNotBlank(includedRule.PrerequisiteRule__c) &&
-            !included.contains(includedRule.PrerequisiteRule__c.trim())
+            String.isNotBlank(includedCheck.PrerequisiteCheck__c) &&
+            !included.contains(includedCheck.PrerequisiteCheck__c.trim())
           ) {
             issues.add(
               new ValidationIssue(
                 'WARNING',
-                includedRule.DeveloperName,
-                'PrerequisiteRule__c',
+                includedCheck.DeveloperName,
+                'PrerequisiteCheck__c',
                 'The dependency is outside the first-' +
                   RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS +
-                  ' execution window, so this rule will be skipped.',
+                  ' execution window, so this check will be skipped.',
                 'DEPENDENCY_NOT_IN_RUN'
               )
             );
@@ -214,8 +212,8 @@ public with sharing class RecordHealthCheckMetadataValidator {
       issues.addAll(
         RHCMetadataDependencyValidator.validate(
           csName,
-          setRules,
-          rulesByDevName
+          setChecks,
+          checksByDevName
         )
       );
     }
@@ -231,33 +229,31 @@ public with sharing class RecordHealthCheckMetadataValidator {
     return RecordHealthCheckMetadataSetValidator.validate(checkSet);
   }
 
-  // ─── Rule validation ──────────────────────────────────────────────────────
+  // ─── Check validation ──────────────────────────────────────────────────────
 
-  private List<ValidationIssue> validateRule(
-    Record_Health_Check_Rule__mdt rule
-  ) {
+  private List<ValidationIssue> validateCheck(Record_Health_Check__mdt check) {
     List<ValidationIssue> issues = new List<ValidationIssue>();
     RecordHealthCheckTokenIssue tokenIssue = RecordHealthCheckConfigValidator.firstTemplateIssue(
-      rule
+      check
     );
     if (tokenIssue != null) {
-      issues.add(err(rule, null, tokenIssue.message, tokenIssue.reasonCode));
+      issues.add(err(check, null, tokenIssue.message, tokenIssue.reasonCode));
     }
 
-    if (String.isBlank(rule.CheckTitle__c)) {
+    if (String.isBlank(check.CheckTitle__c)) {
       issues.add(
         err(
-          rule,
+          check,
           'CheckTitle__c',
           'Check Title is required.',
           'MISSING_REQUIRED_FIELD'
         )
       );
     }
-    if (rule.EvaluationOrder__c == null) {
+    if (check.EvaluationOrder__c == null) {
       issues.add(
         err(
-          rule,
+          check,
           'EvaluationOrder__c',
           'Evaluation Order is required.',
           'MISSING_REQUIRED_FIELD'
@@ -265,32 +261,32 @@ public with sharing class RecordHealthCheckMetadataValidator {
       );
     }
     if (
-      String.isBlank(rule.FailureSeverity__c) ||
-      !VALID_SEVERITIES.contains(rule.FailureSeverity__c)
+      String.isBlank(check.FailureSeverity__c) ||
+      !VALID_SEVERITIES.contains(check.FailureSeverity__c)
     ) {
       issues.add(
         err(
-          rule,
+          check,
           'FailureSeverity__c',
           'Severity must be CRITICAL, WARNING, or INFO.',
           'INVALID_CONFIG'
         )
       );
     }
-    if (String.isBlank(rule.FailureMessage__c)) {
+    if (String.isBlank(check.FailureMessage__c)) {
       issues.add(
         err(
-          rule,
+          check,
           'FailureMessage__c',
           'Message When Check Fails is required.',
           'MISSING_REQUIRED_FIELD'
         )
       );
     }
-    if (String.isBlank(rule.EvaluationType__c)) {
+    if (String.isBlank(check.EvaluationType__c)) {
       issues.add(
         err(
-          rule,
+          check,
           'EvaluationType__c',
           'Evaluation Type is required.',
           'MISSING_REQUIRED_FIELD'
@@ -299,12 +295,14 @@ public with sharing class RecordHealthCheckMetadataValidator {
       return issues; // can't validate further without Check Type
     }
 
-    if (!VALID_CHECK_TYPES.contains(rule.EvaluationType__c)) {
+    if (!VALID_CHECK_TYPES.contains(check.EvaluationType__c)) {
       issues.add(
         err(
-          rule,
+          check,
           'EvaluationType__c',
-          'Evaluation Type "' + rule.EvaluationType__c + '" is not recognized.',
+          'Evaluation Type "' +
+            check.EvaluationType__c +
+            '" is not recognized.',
           'INVALID_CHECK_TYPE'
         )
       );
@@ -313,15 +311,15 @@ public with sharing class RecordHealthCheckMetadataValidator {
 
     // ApplicabilityMode validation (null / blank == Always, which is valid)
     if (
-      String.isNotBlank(rule.ApplicabilityMode__c) &&
-      !VALID_APPLICABILITY_MODES.contains(rule.ApplicabilityMode__c)
+      String.isNotBlank(check.ApplicabilityMode__c) &&
+      !VALID_APPLICABILITY_MODES.contains(check.ApplicabilityMode__c)
     ) {
       issues.add(
         err(
-          rule,
+          check,
           'ApplicabilityMode__c',
           'ApplicabilityMode "' +
-            rule.ApplicabilityMode__c +
+            check.ApplicabilityMode__c +
             '" is not recognized. Valid values: ALL_RECORDS, WHEN_FORMULA_TRUE, WHEN_COUNT_QUERY_MATCHES.',
           'INVALID_CONFIG'
         )
@@ -332,37 +330,37 @@ public with sharing class RecordHealthCheckMetadataValidator {
     // so a misconfigured gate is caught at deploy time, not first evaluation.
     issues.addAll(
       RecordHealthCheckMetadataIssueMapper.toIssues(
-        RecordHealthCheckRuleValidator.applicabilityFindings(rule),
-        rule
+        RecordHealthCheckValidator.applicabilityFindings(check),
+        check
       )
     );
 
-    if (rule.EvaluationType__c == 'FORMULA') {
+    if (check.EvaluationType__c == 'FORMULA') {
       issues.addAll(
         RecordHealthCheckMetadataIssueMapper.toIssues(
-          RecordHealthCheckRuleValidator.formulaFindings(rule),
-          rule
+          RecordHealthCheckValidator.formulaFindings(check),
+          check
         )
       );
-    } else if (rule.EvaluationType__c == 'QUERY') {
+    } else if (check.EvaluationType__c == 'QUERY') {
       issues.addAll(
         RecordHealthCheckMetadataIssueMapper.toIssues(
-          RecordHealthCheckRuleValidator.queryFindings(rule),
-          rule
+          RecordHealthCheckValidator.queryFindings(check),
+          check
         )
       );
-    } else if (rule.EvaluationType__c == 'APEX') {
+    } else if (check.EvaluationType__c == 'APEX') {
       issues.addAll(
         RecordHealthCheckMetadataIssueMapper.toIssues(
-          RecordHealthCheckRuleValidator.apexFindings(rule),
-          rule
+          RecordHealthCheckValidator.apexFindings(check),
+          check
         )
       );
-    } else if (rule.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
+    } else if (check.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
       issues.addAll(
         RecordHealthCheckMetadataIssueMapper.toIssues(
-          RecordHealthCheckRuleValidator.compareQueriesFindings(rule),
-          rule
+          RecordHealthCheckValidator.compareQueriesFindings(check),
+          check
         )
       );
     }
@@ -372,13 +370,13 @@ public with sharing class RecordHealthCheckMetadataValidator {
     // each to this class's reason code / field.
     RecordHealthCheckMetadataIssueMapper.addIssues(
       issues,
-      RecordHealthCheckRuleValidator.maxRowsFindings(rule),
-      rule
+      RecordHealthCheckValidator.maxRowsFindings(check),
+      check
     );
     RecordHealthCheckMetadataIssueMapper.addIssues(
       issues,
-      RecordHealthCheckRuleValidator.nullEmptyFindings(rule),
-      rule
+      RecordHealthCheckValidator.nullEmptyFindings(check),
+      check
     );
 
     return issues;
@@ -389,14 +387,14 @@ public with sharing class RecordHealthCheckMetadataValidator {
   // ─── Convenience builder ──────────────────────────────────────────────────
 
   private ValidationIssue err(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     String fieldName,
     String message,
     String reasonCode
   ) {
     return new ValidationIssue(
       'ERROR',
-      rule.DeveloperName,
+      check.DeveloperName,
       fieldName,
       message,
       reasonCode

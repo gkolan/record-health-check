@@ -16,14 +16,14 @@ private class RHCDualQueryBehaviorTest {
 
     assertStatus(
       evaluator.evaluate(
-        validDualRule('D_Counts_Equal'),
+        validDualCheck('D_Counts_Equal'),
         accountRecord.Id,
         accountRecord
       ),
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt notEquals = validDualRule('D_Not_Equals');
+    Record_Health_Check__mdt notEquals = validDualCheck('D_Not_Equals');
     notEquals.ComparisonOperator__c = 'NOT_EQUALS';
     notEquals.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Opportunity WHERE AccountId = {!record.Id}';
     assertStatus(
@@ -31,7 +31,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt contains = validDualRule('D_Contains');
+    Record_Health_Check__mdt contains = validDualCheck('D_Contains');
     contains.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
     contains.SourceQueryField__c = 'BillingCity';
     contains.ComparisonQuery__c = 'SELECT BillingState FROM Account WHERE Id = {!record.Id}';
@@ -42,7 +42,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt containsPositive = validDualRule(
+    Record_Health_Check__mdt containsPositive = validDualCheck(
       'D_Contains_Positive'
     );
     containsPositive.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
@@ -55,9 +55,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt numericOrder = validDualRule(
-      'D_Numeric_Order'
-    );
+    Record_Health_Check__mdt numericOrder = validDualCheck('D_Numeric_Order');
     numericOrder.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
     numericOrder.SourceQueryField__c = 'AnnualRevenue';
     numericOrder.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
@@ -67,7 +65,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt dateOrder = validDualRule('D_Date_Order');
+    Record_Health_Check__mdt dateOrder = validDualCheck('D_Date_Order');
     dateOrder.SourceQuery__c = 'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} LIMIT 1';
     dateOrder.SourceQueryField__c = 'CloseDate';
     dateOrder.ComparisonQuery__c = 'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} LIMIT 1';
@@ -78,7 +76,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt nullSkip = validDualRule('D_Null_Skip');
+    Record_Health_Check__mdt nullSkip = validDualCheck('D_Null_Skip');
     nullSkip.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
     nullSkip.SourceQueryField__c = 'Description';
     nullSkip.ComparisonQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
@@ -90,7 +88,7 @@ private class RHCDualQueryBehaviorTest {
       'SKIPPED'
     );
 
-    Record_Health_Check_Rule__mdt nullFail = nullSkip.clone();
+    Record_Health_Check__mdt nullFail = nullSkip.clone();
     nullFail.DeveloperName = 'D_Null_Fail';
     nullFail.EmptyValueHandling__c = 'AS_NO_MATCH';
     assertStatus(
@@ -98,7 +96,7 @@ private class RHCDualQueryBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt nullBlank = nullSkip.clone();
+    Record_Health_Check__mdt nullBlank = nullSkip.clone();
     nullBlank.DeveloperName = 'D_Null_Blank';
     nullBlank.EmptyValueHandling__c = 'AS_BLANK';
     nullBlank.ComparisonOperator__c = 'EQUALS';
@@ -113,7 +111,7 @@ private class RHCDualQueryBehaviorTest {
     // NoRowsResult__c, NOT by the null-value behavior. The impossible Name filter
     // guarantees an empty primary regardless of org data. An empty side with
     // Treat as not matching (AS_NO_MATCH) must honor NoRowsResult__c, not fail by default.
-    Record_Health_Check_Rule__mdt emptyPrimarySkip = validDualRule(
+    Record_Health_Check__mdt emptyPrimarySkip = validDualCheck(
       'D_Empty_Primary_Skip'
     );
     emptyPrimarySkip.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id} AND Name = \'__rhc_no_match__\'';
@@ -128,7 +126,7 @@ private class RHCDualQueryBehaviorTest {
       'SKIPPED'
     );
 
-    Record_Health_Check_Rule__mdt emptyPrimaryFail = emptyPrimarySkip.clone();
+    Record_Health_Check__mdt emptyPrimaryFail = emptyPrimarySkip.clone();
     emptyPrimaryFail.DeveloperName = 'D_Empty_Primary_Fail';
     emptyPrimaryFail.NoRowsResult__c = 'FAIL';
     assertStatus(
@@ -137,7 +135,7 @@ private class RHCDualQueryBehaviorTest {
     );
 
     // WhenZeroRows = UnableToEvaluate on an empty side surfaces NO_ROWS_RETURNED.
-    Record_Health_Check_Rule__mdt emptyPrimaryUnable = emptyPrimarySkip.clone();
+    Record_Health_Check__mdt emptyPrimaryUnable = emptyPrimarySkip.clone();
     emptyPrimaryUnable.DeveloperName = 'D_Empty_Primary_Unable';
     emptyPrimaryUnable.NoRowsResult__c = 'UNABLE_TO_EVALUATE';
     RecordHealthCheckInternalResult unableResult = evaluator.evaluate(
@@ -149,7 +147,7 @@ private class RHCDualQueryBehaviorTest {
     Assert.areEqual('NO_ROWS_RETURNED', unableResult.reasonCode);
 
     // An invalid query field surfaces through the compare-queries runQuery error path.
-    Record_Health_Check_Rule__mdt badQuery = emptyPrimarySkip.clone();
+    Record_Health_Check__mdt badQuery = emptyPrimarySkip.clone();
     badQuery.DeveloperName = 'D_Bad_Query';
     badQuery.SourceQuery__c = 'SELECT NoSuchField__zzz FROM Account WHERE Id = {!record.Id}';
     badQuery.SourceQueryField__c = 'NoSuchField__zzz';
@@ -160,7 +158,7 @@ private class RHCDualQueryBehaviorTest {
     );
     assertStatus(badQueryResult, 'UNABLE_TO_EVALUATE');
 
-    Record_Health_Check_Rule__mdt listOverlap = validDualRule('D_List_Overlap');
+    Record_Health_Check__mdt listOverlap = validDualCheck('D_List_Overlap');
     listOverlap.QueryResultHandling__c = 'COMPARE_AS_LISTS';
     listOverlap.ComparisonOperator__c = 'LISTS_OVERLAP';
     listOverlap.SourceQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id}';
@@ -172,7 +170,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt containsAll = listOverlap.clone();
+    Record_Health_Check__mdt containsAll = listOverlap.clone();
     containsAll.DeveloperName = 'D_List_Contains_All';
     containsAll.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
     assertStatus(
@@ -180,7 +178,7 @@ private class RHCDualQueryBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt containsAllPass = listOverlap.clone();
+    Record_Health_Check__mdt containsAllPass = listOverlap.clone();
     containsAllPass.DeveloperName = 'D_List_Contains_All_Pass';
     containsAllPass.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
     containsAllPass.ComparisonQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id}';
@@ -190,7 +188,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt exactMatch = listOverlap.clone();
+    Record_Health_Check__mdt exactMatch = listOverlap.clone();
     exactMatch.DeveloperName = 'D_Exact_Match';
     exactMatch.ComparisonOperator__c = 'LISTS_MATCH_EXACTLY';
     exactMatch.ComparisonQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id}';
@@ -203,7 +201,7 @@ private class RHCDualQueryBehaviorTest {
     // CompareAsLists where every primary value is null and dropped by
     // SkipRecordsWithMissingValue → empty list with non-empty rows → SKIPPED
     // (indeterminate), not a silent FAIL from comparing empty sets.
-    Record_Health_Check_Rule__mdt allNullSkip = listOverlap.clone();
+    Record_Health_Check__mdt allNullSkip = listOverlap.clone();
     allNullSkip.DeveloperName = 'D_List_All_Null_Skip';
     allNullSkip.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
     allNullSkip.SourceQueryField__c = 'Description';
@@ -217,7 +215,7 @@ private class RHCDualQueryBehaviorTest {
 
     // Treat as not matching (AS_NO_MATCH) keeps null values as distinct placeholders (non-empty
     // list), so an all-null primary cannot overlap a real comparison value.
-    Record_Health_Check_Rule__mdt allNullNoMatch = allNullSkip.clone();
+    Record_Health_Check__mdt allNullNoMatch = allNullSkip.clone();
     allNullNoMatch.DeveloperName = 'D_List_All_Null_NoMatch';
     allNullNoMatch.EmptyValueHandling__c = 'AS_NO_MATCH';
     assertStatus(
@@ -226,7 +224,7 @@ private class RHCDualQueryBehaviorTest {
     );
 
     // TreatMissingAsBlank coerces a null value to '' (a matchable blank).
-    Record_Health_Check_Rule__mdt allNullBlank = allNullSkip.clone();
+    Record_Health_Check__mdt allNullBlank = allNullSkip.clone();
     allNullBlank.DeveloperName = 'D_List_All_Null_Blank';
     allNullBlank.EmptyValueHandling__c = 'AS_BLANK';
     allNullBlank.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
@@ -238,7 +236,7 @@ private class RHCDualQueryBehaviorTest {
     );
 
     // WhenZeroRows = Pass on a genuinely empty side.
-    Record_Health_Check_Rule__mdt emptyPass = listOverlap.clone();
+    Record_Health_Check__mdt emptyPass = listOverlap.clone();
     emptyPass.DeveloperName = 'D_List_Empty_Pass';
     emptyPass.SourceQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND LastName = \'__rhc_no_match__\'';
     emptyPass.NoRowsResult__c = 'PASS';
@@ -248,9 +246,7 @@ private class RHCDualQueryBehaviorTest {
     );
 
     // OneResult FAIL with a blank MessageWhenFailed falls back to the default text.
-    Record_Health_Check_Rule__mdt blankMsgFail = validDualRule(
-      'D_Blank_Msg_Fail'
-    );
+    Record_Health_Check__mdt blankMsgFail = validDualCheck('D_Blank_Msg_Fail');
     blankMsgFail.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
     blankMsgFail.SourceQueryField__c = 'AnnualRevenue';
     blankMsgFail.ComparisonQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
@@ -267,7 +263,7 @@ private class RHCDualQueryBehaviorTest {
 
     // A template-invalid query (disallowed access level) surfaces through the
     // compare-queries runQuery TemplateException path.
-    Record_Health_Check_Rule__mdt templateBad = validDualRule('D_Template_Bad');
+    Record_Health_Check__mdt templateBad = validDualCheck('D_Template_Bad');
     templateBad.SourceQuery__c = 'SELECT Id FROM Account WHERE Id = {!record.Id} WITH SYSTEM_MODE';
     RecordHealthCheckInternalResult templateBadResult = evaluator.evaluate(
       templateBad,
@@ -276,7 +272,7 @@ private class RHCDualQueryBehaviorTest {
     );
     assertStatus(templateBadResult, 'UNABLE_TO_EVALUATE');
 
-    Record_Health_Check_Rule__mdt exactMismatch = exactMatch.clone();
+    Record_Health_Check__mdt exactMismatch = exactMatch.clone();
     exactMismatch.DeveloperName = 'D_Exact_Mismatch';
     exactMismatch.ComparisonQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
     exactMismatch.ComparisonQueryField__c = 'BillingCity';
@@ -285,7 +281,7 @@ private class RHCDualQueryBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt listsNoOverlap = listOverlap.clone();
+    Record_Health_Check__mdt listsNoOverlap = listOverlap.clone();
     listsNoOverlap.DeveloperName = 'D_Lists_No_Overlap';
     listsNoOverlap.ComparisonQuery__c = 'SELECT BillingState FROM Account WHERE Id = {!record.Id}';
     listsNoOverlap.ComparisonQueryField__c = 'BillingState';
@@ -294,7 +290,7 @@ private class RHCDualQueryBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt emptyListPass = listOverlap.clone();
+    Record_Health_Check__mdt emptyListPass = listOverlap.clone();
     emptyListPass.DeveloperName = 'D_Empty_List_Pass';
     emptyListPass.SourceQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = null';
     emptyListPass.NoRowsResult__c = 'PASS';
@@ -303,7 +299,7 @@ private class RHCDualQueryBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt emptyListUnable = emptyListPass.clone();
+    Record_Health_Check__mdt emptyListUnable = emptyListPass.clone();
     emptyListUnable.DeveloperName = 'D_Empty_List_Unable';
     emptyListUnable.NoRowsResult__c = 'UNABLE_TO_EVALUATE';
     assertStatus(
@@ -311,7 +307,7 @@ private class RHCDualQueryBehaviorTest {
       'UNABLE_TO_EVALUATE'
     );
 
-    Record_Health_Check_Rule__mdt emptyListSkip = emptyListPass.clone();
+    Record_Health_Check__mdt emptyListSkip = emptyListPass.clone();
     emptyListSkip.DeveloperName = 'D_Empty_List_Skip';
     emptyListSkip.NoRowsResult__c = 'SKIP';
     assertStatus(
@@ -319,9 +315,7 @@ private class RHCDualQueryBehaviorTest {
       'SKIPPED'
     );
 
-    Record_Health_Check_Rule__mdt multipleRows = validDualRule(
-      'D_Multiple_Rows'
-    );
+    Record_Health_Check__mdt multipleRows = validDualCheck('D_Multiple_Rows');
     multipleRows.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId = {!record.Id}';
     multipleRows.SourceQueryField__c = 'Id';
     assertReason(
@@ -329,7 +323,7 @@ private class RHCDualQueryBehaviorTest {
       'MULTIPLE_ROWS_RETURNED'
     );
 
-    Record_Health_Check_Rule__mdt missingFieldName = validDualRule(
+    Record_Health_Check__mdt missingFieldName = validDualCheck(
       'D_Missing_Field_Name'
     );
     missingFieldName.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
@@ -339,7 +333,7 @@ private class RHCDualQueryBehaviorTest {
       'INVALID_SOQL_TEMPLATE'
     );
 
-    Record_Health_Check_Rule__mdt badFieldName = listOverlap.clone();
+    Record_Health_Check__mdt badFieldName = listOverlap.clone();
     badFieldName.DeveloperName = 'D_Bad_Field_Name';
     badFieldName.SourceQueryField__c = 'Missing__c';
     assertReason(
@@ -347,7 +341,7 @@ private class RHCDualQueryBehaviorTest {
       'INVALID_SOQL_TEMPLATE'
     );
 
-    Record_Health_Check_Rule__mdt invalidMode = validDualRule(
+    Record_Health_Check__mdt invalidMode = validDualCheck(
       'D_Invalid_Mode_Runtime'
     );
     invalidMode.QueryResultHandling__c = 'Bogus';
@@ -356,7 +350,7 @@ private class RHCDualQueryBehaviorTest {
       'INVALID_OPERATOR'
     );
 
-    Record_Health_Check_Rule__mdt invalidListOperator = listOverlap.clone();
+    Record_Health_Check__mdt invalidListOperator = listOverlap.clone();
     invalidListOperator.DeveloperName = 'D_Invalid_List_Operator_Runtime';
     invalidListOperator.ComparisonOperator__c = 'EQUALS';
     assertReason(
@@ -364,9 +358,7 @@ private class RHCDualQueryBehaviorTest {
       'INVALID_OPERATOR'
     );
 
-    Record_Health_Check_Rule__mdt incompatible = validDualRule(
-      'D_Incompatible'
-    );
+    Record_Health_Check__mdt incompatible = validDualCheck('D_Incompatible');
     incompatible.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
     incompatible.SourceQueryField__c = 'BillingCity';
     incompatible.ComparisonQuery__c = 'SELECT BillingState FROM Account WHERE Id = {!record.Id}';
@@ -377,7 +369,7 @@ private class RHCDualQueryBehaviorTest {
       'INCOMPATIBLE_COMPARISON_TYPES'
     );
 
-    Record_Health_Check_Rule__mdt maxRows = validDualRule('D_Max_Rows');
+    Record_Health_Check__mdt maxRows = validDualCheck('D_Max_Rows');
     maxRows.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId = {!record.Id}';
     maxRows.SourceQueryField__c = 'Id';
     maxRows.MaxQueryRows__c = 1;
@@ -387,11 +379,11 @@ private class RHCDualQueryBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -400,7 +392,7 @@ private class RHCDualQueryBehaviorTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'FormulaResultType__c' => 'AUTO',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',
@@ -410,21 +402,19 @@ private class RHCDualQueryBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt dualRule(String developerName) {
-    return baseRule(developerName, 'COMPARE_TWO_QUERIES');
+  private static Record_Health_Check__mdt dualCheck(String developerName) {
+    return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
   }
 
-  private static Record_Health_Check_Rule__mdt validDualRule(
-    String developerName
-  ) {
-    Record_Health_Check_Rule__mdt rule = dualRule(developerName);
-    rule.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    rule.SourceQueryField__c = 'totalCount';
-    rule.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    rule.ComparisonQueryField__c = 'totalCount';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    return rule;
+  private static Record_Health_Check__mdt validDualCheck(String developerName) {
+    Record_Health_Check__mdt check = dualCheck(developerName);
+    check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.SourceQueryField__c = 'totalCount';
+    check.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.ComparisonQueryField__c = 'totalCount';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    return check;
   }
 
   private static void assertUnable(

@@ -1,11 +1,11 @@
 # Reference: Apex results, definitions, and plugins (L1)
 
 > [!NOTE]
-> On this page, look up the L1 result and definition types, the `RecordHealthCheckRule` plugin
+> On this page, look up the L1 result and definition types, the `RecordHealthCheckPlugin`
 > interface, shipped example plugins, and test helpers that are not runtime entry points.
 
 This page is part of the [Apex class reference](README.md). For writing a plugin, see
-[Apex Rule contract](../evaluation/04-apex-rule-contract.md) and
+[Apex Check contract](../evaluation/04-apex-check-contract.md) and
 [Plugin verification](08-plugin-verification.md).
 
 ## Results, definitions, and plugin interface (L1)
@@ -15,16 +15,16 @@ This page is part of the [Apex class reference](README.md). For writing a plugin
 **Role:** Separate stable machine data from optional human-facing rendering.
 **Type:** Global data holders
 
-`RecordHealthCheckEvaluationResult` carries status, qualified Rule identity, reason code, severity,
+`RecordHealthCheckEvaluationResult` carries status, qualified Check identity, reason code, severity,
 and typed Found/Expected values. `RecordHealthCheckResultDisplay` carries labels, messages, links,
 and formatted values only when the selected result mode requests display content.
 
 ### `RecordHealthCheckResponse` / `RecordHealthCheckResultItem`
 
-**Role:** Common response shape for both Rule and Check Set requests.
+**Role:** Common response shape for both Check and Check Set requests.
 **Type:** Global data holders
 
-The response preserves the detached input record order and selected Rule order. Each result item
+The response preserves the detached input record order and selected Check order. Each result item
 contains one evaluation plus optional display content; the summary holds terminal status totals.
 
 **See also:** [Apex API response contract](../../api/01-apex-api.md#response-contract)
@@ -38,16 +38,16 @@ contains one evaluation plus optional display content; the summary holds termina
 
 | Member | Purpose |
 | --- | --- |
-| `RecordHealthCheckDefinition.developerName` / `label` / `description` / `priority` | One Rule's identity and display fields |
-| `RecordHealthCheckDefinition.dependsOnRuleDeveloperName` | `null` when the Rule has no `PrerequisiteRule__c` dependency |
+| `RecordHealthCheckDefinition.developerName` / `label` / `description` / `priority` | One Check's identity and display fields |
+| `RecordHealthCheckDefinition.dependsOnCheckDeveloperName` | `null` when the Check has no `PrerequisiteCheck__c` dependency |
 | `RecordHealthCheckDefinitionResponse` title/trigger/reveal/display fields | Check Set card settings (title, trigger/reveal modes, passed/skipped/comparison display, stop-on-first-error) |
 | `RecordHealthCheckDefinitionResponse.checksOmittedByLimit` | Truncation metadata for the "First 25 of N shown" badge |
-| `RecordHealthCheckDefinitionResponse.inactiveRuleLabels` | Diagnostics-only detail behind `inactiveRuleCount` |
-| `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks` | Diagnostics visibility flag and the ordered Rule definitions |
+| `RecordHealthCheckDefinitionResponse.inactiveCheckLabels` | Diagnostics-only detail behind `inactiveCheckCount` |
+| `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks` | Diagnostics visibility flag and the ordered Check definitions |
 
 **Notable behavior:**
-- **Note:** `inactiveRuleLabels` - the list of names, not just the count - is only meaningful to an
- admin auditing why a Rule did not run.
+- **Note:** `inactiveCheckLabels` - the list of names, not just the count - is only meaningful to an
+ admin auditing why a Check did not run.
 
 ### `RecordHealthCheckAdminDetail`
 
@@ -87,13 +87,13 @@ Left blank on a normal business response.
  parenthetical note. `rowCount` exists solely so a value-source note never reads "1 row(s)": it
  special-cases `n == 1` to `"1 row"` and treats a `null` count as `0`.
 
-### `RecordHealthCheckRule` (interface)
+### `RecordHealthCheckPlugin` (interface)
 
 **Role:** Plugin interface for Apex Evaluation Type.
 **Type:** Interface · `global`
 
 ```apex
-global interface RecordHealthCheckRule {
+global interface RecordHealthCheckPlugin {
   Map<Id, RecordHealthCheckOutcome> evaluate(RecordHealthCheckScope scope);
 }
 ```
@@ -108,7 +108,7 @@ overlay returned facts, and isolate record-specific conversion errors inside the
 
 ### `RecordHealthCheckScope`
 
-**Role:** Input to `RecordHealthCheckRule.evaluate`.
+**Role:** Input to `RecordHealthCheckPlugin.evaluate`.
 **Type:** Read-only global data holder
 
 **Key members:**
@@ -118,7 +118,7 @@ overlay returned facts, and isolate record-specific conversion errors inside the
 | `objectApiName` | Object API name (for example `Account`) |
 | `recordIds` | Detached copy of every record Id in the request scope |
 | `parameters` | Detached parsed `ApexParametersJson__c` map |
-| `ruleQualifiedApiName` | Qualified Rule identity |
+| `checkQualifiedApiName` | Qualified Check identity |
 | `checkSetQualifiedApiName` | Qualified parent Check Set identity |
 | `runId` | Correlation id for the request |
 
@@ -126,20 +126,20 @@ overlay returned facts, and isolate record-specific conversion errors inside the
 - **Important:** getters return detached collections. A plugin cannot mutate the pipeline's record Ids
   or parameter map through the scope object.
 
-**See also:** [Reference: Apex](../evaluation/04-apex-rule-contract.md)
+**See also:** [Reference: Apex](../evaluation/04-apex-check-contract.md)
 
 ---
 
 
 ## Example Apex plugins
 
-These classes implement `RecordHealthCheckRule`. They are examples and fixtures, not required for
-the engine to run Formula or Query Rules.
+These classes implement `RecordHealthCheckPlugin`. They are examples and fixtures, not required for
+the engine to run Formula or Query Checks.
 
 ### `AccountHasRecentActivityCheck`
 
-**Role:** Shipped Apex Rule for recent Account Task/Event activity.
-**Type:** Example plugin (implements `RecordHealthCheckRule`) · `global with sharing`
+**Role:** Shipped Apex Check for recent Account Task/Event activity.
+**Type:** Example plugin (implements `RecordHealthCheckPlugin`) · `global with sharing`
 
 Ships with Record Health Check in the Framework package. Passes when the Account has at least one completed Task or Event in
 a look-back window. Tunable with `ApexParametersJson__c`: `{"daysBack": 90}` (default 30, bounds

@@ -27,7 +27,7 @@ predicate to issue a single query.
 
 ## Templates
 
-| Strategy | Package | Rule | Field | Correlation | Note |
+| Strategy | Package | Check | Field | Correlation | Note |
 | --- | --- | --- | --- | --- | --- |
 | `CHILD_DIRECT` | force-app | `Example_Contacts_Have_Email` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_No_High_Priority_Issues` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |

@@ -24,7 +24,7 @@
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Covers every Display: Value Format on Query, Formula, and Compare two queries Rules, including Salesforce Percent and Ratio as Percent as separate semantics.</value>
+    >Covers every Display: Value Format on Query, Formula, and Compare two queries Checks, including Salesforce Percent and Ratio as Percent as separate semantics.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

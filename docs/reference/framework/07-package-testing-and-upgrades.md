@@ -19,7 +19,7 @@ This reference explains the design of those two paths so you do not mix them.
 | --- | --- |
 | Install promoted `04t` package versions | Clone source and redeploy for every release |
 | Upgrade `2.0` → `2.1` → `2.2` in the same org | Edit `RecordHealthCheckTestDataFactory` or other packaged Apex |
-| Author Custom Metadata Check Sets and Rules in Setup | Fork packaged classes in the subscriber org |
+| Author Custom Metadata Check Sets and Checks in Setup | Fork packaged classes in the subscriber org |
 | Write your own Apex plugins and tests in your repo | Expect `RunLocalTests` to execute packaged RHC tests |
 
 Treat any change to installed package Apex as an unsupported fork. Package upgrades overwrite
@@ -47,7 +47,7 @@ Integration tests:
 
 Customer tests:
 
-- Cover org-specific Rules, Apex plugins, validation rules, and business automation.
+- Cover org-specific Checks, Apex plugins, Validation Rules, and business automation.
 - Live in the customer repository, not inside the Record Health Check package.
 
 ## How RunLocalTests behaves with installed packages

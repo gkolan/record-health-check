@@ -25,14 +25,14 @@ private class RHCSoqlEvaluatorBehaviorTest {
 
     assertStatus(
       evaluator.evaluate(
-        queryRule('Q_Equals_Pass'),
+        queryCheck('Q_Equals_Pass'),
         accountRecord.Id,
         accountRecord
       ),
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt notEquals = queryRule('Q_NotEquals_Fail');
+    Record_Health_Check__mdt notEquals = queryCheck('Q_NotEquals_Fail');
     notEquals.ComparisonOperator__c = 'NOT_EQUALS';
     notEquals.ExpectedFixedValue__c = accountRecord.BillingCity;
     RecordHealthCheckInternalResult notEqualsResult = evaluator.evaluate(
@@ -54,7 +54,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'expectedValue should describe the operator and operand'
     );
 
-    Record_Health_Check_Rule__mdt contains = queryRule('Q_Contains_Pass');
+    Record_Health_Check__mdt contains = queryCheck('Q_Contains_Pass');
     contains.ComparisonOperator__c = 'CONTAINS';
     contains.ExpectedFixedValue__c = 'hic';
     assertStatus(
@@ -62,7 +62,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt doesNotContain = queryRule(
+    Record_Health_Check__mdt doesNotContain = queryCheck(
       'Q_Does_Not_Contain_Fail'
     );
     doesNotContain.ComparisonOperator__c = 'DOES_NOT_CONTAIN';
@@ -72,7 +72,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt greaterThan = queryRule('Q_Greater_Than');
+    Record_Health_Check__mdt greaterThan = queryCheck('Q_Greater_Than');
     greaterThan.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
     greaterThan.SourceQueryField__c = 'AnnualRevenue';
     greaterThan.ComparisonOperator__c = 'GREATER_THAN';
@@ -82,9 +82,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt aggregateCount = queryRule(
-      'Q_Aggregate_Count'
-    );
+    Record_Health_Check__mdt aggregateCount = queryCheck('Q_Aggregate_Count');
     aggregateCount.SourceQuery__c = 'SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}';
     aggregateCount.SourceQueryField__c = null;
     aggregateCount.ComparisonOperator__c = 'GREATER_THAN';
@@ -94,7 +92,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt numericParseError = queryRule(
+    Record_Health_Check__mdt numericParseError = queryCheck(
       'Q_Numeric_Parse_Error'
     );
     numericParseError.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
@@ -106,7 +104,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'INCOMPATIBLE_COMPARISON_TYPES'
     );
 
-    Record_Health_Check_Rule__mdt dateCompare = queryRule('Q_Date_Compare');
+    Record_Health_Check__mdt dateCompare = queryCheck('Q_Date_Compare');
     dateCompare.SourceQuery__c = 'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} LIMIT 1';
     dateCompare.SourceQueryField__c = 'CloseDate';
     dateCompare.ComparisonOperator__c = 'LESS_THAN_OR_EQUAL';
@@ -117,7 +115,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt textOrder = queryRule('Q_Text_Order');
+    Record_Health_Check__mdt textOrder = queryCheck('Q_Text_Order');
     textOrder.ComparisonOperator__c = 'GREATER_THAN';
     textOrder.ExpectedFixedValue__c = 'Alpha';
     assertReason(
@@ -125,7 +123,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'INCOMPATIBLE_COMPARISON_TYPES'
     );
 
-    Record_Health_Check_Rule__mdt isBlank = queryRule('Q_IsBlank');
+    Record_Health_Check__mdt isBlank = queryCheck('Q_IsBlank');
     isBlank.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
     isBlank.SourceQueryField__c = 'Description';
     isBlank.ComparisonOperator__c = 'IS_BLANK';
@@ -135,7 +133,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt isNotBlank = queryRule('Q_IsNotBlank');
+    Record_Health_Check__mdt isNotBlank = queryCheck('Q_IsNotBlank');
     isNotBlank.ComparisonOperator__c = 'IS_NOT_BLANK';
     isNotBlank.ExpectedValueSource__c = null;
     RecordHealthCheckInternalResult isNotBlankResult = evaluator.evaluate(
@@ -158,7 +156,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       isNotBlankResult.expectedValueSource.rawValueLabel
     );
 
-    Record_Health_Check_Rule__mdt nullAsBlank = queryRule('Q_Null_As_Blank');
+    Record_Health_Check__mdt nullAsBlank = queryCheck('Q_Null_As_Blank');
     nullAsBlank.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
     nullAsBlank.SourceQueryField__c = 'Description';
     nullAsBlank.ComparisonOperator__c = 'EQUALS';
@@ -169,7 +167,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt nullNoMatch = nullAsBlank.clone();
+    Record_Health_Check__mdt nullNoMatch = nullAsBlank.clone();
     nullNoMatch.DeveloperName = 'Q_Null_No_Match';
     nullNoMatch.EmptyValueHandling__c = 'AS_NO_MATCH';
     assertStatus(
@@ -177,7 +175,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt anyPass = queryRule('Q_Any_Pass');
+    Record_Health_Check__mdt anyPass = queryCheck('Q_Any_Pass');
     anyPass.SourceQuery__c = 'SELECT Email FROM Contact WHERE AccountId = {!record.Id}';
     anyPass.SourceQueryField__c = 'Email';
     anyPass.QueryResultHandling__c = 'ANY_ROW_PASSES';
@@ -188,7 +186,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt anyFail = anyPass.clone();
+    Record_Health_Check__mdt anyFail = anyPass.clone();
     anyFail.DeveloperName = 'Q_Any_Fail';
     anyFail.ExpectedFixedValue__c = '@missing.example';
     assertStatus(
@@ -196,7 +194,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt allFail = anyPass.clone();
+    Record_Health_Check__mdt allFail = anyPass.clone();
     allFail.DeveloperName = 'Q_All_Fail';
     allFail.QueryResultHandling__c = 'ALL_ROWS_PASS';
     assertStatus(
@@ -216,7 +214,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
         }
       )
     );
-    Record_Health_Check_Rule__mdt allBlankFail = queryRule('Q_All_Blank_Fail');
+    Record_Health_Check__mdt allBlankFail = queryCheck('Q_All_Blank_Fail');
     allBlankFail.SourceQuery__c = 'SELECT Email FROM Contact WHERE AccountId = {!record.Id}';
     allBlankFail.SourceQueryField__c = 'Email';
     allBlankFail.QueryResultHandling__c = 'ALL_ROWS_PASS';
@@ -229,9 +227,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
     );
     delete blankEmailContact;
 
-    Record_Health_Check_Rule__mdt anyAllSkipped = queryRule(
-      'Q_Any_All_Skipped'
-    );
+    Record_Health_Check__mdt anyAllSkipped = queryCheck('Q_Any_All_Skipped');
     anyAllSkipped.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
     anyAllSkipped.SourceQueryField__c = 'Description';
     anyAllSkipped.QueryResultHandling__c = 'ANY_ROW_PASSES';
@@ -248,7 +244,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
     // to Skip is indeterminate because of the null VALUE, not because of zero
     // rows. It must SKIP even when WhenZeroRows = Fail; the null value must not
     // be routed through the WhenZeroRows path.
-    Record_Health_Check_Rule__mdt nullSkipNotFail = queryRule(
+    Record_Health_Check__mdt nullSkipNotFail = queryCheck(
       'Q_Null_Skip_Not_Fail'
     );
     nullSkipNotFail.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
@@ -262,7 +258,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'SKIPPED'
     );
 
-    Record_Health_Check_Rule__mdt emptyPass = queryRule('Q_Empty_Pass');
+    Record_Health_Check__mdt emptyPass = queryCheck('Q_Empty_Pass');
     emptyPass.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId = null';
     emptyPass.SourceQueryField__c = 'Id';
     emptyPass.NoRowsResult__c = 'PASS';
@@ -271,7 +267,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt emptyUnable = emptyPass.clone();
+    Record_Health_Check__mdt emptyUnable = emptyPass.clone();
     emptyUnable.DeveloperName = 'Q_Empty_Unable';
     emptyUnable.NoRowsResult__c = 'UNABLE_TO_EVALUATE';
     RecordHealthCheckInternalResult emptyUnableResult = evaluator.evaluate(
@@ -282,7 +278,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
     assertStatus(emptyUnableResult, 'UNABLE_TO_EVALUATE');
     Assert.areEqual('NO_ROWS_RETURNED', emptyUnableResult.reasonCode);
 
-    Record_Health_Check_Rule__mdt emptySkip = emptyPass.clone();
+    Record_Health_Check__mdt emptySkip = emptyPass.clone();
     emptySkip.DeveloperName = 'Q_Empty_Skip';
     emptySkip.NoRowsResult__c = 'SKIP';
     assertStatus(
@@ -290,7 +286,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'SKIPPED'
     );
 
-    Record_Health_Check_Rule__mdt queryResult = queryRule('Q_Query_Result');
+    Record_Health_Check__mdt queryResult = queryCheck('Q_Query_Result');
     queryResult.ExpectedValueSource__c = 'COMPARISON_QUERY';
     queryResult.ComparisonQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
     queryResult.ComparisonQueryField__c = 'BillingCity';
@@ -299,7 +295,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt queryResultMultiple = queryResult.clone();
+    Record_Health_Check__mdt queryResultMultiple = queryResult.clone();
     queryResultMultiple.DeveloperName = 'Q_Query_Result_Multiple';
     queryResultMultiple.ComparisonQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id}';
     assertReason(
@@ -307,7 +303,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'MULTIPLE_ROWS_RETURNED'
     );
 
-    Record_Health_Check_Rule__mdt listContains = queryRule('Q_List_Contains');
+    Record_Health_Check__mdt listContains = queryCheck('Q_List_Contains');
     listContains.ComparisonOperator__c = 'LIST_CONTAINS_ANY';
     listContains.FindInListFormula__c = 'BillingCity';
     listContains.SourceQuery__c = null;
@@ -321,7 +317,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
 
     // List checks read only FindInListFormula__c — PassConditionFormula__c is ignored (no fallback).
     // A valid FindInListFormula__c passes even when PassConditionFormula__c holds a non-matching value.
-    Record_Health_Check_Rule__mdt listIgnoresPassFail = listContains.clone();
+    Record_Health_Check__mdt listIgnoresPassFail = listContains.clone();
     listIgnoresPassFail.DeveloperName = 'Q_List_Ignores_PassFail';
     listIgnoresPassFail.PassConditionFormula__c = '"Missing City"';
     assertStatus(
@@ -329,7 +325,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt listDoesNotContain = listContains.clone();
+    Record_Health_Check__mdt listDoesNotContain = listContains.clone();
     listDoesNotContain.DeveloperName = 'Q_List_Does_Not_Contain';
     listDoesNotContain.ComparisonOperator__c = 'LIST_CONTAINS_NONE';
     listDoesNotContain.FindInListFormula__c = '"Missing City"';
@@ -338,7 +334,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt listDoesContainFail = listContains.clone();
+    Record_Health_Check__mdt listDoesContainFail = listContains.clone();
     listDoesContainFail.DeveloperName = 'Q_List_Does_Contain_Fail';
     listDoesContainFail.ComparisonOperator__c = 'LIST_CONTAINS_NONE';
     assertStatus(
@@ -346,7 +342,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'FAIL'
     );
 
-    Record_Health_Check_Rule__mdt listEmptyPass = listContains.clone();
+    Record_Health_Check__mdt listEmptyPass = listContains.clone();
     listEmptyPass.DeveloperName = 'Q_List_Empty_Pass';
     listEmptyPass.ComparisonQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = null';
     listEmptyPass.NoRowsResult__c = 'PASS';
@@ -355,14 +351,14 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'PASS'
     );
 
-    Record_Health_Check_Rule__mdt badMode = queryRule('Q_Bad_Mode_Runtime');
+    Record_Health_Check__mdt badMode = queryCheck('Q_Bad_Mode_Runtime');
     badMode.QueryResultHandling__c = 'SomethingElse';
     assertReason(
       evaluator.evaluate(badMode, accountRecord.Id, accountRecord),
       'INVALID_OPERATOR'
     );
 
-    Record_Health_Check_Rule__mdt compareAsLists = queryRule(
+    Record_Health_Check__mdt compareAsLists = queryCheck(
       'Q_Compare_As_Lists_Runtime'
     );
     compareAsLists.QueryResultHandling__c = 'COMPARE_AS_LISTS';
@@ -371,42 +367,42 @@ private class RHCSoqlEvaluatorBehaviorTest {
       'INVALID_OPERATOR'
     );
 
-    Record_Health_Check_Rule__mdt invalidField = queryRule('Q_Invalid_Field');
+    Record_Health_Check__mdt invalidField = queryCheck('Q_Invalid_Field');
     invalidField.SourceQueryField__c = 'NotAField__c';
     assertReason(
       evaluator.evaluate(invalidField, accountRecord.Id, accountRecord),
       'INVALID_SOQL_TEMPLATE'
     );
 
-    Record_Health_Check_Rule__mdt missingField = queryRule('Q_Missing_Field');
+    Record_Health_Check__mdt missingField = queryCheck('Q_Missing_Field');
     missingField.SourceQueryField__c = null;
     assertReason(
       evaluator.evaluate(missingField, accountRecord.Id, accountRecord),
       'INVALID_SOQL_TEMPLATE'
     );
 
-    Record_Health_Check_Rule__mdt missingBind = queryRule('Q_Missing_Bind');
+    Record_Health_Check__mdt missingBind = queryCheck('Q_Missing_Bind');
     missingBind.SourceQuery__c = 'SELECT Id FROM Account WHERE Id = {!record.DoesNotExist__c}';
     assertReason(
       evaluator.evaluate(missingBind, accountRecord.Id, accountRecord),
       'MISSING_BIND_VALUE'
     );
 
-    Record_Health_Check_Rule__mdt badKeyword = queryRule('Q_Bad_Keyword');
+    Record_Health_Check__mdt badKeyword = queryCheck('Q_Bad_Keyword');
     badKeyword.SourceQuery__c = 'SELECT Id FROM Account WHERE Name = DELETE';
     assertReason(
       evaluator.evaluate(badKeyword, accountRecord.Id, accountRecord),
       'INVALID_SOQL_TEMPLATE'
     );
 
-    Record_Health_Check_Rule__mdt badPhrase = queryRule('Q_Bad_Phrase');
+    Record_Health_Check__mdt badPhrase = queryCheck('Q_Bad_Phrase');
     badPhrase.SourceQuery__c = 'SELECT Id FROM Account ALL ROWS';
     assertReason(
       evaluator.evaluate(badPhrase, accountRecord.Id, accountRecord),
       'INVALID_SOQL_TEMPLATE'
     );
 
-    Record_Health_Check_Rule__mdt maxRows = queryRule('Q_Max_Rows');
+    Record_Health_Check__mdt maxRows = queryCheck('Q_Max_Rows');
     maxRows.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId = {!record.Id}';
     maxRows.SourceQueryField__c = 'Id';
     maxRows.QueryResultHandling__c = 'ANY_ROW_PASSES';
@@ -417,11 +413,11 @@ private class RHCSoqlEvaluatorBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -430,7 +426,7 @@ private class RHCSoqlEvaluatorBehaviorTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'FormulaResultType__c' => 'AUTO',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',
@@ -440,15 +436,15 @@ private class RHCSoqlEvaluatorBehaviorTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt queryRule(String developerName) {
-    Record_Health_Check_Rule__mdt rule = baseRule(developerName, 'QUERY');
-    rule.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    rule.SourceQueryField__c = 'BillingCity';
-    rule.QueryResultHandling__c = 'ONE_RESULT';
-    rule.ComparisonOperator__c = 'EQUALS';
-    rule.ExpectedValueSource__c = 'FIXED_VALUE';
-    rule.ExpectedFixedValue__c = 'Chicago';
-    return rule;
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
   }
 
   private static void assertUnable(

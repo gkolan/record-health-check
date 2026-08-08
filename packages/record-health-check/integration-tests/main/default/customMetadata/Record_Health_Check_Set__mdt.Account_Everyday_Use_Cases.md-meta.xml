@@ -22,7 +22,7 @@
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Relatable rules admins commonly build: contacts, pipeline, tasks, owner status, URL/phone format, shipping address, and activity freshness. Sixteen rules: copy patterns for your own objects and fields.</value>
+    >Relatable checks admins commonly build: contacts, pipeline, tasks, owner status, URL/phone format, shipping address, and activity freshness. Sixteen checks: copy patterns for your own objects and fields.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

@@ -22,7 +22,7 @@ import {
   parseAuraError
 } from "../healthCheckModel";
 import {
-  buildInactiveRuleStat,
+  buildInactiveCheckStat,
   formatRunSummary,
   parseDiagnosticJson,
   setupErrorHint
@@ -100,7 +100,7 @@ afterEach(() => {
 });
 
 const PASS_RESULT = (developerName) => ({
-  ruleDeveloperName: developerName,
+  checkDeveloperName: developerName,
   label: developerName,
   status: "PASS",
   severity: null,
@@ -110,7 +110,7 @@ const PASS_RESULT = (developerName) => ({
 });
 
 const FAIL_RESULT = (developerName) => ({
-  ruleDeveloperName: developerName,
+  checkDeveloperName: developerName,
   label: developerName,
   status: "FAIL",
   severity: "Error",
@@ -120,7 +120,7 @@ const FAIL_RESULT = (developerName) => ({
 });
 
 const ERROR_RESULT = (developerName) => ({
-  ruleDeveloperName: developerName,
+  checkDeveloperName: developerName,
   label: developerName,
   status: "ERROR",
   reasonCode: "APEX_EVALUATOR_ERROR",
@@ -130,7 +130,7 @@ const ERROR_RESULT = (developerName) => ({
 });
 
 const SKIPPED_RESULT = (developerName) => ({
-  ruleDeveloperName: developerName,
+  checkDeveloperName: developerName,
   label: developerName,
   status: "SKIPPED",
   reasonCode: "APPLICABILITY_NOT_MET",
@@ -157,14 +157,14 @@ const makeDefinitions = (overrides = {}) => {
         label: "Check A",
         description: "First check",
         priority: 1,
-        dependsOnRuleDeveloperName: null
+        dependsOnCheckDeveloperName: null
       },
       {
         developerName: "Check_B",
         label: "Check B",
         description: "Second check",
         priority: 2,
-        dependsOnRuleDeveloperName: null
+        dependsOnCheckDeveloperName: null
       }
     ],
     ...overrides
@@ -404,14 +404,14 @@ describe("c-record-health-check — load and error states", () => {
             label: "A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           },
           {
             developerName: "Dup",
             label: "B",
             description: "",
             priority: 2,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           }
         ]
       })
@@ -433,7 +433,7 @@ describe("c-record-health-check — load and error states", () => {
             label: "Nameless",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           }
         ]
       })
@@ -454,7 +454,7 @@ describe("c-record-health-check — load and error states", () => {
             label: "Unqualified",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           }
         ]
       })
@@ -472,7 +472,7 @@ describe("c-record-health-check — load and error states", () => {
       label: `Check ${i}`,
       description: "",
       priority: i,
-      dependsOnRuleDeveloperName: null
+      dependsOnCheckDeveloperName: null
     }));
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
@@ -586,7 +586,7 @@ describe("c-record-health-check — load and error states", () => {
     expect(banner.textContent).toContain("Health Check Needs Setup");
     expect(banner.textContent).toContain("no active checks");
     expect(banner.textContent).toContain("Ask your Salesforce admin");
-    expect(banner.textContent).toContain("add an active Rule");
+    expect(banner.textContent).toContain("add an active Check");
     expect(icon.iconName).toBe("utility:setup");
     expect(icon.alternativeText).toBe("Setup required");
   });
@@ -689,7 +689,7 @@ describe("c-record-health-check — run orchestration", () => {
       })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "UNABLE_TO_EVALUATE",
       reasonCode: "INVALID_FORMULA",
@@ -836,9 +836,9 @@ describe("c-record-health-check — run orchestration", () => {
     expect(element.shadowRoot.querySelector(".rhc-stats-bar")).not.toBeNull();
   });
 
-  it("keeps inactive rules out of the card for a regular user", async () => {
+  it("keeps inactive checks out of the card for a regular user", async () => {
     getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({ triggerMode: "Automatic", inactiveRuleCount: 2 })
+      makeDefinitions({ triggerMode: "Automatic", inactiveCheckCount: 2 })
     );
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
     await appendAndLoad(element);
@@ -846,18 +846,18 @@ describe("c-record-health-check — run orchestration", () => {
     await flushPromises();
     await flushPromises();
 
-    expect(element.shadowRoot.querySelector(".rhc-inactive-rules")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-inactive-checks")).toBeNull();
     expect(element.shadowRoot.querySelector(".rhc-stat--inactive")).toBeNull();
     expect(element.shadowRoot.textContent).not.toContain("Inactive");
   });
 
-  it("leads the diagnostics stats bar with an inactive pill naming the omitted rules", async () => {
+  it("leads the diagnostics stats bar with an inactive pill naming the omitted checks", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         triggerMode: "Automatic",
         showDiagnostics: true,
-        inactiveRuleCount: 2,
-        inactiveRuleLabels: ["Retired Owner Check", "Legacy Phone Check"]
+        inactiveCheckCount: 2,
+        inactiveCheckLabels: ["Retired Owner Check", "Legacy Phone Check"]
       })
     );
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
@@ -873,25 +873,25 @@ describe("c-record-health-check — run orchestration", () => {
     expect(stats[0].classList).toContain("rhc-stat--inactive");
     expect(stats[0].textContent).toContain("2 Inactive");
     expect(stats[0].dataset.tooltip).toBe(
-      "2 inactive Rules omitted: Retired Owner Check, Legacy Phone Check"
+      "2 inactive Checks omitted: Retired Owner Check, Legacy Phone Check"
     );
     expect(stats[0].getAttribute("tabindex")).toBe("0");
   });
 
-  it("puts inactive rules under Other when every visible Rule already has a category", async () => {
+  it("puts inactive checks under Other when every visible Check already has a category", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         triggerMode: "Automatic",
         showDiagnostics: true,
-        inactiveRuleCount: 1,
-        inactiveRuleLabels: ["Retired Owner Check"],
+        inactiveCheckCount: 1,
+        inactiveCheckLabels: ["Retired Owner Check"],
         checks: [
           {
             developerName: "Check_A",
             label: "Check A",
             description: "First check",
             priority: 1,
-            dependsOnRuleDeveloperName: null,
+            dependsOnCheckDeveloperName: null,
             category: "COMPLETENESS",
             categoryLabel: "Completeness"
           }
@@ -913,13 +913,13 @@ describe("c-record-health-check — run orchestration", () => {
     );
   });
 
-  it("summarizes undisclosed inactive rule names in the pill tooltip", async () => {
+  it("summarizes undisclosed inactive check names in the pill tooltip", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         triggerMode: "Automatic",
         showDiagnostics: true,
-        inactiveRuleCount: 3,
-        inactiveRuleLabels: ["Retired Owner Check"]
+        inactiveCheckCount: 3,
+        inactiveCheckLabels: ["Retired Owner Check"]
       })
     );
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
@@ -930,7 +930,7 @@ describe("c-record-health-check — run orchestration", () => {
 
     const pill = element.shadowRoot.querySelector(".rhc-stat--inactive");
     expect(pill.dataset.tooltip).toBe(
-      "3 inactive Rules omitted: Retired Owner Check, +2 more"
+      "3 inactive Checks omitted: Retired Owner Check, +2 more"
     );
   });
 
@@ -963,8 +963,8 @@ describe("c-record-health-check — run orchestration", () => {
     );
     const dA = deferred();
     const dB = deferred();
-    evaluateCheck.mockImplementation(({ ruleQualifiedApiName }) => {
-      return ruleQualifiedApiName === "Check_A" ? dA.promise : dB.promise;
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) => {
+      return checkQualifiedApiName === "Check_A" ? dA.promise : dB.promise;
     });
 
     await appendAndLoad(element);
@@ -1009,7 +1009,7 @@ describe("c-record-health-check — run orchestration", () => {
             label: "Check A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           }
         ],
         totalAvailableCheckCount: 1
@@ -1069,8 +1069,8 @@ describe("c-record-health-check — success display modes", () => {
 
     const rows = element.shadowRoot.querySelectorAll(".rhc-row--pass");
     expect(rows).toHaveLength(0);
-    // No standalone footer note — passed rules roll up into the summary bar's
-    // Passed pill, whose tooltip lists the rule labels.
+    // No standalone footer note — passed checks roll up into the summary bar's
+    // Passed pill, whose tooltip lists the check labels.
     expect(element.shadowRoot.querySelector(".rhc-footer-note")).toBeNull();
     const pill = element.shadowRoot.querySelector(".rhc-stat--pass");
     expect(pill).not.toBeNull();
@@ -1102,11 +1102,11 @@ describe("c-record-health-check — success display modes", () => {
         skippedDisplayMode: "Hide"
       })
     );
-    evaluateCheck.mockImplementation(({ ruleQualifiedApiName }) =>
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
       Promise.resolve(
-        ruleQualifiedApiName === "Check_A"
-          ? PASS_RESULT(ruleQualifiedApiName)
-          : SKIPPED_RESULT(ruleQualifiedApiName)
+        checkQualifiedApiName === "Check_A"
+          ? PASS_RESULT(checkQualifiedApiName)
+          : SKIPPED_RESULT(checkQualifiedApiName)
       )
     );
     await appendAndLoad(element);
@@ -1162,8 +1162,8 @@ describe("c-record-health-check — skipped display modes", () => {
 
     const rows = element.shadowRoot.querySelectorAll(".rhc-row--skipped");
     expect(rows).toHaveLength(0);
-    // No standalone footer line — skipped rules roll up into the summary bar's
-    // Skipped pill, whose tooltip lists the rule labels.
+    // No standalone footer line — skipped checks roll up into the summary bar's
+    // Skipped pill, whose tooltip lists the check labels.
     expect(element.shadowRoot.querySelector(".rhc-footer-note")).toBeNull();
     const pill = element.shadowRoot.querySelector(".rhc-stat--skipped");
     expect(pill).not.toBeNull();
@@ -1189,7 +1189,7 @@ describe("c-record-health-check — skipped display modes", () => {
   });
 });
 
-describe("c-record-health-check — Prerequisite Rule enforcement", () => {
+describe("c-record-health-check — Prerequisite Check enforcement", () => {
   let element;
 
   beforeEach(() => {
@@ -1203,7 +1203,7 @@ describe("c-record-health-check — Prerequisite Rule enforcement", () => {
     }
   });
 
-  it("skips a Rule when its Prerequisite Rule is not in the Framework run", async () => {
+  it("skips a Check when its Prerequisite Check is not in the Framework run", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         checks: [
@@ -1212,14 +1212,14 @@ describe("c-record-health-check — Prerequisite Rule enforcement", () => {
             label: "Check A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           },
           {
             developerName: "Check_B",
             label: "Check B",
             description: "",
             priority: 2,
-            dependsOnRuleDeveloperName: "Check_MISSING"
+            dependsOnCheckDeveloperName: "Check_MISSING"
           }
         ]
       })
@@ -1229,14 +1229,14 @@ describe("c-record-health-check — Prerequisite Rule enforcement", () => {
 
     await clickRun(element);
 
-    // Check_B's Prerequisite Rule is absent, so only Check_A reaches Apex.
+    // Check_B's Prerequisite Check is absent, so only Check_A reaches Apex.
     expect(evaluateCheck).toHaveBeenCalledTimes(1);
     expect(evaluateCheck).toHaveBeenCalledWith(
-      expect.objectContaining({ ruleQualifiedApiName: "Check_A" })
+      expect.objectContaining({ checkQualifiedApiName: "Check_A" })
     );
   });
 
-  it("skips a Rule when its Prerequisite Rule does not PASS", async () => {
+  it("skips a Check when its Prerequisite Check does not PASS", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         checks: [
@@ -1245,14 +1245,14 @@ describe("c-record-health-check — Prerequisite Rule enforcement", () => {
             label: "Check A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           },
           {
             developerName: "Check_B",
             label: "Check B",
             description: "",
             priority: 2,
-            dependsOnRuleDeveloperName: "Check_A"
+            dependsOnCheckDeveloperName: "Check_A"
           }
         ]
       })
@@ -1265,11 +1265,11 @@ describe("c-record-health-check — Prerequisite Rule enforcement", () => {
 
     expect(evaluateCheck).toHaveBeenCalledTimes(1);
     expect(evaluateCheck).not.toHaveBeenCalledWith(
-      expect.objectContaining({ ruleQualifiedApiName: "Check_B" })
+      expect.objectContaining({ checkQualifiedApiName: "Check_B" })
     );
   });
 
-  it("runs a Rule when its Prerequisite Rule passes", async () => {
+  it("runs a Check when its Prerequisite Check passes", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         checks: [
@@ -1278,14 +1278,14 @@ describe("c-record-health-check — Prerequisite Rule enforcement", () => {
             label: "Check A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           },
           {
             developerName: "Check_B",
             label: "Check B",
             description: "",
             priority: 2,
-            dependsOnRuleDeveloperName: "Check_A"
+            dependsOnCheckDeveloperName: "Check_A"
           }
         ]
       })
@@ -1310,14 +1310,14 @@ describe("c-record-health-check — Prerequisite Rule enforcement", () => {
             label: "Check A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: "Check_B"
+            dependsOnCheckDeveloperName: "Check_B"
           },
           {
             developerName: "Check_B",
             label: "Check B",
             description: "",
             priority: 2,
-            dependsOnRuleDeveloperName: "Check_A"
+            dependsOnCheckDeveloperName: "Check_A"
           }
         ]
       })
@@ -1362,14 +1362,14 @@ describe("c-record-health-check — stopOnFirstError", () => {
             label: "Check A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           },
           {
             developerName: "Check_B",
             label: "Check B",
             description: "",
             priority: 2,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           }
         ]
       })
@@ -1382,7 +1382,7 @@ describe("c-record-health-check — stopOnFirstError", () => {
 
     expect(evaluateCheck).toHaveBeenCalledTimes(1);
     expect(evaluateCheck).toHaveBeenCalledWith(
-      expect.objectContaining({ ruleQualifiedApiName: "Check_A" })
+      expect.objectContaining({ checkQualifiedApiName: "Check_A" })
     );
     const btn = element.shadowRoot.querySelector(".rhc-action-button");
     expect(btn).not.toBeNull(); // re-run button visible = runComplete
@@ -1526,7 +1526,7 @@ describe("c-record-health-check — reactive recordId reload", () => {
       label: `Check ${i}`,
       description: "",
       priority: i,
-      dependsOnRuleDeveloperName: null
+      dependsOnCheckDeveloperName: null
     }));
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ triggerMode: "Automatic", checks })
@@ -1537,13 +1537,13 @@ describe("c-record-health-check — reactive recordId reload", () => {
     let active = 0;
     let peak = 0;
     const pendingA = [];
-    evaluateCheck.mockImplementation(({ recordId, ruleQualifiedApiName }) => {
+    evaluateCheck.mockImplementation(({ recordId, checkQualifiedApiName }) => {
       active++;
       peak = Math.max(peak, active);
       const call = deferred();
       const settle = () => {
         active--;
-        call.resolve(PASS_RESULT(ruleQualifiedApiName));
+        call.resolve(PASS_RESULT(checkQualifiedApiName));
       };
       if (recordId === RECORD_A) {
         // Hold A's calls open so they keep occupying slots during the swap.
@@ -1607,7 +1607,7 @@ describe("c-record-health-check — reactive recordId reload", () => {
             label: "Check A",
             description: "",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           }
         ],
         totalAvailableCheckCount: 1
@@ -1759,7 +1759,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
       label: `Check ${i}`,
       description: "",
       priority: i,
-      dependsOnRuleDeveloperName: null
+      dependsOnCheckDeveloperName: null
     }));
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ triggerMode: "Automatic", checks })
@@ -1767,13 +1767,13 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     let active = 0;
     let peak = 0;
     const pending = [];
-    evaluateCheck.mockImplementation(({ ruleQualifiedApiName }) => {
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) => {
       active++;
       peak = Math.max(peak, active);
       const call = deferred();
       pending.push(() => {
         active--;
-        call.resolve(PASS_RESULT(ruleQualifiedApiName));
+        call.resolve(PASS_RESULT(checkQualifiedApiName));
       });
       return call.promise;
     });
@@ -1803,20 +1803,20 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
       label: `Shared ${i}`,
       description: "",
       priority: i,
-      dependsOnRuleDeveloperName: null
+      dependsOnCheckDeveloperName: null
     }));
     const first = makeRunner(makeRunnerHost(checks));
     const second = makeRunner(makeRunnerHost(checks));
     let active = 0;
     let peak = 0;
     const pending = [];
-    evaluateCheck.mockImplementation(({ ruleQualifiedApiName }) => {
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) => {
       active++;
       peak = Math.max(peak, active);
       const call = deferred();
       pending.push(() => {
         active--;
-        call.resolve(PASS_RESULT(ruleQualifiedApiName));
+        call.resolve(PASS_RESULT(checkQualifiedApiName));
       });
       return call.promise;
     });
@@ -1932,20 +1932,20 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
             label: "Has tooltip",
             description: "A description",
             priority: 1,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           },
           {
             developerName: "No_Desc",
             label: "No tooltip",
             description: "",
             priority: 2,
-            dependsOnRuleDeveloperName: null
+            dependsOnCheckDeveloperName: null
           }
         ]
       })
     );
-    evaluateCheck.mockImplementation(({ ruleQualifiedApiName }) =>
-      Promise.resolve(PASS_RESULT(ruleQualifiedApiName))
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(PASS_RESULT(checkQualifiedApiName))
     );
     await appendAndLoad(element);
     await clickRun(element);
@@ -2011,7 +2011,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     ]);
     expect(group).toHaveBeenCalledWith("[RHC] Full check details (1)");
     expect(log).toHaveBeenCalledWith(
-      "Rule configuration",
+      "Check configuration",
       expect.objectContaining({ evaluationType: "QUERY" })
     );
     expect(log).toHaveBeenCalledWith(
@@ -2145,7 +2145,7 @@ describe("c-record-health-check — FAIL styling and accessibility", () => {
   });
 
   const FAIL_NO_SEVERITY = (developerName) => ({
-    ruleDeveloperName: developerName,
+    checkDeveloperName: developerName,
     label: developerName,
     status: "FAIL",
     severity: null,
@@ -2392,7 +2392,7 @@ describe("c-record-health-check — FAIL styling and accessibility", () => {
       })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "PASS",
       priority: 1,
@@ -2618,7 +2618,7 @@ describe("c-record-health-check — comparison disclosure (integration)", () => 
   });
 
   const PASS_WITH_VALUES = {
-    ruleDeveloperName: "Check_A",
+    checkDeveloperName: "Check_A",
     label: "Check_A",
     status: "PASS",
     priority: 1,
@@ -2666,7 +2666,7 @@ describe("c-record-health-check — comparison disclosure (integration)", () => 
   it("renders the Fix-it link, instructions, and divider on a failing row", async () => {
     getCheckDefinitions.mockResolvedValue(onePassCheck());
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
       severity: "Warning",
@@ -2918,7 +2918,7 @@ describe("buildSummaryStats — label pluralization", () => {
     ]);
   });
 
-  it("keeps the existing ungrouped summary when no resolved Rule has a category", () => {
+  it("keeps the existing ungrouped summary when no resolved Check has a category", () => {
     const groups = buildSummaryGroups([
       resolved("A", "PASS", null),
       resolved("B", "FAIL", "Error")
@@ -3006,7 +3006,7 @@ describe("c-record-health-check — multi-line messages", () => {
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
       severity: "Error",
@@ -3029,7 +3029,7 @@ describe("c-record-health-check — multi-line messages", () => {
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
       severity: "Error",
@@ -3056,7 +3056,7 @@ describe("c-record-health-check — multi-line messages", () => {
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "UNABLE_TO_EVALUATE",
       reasonCode: "INVALID_FORMULA",
@@ -3079,7 +3079,7 @@ describe("c-record-health-check — multi-line messages", () => {
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
       severity: "Error",
@@ -3101,7 +3101,7 @@ describe("c-record-health-check — multi-line messages", () => {
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
       severity: "Error",
@@ -3124,7 +3124,7 @@ describe("c-record-health-check — multi-line messages", () => {
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
       severity: "Error",
@@ -3170,7 +3170,7 @@ describe("c-record-health-check — multi-line messages", () => {
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
     evaluateCheck.mockResolvedValue({
-      ruleDeveloperName: "Check_A",
+      checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
       severity: "Error",
@@ -3274,7 +3274,7 @@ describe("safeActionUrl — client-side scheme guard (HI-3)", () => {
 describe("HealthCheckRunner — defensive orchestration branches", () => {
   it("does not start a second run while one is already active", () => {
     const host = makeRunnerHost([
-      { developerName: "A", dependsOnRuleDeveloperName: null }
+      { developerName: "A", dependsOnCheckDeveloperName: null }
     ]);
     const runner = makeRunner(host);
     runner._runInProgress = true;
@@ -3289,7 +3289,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
   it("reuses a memoized task when multiple dependents request one prerequisite", async () => {
     const prerequisite = {
       developerName: "Prerequisite",
-      dependsOnRuleDeveloperName: null
+      dependsOnCheckDeveloperName: null
     };
     const runner = makeRunner(makeRunnerHost([prerequisite]));
     const taskMap = {};
@@ -3315,21 +3315,21 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
       developerName: "Prerequisite",
       qualifiedApiName: "Prerequisite",
       label: "Prerequisite",
-      dependsOnRuleDeveloperName: null
+      dependsOnCheckDeveloperName: null
     };
     const dependent = {
       developerName: "Dependent",
       qualifiedApiName: "Dependent",
       label: "Dependent",
-      dependsOnRuleDeveloperName: "Prerequisite"
+      dependsOnCheckDeveloperName: "Prerequisite"
     };
     const host = makeRunnerHost([dependent, dependency]);
     const runner = makeRunner(host);
     evaluateCheck.mockClear();
     runner._runToken = 1;
     runner._runId = "run-1";
-    evaluateCheck.mockImplementation(({ ruleQualifiedApiName }) =>
-      Promise.resolve(PASS_RESULT(ruleQualifiedApiName))
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(PASS_RESULT(checkQualifiedApiName))
     );
     const taskMap = {};
     const runCheck = runner._makeRunCheck(
@@ -3343,11 +3343,11 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
 
     expect(evaluateCheck).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ ruleQualifiedApiName: "Prerequisite" })
+      expect.objectContaining({ checkQualifiedApiName: "Prerequisite" })
     );
     expect(evaluateCheck).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ ruleQualifiedApiName: "Dependent" })
+      expect.objectContaining({ checkQualifiedApiName: "Dependent" })
     );
   });
 
@@ -3372,7 +3372,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
 
   it("clears the running flag when a sequential launcher rejects", async () => {
     const host = makeRunnerHost([
-      { developerName: "A", dependsOnRuleDeveloperName: null }
+      { developerName: "A", dependsOnCheckDeveloperName: null }
     ]);
     host.stopOnFirstError = true;
     const runner = makeRunner(host);
@@ -3387,7 +3387,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
   });
 
   it("clears an incomplete sequential run in the finally guard", async () => {
-    const check = { developerName: "A", dependsOnRuleDeveloperName: null };
+    const check = { developerName: "A", dependsOnCheckDeveloperName: null };
     const runner = makeRunner(makeRunnerHost([check]));
     runner._runToken = 7;
     runner._runInProgress = true;
@@ -3417,7 +3417,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     const prerequisite = { developerName: "P" };
     const dependent = {
       developerName: "D",
-      dependsOnRuleDeveloperName: "P"
+      dependsOnCheckDeveloperName: "P"
     };
     const gate = deferred();
     const runner = makeRunner(makeRunnerHost([prerequisite, dependent]));
@@ -3515,13 +3515,13 @@ describe("coverage edge contracts", () => {
 });
 
 describe("healthCheckModel — complete response contracts", () => {
-  const check = { developerName: "Rule_A", label: "Rule A", priority: 1 };
+  const check = { developerName: "Check_A", label: "Check A", priority: 1 };
 
   it("normalizes the public evaluation and display result shape", () => {
     const result = normalizeResult(
       {
         evaluation: {
-          ruleQualifiedApiName: null,
+          checkQualifiedApiName: null,
           recordId: "001000000000001AAA",
           status: "FAIL",
           severity: "Warning",
@@ -3544,7 +3544,7 @@ describe("healthCheckModel — complete response contracts", () => {
 
     expect(result).toEqual(
       expect.objectContaining({
-        ruleDeveloperName: "Rule_A",
+        checkDeveloperName: "Check_A",
         actualValue: "stored found",
         expectedValue: "stored expected",
         status: "FAIL"
@@ -3556,7 +3556,7 @@ describe("healthCheckModel — complete response contracts", () => {
     const result = normalizeResult(
       {
         evaluation: {
-          ruleQualifiedApiName: "namespace__Rule_A",
+          checkQualifiedApiName: "namespace__Check_A",
           status: "PASS",
           found: null,
           expected: null
@@ -3577,7 +3577,7 @@ describe("healthCheckModel — complete response contracts", () => {
     const result = normalizeResult(
       {
         evaluation: {
-          ruleQualifiedApiName: "Rule_A",
+          checkQualifiedApiName: "Check_A",
           status: "PASS",
           found: null,
           expected: null
@@ -3598,21 +3598,21 @@ describe("healthCheckModel — complete response contracts", () => {
     });
   });
 
-  it("detects a cycle entered through a non-cycle Rule", () => {
+  it("detects a cycle entered through a non-cycle Check", () => {
     const members = detectDependencyCycles([
-      { developerName: "Rule_Entry", dependsOnRuleDeveloperName: "Rule_A" },
-      { developerName: "Rule_A", dependsOnRuleDeveloperName: "Rule_B" },
-      { developerName: "Rule_B", dependsOnRuleDeveloperName: "Rule_A" }
+      { developerName: "Check_Entry", dependsOnCheckDeveloperName: "Check_A" },
+      { developerName: "Check_A", dependsOnCheckDeveloperName: "Check_B" },
+      { developerName: "Check_B", dependsOnCheckDeveloperName: "Check_A" }
     ]);
 
-    expect([...members].sort()).toEqual(["Rule_A", "Rule_B"]);
+    expect([...members].sort()).toEqual(["Check_A", "Check_B"]);
   });
 });
 
 describe("summary statistics — System Error labels", () => {
   it("uses the singular System Error label", () => {
     const stats = buildSummaryStats([
-      { label: "Rule A", result: { status: "ERROR" } }
+      { label: "Check A", result: { status: "ERROR" } }
     ]);
     expect(stats.find((stat) => stat.key === "systemError").label).toBe(
       "1 System Error"
@@ -3628,7 +3628,7 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
     ["NO_ACTIVE_CHECK_SETS", "set up a Check Set for this object"],
     ["CONFIG_INACTIVE", "activate this Check Set"],
     ["OBJECT_MISMATCH", "choose a Check Set for this object"],
-    ["NO_ACTIVE_CHECKS", "add an active Rule"],
+    ["NO_ACTIVE_CHECKS", "add an active Check"],
     ["NO_RECORD_CONTEXT", "place this on a record page"],
     ["INVALID_CONFIG", "review this Check Set in Setup"]
   ])("maps %s to administrator guidance", (reasonCode, expectedText) => {
@@ -3640,15 +3640,15 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
   });
 
   it("builds singular, plural, undisclosed, and hidden inactive states", () => {
-    expect(buildInactiveRuleStat(false, 1, ["Rule A"])).toBeNull();
-    expect(buildInactiveRuleStat(true, 0, [])).toBeNull();
-    expect(buildInactiveRuleStat(true, 1, ["Rule A"]).tooltip).toContain(
-      "1 inactive Rule omitted"
+    expect(buildInactiveCheckStat(false, 1, ["Check A"])).toBeNull();
+    expect(buildInactiveCheckStat(true, 0, [])).toBeNull();
+    expect(buildInactiveCheckStat(true, 1, ["Check A"]).tooltip).toContain(
+      "1 inactive Check omitted"
     );
-    expect(buildInactiveRuleStat(true, 3, ["Rule A"]).tooltip).toContain(
+    expect(buildInactiveCheckStat(true, 3, ["Check A"]).tooltip).toContain(
       "+2 more"
     );
-    expect(buildInactiveRuleStat(true, 2, null).tooltip).toBeNull();
+    expect(buildInactiveCheckStat(true, 2, null).tooltip).toBeNull();
   });
 
   it("formats every terminal outcome and elapsed time", () => {
@@ -3692,7 +3692,7 @@ describe("c-record-health-check — defensive UI permutations", () => {
     jest.restoreAllMocks();
   });
 
-  it("rejects a definition response without a Rule collection", async () => {
+  it("rejects a definition response without a Check collection", async () => {
     getCheckDefinitions.mockResolvedValue(null);
     await appendAndLoad(element);
 
@@ -3801,7 +3801,7 @@ describe("c-record-health-check — defensive UI permutations", () => {
     expect(cancelFrame).toHaveBeenCalledWith(42);
   });
 
-  it("hides a skipped resolved Rule in One at a Time mode", async () => {
+  it("hides a skipped resolved Check in One at a Time mode", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         revealMode: "OneAtATime",

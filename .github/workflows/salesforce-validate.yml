@@ -94,19 +94,19 @@ jobs:
       - name: Run metadata validator
         run: sf apex run --target-org rhc-ci --file scripts/apex/validateMetadata.apex
       # Run static analysis last. The blocking release-policy profile documents
-      # package-specific rule decisions; every enabled finding fails CI. The
-      # separate neutral audit runs every rule as advisory debt evidence.
+      # package-specific check decisions; every enabled finding fails CI. The
+      # separate neutral audit runs every check as advisory debt evidence.
       - name: Enforce Code Analyzer output locations
         run: npm run check:code-analyzer-output-paths
       - name: Run blocking Code Analyzer release-policy gate
         run: |
           mkdir -p code-analyzer/logs
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --rule-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
-      - name: Run all-rules neutral advisory debt audit
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --check-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
+      - name: Run all-checks neutral advisory debt audit
         if: always()
         continue-on-error: true
         run: |
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --config-file code-analyzer-neutral.yml --check-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
       - name: Upload Code Analyzer evidence
         if: always()
         uses: actions/upload-artifact@v4

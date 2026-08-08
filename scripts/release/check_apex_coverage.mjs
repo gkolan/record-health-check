@@ -97,6 +97,7 @@ const notApplicable = [];
 const coverageRows = [];
 let aggregateCovered = 0;
 let aggregateExecutable = 0;
+let fullyCoveredClasses = 0;
 for (const className of productionClasses) {
   const coverage = coverageByName.get(className);
   if (!coverage) {
@@ -117,6 +118,9 @@ for (const className of productionClasses) {
     continue;
   }
   const percent = (covered * 100) / total;
+  if (covered === total) {
+    fullyCoveredClasses += 1;
+  }
   aggregateCovered += covered;
   aggregateExecutable += total;
   coverageRows.push(
@@ -138,6 +142,9 @@ const aggregatePercent =
     : (aggregateCovered * 100) / aggregateExecutable;
 console.log(
   `Framework Apex coverage: ${aggregatePercent.toFixed(2)}% (${aggregateCovered}/${aggregateExecutable} executable lines).`
+);
+console.log(
+  `${fullyCoveredClasses} executable production Apex classes are at 100% coverage.`
 );
 if (notApplicable.length > 0) {
   console.log(`N/A: ${notApplicable.join(", ")}`);

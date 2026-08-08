@@ -1,16 +1,16 @@
 /**
  * @author Gautam Kolan (https://github.com/gkolan)
- * @description Maps shared rule findings to runtime unable-to-evaluate results.
+ * @description Maps shared check findings to runtime unable-to-evaluate results.
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RecordHealthCheckConfigFindingMapper {
   private static final Integer FRAMEWORK_MAX_ROWS = RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS;
 
   public static RecordHealthCheckInternalResult firstResult(
-    List<RecordHealthCheckRuleValidator.Finding> findings,
-    Record_Health_Check_Rule__mdt rule
+    List<RecordHealthCheckValidator.Finding> findings,
+    Record_Health_Check__mdt check
   ) {
-    return findings.isEmpty() ? null : toResult(findings[0], rule);
+    return findings.isEmpty() ? null : toResult(findings[0], check);
   }
 
   /**
@@ -20,43 +20,43 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
    * the originals so the engine and every pinned test see identical results.
    */
   private static RecordHealthCheckInternalResult toResult(
-    RecordHealthCheckRuleValidator.Finding finding,
-    Record_Health_Check_Rule__mdt rule
+    RecordHealthCheckValidator.Finding finding,
+    Record_Health_Check__mdt check
   ) {
     String val = finding.offendingValue;
     switch on finding.code {
       // ── Applicability check ──
       when APPLICABILITY_FORMULA_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_FORMULA',
           'Applicability Formula is required when Applicability Mode is Formula.'
         );
       }
       when APPLICABILITY_SOQL_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Applicability SOQL is required when Applicability Mode is SOQL.'
         );
       }
       when APPLICABILITY_SOQL_NOT_SINGLE_VALUE {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Applicability SOQL must be a single COUNT() or COUNT(Id) query without GROUP BY.'
         );
       }
       when APPLICABILITY_OPERATOR_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Applicability comparison operator is required when Applicability Mode is SOQL.'
         );
       }
       when APPLICABILITY_OPERATOR_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Applicability comparison operator "' +
             val +
@@ -65,7 +65,7 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       }
       when APPLICABILITY_THRESHOLD_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_CONFIG',
           'Applicability Comparison Value is required when Applicability Mode is SOQL.'
         );
@@ -73,7 +73,7 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       // ── Formula ──
       when FORMULA_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_FORMULA',
           'Formula checks require Formula to be populated.'
         );
@@ -81,119 +81,119 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       // ── Query (single) ──
       when LIST_VALUE_TO_TEST_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_FORMULA',
           'List contains any and List contains none require Value To Test to provide the primary value.'
         );
       }
       when LIST_COMPARE_QUERY_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'List contains any and List contains none require Comparison Query to provide the list.'
         );
       }
       when LIST_COMPARE_FIELD_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Comparison Query Field is required for list comparison queries.'
         );
       }
       when PRIMARY_QUERY_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Query checks require Source Query to be populated.'
         );
       }
       when PRIMARY_QUERY_FIELD_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Source Query Field is required for non-aggregate queries.'
         );
       }
       when DUAL_OPERATOR_ON_SINGLE {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Operator "' + val + '" requires Evaluation Type Compare two queries.'
         );
       }
       when OPERATOR_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Comparison operator "' + val + '" is not recognized.'
         );
       }
       when OPERATOR_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Comparison operator is required for Query checks.'
         );
       }
       when MULTI_ROWS_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           RecordHealthCheckConfigService.RC_INVALID_CONFIG,
           'How To Interpret Query Results is required for Query checks.'
         );
       }
       when MULTI_ROWS_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           RecordHealthCheckConfigService.RC_INVALID_CONFIG,
           'How To Interpret Query Results "' + val + '" is not recognized.'
         );
       }
       when COMPARE_AS_LISTS_ON_SINGLE {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Compare query results as lists requires Evaluation Type Compare two queries, not Check records with a query.'
         );
       }
       when COMPARE_AGAINST_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           RecordHealthCheckConfigService.RC_INVALID_CONFIG,
           'Expected Value Comes From is required for Query checks except IsBlank/IsNotBlank.'
         );
       }
       when COMPARE_AGAINST_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           RecordHealthCheckConfigService.RC_INVALID_CONFIG,
           'Expected Value Comes From "' + val + '" is not recognized.'
         );
       }
       when FIXED_VALUE_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           RecordHealthCheckConfigService.RC_INVALID_CONFIG,
           'Expected Value is required when Expected Value Comes From is A fixed value.'
         );
       }
       when RECORD_FORMULA_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_FORMULA',
           'Expected Formula (on this record) is required when Expected Value Comes From is A formula on this record.'
         );
       }
       when ANOTHER_QUERY_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Comparison Query is required when Expected Value Comes From is Comparison query.'
         );
       }
       when ANOTHER_QUERY_FIELD_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Comparison Query Field is required for non-aggregate comparison queries.'
         );
@@ -201,70 +201,70 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       // ── Compare two queries ──
       when DUAL_PRIMARY_QUERY_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Compare two queries checks require Source Query to be populated.'
         );
       }
       when DUAL_COMPARE_QUERY_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Compare two queries checks require Comparison Query to be populated.'
         );
       }
       when DUAL_PRIMARY_FIELD_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Source Query Field is required for non-aggregate source queries.'
         );
       }
       when DUAL_COMPARE_FIELD_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_SOQL_TEMPLATE',
           'Comparison Query Field is required for non-aggregate comparison queries.'
         );
       }
       when DUAL_OPERATOR_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Comparison operator is required for Compare two queries checks.'
         );
       }
       when DUAL_OPERATOR_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Comparison operator "' + val + '" is not recognized.'
         );
       }
       when DUAL_MULTI_ROWS_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           RecordHealthCheckConfigService.RC_INVALID_CONFIG,
           'How To Interpret Query Results is required for Compare two queries checks.'
         );
       }
       when DUAL_MULTI_ROWS_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Compare two queries requires How To Interpret Query Results to be Expect one row or aggregate result, or Compare query results as lists.'
         );
       }
       when DUAL_LIST_MODE_NEEDS_LIST_OPERATOR {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'Compare query results as lists mode requires a list operator: Lists overlap, List contains all, or Exact list match.'
         );
       }
       when DUAL_ONE_RESULT_NO_LIST_OPERATOR {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_OPERATOR',
           'List operators (Lists overlap, List contains all, Exact list match) require Compare query results as lists mode.'
         );
@@ -272,21 +272,21 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       // ── Apex ──
       when APEX_CLASS_MISSING {
         return buildUnableResult(
-          rule,
+          check,
           'APEX_CLASS_NOT_FOUND',
           'Apex checks require Apex Class Name to be populated.'
         );
       }
       when APEX_CLASS_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'APEX_CLASS_NOT_FOUND',
-          'Apex Class Name must identify an instantiable class implementing RecordHealthCheckRule.'
+          'Apex Class Name must identify an instantiable class implementing RecordHealthCheck.'
         );
       }
       when APEX_PARAMS_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_APEX_PARAMETERS',
           'Apex Parameters must contain valid JSON object syntax.'
         );
@@ -294,7 +294,7 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       // ── Cross-type ──
       when MAX_ROWS_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'GOVERNOR_LIMIT_RISK',
           'Max Rows Override must be a whole number between 1 and ' +
             FRAMEWORK_MAX_ROWS +
@@ -303,7 +303,7 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       }
       when EMPTY_VALUE_HANDLING_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_CONFIG',
           'If Field Value Is Empty "' +
             val +
@@ -312,7 +312,7 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       }
       when NO_ROWS_RESULT_INVALID {
         return buildUnableResult(
-          rule,
+          check,
           'INVALID_CONFIG',
           'No Rows Result "' +
             val +
@@ -321,7 +321,7 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       }
     }
     throw new RecordHealthCheckConfigService.ConfigException(
-      'Unmapped Rule validation finding.',
+      'Unmapped Check validation finding.',
       RecordHealthCheckConfigService.RC_INVALID_CONFIG
     );
   }
@@ -329,20 +329,20 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
   // ─── Result builder ───────────────────────────────────────────────────────
 
   public static RecordHealthCheckInternalResult buildUnableResult(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     String reasonCode,
     String detail
   ) {
     RecordHealthCheckInternalResult r = new RecordHealthCheckInternalResult();
-    r.ruleDeveloperName = rule.DeveloperName;
-    r.label = rule.CheckTitle__c;
+    r.checkDeveloperName = check.DeveloperName;
+    r.label = check.CheckTitle__c;
     r.status = 'UNABLE_TO_EVALUATE';
     r.reasonCode = reasonCode;
     r.detailMessage = detail;
-    r.evaluatorType = rule.EvaluationType__c;
-    r.priority = rule.EvaluationOrder__c;
-    r.message = String.isNotBlank(rule.UnableToEvaluateMessage__c)
-      ? rule.UnableToEvaluateMessage__c
+    r.evaluatorType = check.EvaluationType__c;
+    r.priority = check.EvaluationOrder__c;
+    r.message = String.isNotBlank(check.UnableToEvaluateMessage__c)
+      ? check.UnableToEvaluateMessage__c
       : 'This check could not be evaluated. Contact your administrator.';
     return r;
   }

@@ -13,7 +13,7 @@ public with sharing class RecordHealthCheckScopePipeline {
 
   /**
    * @param request Immutable qualified selection, record IDs, and options.
-   * @return Ordered response with one item per record and selected Rule.
+   * @return Ordered response with one item per record and selected Check.
    */
   public RecordHealthCheckResponse evaluate(RecordHealthCheckRequest request) {
     if (request == null) {
@@ -35,9 +35,9 @@ public with sharing class RecordHealthCheckScopePipeline {
 
     SelectionContext context = scopePlanner.resolveSelection(request.selection);
     scopePlanner.validateScope(context, recordIds);
-    scopePlanner.enforceFormulaBudget(context.rules, recordIds.size());
+    scopePlanner.enforceFormulaBudget(context.checks, recordIds.size());
     scopePlanner.enforceTransactionBudget(
-      context.rules,
+      context.checks,
       recordIds.size(),
       request.options.eventPublication
     );
@@ -47,27 +47,27 @@ public with sharing class RecordHealthCheckScopePipeline {
       ? newRunId()
       : request.options.runId;
     response.recordIds.addAll(recordIds);
-    for (Record_Health_Check_Rule__mdt rule : context.rules) {
-      response.ruleQualifiedApiNames.add(rule.QualifiedApiName);
+    for (Record_Health_Check__mdt check : context.checks) {
+      response.checkQualifiedApiNames.add(check.QualifiedApiName);
     }
-    if (recordIds.isEmpty() || context.rules.isEmpty()) {
+    if (recordIds.isEmpty() || context.checks.isEmpty()) {
       return response;
     }
 
     RecordLoadPlan recordLoad = loadRecords(
       context.objectApiName,
       recordIds,
-      context.rules
+      context.checks
     );
     Map<Id, SObject> recordsById = recordLoad.recordsById;
     Map<String, RecordHealthCheckResultItem> itemsByIdentity = new Map<String, RecordHealthCheckResultItem>();
-    for (Record_Health_Check_Rule__mdt rule : context.rules) {
-      evaluateRule(
-        rule,
+    for (Record_Health_Check__mdt check : context.checks) {
+      evaluateCheck(
+        check,
         context,
         recordIds,
         recordsById,
-        recordLoad.inaccessibleRuleNames.contains(rule.QualifiedApiName),
+        recordLoad.inaccessibleCheckNames.contains(check.QualifiedApiName),
         request.options.resultMode,
         response.runId,
         itemsByIdentity
@@ -76,9 +76,9 @@ public with sharing class RecordHealthCheckScopePipeline {
 
     List<RecordHealthCheckResultItem> allItems = new List<RecordHealthCheckResultItem>();
     for (Id recordId : recordIds) {
-      for (Record_Health_Check_Rule__mdt rule : context.rules) {
+      for (Record_Health_Check__mdt check : context.checks) {
         RecordHealthCheckResultItem item = itemsByIdentity.get(
-          itemKey(recordId, rule.QualifiedApiName)
+          itemKey(recordId, check.QualifiedApiName)
         );
         allItems.add(item);
         response.summary.add(item.evaluation.status);
@@ -93,8 +93,8 @@ public with sharing class RecordHealthCheckScopePipeline {
     RecordHealthCheckResponse publicationEnvelope = new RecordHealthCheckResponse();
     publicationEnvelope.runId = response.runId;
     publicationEnvelope.recordIds.addAll(response.recordIds);
-    publicationEnvelope.ruleQualifiedApiNames.addAll(
-      response.ruleQualifiedApiNames
+    publicationEnvelope.checkQualifiedApiNames.addAll(
+      response.checkQualifiedApiNames
     );
     publicationEnvelope.results.addAll(allItems);
     publicationEnvelope.summary = response.summary;
@@ -110,13 +110,13 @@ public with sharing class RecordHealthCheckScopePipeline {
   private RecordLoadPlan loadRecords(
     String objectApiName,
     List<Id> recordIds,
-    List<Record_Health_Check_Rule__mdt> rules
+    List<Record_Health_Check__mdt> checks
   ) {
     Set<String> fields = new Set<String>{ 'Id' };
     RecordLoadPlan result = new RecordLoadPlan();
     RecordHealthCheckFieldPlanner fieldPlanner = new RecordHealthCheckFieldPlanner();
     Schema.SObjectType objectType = recordIds[0].getSObjectType();
-    for (Record_Health_Check_Rule__mdt rule : rules) {
+    for (Record_Health_Check__mdt check : checks) {
       try {
         if (planningFailureOverride) {
           throw new RecordHealthCheckTemplateService.TemplateException(
@@ -124,17 +124,17 @@ public with sharing class RecordHealthCheckScopePipeline {
           );
         }
         RecordHealthCheckFieldPlanner.FieldPlan fieldPlan = fieldPlanner.planRecordFields(
-          rule,
+          check,
           objectType
         );
         fields.addAll(fieldPlan.selectedFields);
         if (!fieldPlan.inaccessibleFields.isEmpty()) {
-          result.inaccessibleRuleNames.add(rule.QualifiedApiName);
+          result.inaccessibleCheckNames.add(check.QualifiedApiName);
         }
       } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-        // Runtime validation turns this Rule into INVALID_CONFIG. Planning must
+        // Runtime validation turns this Check into INVALID_CONFIG. Planning must
         // skip its fields so one malformed admin template cannot abort the
-        // complete scope before per-Rule isolation begins.
+        // complete scope before per-Check isolation begins.
         continue;
       }
     }
@@ -156,14 +156,14 @@ public with sharing class RecordHealthCheckScopePipeline {
   private void loadRecordsForTest(
     String objectApiName,
     List<Id> recordIds,
-    List<Record_Health_Check_Rule__mdt> rules
+    List<Record_Health_Check__mdt> checks
   ) {
-    loadRecords(objectApiName, recordIds, rules);
+    loadRecords(objectApiName, recordIds, checks);
   }
 
   @TestVisible
-  private void evaluateRule(
-    Record_Health_Check_Rule__mdt rule,
+  private void evaluateCheck(
+    Record_Health_Check__mdt check,
     SelectionContext context,
     List<Id> recordIds,
     Map<Id, SObject> recordsById,
@@ -174,12 +174,12 @@ public with sharing class RecordHealthCheckScopePipeline {
   ) {
     List<Id> applicableIds = new List<Id>();
     Map<Id, RecordHealthCheckInternalResult> internalByRecordId = new Map<Id, RecordHealthCheckInternalResult>();
-    RecordHealthCheckInternalResult invalidConfiguration = configService.validateRuleForEvaluation(
-      rule
+    RecordHealthCheckInternalResult invalidConfiguration = configService.validateCheckForEvaluation(
+      check
     );
     if (invalidConfiguration != null) {
       RecordHealthCheckConfigValidator.discardValidatedPlugin(
-        rule.ApexClass__c
+        check.ApexClass__c
       );
       for (Id recordId : recordIds) {
         internalByRecordId.put(
@@ -194,16 +194,16 @@ public with sharing class RecordHealthCheckScopePipeline {
           recordId,
           recordsById.containsKey(recordId)
             ? resultSupport.unavailableResult(
-                rule,
+                check,
                 RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE
               )
-            : resultSupport.unavailableResult(rule, 'RECORD_NOT_VISIBLE')
+            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
         );
       }
     }
     Map<Id, RecordHealthCheckInternalResult> applicabilityByRecordId = invalidConfiguration ==
       null && !fieldAccessDenied
-      ? resultSupport.applicabilityResults(rule, recordIds, recordsById)
+      ? resultSupport.applicabilityResults(check, recordIds, recordsById)
       : new Map<Id, RecordHealthCheckInternalResult>();
     for (Id recordId : recordIds) {
       if (invalidConfiguration != null || fieldAccessDenied) {
@@ -213,11 +213,11 @@ public with sharing class RecordHealthCheckScopePipeline {
       if (record == null) {
         internalByRecordId.put(
           recordId,
-          resultSupport.unavailableResult(rule, 'RECORD_NOT_VISIBLE')
+          resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
         );
       } else {
         RecordHealthCheckInternalResult prerequisiteBlock = resultSupport.findPrerequisiteBlock(
-          rule,
+          check,
           recordId,
           itemsByIdentity
         );
@@ -252,7 +252,7 @@ public with sharing class RecordHealthCheckScopePipeline {
         }
         internalByRecordId.putAll(
           evaluatorRegistry.evaluateScope(
-            rule,
+            check,
             applicableIds,
             recordsById,
             context,
@@ -263,12 +263,12 @@ public with sharing class RecordHealthCheckScopePipeline {
         throw ex;
       } catch (RecordHealthCheckEvaluatorException ex) {
         internalByRecordId.putAll(
-          resultSupport.unavailableForScope(rule, applicableIds, ex.reasonCode)
+          resultSupport.unavailableForScope(check, applicableIds, ex.reasonCode)
         );
       } catch (Exception ex) {
         internalByRecordId.putAll(
           resultSupport.unavailableForScope(
-            rule,
+            check,
             applicableIds,
             'APEX_EVALUATOR_ERROR'
           )
@@ -281,15 +281,15 @@ public with sharing class RecordHealthCheckScopePipeline {
         recordId
       );
       resultSupport.finalizeDisplay(
-        rule,
+        check,
         recordsById.get(recordId),
         internalResult,
         context.showDiagnostics == true &&
           resultMode == RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
       );
       itemsByIdentity.put(
-        itemKey(recordId, rule.QualifiedApiName),
-        resultSupport.toItem(rule, recordId, internalResult, resultMode)
+        itemKey(recordId, check.QualifiedApiName),
+        resultSupport.toItem(check, recordId, internalResult, resultMode)
       );
     }
   }
@@ -305,8 +305,8 @@ public with sharing class RecordHealthCheckScopePipeline {
     return ordered;
   }
 
-  private String itemKey(Id recordId, String ruleQualifiedApiName) {
-    return String.valueOf(recordId) + '|' + ruleQualifiedApiName;
+  private String itemKey(Id recordId, String checkQualifiedApiName) {
+    return String.valueOf(recordId) + '|' + checkQualifiedApiName;
   }
 
   private String newRunId() {
@@ -322,7 +322,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     public Boolean checkSetActive;
     public String objectApiName;
     public Boolean showDiagnostics;
-    public List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>();
+    public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
   }
 
   public class ScopePipelineException extends Exception {
@@ -333,6 +333,6 @@ public with sharing class RecordHealthCheckScopePipeline {
 
   private class RecordLoadPlan {
     private Map<Id, SObject> recordsById = new Map<Id, SObject>();
-    private Set<String> inaccessibleRuleNames = new Set<String>();
+    private Set<String> inaccessibleCheckNames = new Set<String>();
   }
 }

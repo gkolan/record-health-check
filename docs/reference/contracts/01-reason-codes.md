@@ -16,7 +16,7 @@ administrator-authored display messages.
 | Apex | Branch or log using a stable `UPPER_SNAKE_CASE` value |
 | Support or release review | Correlate the public result with authorized Show Diagnostics and logs |
 
-Reason Codes explain why a Rule did not produce a normal `PASS` or `FAIL`, or why a card could not
+Reason Codes explain why a Check did not produce a normal `PASS` or `FAIL`, or why a card could not
 load. Codes are additive `UPPER_SNAKE_CASE` strings. Integrations must key on the code, never on
 display text.
 
@@ -38,14 +38,14 @@ Registry helpers for the remapped pair live in `RecordHealthCheckReasonCodes`. O
 | --- | --- | --- |
 | `NOT_APPLICABLE_BY_FORMULA` | `SKIPPED` | Applicability mode `WHEN_FORMULA_TRUE` returned false. |
 | `NOT_APPLICABLE_BY_COUNT` | `SKIPPED` | Applicability count check was not met. |
-| `PREREQUISITE_NOT_MET` | `SKIPPED` | Prerequisite Rule did not return `PASS`. |
+| `PREREQUISITE_NOT_MET` | `SKIPPED` | Prerequisite Check did not return `PASS`. |
 | `STOPPED_AFTER_ERROR` | `SKIPPED` | Client stopped the remaining checks after a system error. |
 | `CLIENT_CALL_FAILED` | `ERROR` | The browser could not complete the Apex evaluation request. |
 | `MALFORMED_RESPONSE` | `ERROR` | Apex returned a result without the required shape. |
 | `UNKNOWN_RESULT_STATUS` | `ERROR` | Apex returned an unsupported result status. |
 | `MISSING_TOKEN_VALUE` | `UNABLE_TO_EVALUATE` | A required merge-token value was unavailable. |
 | `CIRCULAR_DEPENDENCY` | `UNABLE_TO_EVALUATE` | Prerequisite cycle detected (LWC may pre-seed without calling Apex). |
-| `DEPENDENCY_NOT_IN_RUN` | `SKIPPED` | The Prerequisite Rule was not included in the Framework run because it was inactive, missing, ordered after the Rule that requires it, or outside the first 25 active Rules. Apex and the Lightning component enforce the same behavior. |
+| `DEPENDENCY_NOT_IN_RUN` | `SKIPPED` | The Prerequisite Check was not included in the Framework run because it was inactive, missing, ordered after the Check that requires it, or outside the first 25 active Checks. Apex and the Lightning component enforce the same behavior. |
 | `APPLICABILITY_NOT_MET` | `SKIPPED` | Query empty-result path chose skip via `NoRowsResult__c = SKIP` (distinct from applicability checks above). |
 | `VALUE_IS_EMPTY` | `SKIPPED` | Row comparison skipped because a compared field value was empty under `EmptyValueHandling__c = SKIP_RECORD`. |
 
@@ -69,12 +69,12 @@ Registry helpers for the remapped pair live in `RecordHealthCheckReasonCodes`. O
 | `CONFIG_NOT_FOUND` | `UNABLE_TO_EVALUATE` / setup | Check Set DeveloperName not found. |
 | `CONFIG_INACTIVE` | `UNABLE_TO_EVALUATE` / setup | Check Set is inactive. |
 | `OBJECT_MISMATCH` | `UNABLE_TO_EVALUATE` / setup | Check Set object does not match the record. |
-| `RULE_NOT_FOUND` | `UNABLE_TO_EVALUATE` | Rule DeveloperName not found in the Check Set. |
-| `RULE_INACTIVE` | `UNABLE_TO_EVALUATE` | Rule is inactive. |
+| `CHECK_NOT_FOUND` | `UNABLE_TO_EVALUATE` | Check DeveloperName not found in the Check Set. |
+| `CHECK_INACTIVE` | `UNABLE_TO_EVALUATE` | Check is inactive. |
 | `INVALID_CHECK_TYPE` | `UNABLE_TO_EVALUATE` | Evaluation Type missing or unrecognized. |
 | `INVALID_CONFIG` | definition / unable | Invalid Check Set display or identity configuration. |
-| `MISSING_REQUIRED_FIELD` | validation | A required Check Set or Rule field (e.g. Base Object API Name, Card Title) is blank (deploy/CI validator). |
-| `CHECK_LIMIT_EXCEEDED` | definition / validation | More than 25 active Rules selected for a run (runtime omit + validator). |
+| `MISSING_REQUIRED_FIELD` | validation | A required Check Set or Check field (e.g. Base Object API Name, Card Title) is blank (deploy/CI validator). |
+| `CHECK_LIMIT_EXCEEDED` | definition / validation | More than 25 active Checks selected for a run (runtime omit + validator). |
 | `INVALID_DEPENDENCY` | validation | Prerequisite metadata is invalid (deploy/CI validator). |
 
 ---
@@ -84,12 +84,12 @@ Registry helpers for the remapped pair live in `RecordHealthCheckReasonCodes`. O
 | Code | Typical status | Meaning |
 | --- | --- | --- |
 | `INVALID_SOQL_TEMPLATE` | `UNABLE_TO_EVALUATE` | SOQL template failed safety or parse checks. |
-| `INVALID_OPERATOR` | `UNABLE_TO_EVALUATE` | Comparison operator missing or illegal for this Rule shape. |
+| `INVALID_OPERATOR` | `UNABLE_TO_EVALUATE` | Comparison operator missing or illegal for this Check shape. |
 | `INCOMPATIBLE_COMPARISON_TYPES` | `UNABLE_TO_EVALUATE` | Ordered comparison cannot convert the two sides safely. |
 | `MULTIPLE_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | `ONE_RESULT` expected one row/aggregate but got more. |
 | `NO_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | Empty result handled as unable (`NoRowsResult__c = UNABLE_TO_EVALUATE`). |
 | `MISSING_BIND_VALUE` | `UNABLE_TO_EVALUATE` | Merge token required for SOQL bind could not be resolved. |
-| `GOVERNOR_LIMIT_RISK` | `UNABLE_TO_EVALUATE` | The Framework stopped before the query could consume an unsafe share of the transaction's remaining Salesforce limits. Reduce the Rule's row limit or narrow its SOQL. |
+| `GOVERNOR_LIMIT_RISK` | `UNABLE_TO_EVALUATE` | The Framework stopped before the query could consume an unsafe share of the transaction's remaining Salesforce limits. Reduce the Check's row limit or narrow its SOQL. |
 
 ---
 
@@ -98,7 +98,7 @@ Registry helpers for the remapped pair live in `RecordHealthCheckReasonCodes`. O
 | Code | Typical status | Meaning |
 | --- | --- | --- |
 | `INVALID_FORMULA` | `UNABLE_TO_EVALUATE` | Formula failed to compile/evaluate or returned a non-boolean where required. |
-| `FORMULA_EVAL_LIMIT` | `UNABLE_TO_EVALUATE` | The Framework stopped before the transaction reached Salesforce's hard formula-evaluation limit, preserving a controlled result instead of risking an uncatchable transaction failure. Reduce the Rules evaluated together. |
+| `FORMULA_EVAL_LIMIT` | `UNABLE_TO_EVALUATE` | The Framework stopped before the transaction reached Salesforce's hard formula-evaluation limit, preserving a controlled result instead of risking an uncatchable transaction failure. Reduce the Checks evaluated together. |
 
 ---
 
@@ -106,11 +106,11 @@ Registry helpers for the remapped pair live in `RecordHealthCheckReasonCodes`. O
 
 | Code | Typical status | Meaning |
 | --- | --- | --- |
-| `APEX_CLASS_NOT_FOUND` | `UNABLE_TO_EVALUATE` | `ApexClass__c` could not be resolved to a `RecordHealthCheckRule`. Confirm the class API name, packaging namespace, and `RecordHealthCheckRule` implementation. |
+| `APEX_CLASS_NOT_FOUND` | `UNABLE_TO_EVALUATE` | `ApexClass__c` could not be resolved to a `RecordHealthCheck`. Confirm the class API name, packaging namespace, and `RecordHealthCheck` implementation. |
 | `INVALID_APEX_PARAMETERS` | `UNABLE_TO_EVALUATE` | `ApexParametersJson__c` is not valid JSON object input. |
 | `APEX_EVALUATOR_ERROR` | `ERROR` / `UNABLE_TO_EVALUATE` | Plugin returned an illegal status or omitted required Found/Expected on `PASS`/`FAIL`. |
 | `PLUGIN_RESULT_MISSING` | `ERROR` (per record) or thrown Framework exception | The plugin returned no entry for a requested record, or returned a null map for the whole scope. Cover every requested ID, including empty scopes. |
-| `PLUGIN_RESULT_UNKNOWN_KEY` | Thrown Framework exception | The plugin returned an outcome for a record ID outside the requested scope. Fails the whole Rule for the scope. |
+| `PLUGIN_RESULT_UNKNOWN_KEY` | Thrown Framework exception | The plugin returned an outcome for a record ID outside the requested scope. Fails the whole Check for the scope. |
 | `PLUGIN_THREW` | Thrown Framework exception | The plugin threw an unhandled exception the engine cannot attribute to one record. |
 | `PLUGIN_SIDE_EFFECT_DETECTED` | Thrown Framework exception | The plugin performed DML, a callout, email, event publication, or asynchronous work. The transaction must not commit that effect. |
 | `RECORD_NO_LONGER_AVAILABLE` | Plugin-authored `UNABLE_TO_EVALUATE` / `ERROR` | Stable code plugins may return when a record disappeared between applicability and evaluation. |
@@ -149,14 +149,14 @@ Rewrite it with the namespace, as `{!record.Id}`. Append a fallback only when a 
 
 ## Card setup / load (LWC and definition response)
 
-These often appear on the card chrome rather than a single Rule row:
+These often appear on the card chrome rather than a single Check row:
 
 | Code | Meaning |
 | --- | --- |
 | `SETUP_REQUIRED` | No Check Set selected, or availability check fell back to setup guidance. |
 | `NO_ACTIVE_CHECK_SETS` | No Check Sets exist for the page object. |
 | `INACTIVE_CHECK_SETS_ONLY` | Check Sets exist but none are active. |
-| `NO_ACTIVE_CHECKS` | Selected Check Set has no active Rules. |
+| `NO_ACTIVE_CHECKS` | Selected Check Set has no active Checks. |
 | `LOAD_FAILED` | Definition load failed without a more specific reason. |
 
 ---
@@ -166,7 +166,7 @@ These often appear on the card chrome rather than a single Rule row:
 1. Branch automation on `status` first, then `reasonCode`.
 2. Treat unknown future codes as additive: route unrecognized codes to a safe review path (or keep an intentionally strict allowed list when your process requires one).
 3. Keep diagnostics-only codes out of unauthorized user views; trust the remapped public `reasonCode`.
-4. Log lines may mention events such as `DEPENDENCY_NOT_PASSED`; that is a **log event name**, not the public Rule `reasonCode` (`PREREQUISITE_NOT_MET` is).
+4. Log lines may mention events such as `DEPENDENCY_NOT_PASSED`; that is a **log event name**, not the public Check `reasonCode` (`PREREQUISITE_NOT_MET` is).
 
 ## Related
 

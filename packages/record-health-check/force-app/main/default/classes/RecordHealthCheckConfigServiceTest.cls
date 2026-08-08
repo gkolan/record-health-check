@@ -7,11 +7,8 @@
 private class RecordHealthCheckConfigServiceTest {
   @IsTest
   static void metadataLookupAndLimitLoggingCoverConfiguredPaths() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
-    String ruleName = RecordHealthCheckTestDataFactory.qualifiedRuleName(
+    String checkName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       'Example_Profile_Phone_Available'
     );
 
@@ -19,16 +16,16 @@ private class RecordHealthCheckConfigServiceTest {
     String parentName = service.findCheckSetDeveloperName(
       'Example_Profile_Phone_Available'
     );
-    Record_Health_Check_Rule__mdt activeRule = service.loadRule(
+    Record_Health_Check__mdt activeCheck = service.loadCheck(
       'Example_Profile_Phone_Available',
       'Example_Account_Profile_Readiness'
     );
-    Record_Health_Check_Rule__mdt missingRule = service.loadRule(
+    Record_Health_Check__mdt missingCheck = service.loadCheck(
       'Definitely_Missing',
       'Example_Account_Relationship_Risk',
       false
     );
-    Record_Health_Check_Rule__mdt inactiveRule = service.loadRule(
+    Record_Health_Check__mdt inactiveCheck = service.loadCheck(
       'Example_Industry_Aligns_With_Parent',
       'Example_Account_Relationship_Risk',
       true
@@ -42,19 +39,23 @@ private class RecordHealthCheckConfigServiceTest {
 
     Assert.isNotNull(
       parentName,
-      'The packaged Rule should resolve its parent Set.'
-    );
-    Assert.isTrue(
-      activeRule == null || activeRule.IsActive__c == true,
-      'A returned Rule must satisfy the active-only contract.'
-    );
-    Assert.isNull(missingRule, 'An unknown Rule should return null.');
-    Assert.isNull(
-      inactiveRule,
-      'An inactive Rule must be omitted when required.'
+      'The packaged Check should resolve its parent Set.'
     );
     Assert.isNotNull(
-      ruleName,
+      activeCheck,
+      'The packaged active Check must be returned.'
+    );
+    Assert.isTrue(
+      activeCheck.IsActive__c,
+      'The returned Check must satisfy the active-only contract.'
+    );
+    Assert.isNull(missingCheck, 'An unknown Check should return null.');
+    Assert.isNull(
+      inactiveCheck,
+      'An inactive Check must be omitted when required.'
+    );
+    Assert.isNotNull(
+      checkName,
       'Qualified-name fixture resolution should succeed.'
     );
   }
@@ -163,15 +164,12 @@ private class RecordHealthCheckConfigServiceTest {
 
   @IsTest
   static void getDefinitionResponseRejectsObjectMismatch() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
 
     try {
       service.getDefinitionResponse(
         RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-          'Account_Data_Quality'
+          'Example_Account_Profile_Readiness'
         ),
         UserInfo.getUserId()
       );
@@ -200,8 +198,8 @@ private class RecordHealthCheckConfigServiceTest {
   }
 
   @IsTest
-  static void validateRuleForEvaluationReturnsUnableForInvalidQueryRule() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+  static void validateCheckForEvaluationReturnsUnableForInvalidQueryCheck() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Invalid_Query_Test',
         'MasterLabel' => 'Invalid Query Test',
@@ -218,11 +216,11 @@ private class RecordHealthCheckConfigServiceTest {
     );
 
     RecordHealthCheckInternalResult result = new RecordHealthCheckConfigService()
-      .validateRuleForEvaluation(rule);
+      .validateCheckForEvaluation(check);
 
     Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
     Assert.areEqual('INVALID_SOQL_TEMPLATE', result.reasonCode);
-    Assert.areEqual('Invalid_Query_Test', result.ruleDeveloperName);
+    Assert.areEqual('Invalid_Query_Test', result.checkDeveloperName);
   }
 
   @IsTest
@@ -243,36 +241,36 @@ private class RecordHealthCheckConfigServiceTest {
   }
 
   @IsTest
-  static void inactiveRuleLabelsUseEveryDocumentedFallback() {
-    List<Record_Health_Check_Rule__mdt> rules = new List<Record_Health_Check_Rule__mdt>{
-      RecordHealthCheckTestDataFactory.rule(
+  static void inactiveCheckLabelsUseEveryDocumentedFallback() {
+    List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>{
+      RecordHealthCheckTestDataFactory.check(
         new Map<String, Object>{
-          'DeveloperName' => 'First_Rule',
+          'DeveloperName' => 'First_Check',
           'MasterLabel' => 'First Master',
           'CheckTitle__c' => 'First Check'
         }
       ),
-      RecordHealthCheckTestDataFactory.rule(
+      RecordHealthCheckTestDataFactory.check(
         new Map<String, Object>{
-          'DeveloperName' => 'Second_Rule',
+          'DeveloperName' => 'Second_Check',
           'MasterLabel' => 'Second Master'
         }
       ),
-      RecordHealthCheckTestDataFactory.rule(
-        new Map<String, Object>{ 'DeveloperName' => 'Third_Rule' }
+      RecordHealthCheckTestDataFactory.check(
+        new Map<String, Object>{ 'DeveloperName' => 'Third_Check' }
       )
     };
 
     Test.startTest();
-    List<String> labels = RecordHealthCheckDefinitionLoader.inactiveRuleLabelsFrom(
-      rules
+    List<String> labels = RecordHealthCheckDefinitionLoader.inactiveCheckLabelsFrom(
+      checks
     );
     Test.stopTest();
 
     Assert.areEqual(
-      new List<String>{ 'First Check', 'Second Master', 'Third_Rule' },
+      new List<String>{ 'First Check', 'Second Master', 'Third_Check' },
       labels,
-      'Inactive Rule labels must use Check Title, Master Label, then Developer Name.'
+      'Inactive Check labels must use Check Title, Master Label, then Developer Name.'
     );
   }
 
@@ -291,9 +289,6 @@ private class RecordHealthCheckConfigServiceTest {
 
   @IsTest
   static void availabilityReportsActiveCheckSet() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
     Test.startTest();
     RecordHealthCheckSetAvailability availability = new RecordHealthCheckConfigService()
       .getCheckSetAvailabilityForObject('Account');
@@ -305,7 +300,7 @@ private class RecordHealthCheckConfigServiceTest {
   @IsTest
   static void inactiveLabelQueryReturnsEmptyForUnknownCheckSet() {
     Test.startTest();
-    List<String> labels = RecordHealthCheckDefinitionLoader.inactiveRuleLabels(
+    List<String> labels = RecordHealthCheckDefinitionLoader.inactiveCheckLabels(
       'No_Such_Check_Set'
     );
     Test.stopTest();
@@ -313,7 +308,7 @@ private class RecordHealthCheckConfigServiceTest {
     Assert.areEqual(
       new List<String>(),
       labels,
-      'An unknown Check Set must not manufacture inactive Rule labels.'
+      'An unknown Check Set must not manufacture inactive Check labels.'
     );
   }
 
@@ -345,8 +340,8 @@ private class RecordHealthCheckConfigServiceTest {
   }
 
   @IsTest
-  static void invalidRuleTokenIsRejectedBeforeEvaluation() {
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+  static void invalidCheckTokenIsRejectedBeforeEvaluation() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Invalid_Token',
         'FailureMessage__c' => '{!bad.value}' // rejected-token-fixture: intentional invalid namespace
@@ -355,21 +350,21 @@ private class RecordHealthCheckConfigServiceTest {
 
     Test.startTest();
     RecordHealthCheckTokenIssue issue = RecordHealthCheckConfigValidator.firstTemplateIssue(
-      rule
+      check
     );
     RecordHealthCheckInternalResult runtimeResult = new RecordHealthCheckConfigService()
-      .validateRuleForEvaluation(rule);
+      .validateCheckForEvaluation(check);
     Test.stopTest();
 
     Assert.isNotNull(issue, 'An unsupported merge token must be rejected.');
     Assert.isTrue(
       issue.message.contains('Unsupported token namespace'),
-      'The issue must identify the invalid Rule token.'
+      'The issue must identify the invalid Check token.'
     );
     Assert.areEqual(
       RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
       runtimeResult.status,
-      'Runtime validation must isolate a malformed template as an invalid Rule.'
+      'Runtime validation must isolate a malformed template as an invalid Check.'
     );
     Assert.areEqual(
       RecordHealthCheckConfigService.RC_INVALID_CONFIG,

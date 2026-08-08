@@ -17,13 +17,13 @@ private class RecordHealthCheckLoggerTest {
     }
   }
 
-  private class PublishedRuleSettingsProvider extends RecordHealthCheckSettingsProvider {
-    protected override List<Record_Health_Check_Rule__mdt> queryPublishedRules(
+  private class PublishedCheckSettingsProvider extends RecordHealthCheckSettingsProvider {
+    protected override List<Record_Health_Check__mdt> queryPublishedChecks(
       String checkSetQualifiedApiName
     ) {
-      return new List<Record_Health_Check_Rule__mdt>{
-        RecordHealthCheckTestDataFactory.rule(
-          new Map<String, Object>{ 'QualifiedApiName' => 'Published_Rule' }
+      return new List<Record_Health_Check__mdt>{
+        RecordHealthCheckTestDataFactory.check(
+          new Map<String, Object>{ 'QualifiedApiName' => 'Published_Check' }
         )
       };
     }
@@ -148,8 +148,8 @@ private class RecordHealthCheckLoggerTest {
     );
     Assert.areEqual(
       'Owner_Is_Active',
-      evt.RuleDeveloperName__c,
-      'Rule context is the canonical contract name.'
+      evt.CheckDeveloperName__c,
+      'Check context is the canonical contract name.'
     );
     Assert.areEqual('UNHANDLED_EXCEPTION', evt.Code__c, 'Code is the event.');
     Assert.isTrue(
@@ -203,7 +203,7 @@ private class RecordHealthCheckLoggerTest {
       'Example_Account_Relationship_Risk',
       UserInfo.getUserId(),
       'Owner_Is_Active',
-      'RULE_ERROR',
+      'CHECK_ERROR',
       new Map<String, Object>{ 'reasonCode' => 'APEX_EVALUATOR_ERROR' },
       null
     );
@@ -333,7 +333,7 @@ private class RecordHealthCheckLoggerTest {
     );
 
     Test.startTest();
-    logger.error('Rule_A', 'EMPTY_CONTEXT', new Map<String, Object>(), null);
+    logger.error('Check_A', 'EMPTY_CONTEXT', new Map<String, Object>(), null);
     Test.stopTest();
 
     List<Record_Health_Check_Log__e> pending = RecordHealthCheckLogger.pendingEventsForTest();
@@ -349,18 +349,15 @@ private class RecordHealthCheckLoggerTest {
   }
 
   @IsTest
-  static void settingsProviderReturnsConfiguredPublicationRules() {
-    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
-      return;
-    }
+  static void settingsProviderReturnsConfiguredPublicationChecks() {
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Account_Display_Formats'
+      'Example_Account_Profile_Readiness'
     );
 
     Test.startTest();
     RecordHealthCheckLogger.pendingEventsForTest();
-    Set<String> published = new PublishedRuleSettingsProvider()
-      .publishedRuleNames(checkSetName);
+    Set<String> published = new PublishedCheckSettingsProvider()
+      .publishedCheckNames(checkSetName);
     RecordHealthCheckLogger.log(
       RecordHealthCheckLogger.Level.DEBUG,
       'debug-run',
@@ -373,6 +370,10 @@ private class RecordHealthCheckLoggerTest {
     );
     Test.stopTest();
 
-    Assert.areEqual(new Set<String>{ 'Published_Rule' }, published);
+    Assert.areEqual(
+      new Set<String>{ 'Published_Check' },
+      published,
+      'The settings provider must return every Check selected for publication.'
+    );
   }
 }

@@ -25,21 +25,21 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
   // ─── Public entry point ───────────────────────────────────────────────────
 
   public RecordHealthCheckInternalResult evaluate(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Id recordId,
     SObject record
   ) {
     Long startMs = System.currentTimeMillis();
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
-    result.ruleDeveloperName = rule.DeveloperName;
-    result.label = rule.CheckTitle__c;
-    result.priority = rule.EvaluationOrder__c;
+    result.checkDeveloperName = check.DeveloperName;
+    result.label = check.CheckTitle__c;
+    result.priority = check.EvaluationOrder__c;
     result.evaluatorType = 'COMPARE_TWO_QUERIES';
 
     try {
-      result = doEvaluate(rule, recordId, record, result);
+      result = doEvaluate(check, recordId, record, result);
     } catch (Exception ex) {
-      result = applyEvaluationException(rule, result, ex);
+      result = applyEvaluationException(check, result, ex);
     }
 
     result.durationMs = System.currentTimeMillis() - startMs;
@@ -48,20 +48,20 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
 
   /** Evaluates both query sides once each for a complete record scope. */
   public Map<Id, RecordHealthCheckInternalResult> evaluateScope(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     List<Id> recordIds,
     Map<Id, SObject> loadedRecords
   ) {
-    Integer maxRows = rule.MaxQueryRows__c != null
-      ? (Integer) rule.MaxQueryRows__c
+    Integer maxRows = check.MaxQueryRows__c != null
+      ? (Integer) check.MaxQueryRows__c
       : DEFAULT_MAX_ROWS;
     scopeRowsByBoundSoql = new Map<String, List<SObject>>();
     scopeZeroCountSoql = new Set<String>();
     scopeExecutionActive = true;
     try {
-      cacheScopeRows(rule.SourceQuery__c, recordIds, loadedRecords, maxRows);
+      cacheScopeRows(check.SourceQuery__c, recordIds, loadedRecords, maxRows);
       cacheScopeRows(
-        rule.ComparisonQuery__c,
+        check.ComparisonQuery__c,
         recordIds,
         loadedRecords,
         maxRows
@@ -70,7 +70,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
       for (Id recordId : recordIds) {
         results.put(
           recordId,
-          evaluate(rule, recordId, loadedRecords.get(recordId))
+          evaluate(check, recordId, loadedRecords.get(recordId))
         );
       }
       return results;
@@ -114,7 +114,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
   }
 
   private RecordHealthCheckInternalResult applyEvaluationException(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,
     Exception ex
   ) {
@@ -127,7 +127,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
       result.reasonCode = 'APEX_EVALUATOR_ERROR';
     }
     result.message = RecordHealthCheckQueryEvaluatorSupport.safeCannotEvaluateMessage(
-      rule
+      check
     );
     result.detailMessage = ex.getMessage();
     return result;
@@ -136,18 +136,18 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
   // ─── Framework evaluation ──────────────────────────────────────────────────────
 
   private RecordHealthCheckInternalResult doEvaluate(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     Id recordId,
     SObject record,
     RecordHealthCheckInternalResult result
   ) {
-    Integer maxRows = rule.MaxQueryRows__c != null
-      ? (Integer) rule.MaxQueryRows__c
+    Integer maxRows = check.MaxQueryRows__c != null
+      ? (Integer) check.MaxQueryRows__c
       : DEFAULT_MAX_ROWS;
 
-    String primarySoql = soqlEvaluator.bindTokens(rule.SourceQuery__c, record);
+    String primarySoql = soqlEvaluator.bindTokens(check.SourceQuery__c, record);
     String comparisonSoql = soqlEvaluator.bindTokens(
-      rule.ComparisonQuery__c,
+      check.ComparisonQuery__c,
       record
     );
 
@@ -156,7 +156,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
     Boolean primaryIsZeroCount = isScopeZeroCount(primarySoql);
     Boolean comparisonIsZeroCount = isScopeZeroCount(comparisonSoql);
 
-    String mode = rule.QueryResultHandling__c;
+    String mode = check.QueryResultHandling__c;
     Boolean passed;
 
     if (mode == 'ONE_RESULT') {
@@ -173,13 +173,13 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
         (comparisonRows.isEmpty() && !comparisonIsZeroCount)
       ) {
         return RecordHealthCheckQueryEvaluatorSupport.buildEmptyResult(
-          rule,
+          check,
           result,
           null
         );
       }
       passed = RecordHealthCheckCompareQuerySupport.evaluateSingleVsSingle(
-        rule,
+        check,
         primaryRows,
         comparisonRows,
         primaryIsZeroCount,
@@ -188,7 +188,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
     } else if (mode == 'COMPARE_AS_LISTS') {
       // List-result mode: both sides resolve to lists; list set operations
       passed = RecordHealthCheckCompareQuerySupport.evaluateListVsList(
-        rule,
+        check,
         primaryRows,
         comparisonRows
       );
@@ -211,7 +211,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
         (comparisonRows.isEmpty() && !comparisonIsZeroCount);
       return zeroRows
         ? RecordHealthCheckQueryEvaluatorSupport.buildEmptyResult(
-            rule,
+            check,
             result,
             null
           )
@@ -223,7 +223,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
     // Capture actual vs expected from the rows already fetched (no extra query)
     // so the UI can show the comparison on a non-passing row.
     RecordHealthCheckCompareQuerySupport.setComparisonValues(
-      rule,
+      check,
       record,
       result,
       primaryRows,
@@ -237,11 +237,11 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
       result.status = 'PASS';
     } else {
       result.status = 'FAIL';
-      result.severity = rule.FailureSeverity__c;
+      result.severity = check.FailureSeverity__c;
       // Merge-field resolution is handled by the engine; this evaluator still
       // supplies the unresolved template for the shared finalization path.
-      result.message = String.isNotBlank(rule.FailureMessage__c)
-        ? rule.FailureMessage__c
+      result.message = String.isNotBlank(check.FailureMessage__c)
+        ? check.FailureMessage__c
         : 'Check failed.';
     }
     return result;
@@ -256,12 +256,8 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
       return scopeRowsByBoundSoql.get(soql);
     }
     if (scopeExecutionActive) {
-      if (String.isBlank(soql)) {
-        throw new RecordHealthCheckEvaluatorException(
-          'INVALID_SOQL_TEMPLATE',
-          'A scope evaluation received a blank SOQL template.'
-        );
-      }
+      // Blank templates are rejected by token binding before query execution,
+      // so every uncached value here represents an unplanned query shape.
       throw new RecordHealthCheckEvaluatorException(
         'UNSUPPORTED_BULK_QUERY_SHAPE',
         'A scope evaluation attempted an unplanned record-level query.'

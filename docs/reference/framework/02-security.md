@@ -20,18 +20,18 @@ than a status, a reason code, and administrator-authored display text.
 ## Access model: USER_MODE everywhere
 
 Every query the Framework runs against a business record uses `WITH USER_MODE`. That includes the
-record load for a Rule, Formula field-dependency lookups, Query and Compare-two-queries evaluation,
+record load for a Check, Formula field-dependency lookups, Query and Compare-two-queries evaluation,
 and applicability count queries.
 
 | Property | Behavior |
 | --- | --- |
-| Object and field access | Enforced for the running user, not the user who authored the Rule |
+| Object and field access | Enforced for the running user, not the user who authored the Check |
 | Record access (sharing) | Enforced for the running user through standard Salesforce sharing |
 | Missing access | Returns `UNABLE_TO_EVALUATE` with a neutral reason code, never a thrown exception |
 | Privilege escalation | None. The Framework classes are `with sharing`, and no query runs `WITH SYSTEM_MODE` |
 
 Salesforce access, not Record Health Check, decides what a user can read. If a user cannot see an
-Account or a field on it in Salesforce, that user cannot see it through a Rule either.
+Account or a field on it in Salesforce, that user cannot see it through a Check either.
 
 ## SOQL template safety
 
@@ -40,23 +40,23 @@ never executed as written. `RecordHealthCheckSoqlTemplate` parses and rewrites i
 
 | Check | What happens on failure |
 | --- | --- |
-| `WITH SYSTEM_MODE` present | Rejected before execution; the Rule returns `INVALID_SOQL_TEMPLATE` |
-| DML keywords present (`INSERT`, `UPDATE`, `DELETE`, `UPSERT`, `MERGE`) | Rejected before execution; the Rule returns `INVALID_SOQL_TEMPLATE` |
+| `WITH SYSTEM_MODE` present | Rejected before execution; the Check returns `INVALID_SOQL_TEMPLATE` |
+| DML keywords present (`INSERT`, `UPDATE`, `DELETE`, `UPSERT`, `MERGE`) | Rejected before execution; the Check returns `INVALID_SOQL_TEMPLATE` |
 | No `WITH USER_MODE` clause | The Framework injects one in the correct position before running the query |
 | Outer `LIMIT` above 2,000 | Rewritten down to the enforced maximum row count |
 | Merge tokens outside `record.*` | Rejected; only `record.*` tokens are valid inside SOQL |
 
-A Rule author writes ordinary SOQL. The Framework decides how it runs. This means a malformed or
+A Check author writes ordinary SOQL. The Framework decides how it runs. This means a malformed or
 overly broad query becomes a documented status on one card instead of an uncatchable governor
 exception or an unintended system-mode read.
 
-Rule scope is also enforced structurally: a caller can only evaluate a Rule through its own Check
-Set, and cannot evaluate a Rule whose Check Set is inactive or targets a different object. See
+Check scope is also enforced structurally: a caller can only evaluate a Check through its own Check
+Set, and cannot evaluate a Check whose Check Set is inactive or targets a different object. See
 [Architecture: The configuration model](01-architecture.md#4-the-configuration-model).
 
 ## Plugin side-effect bans
 
-A custom Apex Rule plugin (`RecordHealthCheckRule`) is trusted code: the Framework cannot isolate or
+A custom Apex Check plugin (`RecordHealthCheck`) is trusted code: the Framework cannot isolate or
 observe every read it performs. It can, however, guarantee that a plugin call does not write to the
 transaction (no DML, callouts, email, platform events, or asynchronous work).
 
@@ -71,13 +71,13 @@ transaction (no DML, callouts, email, platform events, or asynchronous work).
 | Asynchronous work (Queueable, Future, Batch, Scheduled) | Thrown Framework exception, `PLUGIN_SIDE_EFFECT_DETECTED` |
 
 The savepoint rolls back any detected effect before the pipeline derives display content or
-publishes lifecycle events, so a misbehaving plugin cannot commit a write through a Rule evaluation.
+publishes lifecycle events, so a misbehaving plugin cannot commit a write through a Check evaluation.
 
 That write check is not a read-security boundary. A plugin must still use `with sharing` and
 `WITH USER_MODE` queries on its own; the Framework validates returned keys and statuses and blocks
 forbidden writes, but the plugin author remains responsible for its own data access. Review every
 plugin query for CRUD/FLS enforcement before deployment, and use the multi-size contract test and
-permission test data described in [Verify an Apex Rule plugin](../apex/08-plugin-verification.md)
+permission test data described in [Verify an Apex Check plugin](../apex/08-plugin-verification.md)
 to gather evidence rather than assuming it.
 
 ## Permission Sets: User vs Admin
@@ -88,7 +88,7 @@ granted independently.
 | Permission Set | Grants | Assign to |
 | --- | --- | --- |
 | **Record Health Check User** (`Record_Health_Check_User`) | The **Record Health Check Run** (`Record_Health_Check_Run`) Custom Permission, needed to call the protected Apex surface and run checks | Every user who should see the card |
-| **Record Health Check Admin** (`Record_Health_Check_Admin`) | Everything in **Record Health Check User** (`Record_Health_Check_User`), plus the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission and the metadata validation surface | Rule authors and troubleshooters only |
+| **Record Health Check Admin** (`Record_Health_Check_Admin`) | Everything in **Record Health Check User** (`Record_Health_Check_User`), plus the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission and the metadata validation surface | Check authors and troubleshooters only |
 
 Do not assign **Record Health Check Admin** (`Record_Health_Check_Admin`) to users who only need to run checks. Diagnostic detail
 can include SOQL text, formula text, and specific access-denial causes that a regular user should
@@ -132,12 +132,12 @@ Framework-owned results table.
 | Data | Persisted by the Framework? |
 | --- | --- |
 | The evaluated record | No. Evaluation is read-only; the Framework performs no DML on it |
-| A Rule's Pass/Fail/Skipped/Unable to Check/System Error outcome | No. It exists only in the response returned to the caller |
+| A Check's Pass/Fail/Skipped/Unable to Check/System Error outcome | No. It exists only in the response returned to the caller |
 | Found and Expected values | No. They are formatted for display and returned, not stored |
 | Historical trend of results over time | No. A subscriber must build its own storage from lifecycle events |
 | `[RHC]` debug lines | Only as long as Salesforce debug logs are retained, subject to org debug-log settings |
 | Held `ERROR` detail before `flush()` | Transient, in memory, for the duration of the run; published or discarded, never written to a table |
-| Check Set and Rule configuration | Yes, as Custom Metadata, which deploys like any other metadata and consumes no record storage |
+| Check Set and Check configuration | Yes, as Custom Metadata, which deploys like any other metadata and consumes no record storage |
 
 If a business process needs a history of readiness over time, subscribe to lifecycle events and
 write your own storage. See [Architecture: Out of scope](01-architecture.md#16-out-of-scope).
@@ -145,7 +145,7 @@ write your own storage. See [Architecture: Out of scope](01-architecture.md#16-o
 ## What an event body carries
 
 The two lifecycle result events are deliberately minimal. `Record_Health_Check_Set_Run__e` and
-`Record_Health_Check_Rule_Result__e` carry status, counts, severities, Reason Codes, the evaluated
+`Record_Health_Check_Result__e` carry status, counts, severities, Reason Codes, the evaluated
 record's ID when one is available, and correlation fields such as `RunId__c`. They never carry:
 
 - The Salesforce user Id of who ran the check
@@ -161,13 +161,13 @@ subscriber or integration that needs to investigate errors, separately from the 
 Permission Sets, which do not grant it. See
 [Lifecycle events: Diagnostics events are a separate channel](../../integration/03-lifecycle-events.md#diagnostics-events-are-a-separate-channel).
 
-Treat every subscriber grant as a data-access decision: Set Run and Rule Result events are safe for
+Treat every subscriber grant as a data-access decision: Set Run and Check Result events are safe for
 a broad audience because they carry no message text or user identity, while Log events need the
 same care as an error log or stack trace anywhere else in the org.
 
-## Fix-link rules
+## Fix-link checks
 
-**Action URL** on a failed Rule is checked for safety after its merge tokens resolve and are
+**Action URL** on a failed Check is checked for safety after its merge tokens resolve and are
 URL-encoded.
 
 | Allowed | Rejected |
@@ -191,7 +191,7 @@ library and review checklist.
 
 ## Merge tokens
 
-Merge tokens only resolve known namespaces (`record`, `rhcRule`, `rhcSet`, `rhcResult`, `rhcRun`),
+Merge tokens only resolve known namespaces (`record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun`),
 and each surface allows only the namespaces that make sense on it: SOQL accepts `record.*` only,
 Action URL rejects result tokens, and display text accepts all five. Unknown namespaces and
 properties are configuration errors, not silent no-ops.
@@ -201,7 +201,7 @@ properties are configuration errors, not silent no-ops.
 | Token count | Capped at 100 per template; over the cap returns `TOKEN_LIMIT_EXCEEDED` |
 | Resolved message length | Capped at 20,000 characters; over the cap returns `RESOLVED_TEMPLATE_TOO_LONG` rather than a truncated, possibly misleading message |
 | SOQL bind typing | A token bound into SOQL is typed and escaped; strings are quoted, numbers/dates/Booleans are not, and an unconvertible fallback returns `MISSING_BIND_VALUE` instead of running a malformed query |
-| Field readability | The running user must be able to read every field a token names, or the Rule returns `UNABLE_TO_EVALUATE` |
+| Field readability | The running user must be able to read every field a token names, or the Check returns `UNABLE_TO_EVALUATE` |
 
 Because SOQL tokens are typed and escaped rather than concatenated as text, a merge token cannot be
 used to inject arbitrary SOQL. See [Reference: Merge tokens](../contracts/02-merge-tokens.md) for the full
@@ -226,7 +226,7 @@ only a bug.
 - [Architecture: Security model](01-architecture.md#9-security-model)
 - [Reason Codes](../contracts/01-reason-codes.md)
 - [Lifecycle events](../../integration/03-lifecycle-events.md)
-- [Verify an Apex Rule plugin](../apex/08-plugin-verification.md)
+- [Verify an Apex Check plugin](../apex/08-plugin-verification.md)
 - [Configure action links](../../guides/04-configure-action-links.md)
 - [Troubleshoot with Show Diagnostics](../../guides/07-troubleshoot-with-show-diagnostics.md)
 - [Security policy](../../../.github/SECURITY.md)

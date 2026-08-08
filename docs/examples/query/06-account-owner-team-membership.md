@@ -29,7 +29,7 @@ A sales manager is preparing an Account for an ownership handoff.
 | --- | --- |
 | Build a list from related records | The query returns Account Team member user IDs. |
 | Resolve a value from the current Account | The value to find is the Account Owner ID. |
-| Verify list membership | The Rule checks whether the Owner appears in the team-member list. |
+| Verify list membership | The Check checks whether the Owner appears in the team-member list. |
 
 ## Why use Verify with a query
 
@@ -42,36 +42,36 @@ A sales manager is preparing an Account for an ownership handoff.
 
 ## Confirm the team policy first
 
-This Rule requires an explicit Account Team Member row for the owner. The Account Owner's record
+This Check requires an explicit Account Team Member row for the owner. The Account Owner's record
 access does not replace that row. Use this pattern only when your organization has enabled Account
 Teams and requires the owner to appear in the team list.
 
 ## Why not use a Validation Rule or Report
 
-- **Validation Rule:** A Validation Rule on Account cannot search Account Team Members. A rule on Account Team Member also cannot require that one row exists for the Account Owner.
+- **Validation Rule:** A Validation Rule on Account cannot search Account Team Members. A check on Account Team Member also cannot require that one row exists for the Account Owner.
 
 - **Report:** A report can find ownership gaps across many Accounts. It does not place the alignment result beside the other handoff checks on the Account.
 
-## Configure the Rule
+## Configure the Check
 
-In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**, create the Rule:
+In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check-rule.md#developer-name-developername) | `Owner_Is_On_Account_Team` |
-| **Label** | [`MasterLabel`](../../metadata/02-fields-check-rule.md#label-masterlabel) | Owner Is on Account Team |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check-rule.md#check-title-checktitle__c) | Account Owner Is on the Account Team |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../metadata/02-fields-check-rule.md#source-query-sourcequery__c) | Leave blank; list-membership mode reads its list from **Comparison Query** |
-| **Comparison Query** | [`ComparisonQuery__c`](../../metadata/02-fields-check-rule.md#comparison-query-comparisonquery__c) | `SELECT UserId FROM AccountTeamMember WHERE AccountId = {!record.Id}` |
-| **Comparison Query Field** | [`ComparisonQueryField__c`](../../metadata/02-fields-check-rule.md#comparison-query-field-comparisonqueryfield__c) | `UserId` |
-| **Value to find in the list (formula)** | [`FindInListFormula__c`](../../metadata/02-fields-check-rule.md#value-to-find-in-the-list-formula-findinlistformula__c) | `OwnerId` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/02-fields-check-rule.md#how-to-read-query-results-queryresulthandling__c) | Compare as lists |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/02-fields-check-rule.md#comparison-operator-comparisonoperator__c) | List contains any |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/02-fields-check-rule.md#if-query-finds-no-records-norowsresult__c) | Fail |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/02-fields-check-rule.md#max-query-rows-1-2000-maxqueryrows__c) | `200` |
-| **Formula Result Type** | [`FormulaResultType__c`](../../metadata/02-fields-check-rule.md#formula-result-type-formularesulttype__c) | Text |
+| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check.md#developer-name-developername) | `Owner_Is_On_Account_Team` |
+| **Label** | [`MasterLabel`](../../metadata/02-fields-check.md#label-masterlabel) | Owner Is on Account Team |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
+| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check.md#check-title-checktitle__c) | Account Owner Is on the Account Team |
+| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check.md#evaluation-type-evaluationtype__c) | Verify with a query |
+| **Source Query** | [`SourceQuery__c`](../../metadata/02-fields-check.md#source-query-sourcequery__c) | Leave blank; list-membership mode reads its list from **Comparison Query** |
+| **Comparison Query** | [`ComparisonQuery__c`](../../metadata/02-fields-check.md#comparison-query-comparisonquery__c) | `SELECT UserId FROM AccountTeamMember WHERE AccountId = {!record.Id}` |
+| **Comparison Query Field** | [`ComparisonQueryField__c`](../../metadata/02-fields-check.md#comparison-query-field-comparisonqueryfield__c) | `UserId` |
+| **Value to find in the list (formula)** | [`FindInListFormula__c`](../../metadata/02-fields-check.md#value-to-find-in-the-list-formula-findinlistformula__c) | `OwnerId` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/02-fields-check.md#how-to-read-query-results-queryresulthandling__c) | Compare as lists |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/02-fields-check.md#comparison-operator-comparisonoperator__c) | List contains any |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/02-fields-check.md#if-query-finds-no-records-norowsresult__c) | Fail |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/02-fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200` |
+| **Formula Result Type** | [`FormulaResultType__c`](../../metadata/02-fields-check.md#formula-result-type-formularesulttype__c) | Text |
 
 ## Optional configuration
 
@@ -79,19 +79,19 @@ These values improve presentation. Change them for your process, or leave an opt
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check-rule.md#check-description-checkdescription__c) | Confirms that the Account Owner appears among the visible Account Team Members. |
-| **Category** | [`Category__c`](../../metadata/02-fields-check-rule.md#category-category__c) | Relationship coverage |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | The owner of `{!record.Name fallback="this record"}` is not on the Account Team. Add the owner when your handoff process requires that alignment. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the Account Owner with the Account Team. Confirm access to Account Owner and Account Team Members. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check-rule.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Rule** | [`PrerequisiteRule__c`](../../metadata/02-fields-check-rule.md#prerequisite-rule-prerequisiterule__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Review the Account Team and add the owner with the team role approved by your organization. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check-rule.md#action-label-actionlabel__c) | `Review account team` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check-rule.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/AccountTeamMembers/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `110` |
-| **Active** | [`IsActive__c`](../../metadata/02-fields-check-rule.md#active-isactive__c) | Checked only when Account Teams are enabled and your policy requires an explicit row for the owner |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check.md#check-description-checkdescription__c) | Confirms that the Account Owner appears among the visible Account Team Members. |
+| **Category** | [`Category__c`](../../metadata/02-fields-check.md#category-category__c) | Relationship coverage |
+| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check.md#message-when-failed-failuremessage__c) | The owner of `{!record.Name fallback="this record"}` is not on the Account Team. Add the owner when your handoff process requires that alignment. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the Account Owner with the Account Team. Confirm access to Account Owner and Account Team Members. |
+| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/02-fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check.md#fix-message-fixmessage__c) | Review the Account Team and add the owner with the team role approved by your organization. |
+| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check.md#action-label-actionlabel__c) | `Review account team` |
+| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/AccountTeamMembers/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check.md#evaluation-order-evaluationorder__c) | `110` |
+| **Active** | [`IsActive__c`](../../metadata/02-fields-check.md#active-isactive__c) | Checked only when Account Teams are enabled and your policy requires an explicit row for the owner |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 This is the Query Evaluation Type's list-membership mode. **Source Query** stays blank because the
 value comes from `OwnerId` and the candidate list comes from **Comparison Query**. Expected-value,
@@ -138,11 +138,11 @@ Record Health Check compares the Account Owner with visible Account Team Members
 
 - Missing OwnerId, AccountTeamMember, or UserId permission can show **Unable to evaluate**.
 
-Before activation, confirm the Rule with users who have the Account Team visibility intended for ownership handoffs.
+Before activation, confirm the Check with users who have the Account Team visibility intended for ownership handoffs.
 
-## Test the Rule
+## Test the Check
 
-1. Remove the Account Owner from the Account Team. Run the Rule and confirm Warning.
+1. Remove the Account Owner from the Account Team. Run the Check and confirm Warning.
 2. Add the Owner as an Account Team Member with an approved team role. Rerun and confirm a pass.
 3. Change OwnerId to another active User who is not on the Account Team and confirm Warning.
 4. Repeat the failing test as a user with limited Account Team access and confirm the result follows your sharing model.

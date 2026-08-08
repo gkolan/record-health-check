@@ -17,7 +17,7 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   private static final String RC_NO_ACTIVE_CHECKS = RecordHealthCheckConfigService.RC_NO_ACTIVE_CHECKS;
 
   /**
-   * Loads and validates a Check Set and its active rules.
+   * Loads and validates a Check Set and its active checks.
    * Throws ConfigException for component-level failures (CONFIG_NOT_FOUND,
    * CONFIG_INACTIVE, OBJECT_MISMATCH, NO_RECORD_CONTEXT, NO_ACTIVE_CHECKS).
    * Returns a fully filled-in RecordHealthCheckDefinitionResponse on success.
@@ -81,10 +81,10 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     String resolvedDeveloperName = checkSet.DeveloperName;
     validateCheckSetForDefinition(checkSet, resolvedDeveloperName, recordId);
 
-    // Load active rules — only the fields needed to build RecordHealthCheckDefinition.
-    // Full evaluation fields are fetched per-rule at evaluation time via loadRule().
+    // Load active checks — only the fields needed to build RecordHealthCheckDefinition.
+    // Full evaluation fields are fetched per-check at evaluation time via loadCheck().
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by RecordHealthCheckAccess before definitions are exposed.
-    List<Record_Health_Check_Rule__mdt> allRules = [
+    List<Record_Health_Check__mdt> allChecks = [
       SELECT
         QualifiedApiName,
         DeveloperName,
@@ -92,22 +92,20 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         CheckDescription__c,
         Category__c,
         EvaluationOrder__c,
-        PrerequisiteRule__c
-      FROM Record_Health_Check_Rule__mdt
+        PrerequisiteCheck__c
+      FROM Record_Health_Check__mdt
       WHERE
         Record_Health_Check_Set__r.QualifiedApiName = :checkSetDeveloperName
         AND IsActive__c = TRUE
       ORDER BY EvaluationOrder__c ASC NULLS LAST, DeveloperName ASC
     ];
 
-    validateActiveRulesForDefinition(allRules, resolvedDeveloperName);
+    validateActiveChecksForDefinition(allChecks, resolvedDeveloperName);
 
-    Integer totalAvailable = allRules.size();
+    Integer totalAvailable = allChecks.size();
     Boolean checksOmitted = totalAvailable > FRAMEWORK_MAX_CHECKS;
-    List<Record_Health_Check_Rule__mdt> rulesForRun = selectRulesForRun(
-      allRules
-    );
-    Integer inactiveRuleCount = countInactiveRules(resolvedDeveloperName);
+    List<Record_Health_Check__mdt> checksForRun = selectChecksForRun(allChecks);
+    Integer inactiveCheckCount = countInactiveChecks(resolvedDeveloperName);
 
     // Build response
     RecordHealthCheckDefinitionResponse response = new RecordHealthCheckDefinitionResponse();
@@ -135,39 +133,38 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     response.totalAvailableCheckCount = totalAvailable;
     response.frameworkMaxChecks = RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
     response.checksOmittedByLimit = checksOmitted;
-    response.inactiveRuleCount = inactiveRuleCount;
-    // Rule names are configuration detail, so they ride along only for the
+    response.inactiveCheckCount = inactiveCheckCount;
+    // Check names are configuration detail, so they ride along only for the
     // diagnostics audience that already sees troubleshooting fields.
-    response.inactiveRuleLabels = (response.showDiagnostics == true &&
-      inactiveRuleCount > 0)
-      ? inactiveRuleLabels(resolvedDeveloperName)
-      : new List<String>();
+    response.inactiveCheckLabels = inactiveCheckLabelsForDiagnostics(
+      response.showDiagnostics,
+      inactiveCheckCount,
+      resolvedDeveloperName
+    );
 
-    // Log WARN when active rules exceed FRAMEWORK_MAX_CHECKS, so truncation is
+    // Log WARN when active checks exceed FRAMEWORK_MAX_CHECKS, so truncation is
     // visible server-side and not only in the LWC "First 25 of N shown" badge.
-    if (checksOmitted) {
-      logCheckLimitExceeded(resolvedDeveloperName, recordId, totalAvailable);
-    }
+    logCheckLimitExceededWhenNeeded(
+      resolvedDeveloperName,
+      recordId,
+      totalAvailable
+    );
 
     response.checks = new List<RecordHealthCheckDefinition>();
     Map<String, String> categoryLabels = categoryLabelsByValue();
 
-    for (Record_Health_Check_Rule__mdt rule : rulesForRun) {
+    for (Record_Health_Check__mdt check : checksForRun) {
       RecordHealthCheckDefinition def = new RecordHealthCheckDefinition();
-      def.qualifiedApiName = rule.QualifiedApiName;
-      def.developerName = rule.DeveloperName;
-      def.label = rule.CheckTitle__c;
-      def.description = rule.CheckDescription__c;
-      def.category = rule.Category__c;
-      def.categoryLabel = String.isBlank(rule.Category__c)
-        ? null
-        : categoryLabels.get(rule.Category__c);
-      def.priority = rule.EvaluationOrder__c;
-      def.dependsOnRuleDeveloperName = String.isNotBlank(
-          rule.PrerequisiteRule__c
-        )
-        ? rule.PrerequisiteRule__c.trim()
-        : null;
+      def.qualifiedApiName = check.QualifiedApiName;
+      def.developerName = check.DeveloperName;
+      def.label = check.CheckTitle__c;
+      def.description = check.CheckDescription__c;
+      def.category = check.Category__c;
+      def.categoryLabel = categoryLabelFor(categoryLabels, check.Category__c);
+      def.priority = check.EvaluationOrder__c;
+      def.dependsOnCheckDeveloperName = normalizedPrerequisite(
+        check.PrerequisiteCheck__c
+      );
       response.checks.add(def);
     }
 
@@ -177,12 +174,48 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   private static Map<String, String> categoryLabelsByValue() {
     Map<String, String> labels = new Map<String, String>();
     for (
-      Schema.PicklistEntry entry : Record_Health_Check_Rule__mdt.Category__c.getDescribe()
+      Schema.PicklistEntry entry : Record_Health_Check__mdt.Category__c.getDescribe()
         .getPicklistValues()
     ) {
       labels.put(entry.getValue(), entry.getLabel());
     }
     return labels;
+  }
+
+  @TestVisible
+  private static List<String> inactiveCheckLabelsForDiagnostics(
+    Boolean showDiagnostics,
+    Integer inactiveCheckCount,
+    String checkSetDeveloperName
+  ) {
+    return showDiagnostics == true &&
+      inactiveCheckCount > 0
+      ? inactiveCheckLabels(checkSetDeveloperName)
+      : new List<String>();
+  }
+
+  @TestVisible
+  private static String categoryLabelFor(
+    Map<String, String> categoryLabels,
+    String category
+  ) {
+    return String.isBlank(category) ? null : categoryLabels.get(category);
+  }
+
+  @TestVisible
+  private static String normalizedPrerequisite(String prerequisite) {
+    return String.isNotBlank(prerequisite) ? prerequisite.trim() : null;
+  }
+
+  @TestVisible
+  private static void logCheckLimitExceededWhenNeeded(
+    String checkSetDeveloperName,
+    Id recordId,
+    Integer totalAvailable
+  ) {
+    if (totalAvailable > FRAMEWORK_MAX_CHECKS) {
+      logCheckLimitExceeded(checkSetDeveloperName, recordId, totalAvailable);
+    }
   }
 
   public static void logCheckLimitExceeded(
@@ -313,12 +346,12 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     }
   }
 
-  public static void validateActiveRulesForDefinition(
-    List<Record_Health_Check_Rule__mdt> rules,
+  public static void validateActiveChecksForDefinition(
+    List<Record_Health_Check__mdt> checks,
     String checkSetDeveloperName
   ) {
-    if (rules.isEmpty()) {
-      Integer inactiveCount = countInactiveRules(checkSetDeveloperName);
+    if (checks.isEmpty()) {
+      Integer inactiveCount = countInactiveChecks(checkSetDeveloperName);
       String detail = inactiveCount > 0
         ? ' (' + inactiveCount + ' inactive)'
         : '';
@@ -333,12 +366,12 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     }
   }
 
-  /** Inactive Rules on the Check Set — omitted from the run, useful for admin UX. */
-  public static Integer countInactiveRules(String checkSetDeveloperName) {
+  /** Inactive Checks on the Check Set — omitted from the run, useful for admin UX. */
+  public static Integer countInactiveChecks(String checkSetDeveloperName) {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by RecordHealthCheckAccess before definitions are exposed.
     return [
       SELECT COUNT()
-      FROM Record_Health_Check_Rule__mdt
+      FROM Record_Health_Check__mdt
       WHERE
         Record_Health_Check_Set__r.DeveloperName = :checkSetDeveloperName
         AND IsActive__c = FALSE
@@ -346,35 +379,35 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   }
 
   /**
-   * Display names of the inactive Rules, for the diagnostics "N Inactive"
+   * Display names of the inactive Checks, for the diagnostics "N Inactive"
    * tooltip. Capped at the framework check limit so a long-neglected Check Set
    * cannot grow an unbounded tooltip; the pill still shows the exact count.
    */
-  public static List<String> inactiveRuleLabels(String checkSetDeveloperName) {
+  public static List<String> inactiveCheckLabels(String checkSetDeveloperName) {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by RecordHealthCheckAccess before definitions are exposed.
-    List<Record_Health_Check_Rule__mdt> inactiveRules = [
+    List<Record_Health_Check__mdt> inactiveChecks = [
       SELECT DeveloperName, MasterLabel, CheckTitle__c
-      FROM Record_Health_Check_Rule__mdt
+      FROM Record_Health_Check__mdt
       WHERE
         Record_Health_Check_Set__r.DeveloperName = :checkSetDeveloperName
         AND IsActive__c = FALSE
       ORDER BY EvaluationOrder__c ASC NULLS LAST, DeveloperName ASC
       LIMIT :FRAMEWORK_MAX_CHECKS
     ];
-    return inactiveRuleLabelsFrom(inactiveRules);
+    return inactiveCheckLabelsFrom(inactiveChecks);
   }
 
-  public static List<String> inactiveRuleLabelsFrom(
-    List<Record_Health_Check_Rule__mdt> inactiveRules
+  public static List<String> inactiveCheckLabelsFrom(
+    List<Record_Health_Check__mdt> inactiveChecks
   ) {
     List<String> labels = new List<String>();
-    for (Record_Health_Check_Rule__mdt rule : inactiveRules) {
+    for (Record_Health_Check__mdt check : inactiveChecks) {
       labels.add(
-        String.isNotBlank(rule.CheckTitle__c)
-          ? rule.CheckTitle__c
-          : (String.isNotBlank(rule.MasterLabel)
-              ? rule.MasterLabel
-              : rule.DeveloperName)
+        String.isNotBlank(check.CheckTitle__c)
+          ? check.CheckTitle__c
+          : (String.isNotBlank(check.MasterLabel)
+              ? check.MasterLabel
+              : check.DeveloperName)
       );
     }
     return labels;
@@ -397,14 +430,14 @@ public with sharing class RecordHealthCheckDefinitionLoader {
       RecordHealthCheckAccess.canViewDetails();
   }
 
-  public static List<Record_Health_Check_Rule__mdt> selectRulesForRun(
-    List<Record_Health_Check_Rule__mdt> allRules
+  public static List<Record_Health_Check__mdt> selectChecksForRun(
+    List<Record_Health_Check__mdt> allChecks
   ) {
-    List<Record_Health_Check_Rule__mdt> rulesForRun = new List<Record_Health_Check_Rule__mdt>();
-    Integer rulesToInclude = Math.min(FRAMEWORK_MAX_CHECKS, allRules.size());
-    for (Integer i = 0; i < rulesToInclude; i++) {
-      rulesForRun.add(allRules[i]);
+    List<Record_Health_Check__mdt> checksForRun = new List<Record_Health_Check__mdt>();
+    Integer checksToInclude = Math.min(FRAMEWORK_MAX_CHECKS, allChecks.size());
+    for (Integer i = 0; i < checksToInclude; i++) {
+      checksForRun.add(allChecks[i]);
     }
-    return rulesForRun;
+    return checksForRun;
   }
 }

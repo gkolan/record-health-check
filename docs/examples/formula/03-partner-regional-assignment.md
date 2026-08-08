@@ -24,9 +24,9 @@ A channel manager is preparing a Partner Account for regional assignment.
 
 | Skill | How this example teaches it |
 | --- | --- |
-| Limit when a Rule applies | Applicability keeps the Rule focused on partner Accounts. |
+| Limit when a Check applies | Applicability keeps the Check focused on partner Accounts. |
 | Separate applicability from pass/fail | One formula decides whether to run; another evaluates readiness. |
-| Explain `SKIPPED` correctly | Non-partner Accounts are not failures because the Rule does not apply. |
+| Explain `SKIPPED` correctly | Non-partner Accounts are not failures because the Check does not apply. |
 
 ## Why use Verify with a formula
 
@@ -42,20 +42,20 @@ A channel manager is preparing a Partner Account for regional assignment.
 
 - Customer and prospect Accounts are outside this assignment process and should not be blocked.
 
-## Configure the Rule
+## Configure the Check
 
-In **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**, create the Rule:
+In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check-rule.md#developer-name-developername) | `Partner_Has_Billing_Country` |
-| **Label** | [`MasterLabel`](../../metadata/02-fields-check-rule.md#label-masterlabel) | Partner Has Billing Country |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check-rule.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check-rule.md#check-title-checktitle__c) | Partner Has Billing Country |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check-rule.md#evaluation-type-evaluationtype__c) | Verify with a formula |
-| **Pass Condition** | [`PassConditionFormula__c`](../../metadata/02-fields-check-rule.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCountry))` |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check-rule.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../metadata/02-fields-check-rule.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Partner")` |
+| **Developer Name** | [`DeveloperName`](../../metadata/02-fields-check.md#developer-name-developername) | `Partner_Has_Billing_Country` |
+| **Label** | [`MasterLabel`](../../metadata/02-fields-check.md#label-masterlabel) | Partner Has Billing Country |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/02-fields-check.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
+| **Check Title** | [`CheckTitle__c`](../../metadata/02-fields-check.md#check-title-checktitle__c) | Partner Has Billing Country |
+| **Evaluation Type** | [`EvaluationType__c`](../../metadata/02-fields-check.md#evaluation-type-evaluationtype__c) | Verify with a formula |
+| **Pass Condition** | [`PassConditionFormula__c`](../../metadata/02-fields-check.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCountry))` |
+| **Applies To** | [`ApplicabilityMode__c`](../../metadata/02-fields-check.md#applies-to-applicabilitymode__c) | When a formula is true |
+| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../metadata/02-fields-check.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Partner")` |
 
 Confirm the `Partner` picklist API value in your org before relying on the applicability formula.
 
@@ -63,20 +63,20 @@ Confirm the `Partner` picklist API value in your org before relying on the appli
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check-rule.md#check-description-checkdescription__c) | Requires Billing Country only when Account Type is Partner. |
-| **Category** | [`Category__c`](../../metadata/02-fields-check-rule.md#category-category__c) | Completeness |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check-rule.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check-rule.md#message-when-failed-failuremessage__c) | Partner account `{!record.Name fallback="this record"}` must have Billing Country set. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check-rule.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Partner billing requirements. Confirm the user can read Type and Billing Country. |
-| **Prerequisite Rule** | [`PrerequisiteRule__c`](../../metadata/02-fields-check-rule.md#prerequisite-rule-prerequisiterule__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check-rule.md#fix-message-fixmessage__c) | Enter Billing Country on this Partner Account. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check-rule.md#action-label-actionlabel__c) | `Edit billing country` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check-rule.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/edit` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check-rule.md#evaluation-order-evaluationorder__c) | `60` |
-| **Active** | [`IsActive__c`](../../metadata/02-fields-check-rule.md#active-isactive__c) | Checked after confirming the `Partner` picklist value |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check-rule.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../metadata/02-fields-check.md#check-description-checkdescription__c) | Requires Billing Country only when Account Type is Partner. |
+| **Category** | [`Category__c`](../../metadata/02-fields-check.md#category-category__c) | Completeness |
+| **Failure Severity** | [`FailureSeverity__c`](../../metadata/02-fields-check.md#failure-severity-failureseverity__c) | Critical |
+| **Message When Failed** | [`FailureMessage__c`](../../metadata/02-fields-check.md#message-when-failed-failuremessage__c) | Partner account `{!record.Name fallback="this record"}` must have Billing Country set. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/02-fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Partner billing requirements. Confirm the user can read Type and Billing Country. |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/02-fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../metadata/02-fields-check.md#fix-message-fixmessage__c) | Enter Billing Country on this Partner Account. |
+| **Action Label** | [`ActionLabel__c`](../../metadata/02-fields-check.md#action-label-actionlabel__c) | `Edit billing country` |
+| **Action URL** | [`ActionUrl__c`](../../metadata/02-fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/edit` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/02-fields-check.md#evaluation-order-evaluationorder__c) | `60` |
+| **Active** | [`IsActive__c`](../../metadata/02-fields-check.md#active-isactive__c) | Checked after confirming the `Partner` picklist value |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/02-fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
-The applicability fields in **Configure the Rule** create the skip for non-Partner Accounts. Leave
+The applicability fields in **Configure the Check** create the skip for non-Partner Accounts. Leave
 Found and Expected display formulas and Formula Result Type blank because the failure already names
 the missing field. Query and Apex fields do not apply.
 
@@ -89,7 +89,7 @@ Use these Check Set values:
 | **Check Set** | `Account_Data_Quality` |
 | **Object** | `Account` |
 | **Card Title** | `Account Data Quality` |
-| **Card Subtitle** | Confirm partner Accounts have a billing country when the Rule applies. |
+| **Card Subtitle** | Confirm partner Accounts have a billing country when the Check applies. |
 | **When Checks Run** | Run on request |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show count only |
@@ -108,29 +108,29 @@ Formula applicability and the Pass Condition become these Framework outcomes and
 | --- | --- |
 | **`PASS`** | A Partner Account passes when Billing Country is populated. |
 | **`FAIL`** | A Partner Account with blank Billing Country shows Needs attention with Critical severity. |
-| **`SKIPPED`** | A non-Partner Account is skipped because the Rule does not apply to its regional-assignment process. |
+| **`SKIPPED`** | A non-Partner Account is skipped because the Check does not apply to its regional-assignment process. |
 | **Found** | Found shows the evaluated Billing Country value when the user reveals Found and Expected. |
 | **Expected** | Expected shows that Billing Country must be populated when the user reveals Found and Expected. |
 
-This Check Set uses **Show count only** for passed Rules so successful partner requirements do not
-crowd the card. Skipped Rules remain visible because the `SKIPPED` result explains why the Rule did
+This Check Set uses **Show count only** for passed Checks so successful partner requirements do not
+crowd the card. Skipped Checks remain visible because the `SKIPPED` result explains why the Check did
 not apply.
 
 ## Security and access
 
 Record Health Check evaluates both applicability and the Pass Condition with the running user's Salesforce access.
 
-- Type decides whether the Rule applies; Billing Country decides Pass or Needs attention.
+- Type decides whether the Check applies; Billing Country decides Pass or Needs attention.
 
 - Missing access to either field can prevent the framework from deciding whether to Skip, Pass, or show Needs attention.
 
 Before activation, test a Partner Account and a non-Partner Account with the Permission Sets assigned to the regional-assignment team.
 
-## Test the Rule
+## Test the Check
 
 1. Set Type to Partner and clear Billing Country. Confirm Critical.
 2. Set Billing Country, rerun, and confirm a pass.
-3. Change Type away from Partner and confirm the Rule is skipped.
+3. Change Type away from Partner and confirm the Check is skipped.
 4. Repeat the Partner Account test as a user without access to Billing Country and confirm **Unable to evaluate**.
 
 ## Failures and remedies
@@ -138,7 +138,7 @@ Before activation, test a Partner Account and a non-Partner Account with the Per
 | What the user sees | What to check |
 | --- | --- |
 | An expected value fails | Confirm the field values, field types, and blank or picklist functions used by the formula. |
-| The Rule runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition. |
+| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition. |
 | **Unable to evaluate** | Confirm the formula syntax and the running user's access to every referenced field. |
 
 ## Related

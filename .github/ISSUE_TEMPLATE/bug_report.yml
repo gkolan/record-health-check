@@ -41,10 +41,10 @@ body:
     id: repro
     attributes:
       label: Steps to reproduce
-      description: Numbered steps. Include the Check Set and Rule Developer Names involved.
+      description: Numbered steps. Include the Check Set and Check Developer Names involved.
       placeholder: |
         1. Check Set Qualified API Name: the exact value selected in Lightning App Builder
-        2. Rule Developer Name: Account_DQ_BillingCity
+        2. Check Developer Name: Account_DQ_BillingCity
         3. On an Account where BillingCity is blank, open the record page…
     validations:
       required: true

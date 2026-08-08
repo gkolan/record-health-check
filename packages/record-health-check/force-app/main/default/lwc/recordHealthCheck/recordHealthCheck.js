@@ -14,7 +14,7 @@ import { parseAuraError } from "./healthCheckModel";
 import { annotateCheck, buildSummaryGroups } from "./healthCheckPresentation";
 import { HealthCheckRunner } from "./healthCheckRunner";
 import {
-  buildInactiveRuleStat,
+  buildInactiveCheckStat,
   formatRunSummary,
   parseDiagnosticJson,
   setupErrorHint
@@ -125,8 +125,8 @@ export default class RecordHealthCheck extends LightningElement {
   @track totalCheckCount = 0;
   @track totalAvailableCheckCount = 0;
   @track frameworkMaxChecks = 25;
-  @track inactiveRuleCount = 0;
-  @track inactiveRuleLabels = [];
+  @track inactiveCheckCount = 0;
+  @track inactiveCheckLabels = [];
   @track completedCheckCount = 0;
   @track runComplete = false;
   /** Stays true after the first completed run until definitions reload — drives
@@ -238,7 +238,7 @@ export default class RecordHealthCheck extends LightningElement {
     // anchor against the viewport and add --flip-up when there is not enough room
     // below, so a tooltip near the bottom of the screen opens upward instead of
     // being clipped. Delegated on the template root — mouseover and focusin both
-    // bubble, so one listener pair covers every rule row and summary pill.
+    // bubble, so one listener pair covers every check row and summary pill.
     this.template.addEventListener("mouseover", this._positionTooltip);
     this.template.addEventListener("mouseover", this._handleTooltipMouseOver);
     this.template.addEventListener("focusin", this._positionTooltip);
@@ -268,7 +268,7 @@ export default class RecordHealthCheck extends LightningElement {
 
   // Decide open direction for the hovered/focused tooltip anchor. Flips upward only
   // when the space below the anchor is tight AND there is more room above, so the
-  // default (downward, matching the rule rows) is preserved everywhere it fits.
+  // default (downward, matching the check rows) is preserved everywhere it fits.
   _positionTooltip = (event) => {
     const target = event.target;
     const anchor =
@@ -281,7 +281,7 @@ export default class RecordHealthCheck extends LightningElement {
       window.innerHeight || document.documentElement.clientHeight || 0;
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
-    // Roomy enough for the multi-line summary/rule bubbles; below this we flip.
+    // Roomy enough for the multi-line summary/check bubbles; below this we flip.
     const flipUp =
       spaceBelow < ESTIMATED_TOOLTIP_HEIGHT && spaceAbove > spaceBelow;
     anchor.classList.toggle("rhc-tooltip-anchor--flip-up", flipUp);
@@ -482,14 +482,14 @@ export default class RecordHealthCheck extends LightningElement {
         typeof response.frameworkMaxChecks === "number"
           ? response.frameworkMaxChecks
           : 25;
-      this.inactiveRuleCount =
-        typeof response.inactiveRuleCount === "number"
-          ? response.inactiveRuleCount
+      this.inactiveCheckCount =
+        typeof response.inactiveCheckCount === "number"
+          ? response.inactiveCheckCount
           : 0;
       // Names arrive only for the diagnostics audience; without them the pill
       // still renders, just without a hover list.
-      this.inactiveRuleLabels = Array.isArray(response.inactiveRuleLabels)
-        ? response.inactiveRuleLabels.filter((name) => !!name)
+      this.inactiveCheckLabels = Array.isArray(response.inactiveCheckLabels)
+        ? response.inactiveCheckLabels.filter((name) => !!name)
         : [];
       this.checksOmittedByLimit = response.checksOmittedByLimit || false;
 
@@ -502,7 +502,7 @@ export default class RecordHealthCheck extends LightningElement {
         category: def.category || null,
         categoryLabel: def.categoryLabel || null,
         priority: def.priority,
-        dependsOnRuleDeveloperName: def.dependsOnRuleDeveloperName || null,
+        dependsOnCheckDeveloperName: def.dependsOnCheckDeveloperName || null,
         uiState: "PENDING",
         result: null
       }));
@@ -785,7 +785,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   // Count phrase for the pre-run hint: pluralized, and when the set exceeds the
-  // 25-rule cap it makes clear only the first 25 will run (matching the
+  // 25-check cap it makes clear only the first 25 will run (matching the
   // limit badge).
   get checkCountPhrase() {
     if (this.checksOmittedByLimit) {
@@ -800,7 +800,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get limitNoticeTitle() {
-    return `Showing the first ${this.frameworkMaxChecks} of ${this.totalAvailableCheckCount} active rules.`;
+    return `Showing the first ${this.frameworkMaxChecks} of ${this.totalAvailableCheckCount} active checks.`;
   }
 
   get showActionButton() {
@@ -899,7 +899,7 @@ export default class RecordHealthCheck extends LightningElement {
   get summaryGroups() {
     const tooltipKeys = this._summaryTooltipKeys();
     const tooltipSignature = tooltipKeys.join("|");
-    const inactiveStat = this._inactiveRuleStat();
+    const inactiveStat = this._inactiveCheckStat();
     const inactiveSignature = inactiveStat
       ? `${inactiveStat.label}|${inactiveStat.tooltip}`
       : "";
@@ -938,16 +938,16 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   /**
-   * Inactive rules are configuration housekeeping a regular user cannot act on,
+   * Inactive checks are configuration housekeeping a regular user cannot act on,
    * so the count no longer sits in the card header. Under diagnostics it leads
-   * the stats bar as a neutral pill whose hover lists the omitted rule names,
+   * the stats bar as a neutral pill whose hover lists the omitted check names,
    * matching how the Passed/Skipped pills reveal their rows.
    */
-  _inactiveRuleStat() {
-    return buildInactiveRuleStat(
+  _inactiveCheckStat() {
+    return buildInactiveCheckStat(
       this.showDiagnostics,
-      this.inactiveRuleCount,
-      this.inactiveRuleLabels
+      this.inactiveCheckCount,
+      this.inactiveCheckLabels
     );
   }
 
@@ -1074,14 +1074,14 @@ export default class RecordHealthCheck extends LightningElement {
       const heading = `${index + 1}. ${c.label} (${c.check}) · ${c.status}`;
       console.groupCollapsed(heading);
       console.log("Identity and outcome", {
-        qualifiedApiName: c.rawResult?.ruleDeveloperName || c.check,
+        qualifiedApiName: c.rawResult?.checkDeveloperName || c.check,
         evaluatorType: c.evaluatorType,
         status: c.status,
         severity: c.severity,
         reasonCode: c.reasonCode,
         durationMs: c.durationMs
       });
-      console.log("Rule configuration", c.configuration);
+      console.log("Check configuration", c.configuration);
       console.log("Resolved evaluation", c.resolution);
       console.log("Rendered output", {
         message: c.message,

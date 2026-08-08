@@ -8,14 +8,14 @@ public with sharing class RecordHealthCheckFormulaDisplay {
   /**
    * Applies display-only formula values and author-defined display text.
    *
-   * @param rule Formula Rule supplying display configuration.
+   * @param check Formula Check supplying display configuration.
    * @param record Evaluated record used by FormulaEval and merge tokens.
    * @param result Mutable internal result whose display values are populated.
    * @param evaluator Formula evaluator used for typed single-value resolution.
    * @param runContext Optional correlation context for diagnostic logging.
    */
   public static void apply(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     RecordHealthCheckFormulaEvaluator evaluator,
@@ -24,39 +24,39 @@ public with sharing class RecordHealthCheckFormulaDisplay {
     String displayIsoCode = RecordHealthCheckDisplayFormat.currencyIsoCodeFrom(
       record
     );
-    applyFound(rule, record, result, evaluator, runContext, displayIsoCode);
-    applyExpected(rule, record, result, evaluator, runContext, displayIsoCode);
+    applyFound(check, record, result, evaluator, runContext, displayIsoCode);
+    applyExpected(check, record, result, evaluator, runContext, displayIsoCode);
     if (result.expectedValue == null) {
-      result.expectedValue = rule.PassConditionFormula__c;
+      result.expectedValue = check.PassConditionFormula__c;
       result.expectedValueLabel = RecordHealthCheckInternalResult.PASSES_WHEN_LABEL;
       result.expectedValueSource = new RecordHealthCheckValueSource.Detail(
         'Pass/Fail condition',
-        rule.PassConditionFormula__c,
+        check.PassConditionFormula__c,
         null
       );
     }
     RecordHealthCheckTemplateService.applyFoundExpectedText(
-      rule,
+      check,
       record,
       result
     );
   }
 
   private static void applyFound(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     RecordHealthCheckFormulaEvaluator evaluator,
     RecordHealthCheckRunContext runContext,
     String displayIsoCode
   ) {
-    if (String.isBlank(rule.DisplayFoundFormula__c)) {
+    if (String.isBlank(check.DisplayFoundFormula__c)) {
       return;
     }
     Object found = resolve(
-      rule.DisplayFoundFormula__c,
+      check.DisplayFoundFormula__c,
       record,
-      rule.FormulaResultType__c,
+      check.FormulaResultType__c,
       evaluator,
       runContext
     );
@@ -65,13 +65,13 @@ public with sharing class RecordHealthCheckFormulaDisplay {
     }
     Object displayFound = RecordHealthCheckDisplayFormat.valueForDisplay(
       found,
-      rule.DisplayValueFormat__c,
+      check.DisplayValueFormat__c,
       record,
-      rule.DisplayFoundFormula__c
+      check.DisplayFoundFormula__c
     );
     result.actualValue = RecordHealthCheckComparisonDisplay.formatValue(
       displayFound,
-      rule.DisplayValueFormat__c,
+      check.DisplayValueFormat__c,
       displayIsoCode
     );
     result.actualValueSource = new RecordHealthCheckValueSource.Detail(
@@ -82,20 +82,20 @@ public with sharing class RecordHealthCheckFormulaDisplay {
   }
 
   private static void applyExpected(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     RecordHealthCheckFormulaEvaluator evaluator,
     RecordHealthCheckRunContext runContext,
     String displayIsoCode
   ) {
-    if (String.isBlank(rule.DisplayExpectedFormula__c)) {
+    if (String.isBlank(check.DisplayExpectedFormula__c)) {
       return;
     }
     Object expected = resolve(
-      rule.DisplayExpectedFormula__c,
+      check.DisplayExpectedFormula__c,
       record,
-      rule.FormulaResultType__c,
+      check.FormulaResultType__c,
       evaluator,
       runContext
     );
@@ -104,13 +104,13 @@ public with sharing class RecordHealthCheckFormulaDisplay {
     }
     Object displayExpected = RecordHealthCheckDisplayFormat.valueForDisplay(
       expected,
-      rule.DisplayValueFormat__c,
+      check.DisplayValueFormat__c,
       record,
-      rule.DisplayExpectedFormula__c
+      check.DisplayExpectedFormula__c
     );
     result.expectedValue = RecordHealthCheckComparisonDisplay.formatValue(
       displayExpected,
-      rule.DisplayValueFormat__c,
+      check.DisplayValueFormat__c,
       displayIsoCode
     );
     result.expectedValueSource = new RecordHealthCheckValueSource.Detail(

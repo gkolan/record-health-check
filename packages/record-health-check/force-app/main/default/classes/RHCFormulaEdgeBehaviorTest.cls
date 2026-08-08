@@ -34,15 +34,12 @@ private class RHCFormulaEdgeBehaviorTest {
   static void formulaEvaluationMapsNullBudgetAndFieldAccessFailures() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
-    Record_Health_Check_Rule__mdt nullRule = baseRule(
-      'Null_Formula',
-      'FORMULA'
-    );
-    nullRule.PassConditionFormula__c = 'NULL';
-    nullRule.UnableToEvaluateMessage__c = null;
+    Record_Health_Check__mdt nullCheck = baseCheck('Null_Formula', 'FORMULA');
+    nullCheck.PassConditionFormula__c = 'NULL';
+    nullCheck.UnableToEvaluateMessage__c = null;
 
     RecordHealthCheckInternalResult nullResult = evaluator.evaluate(
-      nullRule,
+      nullCheck,
       accountRecord.Id,
       accountRecord
     );
@@ -57,7 +54,7 @@ private class RHCFormulaEdgeBehaviorTest {
     try {
       RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET;
       RecordHealthCheckInternalResult budgetResult = evaluator.evaluate(
-        baseRule('Budget_Formula', 'FORMULA'),
+        baseCheck('Budget_Formula', 'FORMULA'),
         accountRecord.Id,
         accountRecord
       );
@@ -67,11 +64,11 @@ private class RHCFormulaEdgeBehaviorTest {
     }
   }
 
-  private static Record_Health_Check_Rule__mdt baseRule(
+  private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => developerName,
         'MasterLabel' => developerName,
@@ -80,7 +77,7 @@ private class RHCFormulaEdgeBehaviorTest {
         'FailureSeverity__c' => 'WARNING',
         'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
         'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test rule.',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
         'FormulaResultType__c' => 'AUTO',
         'EvaluationOrder__c' => 10,
         'ApplicabilityMode__c' => 'ALL_RECORDS',

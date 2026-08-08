@@ -1,72 +1,92 @@
-/** Builds the authorized, browser-facing trace for one Rule evaluation. */
+/** Builds the authorized, browser-facing trace for one Check evaluation. */
 public with sharing class RecordHealthCheckDiagnosticTrace {
   /**
    * Populates configuration and resolution snapshots on an authorized detail object.
-   * @param rule Rule metadata used for the evaluation.
+   * @param check Check metadata used for the evaluation.
    * @param record Evaluated record with all planned merge fields loaded.
    * @param result Internal result after display finalization.
    * @param detail Authorized diagnostic response object to populate.
    */
   public static void populate(
-    Record_Health_Check_Rule__mdt rule,
+    Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     RecordHealthCheckAdminDetail detail
   ) {
     Map<String, Object> configuration = new Map<String, Object>();
-    putValue(configuration, 'evaluationType', rule.EvaluationType__c);
+    putValue(configuration, 'evaluationType', check.EvaluationType__c);
     putValue(
       configuration,
       'passConditionFormula',
-      rule.PassConditionFormula__c
+      check.PassConditionFormula__c
     );
-    putValue(configuration, 'sourceQueryTemplate', rule.SourceQuery__c);
-    putValue(configuration, 'sourceQueryField', rule.SourceQueryField__c);
-    putValue(configuration, 'comparisonQueryTemplate', rule.ComparisonQuery__c);
+    putValue(configuration, 'sourceQueryTemplate', check.SourceQuery__c);
+    putValue(configuration, 'sourceQueryField', check.SourceQueryField__c);
+    putValue(
+      configuration,
+      'comparisonQueryTemplate',
+      check.ComparisonQuery__c
+    );
     putValue(
       configuration,
       'comparisonQueryField',
-      rule.ComparisonQueryField__c
+      check.ComparisonQueryField__c
     );
-    putValue(configuration, 'comparisonOperator', rule.ComparisonOperator__c);
-    putValue(configuration, 'expectedValueSource', rule.ExpectedValueSource__c);
-    putValue(configuration, 'expectedFixedValue', rule.ExpectedFixedValue__c);
+    putValue(configuration, 'comparisonOperator', check.ComparisonOperator__c);
+    putValue(
+      configuration,
+      'expectedValueSource',
+      check.ExpectedValueSource__c
+    );
+    putValue(configuration, 'expectedFixedValue', check.ExpectedFixedValue__c);
     putValue(
       configuration,
       'expectedRecordFormula',
-      rule.ExpectedRecordFormula__c
+      check.ExpectedRecordFormula__c
     );
-    putValue(configuration, 'queryResultHandling', rule.QueryResultHandling__c);
-    putValue(configuration, 'noRowsResult', rule.NoRowsResult__c);
-    putValue(configuration, 'emptyValueHandling', rule.EmptyValueHandling__c);
-    putValue(configuration, 'displayFoundFormula', rule.DisplayFoundFormula__c);
+    putValue(
+      configuration,
+      'queryResultHandling',
+      check.QueryResultHandling__c
+    );
+    putValue(configuration, 'noRowsResult', check.NoRowsResult__c);
+    putValue(configuration, 'emptyValueHandling', check.EmptyValueHandling__c);
+    putValue(
+      configuration,
+      'displayFoundFormula',
+      check.DisplayFoundFormula__c
+    );
     putValue(
       configuration,
       'displayExpectedFormula',
-      rule.DisplayExpectedFormula__c
+      check.DisplayExpectedFormula__c
     );
-    putValue(configuration, 'displayFoundText', rule.DisplayFoundText__c);
-    putValue(configuration, 'displayExpectedText', rule.DisplayExpectedText__c);
-    putValue(configuration, 'displayValueFormat', rule.DisplayValueFormat__c);
-    putValue(configuration, 'failureMessageTemplate', rule.FailureMessage__c);
+    putValue(configuration, 'displayFoundText', check.DisplayFoundText__c);
+    putValue(
+      configuration,
+      'displayExpectedText',
+      check.DisplayExpectedText__c
+    );
+    putValue(configuration, 'displayValueFormat', check.DisplayValueFormat__c);
+    putValue(configuration, 'failureMessageTemplate', check.FailureMessage__c);
     putValue(
       configuration,
       'unableMessageTemplate',
-      rule.UnableToEvaluateMessage__c
+      check.UnableToEvaluateMessage__c
     );
-    putValue(configuration, 'fixMessageTemplate', rule.FixMessage__c);
-    putValue(configuration, 'actionLabelTemplate', rule.ActionLabel__c);
-    putValue(configuration, 'actionUrlTemplate', rule.ActionUrl__c);
-    putValue(configuration, 'apexClass', rule.ApexClass__c);
-    putValue(configuration, 'apexParametersJson', rule.ApexParametersJson__c);
-    putValue(configuration, 'prerequisiteRule', rule.PrerequisiteRule__c);
-    putValue(configuration, 'applicabilityMode', rule.ApplicabilityMode__c);
+    putValue(configuration, 'fixMessageTemplate', check.FixMessage__c);
+    putValue(configuration, 'actionLabelTemplate', check.ActionLabel__c);
+    putValue(configuration, 'actionUrlTemplate', check.ActionUrl__c);
+    putValue(configuration, 'apexClass', check.ApexClass__c);
+    putValue(configuration, 'apexParametersJson', check.ApexParametersJson__c);
+    putValue(configuration, 'prerequisiteCheck', check.PrerequisiteCheck__c);
+    putValue(configuration, 'applicabilityMode', check.ApplicabilityMode__c);
     putValue(
       configuration,
       'applicabilityFormula',
-      rule.ApplicabilityFormula__c
+      check.ApplicabilityFormula__c
     );
-    putValue(configuration, 'maxQueryRows', rule.MaxQueryRows__c);
+    putValue(configuration, 'maxQueryRows', check.MaxQueryRows__c);
 
     Map<String, Object> resolution = new Map<String, Object>{
       'status' => result.status,
@@ -79,20 +99,20 @@ public with sharing class RecordHealthCheckDiagnosticTrace {
       'renderedActionUrl' => result.actionUrl,
       'durationMs' => result.durationMs
     };
-    Integer maxRows = rule.MaxQueryRows__c == null
+    Integer maxRows = check.MaxQueryRows__c == null
       ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
-      : (Integer) rule.MaxQueryRows__c;
+      : (Integer) check.MaxQueryRows__c;
     addResolvedQuery(
       resolution,
       'sourceQuery',
-      rule.SourceQuery__c,
+      check.SourceQuery__c,
       record,
       maxRows
     );
     addResolvedQuery(
       resolution,
       'comparisonQuery',
-      rule.ComparisonQuery__c,
+      check.ComparisonQuery__c,
       record,
       maxRows
     );

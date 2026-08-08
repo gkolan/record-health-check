@@ -2,7 +2,7 @@
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Record Health Check User</label>
     <description
-  >Run Record Health Checks from Lightning, Apex, or Flow. Includes the required entry-point classes and Set Run and Rule Result event access. Excludes diagnostic details.</description>
+  >Run Record Health Checks from Lightning, Apex, or Flow. Includes the required entry-point classes and Set Run and Check Result event access. Excludes diagnostic details.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <customPermissions>
         <enabled>true</enabled>
@@ -17,7 +17,7 @@
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
-        <apexClass>RecordHealthCheckRunRuleFlowAction</apexClass>
+        <apexClass>RecordHealthCheckRunCheckFlowAction</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
@@ -38,7 +38,7 @@
     </classAccesses>
     <customMetadataTypeAccesses>
         <enabled>true</enabled>
-        <name>Record_Health_Check_Rule__mdt</name>
+        <name>Record_Health_Check__mdt</name>
     </customMetadataTypeAccesses>
     <customMetadataTypeAccesses>
         <enabled>true</enabled>
@@ -59,7 +59,7 @@
         <allowEdit>false</allowEdit>
         <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
-        <object>Record_Health_Check_Rule_Result__e</object>
+        <object>Record_Health_Check_Result__e</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
 </PermissionSet>

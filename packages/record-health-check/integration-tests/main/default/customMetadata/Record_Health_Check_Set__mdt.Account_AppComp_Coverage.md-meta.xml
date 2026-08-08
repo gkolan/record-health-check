@@ -24,7 +24,7 @@
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Technical matrix only: six Formula checks with identical bodies and different SOQL applicability operators. Not six distinct business rules: copy one AppComp rule to learn each gate operator.</value>
+    >Technical matrix only: six Formula checks with identical bodies and different SOQL applicability operators. Not six distinct business checks: copy one AppComp check to learn each gate operator.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

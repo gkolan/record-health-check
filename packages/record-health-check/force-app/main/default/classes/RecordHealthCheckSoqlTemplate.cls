@@ -56,7 +56,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DATA_CATEGORY = Pattern.compile(
     '(?i)\\bWITH\\s+DATA\\s+CATEGORY\\b'
   );
-  // WITH SYSTEM_MODE runs the query without the sharing rules and FLS
+  // WITH SYSTEM_MODE runs the query without Salesforce sharing rules and FLS
   // that WITH USER_MODE enforces. An admin-authored Check Set template must never
   // be allowed to request it, so it is rejected outright rather than recognized.
   private static final Pattern PATTERN_SYSTEM_MODE = Pattern.compile(
@@ -139,7 +139,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
 
   /**
    * Rejects a `WITH SYSTEM_MODE` access level at any parenthesis depth.
-   * SYSTEM_MODE bypasses the sharing rules and FLS that the framework enforces
+   * SYSTEM_MODE bypasses Salesforce sharing rules and FLS that the framework enforces
    * via `WITH USER_MODE`, so an admin-authored template must never request it.
    * The literal mask keeps the keyword inside a string value from being a false positive.
    */

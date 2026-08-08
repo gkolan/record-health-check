@@ -2,7 +2,7 @@
  * Immutable selection and record scope for one Record Health Check evaluation.
  */
 global class RecordHealthCheckRequest {
-  /** Qualified Rule or Check Set selection. */
+  /** Qualified Check or Check Set selection. */
   global RecordHealthCheckSelection selection { get; private set; }
   /** Immutable execution options. */
   global RecordHealthCheckOptions options { get; private set; }
@@ -49,21 +49,21 @@ global class RecordHealthCheckRequest {
     );
   }
 
-  /** Creates a single-record Rule request. */
-  global static RecordHealthCheckRequest forRule(
+  /** Creates a single-record Check request. */
+  global static RecordHealthCheckRequest forCheck(
     String qualifiedApiName,
     Id recordId
   ) {
-    return forRule(qualifiedApiName, new List<Id>{ recordId });
+    return forCheck(qualifiedApiName, new List<Id>{ recordId });
   }
 
-  /** Creates a multi-record Rule request. */
-  global static RecordHealthCheckRequest forRule(
+  /** Creates a multi-record Check request. */
+  global static RecordHealthCheckRequest forCheck(
     String qualifiedApiName,
     List<Id> recordIds
   ) {
     return new RecordHealthCheckRequest(
-      RecordHealthCheckSelection.forRule(qualifiedApiName),
+      RecordHealthCheckSelection.forCheck(qualifiedApiName),
       recordIds,
       RecordHealthCheckOptions.defaults()
     );

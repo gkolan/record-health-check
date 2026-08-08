@@ -2,10 +2,10 @@
 
 > [!NOTE]
 > On this page, look up the L3 evaluator classes for Formula, Query, Compare two queries, and
-> Apex Rule plugins.
+> Apex Check plugins.
 
 This page is part of the [Apex class reference](README.md). For the plugin author contract, see
-[Apex Rule contract](../evaluation/04-apex-rule-contract.md).
+[Apex Check contract](../evaluation/04-apex-check-contract.md).
 
 ## Evaluators (L3)
 
@@ -26,7 +26,7 @@ primary values (`FindInListFormula__c`).
 
 | Member | Purpose |
 | --- | --- |
-| `evaluate(rule, recordId, record)` | Main entry point for a Formula Rule |
+| `evaluate(check, recordId, record)` | Main entry point for a Formula Check |
 | `resolveFormulaSingleValue(...)` | Shared formula resolution used by other paths |
 | Governor safety | Tracks FormulaEval calls for the whole transaction (platform limit 100) with a safety margin; caches resolved return types so bulk callers do not retry every record |
 
@@ -53,7 +53,7 @@ Binds merge tokens in `SourceQuery__c`, runs the query through
 `RecordHealthCheckQueryEvaluatorSupport` / `RecordHealthCheckSoqlTemplate`, extracts Found values,
 resolves Expected from fixed value / record formula / comparison query, and applies operators via
 `RecordHealthCheckComparisonEngine`. Supports one-result, multi-row, list-membership, and unary
-operators according to Rule configuration.
+operators according to Check configuration.
 
 **Notable behavior:**
 - **Important:** an indeterminate operator result is split into two distinct causes that must not be
@@ -95,7 +95,7 @@ follows `NoRowsResult__c`, consistent with the single-query evaluator.
 **Type:** Evaluator · `public with sharing`
 
 Resolves `ApexClass__c` with `Type.forName`, confirms the instance implements
-`RecordHealthCheckRule`, parses `ApexParametersJson__c` into `scope.parameters`, and invokes the
+`RecordHealthCheck`, parses `ApexParametersJson__c` into `scope.parameters`, and invokes the
 plugin once with the complete record scope. `RecordHealthCheckPluginDispatch` validates exact record-key coverage,
 supported statuses, and forbidden writes before the Framework derives display content.
 
@@ -111,7 +111,7 @@ supported statuses, and forbidden writes before the Framework derives display co
  responses become `ERROR` results with stable plugin-contract reason codes. Configuration or data
  conditions that prevent a safe verdict become `UNABLE_TO_EVALUATE` instead.
 
-**See also:** [Reference: Apex](../evaluation/04-apex-rule-contract.md)
+**See also:** [Reference: Apex](../evaluation/04-apex-check-contract.md)
 
 ### `RecordHealthCheckQueryEvaluatorSupport`
 

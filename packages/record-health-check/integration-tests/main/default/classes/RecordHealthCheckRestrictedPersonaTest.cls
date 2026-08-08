@@ -2,10 +2,10 @@
 @IsTest
 private with sharing class RecordHealthCheckRestrictedPersonaTest {
   private static final String SET_NAME = 'RHC_Persona_Access';
-  private static final String ACCESSIBLE_RULE = 'RHC_Persona_Accessible';
+  private static final String ACCESSIBLE_CHECK = 'RHC_Persona_Accessible';
 
   @IsTest
-  static void shouldContainFieldDenialWhenSiblingRuleIsAccessible() {
+  static void shouldContainFieldDenialWhenSiblingCheckIsAccessible() {
     PersonaFixture fixture = createFixture('rhcpfls', true, false);
 
     System.runAs(fixture.userRecord) {
@@ -22,17 +22,17 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
       Assert.areEqual(
         2,
         response.results.size(),
-        'Both Rules must return aligned results.'
+        'Both Checks must return aligned results.'
       );
       Assert.areEqual(
         RecordHealthCheckStatus.PASS,
         response.results[0].evaluation.status,
-        'The accessible sibling Rule must continue.'
+        'The accessible sibling Check must continue.'
       );
       Assert.areEqual(
         RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
         response.results[1].evaluation.status,
-        'The restricted Rule must degrade without aborting the Set.'
+        'The restricted Check must degrade without aborting the Set.'
       );
       Assert.areEqual(
         RecordHealthCheckReasonCodes.CANNOT_EVALUATE,
@@ -70,7 +70,7 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
       );
       RecordHealthCheckResultItem controllerItem = RecordHealthCheckController.evaluateCheck(
         qualifiedSetName(),
-        qualifiedRuleName(),
+        qualifiedCheckName(),
         fixture.hiddenRecord.Id,
         'persona-hidden-controller',
         RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
@@ -80,7 +80,7 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
       Assert.areEqual(
         4,
         response.results.size(),
-        'Two records and two Rules must yield four aligned results.'
+        'Two records and two Checks must yield four aligned results.'
       );
       Assert.areEqual(
         fixture.hiddenRecord.Id,
@@ -95,7 +95,7 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
       Assert.areEqual(
         'RECORD_NOT_VISIBLE',
         response.results[3].evaluation.reasonCode,
-        'Every selected Rule must receive the visibility outcome.'
+        'Every selected Check must receive the visibility outcome.'
       );
       Assert.areEqual(
         fixture.hiddenRecord.Id,
@@ -110,7 +110,7 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
       Assert.areEqual(
         'RECORD_NOT_VISIBLE',
         reverseResponse.results[1].evaluation.reasonCode,
-        'Every Rule in the reverse mixed scope must be complete.'
+        'Every Check in the reverse mixed scope must be complete.'
       );
       Assert.areEqual(
         'RECORD_NOT_VISIBLE',
@@ -130,11 +130,11 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
 
     System.runAs(fixture.userRecord) {
       String qualifiedSet = qualifiedSetName();
-      String qualifiedRule = qualifiedRuleName();
-      RecordHealthCheckRunRuleFlowAction.Request ruleInput = new RecordHealthCheckRunRuleFlowAction.Request();
-      ruleInput.ruleQualifiedApiName = qualifiedRule;
-      ruleInput.recordId = fixture.visibleRecord.Id;
-      ruleInput.eventPublication = 'NONE';
+      String qualifiedCheck = qualifiedCheckName();
+      RecordHealthCheckRunCheckFlowAction.Request checkInput = new RecordHealthCheckRunCheckFlowAction.Request();
+      checkInput.checkQualifiedApiName = qualifiedCheck;
+      checkInput.recordId = fixture.visibleRecord.Id;
+      checkInput.eventPublication = 'NONE';
       RecordHealthCheckRunSetFlowAction.Request setInput = new RecordHealthCheckRunSetFlowAction.Request();
       setInput.checkSetQualifiedApiName = qualifiedSet;
       setInput.recordId = fixture.visibleRecord.Id;
@@ -151,13 +151,13 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
       );
       RecordHealthCheckResultItem item = RecordHealthCheckController.evaluateCheck(
         qualifiedSet,
-        qualifiedRule,
+        qualifiedCheck,
         fixture.visibleRecord.Id,
         'persona-controller',
         RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
       );
-      List<RecordHealthCheckRunRuleFlowAction.Response> ruleOutputs = RecordHealthCheckRunRuleFlowAction.runRule(
-        new List<RecordHealthCheckRunRuleFlowAction.Request>{ ruleInput }
+      List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
+        new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkInput }
       );
       List<RecordHealthCheckRunSetFlowAction.Response> setOutputs = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setInput }
@@ -178,7 +178,10 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
         item.evaluation.status,
         'Controller evaluation must succeed.'
       );
-      Assert.isTrue(ruleOutputs[0].isSuccess, 'Rule Flow action must succeed.');
+      Assert.isTrue(
+        checkOutputs[0].isSuccess,
+        'Check Flow action must succeed.'
+      );
       Assert.isTrue(setOutputs[0].isSuccess, 'Set Flow action must succeed.');
     }
   }
@@ -327,8 +330,10 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
     return RecordHealthCheckTestDataFactory.qualifiedCheckSetName(SET_NAME);
   }
 
-  private static String qualifiedRuleName() {
-    return RecordHealthCheckTestDataFactory.qualifiedRuleName(ACCESSIBLE_RULE);
+  private static String qualifiedCheckName() {
+    return RecordHealthCheckTestDataFactory.qualifiedCheckName(
+      ACCESSIBLE_CHECK
+    );
   }
 
   private class PersonaFixture {

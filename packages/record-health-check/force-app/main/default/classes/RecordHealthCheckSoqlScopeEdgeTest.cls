@@ -9,7 +9,7 @@ private with sharing class RecordHealthCheckSoqlScopeEdgeTest {
     Map<Id, SObject> loadedRecords = new Map<Id, SObject>{
       accountRecord.Id => accountRecord
     };
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Blank_Comparison',
         'MasterLabel' => 'Blank comparison',
@@ -25,7 +25,7 @@ private with sharing class RecordHealthCheckSoqlScopeEdgeTest {
 
     Test.startTest();
     Map<Id, RecordHealthCheckInternalResult> results = new RecordHealthCheckSoqlEvaluator()
-      .evaluateScope(rule, new List<Id>{ accountRecord.Id }, loadedRecords);
+      .evaluateScope(check, new List<Id>{ accountRecord.Id }, loadedRecords);
     Test.stopTest();
 
     Assert.areEqual(
@@ -40,7 +40,7 @@ private with sharing class RecordHealthCheckSoqlScopeEdgeTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'No comparison rows'
     );
-    Record_Health_Check_Rule__mdt rule = RecordHealthCheckTestDataFactory.rule(
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Empty_Comparison_List',
         'MasterLabel' => 'Empty comparison list',
@@ -60,13 +60,13 @@ private with sharing class RecordHealthCheckSoqlScopeEdgeTest {
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
-      .evaluate(rule, accountRecord.Id, accountRecord);
+      .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
     Assert.areEqual(
       'SKIPPED',
       result.status,
-      'An empty comparison query must follow the Rule no-rows behavior.'
+      'An empty comparison query must follow the Check no-rows behavior.'
     );
   }
 

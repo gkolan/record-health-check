@@ -34,7 +34,7 @@ subscriber install path.
 2. Go to **Issues → New issue → Bug report**.
 3. Fill in every field. The most useful reports include:
    - The expected behavior, actual behavior, and exact steps to reproduce it.
-   - The **Check Set Qualified API Name** and **Rule Developer Name** involved (not screenshots of labels only).
+   - The **Check Set Qualified API Name** and **Check Developer Name** involved (not screenshots of labels only).
    - The object and a sketch of the field/query values that triggered it.
    - A redacted screenshot or screen recording when the problem appears on the card.
    - The redacted `[RHC]` console report after reproducing with **Show Diagnostics** enabled. If diagnostics cannot be enabled or do not apply, explain why (see [Troubleshoot with Show Diagnostics](../docs/guides/07-troubleshoot-with-show-diagnostics.md)).
@@ -91,7 +91,7 @@ feedback by pushing more commits to the same branch.
 - **Apex changes** must also pass the project Apex test suite and a validation
   deployment (`sf project deploy validate`) with `RunLocalTests` in a clean
   scratch org.
-- Keep CRUD/FLS enforcement, the 25-Rule run cap, the 5-way Apex
+- Keep CRUD/FLS enforcement, the 25-Check run cap, the 5-way Apex
   concurrency cap, debug-detail authorization, and result normalization intact even when
   that makes a test harder to write.
 - **New evaluator features** must update runtime validation, deploy-time
@@ -103,7 +103,7 @@ for the published Framework architecture and to find where things live.
 
 ## Configuration identity and package boundary
 
-When changing Demo `Example_` Check Sets/Rules or any public identity boundary:
+When changing Demo `Example_` Check Sets/Checks or any public identity boundary:
 
 1. Change the record in `packages/record-health-check/force-app/main/default/customMetadata`.
 2. Copy the same record into `packages/record-health-check/integration-tests/main/default/customMetadata` (identical XML).

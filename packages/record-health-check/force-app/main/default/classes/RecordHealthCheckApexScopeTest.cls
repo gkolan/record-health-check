@@ -1,7 +1,7 @@
-/** Verifies scope-wide Apex Rule validation and conversion behavior. */
+/** Verifies scope-wide Apex Check validation and conversion behavior. */
 @IsTest
 private with sharing class RecordHealthCheckApexScopeTest {
-  private class ThrowingRule implements RecordHealthCheckRule {
+  private class ThrowingCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -9,7 +9,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
     }
   }
 
-  private class MissingOutcomeRule implements RecordHealthCheckRule {
+  private class MissingOutcomeCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
@@ -17,10 +17,10 @@ private with sharing class RecordHealthCheckApexScopeTest {
     }
   }
 
-  private class SmugglingRule implements RecordHealthCheckRule {
+  private class SmugglingCheck implements RecordHealthCheckPlugin {
     private Id foreignId;
 
-    private SmugglingRule(Id foreignId) {
+    private SmugglingCheck(Id foreignId) {
       this.foreignId = foreignId;
     }
 
@@ -53,10 +53,10 @@ private with sharing class RecordHealthCheckApexScopeTest {
         'RecordHealthCheckConstants'
       }
     ) {
-      Record_Health_Check_Rule__mdt rule = ruleFor(className, null);
+      Record_Health_Check__mdt check = checkFor(className, null);
       RecordHealthCheckInternalResult result = evaluator
         .evaluateScope(
-          rule,
+          check,
           recordIds,
           loadedRecords,
           'Account',
@@ -104,7 +104,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
       RecordHealthCheckValue.ofList(new List<String>{ 'A', 'B' })
     );
     RecordHealthCheckInternalResult template = new RecordHealthCheckInternalResult();
-    template.ruleDeveloperName = 'Rule_A';
+    template.checkDeveloperName = 'Check_A';
     template.evaluatorType = 'APEX';
     RecordHealthCheckInternalResult internalResult = RecordHealthCheckApexResultFinalizer.toInternalResult(
       RecordHealthCheckOutcome.pass('MATCHED')
@@ -131,7 +131,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Missing plugin outcome'
     );
-    Record_Health_Check_Rule__mdt rule = ruleFor(
+    Record_Health_Check__mdt check = checkFor(
       'AccountHasRecentActivityCheck',
       null
     );
@@ -141,10 +141,10 @@ private with sharing class RecordHealthCheckApexScopeTest {
     invalidFormat.expectedDisplayValue = 3;
     invalidFormat.expectedDisplayFormat = 'not_canonical';
     RecordHealthCheckInternalResult formatFallback = new RecordHealthCheckInternalResult();
-    formatFallback.ruleDeveloperName = rule.DeveloperName;
+    formatFallback.checkDeveloperName = check.DeveloperName;
     formatFallback.evaluatorType = 'APEX';
     RecordHealthCheckInternalResult formatted = RecordHealthCheckApexResultFinalizer.finalizeResult(
-      rule,
+      check,
       accountRecord,
       formatFallback,
       invalidFormat,
@@ -165,18 +165,18 @@ private with sharing class RecordHealthCheckApexScopeTest {
       'Plugin exception'
     );
     RecordHealthCheckApexEvaluator evaluator = new RecordHealthCheckApexEvaluator();
-    Record_Health_Check_Rule__mdt rule = ruleFor(
+    Record_Health_Check__mdt check = checkFor(
       'AccountHasRecentActivityCheck',
       null
     );
     Test.startTest();
     RecordHealthCheckConfigValidator.cachePluginForTest(
-      rule.ApexClass__c,
-      new ThrowingRule()
+      check.ApexClass__c,
+      new ThrowingCheck()
     );
     RecordHealthCheckInternalResult contractFailure = evaluator
       .evaluateScope(
-        rule,
+        check,
         new List<Id>{ accountRecord.Id },
         new Map<Id, SObject>{ accountRecord.Id => accountRecord },
         'Account',
@@ -203,7 +203,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
     try {
       new RecordHealthCheckApexEvaluator()
         .evaluate(
-          ruleFor('RecordHealthCheckConstructorMutationRule', null),
+          checkFor('RHCConstructorMutationCheck', null),
           accountRecord.Id,
           accountRecord
         );
@@ -222,14 +222,14 @@ private with sharing class RecordHealthCheckApexScopeTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Fatal plugin side effect'
     );
-    Record_Health_Check_Rule__mdt rule = ruleFor(
-      'RecordHealthCheckEvaluationMutationRule',
+    Record_Health_Check__mdt check = checkFor(
+      'RecordHealthCheckEvaluationMutationCheck',
       null
     );
     Test.startTest();
     try {
       new RecordHealthCheckApexEvaluator()
-        .evaluate(rule, accountRecord.Id, accountRecord);
+        .evaluate(check, accountRecord.Id, accountRecord);
       Assert.fail('A plugin database mutation must remain fatal.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
       Assert.isNotNull(
@@ -255,11 +255,11 @@ private with sharing class RecordHealthCheckApexScopeTest {
     Test.startTest();
     RecordHealthCheckConfigValidator.cachePluginForTest(
       validClassName,
-      new SmugglingRule(UserInfo.getUserId())
+      new SmugglingCheck(UserInfo.getUserId())
     );
     RecordHealthCheckInternalResult contractFailure = evaluator
       .evaluateScope(
-        ruleFor(validClassName, null),
+        checkFor(validClassName, null),
         recordIds,
         loadedRecords,
         'Account',
@@ -269,11 +269,11 @@ private with sharing class RecordHealthCheckApexScopeTest {
       .get(accountRecord.Id);
     RecordHealthCheckConfigValidator.cachePluginForTest(
       validClassName,
-      new MissingOutcomeRule()
+      new MissingOutcomeCheck()
     );
     RecordHealthCheckInternalResult missing = evaluator
       .evaluateScope(
-        ruleFor(validClassName, null),
+        checkFor(validClassName, null),
         recordIds,
         loadedRecords,
         'Account',
@@ -299,13 +299,13 @@ private with sharing class RecordHealthCheckApexScopeTest {
     Account accountRecord,
     String parametersJson
   ) {
-    Record_Health_Check_Rule__mdt rule = ruleFor(
+    Record_Health_Check__mdt check = checkFor(
       'AccountHasRecentActivityCheck',
       parametersJson
     );
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
       .evaluateScope(
-        rule,
+        check,
         new List<Id>{ accountRecord.Id },
         new Map<Id, SObject>{ accountRecord.Id => accountRecord },
         'Account',
@@ -320,11 +320,11 @@ private with sharing class RecordHealthCheckApexScopeTest {
     );
   }
 
-  private static Record_Health_Check_Rule__mdt ruleFor(
+  private static Record_Health_Check__mdt checkFor(
     String className,
     String parametersJson
   ) {
-    return RecordHealthCheckTestDataFactory.rule(
+    return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Apex_Scope_Test',
         'MasterLabel' => 'Apex Scope Test',

@@ -1,8 +1,8 @@
-/** Shared grouped execution for the Rule and Check Set Flow adapters. */
+/** Shared grouped execution for the Check and Check Set Flow adapters. */
 public with sharing class RecordHealthCheckFlowGroupExecutor {
   /** Supported grouped request selections. */
   public enum SelectionKind {
-    RULE,
+    CHECK,
     CHECK_SET
   }
 
@@ -91,7 +91,7 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
     );
   }
 
-  /** Executes one Rule or Check Set group through the public engine. */
+  /** Executes one Check or Check Set group through the public engine. */
   public static Result evaluate(
     String key,
     List<Id> recordIds,
@@ -100,9 +100,9 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
     Result result = new Result();
     try {
       List<Object> parts = (List<Object>) JSON.deserializeUntyped(key);
-      Boolean isRuleSelection = String.valueOf(selectionKind) == 'RULE';
-      RecordHealthCheckRequest request = isRuleSelection
-        ? RecordHealthCheckRequest.forRule((String) parts[0], recordIds)
+      Boolean isCheckSelection = String.valueOf(selectionKind) == 'CHECK';
+      RecordHealthCheckRequest request = isCheckSelection
+        ? RecordHealthCheckRequest.forCheck((String) parts[0], recordIds)
         : RecordHealthCheckRequest.forCheckSet((String) parts[0], recordIds);
       result.response = RecordHealthCheck.evaluate(
         request
@@ -117,8 +117,8 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {
-      result.errorMessage = String.valueOf(selectionKind) == 'RULE'
-        ? 'The Rule request could not be evaluated.'
+      result.errorMessage = String.valueOf(selectionKind) == 'CHECK'
+        ? 'The Check request could not be evaluated.'
         : 'The Check Set request could not be evaluated.';
     }
     return result;

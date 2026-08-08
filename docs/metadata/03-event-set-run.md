@@ -9,7 +9,7 @@ optional publication behavior, transaction timing, and subscriber failure guidan
 ## When to use this event
 
 Choose the Set Run event when a subscriber needs one summary per completed Check Set rather than
-one event per Rule.
+one event per Check.
 
 | Possibility | What the subscriber can do |
 | --- | --- |
@@ -17,7 +17,7 @@ one event per Rule.
 | Operational monitoring | Alert when `SystemErrorCount__c` or `UnableCount__c` is greater than zero |
 | Adoption analytics | Measure deliberate reviews by Check Set, source, and time period |
 | Process coordination | Start downstream work only after a deliberate Check Set run commits |
-| Completion reporting | Compare passed, failed, skipped, unable, and system-error counts without receiving Rule detail |
+| Completion reporting | Compare passed, failed, skipped, unable, and system-error counts without receiving Check detail |
 
 For an immediate decision in the same transaction, use the synchronous
 [Apex API](../api/01-apex-api.md) or [Flow action](../integration/02-flow-actions.md)
@@ -53,7 +53,7 @@ Automatic Lightning record-page evaluation (`RUN_ON_LOAD`) never publishes. Subs
 | Setup label | API name | Type | Required/default | Meaning |
 | --- | --- | --- | --- | --- |
 | Event ID | `EventId__c` | Text(80) | Required; generated | Application-level unique key for consumers; keep the Salesforce replay ID for replay position only. |
-| Run ID | `RunId__c` | Text(120) | Required; supplied or generated | Correlates the Set event, Rule Result events, synchronous response, and Framework logs. |
+| Run ID | `RunId__c` | Text(120) | Required; supplied or generated | Correlates the Set event, Check Result events, synchronous response, and Framework logs. |
 | Phase | `Phase__c` | Text(30) | Required; `COMPLETED` | Lifecycle phase. `COMPLETED` is the only supported value. |
 | Check Set Qualified API Name | `CheckSetQualifiedApiName__c` | Text(80) | Required | Check Set `QualifiedApiName`; distinguishes packaged and subscriber definitions. |
 | Record ID | `RecordId__c` | Text(18) | Required in framework publications | Salesforce record represented by this summary. |
@@ -61,13 +61,13 @@ Automatic Lightning record-page evaluation (`RUN_ON_LOAD`) never publishes. Subs
 | Source | `Source__c` | Text(30) | Required; caller-derived | `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT`. |
 | Contract Version | `ContractVersion__c` | Text(10) | Required; `1.0` | Version of this Platform Event schema, independent of synchronous response versions. |
 | Framework Version | `FrameworkVersion__c` | Text(20) | Required | Framework release that produced the event. |
-| Eligible Rule Count | `EligibleRuleCount__c` | Number(5,0) | Optional; generated | Rules included after the Framework selected definitions for the run. |
-| Evaluated Rule Count | `EvaluatedRuleCount__c` | Number(5,0) | Optional; generated | Finalized Rule results. Equal to eligible count for completed events. |
-| Passed Count | `PassedCount__c` | Number(5,0) | Optional; generated | Rule results with `PASS`. |
-| Failed Count | `FailedCount__c` | Number(5,0) | Optional; generated | Rule results with `FAIL`. |
-| Skipped Count | `SkippedCount__c` | Number(5,0) | Optional; generated | Rule results with `SKIPPED`. |
-| Unable Count | `UnableCount__c` | Number(5,0) | Optional; generated | Rule results with `UNABLE_TO_EVALUATE`. |
-| System Error Count | `SystemErrorCount__c` | Number(5,0) | Optional; generated | Rule results with `ERROR`. |
+| Eligible Check Count | `EligibleCheckCount__c` | Number(5,0) | Optional; generated | Checks included after the Framework selected definitions for the run. |
+| Evaluated Check Count | `EvaluatedCheckCount__c` | Number(5,0) | Optional; generated | Finalized Check results. Equal to eligible count for completed events. |
+| Passed Count | `PassedCount__c` | Number(5,0) | Optional; generated | Check results with `PASS`. |
+| Failed Count | `FailedCount__c` | Number(5,0) | Optional; generated | Check results with `FAIL`. |
+| Skipped Count | `SkippedCount__c` | Number(5,0) | Optional; generated | Check results with `SKIPPED`. |
+| Unable Count | `UnableCount__c` | Number(5,0) | Optional; generated | Check results with `UNABLE_TO_EVALUATE`. |
+| System Error Count | `SystemErrorCount__c` | Number(5,0) | Optional; generated | Check results with `ERROR`. |
 
 ## Example event body
 
@@ -82,8 +82,8 @@ Automatic Lightning record-page evaluation (`RUN_ON_LOAD`) never publishes. Subs
   "RecordId__c": "001000000000001AAA",
   "OccurredAt__c": "2026-07-21T15:30:00.000Z",
   "Source__c": "USER_INITIATED",
-  "EligibleRuleCount__c": 5,
-  "EvaluatedRuleCount__c": 5,
+  "EligibleCheckCount__c": 5,
+  "EvaluatedCheckCount__c": 5,
   "PassedCount__c": 3,
   "FailedCount__c": 1,
   "SkippedCount__c": 1,
@@ -103,7 +103,7 @@ Values are illustrative. Subscribers must tolerate additive fields within contra
 | Retention | Persist the event when history beyond Platform Event retention is required. |
 | Business data | Join under the subscriber's own sharing and field-access model. |
 | Missing Record ID | Allow `RecordId__c` to be blank for future call patterns. |
-| Rule-level causes | Subscribe to Rule Result when you need Rule-level causes; Set Run counts summarize outcomes only. |
+| Check-level causes | Subscribe to Check Result when you need Check-level causes; Set Run counts summarize outcomes only. |
 
 ## Limits and security
 
@@ -118,7 +118,7 @@ or successful subscriber processing, and subscriber failure never changes the co
 
 - [Subscribe with Flow or Apex](../platform-events/01-check-set-run.md)
 - [Lifecycle-events overview](../integration/03-lifecycle-events.md)
-- [Rule Result Platform Event](04-event-rule-result.md)
+- [Check Result Platform Event](04-event-check-result.md)
 - [Log Platform Event](05-event-log.md)
 - [Check Set fields](01-fields-check-set.md): **Publish User Run Event**
 - [Reason Codes](../reference/contracts/01-reason-codes.md)

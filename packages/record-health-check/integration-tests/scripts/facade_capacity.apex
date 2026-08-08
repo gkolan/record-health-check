@@ -13,7 +13,7 @@ Integer rowsBefore = Limits.getQueryRows();
 Integer cpuBefore = Limits.getCpuTime();
 Integer heapBefore = Limits.getHeapSize();
 RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-  RecordHealthCheckRequest.forRule('Account_DQ_BillingCity', recordIds)
+  RecordHealthCheckRequest.forCheck('Account_DQ_BillingCity', recordIds)
 );
 Integer responseBytes = Blob.valueOf(JSON.serialize(response)).size();
 System.debug(

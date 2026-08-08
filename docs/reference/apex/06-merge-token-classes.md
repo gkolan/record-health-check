@@ -52,7 +52,7 @@ Name, status, run id, and so on).
 
 | Member | Purpose |
 | --- | --- |
-| `record`, `rhcRule`, `rhcSet`, `rhcResult`, `rhcRun` | The five allowed token namespaces |
+| `record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun` | The five allowed token namespaces |
 | `RESULT_PROPERTIES` | Fixed property set for the `rhcResult` namespace |
 
 **Notable behavior:**
@@ -71,7 +71,7 @@ Name, status, run id, and so on).
 | Member | Purpose |
 | --- | --- |
 | `expression` | The full raw token text |
-| `namespaceName` | The token's namespace (e.g. `record`, `rhcRule`) |
+| `namespaceName` | The token's namespace (e.g. `record`, `rhcCheck`) |
 | `propertyPath` | The property or field path within that namespace |
 | `formatName` | Optional official uppercase Display: Value Format API name |
 | `fallbackValue` | Optional text from the quoted `fallback` attribute; `null` when omitted |
@@ -98,7 +98,7 @@ Name, status, run id, and so on).
 **Role:** Values available while resolving merge tokens.
 **Type:** Chainable builder · `public` (no sharing keyword)
 
-Chainable `withRecord` / `withRule` / `withResult` / `withRun` builders supply the record, Rule (and
+Chainable `withRecord` / `withCheck` / `withResult` / `withRun` builders supply the record, Check (and
 parent Check Set), result, and run context used by token resolution. Also carries optional
 failed/total record counts for plural-aware result tokens.
 
@@ -107,14 +107,14 @@ failed/total record counts for plural-aware result tokens.
 | Member | Purpose |
 | --- | --- |
 | `withRecord(...)` | Supply the record for `record.*` tokens |
-| `withRule(...)` | Supply the Rule (and derive its parent Check Set) for `rhcRule.*` / `rhcSet.*` tokens |
+| `withCheck(...)` | Supply the Check (and derive its parent Check Set) for `rhcCheck.*` / `rhcSet.*` tokens |
 | `withResult(value, finalized)` | Supply the result for `rhcResult.*` tokens; only usable when `finalized` is true |
 | `withRun(...)` | Supply the run context for `rhcRun.*` tokens |
 
 **Notable behavior:**
-- **Important:** `withRule` also derives `checkSet` by calling
- `value.getSObject('Record_Health_Check_Set__r')` on the passed-in Rule record - callers never set
- `checkSet` directly, so a Rule query that omits the `Record_Health_Check_Set__r` relationship will
+- **Important:** `withCheck` also derives `checkSet` by calling
+ `value.getSObject('Record_Health_Check_Set__r')` on the passed-in Check record - callers never set
+ `checkSet` directly, so a Check query that omits the `Record_Health_Check_Set__r` relationship will
  silently leave `rhcSet.*` tokens unresolved. `resultFinalized` defaults to `false` and is only
  ever set `true` through `withResult(value, finalized)`, which controls when `rhcResult.*` tokens
  become available.

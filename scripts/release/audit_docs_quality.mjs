@@ -108,7 +108,7 @@ function classify(relative) {
   if (/docs\/examples\/[^/]+\/\d[^/]+\.md$/.test(relative))
     return "Worked example";
   if (
-    /docs\/reference\/evaluation\/(?:formula|query|compare-two-queries|apex-rule-contract)\.md$/.test(
+    /docs\/reference\/evaluation\/(?:formula|query|compare-two-queries|apex-check-contract)\.md$/.test(
       relative
     )
   )
@@ -197,10 +197,10 @@ function structureMatches(type, markdown) {
         /^> On this page,/m,
         /^## Scenario$/m,
         /^## (?:Why use|Why this Evaluation Type)/m,
-        /^## (?:Step \d+: )?Configure the Rule$/m,
+        /^## (?:Step \d+: )?Configure the Check$/m,
         /^## What the user sees$/m,
         /^## Security and access$/m,
-        /^## (?:Step \d+: )?Test the Rule$/m
+        /^## (?:Step \d+: )?Test the Check$/m
       ]);
     case "Evaluation reference":
       return hasAll(markdown, [

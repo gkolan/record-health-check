@@ -27,8 +27,8 @@ private class RHCMetadataValidatorSmokeTest {
     );
   }
 
-  // Guards the shipped examples: every active packaged Check Set and Rule must
-  // validate clean. If this fails, an example rule has gotten out of sync with the spec and
+  // Guards the shipped examples: every active packaged Check Set and Check must
+  // validate clean. If this fails, an example check has gotten out of sync with the spec and
   // would surface a runtime error to an admin who copied it. The failure
   // message lists each offending component so the fix is obvious.
   @IsTest

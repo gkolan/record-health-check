@@ -27,9 +27,9 @@ platform features are available before installing. See
 ## Can I combine it with Validation Rules?
 
 Yes. They solve different problems and do not conflict. A Validation Rule can enforce a
-non-negotiable minimum at save time while a Record Health Check Rule reviews a fuller readiness
+non-negotiable minimum at save time while a Record Health Check reviews a fuller readiness
 picture on read, including data a Validation Rule cannot reach (related records, aggregates, or
-records that existed before the Rule did). See
+records that existed before the Check did). See
 [Compare Record Health Check to native Salesforce tools](01-compare-to-native-salesforce.md).
 
 ## Should I install the package or deploy from source?
@@ -47,7 +47,7 @@ deploy as an installation path. Package-owned metadata carries the `rhc__` prefi
 ## Do I need to modify Record Health Check test classes or the test factory?
 
 No. Subscribers must not edit packaged Apex, including `RecordHealthCheckTestDataFactory` or any
-`@IsTest` class shipped in the package. Your org-specific Rules, plugins, and tests belong in your
+`@IsTest` class shipped in the package. Your org-specific Checks, plugins, and tests belong in your
 own repository.
 
 Normal subscriber deployments that use `RunLocalTests` do not execute tests from an installed
@@ -58,7 +58,7 @@ promoting a new `04t`. See
 ## Are lifecycle events on by default?
 
 No, not the two result events. **Publish User Run Event** (Check Set) and **Publish User Result
-Event** (Rule) both default to off, because publication consumes the org's Platform Event allocation
+Event** (Check) both default to off, because publication consumes the org's Platform Event allocation
 and can trigger subscriber automation. **Publish Error Log Event** (Check Set) defaults to **on**,
 so Framework errors stay observable unless an administrator opts a Check Set out. Automatic
 page-load runs never publish, regardless of these settings. See
@@ -88,7 +88,7 @@ boundary requires the exact `QualifiedApiName` Salesforce returns; never constru
 whether the prefix applies. See
 [Configuration identity](../reference/framework/06-configuration-identity.md).
 
-## Does a Rule failure ever cause data loss or a rollback?
+## Does a Check failure ever cause data loss or a rollback?
 
 No. A `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR` result is just a returned status. The one
 exception involving a rollback is a custom Apex plugin that attempts DML, a callout, email, an

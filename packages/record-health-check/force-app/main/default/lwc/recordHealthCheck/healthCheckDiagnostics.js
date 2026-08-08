@@ -18,7 +18,7 @@ export function setupErrorHint(reasonCode) {
     case "OBJECT_MISMATCH":
       return "Ask your Salesforce admin to choose a Check Set for this object.";
     case "NO_ACTIVE_CHECKS":
-      return "Ask your Salesforce admin to add an active Rule.";
+      return "Ask your Salesforce admin to add an active Check.";
     case "NO_RECORD_CONTEXT":
       return "Ask your Salesforce admin to place this on a record page.";
     case "INVALID_CONFIG":
@@ -28,8 +28,8 @@ export function setupErrorHint(reasonCode) {
   }
 }
 
-/** Build the optional inactive-Rule summary shown to diagnostics users. */
-export function buildInactiveRuleStat(showDiagnostics, count, labels) {
+/** Build the optional inactive-Check summary shown to diagnostics users. */
+export function buildInactiveCheckStat(showDiagnostics, count, labels) {
   if (!showDiagnostics || count < 1) return null;
   const names = labels || [];
   const undisclosed = count - names.length;
@@ -43,7 +43,7 @@ export function buildInactiveRuleStat(showDiagnostics, count, labels) {
       ? `${baseClass} rhc-tooltip-anchor rhc-tooltip-anchor--footer rhc-tooltip-anchor--stat`
       : baseClass,
     tooltip: hasTooltip
-      ? `${count} inactive ${count === 1 ? "Rule" : "Rules"} omitted: ${listed.join(
+      ? `${count} inactive ${count === 1 ? "Check" : "Checks"} omitted: ${listed.join(
           ", "
         )}`
       : null,

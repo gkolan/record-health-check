@@ -6,7 +6,7 @@
 /** Typed sources available to namespaced merge-token resolution. */
 public class RecordHealthCheckMergeContext {
   public SObject record;
-  public Record_Health_Check_Rule__mdt rule;
+  public Record_Health_Check__mdt check;
   public SObject checkSet;
   public RecordHealthCheckInternalResult result;
   public RecordHealthCheckRunContext run;
@@ -18,10 +18,10 @@ public class RecordHealthCheckMergeContext {
     record = value;
     return this;
   }
-  public RecordHealthCheckMergeContext withRule(
-    Record_Health_Check_Rule__mdt value
+  public RecordHealthCheckMergeContext withCheck(
+    Record_Health_Check__mdt value
   ) {
-    rule = value;
+    check = value;
     if (value != null) {
       checkSet = value.getSObject('Record_Health_Check_Set__r');
     }

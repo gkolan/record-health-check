@@ -70,7 +70,7 @@ public with sharing class RhcSetRunSubscriberHandler {
 }
 ```
 
-Use `RunId__c` to correlate Rule Result events with the summary. Use `EventId__c`, not Run ID, as
+Use `RunId__c` to correlate Check Result events with the summary. Use `EventId__c`, not Run ID, as
 the unique delivery key because one run can produce several events.
 
 ## Test the subscriber
@@ -88,6 +88,6 @@ bulk-safe because Salesforce can deliver many events in one trigger context.
 ## Related
 
 - [Check Set Run metadata](../metadata/03-event-set-run.md)
-- [Rule Result subscription](02-rule-result.md)
+- [Check Result subscription](02-check-result.md)
 - [Apex Batch example](../api/04-batch.md)
 - [Lifecycle event behavior](../integration/03-lifecycle-events.md)

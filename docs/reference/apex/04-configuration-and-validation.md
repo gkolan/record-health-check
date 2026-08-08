@@ -1,7 +1,7 @@
 # Reference: Apex configuration and validation (L2)
 
 > [!NOTE]
-> On this page, look up the L2 classes that load Check Sets and Rules, validate configuration,
+> On this page, look up the L2 classes that load Check Sets and Checks, validate configuration,
 > and own Framework constants and reason-code helpers.
 
 This page is part of the [Apex class reference](README.md).
@@ -10,13 +10,13 @@ This page is part of the [Apex class reference](README.md).
 
 ### `RecordHealthCheckConfigService`
 
-**Role:** Load Check Sets/Rules and runtime validation adapter.
+**Role:** Load Check Sets/Checks and runtime validation adapter.
 **Type:** Service class · `public with sharing`
 
-Queries Check Set and Rule Custom Metadata, builds Lightning definition responses (including
+Queries Check Set and Check Custom Metadata, builds Lightning definition responses (including
 truncation at `FRAMEWORK_MAX_CHECKS`), reports Check Set availability for an object, resolves a
-Rule's parent Check Set, loads Rules for evaluation, and maps the first
-`RecordHealthCheckRuleValidator` finding into an `UNABLE_TO_EVALUATE` / `INVALID_CONFIG` result.
+Check's parent Check Set, loads Checks for evaluation, and maps the first
+`RecordHealthCheckValidator` finding into an `UNABLE_TO_EVALUATE` / `INVALID_CONFIG` result.
 
 **Key members:**
 
@@ -24,23 +24,23 @@ Rule's parent Check Set, loads Rules for evaluation, and maps the first
 | --- | --- |
 | `ConfigException` (nested) | Exception carrying `reasonCode` |
 | `RC_*` | Reason-code string aliases used across load paths - the single source of truth callers compare against, rather than a literal (e.g. `RC_CONFIG_INACTIVE`, `RC_OBJECT_MISMATCH`, `RC_NO_ACTIVE_CHECKS`) |
-| `findCheckSetDeveloperName(...)` | Resolve a Rule's parent Check Set |
+| `findCheckSetDeveloperName(...)` | Resolve a Check's parent Check Set |
 | `getCheckSetAvailabilityForObject(...)` | Active/inactive Check Sets for an object |
 | `getDefinitionResponse(...)` | Build the Lightning definition response |
-| `validateRuleForEvaluation(...)` | Map the first validator finding to a result |
-| `loadRule(...)` | Load a Rule for evaluation |
-| `cachedRulePublicationSettings(...)` | Transaction-cached publication flags |
+| `validateCheckForEvaluation(...)` | Map the first validator finding to a result |
+| `loadCheck(...)` | Load a Check for evaluation |
+| `cachedCheckPublicationSettings(...)` | Transaction-cached publication flags |
 
 **Notable behavior:**
 - **Important:** `getDefinitionResponse` rejects a blank `CardTitle__c` with `INVALID_CONFIG`; it does
  not substitute Master Label or Developer Name for administrator-authored card text. When active
- Rules for a Check Set exceed `FRAMEWORK_MAX_CHECKS` (25), it logs a `WARN` server-side
+ Checks for a Check Set exceed `FRAMEWORK_MAX_CHECKS` (25), it logs a `WARN` server-side
  in addition to the truncation metadata the LWC shows as its "First 25 of N shown" badge, so the
  excess is visible in logs too, not only in the UI.
 
-### `RecordHealthCheckRuleValidator`
+### `RecordHealthCheckValidator`
 
-**Role:** Shared Rule-field validation for every Evaluation Type.
+**Role:** Shared Check-field validation for every Evaluation Type.
 **Type:** Shared validator · `public with sharing`
 
 Returns ordered `Finding` values (`FindingCode` enum) once. Runtime (`ConfigService`) takes the first
@@ -63,7 +63,7 @@ messages and field names.
 **Role:** Deploy-time / CI Custom Metadata audit.
 **Type:** Service class · `public with sharing`
 
-Validates all active Check Sets and Rules in the org and returns `ValidationIssue` rows (`ERROR` /
+Validates all active Check Sets and Checks in the org and returns `ValidationIssue` rows (`ERROR` /
 `WARNING`) with component name, field, message, and reason code. An empty list means the audit
 passed. Use before promoting configuration between orgs.
 
@@ -71,16 +71,16 @@ passed. Use before promoting configuration between orgs.
 
 | Member | Purpose |
 | --- | --- |
-| `validate()` | Validate every active Check Set and Rule in the org |
+| `validate()` | Validate every active Check Set and Check in the org |
 | `validateRecords(...)` | Validate a supplied set of records |
 
 **Notable behavior:**
-- **Important:** `validateRecords` treats a Check Set with more active Rules than
+- **Important:** `validateRecords` treats a Check Set with more active Checks than
  `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as `WARNING`/`CHECK_LIMIT_EXCEEDED`, not
- `ERROR` - the excess Rules still deploy and are still valid, they simply will not run. It then
- checks whether any *included* Rule's `PrerequisiteRule__c` points outside that first-25 execution
- window and adds a second `WARNING`/`DEPENDENCY_NOT_IN_RUN` for each affected Rule. At runtime,
- Apex and the Lightning component skip a Rule whose Prerequisite Rule was not included.
+ `ERROR` - the excess Checks still deploy and are still valid, they simply will not run. It then
+ checks whether any *included* Check's `PrerequisiteCheck__c` points outside that first-25 execution
+ window and adds a second `WARNING`/`DEPENDENCY_NOT_IN_RUN` for each affected Check. At runtime,
+ Apex and the Lightning component skip a Check whose Prerequisite Check was not included.
 
 ### `RecordHealthCheckConfigValidator`
 

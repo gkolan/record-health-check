@@ -152,7 +152,7 @@ for (const file of projectMarkdownFiles) {
 
 const canonicalFieldAnchors = new Map();
 for (const reference of [
-  path.join(docsRoot, "metadata/02-fields-check-rule.md"),
+  path.join(docsRoot, "metadata/02-fields-check.md"),
   path.join(docsRoot, "metadata/01-fields-check-set.md")
 ]) {
   const markdown = fs.readFileSync(reference, "utf8");
@@ -173,7 +173,7 @@ for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
         ? "02-query.md"
         : folder === "compare-two-queries"
           ? "03-compare-two-queries.md"
-          : "04-apex-rule-contract.md";
+          : "04-apex-check-contract.md";
   const reference = path.join(
     docsRoot,
     "reference",
@@ -191,7 +191,7 @@ for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
 }
 
 for (const [objectName, referenceName] of [
-  ["Record_Health_Check_Rule__mdt", "02-fields-check-rule.md"],
+  ["Record_Health_Check__mdt", "02-fields-check.md"],
   ["Record_Health_Check_Set__mdt", "01-fields-check-set.md"]
 ]) {
   const reference = path.join(docsRoot, "metadata", referenceName);
@@ -211,7 +211,7 @@ for (const [objectName, referenceName] of [
 
 for (const [eventName, referenceName] of [
   ["Record_Health_Check_Set_Run__e", "03-event-set-run.md"],
-  ["Record_Health_Check_Rule_Result__e", "04-event-rule-result.md"],
+  ["Record_Health_Check_Result__e", "04-event-check-result.md"],
   ["Record_Health_Check_Log__e", "05-event-log.md"]
 ]) {
   const eventReference = fs.readFileSync(
@@ -328,7 +328,7 @@ for (const file of markdownFiles) {
     }
   }
 
-  if (/metadata\/(rule-fields|check-set)\.md$/.test(file)) {
+  if (/metadata\/(check-fields|check-set)\.md$/.test(file)) {
     const sections = markdown.split(/^###\s+/m).slice(1);
     const requiredAttributes = [
       "Setup label",

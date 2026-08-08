@@ -21,7 +21,7 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>RHC_Event_Export__c.RuleName__c</field>
+        <field>RHC_Event_Export__c.CheckName__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
