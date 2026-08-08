@@ -72,8 +72,6 @@ const createArguments = [
   "create",
   "--package",
   releases.package2Id,
-  "--path",
-  "force-app",
   "--definition-file",
   "config/project-scratch-def.json",
   "--code-coverage",
