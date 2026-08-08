@@ -117,6 +117,7 @@ function classify(relative) {
     return "Integration reference";
   if (/docs\/installation\/01-how-it-works\.md$/.test(relative))
     return "Concept guide";
+  if (/docs\/contributing\//.test(relative)) return "Installation task";
   if (/docs\/installation\//.test(relative)) return "Installation task";
   if (/docs\/integration\/apex-api\/README\.md$/.test(relative))
     return "Navigation page";
@@ -211,8 +212,8 @@ function structureMatches(type, markdown) {
       ]);
     case "Concept guide":
       return hasAll(markdown, [
-        /^## The plain-English model$/m,
-        /^## The words you need$/m,
+        /read-only checklist|advisory guidance/i,
+        /^## Terms to know$/m,
         /^## Example:/m,
         /troubleshooting/i,
         /^## Next steps$/m

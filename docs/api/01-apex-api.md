@@ -102,7 +102,7 @@ or use `ALL` when an integration needs every result.
 
 ## Limits and access
 
-- Every public execution entry point requires the `Record_Health_Check_Run` custom permission.
+- Every public execution entry point requires the **Record Health Check Run** (`Record_Health_Check_Run`) custom permission.
 - One request accepts at most `RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE` records.
 - Query, compare-query, and conforming Apex Rules run once for the complete scope.
 - Formula Rules use one platform Formula evaluation per expression and record, so the

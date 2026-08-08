@@ -41,8 +41,8 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 
 ## Prerequisites and quick start
 
-1. Assign **Record Health Check User** to the viewer and grant access to the record and fields used
-   by the selected Rules.
+1. Assign the **Record Health Check User** (`Record_Health_Check_User`) Permission Set to the viewer
+   and grant access to the record and fields used by the selected Rules.
 2. In Lightning App Builder, open a **record page** and add **Record Health Check**, then select an
    active Check Set for that object. The component is listed only while you are editing a record
    page; it is not offered on App Pages or Home Pages because it has no record to evaluate there.
@@ -54,7 +54,7 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 
 For installation details, use [Create your first Rule](../installation/03-create-your-first-rule.md). Advanced
 diagnostic values additionally require **Show Diagnostics** and the
-`Record_Health_Check_View_Diagnostics` Custom Permission.
+**Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission.
 
 ## Behavior matrix
 

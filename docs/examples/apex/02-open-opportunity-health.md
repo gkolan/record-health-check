@@ -76,7 +76,7 @@ After deploying the class:
 
 1. Open **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**.
 2. Create or edit the Rule record.
-3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on `Record_Health_Check_Rule__mdt`.
+3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`).
 
 Record Health Check parses the JSON and supplies it as `scope.parameters`. The class accepts
 `staleDays` from `1` through `3650`; a missing or invalid value uses 30. See

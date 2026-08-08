@@ -18,9 +18,9 @@ sf org login web --set-default-dev-hub --alias my-dev-hub
 sf org display --target-org my-dev-hub
 ```
 
-The setup reads `config/display-formats-scratch-def.json`. It creates a 30-day, multi-currency
-Developer Edition scratch org with Salesforce sample data, Lightning Experience, and API password
-generation enabled. Pass an optional second argument to use a shorter duration.
+The setup reads `config/subscriber-scratch-def.json`. It creates a 30-day Developer Edition
+scratch org with Salesforce sample data, Lightning Experience, and API password generation
+enabled. Pass `--duration-days` when you need a shorter org.
 
 ## Step 1: Create the same demo org
 
@@ -37,7 +37,7 @@ Setup performs the following operations in order:
 
 1. Creates a 30-day, no-namespace scratch org from the checked-in subscriber definition.
 2. Installs the promoted **Record Health Check** package (`04t` from `config/package-releases.json`).
-3. Assigns `Record_Health_Check_Admin` to the scratch-org user.
+3. Assigns **Record Health Check Admin** (`Record_Health_Check_Admin`) to the scratch-org user.
 4. Deploys subscriber-owned demo metadata from `subscriber-app`.
 5. Creates the deterministic Acme data set via `scripts/subscriber/data/setupDemoData.apex`.
 6. Runs `RHCSubscriberSmokeTest` to verify the installed package and subscriber harness.
@@ -146,15 +146,18 @@ you need manual troubleshooting beyond the subscriber smoke tests.
 
 ## Currency mode
 
-The demo scratch org is **multi-currency by design** when you extend subscriber setup with display-format
-fixtures. Installed subscriber orgs work in **both** single-currency and multi-currency modes.
-At runtime the Framework selects `CurrencyIsoCode` only when the org is multi-currency, and Found /
-Expected currency chips use a symbol in a single-currency org or an ISO code in a multi-currency org.
-See [Localization](../reference/framework/05-localization.md) and the
+The subscriber demo scratch org uses `config/subscriber-scratch-def.json` and is **not**
+multi-currency by default. Installed subscriber orgs work in **both** single-currency and
+multi-currency modes. At runtime the Framework selects `CurrencyIsoCode` only when the org is
+multi-currency, and Found / Expected currency chips use a symbol in a single-currency org or an ISO
+code in a multi-currency org. See [Localization](../reference/framework/05-localization.md) and the
 [FAQ](../guides/02-faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs).
 
-To exercise display formatting in a **single-currency** scratch org, use the display-formats fixture path
-with `packages/record-health-check/config/project-scratch-def.json`. See
+To exercise display formatting in a **multi-currency** scratch org, use
+`packages/record-health-check/config/display-formats-scratch-def.json` with
+[`scripts/setup-display-formats.sh`](../../scripts/setup-display-formats.sh). For single-currency
+display-format coverage, pass
+`SCRATCH_DEF=packages/record-health-check/config/project-scratch-def.json`. See
 [`integration-tests/README.md`](../../packages/record-health-check/integration-tests/README.md).
 
 ## Windows and shell notes

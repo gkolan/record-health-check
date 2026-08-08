@@ -21,7 +21,7 @@ Rules:
 2. Never update `stable` merely because package-version creation produced a new candidate `04t`.
 3. Move the current stable `04t` into `previous` before replacing `stable`.
 4. Refresh `installUrl.production` and `installUrl.sandbox` when `stable` changes.
-5. Do not duplicate the stable `04t` across README badges, docs, and scripts—update
+5. Do not duplicate the stable `04t` across README badges, docs, and scripts. Update
    `package-releases.json` first, then run doc checks.
 
 ## Required evidence
@@ -42,6 +42,9 @@ Never discard deploy, test, package, or install output. Archive JSON results wit
 ```bash
 npm run package:create -- --dev-hub <dev-hub>
 ```
+
+The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
+on the bash-only `VAR=value command` prefix.
 
 Or manually from the nested package project:
 

@@ -34,7 +34,7 @@ for exact field defaults.
 like a temporary elevated-access grant:
 
 1. Enable **Show Diagnostics** on the specific Check Set being investigated, not broadly.
-2. Confirm only users holding `Record_Health_Check_View_Diagnostics` (via `Record_Health_Check_Admin`)
+2. Confirm only users holding **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) (via **Record Health Check Admin** (`Record_Health_Check_Admin`))
    can see the resulting detail; everyone else still sees the standard card.
 3. Turn it back off when the investigation ends.
 4. Periodically audit which Check Sets currently have **Show Diagnostics** checked; a forgotten
@@ -53,7 +53,7 @@ Establish a cadence, not a one-time export:
 
 | Cadence | Action |
 | --- | --- |
-| Before every deployment | Export every `Record_Health_Check_Set__mdt` and `Record_Health_Check_Rule__mdt` record, per [Revalidate an installation: Before you start](../installation/04-upgrading.md#before-you-start) |
+| Before every deployment | Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record, per [Revalidate an installation: Before you start](../installation/04-upgrading.md#before-you-start) |
 | On a recurring schedule (for example, weekly) | Export current production configuration even between deployments, to catch drift from direct Setup edits |
 | Before any planned removal | Follow the backup step in [Uninstall and rollback](../installation/06-uninstall-and-rollback.md#back-up-custom-metadata-first) |
 | After any bulk Setup edit session | Re-export immediately so the backup reflects the edit, not the state before it |

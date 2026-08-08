@@ -40,26 +40,28 @@ recipes, use [Platform Event subscriptions](../platform-events/README.md).
 
 Record Health Check is a synchronous evaluation framework for Salesforce records.
 
-- A **Check Set** is the parent configuration and normal unit of execution.
-- A **Rule** is one ordered check inside a Check Set.
-- A run returns structured status data immediately.
-- Optional lifecycle events announce completed runs after the transaction commits.
-- Evaluation respects the running user's Salesforce access.
+| Concept | Meaning |
+| --- | --- |
+| **Check Set** | The parent configuration and normal unit of execution |
+| **Rule** | One ordered check inside a Check Set |
+| Immediate response | A run returns structured status data immediately |
+| Lifecycle events | Optional events announce completed runs after the transaction commits |
+| Access | Evaluation respects the running user's Salesforce access |
 
 Start with a Check Set. Use a single Rule only when your process intentionally needs one specific
 check rather than the complete configured health assessment.
 
 ## What it is not
 
-Record Health Check is not:
-
-- A database of historical results. Responses are transient unless a subscriber stores them.
-- A validation rule. It reports health; it does not block record save.
-- A remediation engine. It does not automatically update unhealthy records.
-- A guaranteed-message queue. Platform-event publication and delivery are asynchronous and best effort.
-- A record-change listener. A run happens only when Lightning, Apex, Flow, or scheduled code invokes it.
-- A replacement for Salesforce security. It evaluates with the caller's effective access.
-- An all-record bulk scanner. Public requests are deliberately bounded.
+| Not this | Why |
+| --- | --- |
+| A database of historical results | Responses are transient unless a subscriber stores them |
+| A Validation Rule | It reports health; it does not block record save |
+| A remediation engine | It does not automatically update unhealthy records |
+| A guaranteed-message queue | Platform-event publication and delivery are asynchronous and best effort |
+| A record-change listener | A run happens only when Lightning, Apex, Flow, or scheduled code invokes it |
+| A replacement for Salesforce security | It evaluates with the caller's effective access |
+| An all-record bulk scanner | Public requests are deliberately bounded |
 
 ## Compare integration outputs
 
@@ -162,13 +164,15 @@ For a Set request, planned evaluations equal records × active Rules.
 
 Handle these cases separately:
 
-- A valid unhealthy result: `FAIL`.
-- An intentional non-run: `SKIPPED`.
-- No reliable conclusion: `UNABLE_TO_EVALUATE`.
-- An unexpected execution problem: `ERROR`.
-- An exception before a response is available, such as an invalid request or governor limit.
-- A successful response followed by a transaction rollback, which suppresses Publish After Commit events.
-- Duplicate or replayed subscriber processing.
+| Case | Status / handling | Notes |
+| --- | --- | --- |
+| Valid unhealthy result | `FAIL` | The Rule ran and found something that needs attention |
+| Intentional non-run | `SKIPPED` | Applicability or a dependency kept the Rule from running |
+| No reliable conclusion | `UNABLE_TO_EVALUATE` | Card label: **Unable to Check**; Setup says **Unable to Evaluate** |
+| Unexpected execution problem | `ERROR` | Card label: **System Error** |
+| Exception before a response | Thrown fault | Invalid request, missing access, or a governor limit |
+| Successful response, then rollback | Events suppressed | Publish After Commit events do not fire when the transaction rolls back |
+| Duplicate or replayed subscriber work | Subscriber responsibility | Design event handlers to tolerate replay |
 
 Use stable Statuses, Reason Codes, Failure Severities, and Qualified API Names for automation. Branch
 automation on those fields rather than administrator-authored message text.

@@ -13,7 +13,7 @@ Id jobId = RecordHealthCheckBatch.run(
 );
 ```
 
-`run` requires `Record_Health_Check_Run`, a nonblank qualified Check Set identity, and 1–2,000
+`run` requires **Record Health Check Run** (`Record_Health_Check_Run`), a nonblank qualified Check Set identity, and 1–2,000
 distinct non-null record IDs. Null IDs and duplicates are removed before the population limit is
 checked. The packaged adapter uses execute scopes of 100, safely below the 200-record engine
 ceiling, and rechecks authorization in `start` and every `execute` transaction. Rejected input

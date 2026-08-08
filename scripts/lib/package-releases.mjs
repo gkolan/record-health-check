@@ -25,7 +25,10 @@ export function previousPackageVersionId(releases = readPackageReleases()) {
   return id;
 }
 
-export function namespacedPermissionSet(localName, releases = readPackageReleases()) {
+export function namespacedPermissionSet(
+  localName,
+  releases = readPackageReleases()
+) {
   const namespace = releases.namespace ?? "";
   if (!namespace || localName.includes("__")) {
     return localName;

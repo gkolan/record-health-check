@@ -15,7 +15,7 @@ This file is the single source for AI assistants translating business requiremen
 ## 1. What this Framework does
 
 Record Health Check is a **read-time, advisory** Lightning card on **record pages**. Check Sets
-(`Record_Health_Check_Set__mdt`) and Rules (`Record_Health_Check_Rule__mdt`) live in Custom Metadata.
+(**Record Health Check Set** (`Record_Health_Check_Set__mdt`)) and Rules (**Record Health Check Rule** (`Record_Health_Check_Rule__mdt`)) live in Custom Metadata.
 
 The component evaluates the current record and shows each Rule as **Pass**, **Fail** (card labels
 **Failed**, **Warning**, or **Info** by severity), **Skipped**, **Unable to Check**, or
@@ -155,7 +155,7 @@ Minimum fields when creating a new Check Set:
 | `SkippedChecksDisplay__c` | Skipped Checks | Yes | `SHOW_EACH_CHECK` or `SHOW_COUNT_ONLY` |
 | `FoundExpectedDisplay__c` | Found/Expected Display | Yes | `ON_DEMAND` (default), `FAILURES_ONLY`, or `ALL_ROWS` |
 | `IsActive__c` | Active | No | `true` |
-| `ShowDiagnostics__c` | Show Diagnostics | No | `false` in production. When `true`, user also needs `Record_Health_Check_View_Diagnostics` (from `Record_Health_Check_Admin`). See [Show Diagnostics guide](07-troubleshoot-with-show-diagnostics.md). |
+| `ShowDiagnostics__c` | Show Diagnostics | No | `false` in production. When `true`, user also needs **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) (from **Record Health Check Admin** (`Record_Health_Check_Admin`)). See [Show Diagnostics guide](07-troubleshoot-with-show-diagnostics.md). |
 | `PublishUserRunEvent__c` | Publish User Run Event | No | `false` by default; page-load runs never publish |
 | `PublishErrorLogEvent__c` | Publish Error Log Event | No | `true` by default; set `false` to opt this Check Set out of ERROR log events |
 
@@ -457,9 +457,11 @@ Prerequisite must return `PASS` or dependent is `SKIPPED`.
 
 ### Null / empty rows
 
-- Aggregates return `null` when no rows match: pair with applicability SOQL (`COUNT > 0`) or `EmptyValueHandling__c = SKIP_RECORD`.
-- **`NoRowsResult__c`:** `PASS`, `FAIL`, `SKIP`, `UNABLE_TO_EVALUATE` when a query returns **zero rows** (including COMPARE_TWO_QUERIES ONE_RESULT when either side's query is empty).
-- **`EmptyValueHandling__c`:** when rows exist but a field under test is null and the comparison operator cannot decide (typically `SKIP_RECORD`), the check is **SKIPPED** with `VALUE_IS_EMPTY`: not governed by `NoRowsResult__c`.
+| Situation | Behavior |
+| --- | --- |
+| Aggregate with no matching rows | Returns `null`. Pair with applicability SOQL (`COUNT > 0`) or set **If Field Value Is Empty** (`EmptyValueHandling__c`) to **Ignore the record** (`SKIP_RECORD`) |
+| Zero rows from a query | **If Query Finds No Records** (`NoRowsResult__c`) chooses Pass, Fail, Skip, or Unable to Evaluate (`PASS`, `FAIL`, `SKIP`, `UNABLE_TO_EVALUATE`), including Compare two queries in ONE_RESULT mode when either side is empty |
+| Rows exist but a compared field is null | **If Field Value Is Empty** (`EmptyValueHandling__c`) applies (typically **Ignore the record** / `SKIP_RECORD`). The check is **Skipped** (`SKIPPED`) with `VALUE_IS_EMPTY`; this is not governed by **If Query Finds No Records** |
 
 ## 10. Worked examples (copy-ready)
 

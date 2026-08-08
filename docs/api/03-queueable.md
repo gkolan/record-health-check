@@ -75,7 +75,7 @@ Id jobId = System.enqueueJob(
 
 ## Failure handling
 
-`enqueue` requires the `Record_Health_Check_Run` custom permission, a nonblank qualified Check Set
+`enqueue` requires the **Record Health Check Run** (`Record_Health_Check_Run`) custom permission, a nonblank qualified Check Set
 identity, and 1–200 distinct non-null record IDs. Null IDs and duplicates are removed before the
 limit is checked. Invalid or unauthorized input is rejected before an `AsyncApexJob` is created,
 and authorization is checked again when the job executes. The public constructor applies the same

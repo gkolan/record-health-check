@@ -82,7 +82,7 @@ After deploying the class:
 1. In Object Manager, confirm every illustrative `sbaa__*` API name and status value in your org.
 2. Open **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**.
 3. Create or edit the Rule record.
-4. Paste the corrected object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on `Record_Health_Check_Rule__mdt`.
+4. Paste the corrected object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`).
 
 Record Health Check parses the JSON and supplies the named settings as `scope.parameters`.
 Blank settings use the class defaults, and an empty status list uses `Requested`. See

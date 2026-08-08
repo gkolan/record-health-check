@@ -149,7 +149,9 @@ function main() {
   }
 
   if (!aliasAvailable(alias)) {
-    console.error(`Alias '${alias}' is already in use. Pass --alias with a free name.`);
+    console.error(
+      `Alias '${alias}' is already in use. Pass --alias with a free name.`
+    );
     process.exit(1);
   }
 
@@ -180,7 +182,9 @@ function main() {
     runJson("sf", ["package", "installed", "list", "--target-org", alias])
   );
   if (!hasInstalledPackageVersion(installed, candidateId)) {
-    console.error("Clean install verification failed: candidate 04t not installed.");
+    console.error(
+      "Clean install verification failed: candidate 04t not installed."
+    );
     process.exit(1);
   }
 
@@ -238,7 +242,9 @@ function runUpgradeGate(candidateId, alias, devHub, releases) {
     "30"
   ]);
 
-  console.log(`Installing previous promoted version ${previousId} for upgrade rehearsal...`);
+  console.log(
+    `Installing previous promoted version ${previousId} for upgrade rehearsal...`
+  );
   installPackage(previousId, alias);
   assignAdmin(alias, releases);
   deploySubscriberHarness(alias);
@@ -262,7 +268,9 @@ function runUpgradeGate(candidateId, alias, devHub, releases) {
     runJson("sf", ["package", "installed", "list", "--target-org", alias])
   );
   if (!hasInstalledPackageVersion(upgraded, candidateId)) {
-    console.error("Upgrade gate failed: candidate 04t not installed after upgrade.");
+    console.error(
+      "Upgrade gate failed: candidate 04t not installed after upgrade."
+    );
     process.exit(1);
   }
 

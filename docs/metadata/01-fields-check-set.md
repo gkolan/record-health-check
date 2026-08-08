@@ -1,4 +1,4 @@
-# Check Set fields (`Record_Health_Check_Set__mdt`)
+# Check Set fields (**Record Health Check Set** (`Record_Health_Check_Set__mdt`))
 
 This page preserves the exact contract for every Check Set field: the label shown in Setup, API
 name, type, default, allowed values, and runtime behavior. Use the short decision path first, then

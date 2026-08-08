@@ -3,7 +3,9 @@ import path from "node:path";
 
 const roots = [
   path.resolve("packages/record-health-check/force-app/main/default/classes"),
-  path.resolve("packages/record-health-check/integration-tests/main/default/classes")
+  path.resolve(
+    "packages/record-health-check/integration-tests/main/default/classes"
+  )
 ];
 const methods = new Map([
   ["Account", "RecordHealthCheckTestDataFactory.account"],

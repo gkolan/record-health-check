@@ -21,7 +21,10 @@ export const paths = {
   ),
   subscriberApp: path.join(repoRoot, "subscriber-app"),
   packageReleases: path.join(repoRoot, "config/package-releases.json"),
-  subscriberScratchDef: path.join(repoRoot, "config/subscriber-scratch-def.json"),
+  subscriberScratchDef: path.join(
+    repoRoot,
+    "config/subscriber-scratch-def.json"
+  ),
   packageScratchDef: path.join(
     repoRoot,
     "packages/record-health-check/config/project-scratch-def.json"

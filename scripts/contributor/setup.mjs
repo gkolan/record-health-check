@@ -58,47 +58,59 @@ function main() {
     "Do not use this workflow to install or upgrade Record Health Check in a subscriber org."
   );
 
-  run("sf", [
-    "org",
-    "create",
-    "scratch",
-    "--definition-file",
-    paths.packageScratchDef,
-    "--alias",
-    options.alias,
-    "--target-dev-hub",
-    options.devHub,
-    "--duration-days",
-    options.durationDays,
-    "--wait",
-    "30"
-  ], { cwd: paths.packageRoot });
+  run(
+    "sf",
+    [
+      "org",
+      "create",
+      "scratch",
+      "--definition-file",
+      paths.packageScratchDef,
+      "--alias",
+      options.alias,
+      "--target-dev-hub",
+      options.devHub,
+      "--duration-days",
+      options.durationDays,
+      "--wait",
+      "30"
+    ],
+    { cwd: paths.packageRoot }
+  );
 
-  run("sf", [
-    "project",
-    "deploy",
-    "start",
-    "--source-dir",
-    "force-app",
-    "--target-org",
-    options.alias,
-    "--test-level",
-    "RunLocalTests",
-    "--wait",
-    "30"
-  ], { cwd: paths.packageRoot });
+  run(
+    "sf",
+    [
+      "project",
+      "deploy",
+      "start",
+      "--source-dir",
+      "force-app",
+      "--target-org",
+      options.alias,
+      "--test-level",
+      "RunLocalTests",
+      "--wait",
+      "30"
+    ],
+    { cwd: paths.packageRoot }
+  );
 
-  run("sf", [
-    "project",
-    "deploy",
-    "start",
-    "--source-dir",
-    "integration-tests",
-    "--target-org",
-    options.alias,
-    "--wait",
-    "30"
-  ], { cwd: paths.packageRoot });
+  run(
+    "sf",
+    [
+      "project",
+      "deploy",
+      "start",
+      "--source-dir",
+      "integration-tests",
+      "--target-org",
+      options.alias,
+      "--wait",
+      "30"
+    ],
+    { cwd: paths.packageRoot }
+  );
 
   console.log("");
   console.log(`Contributor development org '${options.alias}' is ready.`);

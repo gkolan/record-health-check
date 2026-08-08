@@ -13,11 +13,11 @@ subscribers may support active business processes.
 
 Capture these items before changing metadata:
 
-1. Export every `Record_Health_Check_Set__mdt` and `Record_Health_Check_Rule__mdt` record.
+1. Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record.
 2. Retain the installed package version ID from Setup → Installed Packages or
    `sf package installed list --target-org <validation-org>`.
 3. Record the active Lightning record pages and their selected Check Sets.
-4. Export assignments for `Record_Health_Check_User` and `Record_Health_Check_Admin`.
+4. Export assignments for **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`).
 5. List Apex, Flow, and Platform Event integrations that call or subscribe to Record Health Check.
 6. Record one passing and one failing business scenario for each active Check Set.
 
@@ -73,8 +73,8 @@ the upgrade:
 | Synchronous Apex | Callers use `RecordHealthCheck.evaluate(RecordHealthCheckRequest)` with qualified Check Set or Rule API names |
 | Apex plugins | Plugins implement bulk `RecordHealthCheckRule.evaluate(RecordHealthCheckScope)` and return one outcome per requested record ID |
 | Merge tokens | Templates use namespaced tokens and attribute fallbacks such as `{!record.Name fallback="this record"}` |
-| Diagnostics access | Troubleshooters hold `Record_Health_Check_View_Diagnostics` (via `Record_Health_Check_Admin`) and the Check Set enables **Show Diagnostics** only while investigating |
-| Run access | Executable surfaces require `Record_Health_Check_Run` (included in the User and Admin Permission Sets) |
+| Diagnostics access | Troubleshooters hold **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) (via **Record Health Check Admin** (`Record_Health_Check_Admin`)) and the Check Set enables **Show Diagnostics** only while investigating |
+| Run access | Executable surfaces require **Record Health Check Run** (`Record_Health_Check_Run`) (included in the User and Admin Permission Sets) |
 | Card outcomes | Lightning verification expects Pass, Fail (Failed / Warning / Info), Skipped, Unable to Check, and System Error |
 
 Do not teach or restore retired entry points. If an existing caller still uses an older shape, update

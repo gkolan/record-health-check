@@ -109,7 +109,9 @@ Subscriber sandboxes installing the unlocked package do not need a special curre
 step. They also do not run packaged RHC Apex tests during normal `RunLocalTests` deployments.
 Maintainers validate both currency modes with
 [`scripts/setup-display-formats.sh`](../../scripts/setup-display-formats.sh) (multi-currency by
-default; set `SCRATCH_DEF=config/project-scratch-def.json` for single-currency). See
+default; set
+`SCRATCH_DEF=packages/record-health-check/config/project-scratch-def.json` for single-currency).
+On Windows run that script from **Git Bash**. See
 [Localization](../reference/framework/05-localization.md) and
 [Create the demo scratch org](../installation/05-create-rhc-scratch-org.md#currency-mode).
 

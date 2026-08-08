@@ -4,23 +4,25 @@ This page explains where to get help with Record Health Check, based on what you
 
 ## Ways to get help
 
-| I need…                                  | Do this                                                                                                                                                                                                                           |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **To read the documentation**            | Start at the [documentation home](docs/README.md). It routes you to installation, configuration, examples, integration, and reference pages by task.                                                                              |
-| **To ask a question or discuss an idea** | Start a [GitHub Discussion](https://github.com/gkolan/record-health-check/discussions), or join the [community Slack](https://recordhealthcheck.com/slack-invite) for faster back-and-forth with maintainers and other users.     |
-| **To report a bug**                      | Open a [Bug report](https://github.com/gkolan/record-health-check/issues/new?template=bug_report.yml) issue. Search [existing issues](https://github.com/gkolan/record-health-check/issues) first so you do not file a duplicate. |
-| **To request a feature**                 | Open a [Feature request](https://github.com/gkolan/record-health-check/issues/new?template=feature_request.yml) issue.                                                                                                            |
-| **To report a security vulnerability**   | Report it privately through GitHub Security Advisories. Do not open a public issue. See the [Security policy](.github/SECURITY.md) for what to include.                                                                           |
-| **To contribute code or docs**           | Read [Contributing](.github/CONTRIBUTING.md) for the local checks, testing requirements, and pull request process.                                                                                                                |
+| I need…                                 | Do this                                                                                                                                                                                                                           |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **To read the documentation**           | Start at the [documentation home](docs/README.md). It routes you to installation, configuration, examples, integration, and reference pages by task.                                                                              |
+| **To ask a question or share feedback** | Start a [GitHub discussion](https://github.com/gkolan/record-health-check/discussions), or join the [community Slack](https://recordhealthcheck.com/slack-invite) for faster back-and-forth with maintainers and other users.     |
+| **To report a bug**                     | Open a [Bug report](https://github.com/gkolan/record-health-check/issues/new?template=bug_report.yml) issue. Search [existing issues](https://github.com/gkolan/record-health-check/issues) first so you do not file a duplicate. |
+| **To request a feature**                | Open a [Feature request](https://github.com/gkolan/record-health-check/issues/new?template=feature_request.yml) issue.                                                                                                            |
+| **To report a security vulnerability**  | Report it privately through GitHub Security Advisories. Do not open a public issue. See the [Security policy](.github/SECURITY.md) for what to include.                                                                           |
+| **To contribute code or docs**          | Read [Contributing](.github/CONTRIBUTING.md) for the local checks, testing requirements, and pull request process.                                                                                                                |
 
 ## Before you ask
 
-Most questions are answered faster with a bit of preparation:
+Complete reports are easier to reproduce and resolve. Before reporting a bug:
 
-- Note the **Check Set** and **Rule** Developer Names involved, not just the labels shown on the card.
-- Note whether **Show Diagnostics** was on, and capture the `[RHC]` summary from the browser console. See [Troubleshoot with Show Diagnostics](docs/guides/07-troubleshoot-with-show-diagnostics.md).
-- Note the org type (Production, Sandbox, or Scratch) and the Salesforce API version.
-- Redact record data, Org IDs, session IDs, and access tokens before sharing anything.
+- Record the expected behavior, actual behavior, and exact steps to reproduce it.
+- Include the **Check Set Qualified API Name** and **Rule Developer Name**, not only the labels shown on the card.
+- Temporarily enable **Show Diagnostics**, reproduce the issue, and capture the `[RHC]` report from the browser console. If diagnostics cannot be enabled or do not apply, explain why. See [Troubleshoot with Show Diagnostics](docs/guides/07-troubleshoot-with-show-diagnostics.md).
+- Attach a screenshot or screen recording when the problem appears on the card.
+- Include the package version or installed `04t`, installation type, org type, Salesforce API version, and browser or device when relevant.
+- Redact customer data, record IDs, Org IDs, session IDs, access tokens, screenshots, and console output before sharing anything.
 
 ## Where to start in the docs
 

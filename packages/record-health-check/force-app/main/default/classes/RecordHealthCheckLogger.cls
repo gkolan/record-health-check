@@ -158,7 +158,8 @@ public with sharing class RecordHealthCheckLogger {
    * non-ERROR levels, when the feature is switched off, or inside a subscriber
    * context (loop guard). RecordId__c and the check context are included so a
    * failing evaluator is reproducible; field values (actual/expected) are
-   * deliberately NOT carried — those stay in Debug Mode's admin detail.
+   * deliberately NOT carried — those stay in the Show Diagnostics admin-detail
+   * channel.
    */
   private void captureErrorEvent(
     Level lvl,

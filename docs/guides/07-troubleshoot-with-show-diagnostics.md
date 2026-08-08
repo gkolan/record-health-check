@@ -24,22 +24,22 @@ on [Install and verify](../installation/02-install-and-verify.md).
 
 | Question | Answer on this page |
 | --- | --- |
-| Why does checking Show Diagnostics appear to do nothing? | The viewer also needs `Record_Health_Check_View_Diagnostics` through the Admin Permission Set |
+| Why does checking Show Diagnostics appear to do nothing? | The viewer also needs **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) through the Admin Permission Set |
 | What changes on the card? | Authorized troubleshooting lines and details appear after a run |
 | What appears in the browser console? | One `[RHC]` group containing run identity, results, timing, and available source details |
 | How do I return to normal operation? | Uncheck Show Diagnostics and remove temporary administrator access when appropriate |
 
 > [!WARNING]
-> Turning on **Show Diagnostics** on the Check Set alone does **nothing** visible. Both the Check Set flag **and** the `Record_Health_Check_View_Diagnostics` permission are required for troubleshooting output.
+> Turning on **Show Diagnostics** on the Check Set alone does **nothing** visible. Both the Check Set flag **and** the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) permission are required for troubleshooting output.
 
 ## Both steps are required
 
 | Step | What to do | Where in Setup |
 | ---- | ---------- | -------------- |
 | **1. Check Set** | Check **Show Diagnostics** | **Custom Metadata Types** → **Record Health Check Set** → open your Check Set → **Show Diagnostics** (`ShowDiagnostics__c`) |
-| **2. User** | Assign the Permission Set named `Record_Health_Check_Admin` | **Permission Sets** → open `Record_Health_Check_Admin` → **Manage Assignments** → add the troubleshooting user |
+| **2. User** | Assign the **Record Health Check Admin** (`Record_Health_Check_Admin`) Permission Set | **Permission Sets** → open **Record Health Check Admin** (`Record_Health_Check_Admin`) → **Manage Assignments** → add the troubleshooting user |
 
-Step 2 grants the **`Record_Health_Check_View_Diagnostics`** Custom Permission, which unlocks advanced detail. The Check Set's **Show Diagnostics** flag then decides when that detail appears on the card and in the console.
+Step 2 grants the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission, which unlocks advanced detail. The Check Set's **Show Diagnostics** flag then decides when that detail appears on the card and in the console.
 
 The two controls answer different questions. **Show Diagnostics** lets an administrator choose
 which Check Sets may produce troubleshooting output. The Custom Permission decides which users may
@@ -51,13 +51,13 @@ Reason Codes, source details, or access failures to every user of the Lightning 
 | Permission Set | API name | Can run checks | Includes View Diagnostics |
 | --- | --- | --- | --- |
 | Record Health Check User | `Record_Health_Check_User` | Yes | No |
-| Record Health Check Admin | `Record_Health_Check_Admin` | Yes | Yes: includes `Record_Health_Check_View_Diagnostics` |
+| Record Health Check Admin | `Record_Health_Check_Admin` | Yes | Yes: includes **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) |
 
-If you checked Show Diagnostics on the Check Set but still see a normal card, the most common cause is that the viewing user does not have the Permission Set named **`Record_Health_Check_Admin`**.
+If you checked Show Diagnostics on the Check Set but still see a normal card, the most common cause is that the viewing user does not have the **Record Health Check Admin** (`Record_Health_Check_Admin`) Permission Set.
 
 ## What View Diagnostics unlocks
 
-`Record_Health_Check_View_Diagnostics` is the Custom Permission that authorizes advanced result and
+**Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) is the Custom Permission that authorizes advanced result and
 troubleshooting information. The Record Health Check Admin Permission Set includes it.
 
 | Capability | View Diagnostics required | Show Diagnostics required | What the authorized user receives |
@@ -84,10 +84,10 @@ After you **run** the checks (automatic or manual), and only when both steps abo
 | **Gray line under each result** | Compact summary, for example `FAIL · FORMULA_FALSE · 38ms · Formula`: Status, Reason Code, duration, and Evaluation Type (API value). |
 | **Troubleshooting detail** | On checks that errored or did not run, a **Troubleshooting detail** block showing the technical message inline (SOQL problems, missing field access, and similar) |
 | **Found / Expected** | On failing checks, labelled chips when the engine captured values. Found / Expected visibility is controlled by **Found/Expected Display** on the Check Set. |
-| **Found and Expected source details** | When the viewer has `Record_Health_Check_View_Diagnostics`, source details are included in the browser-console diagnostics, not on the card. |
+| **Found and Expected source details** | When the viewer has **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`), source details are included in the browser-console diagnostics, not on the card. |
 | **Console hint** | Small footnote at the bottom of the card: **Check console (F12) for diagnostics.** |
 
-Users **without** `Record_Health_Check_View_Diagnostics` never see the gray lines, Troubleshooting detail blocks, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
+Users **without** **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) never see the gray lines, Troubleshooting detail blocks, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
 
 ## What you see in the browser console
 
@@ -108,10 +108,30 @@ Developer Name to distinguish multiple Record Health Check cards on the same Lig
 
 Use the **Run ID** to match Apex log entries when Apex logging is enabled for your user.
 
+## What to capture for a bug report
+
+For a behavior or evaluation issue, reproduce the problem with **Show Diagnostics** enabled and
+include the following evidence:
+
+- the expected behavior and the actual behavior;
+- exact reproduction steps;
+- the Check Set Qualified API Name and Rule Developer Name;
+- the displayed Status, Reason Code, and message;
+- the redacted `[RHC]` console report; and
+- a redacted screenshot or screen recording when the problem appears on the card.
+
+If Show Diagnostics cannot be enabled or does not apply, explain why in the report. Also include the
+package version or installed `04t`, installation type, org type, Salesforce API version, and browser
+or device when relevant.
+
+Before sharing evidence, remove customer data, record IDs, Org IDs, session IDs, and access tokens.
+Redact both screenshots and console output. Security vulnerabilities must be reported privately
+through the [Security policy](../../.github/SECURITY.md), not through a public issue.
+
 ## Checklist
 
 - [ ] **Show Diagnostics** checked on the **same** Check Set the component uses (App Builder **Check Set** selection must match).
-- [ ] Permission Set **`Record_Health_Check_Admin`** assigned to the user viewing the page.
+- [ ] Permission Set **Record Health Check Admin** (`Record_Health_Check_Admin`) assigned to the user viewing the page.
 - [ ] Record page **refreshed** after metadata or permission changes.
 - [ ] Checks **run** to completion (troubleshooting detail appears after the run, not on first load while rows are still pending).
 - [ ] **Show Diagnostics turned off** on production Check Sets when troubleshooting is finished.

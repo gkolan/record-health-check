@@ -189,7 +189,7 @@ Thrown by comparison, SOQL template, and value-resolution paths. Evaluators catc
 **Role:** Diagnostics Custom Permission check.
 **Type:** Shared service · `public with sharing`
 
-`canViewDetails()` returns whether the running user holds `Record_Health_Check_View_Diagnostics`.
+`canViewDetails()` returns whether the running user holds **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`).
 Check Set `ShowDiagnostics__c` still controls *when* troubleshooting fields are attached; this class
 only answers *who* may see them.
 
@@ -228,8 +228,8 @@ points call `flush()` so ERROR platform events are not lost when
 **Notable behavior:**
 - **Important:** `captureErrorEvent` deliberately never carries field values (actual/expected) into the
  `Record_Health_Check_Log__e` event - only identifying context (run id, Check Set/Rule
- names, record id, exception type/message/stack) - because those raw values belong to Debug Mode's
- admin detail channel, not a platform event any subscriber with object access could read.
+ names, record id, exception type/message/stack) - because those raw values belong to the Show
+ Diagnostics admin-detail channel, not a platform event any subscriber with object access could read.
  `enterSubscriberContext()` is a one-way loop guard a subscriber processing this same event must
  call first, so an error raised while handling a log event cannot republish onto the same event bus.
 

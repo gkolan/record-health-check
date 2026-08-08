@@ -11,8 +11,8 @@ for metadata XML, Apex, automation, and generated configuration.
 
 | Step | Reference | What it covers |
 | ---: | --- | --- |
-| 1 | [Check Set fields](01-fields-check-set.md) | Every field on `Record_Health_Check_Set__mdt` |
-| 2 | [Rule fields](02-fields-check-rule.md) | Every field on `Record_Health_Check_Rule__mdt` |
+| 1 | [Check Set fields](01-fields-check-set.md) | Every field on **Record Health Check Set** (`Record_Health_Check_Set__mdt`) |
+| 2 | [Rule fields](02-fields-check-rule.md) | Every field on **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) |
 | 3 | [Check Set Run Platform Event](03-event-set-run.md) | Set-run summary event fields |
 | 4 | [Rule Result Platform Event](04-event-rule-result.md) | Per-Rule outcome event fields |
 | 5 | [Log Platform Event](05-event-log.md) | Restricted Framework `ERROR` diagnostics |

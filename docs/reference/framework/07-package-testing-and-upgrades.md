@@ -1,18 +1,19 @@
 # Reference: Package testing and upgrades
 
 > [!NOTE]
-> On this page, learn which tests belong to the package, what subscribers must never modify, and
-> how versioned unlocked-package upgrades differ from contributor source deploys.
+> On this page, learn which tests belong to the package, how packaged tests behave for subscribers,
+> and how versioned unlocked-package upgrades differ from contributor source deploys.
 
 Record Health Check ships as a **namespaced 2GP unlocked package** (`rhc`). Subscribers install
 promoted package versions and upgrade in place. Contributors deploy source for development and CI.
+This reference explains the design of those two paths so you do not mix them.
 
 ## Subscriber policy
 
-> **Package-installed RHC components, including test classes and test utilities, must not be
-> modified by subscribers.** Subscriber-specific tests and test-data customization belong outside
-> the package. Source deployment is supported for contributors and development environments, not as
-> the normal upgrade mechanism.
+> **Package-installed Record Health Check components, including test classes and test utilities,
+> must not be modified by subscribers.** Subscriber-specific tests and test-data customization belong
+> outside the package. Source deployment is supported for contributors and development environments,
+> not as the normal upgrade mechanism.
 
 | Do | Do not |
 | --- | --- |
@@ -34,22 +35,22 @@ packaged metadata.
 
 Package unit tests:
 
-- Exercise RHC classes in isolation.
+- Exercise Framework classes in isolation.
 - Create deterministic data through `RecordHealthCheckTestDataFactory`.
 - Use schema tokens and queried `QualifiedApiName` values instead of hardcoded namespace prefixes.
 - Must pass before a package version is promoted.
 
 Integration tests:
 
-- Cover fixtures, demo configuration, persona access, platform events, and upgrade scenarios.
+- Cover sample metadata, demo configuration, persona access, platform events, and upgrade scenarios.
 - Stay outside the root `sfdx-project.json` `packageDirectories` so they never ship to subscribers.
 
 Customer tests:
 
 - Cover org-specific Rules, Apex plugins, validation rules, and business automation.
-- Live in the customer repository, not inside the RHC package.
+- Live in the customer repository, not inside the Record Health Check package.
 
-## RunLocalTests and installed packages
+## How RunLocalTests behaves with installed packages
 
 Normal subscriber deployments that use `RunLocalTests` **do not execute** Apex tests originating
 from an installed **namespaced** unlocked package. Those tests run only when explicitly selected or
@@ -58,11 +59,11 @@ when the org uses `RunAllTestsInOrg`.
 Maintainers run packaged tests during `sf package version create --code-coverage`. Salesforce
 stores the resulting coverage on the package version before it can be promoted.
 
-Subscriber sandboxes installing only the unlocked package are therefore not blocked by RHC package
-tests during their own metadata deployments.
+Subscriber sandboxes that install only the unlocked package are therefore not blocked by Framework
+package tests during their own metadata deployments.
 
-Contributor source deploys into scratch orgs **do** run local RHC tests because the classes are
-org-owned until packaged. That path is for development, not the supported subscriber install.
+Contributor source deploys into scratch orgs **do** run local Framework tests because the classes
+are org-owned until packaged. That path is for development, not the supported subscriber install.
 
 ## Namespace-neutral test utilities
 
@@ -72,26 +73,36 @@ record construction stays on `RecordHealthCheckTestDataFactory`:
 - Custom Metadata identities: query `QualifiedApiName` (never construct `rhc__` + `DeveloperName`).
 - Schema tokens: `Record_Health_Check_Set__mdt.SObjectType.getDescribe().getName()` and field
   `getDescribe().getName()` return the correct qualified or unqualified name for the org.
-- Global describe helpers: resolve integration fixture objects by local API name suffix when fixtures
-  are deployed.
+- Global describe helpers: resolve integration sample objects by local API name suffix when sample
+  metadata is deployed.
 
 Hardcoded `rhc__` string literals in package Apex under `packages/record-health-check/force-app`
 are prohibited. CI enforces this through `npm run check:test-data-factory`.
 
+Prove both shapes before release:
+
+| Shape | Maintainer command | What it proves |
+| --- | --- | --- |
+| Namespaced development org | `npm run dev:setup` | Unpackaged source deploys and `RunLocalTests` pass with the `rhc` namespace |
+| No-namespace portable org | `npm run dev:test-no-namespace` | The same `force-app` deploys without a namespace |
+
+Both commands accept `--dev-hub` and work on Windows, macOS, and Linux. See
+[Source development](../../contributing/source-development.md).
+
 ## Optional subscriber test-data extension (future)
 
 Some heavily customized orgs may need extra field values when inserting standard objects during an
-**optional** subscriber smoke-test harness. Do not edit the packaged factory for that case.
+**optional** subscriber smoke-test path. Do not edit the packaged factory for that case.
 
-When demand exists, provide an optional external seam (for example a customer-owned
-`MyCompanyRHCTestDataCustomizer` class) that the harness invokes when present. Constraints:
+When demand exists, provide an optional external class (for example a customer-owned
+`MyCompanyRHCTestDataCustomizer`) that the verification invokes when present. Constraints:
 
-- The customizer lives outside the RHC package.
+- The customizer lives outside the Record Health Check package.
 - Package upgrades must not overwrite it.
 - Absence of the class is normal.
 - Package-version creation must not depend on it.
 
-The core package unit tests do not use this seam.
+The core package unit tests do not use this extension.
 
 ## Recommended release process
 
@@ -129,5 +140,6 @@ delete components removed from newer versions. Salesforce also supports `Mixed` 
 
 - [Install and verify](../../installation/02-install-and-verify.md)
 - [Revalidate or upgrade](../../installation/04-upgrading.md)
+- [Source development](../../contributing/source-development.md)
 - [Configuration identity](06-configuration-identity.md)
 - [Contributing](../../../.github/CONTRIBUTING.md)

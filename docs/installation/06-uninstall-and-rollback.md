@@ -22,7 +22,7 @@ its dependency is gone. Confirm the blast radius before you begin:
    Set**.
 4. Identify every Flow or Apex trigger subscribed to `Record_Health_Check_Set_Run__e`,
    `Record_Health_Check_Rule_Result__e`, or `Record_Health_Check_Log__e`.
-5. Identify every user assigned `Record_Health_Check_User` or `Record_Health_Check_Admin`.
+5. Identify every user assigned **Record Health Check User** (`Record_Health_Check_User`) or **Record Health Check Admin** (`Record_Health_Check_Admin`).
 
 ## Back up Custom Metadata first
 
@@ -30,8 +30,8 @@ Check Set and Rule configuration lives entirely in Custom Metadata. Export it be
 anything, the same way [Revalidate an installation](04-upgrading.md#before-you-start) does for an
 upgrade:
 
-1. Export every `Record_Health_Check_Set__mdt` record.
-2. Export every `Record_Health_Check_Rule__mdt` record.
+1. Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) record.
+2. Export every **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) record.
 3. Record which Lightning record pages had the component placed, and which Check Set each one
    selected.
 
@@ -67,7 +67,7 @@ itself, so nothing is left calling into a surface that is about to disappear:
 
 ## Step 3: Remove Permission Set assignments
 
-Remove `Record_Health_Check_User` and `Record_Health_Check_Admin` assignments before uninstalling
+Remove **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`) assignments before uninstalling
 the package or removing source metadata:
 
 ```bash
@@ -135,8 +135,8 @@ package should use [Step 4a](#step-4a-uninstall-the-unlocked-package) instead.
 | Check | Expected result |
 | --- | --- |
 | Open a record page that previously had the card | No Record Health Check component appears, and Lightning App Builder no longer offers it |
-| Search Setup for `Record Health Check` object and Apex references | No `Record_Health_Check_Set__mdt`, `Record_Health_Check_Rule__mdt`, or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
-| Review Permission Sets | `Record_Health_Check_User` and `Record_Health_Check_Admin` no longer exist or have no assignees |
+| Search Setup for `Record Health Check` object and Apex references | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
+| Review Permission Sets | **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`) no longer exist or have no assignees |
 | Review scheduled jobs | No job references `RecordHealthCheckScheduled` |
 | Review Flow and Apex subscribers | No automation still references the removed platform events or Apex classes |
 
@@ -147,8 +147,8 @@ backup:
 
 1. Reinstall the package (or redeploy the source) following
    [Install and verify](02-install-and-verify.md).
-2. Restore the exported `Record_Health_Check_Set__mdt` and `Record_Health_Check_Rule__mdt` records.
-3. Reassign `Record_Health_Check_User` and `Record_Health_Check_Admin` to the users identified in
+2. Restore the exported **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) records.
+3. Reassign **Record Health Check User** (`Record_Health_Check_User`) and **Record Health Check Admin** (`Record_Health_Check_Admin`) to the users identified in
    [Before you start](#before-you-start).
 4. Re-add the Lightning component to the record pages that had it.
 5. Re-enable any Flow, Apex, or event subscriber automation that was disabled during removal.

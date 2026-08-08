@@ -6,8 +6,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for filing a bug. Please **do not include** Salesforce access tokens,
-        session IDs, full Org IDs, or real customer record data. Redact screenshots.
+        Complete reports are easier to reproduce and resolve. Include the requested
+        environment details, exact reproduction steps, and redacted diagnostic evidence.
+        Please **do not include** Salesforce access tokens, session IDs, full Org IDs,
+        or real customer record data. Redact screenshots and console output.
         Security vulnerabilities go through the [Security policy](https://github.com/gkolan/record-health-check/blob/main/.github/SECURITY.md) instead.
   - type: checkboxes
     id: preflight
@@ -18,12 +20,21 @@ body:
           required: true
         - label: This is a functional bug, not a security vulnerability (those go through the Security policy).
           required: true
+        - label: I removed customer data, record IDs, Org IDs, session IDs, and access tokens from everything attached.
+          required: true
   - type: textarea
-    id: what-happened
+    id: expected
     attributes:
-      label: What happened?
-      description: What did you expect, and what did you observe instead?
-      placeholder: I expected the check to pass, but the card showed FAIL with message "…".
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead? Include the displayed Status, Reason Code, and message when available.
+      placeholder: The card showed Unable to Check with reason code INVALID_CONFIG and message "…".
     validations:
       required: true
   - type: textarea
@@ -37,14 +48,35 @@ body:
         3. On an Account where BillingCity is blank, open the record page…
     validations:
       required: true
-  - type: textarea
-    id: console
+  - type: dropdown
+    id: diagnostics-status
     attributes:
-      label: Debug Mode console output (optional)
+      label: Show Diagnostics status
+      description: Behavior and evaluation issues require redacted diagnostic evidence when Show Diagnostics is available.
+      options:
+        - Enabled; evidence provided below
+        - Unable to enable; explanation provided below
+        - Not applicable to this issue; explanation provided below
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics-evidence
+    attributes:
+      label: Diagnostic evidence
       description: >
-        If Debug Mode is enabled (Check Set flag + Record Health Check Admin permission),
-        paste the `[RHC]` summary from the browser console. Redact record data and Org IDs.
+        Enable Show Diagnostics on the affected Check Set, reproduce the issue, and paste
+        the redacted `[RHC]` console report. If you cannot enable it or it is not applicable,
+        explain why. Follow the [Show Diagnostics guide](https://github.com/gkolan/record-health-check/blob/main/docs/guides/07-troubleshoot-with-show-diagnostics.md).
       render: text
+    validations:
+      required: true
+  - type: textarea
+    id: visual-evidence
+    attributes:
+      label: Screenshot or screen recording
+      description: Attach redacted visual evidence when the problem appears on the card. Otherwise, state that it is not applicable.
+    validations:
+      required: true
   - type: input
     id: object
     attributes:
@@ -63,10 +95,36 @@ body:
         - Developer Edition
     validations:
       required: true
+  - type: dropdown
+    id: installation-type
+    attributes:
+      label: Installation type
+      options:
+        - Namespaced unlocked package
+        - Unpackaged source deployment
+        - Other or unknown
+    validations:
+      required: true
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version or installed 04t ID
+      description: Provide the package version or installed 04t ID. For an unpackaged source deployment, enter Not applicable; do not include an Org ID.
+      placeholder: "2.0.0.6 or 04t…"
+    validations:
+      required: true
   - type: input
     id: api-version
     attributes:
       label: Org API version
       placeholder: "63.0 or higher"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      description: Required for display or interaction problems; otherwise enter Not applicable.
+      placeholder: "Chrome 140 on macOS, or Salesforce mobile on iPhone"
     validations:
       required: true

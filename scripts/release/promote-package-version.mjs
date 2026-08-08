@@ -20,10 +20,15 @@ if (!devHub) {
 
 const releases = readPackageReleases();
 const packageVersionId =
-  values.package ?? positionals[0] ?? releases.stable?.subscriberPackageVersionId ?? "";
+  values.package ??
+  positionals[0] ??
+  releases.stable?.subscriberPackageVersionId ??
+  "";
 
 if (!packageVersionId.startsWith("04t")) {
-  console.error("Pass a candidate 04t via --package or as the first positional argument.");
+  console.error(
+    "Pass a candidate 04t via --package or as the first positional argument."
+  );
   process.exit(1);
 }
 
@@ -43,4 +48,6 @@ console.log("Update config/package-releases.json:");
 console.log("  1. Move the current stable 04t into previous.");
 console.log("  2. Set stable.subscriberPackageVersionId to the promoted 04t.");
 console.log("  3. Refresh installUrl production and sandbox p0 values.");
-console.log("Subscriber scripts and docs read from that file; do not duplicate 04t IDs elsewhere.");
+console.log(
+  "Subscriber scripts and docs read from that file; do not duplicate 04t IDs elsewhere."
+);

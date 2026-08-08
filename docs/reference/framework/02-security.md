@@ -87,10 +87,10 @@ granted independently.
 
 | Permission Set | Grants | Assign to |
 | --- | --- | --- |
-| `Record_Health_Check_User` | The `Record_Health_Check_Run` Custom Permission, needed to call the protected Apex surface and run checks | Every user who should see the card |
-| `Record_Health_Check_Admin` | Everything in `Record_Health_Check_User`, plus the `Record_Health_Check_View_Diagnostics` Custom Permission and the metadata validation surface | Rule authors and troubleshooters only |
+| **Record Health Check User** (`Record_Health_Check_User`) | The **Record Health Check Run** (`Record_Health_Check_Run`) Custom Permission, needed to call the protected Apex surface and run checks | Every user who should see the card |
+| **Record Health Check Admin** (`Record_Health_Check_Admin`) | Everything in **Record Health Check User** (`Record_Health_Check_User`), plus the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission and the metadata validation surface | Rule authors and troubleshooters only |
 
-Do not assign `Record_Health_Check_Admin` to users who only need to run checks. Diagnostic detail
+Do not assign **Record Health Check Admin** (`Record_Health_Check_Admin`) to users who only need to run checks. Diagnostic detail
 can include SOQL text, formula text, and specific access-denial causes that a regular user should
 not see.
 
@@ -99,8 +99,8 @@ not see.
 Diagnostic detail requires two things to be true at the same time:
 
 1. The Check Set has **Show Diagnostics** (`ShowDiagnostics__c`) checked.
-2. The running user holds the `Record_Health_Check_View_Diagnostics` Custom Permission (included in
-   `Record_Health_Check_Admin`).
+2. The running user holds the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission (included in
+   **Record Health Check Admin** (`Record_Health_Check_Admin`)).
 
 If either condition is false, the user sees the standard card: a status, a severity, and
 administrator-authored text. Neither condition alone is enough, so a Check Set left in diagnostics

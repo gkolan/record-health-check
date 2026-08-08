@@ -8,7 +8,7 @@ should not query an unrestricted population and attempt to evaluate it in one re
 
 The packaged `RecordHealthCheckScheduled.scheduleDaily` adapter accepts a 1–80 character job name,
 a nonblank qualified Check Set identity, and 1–2,000 distinct non-null record IDs. It requires
-`Record_Health_Check_Run`, rejects invalid input before creating a `CronTrigger`, and rechecks
+**Record Health Check Run** (`Record_Health_Check_Run`), rejects invalid input before creating a `CronTrigger`, and rechecks
 authorization when the schedule fires before delegating to the packaged Batch adapter.
 The public constructor enforces the same permission and population boundary.
 

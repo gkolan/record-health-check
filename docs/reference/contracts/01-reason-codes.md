@@ -21,7 +21,7 @@ load. Codes are additive `UPPER_SNAKE_CASE` strings. Integrations must key on th
 display text.
 
 > [!IMPORTANT]
-> **Public vs diagnostics-only:** `FIELD_NOT_ACCESSIBLE` and `RECORD_NOT_ACCESSIBLE` never appear as the public `reasonCode` on a result. The engine remaps them to `CANNOT_EVALUATE`. When **Show Diagnostics** is on and the user has `Record_Health_Check_View_Diagnostics`, the specific code is available on `adminDetail.reasonCode`.
+> **Public vs diagnostics-only:** `FIELD_NOT_ACCESSIBLE` and `RECORD_NOT_ACCESSIBLE` never appear as the public `reasonCode` on a result. The engine remaps them to `CANNOT_EVALUATE`. When **Show Diagnostics** is on and the user has **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`), the specific code is available on `adminDetail.reasonCode`.
 
 The Framework uses a neutral public code because revealing whether a hidden record or field exists
 can disclose Salesforce access information to someone who is not allowed to see it. Authorized

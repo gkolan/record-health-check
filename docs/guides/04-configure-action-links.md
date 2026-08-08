@@ -49,23 +49,20 @@ If **Action Label** is blank and the URL is valid, the link label defaults to `F
 Record Health Check checks the resolved Action URL, after merge tokens are inserted and
 URL-encoded, against these rules.
 
-Allowed:
+| Pattern | Allowed? |
+| --- | --- |
+| Same-org relative Lightning paths that start with `/lightning/` | Yes |
+| Other same-org relative paths that start with `/` | Yes |
+| External `https://` URLs | Yes |
+| `http://` | No |
+| `javascript:` | No |
+| `data:` | No |
+| `mailto:` | No |
+| Protocol-relative URLs such as `//example.com` | No |
+| URLs containing backslashes | No |
+| URLs that resolve to more than 2,000 characters | No |
 
-- Same-org relative Lightning paths that start with `/lightning/`
-- Other same-org relative paths that start with `/`
-- External `https://` URLs
-
-Rejected by URL safety checks:
-
-- `http://`
-- `javascript:`
-- `data:`
-- `mailto:`
-- Protocol-relative URLs such as `//example.com`
-- URLs containing backslashes
-- URLs that resolve to more than 2,000 characters
-
-Unsafe URLs are dropped. **Fix Message** can still render.
+Unsafe URLs are dropped. **Fix Message** (`FixMessage__c`) can still render.
 
 ## Merge tokens
 

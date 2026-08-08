@@ -50,13 +50,13 @@ a Validation Rule or trigger would block saves org-wide.
 
 | Surface | Role |
 | --- | --- |
-| `Record_Health_Check_Set__mdt` and `Record_Health_Check_Rule__mdt` | Rule definitions, display settings, optional lifecycle publication, and default-on error publication |
+| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) | Rule definitions, display settings, optional lifecycle publication, and default-on error publication |
 | Apex engine and four evaluators | Formula, Query, Compare two queries, and Apex evaluation |
 | Lightning Web Component | Record-page card, one Apex call per Rule, progressive reveal |
 | Public Apex API, asynchronous adapters, and two invocable Flow actions | The same engine for automation and integrations |
 | `Record_Health_Check_Set_Run__e` and `Record_Health_Check_Rule_Result__e` | Optional lifecycle events after deliberate runs |
 | `Record_Health_Check_Log__e` | `ERROR` detail published through `RecordHealthCheckLogger.flush()` |
-| Two Permission Sets and two Custom Permissions | Separate run access (`Record_Health_Check_Run`) from diagnostics access (`Record_Health_Check_View_Diagnostics`) |
+| Two Permission Sets and two Custom Permissions | Separate run access (**Record Health Check Run** (`Record_Health_Check_Run`)) from diagnostics access (**Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`)) |
 
 The Framework returns results and publishes events. It persists nothing: retention, reporting, and
 follow-on automation belong to platform event subscribers.
@@ -267,12 +267,12 @@ model (Permission Sets, persistence, events, plugins, and fix links), see
 | Rule scope | A Rule is always loaded through its Check Set, so no caller can evaluate an arbitrary or inactive Rule by name |
 | Merge tokens | Only known tokens resolve, with caps on token count and completed message size |
 | Fix links | Same-org relative paths or `https://` only, length-capped, and checked again in the component before use as a link |
-| Diagnostics detail | Requires the `Record_Health_Check_View_Diagnostics` Custom Permission and a Check Set that enables Show Diagnostics |
+| Diagnostics detail | Requires the **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission and a Check Set that enables Show Diagnostics |
 | Event trust | The server recalculates Set counts in `completeRun`, and the browser-supplied source value is validated server-side |
 | Error messages | Public boundaries return a safe message and a reason code; raw exception text stays in diagnostics |
 
-Access is split into two Permission Sets. `Record_Health_Check_User` grants the ability to run
-checks. `Record_Health_Check_Admin` adds the diagnostics Custom Permission and the metadata
+Access is split into two Permission Sets. **Record Health Check User** (`Record_Health_Check_User`) grants the ability to run
+checks. **Record Health Check Admin** (`Record_Health_Check_Admin`) adds the diagnostics Custom Permission and the metadata
 validation surface for troubleshooting sessions.
 
 ## 10. Limits and governor safety

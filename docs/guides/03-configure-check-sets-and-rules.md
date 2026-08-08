@@ -57,8 +57,8 @@ For setup, see [Create your first Rule](../installation/03-create-your-first-rul
 | Piece | What it means |
 | ----- | ------------- |
 | Component instance | The Lightning record page component. It points to one Check Set through the **Check Set** picker in App Builder (`checkSetName` in the LWC, stored and sent to Apex as the Check Set's `QualifiedApiName`). |
-| Check Set | A group of Rules for one base object (for example, Account). Stored in `Record_Health_Check_Set__mdt`. |
-| Rule | One individual check inside a Check Set. Stored in `Record_Health_Check_Rule__mdt`. |
+| Check Set | A group of Rules for one base object (for example, Account). Stored in **Record Health Check Set** (`Record_Health_Check_Set__mdt`). |
+| Rule | One individual check inside a Check Set. Stored in **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`). |
 | Evaluation Type | How a Rule checks the record: Formula, Query, Compare Two Queries, or Apex. |
 | Result | The outcome shown after a Rule runs. |
 
@@ -85,25 +85,27 @@ Rule DeveloperName: Example_Customer_Engagement_Current
 
 Representative Account patterns in the [examples library](../examples/README.md):
 
-- Formula: Billing City is required.
-- Formula + applicability: Partner Accounts must have Billing Country; others are skipped.
-- Query + `ONE_RESULT`: Account has at least one Contact.
-- Query + `ANY_ROW_PASSES`: At least one open Opportunity exceeds 10% of Annual Revenue.
-- `COMPARE_TWO_QUERIES`: Contact count equals open Opportunity count.
-- Dependency: Contact Email checked only after "has Contacts" passes.
-- Apex: Recent activity across Tasks and Events.
+| Pattern | Example |
+| --- | --- |
+| Formula | Billing City is required |
+| Formula + applicability | Partner Accounts must have Billing Country; others are skipped |
+| Query + `ONE_RESULT` | Account has at least one Contact |
+| Query + `ANY_ROW_PASSES` | At least one open Opportunity exceeds 10% of Annual Revenue |
+| `COMPARE_TWO_QUERIES` | Contact count equals open Opportunity count |
+| Dependency | Contact Email checked only after "has Contacts" passes |
+| Apex | Recent activity across Tasks and Events |
 
 ## 3. Check Set fields
 
 Field tables live in the metadata reference. This guide does not duplicate them.
 
-Every field on `Record_Health_Check_Set__mdt`, including picklist values for **When Checks Run**, **Found/Expected Display**, display modes, and **Show Diagnostics**, is documented in **[Check Set fields](../metadata/01-fields-check-set.md)**. Use that page when you need Setup labels, API names, defaults, or allowed values.
+Every field on **Record Health Check Set** (`Record_Health_Check_Set__mdt`), including picklist values for **When Checks Run**, **Found/Expected Display**, display modes, and **Show Diagnostics**, is documented in **[Check Set fields](../metadata/01-fields-check-set.md)**. Use that page when you need Setup labels, API names, defaults, or allowed values.
 
 ## 4. Rule fields
 
 Field tables live in the metadata reference. This guide does not duplicate them.
 
-Every field on `Record_Health_Check_Rule__mdt` is documented in **[Rule fields](../metadata/02-fields-check-rule.md)**. Optional **Category** is metadata-only for now; the current card does not group rows by it. Optional **Fix Message**, **Action Label**, and **Action URL** fields render guidance and navigation on failed checks. Examples: [Configure action links](04-configure-action-links.md).
+Every field on **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) is documented in **[Rule fields](../metadata/02-fields-check-rule.md)**. Optional **Category** is metadata-only for now; the current card does not group rows by it. Optional **Fix Message**, **Action Label**, and **Action URL** fields render guidance and navigation on failed checks. Examples: [Configure action links](04-configure-action-links.md).
 
 ## 5. Result meanings
 
@@ -174,7 +176,7 @@ directly; the engine loads its dependency chain.
 ### Showing Found vs Expected (optional)
 
 By default, a Formula check shows only a **Passes when** line containing the unquoted pass/fail
-formula and no **Found** value. That line requires `Record_Health_Check_View_Diagnostics`. Other
+formula and no **Found** value. That line requires **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`). Other
 users see the business message plus any configured Found/Expected chips. For balance and comparison
 checks, declare two optional single-value formulas so the row shows readable values on each side:
 
@@ -470,7 +472,7 @@ Contact Finance to reconcile.
 
 - Sharing, CRUD, and field access apply (`WITH USER_MODE` on dynamic SOQL).
 - Keep queries narrow: clear `WHERE` clauses, merge tokens instead of hard-coded Ids.
-- Editing `Record_Health_Check_Rule__mdt` is a privileged operation: anyone with Rule edit access can run SOQL as the viewing user.
+- Editing **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`) is a privileged operation: anyone with Rule edit access can run SOQL as the viewing user.
 - Keep user-facing messages free of secrets and stack traces.
 - Unsafe SOQL (DML keywords, `FOR UPDATE`, `ALL ROWS`) is rejected.
 
@@ -513,7 +515,7 @@ for (RecordHealthCheckMetadataValidator.ValidationIssue i :
 
 Before activating a Check Set:
 
-- [ ] Permission Set `Record_Health_Check_User` assigned to users who run the card (assign `Record_Health_Check_Admin` when Show Diagnostics is needed).
+- [ ] Permission Set **Record Health Check User** (`Record_Health_Check_User`) assigned to users who run the card (assign **Record Health Check Admin** (`Record_Health_Check_Admin`) when Show Diagnostics is needed).
 - [ ] Component **Check Set** selection points to the intended active Check Set.
 - [ ] `ObjectApiName__c` matches the record page object.
 - [ ] Component is on a **record page** (not App/Home).
@@ -526,7 +528,7 @@ Before activating a Check Set:
 - [ ] `NoRowsResult__c` is set for `ANY_ROW_PASSES` / `ALL_ROWS_PASS` / `COMPARE_AS_LISTS` Rules.
 - [ ] Apex Rules reference deployed `RecordHealthCheckRule` implementations.
 - [ ] Dependencies reference active Rules with lower Evaluation Order in the same Check Set.
-- [ ] **Show Diagnostics** is off for production unless actively troubleshooting (requires `Record_Health_Check_View_Diagnostics` via `Record_Health_Check_Admin`: see [Troubleshoot with Show Diagnostics](07-troubleshoot-with-show-diagnostics.md)).
+- [ ] **Show Diagnostics** is off for production unless actively troubleshooting (requires **Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) via **Record Health Check Admin** (`Record_Health_Check_Admin`): see [Troubleshoot with Show Diagnostics](07-troubleshoot-with-show-diagnostics.md)).
 - [ ] Lifecycle publication switches stay off until subscribers and allocations are reviewed; explicitly review the default-on **Publish Error Log Event** setting ([Lifecycle events](../integration/03-lifecycle-events.md)).
 - [ ] Tested on records that pass, fail, skip, and unable-to-evaluate.
 

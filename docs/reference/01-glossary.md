@@ -11,12 +11,12 @@ its exact meaning. Each entry links to the page that treats it in full.
 
 The parent configuration for one card. A Check Set targets exactly one Salesforce object, decides
 when its Rules run (on page load or on request), and groups an ordered list of Rules. Setup type:
-`Record_Health_Check_Set__mdt`. See [Check Set fields](../metadata/01-fields-check-set.md).
+**Record Health Check Set** (`Record_Health_Check_Set__mdt`). See [Check Set fields](../metadata/01-fields-check-set.md).
 
 ## Rule
 
 One question inside a Check Set. A Rule has an Evaluation Type, a comparison, a severity, and the
-messages a user reads. Setup type: `Record_Health_Check_Rule__mdt`. A Rule always belongs to exactly
+messages a user reads. Setup type: **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`). A Rule always belongs to exactly
 one Check Set; it cannot be evaluated outside that Check Set. See
 [Rule fields](../metadata/02-fields-check-rule.md).
 
@@ -97,8 +97,8 @@ evaluation time. Add a quoted `fallback` when the value might be blank, for exam
 
 ## Show Diagnostics
 
-A Check Set-level setting (`ShowDiagnostics__c`) that, combined with the
-`Record_Health_Check_View_Diagnostics` Custom Permission on the running user, reveals authorized
+A Check Set-level setting, **Show Diagnostics** (`ShowDiagnostics__c`), that, combined with the
+**Record Health Check View Diagnostics** (`Record_Health_Check_View_Diagnostics`) Custom Permission on the running user, reveals authorized
 troubleshooting detail on the card and in the browser console. Neither condition alone is enough.
 See [Security and data access](framework/02-security.md#the-diagnostics-custom-permission) and
 [Troubleshoot with Show Diagnostics](../guides/07-troubleshoot-with-show-diagnostics.md).

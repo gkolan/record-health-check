@@ -1,4 +1,4 @@
-# Rule fields (`Record_Health_Check_Rule__mdt`)
+# Rule fields (**Record Health Check Rule** (`Record_Health_Check_Rule__mdt`))
 
 This page preserves the exact contract for every Rule field: the label shown in Setup, API name,
 type, default, allowed values, runtime behavior, and an example. Use the decision path first, then

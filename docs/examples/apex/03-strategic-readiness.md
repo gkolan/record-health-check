@@ -48,28 +48,33 @@ separate reviews:
 
 ### How the result is decided
 
-- **Pass:** The score meets or exceeds `minScore`.
-- **Fail:** The score is below `minScore`.
-- **Skip:** Account Type is not Strategic, so the scoring class does not run.
+| Outcome | When it happens |
+| --- | --- |
+| **Pass** (`PASS`) | The score meets or exceeds `minScore` |
+| **Fail** (`FAIL`) | The score is below `minScore` |
+| **Skipped** (`SKIPPED`) | Account Type is not Strategic, so the scoring class does not run |
 
 ### Choose how your team measures readiness
 
 The included configuration uses:
 
-- **25 points** for each of the four criteria.
-- **80 points** as the minimum passing score.
-- **60 days** for recent activity.
-- **80 points** and **30 days** when the parameter JSON is missing or invalid.
+| Parameter | Default | Meaning |
+| --- | --- | --- |
+| Points per criterion | **25** | Each of the four criteria adds 25 points when it passes |
+| Minimum passing score | **80** | Score must meet or exceed this value to Pass |
+| Recent activity window | **60 days** | Look-back for completed Tasks and Events |
+| Missing or invalid JSON | **80** points / **30 days** | Fallback `minScore` and `activityDaysBack` when parameters are missing or invalid |
 
 The possible scores are 0, 25, 50, 75, and 100. A minimum of 80 therefore requires all four
 criteria and is effectively the same as a minimum of 100.
 
 Before activation, choose the policy that matches your process:
 
-- If one missing area is acceptable, change `minScore` to **75**.
-- If every area is required and one combined result is preferred, keep `minScore` at **80**.
-- If every area is required and users should see a separate result for each one, create four Rules
-  instead of using a score.
+| Goal | Configuration |
+| --- | --- |
+| One missing area is acceptable | Change `minScore` to **75** |
+| Every area is required, one combined result | Keep `minScore` at **80** |
+| Every area is required, separate visible results | Create four Rules instead of using a score |
 
 ## What the card shows
 
@@ -117,7 +122,7 @@ After deploying the class:
 
 1. Open **Setup → Custom Metadata Types → Record Health Check Rule → Manage Records**.
 2. Create or edit the Rule record.
-3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on `Record_Health_Check_Rule__mdt`.
+3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check Rule** (`Record_Health_Check_Rule__mdt`).
 
 Record Health Check parses the JSON and supplies both named values in `scope.parameters`.
 `minScore` accepts `1`–`100`, and `activityDaysBack` accepts `1`–`3650`; missing or invalid values

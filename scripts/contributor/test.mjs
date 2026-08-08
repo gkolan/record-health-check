@@ -10,19 +10,23 @@ const { values } = parseArgs({
   }
 });
 
-run("sf", [
-  "apex",
-  "run",
-  "test",
-  "--target-org",
-  values.alias,
-  "--test-level",
-  "RunLocalTests",
-  "--code-coverage",
-  "--result-format",
-  "human",
-  "--wait",
-  "30"
-], { cwd: paths.packageRoot });
+run(
+  "sf",
+  [
+    "apex",
+    "run",
+    "test",
+    "--target-org",
+    values.alias,
+    "--test-level",
+    "RunLocalTests",
+    "--code-coverage",
+    "--result-format",
+    "human",
+    "--wait",
+    "30"
+  ],
+  { cwd: paths.packageRoot }
+);
 
 console.log(`Package RunLocalTests completed in ${values.alias}.`);

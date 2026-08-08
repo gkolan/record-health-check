@@ -15,7 +15,10 @@ export function installedPackageRecords(payload) {
   return [];
 }
 
-export function hasInstalledPackageVersion(records, subscriberPackageVersionId) {
+export function hasInstalledPackageVersion(
+  records,
+  subscriberPackageVersionId
+) {
   const target = String(subscriberPackageVersionId ?? "");
   return records.some((entry) => {
     const id =
@@ -23,6 +26,8 @@ export function hasInstalledPackageVersion(records, subscriberPackageVersionId) 
       entry.subscriberPackageVersionId ??
       entry.Id ??
       "";
-    return String(id).startsWith("04t") && (target ? String(id) === target : true);
+    return (
+      String(id).startsWith("04t") && (target ? String(id) === target : true)
+    );
   });
 }

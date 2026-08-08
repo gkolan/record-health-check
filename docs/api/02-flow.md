@@ -19,7 +19,7 @@ Flow Builder exposes **Run Record Health Check Set** and **Run Record Health Che
 
 ## Quick start expectations
 
-1. The running user (or the automated Flow user) needs `Record_Health_Check_Run` access.
+1. The running user (or the automated Flow user) needs **Record Health Check Run** (`Record_Health_Check_Run`) access.
 2. Keep each action collection within the 200-record request limit; split larger bulk work across
    transactions.
 3. Branch on returned `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` statuses. A

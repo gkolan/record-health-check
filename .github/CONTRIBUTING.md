@@ -33,16 +33,16 @@ subscriber install path.
    so you do not file a duplicate.
 2. Go to **Issues → New issue → Bug report**.
 3. Fill in every field. The most useful reports include:
-   - What you expected vs. what happened.
-   - The **Check Set** and **Rule** Developer Names involved (not screenshots of labels only).
+   - The expected behavior, actual behavior, and exact steps to reproduce it.
+   - The **Check Set Qualified API Name** and **Rule Developer Name** involved (not screenshots of labels only).
    - The object and a sketch of the field/query values that triggered it.
-   - Whether **Show Diagnostics** was on, and the `[RHC]` summary from the browser console
-     (see [Troubleshoot with Show Diagnostics](../docs/guides/07-troubleshoot-with-show-diagnostics.md)). **Redact record data and Org IDs.**
-   - Org type (Production / Sandbox / Scratch) and API version.
+   - A redacted screenshot or screen recording when the problem appears on the card.
+   - The redacted `[RHC]` console report after reproducing with **Show Diagnostics** enabled. If diagnostics cannot be enabled or do not apply, explain why (see [Troubleshoot with Show Diagnostics](../docs/guides/07-troubleshoot-with-show-diagnostics.md)).
+   - Package version or installed `04t`, installation type, org type, API version, and browser or device when relevant.
 4. Submit. A maintainer will triage and may ask for a minimal reproduction.
 
-Omit Salesforce access tokens, session IDs, full Org IDs, and real customer
-record data from issues.
+Omit customer data, record IDs, Salesforce access tokens, session IDs, and full Org IDs from issues.
+Redact screenshots and console output before attaching them.
 
 ## Opening a pull request: step by step
 
@@ -64,6 +64,10 @@ record data from issues.
    npm test                    # LWC Jest unit tests
    npm run test:unit:coverage  # enforces LWC coverage thresholds
    ```
+   These `npm` commands work the same on Windows, macOS, and Linux. Pass Dev Hub aliases with
+   `--dev-hub` rather than a `VAR=value` prefix. On Windows, use PowerShell, cmd, or Git Bash; do
+   not call the Windows `sf` CLI from WSL bash. See
+   [Source development](../docs/contributing/source-development.md#windows-and-shell-notes).
 5. **Commit and push** to your fork:
    ```bash
    git commit -m "Fix: short description of the change"
@@ -144,6 +148,7 @@ Run `npm run check:test-data-factory` before opening a PR that touches Apex test
 Docs must match the code at the same commit. Follow these authoring standards:
 
 - **Active voice**: name the actor in instructions ("Assign the permission set" not "The permission set should be assigned").
+- **Setup names**: in prose and Setup instructions, write **Label** (`API_Name`), for example **Record Health Check User** (`rhc__Record_Health_Check_User`). Keep API-name-only forms in code fences and CLI arguments.
 - **No filler**: avoid _simply_, _just_, _easily_, _straightforward_, _it's worth noting_, _as mentioned above_ unless they carry technical meaning (for example "not just presence").
 - **Code blocks**: introduce every block with a sentence ending in a colon; use fenced blocks with a language identifier (`bash`, `apex`, `sql`, `json`).
 - **No em-dashes**: replace each em-dash by hand with a period, comma, or parentheses, never a blanket swap to a colon.
