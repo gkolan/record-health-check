@@ -2,8 +2,8 @@
 
 [![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Apex coverage: 99.54%](https://img.shields.io/badge/Apex_coverage-99.54%25-brightgreen)](config/quality-metrics.json)
-[![LWC line coverage: 98.92%](https://img.shields.io/badge/LWC_lines-98.92%25-brightgreen)](config/quality-metrics.json)
+[![Apex coverage: 99.53%](https://img.shields.io/badge/Apex_coverage-99.53%25-brightgreen)](config/quality-metrics.json)
+[![LWC line coverage: 98.88%](https://img.shields.io/badge/LWC_lines-98.88%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
 [![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO)
@@ -23,8 +23,8 @@ read-only action link.
 > Questions and feedback can be shared in a GitHub [discussion](https://github.com/gkolan/record-health-check/discussions). To report a bug or request a feature, open an [issue](https://github.com/gkolan/record-health-check/issues). You can also [join the community on Slack](https://recordhealthcheck.com/slack-invite). Already a member? [Open Slack](https://recordhealthcheck.com/slack). Prefer email? Reach out at [feedback@recordhealthcheck.com](mailto:feedback@recordhealthcheck.com).
 
 **Quick links:** [Documentation](docs/README.md) ·
-[Install and verify in your org](docs/installation/02-install-and-verify.md) ·
-[Deploy to a demo scratch org](docs/installation/05-create-rhc-scratch-org.md) ·
+[Install and verify in your org](docs/installation/install-and-verify.md) ·
+[Deploy to a demo scratch org](docs/installation/create-rhc-scratch-org.md) ·
 [Examples](docs/examples/README.md)
 
 ## Demo
@@ -75,27 +75,27 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 
 ### Framework capabilities
 
-| Capability                    | What it provides                                                                                                                |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Custom Metadata configuration | Version, review, and deploy Check Sets and Checks with the rest of your Salesforce metadata                                     |
-| Evaluation methods            | Evaluate the current record with a Formula, query related data, compare two queries, or use custom Apex                         |
-| Applicability conditions      | Skip Checks that do not apply and explain why, such as a partner-only check on a customer Account                               |
-| Display and run controls      | Run automatically or on demand and control how passed and skipped Checks appear                                                 |
-| Automation and observability  | Use Apex and Flow entry points, opt-in Platform Events, and permission-gated diagnostics for automation and operational insight |
+| Capability                    | What it provides                                                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Custom Metadata configuration | Version, review, and deploy Check Sets and Checks with the rest of your Salesforce metadata                                            |
+| Evaluation methods            | Evaluate the current record with a Formula, query related data, compare two queries, or use custom Apex                                |
+| Applicability conditions      | Skip Checks that do not apply and explain why, such as a partner-only check on a customer Account                                      |
+| Display and run controls      | Run automatically or on demand and control how passed and skipped Checks appear                                                        |
+| Automation and observability  | Use Apex and Flow entry points, optional Platform Events, and permission-controlled diagnostics for automation and operational insight |
 
 ## Framework Snapshot
 
 | Measure               | Details                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 2GP unlocked package  | `rhc` namespace                                                                                                          |
-| Apex                  | 199 classes, including 105 test classes · 99.54% test coverage for packaged Apex                                         |
-| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 98.92% line coverage                                                   |
-| Packaged examples     | 4 packaged Demo Check Sets containing 21 Checks                                                                          |
+| Apex                  | 174 classes, including 80 test classes · 99.53% test coverage for packaged Apex                                          |
+| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 98.88% line coverage                                                   |
+| Packaged examples     | 4 packaged Example Check Sets containing 21 Checks                                                                       |
 | Permission sets       | Record Health Check User and Record Health Check Admin                                                                   |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                         |
-| Custom Metadata Types | Record Health Check Set (13 fields) and Record Health Check (43 fields)                                                  |
+| Custom Metadata Types | Record Health Check Set (17 fields) and Record Health Check (43 fields)                                                  |
 | Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (16 fields) |
-| Documentation         | 90 maintained pages, including 19 documented Check examples                                                              |
+| Documentation         | 92 maintained pages, including 19 documented Check examples                                                              |
 
 ## Contributing
 

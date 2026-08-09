@@ -14,7 +14,7 @@
         <field>CardTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Demo: Account Relationship &amp; Risk Health Check</value>
+    >Example: Account Relationship &amp; Risk Health Check</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
@@ -58,4 +58,16 @@
         <field>FoundExpectedDisplay__c</field>
         <value xsi:type="xsd:string">ON_DEMAND</value>
     </values>
+    <values><field>RunButtonDisplay__c</field><value
+      xsi:type="xsd:string"
+    >LABEL_AND_ICON</value></values>
+    <values><field>RunButtonLabel__c</field><value
+      xsi:type="xsd:string"
+    >Run</value></values>
+    <values><field>RerunButtonLabel__c</field><value
+      xsi:type="xsd:string"
+    >Rerun</value></values>
+    <values><field>RunButtonIcon__c</field><value
+      xsi:type="xsd:string"
+    >utility:play</value></values>
 </CustomMetadata>

@@ -105,15 +105,18 @@ if (apexOrg) {
     executable += record.NumLinesCovered + record.NumLinesUncovered;
   }
   const current = executable === 0 ? 0 : (covered * 100) / executable;
-  if (fixed(current) !== apexPercent) {
+  // The recorded value is the conservative cross-shape floor. A namespaced org can
+  // legitimately cover a few namespace-only branches that a subscriber-style org
+  // cannot, so equal-or-better evidence must pass while any regression still fails.
+  if (Number(fixed(current)) < Number(apexPercent)) {
     fail(
-      `Apex coverage changed in ${apexOrg}: recorded ${apexPercent}%, current ${fixed(current)}% (${covered}/${executable}). Update config/quality-metrics.json and README.md.`
+      `Apex coverage regressed in ${apexOrg}: recorded floor ${apexPercent}%, current ${fixed(current)}% (${covered}/${executable}). Update tests or publish the newly reviewed cross-shape floor.`
     );
   }
 }
 
 if (!process.exitCode) {
   console.log(
-    `Quality metrics match: Apex ${apexPercent}%; LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
+    `Quality metrics meet their published floors: Apex ${apexPercent}%; LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
   );
 }

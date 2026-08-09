@@ -36,10 +36,10 @@ The deterministic Acme data seeded by `setupDemoData.apex` includes:
 
 `setupDemoData.apex` is safe to run again for the named Acme demo records. On rerun, it replaces
 Acme's Contacts, Opportunities, Opportunity Contact Roles, Tasks, Events, and Cases so the scenario
-does not drift or accumulate duplicates.
+does not get out of sync or accumulate duplicates.
 
 For the full walkthrough, including Windows shell notes, see
-[Create the demo scratch org](../../docs/installation/05-create-rhc-scratch-org.md).
+[Create the demo scratch org](../../docs/installation/create-rhc-scratch-org.md).
 
 Contributors changing Framework source use
 [`npm run dev:setup`](../../docs/contributing/source-development.md) instead.

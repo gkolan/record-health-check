@@ -126,6 +126,12 @@ private class RecordHealthCheckSecurityAndOpsTest {
     String manual = RecordHealthCheckConstants.toLwcTriggerMode(
       'RUN_ON_REQUEST'
     );
+    String defaultRunButtonDisplay = RecordHealthCheckConstants.normalizedRunButtonDisplay(
+      null
+    );
+    String explicitRunButtonDisplay = RecordHealthCheckConstants.normalizedRunButtonDisplay(
+      'ICON_ONLY'
+    );
     String oneAtATime = RecordHealthCheckConstants.toLwcRevealMode(
       'ONE_BY_ONE'
     );
@@ -164,6 +170,16 @@ private class RecordHealthCheckSecurityAndOpsTest {
       'Run-on-load must map to Automatic.'
     );
     Assert.areEqual('Manual', manual, 'Run-on-request must map to Manual.');
+    Assert.areEqual(
+      'LABEL_AND_ICON',
+      defaultRunButtonDisplay,
+      'Blank Run Button Display must preserve the shipped chrome.'
+    );
+    Assert.areEqual(
+      'ICON_ONLY',
+      explicitRunButtonDisplay,
+      'An explicit Run Button Display must pass through unchanged.'
+    );
     Assert.areEqual(
       'OneAtATime',
       oneAtATime,

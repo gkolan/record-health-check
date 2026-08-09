@@ -146,13 +146,17 @@ private class RecordHealthCheckConfigValidationTest {
       validSet('Passed_Display', true),
       validSet('Skipped_Display', true),
       validSet('Run_Mode', true),
-      validSet('Reveal_Mode', true)
+      validSet('Reveal_Mode', true),
+      validSet('Run_Button_Display', true),
+      validSet('Manual_Hide', true)
     };
     invalidSets[1].ObjectApiName__c = null;
     invalidSets[2].PassedChecksDisplay__c = 'INVALID';
     invalidSets[3].SkippedChecksDisplay__c = 'INVALID';
     invalidSets[4].CardRunMode__c = 'INVALID';
     invalidSets[5].CardRevealMode__c = 'INVALID';
+    invalidSets[6].RunButtonDisplay__c = 'INVALID';
+    invalidSets[7].RunButtonDisplay__c = 'HIDE';
 
     Test.startTest();
     for (Record_Health_Check_Set__mdt checkSet : invalidSets) {

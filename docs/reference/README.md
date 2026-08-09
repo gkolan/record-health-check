@@ -10,49 +10,60 @@ the [examples library](../examples/README.md).
 
 **Looking up Setup fields?** Use [Metadata reference](../metadata/README.md), not this folder.
 
-**Writing an Apex Check plugin?** Use [Apex Check contract](evaluation/04-apex-check-contract.md).
+**Writing an Apex Check plugin?** Use [Apex Check contract](evaluation/apex-check-contract.md).
 **Maintaining Framework Apex classes?** Use the [Apex class reference](apex/README.md).
 
-## Recommended path - Framework
+## Recommended path
 
 | Step | Reference | What it provides |
 | ---: | --- | --- |
-| 1 | [Architecture](framework/01-architecture.md) | Principles, layers, Check path, entry points, limits |
-| 2 | [Security and data access](framework/02-security.md) | USER_MODE, Permission Sets, diagnostics, plugins |
-| 3 | [Data model](framework/03-data-model.md) | ERD and relationship summary |
-| 4 | [Compatibility](framework/04-compatibility.md) | Editions, Lightning Experience, API version |
-| 5 | [Localization](framework/05-localization.md) | Translation Workbench, display formats |
-| 6 | [Configuration identity](framework/06-configuration-identity.md) | Qualified API Names, `rhc` namespace, Demo vs subscriber |
-| 7 | [Package testing and upgrades](framework/07-package-testing-and-upgrades.md) | Test ownership, RunLocalTests, subscriber upgrade path |
+| 1 | [Glossary](glossary.md) | Exact Framework terms and the primary page for each term |
+| 2 | [Evaluation Type references](#evaluation-types) | Formula, Query, Compare two queries, and Apex behavior |
+| 3 | [Contracts](#contracts) | Reason Codes, merge tokens, display formatting, and field limits |
+| 4 | [Framework references](#framework-references) | Architecture, security, compatibility, identity, and package behavior |
+| 5 | [Apex class guides](#apex-class-guides) | Source ownership and implementation detail for maintainers |
 
-Terms: [Glossary](01-glossary.md).
+## Framework references
+
+| Reference | What it provides |
+| --- | --- |
+| [Architecture](framework/architecture.md) | Principles, layers, Check path, entry points, limits |
+| [Security and data access](framework/security.md) | USER_MODE, Permission Sets, diagnostics, plugins |
+| [Data model](framework/data-model.md) | ERD and relationship summary |
+| [Compatibility](framework/compatibility.md) | Editions, Lightning Experience, API version |
+| [Localization](framework/localization.md) | Translation Workbench, display formats |
+| [Configuration identity](framework/configuration-identity.md) | Qualified API Names, `rhc` namespace, Demo vs subscriber |
+| [Package testing and upgrades](framework/package-testing-and-upgrades.md) | Test ownership, RunLocalTests, subscriber upgrade path |
+
+Terms: [Glossary](glossary.md).
 
 ## Contracts
 
-| Step | Reference | What it provides |
-| ---: | --- | --- |
-| 1 | [Reason Codes](contracts/01-reason-codes.md) | Status meanings and first investigation steps |
-| 2 | [Merge tokens](contracts/02-merge-tokens.md) | Syntax, availability, fallback, limits |
-| 3 | [Display value format](contracts/03-display-value-format.md) | Found / Expected formatting |
-| 4 | [Field limits](contracts/04-field-limits.md) | Storage and resolved-text limits |
+| Reference | What it provides |
+| --- | --- |
+| [Reason Codes](contracts/reason-codes.md) | Status meanings and first investigation steps |
+| [Merge tokens](contracts/merge-tokens.md) | Syntax, availability, fallback, limits |
+| [Display value format](contracts/display-value-format.md) | Found / Expected formatting |
+| [Field limits](contracts/field-limits.md) | Storage and resolved-text limits |
 
 ## Evaluation Types
 
-| Step | Evaluation Type | Complete reference |
-| ---: | --- | --- |
-| 1 | Verify with a formula | [Formula](evaluation/01-formula.md) |
-| 2 | Verify with a query | [Query](evaluation/02-query.md) |
-| 3 | Compare two queries | [Compare two queries](evaluation/03-compare-two-queries.md) |
-| 4 | Verify with Apex | [Apex Check contract](evaluation/04-apex-check-contract.md) |
+| Evaluation Type | Complete reference |
+| --- | --- |
+| Verify with a formula | [Formula](evaluation/formula.md) |
+| Verify with a query | [Query](evaluation/query.md) |
+| Compare two queries | [Compare two queries](evaluation/compare-two-queries.md) |
+| Verify with Apex | [Apex Check contract](evaluation/apex-check-contract.md) |
 
 ## Apex class guides
 
-Layer index (L5→L1): [Apex classes](apex/README.md).
+The [Apex class reference](apex/README.md) explains its maintainer-only layer numbering before the
+class index. Plugin authors can stay on the public [Apex Check contract](evaluation/apex-check-contract.md).
 
 ## Related
 
 - [Documentation home](../README.md)
-- [Configure Check Sets and Checks](../guides/03-configure-check-sets-and-checks.md)
+- [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md)
 - [Examples library](../examples/README.md)
 - [Integration overview](../integration/README.md)
 - [Metadata field references](../metadata/README.md)

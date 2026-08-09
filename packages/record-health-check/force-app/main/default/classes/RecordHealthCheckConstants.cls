@@ -64,6 +64,17 @@ public with sharing class RecordHealthCheckConstants {
       return new Set<String>(VALID_TRIGGER_MODES_INTERNAL);
     }
   }
+  private static final Set<String> VALID_RUN_BUTTON_DISPLAYS_INTERNAL = new Set<String>{
+    'LABEL_AND_ICON',
+    'LABEL_ONLY',
+    'ICON_ONLY',
+    'HIDE'
+  };
+  public static Set<String> validRunButtonDisplays {
+    get {
+      return new Set<String>(VALID_RUN_BUTTON_DISPLAYS_INTERNAL);
+    }
+  }
   private static final Set<String> VALID_REVEAL_MODES_INTERNAL = new Set<String>{
     'ALL_AT_ONCE',
     'ONE_BY_ONE'
@@ -229,6 +240,12 @@ public with sharing class RecordHealthCheckConstants {
     throw new IllegalArgumentException(
       'Unknown When Checks Run value: ' + cardRunMode
     );
+  }
+
+  public static String normalizedRunButtonDisplay(String runButtonDisplay) {
+    return String.isBlank(runButtonDisplay)
+      ? 'LABEL_AND_ICON'
+      : runButtonDisplay;
   }
 
   public static String toLwcRevealMode(String cardRevealMode) {

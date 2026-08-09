@@ -6,6 +6,7 @@
 public with sharing class RecordHealthCheckMetadataSetValidator {
   private static final Set<String> VALID_DISPLAY_MODES = RecordHealthCheckConstants.validDisplayModes;
   private static final Set<String> VALID_TRIGGER_MODES = RecordHealthCheckConstants.validTriggerModes;
+  private static final Set<String> VALID_RUN_BUTTON_DISPLAYS = RecordHealthCheckConstants.validRunButtonDisplays;
   private static final Set<String> VALID_REVEAL_MODES = RecordHealthCheckConstants.validRevealModes;
   private static final Set<String> VALID_COMPARISON_DISPLAYS = RecordHealthCheckConstants.validComparisonDisplays;
 
@@ -96,6 +97,50 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
             cs.CardRunMode__c +
             '" is not recognized. Valid values: RUN_ON_LOAD, RUN_ON_REQUEST.',
           'INVALID_CONFIG'
+        )
+      );
+    }
+
+    String runButtonDisplay = RecordHealthCheckConstants.normalizedRunButtonDisplay(
+      cs.RunButtonDisplay__c
+    );
+    if (!VALID_RUN_BUTTON_DISPLAYS.contains(runButtonDisplay)) {
+      issues.add(
+        new RecordHealthCheckMetadataValidator.ValidationIssue(
+          'ERROR',
+          cs.DeveloperName,
+          'RunButtonDisplay__c',
+          'Run Button Display "' +
+            cs.RunButtonDisplay__c +
+            '" is not recognized.',
+          'INVALID_CONFIG'
+        )
+      );
+    } else if (
+      cs.CardRunMode__c == 'RUN_ON_REQUEST' &&
+      runButtonDisplay == 'HIDE'
+    ) {
+      issues.add(
+        new RecordHealthCheckMetadataValidator.ValidationIssue(
+          'ERROR',
+          cs.DeveloperName,
+          'RunButtonDisplay__c',
+          'Run Button Display cannot be Hide when checks run only after a user clicks Run.',
+          'INVALID_CONFIG'
+        )
+      );
+    } else if (
+      cs.CardRunMode__c == 'RUN_ON_LOAD' &&
+      runButtonDisplay == 'HIDE' &&
+      cs.PublishUserRunEvent__c == true
+    ) {
+      issues.add(
+        new RecordHealthCheckMetadataValidator.ValidationIssue(
+          'WARNING',
+          cs.DeveloperName,
+          'PublishUserRunEvent__c',
+          'Publish User Run Event is enabled, but a hidden automatic card has no in-card Run or Rerun action. Page refreshes do not publish; use a visible action or a deliberate Apex or Flow invocation.',
+          'USER_RUN_PUBLICATION_UNREACHABLE'
         )
       );
     }

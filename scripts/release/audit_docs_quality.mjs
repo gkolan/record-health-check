@@ -105,7 +105,10 @@ function classify(relative) {
   if (relative === "docs/guides/README.md") return "Guides home";
   if (relative === "docs/reference/README.md")
     return "Technical reference home";
-  if (/docs\/examples\/[^/]+\/\d[^/]+\.md$/.test(relative))
+  if (
+    /docs\/examples\/[^/]+\/[^/]+\.md$/.test(relative) &&
+    !relative.endsWith("/README.md")
+  )
     return "Worked example";
   if (
     /docs\/reference\/evaluation\/(?:formula|query|compare-two-queries|apex-check-contract)\.md$/.test(
@@ -115,7 +118,7 @@ function classify(relative) {
     return "Evaluation reference";
   if (/docs\/(?:api|platform-events)\//.test(relative))
     return "Integration reference";
-  if (/docs\/installation\/01-how-it-works\.md$/.test(relative))
+  if (/docs\/installation\/how-it-works\.md$/.test(relative))
     return "Concept guide";
   if (/docs\/contributing\//.test(relative)) return "Installation task";
   if (/docs\/installation\//.test(relative)) return "Installation task";

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RunButtonDisplay__c</fullName>
+    <label>Run Button Display</label>
+    <description
+  >Controls whether and how the Run/Rerun control appears in the card header. Hide is supported when checks run on page load; a manual Check Set must keep a visible Run control.</description>
+    <inlineHelpText
+  >Choose label and icon, label only, icon only, or Hide. Hide requires When Checks Run to be When the page opens.</inlineHelpText>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>LABEL_AND_ICON</fullName>
+                <default>true</default>
+                <label>Label and icon</label>
+            </value>
+            <value>
+                <fullName>LABEL_ONLY</fullName>
+                <default>false</default>
+                <label>Label only</label>
+            </value>
+            <value>
+                <fullName>ICON_ONLY</fullName>
+                <default>false</default>
+                <label>Icon only</label>
+            </value>
+            <value>
+                <fullName>HIDE</fullName>
+                <default>false</default>
+                <label>Hide</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <required>false</required>
+</CustomField>

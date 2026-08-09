@@ -37,6 +37,12 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 
 ### Administrator experience
 
+- Added Check Set and Lightning App Builder controls for labeled, label-only, compact icon-only, or
+  hidden Run/Rerun actions. Hidden automatic actions release their header space; manual Check Sets
+  cannot hide their only run action. Empty automatic Check Sets no longer show a decorative Rerun,
+  and metadata validation warns when hidden automatic cards have lifecycle publication enabled but
+  no in-card deliberate publication path.
+
 - Lightning App Builder provides a Check Set picker filtered to the record-page object.
 - The card distinguishes Pass, Fail (Failed / Warning / Info by severity), Skipped, Unable to Check,
   and System Error outcomes. Setup and API use Unable to Evaluate (`UNABLE_TO_EVALUATE`) and `ERROR`
@@ -45,8 +51,8 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
   Checkbox, Date, Date/Time, Text, and Raw display formats.
 - Optional remediation text and safe links guide a user without changing Salesforce data.
 - Teaching examples and deterministic demo data cover Account, Contact, and Opportunity scenarios.
-  The Framework package ships four Demo Check Sets (`Example_…`, card titles prefixed with
-  `Demo:`) plus matching integration fixtures.
+  The Framework package ships four Example Check Sets (`Example_…`, card titles prefixed with
+  `Example:`) plus matching integration fixtures.
 
 ### Engineering gates
 
@@ -57,9 +63,9 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
   gates.
 
 For installation and verification, start with
-[Install and verify](docs/installation/02-install-and-verify.md). For the public contracts, use the
-[Apex API](docs/api/01-apex-api.md), [Flow actions](docs/integration/02-flow-actions.md), and
-[Apex Check plugin reference](docs/reference/evaluation/04-apex-check-contract.md).
+[Install and verify](docs/installation/install-and-verify.md). For the public contracts, use the
+[Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
+[Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
 
 ## [2.0.0] - 2026-08-04
 
@@ -77,7 +83,7 @@ For installation and verification, start with
   with concrete Production and Sandbox install URLs for promoted `04tak000000ZXVlAAO`, and source
   deploy reserved for contribution and scratch-org workflows.
 - Configuration identity guidance lives under
-  [Configuration identity](docs/reference/framework/06-configuration-identity.md).
+  [Configuration identity](docs/reference/framework/configuration-identity.md).
 - Technical references are grouped under `docs/reference/{framework,evaluation,contracts,apex}/`
   instead of a flat `reference-*.md` list. Old GitHub blob URLs to the previous filenames will not
   redirect.

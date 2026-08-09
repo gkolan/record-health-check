@@ -1,4 +1,8 @@
-/** Runs one qualified Check Set scope asynchronously through the public engine. */
+/**
+ * Runs one qualified Check Set scope asynchronously through the public engine.
+ * The AsyncApexJob ID monitors platform execution; health outcomes are transient
+ * unless the request publishes events or approved subscriber code persists them.
+ */
 global with sharing class RecordHealthCheckQueueable implements Queueable, Finalizer {
   private String checkSetQualifiedApiName;
   private List<Id> recordIds;
@@ -67,7 +71,17 @@ global with sharing class RecordHealthCheckQueueable implements Queueable, Final
     }
   }
 
-  /** Enqueues one bounded asynchronous Check Set request. */
+  /**
+   * Enqueues one bounded asynchronous Check Set request with a duplicate signature.
+   *
+   * @param checkSetQualifiedApiName Exact Check Set QualifiedApiName.
+   * @param recordIds Records to evaluate in the Queueable transaction.
+   * @param publication Lifecycle-event policy; null defaults to NONE.
+   * @return AsyncApexJob ID for monitoring the accepted request.
+   * @throws DuplicateMessageException When an equivalent request is already pending.
+   * @throws RecordHealthCheckAccess.AuthorizationException When the caller lacks run permission.
+   * @throws IllegalArgumentException When the Check Set identity or scope is invalid.
+   */
   global static Id enqueue(
     String checkSetQualifiedApiName,
     List<Id> recordIds,

@@ -20,7 +20,7 @@ TARGETS = (
     ROOT / "packages/record-health-check/force-app/main/default/classes",
     ROOT / "docs",
 )
-REVALIDATION_GUIDE = ROOT / "docs" / "installation" / "04-upgrading.md"
+REVALIDATION_GUIDE = ROOT / "docs" / "installation" / "upgrading.md"
 # Current docs occasionally show an intentionally rejected token as an example
 # A line carrying this marker is left as-is so
 # the gate can't be re-broken by a legitimate documentation example.

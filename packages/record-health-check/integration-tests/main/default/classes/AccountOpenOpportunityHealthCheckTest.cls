@@ -213,7 +213,7 @@ private class AccountOpenOpportunityHealthCheckTest {
           'Account',
           new List<Id>{ recordId },
           parameters,
-          'Open_Opportunities_Are_Healthy',
+          'Example_Open_Opportunities_Are_Healthy',
           null,
           null
         )

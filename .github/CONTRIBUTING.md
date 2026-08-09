@@ -1,5 +1,9 @@
 # Contributing
 
+> [!NOTE]
+> On this page, prepare a Record Health Check contribution and run the required checks before
+> opening a pull request.
+
 Thanks for your interest in improving Record Health Check. This guide explains
 how to report a bug, request a feature, and open a pull request. It is written so
 that someone new to the project can follow it step by step.
@@ -9,7 +13,7 @@ contributing, you agree that your contributions are licensed under the
 [Apache License, Version 2.0](../LICENSE).
 
 Subscribers should install the promoted unlocked package (see the root README install link and
-[Install and verify](../docs/installation/02-install-and-verify.md)). Contributors deploy unpackaged
+[Install and verify](../docs/installation/install-and-verify.md)). Contributors deploy unpackaged
 Framework source for development; do not point new users at GitHub source deploy as the primary install
 path.
 
@@ -37,7 +41,7 @@ subscriber install path.
    - The **Check Set Qualified API Name** and **Check Developer Name** involved (not screenshots of labels only).
    - The object and a sketch of the field/query values that triggered it.
    - A redacted screenshot or screen recording when the problem appears on the card.
-   - The redacted `[RHC]` console report after reproducing with **Show Diagnostics** enabled. If diagnostics cannot be enabled or do not apply, explain why (see [Troubleshoot with Show Diagnostics](../docs/guides/07-troubleshoot-with-show-diagnostics.md)).
+   - The redacted `[RHC]` console report after reproducing with **Show Diagnostics** enabled. If diagnostics cannot be enabled or do not apply, explain why (see [Troubleshoot with Show Diagnostics](../docs/guides/troubleshoot-with-show-diagnostics.md)).
    - Package version or installed `04t`, installation type, org type, API version, and browser or device when relevant.
 4. Submit. A maintainer will triage and may ask for a minimal reproduction.
 
@@ -75,8 +79,9 @@ Redact screenshots and console output before attaching them.
    ```
 6. **Open the PR** against `main`. The PR template will prompt you for a summary,
    testing notes, and a checklist. Link the issue it closes (e.g. `Closes #12`).
-7. CI ([`workflows/ci.yml`](workflows/ci.yml)) runs prettier, lint,
-   Jest with coverage, and XML validation on every PR. Keep it green.
+7. CI ([`workflows/ci.yml`](workflows/ci.yml)) runs formatting, JavaScript and SLDS linting,
+   architecture and package-boundary checks, documentation and metadata checks, Jest with
+   coverage, quality-metric verification, and XML validation on every PR. Keep it green.
 
 A maintainer ([CODEOWNERS](CODEOWNERS) is auto-requested) will review. Address
 feedback by pushing more commits to the same branch.
@@ -98,29 +103,30 @@ feedback by pushing more commits to the same branch.
   validation, reason-code documentation, and both positive and misconfiguration
   tests. Prefer extending the shared modules over adding another parser or comparison operator copy.
 
-See [`docs/reference/framework/01-architecture.md`](../docs/reference/framework/01-architecture.md)
+See [`docs/reference/framework/architecture.md`](../docs/reference/framework/architecture.md)
 for the published Framework architecture and to find where things live.
 
 ## Configuration identity and package boundary
 
-When changing Demo `Example_` Check Sets/Checks or any public identity boundary:
+When changing packaged `Example_` Check Sets/Checks or any public identity boundary:
 
 1. Change the record in `packages/record-health-check/force-app/main/default/customMetadata`.
 2. Copy the same record into `packages/record-health-check/integration-tests/main/default/customMetadata` (identical XML).
-3. Keep Check Set `CardTitle__c` values prefixed with `Demo:`.
+3. Keep Check Set `CardTitle__c` values prefixed with `Example:`.
 4. Update `packages/record-health-check/manifest/package.xml` CustomMetadata members when members are listed explicitly.
-5. Deploy `force-app` alone to a clean org before broader fixture deployment (from `packages/record-health-check/`).
+5. Deploy `force-app` alone to a clean org before deploying the broader integration-test metadata
+   (from `packages/record-health-check/`).
 6. Run `npm run check:configuration-identity` and `npm run check:package-boundary`.
 
 Every public input must accept the exact Custom Metadata `QualifiedApiName` Salesforce returns. Do
 not guess namespaces or retry alternate name forms. See
-[Configuration identity](../docs/reference/framework/06-configuration-identity.md).
+[Configuration identity](../docs/reference/framework/configuration-identity.md).
 
 ## Apex test-only access policy
 
 `@TestVisible` and `Test.isRunningTest()` are temporary workarounds. Do not add test-only access without
 updating the architecture baseline. The full policy lives in
-[Contributor policy: Apex test-only access](../docs/reference/apex/09-test-only-access.md). Run
+[Contributor policy: Apex test-only access](../docs/reference/apex/test-only-access.md). Run
 `npm run check:apex-architecture` before opening a PR that touches Apex.
 
 ## Integration-test sample data
@@ -132,11 +138,11 @@ gate deploys it with an explicit `--source-dir packages/record-health-check/inte
 
 ## Apex test ownership
 
-| Layer                | Location                                                   | Who maintains it          |
-| -------------------- | ---------------------------------------------------------- | ------------------------- |
-| Package unit tests   | `packages/record-health-check/force-app` `@IsTest` classes | This repository           |
-| Integration fixtures | `packages/record-health-check/integration-tests/`          | This repository (CI only) |
-| Customer tests       | Subscriber repository                                      | The subscriber            |
+| Layer              | Location                                                   | Who maintains it          |
+| ------------------ | ---------------------------------------------------------- | ------------------------- |
+| Package unit tests | `packages/record-health-check/force-app` `@IsTest` classes | This repository           |
+| Integration tests  | `packages/record-health-check/integration-tests/`          | This repository (CI only) |
+| Customer tests     | Subscriber repository                                      | The subscriber            |
 
 Package tests must use `RecordHealthCheckTestDataFactory`, schema tokens, and queried
 `QualifiedApiName` values. Do not add hardcoded `rhc__` string literals to package Apex under
@@ -153,6 +159,6 @@ Docs must match the code at the same commit. Follow these authoring standards:
 - **Code blocks**: introduce every block with a sentence ending in a colon; use fenced blocks with a language identifier (`bash`, `apex`, `sql`, `json`).
 - **No em-dashes**: replace each em-dash by hand with a period, comma, or parentheses, never a blanket swap to a colon.
 
-The public [architecture document](../docs/reference/framework/01-architecture.md) is the
+The public [architecture document](../docs/reference/framework/architecture.md) is the
 contributor-facing source of truth for Framework architecture and where code and docs live.
 Maintainer release steps are in [`RELEASING.md`](RELEASING.md).

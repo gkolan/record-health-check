@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<!-- Record Health Check framework metadata, including Demo: Example_ starter Check Sets and Checks. -->
+<!-- Record Health Check framework metadata, including Example_ starter Check Sets and Checks. -->
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members
@@ -72,6 +72,10 @@
         <members>Record_Health_Check_Set__mdt.PassedChecksDisplay__c</members>
         <members>Record_Health_Check_Set__mdt.PublishErrorLogEvent__c</members>
         <members>Record_Health_Check_Set__mdt.PublishUserRunEvent__c</members>
+        <members>Record_Health_Check_Set__mdt.RerunButtonLabel__c</members>
+        <members>Record_Health_Check_Set__mdt.RunButtonDisplay__c</members>
+        <members>Record_Health_Check_Set__mdt.RunButtonIcon__c</members>
+        <members>Record_Health_Check_Set__mdt.RunButtonLabel__c</members>
         <members>Record_Health_Check_Set__mdt.SkippedChecksDisplay__c</members>
         <members>Record_Health_Check_Set__mdt.ShowDiagnostics__c</members>
         <members>Record_Health_Check_Set__mdt.FoundExpectedDisplay__c</members>
@@ -246,6 +250,7 @@
         <members>RecordHealthCheckMetadataIssueMapperTest</members>
         <members>RecordHealthCheckMetadataSetValidator</members>
         <members>RHCMetadataSetValidatorTest</members>
+        <members>RHCMetadataValidatorWarningTest</members>
         <members>RecordHealthCheckQueryEvaluatorSupport</members>
         <members>RecordHealthCheckQueueable</members>
         <members>RecordHealthCheckValueSource</members>

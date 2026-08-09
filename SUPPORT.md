@@ -1,5 +1,9 @@
 # Support
 
+> [!NOTE]
+> On this page, choose the right support channel and collect the details needed to resolve a Record
+> Health Check question, defect, or security report.
+
 This page explains where to get help with Record Health Check, based on what you need.
 
 ## Ways to get help
@@ -19,21 +23,21 @@ Complete reports are easier to reproduce and resolve. Before reporting a bug:
 
 - Record the expected behavior, actual behavior, and exact steps to reproduce it.
 - Include the **Check Set Qualified API Name** and **Check Developer Name**, not only the labels shown on the card.
-- Temporarily enable **Show Diagnostics**, reproduce the issue, and capture the `[RHC]` report from the browser console. If diagnostics cannot be enabled or do not apply, explain why. See [Troubleshoot with Show Diagnostics](docs/guides/07-troubleshoot-with-show-diagnostics.md).
+- Temporarily enable **Show Diagnostics**, reproduce the issue, and capture the `[RHC]` report from the browser console. If diagnostics cannot be enabled or do not apply, explain why. See [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md).
 - Attach a screenshot or screen recording when the problem appears on the card.
 - Include the package version or installed `04t`, installation type, org type, Salesforce API version, and browser or device when relevant.
 - Redact customer data, record IDs, Org IDs, session IDs, access tokens, screenshots, and console output before sharing anything.
 
 ## Where to start in the docs
 
-| Situation                             | Start here                                                                                               |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| New to Record Health Check            | [How Record Health Check works](docs/installation/01-how-it-works.md)                                    |
-| Installing for the first time         | [Install and verify](docs/installation/02-install-and-verify.md)                                         |
-| A Check is not behaving as expected   | [Troubleshoot with Show Diagnostics](docs/guides/07-troubleshoot-with-show-diagnostics.md)               |
-| A result code needs explaining        | [Reason Codes](docs/reference/contracts/01-reason-codes.md)                                              |
-| Comparing to Validation Rules or Flow | [Compare Record Health Check to native Salesforce tools](docs/guides/01-compare-to-native-salesforce.md) |
-| Quick answers to common questions     | [FAQ](docs/guides/02-faq.md)                                                                             |
+| Situation                             | Start here                                                                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| New to Record Health Check            | [How Record Health Check works](docs/installation/how-it-works.md)                                    |
+| Installing for the first time         | [Install and verify](docs/installation/install-and-verify.md)                                         |
+| A Check is not behaving as expected   | [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md)               |
+| A result code needs explaining        | [Reason Codes](docs/reference/contracts/reason-codes.md)                                              |
+| Comparing to Validation Rules or Flow | [Compare Record Health Check to native Salesforce tools](docs/guides/compare-to-native-salesforce.md) |
+| Quick answers to common questions     | [FAQ](docs/guides/faq.md)                                                                             |
 
 ## Community Slack
 

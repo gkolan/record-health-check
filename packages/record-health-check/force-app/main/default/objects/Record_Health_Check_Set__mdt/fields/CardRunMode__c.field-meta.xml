@@ -3,7 +3,7 @@
     <fullName>CardRunMode__c</fullName>
     <label>When Checks Run</label>
     <description
-  >Decides whether checks run on their own when the page opens, or only after the user clicks Run. "When the page opens" runs them automatically on load. "When the user clicks Run" shows a Run button and runs nothing until it is clicked - choose this for checks that are slow or should run on demand. Defaults to "When the user clicks Run".</description>
+  >Decides whether checks run on their own when the page opens, or only after the user clicks Run. "When the page opens" runs automatically and still offers Rerun after results appear unless Run Button Display is Hide. "When the user clicks Run" shows a Run button and runs nothing until it is clicked. Defaults to "When the user clicks Run".</description>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
@@ -16,6 +16,6 @@
         >true</default></value></valueSetDefinition>
     </valueSet>
         <inlineHelpText
-  >"When the page opens" = checks run automatically on load. "When the user clicks Run" (default) = a Run button appears; nothing runs until clicked. Use the latter for heavy checks.</inlineHelpText>
+  >"When the page opens" = run on load, then offer Rerun unless hidden. "When the user clicks Run" (default) = wait for Run. Hide is valid only with page-open runs.</inlineHelpText>
     <required>false</required>
 </CustomField>

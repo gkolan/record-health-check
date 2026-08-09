@@ -1,5 +1,9 @@
 # Release Record Health Check
 
+> [!NOTE]
+> On this page, build, verify, promote, and publish one immutable Record Health Check package
+> candidate using the repository release gates.
+
 Record Health Check ships primarily as the namespaced unlocked package `Record Health Check`.
 Source deployment is a contributor workflow and is not the supported subscriber installation path.
 
@@ -34,8 +38,9 @@ Before creating a release candidate:
 4. After both namespaced and no-namespace source tests complete, run
    `npm run check:apex-coverage -- <org-alias>` for each org and retain the lower Framework result.
    Run `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
-   `npm run check:quality-metrics -- --apex-org <org-alias>` against both orgs. Published coverage
-   must describe the candidate being released, not a prior package.
+   `npm run check:quality-metrics -- --apex-org <org-alias>` against both orgs. The gate treats the
+   published Apex value as the conservative cross-shape floor: both orgs must meet or exceed it.
+   Published coverage must describe the candidate being released, not a prior package.
 
 After creating the single candidate and before promotion:
 
@@ -46,7 +51,7 @@ After creating the single candidate and before promotion:
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
 
 Before any Salesforce operation, run `npm run check:toolchain`. Before creating scratch orgs or a
-package candidate, the repository scripts check the authoritative Dev Hub limits and stop rather
+package candidate, the repository scripts check the Dev Hub limits and stop rather
 than consume the last required capacity. Package verification deletes only the orgs it created; use
 `--keep-org` solely for an intentional, time-bounded investigation and delete that org afterward.
 See [Salesforce operations standard](SALESFORCE_OPERATIONS.md) for the mandatory lifecycle checks and
@@ -104,7 +109,7 @@ This runs:
 - Retrieval of the immutable server-generated package artifact
 - Refusal to continue unless all 25 Custom Metadata records exist in both its manifest and files
 - Clean no-namespace install of the candidate
-- Subscriber harness deploy and `RHCSubscriberSmokeTest`
+- Subscriber verification metadata deployment and `RHCSubscriberSmokeTest`
 - Previous-to-candidate upgrade rehearsal when `previous` is a promoted `04t`
 
 ## Promote and publish
@@ -125,10 +130,10 @@ and configure the public install redirect (`recordhealthcheck.com/install`) to t
 
 Current promoted subscriber package version ID: see `config/package-releases.json`.
 
-## Demo Example Check Sets and Checks
+## Packaged Example Check Sets and Checks
 
 The 25 `Example_` Check Sets and Checks ship **inside** the package, from
-`packages/record-health-check/force-app/main/default/customMetadata`. A subscriber gets four Demo
+`packages/record-health-check/force-app/main/default/customMetadata`. A subscriber gets four Example
 Check Sets and 21 Checks on install, with no extra step. `check:package-boundary` enforces that they
 stay there and stay byte-identical to their `integration-tests` copies.
 

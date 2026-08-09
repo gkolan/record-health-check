@@ -1,0 +1,115 @@
+# Reference: Data model
+
+> [!NOTE]
+> On this page, see how Check Set, Check, and the three Platform Events relate to each other, and
+> understand that a Check result is a runtime value, not a row in a health-history database.
+
+Use this page alongside the [Metadata field references](../../metadata/README.md) when you need the
+shape of the data model rather than the meaning of one field.
+
+## Entity relationship diagram
+
+```mermaid
+erDiagram
+    RECORD_HEALTH_CHECK_SET ||--o{ RECORD_HEALTH_CHECK_CHECK : "groups"
+    RECORD_HEALTH_CHECK_SET {
+        string DeveloperName
+        string QualifiedApiName
+        string ObjectApiName
+        boolean IsActive
+        string CardRunMode
+        string RunButtonDisplay
+        string RunButtonLabel
+        string RerunButtonLabel
+        string RunButtonIcon
+        boolean ShowDiagnostics
+        boolean PublishUserRunEvent
+        boolean PublishErrorLogEvent
+    }
+    RECORD_HEALTH_CHECK_CHECK {
+        string DeveloperName
+        string QualifiedApiName
+        string EvaluationType
+        string ApplicabilityMode
+        string PrerequisiteCheck
+        string ComparisonOperator
+        string FailureSeverity
+        boolean PublishUserResultEvent
+    }
+    RECORD_HEALTH_CHECK_CHECK }o--o| RECORD_HEALTH_CHECK_CHECK : "PrerequisiteCheck (optional, same Check Set)"
+
+    RECORD_HEALTH_CHECK_SET ||--o{ SET_RUN_EVENT : "publishes on deliberate run"
+    RECORD_HEALTH_CHECK_CHECK ||--o{ CHECK_RESULT_EVENT : "publishes on deliberate run"
+    RECORD_HEALTH_CHECK_SET ||--o{ ERROR_LOG_EVENT : "publishes on ERROR"
+
+    SET_RUN_EVENT {
+        string RunId
+        string CheckSetQualifiedApiName
+        string RecordId
+        string Status
+        integer PassedCount
+        integer FailedCount
+        string ContractVersion
+    }
+    CHECK_RESULT_EVENT {
+        string RunId
+        string CheckQualifiedApiName
+        string RecordId
+        string Status
+        string ReasonCode
+        string FailureSeverity
+        string ContractVersion
+    }
+    ERROR_LOG_EVENT {
+        string RunId
+        string CheckSetQualifiedApiName
+        string RecordId
+        string ExceptionType
+        string Message
+        string StackTrace
+    }
+```
+
+## Reading the diagram
+
+| Relationship | Cardinality | Meaning |
+| --- | --- | --- |
+| Check Set to Check | One to many | A Check Set groups an ordered list of Checks; a Check belongs to exactly one Check Set |
+| Check to Check (prerequisite) | Optional, zero or one | A Check may name another Check in the **same Check Set** as its prerequisite; the server enforces that scope on every call |
+| Check Set to Set Run event | One completed run to zero or one event | Published only for a deliberate run, only when **Publish User Run Event** is checked |
+| Check to Check Result event | One finalized result to zero or one event | Published only for a deliberate run, only when that Check's **Publish User Result Event** is checked |
+| Check Set to Log event | One `ERROR` to zero or one event | Published whenever the Framework records an `ERROR` for that Check Set, unless **Publish Error Log Event** is unchecked |
+
+The Custom Metadata relationship (Check Set to Check) is a deploy-time, structural link: it exists
+whether or not any Check ever runs. The event relationships are runtime, best-effort, and optional:
+they exist only for the specific runs an administrator has opted into publishing.
+
+## Results are ephemeral, not a stored history
+
+Nothing in this data model stores a Check result. A run produces:
+
+1. A typed response returned directly to the caller (Apex, Flow, or the Lightning component), which
+   exists only for the duration of that call.
+2. Optionally, one or more platform events, which Salesforce retains for a bounded window (72 hours
+   for high-volume events) and which a subscriber must capture if it wants to keep the data longer.
+
+There is no `Record_Health_Check_Result__c` object, no history related list, and no built-in trend
+report. If your business process needs a queryable history of readiness over time, subscribe to
+`Record_Health_Check_Set_Run__e` and/or `Record_Health_Check_Result__e` and write your own
+storage object. See [Architecture: Out of scope](architecture.md#16-out-of-scope) and
+[Platform Event subscriptions](../../platform-events/README.md).
+
+## Why prerequisite is a name, not a formal foreign key
+
+`PrerequisiteCheck__c` stores a Developer Name rather than a Custom Metadata relationship field,
+because the engine needs to detect a cycle (`CIRCULAR_DEPENDENCY`) and a Check ordered after the Check
+that requires it (`DEPENDENCY_NOT_IN_RUN`) at runtime, inside a single already-loaded Check Set. See
+[Reason Codes: Applicability and prerequisites](../contracts/reason-codes.md#applicability-and-prerequisites).
+
+## Related
+
+- [Check Set fields](../../metadata/fields-check-set.md)
+- [Check fields](../../metadata/fields-check.md)
+- [Metadata reference](../../metadata/README.md)
+- [Lifecycle events](../../integration/lifecycle-events.md)
+- [Architecture](architecture.md)

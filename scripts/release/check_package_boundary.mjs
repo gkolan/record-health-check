@@ -43,14 +43,22 @@ const expectedCoreExamples = [
 
 const expectedCardTitles = {
   "Record_Health_Check_Set__mdt.Example_Account_Profile_Readiness.md-meta.xml":
-    "Demo: Account Profile Readiness",
+    "Example: Account Profile Readiness",
   "Record_Health_Check_Set__mdt.Example_Account_Relationship_Risk.md-meta.xml":
-    "Demo: Account Relationship & Risk Health Check",
+    "Example: Account Relationship & Risk Health Check",
   "Record_Health_Check_Set__mdt.Example_Contact_Relationship_Readiness.md-meta.xml":
-    "Demo: Contact Relationship Readiness",
+    "Example: Contact Relationship Readiness",
   "Record_Health_Check_Set__mdt.Example_Opportunity_Deal_Readiness.md-meta.xml":
-    "Demo: Opportunity Deal Readiness"
+    "Example: Opportunity Deal Readiness"
 };
+
+const overLimitExampleSet =
+  "Record_Health_Check_Set__mdt.Example_Account_Over_25_Checks.md-meta.xml";
+const overLimitExampleChecks = Array.from(
+  { length: 30 },
+  (_, index) =>
+    `Record_Health_Check__mdt.Example_Over_25_Limit_${String(index + 1).padStart(2, "0")}.md-meta.xml`
+);
 
 const files = (directory) =>
   fs.existsSync(directory)
@@ -73,26 +81,93 @@ const cardTitle = (directory, fileName) => {
   return match ? decodeXml(match[1].trim()) : null;
 };
 
+const checkSetIdentity = (directory, fileName) => {
+  const text = fs.readFileSync(path.join(directory, fileName), "utf8");
+  const match = text.match(
+    /<field>Record_Health_Check_Set__c<\/field>\s*<value[^>]*>([\s\S]*?)<\/value>/
+  );
+  return match ? decodeXml(match[1].trim()) : null;
+};
+
 const coreRecords = files(coreDirectory).sort();
 const fixtureExamples = files(fixtureDirectory)
   .filter((name) => examplePattern.test(name))
   .sort();
+const fixtureCoreExamples = fixtureExamples.filter((name) =>
+  expectedCoreExamples.includes(name)
+);
 const failures = [];
+
+for (const directory of [coreDirectory, fixtureDirectory]) {
+  for (const fileName of files(directory)) {
+    const identity = fileName.replace(
+      /^(?:Record_Health_Check_Set__mdt|Record_Health_Check__mdt)\.|\.md-meta\.xml$/g,
+      ""
+    );
+    if (identity.length > 40) {
+      failures.push(
+        `${path.relative(root, path.join(directory, fileName))} Custom Metadata ` +
+          `Developer Name is ${identity.length} characters; Salesforce allows 40`
+      );
+    }
+  }
+}
 
 if (JSON.stringify(coreRecords) !== JSON.stringify(expectedCoreExamples)) {
   failures.push(
-    `force-app Custom Metadata must be exactly the 25 Demo Example_ records.\n` +
+    `force-app Custom Metadata must be exactly the 25 shipped Example_ records.\n` +
       `  expected: ${expectedCoreExamples.join(", ")}\n` +
       `  found:    ${coreRecords.join(", ") || "(none)"}`
   );
 }
 
-if (JSON.stringify(fixtureExamples) !== JSON.stringify(expectedCoreExamples)) {
+if (
+  JSON.stringify(fixtureCoreExamples) !== JSON.stringify(expectedCoreExamples)
+) {
   failures.push(
-    `integration-tests must retain matching copies of the 25 Demo Example_ records.\n` +
+    `integration-tests must retain matching copies of the 25 shipped Example_ records.\n` +
       `  expected: ${expectedCoreExamples.join(", ")}\n` +
-      `  found:    ${fixtureExamples.join(", ") || "(none)"}`
+      `  found:    ${fixtureCoreExamples.join(", ") || "(none)"}`
   );
+}
+
+const missingOverLimitRecords = [
+  overLimitExampleSet,
+  ...overLimitExampleChecks
+].filter((fileName) => !fs.existsSync(path.join(fixtureDirectory, fileName)));
+if (missingOverLimitRecords.length > 0) {
+  failures.push(
+    `integration-tests must include the complete 30-Check LWC ceiling example. Missing: ` +
+      missingOverLimitRecords.join(", ")
+  );
+}
+
+for (const fileName of fixtureExamples.filter((name) =>
+  name.startsWith("Record_Health_Check_Set__mdt.")
+)) {
+  const actual = cardTitle(fixtureDirectory, fileName);
+  if (!actual?.startsWith("Example:")) {
+    failures.push(
+      `${path.relative(root, path.join(fixtureDirectory, fileName))} CardTitle__c ` +
+        `must start with "Example:" (found "${actual}")`
+    );
+  }
+}
+
+for (const fileName of files(fixtureDirectory).filter((name) =>
+  name.startsWith("Record_Health_Check__mdt.")
+)) {
+  const parent = checkSetIdentity(fixtureDirectory, fileName);
+  const checkIdentity = fileName.replace(
+    /^Record_Health_Check__mdt\.|\.md-meta\.xml$/g,
+    ""
+  );
+  if (parent?.startsWith("Example_") && !checkIdentity.startsWith("Example_")) {
+    failures.push(
+      `${path.relative(root, path.join(fixtureDirectory, fileName))} belongs to ` +
+        `${parent} and must use an Example_ API name`
+    );
+  }
 }
 
 for (const [fileName, expectedTitle] of Object.entries(expectedCardTitles)) {
@@ -131,6 +206,6 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Verified package boundary: ${coreRecords.length} Demo Example_ records in force-app ` +
-    `with matching integration-tests fixtures and Demo: card titles.`
+  `Verified package boundary: ${coreRecords.length} shipped Example_ records in force-app ` +
+    `with matching integration-tests fixtures, the 30-Check LWC ceiling example, and Example: card titles.`
 );

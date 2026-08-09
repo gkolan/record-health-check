@@ -11,9 +11,9 @@ are equal, overlap, or contain all required values.
 
 | Example | Salesforce question | Distinct Framework technique |
 | --- | --- | --- |
-| [Opportunity Contact Role coverage](01-opportunity-contact-role-coverage.md) | Does every open Opportunity have a Contact Role? | Aggregate aliases, two-query equality, and count-query applicability |
-| [Open-pipeline product continuity](02-open-pipeline-product-continuity.md) | Does open pipeline include a Product the customer previously purchased? | Two lists compared with **Lists overlap** |
-| [Account Team coverage](03-account-team-opportunity-coverage.md) | Does the Account Team include every open Opportunity owner? | Two lists compared with **Lists contain all** and no-row failure |
+| [Opportunity Contact Role coverage](opportunity-contact-role-coverage.md) | Does every open Opportunity have a Contact Role? | Aggregate aliases, two-query equality, and count-query applicability |
+| [Open-pipeline product continuity](open-pipeline-product-continuity.md) | Does open pipeline include a Product the customer previously purchased? | Two lists compared with **Lists overlap** |
+| [Account Team coverage](account-team-opportunity-coverage.md) | Does the Account Team include every open Opportunity owner? | Two lists compared with **Lists contain all** and no-row failure |
 
 These teaching configurations are illustrative. They are not installed by the Framework package.
 Adapt the field tables into your org's Custom Metadata when you want the behavior.
@@ -26,11 +26,11 @@ an [Apex example](../apex/README.md) only when the comparison cannot be expresse
 supported count, value, or list operators.
 
 For both query shapes, compatible operators, no-row behavior, security, and limits, use
-[Reference: Compare two queries](../../reference/evaluation/03-compare-two-queries.md).
+[Reference: Compare two queries](../../reference/evaluation/compare-two-queries.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Compare two queries](../../reference/evaluation/03-compare-two-queries.md)
-- [Check fields](../../metadata/02-fields-check.md)
-- [Configure Check Sets and Checks](../../guides/03-configure-check-sets-and-checks.md)
+- [Reference: Compare two queries](../../reference/evaluation/compare-two-queries.md)
+- [Check fields](../../metadata/fields-check.md)
+- [Configure Check Sets and Checks](../../guides/configure-check-sets-and-checks.md)

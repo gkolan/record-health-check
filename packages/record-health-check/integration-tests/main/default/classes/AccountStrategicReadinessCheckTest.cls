@@ -150,7 +150,7 @@ private class AccountStrategicReadinessCheckTest {
           'Account',
           new List<Id>{ deletedId },
           new Map<String, Object>(),
-          'Strategic_Account_Is_Ready',
+          'Example_Strategic_Account_Is_Ready',
           null,
           null
         )

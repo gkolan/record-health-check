@@ -15,7 +15,7 @@
     >Contact</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Demo: Contact Relationship Readiness</value></values>
+    >Example: Contact Relationship Readiness</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
     >Checks whether a customer contact is reachable and ready for relationship management.</value></values>
@@ -40,4 +40,16 @@
     <values><field>FoundExpectedDisplay__c</field><value
       xsi:type="xsd:string"
     >ON_DEMAND</value></values>
+    <values><field>RunButtonDisplay__c</field><value
+      xsi:type="xsd:string"
+    >LABEL_AND_ICON</value></values>
+    <values><field>RunButtonLabel__c</field><value
+      xsi:type="xsd:string"
+    >Run</value></values>
+    <values><field>RerunButtonLabel__c</field><value
+      xsi:type="xsd:string"
+    >Rerun</value></values>
+    <values><field>RunButtonIcon__c</field><value
+      xsi:type="xsd:string"
+    >utility:play</value></values>
 </CustomMetadata>

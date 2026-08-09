@@ -59,11 +59,16 @@ public with sharing class RecordHealthCheckMetadataValidator {
         ObjectApiName__c,
         IsActive__c,
         CardRunMode__c,
+        RunButtonDisplay__c,
+        RunButtonLabel__c,
+        RerunButtonLabel__c,
+        RunButtonIcon__c,
         CardRevealMode__c,
         FoundExpectedDisplay__c,
         PassedChecksDisplay__c,
         SkippedChecksDisplay__c,
-        CardTitle__c
+        CardTitle__c,
+        PublishUserRunEvent__c
       FROM Record_Health_Check_Set__mdt
       WHERE IsActive__c = TRUE
     ];
@@ -108,6 +113,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         ApplicabilityCountQuery__c,
         ApplicabilityCountOperator__c,
         ApplicabilityCountThreshold__c,
+        PublishUserResultEvent__c,
         Record_Health_Check_Set__c
       FROM Record_Health_Check__mdt
       WHERE IsActive__c = TRUE
@@ -148,6 +154,21 @@ public with sharing class RecordHealthCheckMetadataValidator {
       issues.addAll(validateCheckSet(cs));
     }
 
+    Set<String> hiddenAutomaticSetKeys = new Set<String>();
+    for (Record_Health_Check_Set__mdt cs : checkSets) {
+      if (
+        cs.CardRunMode__c == 'RUN_ON_LOAD' &&
+        RecordHealthCheckConstants.normalizedRunButtonDisplay(
+          cs.RunButtonDisplay__c
+        ) == 'HIDE'
+      ) {
+        hiddenAutomaticSetKeys.add(cs.DeveloperName);
+        if (cs.Id != null) {
+          hiddenAutomaticSetKeys.add(String.valueOf(cs.Id));
+        }
+      }
+    }
+
     // Group checks by Check Set for dependency validation
     Map<String, List<Record_Health_Check__mdt>> checksByCheckSet = new Map<String, List<Record_Health_Check__mdt>>();
     Map<String, Record_Health_Check__mdt> checksByDevName = new Map<String, Record_Health_Check__mdt>();
@@ -160,6 +181,20 @@ public with sharing class RecordHealthCheckMetadataValidator {
       checksByCheckSet.get(csName).add(check);
       checksByDevName.put(check.DeveloperName, check);
       issues.addAll(validateCheck(check));
+      if (
+        check.PublishUserResultEvent__c == true &&
+        hiddenAutomaticSetKeys.contains(csName)
+      ) {
+        issues.add(
+          new ValidationIssue(
+            'WARNING',
+            check.DeveloperName,
+            'PublishUserResultEvent__c',
+            'Publish User Result Event is enabled, but its hidden automatic card has no in-card Run or Rerun action. Page refreshes do not publish; use a visible action or a deliberate Apex or Flow invocation.',
+            'USER_RESULT_PUBLICATION_UNREACHABLE'
+          )
+        );
+      }
     }
 
     // Dependency graph validation per Check Set
@@ -356,6 +391,29 @@ public with sharing class RecordHealthCheckMetadataValidator {
           check
         )
       );
+      // Apex plugins own their typed Found and Expected values. These metadata
+      // fields are therefore ignored at runtime; surface that easy-to-miss setup
+      // mistake without making an otherwise valid plugin Check unrunnable.
+      if (String.isNotBlank(check.DisplayFoundText__c)) {
+        issues.add(
+          warning(
+            check,
+            'DisplayFoundText__c',
+            'Display: Found Text is ignored for Apex Checks. Set the Found value in the Apex plugin.',
+            'APEX_DISPLAY_TEXT_IGNORED'
+          )
+        );
+      }
+      if (String.isNotBlank(check.DisplayExpectedText__c)) {
+        issues.add(
+          warning(
+            check,
+            'DisplayExpectedText__c',
+            'Display: Expected Text is ignored for Apex Checks. Set the Expected value in the Apex plugin.',
+            'APEX_DISPLAY_TEXT_IGNORED'
+          )
+        );
+      }
     } else if (check.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
       issues.addAll(
         RecordHealthCheckMetadataIssueMapper.toIssues(
@@ -394,6 +452,21 @@ public with sharing class RecordHealthCheckMetadataValidator {
   ) {
     return new ValidationIssue(
       'ERROR',
+      check.DeveloperName,
+      fieldName,
+      message,
+      reasonCode
+    );
+  }
+
+  private ValidationIssue warning(
+    Record_Health_Check__mdt check,
+    String fieldName,
+    String message,
+    String reasonCode
+  ) {
+    return new ValidationIssue(
+      'WARNING',
       check.DeveloperName,
       fieldName,
       message,

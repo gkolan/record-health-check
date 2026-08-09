@@ -6,6 +6,7 @@
 public with sharing class RecordHealthCheckDefinitionLoader {
   private static final Set<String> VALID_DISPLAY_MODES = RecordHealthCheckConstants.validDisplayModes;
   private static final Set<String> VALID_TRIGGER_MODES = RecordHealthCheckConstants.validTriggerModes;
+  private static final Set<String> VALID_RUN_BUTTON_DISPLAYS = RecordHealthCheckConstants.validRunButtonDisplays;
   private static final Set<String> VALID_REVEAL_MODES = RecordHealthCheckConstants.validRevealModes;
   private static final Set<String> VALID_COMPARISON_DISPLAYS = RecordHealthCheckConstants.validComparisonDisplays;
   private static final Integer FRAMEWORK_MAX_CHECKS = RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
@@ -59,6 +60,10 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         ObjectApiName__c,
         IsActive__c,
         CardRunMode__c,
+        RunButtonDisplay__c,
+        RunButtonLabel__c,
+        RerunButtonLabel__c,
+        RunButtonIcon__c,
         PassedChecksDisplay__c,
         SkippedChecksDisplay__c,
         CardRevealMode__c,
@@ -116,6 +121,12 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     response.triggerMode = RecordHealthCheckConstants.toLwcTriggerMode(
       checkSet.CardRunMode__c
     );
+    response.runButtonDisplay = RecordHealthCheckConstants.normalizedRunButtonDisplay(
+      checkSet.RunButtonDisplay__c
+    );
+    response.runButtonLabel = checkSet.RunButtonLabel__c;
+    response.rerunButtonLabel = checkSet.RerunButtonLabel__c;
+    response.runButtonIcon = checkSet.RunButtonIcon__c;
     response.revealMode = RecordHealthCheckConstants.toLwcRevealMode(
       checkSet.CardRevealMode__c
     );
@@ -316,6 +327,26 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         'When Checks Run "' +
           checkSet.CardRunMode__c +
           '" is not recognized. Valid values: RUN_ON_LOAD, RUN_ON_REQUEST.',
+        RC_INVALID_CONFIG
+      );
+    }
+    String runButtonDisplay = RecordHealthCheckConstants.normalizedRunButtonDisplay(
+      checkSet.RunButtonDisplay__c
+    );
+    if (!VALID_RUN_BUTTON_DISPLAYS.contains(runButtonDisplay)) {
+      throw new RecordHealthCheckConfigService.ConfigException(
+        'Run Button Display "' +
+          checkSet.RunButtonDisplay__c +
+          '" is not recognized. Valid values: LABEL_AND_ICON, LABEL_ONLY, ICON_ONLY, HIDE.',
+        RC_INVALID_CONFIG
+      );
+    }
+    if (
+      checkSet.CardRunMode__c == 'RUN_ON_REQUEST' &&
+      runButtonDisplay == 'HIDE'
+    ) {
+      throw new RecordHealthCheckConfigService.ConfigException(
+        'Run Button Display cannot be Hide when When Checks Run is "When the user clicks Run". Use a visible Run Button Display or run checks when the page opens.',
         RC_INVALID_CONFIG
       );
     }

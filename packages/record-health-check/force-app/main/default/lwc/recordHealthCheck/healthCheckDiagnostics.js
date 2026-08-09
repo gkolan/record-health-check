@@ -84,6 +84,58 @@ export function formatRunSummary(checks) {
   return `${outcome}${timing}`;
 }
 
+/**
+ * Turn terminal outcomes into a short investigation path for an administrator.
+ * The order is deliberate: a system defect needs attention before an
+ * indeterminate evaluation, business failure, or intentionally skipped Check.
+ */
+export function diagnosticNextSteps(checks) {
+  const statuses = new Set(checks.map((row) => row.status));
+  const steps = [];
+  if (statuses.has("ERROR")) {
+    steps.push(
+      "Open each System Error below. Capture its Reason Code and this Run ID, then match the time in Salesforce Debug Logs."
+    );
+  }
+  if (statuses.has("UNABLE_TO_EVALUATE")) {
+    steps.push(
+      "For each Unable result, read its Reason Code and server diagnostic, then verify the running user's record and field access."
+    );
+  }
+  if (statuses.has("FAIL")) {
+    steps.push(
+      "For each Fail result, compare Found, Expected, and the operator. Fail is normally a business outcome, not broken code."
+    );
+  }
+  if (statuses.has("SKIPPED")) {
+    steps.push(
+      "For each Skipped result, inspect applicability, prerequisite, and no-row behavior. Skipped is not Pass or Fail."
+    );
+  }
+  if (steps.length === 0) {
+    steps.push(
+      "Every Check passed. If the displayed answer is unexpected, compare the resolved evaluation with the Check configuration below."
+    );
+  }
+  return steps;
+}
+
+/** Remove duplicated implementation detail from the report intended for support. */
+export function supportDiagnosticsReport(diagnostics) {
+  return {
+    runId: diagnostics.runId,
+    userId: diagnostics.userId,
+    recordId: diagnostics.recordId,
+    checkSetQualifiedApiName: diagnostics.checkSetQualifiedApiName,
+    generatedAt: diagnostics.generatedAt,
+    checks: diagnostics.checks.map((check) => {
+      const supportCheck = { ...check };
+      delete supportCheck.rawResult;
+      return supportCheck;
+    })
+  };
+}
+
 /** Parse a diagnostics JSON field without allowing malformed server detail to break logging. */
 export function parseDiagnosticJson(value) {
   if (!value) return {};

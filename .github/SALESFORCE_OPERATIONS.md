@@ -1,5 +1,9 @@
 # Salesforce operations standard
 
+> [!NOTE]
+> On this page, follow the pinned Salesforce CLI, scratch-org, and package-release operating rules
+> used by this repository.
+
 This record defines the repository's Salesforce CLI, scratch-org, and package-release operating
 standard. `AGENTS.md` makes the same requirements mandatory for AI coding agents.
 
@@ -7,8 +11,8 @@ standard. `AGENTS.md` makes the same requirements mandatory for AI coding agents
 
 On 2026-08-08, the workstation and CI baseline moved from Salesforce CLI 2.139.6 to 2.146.3, the
 official npm `latest` release at verification time. `config/toolchain.json` records the adopted
-version, and `npm run check:toolchain` prevents workstation, CI, and agent instructions from
-drifting apart. A scheduled workflow runs `npm run check:toolchain-latest` daily; when Salesforce
+version, and `npm run check:toolchain` keeps workstation, CI, and agent instructions in sync. A
+scheduled workflow runs `npm run check:toolchain-latest` daily; when Salesforce
 publishes a newer official release, the baseline must be reviewed and advanced as one change.
 The same policy file pins Node.js 22 and Code Analyzer 5.14.0 for release reproducibility.
 
@@ -20,10 +24,15 @@ the new CLI. Do not preserve credential files as evidence.
 
 ## Redacted verification evidence
 
-| Shape                   | Alias               | Org ID               | Namespace | Expiration | LWC deployment       |
-| ----------------------- | ------------------- | -------------------- | --------- | ---------- | -------------------- |
-| Namespaced source       | `rhc-ns-20260808`   | `00DO400000bbGtJMAU` | `rhc`     | 2026-08-09 | `0AfO400000dXUKDKA4` |
-| Subscriber-style source | `rhc-nons-20260807` | `00DRK00000XkqiC2AR` | none      | 2026-08-08 | `0AfRK00000sby7l0AA` |
+| Shape                   | Alias                   | Org ID               | Namespace | Expiration | Source deployment    | Apex tests | Coverage |
+| ----------------------- | ----------------------- | -------------------- | --------- | ---------- | -------------------- | ---------- | -------- |
+| Namespaced source       | `rhc-rel-ns-20260809`   | `00DcU00000DvCLAUA3` | `rhc`     | 2026-09-08 | `0AfcU0000096h3XSAQ` | 479/479    | 99.60%   |
+| Subscriber-style source | `rhc-rel-nons-20260809` | `00DRt00000TpyizMAB` | none      | 2026-09-08 | `0AfRt00000fPec9KAC` | 479/479    | 99.53%   |
+
+The same namespaced org then accepted all integration-only metadata in deployment
+`0AfcU0000096bB3SAI`; 528 of 528 local tests passed. A direct Custom Metadata query returned all 30
+Checks in `Example_Account_Over_25_Checks`. The temporary orgs were deleted after evidence capture,
+as required by the ownership policy.
 
 Both targeted LWC validations and deployments succeeded with zero component errors. The verified
 theme contract is:

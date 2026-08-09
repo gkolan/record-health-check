@@ -15,9 +15,11 @@ import { annotateCheck, buildSummaryGroups } from "./healthCheckPresentation";
 import { HealthCheckRunner } from "./healthCheckRunner";
 import {
   buildInactiveCheckStat,
+  diagnosticNextSteps,
   formatRunSummary,
   parseDiagnosticJson,
-  setupErrorHint
+  setupErrorHint,
+  supportDiagnosticsReport
 } from "./healthCheckDiagnostics";
 
 // Columns shown in the run-diagnostics table. Value-source detail stays in the nested
@@ -37,6 +39,14 @@ const RHC_DIAG_TABLE_COLUMNS = [
 // popovers. Keyboard focus keeps a shorter CSS dwell (see recordHealthCheck.css).
 const TOOLTIP_HOVER_DWELL_MS = 1000;
 const ESTIMATED_TOOLTIP_HEIGHT = 180;
+const DEFAULT_RUN_BUTTON_DISPLAY = "LABEL_AND_ICON";
+const RUN_BUTTON_DISPLAYS = [
+  "LABEL_AND_ICON",
+  "LABEL_ONLY",
+  "ICON_ONLY",
+  "HIDE"
+];
+const SLDS_ICON_NAME = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/;
 
 const SETUP_ERROR_CODES = new Set([
   "SETUP_REQUIRED",
@@ -74,6 +84,7 @@ export default class RecordHealthCheck extends LightningElement {
   static stylesheets = [themeStyles];
 
   _checkSetName;
+  _runButtonDisplayOverride = "INHERIT";
   @track _isSlds2 = false;
 
   get themeClass() {
@@ -90,6 +101,17 @@ export default class RecordHealthCheck extends LightningElement {
     if (this._connected && changed) {
       this._loadDefinitions();
     }
+  }
+
+  @api
+  get runButtonDisplay() {
+    return this._runButtonDisplayOverride;
+  }
+  set runButtonDisplay(value) {
+    this._runButtonDisplayOverride =
+      typeof value === "string" && value.trim()
+        ? value.trim().toUpperCase()
+        : "INHERIT";
   }
 
   // recordId is a getter/setter so the component reloads when the record page
@@ -116,6 +138,10 @@ export default class RecordHealthCheck extends LightningElement {
   @track displayTitle;
   @track displayDescription;
   @track triggerMode;
+  @track checkSetRunButtonDisplay = DEFAULT_RUN_BUTTON_DISPLAY;
+  @track runButtonLabel;
+  @track rerunButtonLabel;
+  @track runButtonIcon;
   @track revealMode;
   @track successDisplayMode;
   @track skippedDisplayMode;
@@ -447,6 +473,11 @@ export default class RecordHealthCheck extends LightningElement {
         "When Checks Run"
       );
       this._requireMode(
+        response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY,
+        RUN_BUTTON_DISPLAYS,
+        "Run Button Display"
+      );
+      this._requireMode(
         response.revealMode,
         ["OneAtATime", "AllAtOnce"],
         "Reveal Mode"
@@ -467,6 +498,26 @@ export default class RecordHealthCheck extends LightningElement {
         "Found/Expected Display"
       );
       this.triggerMode = response.triggerMode;
+      this.checkSetRunButtonDisplay =
+        response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY;
+      this.runButtonLabel = response.runButtonLabel;
+      this.rerunButtonLabel = response.rerunButtonLabel;
+      this.runButtonIcon = response.runButtonIcon;
+      this._requireMode(
+        this.effectiveRunButtonDisplay,
+        RUN_BUTTON_DISPLAYS,
+        "Run Button Display override"
+      );
+      if (
+        this.triggerMode === "Manual" &&
+        this.effectiveRunButtonDisplay === "HIDE"
+      ) {
+        const configurationError = new Error(
+          "Run Button Display cannot be Hide when checks run only after a user clicks Run. Choose a visible display or configure the Check Set to run when the page opens."
+        );
+        configurationError.reasonCode = "INVALID_CONFIG";
+        throw configurationError;
+      }
       this.revealMode = response.revealMode;
       this.successDisplayMode = response.successDisplayMode;
       this.skippedDisplayMode = response.skippedDisplayMode;
@@ -621,11 +672,13 @@ export default class RecordHealthCheck extends LightningElement {
   get showRunButton() {
     // Stays rendered while a run is in progress (disabled + spinner; label stays
     // Run or Rerun per hasCompletedRunOnce — see actionButtonLabel).
-    return this.triggerMode === "Manual" && !this.runComplete;
+    return (
+      !this.hideRunButton && this.triggerMode === "Manual" && !this.runComplete
+    );
   }
 
   get showRerunButton() {
-    return this.runComplete;
+    return !this.hideRunButton && this.runComplete && this.checks.length > 0;
   }
 
   get isAllAtOnce() {
@@ -807,12 +860,68 @@ export default class RecordHealthCheck extends LightningElement {
     return this.showRunButton || this.showRerunButton;
   }
 
+  get effectiveRunButtonDisplay() {
+    const override = this._runButtonDisplayOverride;
+    if (override && override !== "INHERIT") {
+      return override;
+    }
+    return this.checkSetRunButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY;
+  }
+
+  get hideRunButton() {
+    return this.effectiveRunButtonDisplay === "HIDE";
+  }
+
+  get showRunButtonLabel() {
+    return ["LABEL_AND_ICON", "LABEL_ONLY"].includes(
+      this.effectiveRunButtonDisplay
+    );
+  }
+
+  get showRunButtonIcon() {
+    return ["LABEL_AND_ICON", "ICON_ONLY"].includes(
+      this.effectiveRunButtonDisplay
+    );
+  }
+
+  get showActionButtonGlyph() {
+    return this.showRunButtonIcon || this.actionButtonBusy;
+  }
+
+  get normalizedRunButtonIcon() {
+    return typeof this.runButtonIcon === "string"
+      ? this.runButtonIcon.trim()
+      : "";
+  }
+
+  get useLightningRunButtonIcon() {
+    return (
+      this.showRunButtonIcon &&
+      SLDS_ICON_NAME.test(this.normalizedRunButtonIcon)
+    );
+  }
+
+  get useCssRunButtonIcon() {
+    return this.showRunButtonIcon && !this.useLightningRunButtonIcon;
+  }
+
+  get actionButtonClass() {
+    return this.effectiveRunButtonDisplay === "ICON_ONLY"
+      ? "slds-button slds-button_neutral rhc-action-button rhc-action-button_icon-only"
+      : "slds-button slds-button_neutral rhc-action-button";
+  }
+
+  get showHeaderActions() {
+    return this.isLoading || this.showActionButton || this.showLimitNotice;
+  }
+
   get showPreRunHint() {
     // Shown before the first Manual run in BOTH reveal modes for a consistent
     // call to action: OneAtATime shows the hint alone (no rows yet),
     // AllAtOnce shows it above the already-listed rows.
     return (
       this.triggerMode === "Manual" &&
+      this.showActionButton &&
       !this.isLoading &&
       !this.runComplete &&
       !this._runner.isRunning &&
@@ -868,7 +977,13 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get actionButtonLabel() {
-    return this.hasCompletedRunOnce ? "Rerun" : "Run";
+    const configured = this.hasCompletedRunOnce
+      ? this.rerunButtonLabel
+      : this.runButtonLabel;
+    const fallback = this.hasCompletedRunOnce ? "Rerun" : "Run";
+    return typeof configured === "string" && configured.trim()
+      ? configured.trim()
+      : fallback;
   }
 
   get actionButtonAriaLabel() {
@@ -1048,13 +1163,18 @@ export default class RecordHealthCheck extends LightningElement {
 
   _logRunDiagnostics() {
     const diag = this._buildRunDiagnostics();
+    const summary = this._formatRunSummary(diag.checks);
+    const nextSteps = diagnosticNextSteps(diag.checks);
+    const supportReport = supportDiagnosticsReport(diag);
     const configLabel =
       diag.checkSetQualifiedApiName || "(unset checkSetQualifiedApiName)";
     console.group(
       `[RHC] Health Check run ${diag.runId} | ${configLabel} | record ${diag.recordId}`
     );
-    console.log(this._formatRunSummary(diag.checks));
-    console.log({
+    console.log(summary);
+    console.log("Start here", {
+      summary,
+      nextSteps,
       runId: diag.runId,
       checkSet: diag.checkSetQualifiedApiName,
       recordId: diag.recordId,
@@ -1063,14 +1183,24 @@ export default class RecordHealthCheck extends LightningElement {
     });
     console.table(diag.checks, RHC_DIAG_TABLE_COLUMNS);
     this._logCheckDiagnostics(diag.checks);
-    console.log("Complete copyable report", JSON.parse(JSON.stringify(diag)));
-    console.log("Copy as JSON", JSON.stringify(diag, null, 2));
+    console.warn(
+      "Before sharing diagnostics, remove customer data, record and user IDs, queries, and authentication information."
+    );
+    console.log(
+      "Copy for support (review and redact before sharing)",
+      JSON.stringify(supportReport, null, 2)
+    );
+    console.debug("Advanced raw report (may contain restricted data)", diag);
     console.groupEnd();
   }
 
   _logCheckDiagnostics(checks) {
     console.group(`[RHC] Full check details (${checks.length})`);
-    for (const [index, c] of checks.entries()) {
+    const orderedChecks = [...checks].sort((left, right) => {
+      const rank = { ERROR: 0, UNABLE_TO_EVALUATE: 1, FAIL: 2, SKIPPED: 3 };
+      return (rank[left.status] ?? 4) - (rank[right.status] ?? 4);
+    });
+    for (const [index, c] of orderedChecks.entries()) {
       const heading = `${index + 1}. ${c.label} (${c.check}) · ${c.status}`;
       console.groupCollapsed(heading);
       console.log("Identity and outcome", {

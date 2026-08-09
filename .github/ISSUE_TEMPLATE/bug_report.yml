@@ -66,7 +66,7 @@ body:
       description: >
         Enable Show Diagnostics on the affected Check Set, reproduce the issue, and paste
         the redacted `[RHC]` console report. If you cannot enable it or it is not applicable,
-        explain why. Follow the [Show Diagnostics guide](https://github.com/gkolan/record-health-check/blob/main/docs/guides/07-troubleshoot-with-show-diagnostics.md).
+        explain why. Follow the [Show Diagnostics guide](https://github.com/gkolan/record-health-check/blob/main/docs/guides/troubleshoot-with-show-diagnostics.md).
       render: text
     validations:
       required: true

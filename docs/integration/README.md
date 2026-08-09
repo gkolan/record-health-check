@@ -5,7 +5,7 @@
 
 > [!TIP]
 > **Only placing the Lightning card?** Follow
-> [Install and verify](../installation/02-install-and-verify.md), then return here when you need Apex,
+> [Install and verify](../installation/install-and-verify.md), then return here when you need Apex,
 > Flow, or platform-event subscribers.
 
 Use this page to decide where a readiness decision belongs: a Lightning record page, Flow,
@@ -19,9 +19,9 @@ does not create a second configuration model.
 
 | Step | Guide | What you finish |
 | ---: | --- | --- |
-| 1 | [Lightning component](01-lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
-| 2 | [Flow actions](02-flow-actions.md) | Branch in automation without custom Apex |
-| 3 | [Lifecycle events](03-lifecycle-events.md) | After-commit publication behavior for independent subscribers |
+| 1 | [Lightning component](lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
+| 2 | [Flow actions](flow-actions.md) | Branch in automation without custom Apex |
+| 3 | [Lifecycle events](lifecycle-events.md) | After-commit publication behavior for independent subscribers |
 
 For Apex API patterns (sync and async), use [API examples](../api/README.md). For subscriber
 recipes, use [Platform Event subscriptions](../platform-events/README.md).
@@ -30,11 +30,57 @@ recipes, use [Platform Event subscriptions](../platform-events/README.md).
 
 | Goal | Start here | What you will learn |
 | --- | --- | --- |
-| Show health to a user on a record page | [Lightning component](01-lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
+| Show health to a user on a record page | [Lightning component](lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
 | Make an immediate or asynchronous decision in code | [API examples](../api/README.md) | Choose synchronous Apex, Queueable, Batch, or Scheduled Apex |
-| Branch in automation without custom Apex | [Flow actions](../integration/02-flow-actions.md) | Configure an Action and Decision element with explicit status paths |
+| Branch in automation without custom Apex | [Flow actions](../integration/flow-actions.md) | Configure an Action and Decision element with explicit status paths |
 | Notify independent automation after commit | [Platform Event subscriptions](../platform-events/README.md) | Build a Flow or Apex subscriber and handle replay or duplicate delivery |
-| Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/01-recent-activity.md) | Write the class used by a Verify with Apex Check |
+| Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/recent-activity.md) | Write the class used by a Verify with Apex Check |
+
+### Integration decision flow
+
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
+flowchart TB
+    start(["What must consume the result?"])
+    user{"A person on a record page?"}
+    immediate{"Must the current transaction branch on it?"}
+    recurring{"Is the work recurring or a large population?"}
+    independent{"Does an independent consumer act after commit?"}
+    lightning["Lightning record-page component"]
+    flow["Flow action or synchronous Apex API"]
+    async["Queueable, Batch, or Scheduled Apex"]
+    event["Platform Event subscriber"]
+    review["Review the requirement before choosing a caller"]
+
+    start --> user
+    user -->|"Yes"| lightning
+    user -->|"No"| immediate
+    immediate -->|"Yes"| flow
+    immediate -->|"No"| recurring
+    recurring -->|"Yes"| async
+    recurring -->|"No"| independent
+    independent -->|"Yes"| event
+    independent -->|"No"| review
+
+    style start fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style user fill:#fde68a,stroke:#b45309,color:#1f2937
+    style immediate fill:#fde68a,stroke:#b45309,color:#1f2937
+    style recurring fill:#fde68a,stroke:#b45309,color:#1f2937
+    style independent fill:#fde68a,stroke:#b45309,color:#1f2937
+    style lightning fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style flow fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style async fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style event fill:#99f6e4,stroke:#0f766e,color:#1f2937
+```
+
+Text fallback:
+
+```text
+Record-page user -> Lightning component
+Immediate transaction decision -> Flow action or synchronous Apex
+Recurring or large population -> Queueable, Batch, or Scheduled Apex
+Independent after-commit consumer -> Platform Event subscriber
+```
 
 ## What Record Health Check is
 
@@ -67,11 +113,11 @@ check rather than the complete configured health assessment.
 
 | Goal | Start here | Immediate output | Optional event source |
 | --- | --- | --- | --- |
-| Show health on a record page | [Lightning component](01-lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
-| Make a code-level decision | [Apex API](../api/01-apex-api.md) | Typed Check or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
-| Branch in automation without code | [Flow actions](02-flow-actions.md) | Flow output variables and JSON | `FLOW` |
-| React asynchronously or export results | [Platform events](03-lifecycle-events.md) | Event body | Depends on the publisher |
-| Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/01-recent-activity.md) | Normal Check result | Inherits the calling run |
+| Show health on a record page | [Lightning component](lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
+| Make a code-level decision | [Apex API](../api/apex-api.md) | Typed Check or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
+| Branch in automation without code | [Flow actions](flow-actions.md) | Flow output variables and JSON | `FLOW` |
+| React asynchronously or export results | [Platform events](lifecycle-events.md) | Event body | Depends on the publisher |
+| Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/recent-activity.md) | Normal Check result | Inherits the calling run |
 
 ## Evaluation model
 
@@ -108,8 +154,8 @@ schema from the installed package version.
 ## Basic Apex pattern
 
 ```apex
-RecordHealthCheckResponse health = RecordHealthCheck.evaluate(
-  RecordHealthCheckRequest.forCheckSet(
+rhc.RecordHealthCheckResponse health = rhc.RecordHealthCheck.evaluate(
+  rhc.RecordHealthCheckRequest.forCheckSet(
     'Account_Readiness', // Exact QualifiedApiName returned by Salesforce.
     accountId
   )
@@ -120,7 +166,7 @@ if (health.summary.failed > 0) {
 }
 ```
 
-For method overloads, fields, limits, and exceptions, use the [Apex API reference](../api/01-apex-api.md).
+For method overloads, fields, limits, and exceptions, use the [Apex API reference](../api/apex-api.md).
 
 ## Basic Flow pattern
 
@@ -130,7 +176,7 @@ For method overloads, fields, limits, and exceptions, use the [Apex API referenc
 4. Connect the fault path.
 5. Use the count outputs or Result JSON when the decision needs Check-level detail.
 
-For every input and output, use the [Flow actions reference](02-flow-actions.md).
+For every input and output, use the [Flow actions reference](flow-actions.md).
 
 ## Synchronous results versus events
 
@@ -148,7 +194,9 @@ Lifecycle publication is off by default; error-log publication is on by default:
 - Check **Publish User Result Event** enables one event for that server-finalized Check.
 - Check Set **Publish Error Log Event** publishes Framework `ERROR` diagnostics; uncheck it to opt
   that Check Set out without changing Salesforce debug logs.
-- Automatic Lightning page-load runs never publish.
+- Automatic Lightning page-load runs and page refreshes never publish. If an automatic card hides
+  Run and Rerun, show the action or call the Check Set from Apex or Flow when a subscriber needs an
+  event.
 
 ## Limits
 
@@ -189,10 +237,10 @@ automation on those fields rather than administrator-authored message text.
 ## Next steps
 
 - [API examples](../api/README.md)
-- [Flow actions](../integration/02-flow-actions.md)
-- [Flow API pattern](../api/02-flow.md)
-- [Lightning component](01-lightning-component.md)
+- [Flow actions](../integration/flow-actions.md)
+- [Flow API pattern](../api/flow.md)
+- [Lightning component](lightning-component.md)
 - [Platform Event subscriptions](../platform-events/README.md)
-- [Lifecycle event behavior](03-lifecycle-events.md)
-- [Reason Codes](../reference/contracts/01-reason-codes.md)
-- [Configure Check Sets and Checks](../guides/03-configure-check-sets-and-checks.md)
+- [Lifecycle event behavior](lifecycle-events.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)
+- [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md)

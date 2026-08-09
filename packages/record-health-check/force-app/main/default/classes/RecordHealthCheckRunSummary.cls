@@ -1,4 +1,7 @@
-/** Counts terminal statuses across one response. */
+/**
+ * Counts terminal statuses across one response. This data holder does not expose
+ * an aggregate status; callers derive any business decision from the explicit counts.
+ */
 global class RecordHealthCheckRunSummary {
   @AuraEnabled
   /** Number of passing results. */

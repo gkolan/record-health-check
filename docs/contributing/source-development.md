@@ -7,7 +7,7 @@
 > [!IMPORTANT]
 > This workflow deploys unpackaged Framework source into a development org. Do **not** use it to
 > install or upgrade Record Health Check in a subscriber sandbox or production org. Subscribers
-> install the promoted unlocked package (`04t`) from [Install and verify](../installation/02-install-and-verify.md).
+> install the promoted unlocked package (`04t`) from [Install and verify](../installation/install-and-verify.md).
 
 Use this guide when you change Framework code in this repository. The packaging project lives at
 `packages/record-health-check/`. Commands below work the same on macOS, Linux, and Windows when you
@@ -118,13 +118,13 @@ when both options exist.
 | Symptom | What to check |
 | --- | --- |
 | `An org already uses alias '…'` | Choose a new `--alias`, or delete the old scratch org when you no longer need it |
-| Deploy fails on currency field planner tests | The org is multi-currency; see the [FAQ](../guides/02-faq.md#why-did-contributor-source-deploy-fail-apex-tests-in-a-multi-currency-org) |
+| Deploy fails on currency field planner tests | The org is multi-currency; see the [FAQ](../guides/faq.md#why-did-contributor-source-deploy-fail-apex-tests-in-a-multi-currency-org) |
 | `sf` not found on Windows | Confirm the Salesforce CLI install and that your shell session can resolve `sf` |
-| Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../installation/05-create-rhc-scratch-org.md) |
+| Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../installation/create-rhc-scratch-org.md) |
 
 ## Next steps
 
 - Review the local gates in [Contributing](../../.github/CONTRIBUTING.md) before you open a PR
-- Read [Package testing and upgrades](../reference/framework/07-package-testing-and-upgrades.md) for
+- Read [Package testing and upgrades](../reference/framework/package-testing-and-upgrades.md) for
   test ownership and subscriber upgrade behavior
 - Follow [Releasing](../../.github/RELEASING.md) when you are ready to create a package version

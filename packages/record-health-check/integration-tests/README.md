@@ -18,7 +18,7 @@ org.
 | README / install-guide **package install** links                                                 | Unlocked package `Record Health Check` (`rhc`); not this directory                                |
 | Subscriber `npm run setup`                                                                       | Promoted `04t` package + `subscriber-app`; not this directory                                     |
 | Contributor `npm run dev:setup`                                                                  | `force-app`, then this directory for maintainer gates                                             |
-| `sf project deploy start --manifest manifest/package.xml` (from `packages/record-health-check/`) | Framework + four Demo Check Sets (`Example_…`, `Demo:` card titles)                               |
+| `sf project deploy start --manifest manifest/package.xml` (from `packages/record-health-check/`) | Framework + four example Check Sets (`Example_…`, `Example:` card titles)                         |
 | Release gate                                                                                     | Explicit `--source-dir packages/record-health-check/integration-tests` after the Framework deploy |
 
 Keep this path out of the root `sfdx-project.json` `packageDirectories`. The nested packaging
@@ -26,21 +26,31 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
 
 ## Contents (high level)
 
-- Sample Check Sets and Checks, including a retained copy of the four Demo `Example_` Check Sets
+- Sample Check Sets and Checks, including a retained copy of the four `Example_` Check Sets
   that also ship in `force-app`
+- `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for
+  verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
 - Platform-event triggers used only in CI orgs
 - Apex classes that exercise the Framework against those samples
 
+The `RHC_Persona_*` access fixture is deliberately a namespaced-source test. Its Custom Metadata
+uses `rhc__RHC_Persona_Record__c` and `rhc__Accessible_Value__c` / `rhc__Restricted_Value__c`, so run
+`RecordHealthCheckRestrictedPersonaTest` only after deploying this directory from the nested
+`rhc` packaging project to a namespaced scratch org. In a no-namespace development org, the other
+integration tests remain useful, but those four persona methods correctly reject the unavailable
+namespaced object instead of proving the intended field-access scenario.
+
 ## Display-format scratch orgs and deterministic data
 
 Run the maintained sample in both currency modes. Both commands deploy Framework and the integration
 samples, seed the same Account and Opportunity, and execute `verifyDisplayFormats.apex`.
 
-Prefer the Node entry points when you work on Windows, macOS, or Linux in the same way. The shell
-script remains available for bash/zsh:
+The focused two-mode display-format setup is a bash script. On Windows, run it from Git Bash. The
+general `npm run dev:setup` contributor workflow works in PowerShell, cmd, macOS, and Linux, but it
+does not replace the focused single-currency and multi-currency comparison below.
 
 ```bash
 # Multi-currency (default): activates EUR and seeds EUR Account/Opportunity rows.
@@ -54,9 +64,9 @@ SCRATCH_DEF=packages/record-health-check/config/project-scratch-def.json \
 ```
 
 > [!NOTE]
-> The `VAR=value` prefix is bash/zsh only. On Windows PowerShell or cmd, export the variables first
-> or run the script from **Git Bash**. Contributor Node entry points such as `npm run dev:setup`
-> accept `--dev-hub` and work in PowerShell and cmd without that prefix.
+> The `VAR=value` prefix is bash/zsh only. Run this focused verification from **Git Bash** on
+> Windows. For ordinary contributor setup, `npm run dev:setup` accepts `--dev-hub` and works in
+> PowerShell and cmd without that prefix.
 
 Run both commands from the repository root. `SCRATCH_DEF` defaults to
 `packages/record-health-check/config/display-formats-scratch-def.json`.
@@ -100,17 +110,17 @@ npm run dev:setup -- --dev-hub my-dev-hub --alias my-scratch-org
 install never deploys this directory; deploying demo samples always requires an explicit contributor
 command.
 
-The Framework package already includes the four Demo `Example_` Check Sets. Matching copies here
+The Framework package already includes the four `Example_` Check Sets. Matching copies here
 exist so integration runs can deploy the same configurations alongside broader samples.
 
-## Example fixture data
+## Example test data
 
 Subscriber demo orgs use `npm run setup` and seed data from `scripts/subscriber/data/`. See the
-[scratch-org setup guide](../../../docs/installation/05-create-rhc-scratch-org.md) for the complete
+[scratch-org setup guide](../../../docs/installation/create-rhc-scratch-org.md) for the complete
 subscriber demo scenario.
 
 ## Related
 
 - [Source development](../../../docs/contributing/source-development.md)
-- [Package testing and upgrades](../../../docs/reference/framework/07-package-testing-and-upgrades.md)
-- [Create the demo scratch org](../../../docs/installation/05-create-rhc-scratch-org.md)
+- [Package testing and upgrades](../../../docs/reference/framework/package-testing-and-upgrades.md)
+- [Create the demo scratch org](../../../docs/installation/create-rhc-scratch-org.md)

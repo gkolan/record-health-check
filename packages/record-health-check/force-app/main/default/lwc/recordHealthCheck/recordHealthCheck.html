@@ -35,44 +35,62 @@
                 Completed Checks: {completedCheckCount} / {totalCheckCount}
               </p>
 
-              <div class="rhc-header__actions">
-                <template if:true={isLoading}>
-                  <lightning-spinner
-                    alternative-text="Loading health checks"
-                    size="small"
-                  ></lightning-spinner>
-                </template>
-                <template if:false={isLoading}>
-                  <template if:true={showActionButton}>
-                    <button
-                      type="button"
-                      class="slds-button slds-button_neutral rhc-action-button"
-                      onclick={handleAction}
-                      title={actionTitle}
-                      aria-label={actionButtonAriaLabel}
-                      aria-busy={actionButtonBusy}
-                      disabled={actionButtonDisabled}
-                    >
-                      {actionButtonLabel}
-                      <span class="rhc-action-button__glyph" aria-hidden="true">
-                        <template if:true={actionButtonBusy}>
-                          <span class="rhc-action-button__spinner"></span>
-                        </template>
-                        <template if:false={actionButtonBusy}>
-                          <span class="rhc-action-button__play"></span>
-                        </template>
-                      </span>
-                    </button>
+              <template if:true={showHeaderActions}>
+                <div class="rhc-header__actions">
+                  <template if:true={isLoading}>
+                    <lightning-spinner
+                      alternative-text="Loading health checks"
+                      size="small"
+                    ></lightning-spinner>
                   </template>
-                  <template if:true={showLimitNotice}>
-                    <lightning-badge
-                      class="rhc-check-pill rhc-check-pill--warn"
-                      label={limitNoticeLabel}
-                      title={limitNoticeTitle}
-                    ></lightning-badge>
+                  <template if:false={isLoading}>
+                    <template if:true={showActionButton}>
+                      <button
+                        type="button"
+                        class={actionButtonClass}
+                        onclick={handleAction}
+                        title={actionTitle}
+                        aria-label={actionButtonAriaLabel}
+                        aria-busy={actionButtonBusy}
+                        disabled={actionButtonDisabled}
+                      >
+                        <template if:true={showRunButtonLabel}
+                          >{actionButtonLabel}</template
+                        >
+                        <template if:true={showActionButtonGlyph}>
+                          <span
+                            class="rhc-action-button__glyph"
+                            aria-hidden="true"
+                          >
+                            <template if:true={actionButtonBusy}>
+                              <span class="rhc-action-button__spinner"></span>
+                            </template>
+                            <template if:false={actionButtonBusy}>
+                              <template if:true={useLightningRunButtonIcon}>
+                                <lightning-icon
+                                  icon-name={normalizedRunButtonIcon}
+                                  size="xx-small"
+                                  alternative-text=""
+                                ></lightning-icon>
+                              </template>
+                              <template if:true={useCssRunButtonIcon}>
+                                <span class="rhc-action-button__play"></span>
+                              </template>
+                            </template>
+                          </span>
+                        </template>
+                      </button>
+                    </template>
+                    <template if:true={showLimitNotice}>
+                      <lightning-badge
+                        class="rhc-check-pill rhc-check-pill--warn"
+                        label={limitNoticeLabel}
+                        title={limitNoticeTitle}
+                      ></lightning-badge>
+                    </template>
                   </template>
-                </template>
-              </div>
+                </div>
+              </template>
             </div>
 
             <template if:true={displayDescription}>
@@ -346,7 +364,8 @@
 
           <template if:true={showDiagnosticsConsoleHint}>
             <p class="rhc-debug-console-hint" role="status">
-              Check console (F12) for diagnostics.
+              Open the browser console (F12), then find the [RHC] Start here
+              section.
             </p>
           </template>
         </div>

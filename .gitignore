@@ -110,7 +110,7 @@ scripts/*
 # Public Apex plugin scaffolding shipped as the 2.0 migration path.
 !scripts/templates/
 !scripts/templates/**
-# Reproducible demo scratch-org provisioning (see docs/installation/05-*).
+# Reproducible demo scratch-org provisioning (see docs/installation/create-rhc-scratch-org.md).
 !scripts/setup-demo.sh
 # Reproducible multi-currency integration-demo provisioning.
 !scripts/setup-integration-demo.sh
@@ -156,6 +156,3 @@ recycle-bin/
 
 # Personal, portable local org kit — never tracked; meant to be movable out of the repo.
 /local-orgs/
-
-# Local-only docs site scaffold (Jekyll/GitHub Pages preview — not published).
-docs/site/

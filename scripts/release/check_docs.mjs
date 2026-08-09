@@ -76,6 +76,13 @@ function splitTableRow(row) {
 
 walk(docsRoot);
 const failures = [];
+for (const file of markdownFiles) {
+  if (/^\d{2}-/.test(path.basename(file))) {
+    failures.push(
+      `${path.relative(root, file)}: public documentation filenames must use stable unnumbered slugs`
+    );
+  }
+}
 const projectMarkdownFiles = [
   ...markdownFiles,
   ...fs
@@ -87,6 +94,14 @@ const projectMarkdownFiles = [
 for (const file of projectMarkdownFiles) {
   const markdown = fs.readFileSync(file, "utf8");
   const relativeFile = path.relative(root, file);
+  if (
+    markdown.includes("```mermaid") &&
+    !/Text fallback:|^## Reading the diagram$/m.test(markdown)
+  ) {
+    failures.push(
+      `${relativeFile}: Mermaid diagrams require an adjacent text or table fallback`
+    );
+  }
   if (markdown.includes("—")) {
     failures.push(
       `${path.relative(root, file)}: replace em dashes with natural sentence punctuation`
@@ -152,8 +167,8 @@ for (const file of projectMarkdownFiles) {
 
 const canonicalFieldAnchors = new Map();
 for (const reference of [
-  path.join(docsRoot, "metadata/02-fields-check.md"),
-  path.join(docsRoot, "metadata/01-fields-check-set.md")
+  path.join(docsRoot, "metadata/fields-check.md"),
+  path.join(docsRoot, "metadata/fields-check-set.md")
 ]) {
   const markdown = fs.readFileSync(reference, "utf8");
   for (const match of markdown.matchAll(/^###\s+.+\s+\(`([^`]+)`\)$/gm)) {
@@ -168,12 +183,12 @@ for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
   const examplesDirectory = path.join(docsRoot, "examples", folder);
   const evaluationReferenceName =
     folder === "formula"
-      ? "01-formula.md"
+      ? "formula.md"
       : folder === "query"
-        ? "02-query.md"
+        ? "query.md"
         : folder === "compare-two-queries"
-          ? "03-compare-two-queries.md"
-          : "04-apex-check-contract.md";
+          ? "compare-two-queries.md"
+          : "apex-check-contract.md";
   const reference = path.join(
     docsRoot,
     "reference",
@@ -185,14 +200,14 @@ for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
 
   const practicalExamples = fs
     .readdirSync(examplesDirectory)
-    .filter((name) => /^\d.+\.md$/.test(name));
+    .filter((name) => name !== "README.md" && name.endsWith(".md"));
   if (practicalExamples.length === 0)
     failures.push(`missing ${folder} practical example`);
 }
 
 for (const [objectName, referenceName] of [
-  ["Record_Health_Check__mdt", "02-fields-check.md"],
-  ["Record_Health_Check_Set__mdt", "01-fields-check-set.md"]
+  ["Record_Health_Check__mdt", "fields-check.md"],
+  ["Record_Health_Check_Set__mdt", "fields-check-set.md"]
 ]) {
   const reference = path.join(docsRoot, "metadata", referenceName);
   const fieldsDirectory = path.join(
@@ -210,9 +225,9 @@ for (const [objectName, referenceName] of [
 }
 
 for (const [eventName, referenceName] of [
-  ["Record_Health_Check_Set_Run__e", "03-event-set-run.md"],
-  ["Record_Health_Check_Result__e", "04-event-check-result.md"],
-  ["Record_Health_Check_Log__e", "05-event-log.md"]
+  ["Record_Health_Check_Set_Run__e", "event-set-run.md"],
+  ["Record_Health_Check_Result__e", "event-check-result.md"],
+  ["Record_Health_Check_Log__e", "event-log.md"]
 ]) {
   const eventReference = fs.readFileSync(
     path.join(docsRoot, "metadata", referenceName),
@@ -232,9 +247,10 @@ for (const [eventName, referenceName] of [
   }
 }
 
-// Every production Apex class must remain visible in the Apex class-reference
-// corpus under docs/reference/apex/. This catches a new class that compiles and
-// ships but is absent from the layer guides.
+// Every production Apex class must have a real class entry in the Apex
+// reference, not merely appear in an index or a related class's prose. This
+// catches both newly shipped classes and entries accidentally reduced to a
+// name-only mention during documentation maintenance.
 const apexClassesDirectory = path.join(
   root,
   "packages/record-health-check/force-app/main/default/classes"
@@ -258,17 +274,23 @@ const productionApexClasses = fs
   })
   .map((name) => name.replace(/\.cls$/, ""));
 const apexReferenceDirectory = path.join(docsRoot, "reference", "apex");
-const apexReferenceCorpus = fs
+const apexReferenceHeadings = fs
   .readdirSync(apexReferenceDirectory)
   .filter((name) => name.endsWith(".md"))
-  .map((name) =>
-    fs.readFileSync(path.join(apexReferenceDirectory, name), "utf8")
-  )
-  .join("\n");
+  .flatMap((name) =>
+    fs
+      .readFileSync(path.join(apexReferenceDirectory, name), "utf8")
+      .split("\n")
+      .filter((line) => line.startsWith("### "))
+  );
 for (const apexClass of productionApexClasses) {
-  if (!apexReferenceCorpus.includes(`\`${apexClass}\``)) {
+  if (
+    !apexReferenceHeadings.some((heading) =>
+      heading.includes(`\`${apexClass}\``)
+    )
+  ) {
     failures.push(
-      `reference/apex/: missing production Apex class ${apexClass}`
+      `reference/apex/: missing detailed production Apex class entry ${apexClass}`
     );
   }
 }
@@ -276,9 +298,9 @@ for (const apexClass of productionApexClasses) {
 for (const file of markdownFiles) {
   const markdown = fs.readFileSync(file, "utf8");
   const relativeFile = path.relative(root, file);
-  const isPracticalExample = /^docs\/examples\/[^/]+\/\d[^/]+\.md$/.test(
-    relativeFile
-  );
+  const isPracticalExample =
+    /^docs\/examples\/[^/]+\/[^/]+\.md$/.test(relativeFile) &&
+    !relativeFile.endsWith("/README.md");
 
   const openingAfterTitle = markdown
     .replace(/^# .+\n+/, "")

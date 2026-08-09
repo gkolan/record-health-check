@@ -13,6 +13,14 @@ public class RecordHealthCheckDefinitionResponse {
   @AuraEnabled
   public String triggerMode; // Automatic, Manual — mapped from CardRunMode__c
   @AuraEnabled
+  public String runButtonDisplay; // LABEL_AND_ICON, LABEL_ONLY, ICON_ONLY, HIDE
+  @AuraEnabled
+  public String runButtonLabel; // blank is normalized by the LWC to Run
+  @AuraEnabled
+  public String rerunButtonLabel; // blank is normalized by the LWC to Rerun
+  @AuraEnabled
+  public String runButtonIcon; // blank keeps the built-in CSS play glyph
+  @AuraEnabled
   public String revealMode; // AllAtOnce, OneAtATime — mapped from CardRevealMode__c
   @AuraEnabled
   public String successDisplayMode; // Show, Hide — mapped from PassedChecksDisplay__c

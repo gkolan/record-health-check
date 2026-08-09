@@ -159,6 +159,17 @@
   gap: 0.35rem;
 }
 
+.rhc-action-button_icon-only {
+  min-width: var(--slds-g-sizing-8, 2rem);
+  width: var(--slds-g-sizing-8, 2rem);
+  height: var(--slds-g-sizing-8, 2rem);
+  padding: 0;
+}
+
+.rhc-action-button_icon-only .rhc-action-button__glyph {
+  margin-left: 0;
+}
+
 @keyframes rhc-action-spin {
   to {
     transform: rotate(360deg);

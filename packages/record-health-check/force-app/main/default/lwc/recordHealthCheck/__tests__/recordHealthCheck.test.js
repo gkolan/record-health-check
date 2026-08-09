@@ -23,9 +23,11 @@ import {
 } from "../healthCheckModel";
 import {
   buildInactiveCheckStat,
+  diagnosticNextSteps,
   formatRunSummary,
   parseDiagnosticJson,
-  setupErrorHint
+  setupErrorHint,
+  supportDiagnosticsReport
 } from "../healthCheckDiagnostics";
 import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.getCheckDefinitions";
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
@@ -144,6 +146,10 @@ const makeDefinitions = (overrides = {}) => {
     displayTitle: "Account Health",
     displayDescription: null,
     triggerMode: "Manual",
+    runButtonDisplay: "LABEL_AND_ICON",
+    runButtonLabel: null,
+    rerunButtonLabel: null,
+    runButtonIcon: null,
     revealMode: "AllAtOnce",
     successDisplayMode: "Show",
     skippedDisplayMode: "Hide",
@@ -676,7 +682,7 @@ describe("c-record-health-check — run orchestration", () => {
 
     expect(element.shadowRoot.querySelector(".rhc-debug-meta")).not.toBeNull();
     expect(element.shadowRoot.textContent).toContain(
-      "Check console (F12) for diagnostics."
+      "Open the browser console (F12), then find the [RHC] Start here section."
     );
   });
 
@@ -732,6 +738,128 @@ describe("c-record-health-check — run orchestration", () => {
     expect(btn.textContent.trim()).toBe("Rerun");
     // The check count lives in the hover tooltip now, not the label.
     expect(btn.title).toContain("Checks");
+  });
+
+  it("hides the Automatic Run control and removes its entire action column", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        runButtonDisplay: "HIDE"
+      })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-header__actions")).toBeNull();
+  });
+
+  it("renders label-only chrome with custom Run and Rerun labels", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        runButtonDisplay: "LABEL_ONLY",
+        runButtonLabel: "Evaluate",
+        rerunButtonLabel: "Check again",
+        runButtonIcon: "utility:refresh"
+      })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+
+    let btn = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(btn.textContent.trim()).toBe("Evaluate");
+    expect(btn.querySelector("lightning-icon")).toBeNull();
+    expect(btn.querySelector(".rhc-action-button__play")).toBeNull();
+
+    await clickRun(element);
+    btn = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(btn.textContent.trim()).toBe("Check again");
+  });
+
+  it("renders compact icon-only chrome with a custom accessible name", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        runButtonDisplay: "ICON_ONLY",
+        runButtonLabel: "Evaluate account",
+        runButtonIcon: "utility:refresh"
+      })
+    );
+    await appendAndLoad(element);
+
+    const btn = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(btn.classList).toContain("rhc-action-button_icon-only");
+    expect(btn.textContent.trim()).toBe("");
+    expect(btn.getAttribute("aria-label")).toBe("Evaluate account");
+    expect(btn.querySelector("lightning-icon").iconName).toBe(
+      "utility:refresh"
+    );
+  });
+
+  it("falls back to the CSS play glyph for a malformed icon name", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        runButtonDisplay: "ICON_ONLY",
+        runButtonIcon: "not an icon"
+      })
+    );
+    await appendAndLoad(element);
+
+    const btn = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(btn.querySelector("lightning-icon")).toBeNull();
+    expect(btn.querySelector(".rhc-action-button__play")).not.toBeNull();
+    expect(btn.getAttribute("aria-label")).toBe("Run");
+  });
+
+  it("lets an App Builder override re-show a hidden Automatic control", async () => {
+    element.runButtonDisplay = "LABEL_ONLY";
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        runButtonDisplay: "HIDE"
+      })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+
+    const btn = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(btn).not.toBeNull();
+    expect(btn.textContent.trim()).toBe("Rerun");
+    expect(btn.querySelector(".rhc-action-button__play")).toBeNull();
+  });
+
+  it("rejects an App Builder Hide override for a Manual Check Set", async () => {
+    element.runButtonDisplay = "HIDE";
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner")
+    ).not.toBeNull();
+    expect(element.shadowRoot.textContent).toContain(
+      "Run Button Display cannot be Hide"
+    );
+    expect(element.shadowRoot.textContent).not.toContain("Click Run");
+  });
+
+  it("uses default labels and CSS play when the new DTO fields are absent", async () => {
+    const definition = makeDefinitions();
+    delete definition.runButtonDisplay;
+    delete definition.runButtonLabel;
+    delete definition.rerunButtonLabel;
+    delete definition.runButtonIcon;
+    getCheckDefinitions.mockResolvedValue(definition);
+    await appendAndLoad(element);
+
+    const btn = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(btn.textContent.trim()).toBe("Run");
+    expect(btn.querySelector(".rhc-action-button__play")).not.toBeNull();
   });
 
   it("keeps the button visible, disabled, and busy while a run is in flight", async () => {
@@ -1731,9 +1859,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     await appendAndLoad(element);
 
     expect(evaluateCheck).not.toHaveBeenCalled();
-    expect(
-      element.shadowRoot.querySelector(".rhc-action-button")
-    ).not.toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
   });
 
   it.each([null, { status: "FUTURE_STATUS" }])(
@@ -1959,6 +2085,8 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
     const groupEnd = jest
       .spyOn(console, "groupEnd")
       .mockImplementation(() => {});
@@ -1991,7 +2119,12 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     );
     expect(log).toHaveBeenCalledWith("1 Passed");
     expect(log).toHaveBeenCalledWith(
+      "Start here",
       expect.objectContaining({
+        summary: "1 Passed",
+        nextSteps: expect.arrayContaining([
+          expect.stringContaining("Every Check passed")
+        ]),
         runId: expect.any(String),
         checkSet: "Account_Data_Quality",
         recordId: expect.any(String),
@@ -2022,13 +2155,18 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
       })
     );
     expect(log).toHaveBeenCalledWith(
-      "Copy as JSON",
+      "Copy for support (review and redact before sharing)",
       expect.stringContaining("sourceQueryTemplate")
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("remove customer data")
     );
     expect(groupEnd).toHaveBeenCalled();
     group.mockRestore();
     log.mockRestore();
     table.mockRestore();
+    warn.mockRestore();
+    debug.mockRestore();
     groupEnd.mockRestore();
   });
 
@@ -2036,6 +2174,8 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
     const groupEnd = jest
       .spyOn(console, "groupEnd")
       .mockImplementation(() => {});
@@ -2055,6 +2195,8 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     group.mockRestore();
     log.mockRestore();
     table.mockRestore();
+    warn.mockRestore();
+    debug.mockRestore();
     groupEnd.mockRestore();
   });
 
@@ -2066,6 +2208,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
+    const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
     const groupEnd = jest
       .spyOn(console, "groupEnd")
       .mockImplementation(() => {});
@@ -2099,6 +2242,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     log.mockRestore();
     warn.mockRestore();
     table.mockRestore();
+    debug.mockRestore();
     groupEnd.mockRestore();
   });
 
@@ -2106,6 +2250,8 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
     const groupEnd = jest
       .spyOn(console, "groupEnd")
       .mockImplementation(() => {});
@@ -2126,6 +2272,8 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     group.mockRestore();
     log.mockRestore();
     table.mockRestore();
+    warn.mockRestore();
+    debug.mockRestore();
     groupEnd.mockRestore();
   });
 });
@@ -3676,6 +3824,35 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
       })
     );
     expect(parseDiagnosticJson(null)).toEqual({});
+  });
+
+  it("gives a junior administrator ordered next steps for mixed outcomes", () => {
+    const steps = diagnosticNextSteps([
+      { status: "FAIL" },
+      { status: "ERROR" },
+      { status: "UNABLE_TO_EVALUATE" },
+      { status: "SKIPPED" }
+    ]);
+    expect(steps[0]).toContain("System Error");
+    expect(steps[1]).toContain("Unable");
+    expect(steps[2]).toContain("business outcome");
+    expect(steps[3]).toContain("applicability");
+  });
+
+  it("builds a smaller support report without duplicated raw results", () => {
+    const report = supportDiagnosticsReport({
+      runId: "run-1",
+      userId: "user-1",
+      recordId: "record-1",
+      checkSetQualifiedApiName: "Example_Set",
+      generatedAt: "2026-08-09T00:00:00.000Z",
+      checks: [{ check: "Example_Check", status: "ERROR", rawResult: {} }]
+    });
+    expect(report.checks[0]).toEqual({
+      check: "Example_Check",
+      status: "ERROR"
+    });
+    expect(report.checks[0].rawResult).toBeUndefined();
   });
 });
 

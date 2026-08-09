@@ -52,22 +52,22 @@ includes(
   "README must not link to GitHubSFDeploy"
 );
 includes(
-  "docs/installation/02-install-and-verify.md",
+  "docs/installation/install-and-verify.md",
   /sf project deploy start/i,
   "installation guide must not document source deploy"
 );
 includes(
-  "docs/installation/02-install-and-verify.md",
+  "docs/installation/install-and-verify.md",
   /Option B/i,
   "installation guide must not expose Option B source deploy"
 );
 includes(
-  "docs/installation/04-upgrading.md",
+  "docs/installation/upgrading.md",
   /Option B/i,
   "upgrade guide must not expose Option B source deploy"
 );
 includes(
-  "docs/installation/04-upgrading.md",
+  "docs/installation/upgrading.md",
   /sf project deploy start/i,
   "upgrade guide must not document source deploy"
 );
@@ -118,7 +118,7 @@ if (!stableVersionId.startsWith("04t")) {
 // README pointing subscribers at a superseded package version.
 for (const relativePath of [
   "README.md",
-  "docs/installation/02-install-and-verify.md"
+  "docs/installation/install-and-verify.md"
 ]) {
   const contents = read(path.join(paths.repoRoot, relativePath));
   const linked = new Set(contents.match(/04t[A-Za-z0-9]{12,15}/g) ?? []);

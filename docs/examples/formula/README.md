@@ -12,11 +12,11 @@ Found and Expected values.
 
 | Example | Salesforce question | Distinct Framework technique |
 | --- | --- | --- |
-| [Seller research readiness](01-account-research-ready.md) | Does the Account have a Phone or Website? | Formula `OR`, optional alternatives, and an edit action |
-| [Billing address review](02-billing-address-ready.md) | Are Billing City, Billing State, and Billing Country populated? | Formula `AND` with separate Found and Expected display formulas |
-| [Partner regional assignment](03-partner-regional-assignment.md) | Does a Partner Account have the country needed for assignment? | Formula applicability, `SKIPPED`, and compact passed-Check display |
-| [Branch handoff](04-branch-handoff.md) | Does the parent Account contain the headquarters location? | Parent relationship fields and a parent-record action URL |
-| [Small-business program eligibility](05-program-eligibility.md) | Does Number of Employees meet the program minimum? | Numeric Formula comparison with Found and Expected always visible |
+| [Seller research readiness](account-research-ready.md) | Does the Account have a Phone or Website? | Formula `OR`, optional alternatives, and an edit action |
+| [Billing address review](billing-address-ready.md) | Are Billing City, Billing State, and Billing Country populated? | Formula `AND` with separate Found and Expected display formulas |
+| [Partner regional assignment](partner-regional-assignment.md) | Does a Partner Account have the country needed for assignment? | Formula applicability, `SKIPPED`, and compact passed-Check display |
+| [Branch handoff](branch-handoff.md) | Does the parent Account contain the headquarters location? | Parent relationship fields and a parent-record action URL |
+| [Small-business program eligibility](program-eligibility.md) | Does Number of Employees meet the program minimum? | Numeric Formula comparison with Found and Expected always visible |
 
 ## When Formula is the right choice
 
@@ -27,11 +27,11 @@ relationship and the decision remains clear in Salesforce formula syntax. Use a
 runtime behavior.
 
 For every Formula setting, outcome, security check, and limit, use
-[Reference: Formula](../../reference/evaluation/01-formula.md).
+[Reference: Formula](../../reference/evaluation/formula.md).
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Formula](../../reference/evaluation/01-formula.md)
-- [Check fields](../../metadata/02-fields-check.md)
-- [Create your first Check](../../installation/03-create-your-first-check.md)
+- [Reference: Formula](../../reference/evaluation/formula.md)
+- [Check fields](../../metadata/fields-check.md)
+- [Create your first Check](../../installation/create-your-first-check.md)

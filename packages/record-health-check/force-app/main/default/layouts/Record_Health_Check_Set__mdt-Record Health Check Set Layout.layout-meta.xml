@@ -39,6 +39,33 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
+        <label>4. Run Button</label>
+        <layoutColumns>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>RunButtonDisplay__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>RunButtonLabel__c</field>
+            </layoutItems>
+        </layoutColumns>
+        <layoutColumns>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>RunButtonIcon__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>RerunButtonLabel__c</field>
+            </layoutItems>
+        </layoutColumns>
+        <style>TwoColumnsLeftToRight</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel>
+        <detailHeading>true</detailHeading>
+        <editHeading>true</editHeading>
         <label>2. Card Content</label>
         <layoutColumns>
             <layoutItems>
@@ -77,7 +104,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>4. Result Presentation</label>
+        <label>5. Result Presentation</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -104,7 +131,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>5. Diagnostics</label>
+        <label>6. Diagnostics</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -118,7 +145,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>6. Platform Events</label>
+        <label>7. Platform Events</label>
         <layoutColumns>
             <layoutItems><behavior>Edit</behavior><field
         >PublishUserRunEvent__c</field></layoutItems>
