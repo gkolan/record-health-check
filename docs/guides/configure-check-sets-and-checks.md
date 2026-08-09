@@ -108,11 +108,12 @@ action is hidden, the title uses the space that the action would have occupied. 
 Builder can inherit the Check Set setting or change the display for one card placement without
 changing when the Check Set runs.
 
-An automatic Check Set still offers **Rerun** after results appear unless the card uses **Hide**.
-Refresh and Rerun both reevaluate saved data, but only Rerun can publish user-run lifecycle events.
-Metadata validation warns when publication is enabled for a hidden automatic Check Set or one of
-its Checks, because users cannot publish from that card. The validation reads Custom Metadata, not
-Lightning page configuration, so also review any **Hide** override in Lightning App Builder.
+An automatic Check Set still offers **Rerun** after results appear unless the card uses **Hide** or
+the set resolves to zero Checks. Refresh and Rerun both reevaluate saved data, but only Rerun can
+publish user-run lifecycle events. Metadata validation warns when publication is enabled for a
+hidden automatic Check Set or one of its Checks, because users cannot publish from that card. The
+validation reads Custom Metadata, not Lightning page configuration, so also review any **Hide**
+override in Lightning App Builder.
 
 ## 4. Check fields
 

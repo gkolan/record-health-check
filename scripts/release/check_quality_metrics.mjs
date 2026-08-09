@@ -26,11 +26,13 @@ function fixed(value) {
 }
 
 const apexPercent = fixed(metrics.apex.coveragePercent);
+const namespacedApexPercent = fixed(metrics.apex.namespacedCoveragePercent);
 const lwcLines = fixed(metrics.lwc.linesPercent);
 for (const text of [
-  `Apex_coverage-${apexPercent}%25-brightgreen`,
+  `Namespaced_Apex_coverage-${namespacedApexPercent}%25-brightgreen`,
   `LWC_lines-${lwcLines}%25-brightgreen`,
-  `${apexPercent}% test coverage for packaged Apex`,
+  `${namespacedApexPercent}% namespaced package coverage`,
+  `${apexPercent}% subscriber-style floor`,
   `${lwcLines}% line coverage`
 ]) {
   if (!readme.includes(text)) {
@@ -117,6 +119,6 @@ if (apexOrg) {
 
 if (!process.exitCode) {
   console.log(
-    `Quality metrics meet their published floors: Apex ${apexPercent}%; LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
+    `Quality metrics match the published Apex results: ${namespacedApexPercent}% namespaced and ${apexPercent}% subscriber-style; LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
   );
 }

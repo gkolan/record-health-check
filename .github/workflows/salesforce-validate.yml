@@ -101,12 +101,12 @@ jobs:
       - name: Run blocking Code Analyzer release-policy gate
         run: |
           mkdir -p code-analyzer/logs
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --check-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --rule-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
       - name: Run all-checks neutral advisory debt audit
         if: always()
         continue-on-error: true
         run: |
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --config-file code-analyzer-neutral.yml --check-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
       - name: Upload Code Analyzer evidence
         if: always()
         uses: actions/upload-artifact@v4

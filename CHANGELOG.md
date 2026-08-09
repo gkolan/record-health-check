@@ -37,12 +37,6 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 
 ### Administrator experience
 
-- Added Check Set and Lightning App Builder controls for labeled, label-only, compact icon-only, or
-  hidden Run/Rerun actions. Hidden automatic actions release their header space; manual Check Sets
-  cannot hide their only run action. Empty automatic Check Sets no longer show a decorative Rerun,
-  and metadata validation warns when hidden automatic cards have lifecycle publication enabled but
-  no in-card deliberate publication path.
-
 - Lightning App Builder provides a Check Set picker filtered to the record-page object.
 - The card distinguishes Pass, Fail (Failed / Warning / Info by severity), Skipped, Unable to Check,
   and System Error outcomes. Setup and API use Unable to Evaluate (`UNABLE_TO_EVALUATE`) and `ERROR`
@@ -66,6 +60,16 @@ For installation and verification, start with
 [Install and verify](docs/installation/install-and-verify.md). For the public contracts, use the
 [Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
 [Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
+
+## [2.0.1] - Unreleased
+
+### Added
+
+- Added Check Set and Lightning App Builder controls for labeled, label-only, compact icon-only, or
+  hidden Run/Rerun actions. Hidden automatic actions release their header space; manual Check Sets
+  cannot hide their only run action. Empty automatic Check Sets no longer show a decorative Rerun,
+  and metadata validation warns when hidden automatic cards have lifecycle publication enabled but
+  no in-card deliberate publication path.
 
 ## [2.0.0] - 2026-08-04
 
