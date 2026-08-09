@@ -3,12 +3,17 @@
   "apex": {
     "coveragePercent": 99.53,
     "namespacedCoveragePercent": 99.6,
+    "namespacedCoveredLines": 8265,
+    "namespacedExecutableLines": 8298,
+    "namespacedTestCount": 548,
+    "namespacedEvidenceOrgAlias": "rhc-rel-ns-20260809-2",
+    "namespacedTestRunId": "707RL00001bVwYi",
     "coveredLines": 8259,
     "executableLines": 8298,
-    "testCount": 479,
+    "testCount": 499,
     "evidenceOrgShape": "no-namespace",
-    "evidenceOrgAlias": "rhc-rel-nons-20260809",
-    "testRunId": "707Rt00002B6EK4IAN"
+    "evidenceOrgAlias": "rhc-rel-nons-20260809-2",
+    "testRunId": "707Ru000024mxiP"
   },
   "lwc": {
     "testCount": 181,
