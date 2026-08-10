@@ -186,6 +186,7 @@
         <members>RecordHealthCheckApexPluginResolver</members>
         <members>RecordHealthCheckApexScopeTest</members>
         <members>RecordHealthCheckBatch</members>
+        <members>RecordHealthCheckBatchScopeTest</members>
         <members>RHCEvaluatorEdgeBehaviorTest</members>
         <members>RHCComparisonDisplayEdgeBehaviorTest</members>
         <members>RHCDualQueryEdgeBehaviorTest</members>

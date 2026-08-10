@@ -1,115 +1,124 @@
-# Reference: Data model
+# Record Health Check data model
 
 > [!NOTE]
-> On this page, see how Check Set, Check, and the three Platform Events relate to each other, and
-> understand that a Check result is a runtime value, not a row in a health-history database.
+> This page explains what the package stores, what exists only while a Check runs, and what your team
+> must create if the org needs health-check history or reports.
 
-Use this page alongside the [Metadata field references](../../metadata/README.md) when you need the
-shape of the data model rather than the meaning of one field.
+## What the package stores
 
-## Entity relationship diagram
+Record Health Check stores its configuration in two Custom Metadata Types:
+
+| Custom Metadata Type | What one record represents |
+| --- | --- |
+| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) | A group of Checks for one Salesforce object and the way its Lightning card behaves |
+| **Record Health Check** (`Record_Health_Check__mdt`) | One data-quality question, how to evaluate it, and what to show when it passes, fails, is skipped, or cannot be evaluated |
+
+Every Check must belong to one Check Set through the required **Check Set**
+(`Record_Health_Check_Set__c`) Custom Metadata relationship. A Check Set can contain many Checks.
 
 ```mermaid
 erDiagram
-    RECORD_HEALTH_CHECK_SET ||--o{ RECORD_HEALTH_CHECK_CHECK : "groups"
-    RECORD_HEALTH_CHECK_SET {
-        string DeveloperName
+    CHECK_SET ||--o{ CHECK : "contains"
+    CHECK_SET {
         string QualifiedApiName
         string ObjectApiName
         boolean IsActive
         string CardRunMode
-        string RunButtonDisplay
-        string RunButtonLabel
-        string RerunButtonLabel
-        string RunButtonIcon
         boolean ShowDiagnostics
-        boolean PublishUserRunEvent
-        boolean PublishErrorLogEvent
     }
-    RECORD_HEALTH_CHECK_CHECK {
-        string DeveloperName
+    CHECK {
         string QualifiedApiName
         string EvaluationType
-        string ApplicabilityMode
+        integer EvaluationOrder
         string PrerequisiteCheck
         string ComparisonOperator
         string FailureSeverity
-        boolean PublishUserResultEvent
-    }
-    RECORD_HEALTH_CHECK_CHECK }o--o| RECORD_HEALTH_CHECK_CHECK : "PrerequisiteCheck (optional, same Check Set)"
-
-    RECORD_HEALTH_CHECK_SET ||--o{ SET_RUN_EVENT : "publishes on deliberate run"
-    RECORD_HEALTH_CHECK_CHECK ||--o{ CHECK_RESULT_EVENT : "publishes on deliberate run"
-    RECORD_HEALTH_CHECK_SET ||--o{ ERROR_LOG_EVENT : "publishes on ERROR"
-
-    SET_RUN_EVENT {
-        string RunId
-        string CheckSetQualifiedApiName
-        string RecordId
-        string Status
-        integer PassedCount
-        integer FailedCount
-        string ContractVersion
-    }
-    CHECK_RESULT_EVENT {
-        string RunId
-        string CheckQualifiedApiName
-        string RecordId
-        string Status
-        string ReasonCode
-        string FailureSeverity
-        string ContractVersion
-    }
-    ERROR_LOG_EVENT {
-        string RunId
-        string CheckSetQualifiedApiName
-        string RecordId
-        string ExceptionType
-        string Message
-        string StackTrace
     }
 ```
 
-## Reading the diagram
+Text fallback: one Check Set contains zero or more Checks. Every Check belongs to exactly one Check
+Set.
 
-| Relationship | Cardinality | Meaning |
-| --- | --- | --- |
-| Check Set to Check | One to many | A Check Set groups an ordered list of Checks; a Check belongs to exactly one Check Set |
-| Check to Check (prerequisite) | Optional, zero or one | A Check may name another Check in the **same Check Set** as its prerequisite; the server enforces that scope on every call |
-| Check Set to Set Run event | One completed run to zero or one event | Published only for a deliberate run, only when **Publish User Run Event** is checked |
-| Check to Check Result event | One finalized result to zero or one event | Published only for a deliberate run, only when that Check's **Publish User Result Event** is checked |
-| Check Set to Log event | One `ERROR` to zero or one event | Published whenever the Framework records an `ERROR` for that Check Set, unless **Publish Error Log Event** is unchecked |
+For the purpose of every field, see [Check Set fields](../../metadata/fields-check-set.md) and
+[Check fields](../../metadata/fields-check.md).
 
-The Custom Metadata relationship (Check Set to Check) is a deploy-time, structural link: it exists
-whether or not any Check ever runs. The event relationships are runtime, best-effort, and optional:
-they exist only for the specific runs an administrator has opted into publishing.
+## How prerequisite Checks are connected
 
-## Results are ephemeral, not a stored history
+**Prerequisite Check** (`PrerequisiteCheck__c`) is an optional text field on a Check. Enter the
+Developer Name of an earlier active Check in the same Check Set. Do not enter its Check Title or
+Qualified API Name.
 
-Nothing in this data model stores a Check result. A run produces:
+Example:
 
-1. A typed response returned directly to the caller (Apex, Flow, or the Lightning component), which
-   exists only for the duration of that call.
-2. Optionally, one or more platform events, which Salesforce retains for a bounded window (72 hours
-   for high-volume events) and which a subscriber must capture if it wants to keep the data longer.
+| Check | Developer Name | Evaluation Order | Prerequisite Check |
+| --- | --- | --- | --- |
+| Billing country is present | `Billing_Country_Present` | 10 | Leave blank |
+| Billing state is valid | `Billing_State_Valid` | 20 | `Billing_Country_Present` |
 
-There is no `Record_Health_Check_Result__c` object, no history related list, and no built-in trend
-report. If your business process needs a queryable history of readiness over time, subscribe to
-`Record_Health_Check_Set_Run__e` and/or `Record_Health_Check_Result__e` and write your own
-storage object. See [Architecture: Out of scope](architecture.md#16-out-of-scope) and
-[Platform Event subscriptions](../../platform-events/README.md).
-
-## Why prerequisite is a name, not a formal foreign key
-
-`PrerequisiteCheck__c` stores a Developer Name rather than a Custom Metadata relationship field,
-because the engine needs to detect a cycle (`CIRCULAR_DEPENDENCY`) and a Check ordered after the Check
-that requires it (`DEPENDENCY_NOT_IN_RUN`) at runtime, inside a single already-loaded Check Set. See
+Salesforce runs `Billing_State_Valid` only when `Billing_Country_Present` returns `PASS`. A missing,
+later, or circular prerequisite is reported by the Check Set validation and produces the documented
+result when the Check runs. See
 [Reason Codes: Applicability and prerequisites](../contracts/reason-codes.md#applicability-and-prerequisites).
+
+## What happens to a result
+
+A health-check result is not saved as a Salesforce record automatically. Apex, Flow, Batch Apex,
+and the Lightning component receive the result for the current run. After that transaction ends,
+the package has no result-history record to query or report on.
+
+The package does **not** install a `Record_Health_Check_Result__c` custom object or a result-history
+related list.
+
+### Recommended: Save returned results when history is required
+
+If users need reports, trends, or a permanent audit history, your team must first create a custom
+object for that purpose. For example, create **Health Check Result** with API name
+`Health_Check_Result__c`, then add the fields your process needs, such as:
+
+| Example custom field | Suggested API name | Value to save |
+| --- | --- | --- |
+| Checked Record ID | `Checked_Record_Id__c` | `result.evaluation.recordId` |
+| Check API Name | `Check_API_Name__c` | `result.evaluation.checkQualifiedApiName` |
+| Status | `Status__c` | `result.evaluation.status` |
+| Reason Code | `Reason_Code__c` | `result.evaluation.reasonCode` |
+| Severity | `Severity__c` | `result.evaluation.severity` |
+| Run ID | `Run_Id__c` | `response.runId` |
+
+The object and field names above are examples; they are not installed by Record Health Check. Save
+the returned values in your Flow or Apex process. For a complete Batch Apex example, see
+[Batch Apex](../../api/batch.md).
+
+### Optional: Publish Platform Events
+
+Use Platform Events when a separate Flow, Apex trigger, or external integration should receive the
+results after the run. Publishing an event does not create a reportable history record. The receiver
+must save the fields to an object if long-term storage is required.
+
+| Platform Event | What one event describes |
+| --- | --- |
+| `Record_Health_Check_Result__e` | One Check result for one checked record |
+| `Record_Health_Check_Set_Run__e` | The final Status counts for one checked record and Check Set |
+| `Record_Health_Check_Log__e` | Restricted troubleshooting detail for an `ERROR` log entry |
+
+Programmatic Apex and Flow runs choose `NONE`, `ACTIONABLE`, or `ALL`. A person clicking the
+Lightning card's Run or Rerun button uses the two publication settings in Custom Metadata. Automatic
+record-page checks do not publish health-result events. Error Log events have their own Check Set
+setting. See [Lifecycle events](../../integration/lifecycle-events.md) before creating a receiver.
+
+## What is metadata and what is run data?
+
+| Data | Exists after installation? | Saved by the package after each run? |
+| --- | --- | --- |
+| Check Sets and Checks | Yes, as Custom Metadata | Not applicable; these records are configuration |
+| Apex or Flow response | Only during the request | No |
+| Lightning card result | Only in the current component state | No |
+| Platform Event message | Only when publication is enabled or requested | No custom-object history is created |
+| Your team's result custom object | Only if your team creates it | Yes, when your Flow or Apex code inserts a record |
 
 ## Related
 
 - [Check Set fields](../../metadata/fields-check-set.md)
 - [Check fields](../../metadata/fields-check.md)
-- [Metadata reference](../../metadata/README.md)
 - [Lifecycle events](../../integration/lifecycle-events.md)
+- [Platform Event receivers](../../platform-events/README.md)
 - [Architecture](architecture.md)

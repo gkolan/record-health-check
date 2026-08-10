@@ -5,9 +5,10 @@
  *
  * @example
  * Id jobId = RecordHealthCheckBatch.run(
- *   'rhc__Account_Data_Quality',
+ *   'My_Account_Checks',
  *   accountIds,
- *   RecordHealthCheckEventPublication.ACTIONABLE
+ *   RecordHealthCheckEventPublication.ACTIONABLE,
+ *   25
  * );
  */
 global with sharing class RecordHealthCheckBatch implements Database.Batchable<Id> {
@@ -119,16 +120,64 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     List<Id> recordIds,
     RecordHealthCheckEventPublication publication
   ) {
+    return run(
+      checkSetQualifiedApiName,
+      recordIds,
+      publication,
+      DEFAULT_SCOPE_SIZE
+    );
+  }
+
+  /**
+   * Starts the Batch with a caller-selected scope size.
+   *
+   * @param checkSetQualifiedApiName Exact Check Set QualifiedApiName.
+   * @param recordIds Known records to evaluate, limited to the async record cap.
+   * @param publication Lifecycle-event policy; null defaults to NONE.
+   * @param scopeSize Records processed in each Batch transaction, from 1 through 200.
+   * @return AsyncApexJob ID for monitoring the submitted Batch.
+   * @throws RecordHealthCheckAccess.AuthorizationException When the caller lacks run permission.
+   * @throws IllegalArgumentException When the Check Set, records, or scope size is invalid.
+   * @example
+   * Id jobId = RecordHealthCheckBatch.run(
+   *   'My_Account_Checks',
+   *   accountIds,
+   *   RecordHealthCheckEventPublication.ALL,
+   *   25
+   * );
+   */
+  global static Id run(
+    String checkSetQualifiedApiName,
+    List<Id> recordIds,
+    RecordHealthCheckEventPublication publication,
+    Integer scopeSize
+  ) {
     RecordHealthCheckAccess.requireCanRunChecks();
     validatePopulation(checkSetQualifiedApiName, recordIds);
+    validateScopeSize(scopeSize);
     return Database.executeBatch(
       new RecordHealthCheckBatch(
         checkSetQualifiedApiName,
         recordIds,
         publication
       ),
-      DEFAULT_SCOPE_SIZE
+      scopeSize
     );
+  }
+
+  private static void validateScopeSize(Integer scopeSize) {
+    if (
+      scopeSize == null ||
+      scopeSize < 1 ||
+      scopeSize > RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE
+    ) {
+      throw new IllegalArgumentException(
+        'Batch scope size must be between 1 and ' +
+          RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE +
+          '. suppliedScopeSize=' +
+          scopeSize
+      );
+    }
   }
 
   @TestVisible

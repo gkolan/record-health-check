@@ -1,7 +1,8 @@
 # 04 · Stalled Approval Identifies Inactive Approvers
 
 > [!NOTE]
-> On this page, build a defensive Apex Check that identifies inactive users on pending approval steps, names the people blocking progress, and returns a safe outcome when approval data is unavailable.
+> On this page, build an Apex Check that identifies inactive users on pending approval steps, names
+> the people blocking progress, and clearly reports when the approval data cannot be checked.
 >
 > **Setup reference**
 >
@@ -9,10 +10,8 @@
 
 > [!IMPORTANT]
 > The supporting Apex class lives under `integration-tests/` and does not install with the package.
-> The source block mirrors the repository's same-namespace test class and uses package-internal
-> helpers, so it is teaching source rather than a subscriber-ready copy. Build a subscriber class
-> from the [public Apex Check contract](../../reference/evaluation/apex-check-contract.md) and use
-> Salesforce Schema APIs for object checks.
+> Create and deploy the subscriber-owned class in Step 2 before configuring the Check. The code on
+> this page uses the public `rhc.*` types and Salesforce Schema APIs available to your org.
 
 ## Scenario
 
@@ -27,13 +26,22 @@ A Salesforce administrator opens a record whose approval has stopped moving.
 >
 > Record Health Check names inactive users assigned to pending approval steps, giving the administrator a specific reason the approval may have stopped and a clear reassignment task.
 
+## Before you start
+
+- Install Record Health Check.
+- Confirm that the approval product and approval object exist in your org. The `sbaa__*` names on
+  this page are examples and must be verified in **Setup → Object Manager**.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Have a Salesforce developer review, test, and deploy the Apex class. Record Health Check does not
+  install this example class.
+
 ## What you will learn
 
 | Skill | How this example teaches it |
 | --- | --- |
 | Inspect approval-related Salesforce data | Apex follows approval assignments to participating users. |
 | Account for product-specific objects | The implementation isolates assumptions that depend on licensed Salesforce features. |
-| Return a safe operational result | The Check distinguishes inactive participants from an inability to inspect approval data. |
+| Report when the Check cannot run | The Check distinguishes inactive participants from unavailable approval data. |
 | Stop a Check Set after a system error | The Check Set can prevent later Checks from running after an unexpected `ERROR`. |
 
 ## What the card shows
@@ -65,7 +73,7 @@ List<Id> targetRecordIds = scope.recordIds;
 This example uses dynamic SOQL because the Advanced Approvals package is optional. It still binds
 the supplied record Id instead of joining it into the query text.
 
-## Step 1: Understand the parameters
+## Step 1: Verify the approval object and fields
 
 This Check uses one JSON object with the package-specific object and field names:
 
@@ -79,12 +87,9 @@ This Check uses one JSON object with the package-specific object and field names
 }
 ```
 
-After building and deploying a subscriber-compatible class from this pattern:
-
-1. In Object Manager, confirm every illustrative `sbaa__*` API name and status value in your org.
-2. Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**.
-3. Create or edit the Check record.
-4. Paste the corrected object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check** (`Record_Health_Check__mdt`).
+In **Setup → Object Manager**, confirm all four object and field API names and the exact stored value
+for every pending status. Also confirm that the target field contains Opportunity IDs before using
+the Opportunity Check Set shown later. Replace every illustrative value that differs in your org.
 
 Record Health Check parses the JSON and supplies the named settings as `scope.parameters`.
 Blank settings use the class defaults, and an empty status list uses `Requested`. See
@@ -97,16 +102,15 @@ The class verifies that the object exists, executes bind-based dynamic SOQL in u
 queries assigned Users for `IsActive = FALSE` with `WITH USER_MODE`.
 
 No assigned users or only active users passes. Inactive users fail with a typed Found list; the
-framework renders that list and applies its standard preview limit. A missing object returns
+Record Health Check renders that list and applies its standard preview limit. A missing object returns
 `OBJECT_NOT_FOUND`; invalid fields or SOQL return `INVALID_SOQL_TEMPLATE`. Both are unable to
 evaluate, never a false pass. Blank settings retain defaults, and an empty status list retains
 `Requested`.
 
-## Step 2: Review the integration-test class
+## Step 2: Create and test the Apex class
 
-This is the complete integration-test class used by the repository. Comments explain the Record
-Health Check inputs, administrator settings, user access, pass logic, and returned values. Do not
-deploy it unchanged in a subscriber org because its object checks use a package-internal helper.
+Create an Apex class named `ApprovalInactiveApproverCheck` from the code below. It compiles even
+when the optional approval object is absent because it uses object and field API names as text.
 
 <!-- BEGIN GENERATED APEX CLASS -->
 
@@ -128,7 +132,7 @@ deploy it unchanged in a subscriber org because its object checks use a package-
  * "userField":"sbaa__User__c","statusField":"sbaa__Status__c",
  * "pendingStatuses":["Requested"]}
  */
-global with sharing class ApprovalInactiveApproverCheck implements RecordHealthCheckPlugin {
+global with sharing class ApprovalInactiveApproverCheck implements rhc.RecordHealthCheckPlugin {
   @TestVisible
   private static final String DEFAULT_APPROVAL_OBJECT = 'sbaa__Approval__c';
   @TestVisible
@@ -141,23 +145,23 @@ global with sharing class ApprovalInactiveApproverCheck implements RecordHealthC
     'Requested'
   };
 
-  global Map<Id, RecordHealthCheckOutcome> evaluate(
-    RecordHealthCheckScope scope
+  global Map<Id, rhc.RecordHealthCheckOutcome> evaluate(
+    rhc.RecordHealthCheckScope scope
   ) {
     List<Id> recordIds = scope.recordIds;
     Settings settings = resolveSettings(scope.parameters);
-    Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
+    Map<Id, rhc.RecordHealthCheckOutcome> results = new Map<Id, rhc.RecordHealthCheckOutcome>();
 
     // Graceful degradation: the approval object is absent (Advanced Approvals
     // not installed, or a custom object name was mistyped). Every record in the
     // scope gets the same honest answer rather than a false PASS.
     if (
-      !RecordHealthCheckDescribeCache.containsObject(settings.approvalObject)
+      !Schema.getGlobalDescribe().containsKey(settings.approvalObject)
     ) {
       for (Id recordId : recordIds) {
         results.put(
           recordId,
-          RecordHealthCheckOutcome.unableToEvaluate('OBJECT_NOT_FOUND')
+          rhc.RecordHealthCheckOutcome.unableToEvaluate('OBJECT_NOT_FOUND')
         );
       }
       return results;
@@ -172,7 +176,7 @@ global with sharing class ApprovalInactiveApproverCheck implements RecordHealthC
       for (Id recordId : recordIds) {
         results.put(
           recordId,
-          RecordHealthCheckOutcome.unableToEvaluate('INVALID_SOQL_TEMPLATE')
+          rhc.RecordHealthCheckOutcome.unableToEvaluate('INVALID_SOQL_TEMPLATE')
         );
       }
       return results;
@@ -271,17 +275,17 @@ global with sharing class ApprovalInactiveApproverCheck implements RecordHealthC
    * from it, so no query happens per record.
    */
   @TestVisible
-  private RecordHealthCheckOutcome buildOutcome(
+  private rhc.RecordHealthCheckOutcome buildOutcome(
     Set<Id> assignedUserIds,
     Map<Id, String> inactiveNames,
     Settings settings
   ) {
-    RecordHealthCheckValue expected = RecordHealthCheckValue.ofList(
+    rhc.RecordHealthCheckValue expected = rhc.RecordHealthCheckValue.ofList(
       new List<String>()
     );
     if (assignedUserIds == null || assignedUserIds.isEmpty()) {
-      return RecordHealthCheckOutcome.pass('APEX_PASS')
-        .withFound(RecordHealthCheckValue.ofList(new List<String>()))
+      return rhc.RecordHealthCheckOutcome.pass('APEX_PASS')
+        .withFound(rhc.RecordHealthCheckValue.ofList(new List<String>()))
         .withComparison('EQUALS', expected);
     }
 
@@ -294,14 +298,13 @@ global with sharing class ApprovalInactiveApproverCheck implements RecordHealthC
     }
     inactive.sort();
 
-    // The names ARE the finding, carried as a typed list so the engine can
-    // render them. The check does not write the sentence itself: prose, and how
-    // many names to show before truncating, are display decisions the core owns.
-    RecordHealthCheckOutcome outcome = inactive.isEmpty()
-      ? RecordHealthCheckOutcome.pass('APEX_PASS')
-      : RecordHealthCheckOutcome.fail('APEX_FAIL');
+    // Return names as a list. Record Health Check formats the list for the card
+    // and limits how many names appear in its preview.
+    rhc.RecordHealthCheckOutcome outcome = inactive.isEmpty()
+      ? rhc.RecordHealthCheckOutcome.pass('APEX_PASS')
+      : rhc.RecordHealthCheckOutcome.fail('APEX_FAIL');
     return outcome
-      .withFound(RecordHealthCheckValue.ofList(inactive))
+      .withFound(rhc.RecordHealthCheckValue.ofList(inactive))
       .withComparison('EQUALS', expected);
   }
 
@@ -364,12 +367,19 @@ global with sharing class ApprovalInactiveApproverCheck implements RecordHealthC
 
 <!-- END GENERATED APEX CLASS -->
 
+Create an Apex test class before deployment. Test an absent approval object, an invalid field name,
+no assigned user, an active assigned user, an inactive assigned user, the configured status list,
+200 target record IDs, and constant SOQL usage as the number of target records increases. The
+repository's
+[`ApprovalInactiveApproverCheckTest`](../../../packages/record-health-check/integration-tests/main/default/classes/ApprovalInactiveApproverCheckTest.cls)
+is a package-development reference; a subscriber test must use the public `rhc.*` types.
+
 ## Context and result contract
 
 Record Health Check calls the plugin once for a scope:
 
 ```apex
-Map<Id, RecordHealthCheckOutcome> evaluate(RecordHealthCheckScope scope)
+Map<Id, rhc.RecordHealthCheckOutcome> evaluate(rhc.RecordHealthCheckScope scope)
 ```
 
 The context contains:
@@ -390,18 +400,46 @@ status factory and typed values:
 | --- | --- |
 | `status` | An outcome created by `pass`, `fail`, `unableToEvaluate`, or `skipped` |
 | `reasonCode` | A stable, nonblank code that explains the programmatic reason |
-| `found` | A typed `RecordHealthCheckValue` describing what the class observed |
+| `found` | A typed `rhc.RecordHealthCheckValue` describing what the class observed |
 | `comparisonOperator` | The operator behind the decision, such as `EQUALS` |
-| `expected` | A typed `RecordHealthCheckValue` describing the passing requirement |
+| `expected` | A typed `rhc.RecordHealthCheckValue` describing the passing requirement |
 
 For applicability, configure **Applies To** on the Check so Record Health Check skips before Apex
-runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
+runs. Record Health Check supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
 [Returning an outcome](../../reference/evaluation/apex-check-contract.md#outcome).
 
 
-## Step 3: Configure the Check
+## Step 3: Create the Check Set
+
+This example assumes the verified approval target field contains Opportunity IDs. In **Setup →
+Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and create:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Opportunity Approval Readiness |
+| **Record Health Check Set Name** | `Opportunity_Approval_Readiness` |
+| **Object** | `Opportunity` |
+| **Card Title** | Opportunity Approval Readiness |
+| **Card Subtitle** | Confirm pending approval assignees are active users. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Checked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+**Stop after a system error** stops later Checks only after `ERROR`. It does not stop after `FAIL`,
+`SKIPPED`, or `UNABLE_TO_EVALUATE`.
+
+If the verified target field contains another type of Salesforce record ID, create the Check Set
+for that object instead and use it on that object's Lightning record page.
+
+## Step 4: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
@@ -409,7 +447,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 | --- | --- | --- |
 | **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Approval_No_Inactive_Approvers` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | No Inactive Approvers In Chain |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Opportunity_Approval_Readiness` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | No Inactive Approvers In Chain |
 | **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with Apex |
 | **Apex Class** | [`ApexClass__c`](../../metadata/fields-check.md#apex-class-apexclass__c) | `ApprovalInactiveApproverCheck` |
@@ -437,40 +475,15 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 > `approvalObject`, `targetField`, `userField`, `statusField`, and `pendingStatuses` against the
 > installed product's fields in **Setup → Object Manager** (**Confirm in your org**).
 
-The class supplies a failure message that names inactive users, so it replaces **Message When
-Failed** when the Check fails. Keep the metadata message as a safe general message in case the class
-cannot provide names. Formula, Query, and Compare two queries fields do not apply.
-
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Apex_Readiness` |
-| **Object** | `Account` |
-| **Card Title** | `Account Readiness` |
-| **Card Subtitle** | Confirm pending approval assignees are still active users. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Checked; later Checks do not run after this Check returns `ERROR` |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
-
-The Check Set can remain active while you build this example, but leave this Check inactive until
-you verify its Advanced Approvals API names and complete the tests below.
-**Stop after a system error** affects only `ERROR`; it does not stop the Check Set after `FAIL`,
-`SKIPPED`, or `UNABLE_TO_EVALUATE`.
+The class returns inactive names in **Found**. The Check's **Message When Failed** remains the
+failure message; the class does not replace it. Formula, Query, and Compare Two Queries fields do
+not apply.
 
 ## What the user sees
 
-The Apex class result becomes these Framework outcomes and card values:
+The Apex class result produces these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | No inactive assignees are assigned to pending approval steps. |
 | **`FAIL`** | One or more inactive assignees shows Needs attention with Critical severity and names the affected users. |
@@ -489,14 +502,16 @@ The approval and User queries run in user mode, so the result follows the runnin
 
 - The plugin can name inactive Users. Confirm that the running user is allowed to see those names.
 
-- Missing approval-object or User access must show **Unable to evaluate** rather than a false Pass.
+- A missing approval object or an error in the dynamic approval query returns
+  `UNABLE_TO_EVALUATE`. If the separate User query throws because the running user cannot access
+  User or Name, Record Health Check returns `ERROR` with `APEX_EVALUATOR_ERROR`.
 
 - Use the real end-user Permission Sets and approval-row visibility.
 
-## Step 4: Test the Check
+## Step 5: Test the Check
 
 1. In Object Manager, verify and replace every illustrative `sbaa__*` API name in Apex Parameters (JSON).
-2. Deploy the pack (or class), activate the Check, and open a record with a pending step assigned to an inactive user. Confirm Critical and the named approver.
+2. Deploy the class, activate the Check, and open an Opportunity with a pending step assigned to an inactive user. Confirm Critical and the named approver.
 3. Reassign to an active user, rerun, and confirm a pass.
 4. In an org without Advanced Approvals (or with wrong API names), confirm unable to evaluate.
 5. Repeat with the intended end-user profile and confirm row and User visibility follow its access.
@@ -523,18 +538,18 @@ Confirm `status`, Found, Expected, message, and any Reason Code.
 ### Lightning record page
 
 1. Add **Record Health Check** to the target object's Lightning record page.
-2. Select `Account_Apex_Readiness` only if its Check Set object matches that page; otherwise create a
-   Check Set for the confirmed target object and assign the Check to it.
+2. Select `Opportunity_Approval_Readiness`. If the verified approval target is not Opportunity,
+   select the Check Set created for the correct target object instead.
 3. Save and activate the page, click **Run** or **Rerun**, and compare the result with Execute Anonymous.
 
 ## Failures, remedies, and customization
 
 | Reason or symptom | What to verify |
 | --- | --- |
-| `OBJECT_NOT_FOUND` | Install the Framework or correct `approvalObject`; keep the Check inactive. |
+| `OBJECT_NOT_FOUND` | Confirm the approval product is installed and correct `approvalObject`; keep the Check inactive. |
 | `INVALID_SOQL_TEMPLATE` | Correct field names, field types, and pending statuses in Object Manager. |
 | Too few inactive users | Check approval-row sharing, User visibility, and the status list. |
-| The Found list is truncated | The framework limits list previews for readability. Use authorized diagnostics or the approval records to review the complete assignment set. |
+| The Found list is truncated | Record Health Check limits list previews for readability. Use authorized diagnostics or the approval records to review the complete assignment set. |
 
 You can adapt the class to another approval product when its rows provide a target record ID,
 assigned User ID, and status. Verify those types and repeat pass, fail, unable, and access tests

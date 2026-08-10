@@ -1,99 +1,175 @@
 # Run Record Health Check from Scheduled Apex
 
 > [!NOTE]
-> On this page, schedule recurring health-check work by handing the record population to Batch Apex instead of evaluating an unbounded population in the scheduler transaction.
+> Use Scheduled Apex when Record Health Check should run automatically at a recurring time. The
+> scheduled class should start Queueable or Batch Apex instead of checking all records itself.
 
-Scheduled Apex should start bounded Queueable work or a Batch Apex job. The scheduler transaction
-should not query an unrestricted population and attempt to evaluate it in one request.
+## Choose the scheduling pattern
 
-The basic scheduling pattern is: choose a known ID population for the packaged daily adapter, or
-use a custom query-backed Batch when each run must discover the current population.
+| Example | Use | Why |
+| --- | --- | --- |
+| The same 400 Account IDs must run every day | Packaged daily scheduler | The IDs are known and intentionally stay the same. |
+| Every night, check all Accounts modified in the last 30 days | Custom scheduler that starts a query-backed Batch | The matching Accounts change, so the Batch must query them each night. |
 
-The packaged `rhc.RecordHealthCheckScheduled.scheduleDaily` adapter accepts a 1–80 character job name,
-a nonblank qualified Check Set identity, and 1–2,000 distinct non-null record IDs. It requires
-**Record Health Check Run** (`rhc__Record_Health_Check_Run`), rejects invalid input before creating a `CronTrigger`, and rechecks
-authorization when the schedule fires before delegating to the packaged Batch adapter.
-The public constructor enforces the same permission and population boundary.
+The packaged schedule captures record IDs when the schedule is created. Records added later are
+not included, and removed IDs are not automatically replaced. This behavior is correct only when
+the list of records is intentionally fixed.
 
-The packaged schedule captures those record IDs when it is created and evaluates the same IDs on
-every run. It does not discover records that later enter or leave a business population. Use a
-custom scheduler that starts a query-backed Batch when each run must discover the current records.
+Also decide where results go:
 
-## Packaged daily schedule
+| Scheduled work | Result choices |
+| --- | --- |
+| Packaged daily scheduler | Publish `ACTIONABLE` or `ALL` Platform Events, or use `NONE` when only job completion matters. |
+| Custom scheduler that starts a custom Batch | Save `response.results` directly, publish Platform Events, or retain no individual results. |
 
-Schedule the known record population for 2:00 AM in the scheduling user's time zone:
+## Before you start
+
+1. Decide whether every run uses the same record IDs or queries the records again.
+2. Assign the scheduling user the packaged **Record Health Check User** Permission Set. Use
+   **Record Health Check Admin** only when the user also configures Checks or views diagnostics.
+   Both include **Custom Permission label:** Record Health Check Run, **Custom Permission API
+   name:** `rhc__Record_Health_Check_Run`, and the required Apex class access.
+3. Confirm that the scheduling user has the object, record, field, and Custom Metadata access the
+   selected Checks require.
+4. Copy the Check Set **Qualified API Name** from **Setup → Custom Metadata Types → Record Health
+   Check Set → Manage Records**.
+5. Choose a result destination from the table above. Prepare the custom result object or Platform
+   Event receiver before creating the schedule.
+6. Choose a stable, unique scheduled-job name.
+
+The scheduling user's time zone controls the start time. Verify that user's Salesforce time zone
+before enabling a production schedule.
+
+## Example: Schedule the same record IDs every day
+
+Schedule the same known IDs to run daily at 2:00 AM in the scheduling user's time zone:
 
 ```apex
+// Copy the exact Check Set Qualified API Name from Setup.
+// A Check Set included with the installed package might be rhc__Account_Data_Quality.
+String checkSetApiName = 'My_Account_Checks';
+
 String scheduledJobId = rhc.RecordHealthCheckScheduled.scheduleDaily(
   'Nightly Account Health',
-  'rhc__Account_Data_Quality',
+  checkSetApiName,
   accountIds,
+  // Use ACTIONABLE to publish only FAIL, UNABLE_TO_EVALUATE, and ERROR.
+  // Use ALL to publish every result, including PASS and SKIPPED.
+  // Use NONE only when scheduled-job and Batch-job completion are enough.
   rhc.RecordHealthCheckEventPublication.ACTIONABLE
 );
 ```
 
-The returned ID identifies the `CronTrigger`. Each firing starts a packaged Batch job; monitor that
-downstream `AsyncApexJob` separately. Passing `NONE` creates no health-result destination, so use it
-only when job completion without retained outcomes satisfies the design.
+The packaged scheduling class accepts:
 
-## Dynamic-population schedule
+- a job name containing 1–80 characters;
+- a Check Set Qualified API Name copied from Setup;
+- 1–2,000 distinct, non-null record IDs; and
+- an explicit event-publication mode.
 
-Create a scheduler that starts the reviewed query-backed Batch implementation when the current
-record population must be rediscovered:
+Invalid input or missing permission is rejected before Salesforce creates a `CronTrigger`.
+Authorization is checked again when the schedule fires. Each firing starts the packaged Batch
+class.
+
+The returned `scheduledJobId` identifies the recurring schedule, not the Batch job started each
+day. Monitor each Batch separately in **Setup → Apex Jobs**. Passing `NONE` creates no
+health-result destination, so use it only when job completion is sufficient.
+
+The packaged daily schedule checks up to 100 records in each Batch transaction. The scheduled API
+does not currently accept a different Batch size. To choose one, create a custom
+scheduler that calls `rhc.RecordHealthCheckBatch.run(..., scopeSize)`.
+
+## Example: Query the current records every time the schedule runs
+
+First create the complete `AccountHealthBatch` described in [Batch Apex](batch.md). That example
+uses `NONE` and saves `response.results` directly. Then create a small scheduler whose only job is
+to start that Batch:
 
 ```apex
 public with sharing class NightlyAccountHealthSchedule
   implements Schedulable {
   public void execute(SchedulableContext context) {
+    // Copy the exact Check Set Qualified API Name from Setup.
+    String checkSetApiName = 'My_Account_Checks';
+
+    // AccountHealthBatch queries current Accounts, publishes no result
+    // events, and saves its response.results directly.
     Database.executeBatch(
-      new AccountHealthBatch('rhc__Account_Data_Quality'),
+      new AccountHealthBatch(checkSetApiName),
       25
     );
   }
 }
 ```
 
-Schedule the class from Setup or Apex:
+Schedule the custom class from Setup:
+
+1. In Setup, enter **Apex Classes** in Quick Find and select **Apex Classes**.
+2. Select **Schedule Apex**.
+3. Enter a job name, such as `Nightly Account Health`.
+4. Select `NightlyAccountHealthSchedule` as the Apex class.
+5. Choose the frequency, start date, end date, and preferred start time.
+6. Select **Save**.
+7. Open **Setup → Scheduled Jobs** and confirm that the schedule appears.
+
+The same schedule can be created from Apex:
 
 ```apex
-String jobId = System.schedule(
+String scheduledJobId = System.schedule(
   'Nightly Account Health',
   '0 0 2 * * ?',
   new NightlyAccountHealthSchedule()
 );
 ```
 
-## Operational design
+The value `'0 0 2 * * ?'` is Salesforce's scheduling expression for every day at 2:00 AM in the
+scheduling user's time zone.
 
-Record the scheduled job ID, downstream Batch or Queueable job ID, and Framework Run IDs when the
-process needs traceable history. Monitor failed scheduler starts separately from health-check
-`ERROR` results and downstream asynchronous job failures.
+## Monitor the complete chain
 
-Treat `jobName` as the unique key for a schedule. Use a predictable, stable name for one logical
-schedule and handle Salesforce's duplicate-name exception as “already scheduled.” A retry with a
-new/random name can consume another org scheduled-job slot. Abort or replace the known existing
-job deliberately when its request must change; never create timestamp-named recurring retries.
+A scheduled run has three different IDs:
 
-The user who schedules the job owns its time zone and supplies the effective Apex, object, record,
-and field access when it runs. Verify that access in a sandbox before enabling the schedule.
+| ID | What it tracks |
+| --- | --- |
+| `CronTrigger` ID | The recurring schedule |
+| `AsyncApexJob` ID | The Batch or Queueable job started by one firing |
+| Record Health Check `runId` | The health-check results created by one run |
+
+Save these IDs together only when staff must follow one run from its schedule to its health
+results. Check these failures separately:
+
+- the schedule did not fire or could not start the Batch or Queueable job;
+- the Batch or Queueable job failed;
+- Record Health Check returned `ERROR` or `UNABLE_TO_EVALUATE`; or
+- the Flow, Apex trigger, or integration receiving Platform Events failed to process one.
+
+Use one stable job name for one logical schedule. A random or timestamped name can create duplicate
+schedules and consume scheduled-job capacity. When a request changes, deliberately abort or replace
+the known schedule.
 
 ## Test the schedule
 
-Schedule the class between `Test.startTest()` and `Test.stopTest()`. Assert the downstream job or
-its persisted outcome. Keep the scheduler test separate from detailed evaluator tests.
+Schedule the class between `Test.startTest()` and `Test.stopTest()`. Assert that it starts the
+expected Batch or Queueable job or saves the expected result. Keep scheduler tests separate
+from detailed health-result and Batch-group tests.
 
-## Troubleshoot a scheduled run
+Before production activation, verify the schedule in a sandbox as the real scheduling user or with
+equivalent access.
+
+## Troubleshooting
 
 | Symptom | Check first |
 | --- | --- |
-| No `CronTrigger` was created | The caller's **Record Health Check Run** permission, job-name length, Check Set identity, and record-ID count |
-| The schedule exists but no Batch job starts | The scheduling user's current run access and the most recent scheduled Apex failure |
-| Batch completes but no outcomes are retained | The selected event-publication mode and the Set Run or Check Result subscriber |
-| The same records run every day | This is expected for the packaged adapter; use a query-backed custom Batch to rediscover records |
-| Duplicate schedules consume slots | Reuse one stable job name and replace the known schedule deliberately |
+| No `CronTrigger` is created | Custom Permission, job-name length, Check Set Qualified API Name, and record-ID count |
+| The schedule exists but no Batch starts | The scheduling user's current access and the latest Scheduled Apex failure |
+| Batch completes but no outcomes are retained | Event-publication mode and the Flow, Apex trigger, integration, or storage that should receive them |
+| The same records run every day | Expected for the packaged scheduling class; use a query-backed Batch to query the records again |
+| The job runs at the wrong local time | The scheduling user's Salesforce time zone and CRON expression |
+| Duplicate schedules consume slots | Reuse one stable name and replace the known schedule deliberately |
 
 ## Related
 
+- [API overview](README.md)
 - [Batch Apex](batch.md)
 - [Queueable Apex](queueable.md)
 - [Apex API](apex-api.md)

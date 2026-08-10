@@ -1,133 +1,212 @@
-# Subscribe to the Check Set Run event
+# Save Check Set run summaries
 
-> [!NOTE]
-> On this page, subscribe to `Record_Health_Check_Set_Run__e` with a platform event-triggered Flow or a bulk Apex trigger and store one completion summary per Event ID.
+Use the **Record Health Check Set Run** Platform Event when a separate Flow, Apex trigger, or
+integration needs one summary for each Salesforce record after its Check Set finishes.
 
-> [!TIP]
-> **Event navigation:** [Publication behavior](../integration/lifecycle-events.md) ·
-> **Build a Check Set Run subscriber** ·
-> [Look up Check Set Run fields](../metadata/event-set-run.md)
+| Setup value | Name |
+| --- | --- |
+| Platform Event label | Record Health Check Set Run |
+| API name | `Record_Health_Check_Set_Run__e` |
+| Apex name after package installation | `rhc__Record_Health_Check_Set_Run__e` |
 
-The Check Set Run event contains completion counts for one deliberate Check Set run. It publishes
-after commit, so a rolled-back publisher transaction produces no delivered event.
+For example, a scheduled Batch checks 5,000 Accounts every night. A Platform Event-triggered Flow
+saves one summary per Account with the passed, failed, skipped, unable, and system-error totals.
 
-## Before creating a subscriber
+Use the [Check Result event](check-result.md) instead when receiving automation must know which
+individual Check passed or failed.
 
-Enable publication through the programmatic request option or the documented interactive Check Set
-setting. Review the [event metadata reference](../metadata/event-set-run.md) for every field and
-publication condition.
+## Before you use this event
 
-Create a subscriber-owned destination with a unique Text field for `EventId__c`. A useful run-history
-record also stores Run ID, Check Set API Name, Record ID, source, occurred time, contract version,
-Framework version, status derived from the counts, and each result count.
+If the same Flow or Apex code that runs the health check can save the returned results, use `NONE`
+and handle them directly. Use this event only when separate automation needs the summary.
 
-## Subscribe with Flow
+Publication depends on how the health check starts:
 
-### Worked destination model
+- Flow, Apex, Batch, Queueable, Future, and Scheduled Apex publish a Set Run event with `ALL`.
+- `ACTIONABLE` publishes it only when at least one result is `FAIL`, `UNABLE_TO_EVALUATE`, or
+  `ERROR`.
+- `NONE` publishes no result Platform Events.
+- When a person clicks Run or Rerun on the Lightning card, select **Publish User Run Event** on the
+  Check Set. Automatic page-load checks do not publish it.
 
-The following subscriber-owned model is an example, not package metadata. Replace the object name
-with the history object approved for the org.
+See the [complete event field reference](../metadata/event-set-run.md).
 
-| Destination field | Type | Source or derivation |
+## Recommended: Save summaries with Flow
+
+### 1. Create a history object
+
+Create a custom object owned by your team, such as **Health Check Run History**
+(`Health_Check_Run_History__c`). This is an example; Record Health Check does not create it.
+
+Add the fields your reports and receiving automation need:
+
+| Destination field | Suggested type | Platform Event field or value |
 | --- | --- | --- |
-| `EventId__c` | Text(80), Unique, External ID | `$Record.EventId__c` |
-| `RunId__c` | Text(120) | `$Record.RunId__c` |
-| `CheckSetQualifiedApiName__c` | Text(80) | `$Record.CheckSetQualifiedApiName__c` |
-| `EvaluatedRecordId__c` | Text(18) | `$Record.RecordId__c` |
-| `OccurredAt__c` | Date/Time | `$Record.OccurredAt__c` |
-| `Source__c` | Text(30) | `$Record.Source__c` |
-| `Status__c` | Picklist or Text | Derived from the counts below |
-| Result count fields | Number(5,0) | Copy each corresponding event count |
-| `ContractVersion__c` | Text(10) | `$Record.ContractVersion__c` |
-| `FrameworkVersion__c` | Text(20) | `$Record.FrameworkVersion__c` |
+| Event ID | Text(80), Unique | `$Record.EventId__c` |
+| Run ID | Text(120) | `$Record.RunId__c` |
+| Check Set Qualified API Name | Text(80) | `$Record.CheckSetQualifiedApiName__c` |
+| Salesforce Record ID | Text(18) | `$Record.RecordId__c` |
+| Occurred At | Date/Time | `$Record.OccurredAt__c` |
+| Source | Text(30) | `$Record.Source__c` |
+| Overall Status | Text(30) or restricted picklist | Derived from the result counts |
+| Eligible Check Count | Number(5,0) | `$Record.EligibleCheckCount__c` |
+| Evaluated Check Count | Number(5,0) | `$Record.EvaluatedCheckCount__c` |
+| Passed Count | Number(5,0) | `$Record.PassedCount__c` |
+| Failed Count | Number(5,0) | `$Record.FailedCount__c` |
+| Skipped Count | Number(5,0) | `$Record.SkippedCount__c` |
+| Unable Count | Number(5,0) | `$Record.UnableCount__c` |
+| System Error Count | Number(5,0) | `$Record.SystemErrorCount__c` |
+| Contract Version | Text(10) | `$Record.ContractVersion__c` |
 
-### Build the Flow
+Mark Event ID as **Unique**. One run can check many records, so Run ID is not the unique history key.
 
-1. Create a **Platform Event-Triggered Flow**.
-2. Select **Record Health Check Set Run** as the event.
-3. Add **Get Records** for the destination object where `EventId__c` equals the triggering event's
-   `$Record.EventId__c` value. Store only the first record.
-4. Add a **New event?** Decision. End the Flow when the returned record ID is not null.
-5. Add branches for system errors, unable results, failed results, and all-clear completion.
-6. Assign the derived status and create the run-history record using the mapping above. Create this
-   durable receipt before any notification or downstream action.
-7. Add fault handling that records a restricted subscriber failure without starting another
-   health-check run.
-8. Activate the Flow and publish a sandbox run with a known Run ID.
+### 2. Derive an overall status
 
-Derive the overall status in this order:
+The event contains counts rather than an overall status. If your history object needs one, evaluate
+the counts in this order:
 
-```text
-SystemErrorCount > 0
-UnableCount > 0
-FailedCount > 0
-PassedCount > 0
-otherwise Skipped
-```
+1. `ERROR` when System Error Count is greater than zero.
+2. `UNABLE_TO_EVALUATE` when Unable Count is greater than zero.
+3. `FAIL` when Failed Count is greater than zero.
+4. `PASS` when Passed Count is greater than zero.
+5. `SKIPPED` when none of the earlier counts is greater than zero.
 
-Flow interviews run asynchronously from the publisher. A completed Flow does not report back to the
-original Apex, Flow, or Lightning caller.
+This order prevents one passed Check from hiding a failure or technical problem in the same run.
 
-The Flow's effective user needs Read access to the event and Create and field access on the
-destination. Restrict access to the stored record according to the sensitivity of
-`EvaluatedRecordId__c`. In Setup, review failed and paused Flow interviews and configure operational
-alerts; a successful publisher does not prove that the Flow completed.
+### 3. Create the Platform Event-triggered Flow
 
-## Subscribe with Apex
+1. In Setup, open **Flows**, select **New Flow**, and choose **Platform Event-Triggered Flow**.
+2. Select **Record Health Check Set Run**.
+3. Use **Get Records** to find `Health_Check_Run_History__c` where Event ID equals
+   `$Record.EventId__c`.
+4. End successfully when a record already exists.
+5. Use a Decision to derive Overall Status in the order above.
+6. Create the history record before sending a notification or creating follow-up work.
+7. Connect fault paths to monitoring administrators use.
+8. Test in a sandbox, then activate the Flow.
 
-Keep the trigger thin and perform one bulk handler call:
+The Flow runs separately from the health check. Its failure does not change the result already
+returned to the user, Flow, Apex code, or Batch job.
+
+## Alternative: Save summaries with Apex
+
+Use Apex when a development team needs bulk processing or complex routing. This example saves to
+the example `Health_Check_Run_History__c` object. Replace these API names with the object and fields
+your team creates.
 
 ```apex
-trigger RhcSetRunSubscriber on rhc__Record_Health_Check_Set_Run__e (
+trigger RecordHealthCheckSetRunTrigger on rhc__Record_Health_Check_Set_Run__e (
   after insert
 ) {
-  RhcSetRunSubscriberHandler.handle(Trigger.New);
+  RecordHealthCheckSetRunHandler.saveSummaries(Trigger.new);
 }
 ```
 
-The handler should collect all Event IDs, query existing receipts once, and insert only new rows:
-
 ```apex
-public with sharing class RhcSetRunSubscriberHandler {
-  /**
-   * Stores new run summaries from one platform-event trigger delivery.
-   * The production implementation must query and write the subscriber-owned
-   * history object in bulk and keep EventId__c unique.
-   *
-   * @param events Complete trigger batch supplied by Trigger.New.
-   */
-  public static void handle(List<rhc__Record_Health_Check_Set_Run__e> events) {
+public with sharing class RecordHealthCheckSetRunHandler {
+  public static void saveSummaries(
+    List<rhc__Record_Health_Check_Set_Run__e> events
+  ) {
     Set<String> eventIds = new Set<String>();
     for (rhc__Record_Health_Check_Set_Run__e eventRecord : events) {
       eventIds.add(eventRecord.EventId__c);
     }
 
-    // Query the subscriber-owned receipt object once by its unique Event ID.
-    // Build all new run-history rows in memory, then perform one user-mode DML call.
-    // Inspect every Database.SaveResult when using partial-success DML.
-    // Route unknown contract versions to review instead of discarding them.
+    Set<String> savedEventIds = new Set<String>();
+    for (Health_Check_Run_History__c savedRun : [
+      SELECT Event_Id__c
+      FROM Health_Check_Run_History__c
+      WHERE Event_Id__c IN :eventIds
+    ]) {
+      savedEventIds.add(savedRun.Event_Id__c);
+    }
+
+    List<Health_Check_Run_History__c> runsToSave =
+      new List<Health_Check_Run_History__c>();
+
+    for (rhc__Record_Health_Check_Set_Run__e eventRecord : events) {
+      if (savedEventIds.contains(eventRecord.EventId__c)) {
+        continue;
+      }
+
+      runsToSave.add(
+        new Health_Check_Run_History__c(
+          Event_Id__c = eventRecord.EventId__c,
+          Run_Id__c = eventRecord.RunId__c,
+          Check_Set_Api_Name__c = eventRecord.CheckSetQualifiedApiName__c,
+          Salesforce_Record_Id__c = eventRecord.RecordId__c,
+          Occurred_At__c = eventRecord.OccurredAt__c,
+          Source__c = eventRecord.Source__c,
+          Overall_Status__c = overallStatus(eventRecord),
+          Eligible_Check_Count__c = eventRecord.EligibleCheckCount__c,
+          Evaluated_Check_Count__c = eventRecord.EvaluatedCheckCount__c,
+          Passed_Count__c = eventRecord.PassedCount__c,
+          Failed_Count__c = eventRecord.FailedCount__c,
+          Skipped_Count__c = eventRecord.SkippedCount__c,
+          Unable_Count__c = eventRecord.UnableCount__c,
+          System_Error_Count__c = eventRecord.SystemErrorCount__c
+        )
+      );
+      // Also prevent a repeated Event ID within this trigger delivery.
+      savedEventIds.add(eventRecord.EventId__c);
+    }
+
+    if (!runsToSave.isEmpty()) {
+      List<Database.SaveResult> saveResults = Database.insert(
+        runsToSave,
+        false
+      );
+      // Send each failed SaveResult to monitoring owned by your team.
+    }
+  }
+
+  private static String overallStatus(
+    rhc__Record_Health_Check_Set_Run__e eventRecord
+  ) {
+    if (eventRecord.SystemErrorCount__c != null && eventRecord.SystemErrorCount__c > 0) return 'ERROR';
+    if (eventRecord.UnableCount__c != null && eventRecord.UnableCount__c > 0) return 'UNABLE_TO_EVALUATE';
+    if (eventRecord.FailedCount__c != null && eventRecord.FailedCount__c > 0) return 'FAIL';
+    if (eventRecord.PassedCount__c != null && eventRecord.PassedCount__c > 0) return 'PASS';
+    return 'SKIPPED';
   }
 }
 ```
 
-Use `RunId__c` to correlate Check Result events with the summary. Use `EventId__c`, not Run ID, as
-the unique delivery key because one run can produce several events.
+`rhc__` appears on the Platform Event because it comes from the installed package. The example
+history object has no prefix because your team creates it in your org.
 
-## Test the subscriber
+Keep Event ID unique to protect against two transactions saving the same event at the same time.
+Production code must inspect every failed `Database.SaveResult` and send it to monitoring.
 
-Publish a complete event in an Apex test, call `Test.getEventBus().deliver()`, and assert the stored
-summary. Publish the same Event ID twice and assert one stored row. Add tests for system error,
-unable, failed, pass, missing Record ID, partial DML, and an unsupported contract-version path.
+## Access and limits
 
-## Security and limits
+The installed **Record Health Check User** and **Record Health Check Admin** Permission Sets include
+access to this event. Give the Flow or Apex code separate access to the history object and fields.
 
-The event can contain a Salesforce Record ID. Protect stored history according to the referenced
-record's sensitivity, and grant destination access only to approved users. Keep the handler
-bulk-safe because Salesforce can deliver many events in one trigger context.
+The event contains a Salesforce Record ID. Protect saved history according to the referenced
+record's sensitivity. Receiving automation cannot change the completed health-check result.
+
+Process the entire Apex trigger group. Keep queries and record saves outside loops, as shown above.
+
+## Test before activation
+
+Test these cases in a sandbox:
+
+1. System error, unable, failed, passed, and all-skipped counts derive the correct overall status.
+2. Reusing the same Event ID does not create a second history record.
+3. Two different events with the same Run ID are both saved.
+4. A missing optional Record ID does not fail processing.
+5. An unsupported Contract Version goes to a review path.
+6. A destination save failure is visible to administrators.
+7. Users without access cannot read the history.
+
+In an Apex test, publish events and call `Test.getEventBus().deliver()` before asserting the saved
+records.
 
 ## Related
 
-- [Check Set Run metadata](../metadata/event-set-run.md)
-- [Check Result subscription](check-result.md)
-- [Apex Batch example](../api/batch.md)
-- [Lifecycle event behavior](../integration/lifecycle-events.md)
+- [Record Health Check Set Run event fields](../metadata/event-set-run.md)
+- [Choose whether to publish result events](../integration/lifecycle-events.md)
+- [Save individual Check results](check-result.md)
+- [Use Batch Apex](../api/batch.md)
+- [Failure and recovery policy](README.md#failure-and-recovery-policy)

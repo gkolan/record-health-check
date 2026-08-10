@@ -1,14 +1,16 @@
 # 03 · Account Team Covers Open Opportunity Owners
 
 > [!NOTE]
-> On this page, compare Account Team members with open Opportunity owners to expose every owner who is missing from the team before a sales handoff.
+> On this page, compare Account Team members with open Opportunity owners and flag the Account when
+> at least one owner is missing from the Account Team before a sales handoff.
 >
 > **Setup reference**
 >
 > Use the [Compare-two-queries reference](../../reference/evaluation/compare-two-queries.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
-> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
+> This example is not installed by the package. Create the Check Set and Check in your org by
+> following the steps below.
 
 ## Scenario
 
@@ -20,11 +22,19 @@ A sales manager prepares an Account for a team handoff.
 > [!TIP]
 > **Why use Record Health Check**
 >
-> Record Health Check compares open Opportunity owners with Account Team members and identifies the owners who are missing from the team. The sales manager can resolve coverage gaps from the Account review instead of comparing the two lists manually during the handoff.
+> Record Health Check compares open Opportunity owners with Account Team members and flags a
+> coverage gap. Found and Expected show the two User ID lists so an authorized manager can determine
+> which owner must be added before the handoff.
 
-## Before you configure
+## Before you start
 
-Use this Check only when Account Teams are enabled and your approved process requires every open Opportunity owner to be an Account Team member.
+- Enable Account Teams in the test org.
+- Confirm that your approved handoff process requires every open Opportunity owner to be an Account
+  Team member.
+- Install Record Health Check and assign **Record Health Check Admin** to the administrator creating
+  the Check Set and Check.
+- Confirm that intended users can read Account, Opportunity, Account Team Member, and the owner/user
+  fields used in the queries.
 
 ## What you will learn
 
@@ -48,7 +58,29 @@ Use this Check only when Account Teams are enabled and your approved process req
 
 - **Report:** A report can monitor many Accounts. It does not place the answer directly on the Account being handed off.
 
-## Configure the Check
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Record Alignment |
+| **Record Health Check Set Name** | `Account_Record_Alignment` |
+| **Object** | `Account` |
+| **Card Title** | Account Record Alignment |
+| **Card Subtitle** | Confirm open Opportunity owners are on the Account Team. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
@@ -92,31 +124,16 @@ These values improve presentation. Change them for your process, or leave an opt
 
 Comparison display text, event publishing, and prerequisite behavior are optional. Expected-value, value-to-find, Formula-result, and Apex fields do not apply to Compare two queries.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Record_Alignment` |
-| **Object** | `Account` |
-| **Card Title** | `Account Record Alignment` |
-| **Card Subtitle** | Confirm open Opportunity owners are on the Account Team. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+For **Lists contain all**, the Comparison/Expected list must contain every value from the
+Source/Found list. That is why **Source Query** returns the required open Opportunity owner IDs and
+**Comparison Query** returns the Account Team user IDs that must cover them. Do not reverse these
+queries.
 
 ## What the user sees
 
-The Opportunity Owner and Account Team lists become these Framework outcomes and card values:
+The Opportunity Owner and Account Team lists produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | Every open Opportunity owner appears on the Account Team. |
 | **`FAIL`** | One or more open Opportunity owners is missing from the Account Team, so the card shows Needs attention. |
@@ -136,7 +153,7 @@ Record Health Check builds the Opportunity Owner and Account Team lists with the
 
 - Use a sales manager whose Opportunity and Account Team visibility matches the intended handoff process.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Enable Account Teams in a test org. Create an open Opportunity owned by a user who is not on the Account Team and confirm Warning.
 2. Add that user to the Account Team, rerun, and confirm a pass.

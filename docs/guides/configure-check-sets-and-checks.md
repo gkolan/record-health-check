@@ -1,567 +1,305 @@
 # Configure Check Sets and Checks
 
 > [!NOTE]
-> On this page, turn a Salesforce readiness question into a Check Set and ordered Checks whose Evaluation Types, outcomes, display behavior, and troubleshooting choices work together coherently.
+> On this page, turn one everyday Salesforce review into a Check Set, add the Checks that belong to
+> it, place the card on a Lightning record page, and test the complete experience before users rely
+> on it.
 
-Use this guide to turn a business review into a Check Set and ordered Checks on a Salesforce record
-page. It explains where each answer can come from, what users see, and what happens when a Check does
-not apply or cannot evaluate.
+Record Health Check tells users whether an existing record is ready and what needs attention. It
+does not prevent a save or change the record being checked.
 
-The guide uses the Framework's **Check Set**, **Check**, and **Evaluation Type** terminology. The card
-is advisory: it reports readiness without blocking saves or changing record data.
+## What you will create
 
-**Prerequisites:** Custom Metadata edit access in Setup and a deployed **Record Health Check**
-Lightning Web Component.
+This guide uses an Account handoff as an example:
 
-## What you can accomplish
+- One Check Set named `Account_Handoff_Review` controls the Account card.
+- One Check confirms that Billing Country is populated.
+- Another Check confirms that the Account has at least one Contact.
+- Users see both results together on the Account record page.
 
-| Goal | Start with | What you will learn |
-| --- | --- | --- |
-| Design one card for a business review | [Mental model](#1-mental-model) | Separate card-level Check Set choices from individual Check decisions |
-| Choose how a Check gets its answer | [What it can check](#2-what-it-can-check) | Select Verify with a formula, Verify with a query, Compare two queries, or Verify with Apex |
-| Make results understandable | [Result meanings](#5-result-meanings) | Distinguish business failures, skipped Checks, unavailable answers, and system problems |
-| Limit a Check to the right records | [Applicability and dependencies](#10-applicability-and-dependencies) | Use formula, count-query, or Apex applicability without turning a non-applicable record into a failure |
-| Guide users toward a correction | [Configure action links](configure-action-links.md) | Add Fix Message, Action Label, and a safe Action URL to failed Checks |
-| Diagnose a problem before release | [Troubleshooting](#13-troubleshooting) | Investigate configuration, access, query, formula, Apex, and component issues |
-| Review production readiness | [Review checklist](#14-review-checklist) | Confirm security, behavior, messages, limits, and representative test coverage |
+Use the same steps for another object or business process. Replace every example name, message, and
+rule with values approved for your org.
 
-## Contents
+## Before you start
 
-| Section | What it covers |
-| ------- | -------------- |
-| [1. Mental model](#1-mental-model) | Check Set, Check, and component wiring |
-| [2. What it can check](#2-what-it-can-check) | Choosing the right Evaluation Type |
-| [3. Check Set fields](#3-check-set-fields) | Link to [Check Set field reference](../metadata/fields-check-set.md) |
-| [4. Check fields](#4-check-fields) | Link to [Check field reference](../metadata/fields-check.md) and action links |
-| [5. Result meanings](#5-result-meanings) | Status and severity |
-| [6. Formula checks](#6-formula-checks) | Record-formula patterns |
-| [7. Verify with a query Checks](#7-verify-with-a-query-checks) | Single-query patterns |
-| [8. Compare two queries Checks](#8-compare-two-queries-checks) | Dual-query patterns |
-| [9. Apex checks](#9-apex-checks) | Custom Apex patterns |
-| [10. Applicability and dependencies](#10-applicability-and-dependencies) | Gating and prerequisites |
-| [11. Merge tokens](#11-merge-tokens) | `{!record.Field}` in messages and SOQL |
-| [12. Security and guardrails](#12-security-and-guardrails) | SOQL safety and permissions |
-| [13. Troubleshooting](#13-troubleshooting) | Symptoms, causes, and fixes |
-| [14. Review checklist](#14-review-checklist) | Pre-activation validation |
-| [15. Runtime and integration](#15-runtime-and-integration) | Where results come from; pointers to architecture and APIs |
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator who creates Check Sets and Checks.
+- Assign **Record Health Check User** to people who run the card.
+- Confirm the object, fields, and related records those users are allowed to read.
+- Write down the business question in ordinary language, including what passes, what fails, and when
+  the Check should not apply.
 
-For practical patterns, use the [examples library](../examples/README.md).
-For Evaluation Type contracts, use [Technical references](../reference/README.md#evaluation-types).
+The installed permission sets include the package permissions needed for their roles. They do not
+grant access to your Account, Contact, Opportunity, or custom-object data. Keep that access in your
+own permission sets or profiles.
 
-For setup, see [Create your first Check](../installation/create-your-first-check.md). For action-link patterns, see
-[Configure action links](configure-action-links.md). For troubleshooting detail, see
-[Troubleshoot Record Health Check](troubleshoot-with-show-diagnostics.md).
+## Step 1: Plan one review
 
-## 1. Mental model
+A Check Set should represent one recognizable review on one Salesforce object, such as:
 
-| Piece | What it means |
-| ----- | ------------- |
-| Component instance | The Lightning record page component. It points to one Check Set through the **Check Set** picker in App Builder (`checkSetName` in the LWC, stored and sent to Apex as the Check Set's `QualifiedApiName`). |
-| Check Set | A group of Checks for one base object (for example, Account). Stored in **Record Health Check Set** (`Record_Health_Check_Set__mdt`). |
-| Check | One individual check inside a Check Set. Stored in **Record Health Check** (`Record_Health_Check__mdt`). |
-| Evaluation Type | How a Check checks the record: Formula, Query, Compare Two Queries, or Apex. |
-| Result | The outcome shown after a Check runs. |
+- Account handoff readiness
+- Opportunity approval readiness
+- Case escalation review
+- Grant application completeness
 
-Wiring example:
+Do not place unrelated business processes in the same Check Set merely because they use the same
+object. A focused card is easier for users to understand and easier for administrators to test.
 
-```text
-Lightning component Check Set: Example_Account_Relationship_Risk
-Check Set DeveloperName: Example_Account_Relationship_Risk
-Check DeveloperName: Example_Customer_Engagement_Current
-```
+For each planned Check, record these answers:
 
-**Where to place the component:** Lightning **record pages** only. The component needs a record context (`recordId`). It is not exposed on App or Home pages.
-
-**App Builder properties:** Select a **Check Set** from the dropdown. It lists the active Check Sets whose object matches this record page. The picklist displays the Master Label and stores the `QualifiedApiName`. When the object has exactly one active Check Set, it is selected for you. **Run Button Display** defaults to **Inherit** and can change only how Run and Rerun appear on this card placement. Comparison expanders start collapsed and follow the Check Set's **Found/Expected Display** setting.
+| Question | Account handoff example |
+| --- | --- |
+| What should be true? | Billing Country is populated. |
+| Where does the answer come from? | A field on the Account. |
+| What should the user see when it fails? | Billing Country is required before handoff. |
+| What should the user do next? | Edit the Account and enter the verified country. |
+| Does it apply to every Account? | Yes. |
 
 ## 2. What it can check
 
-| Evaluation Type (Setup label) | API value | Use when |
-| -------------------------- | --------- | -------- |
-| **Verify with a formula** | `FORMULA` | The answer is on the current record (or a parent field reachable by formula). |
-| **Verify with a query** | `QUERY` | One SOQL result must be compared to a static value, formula, second query, or list. |
-| **Compare two queries** | `COMPARE_TWO_QUERIES` | Two independent SOQL results must be compared (single value or list). |
-| **Verify with Apex** | `APEX` | Logic needs code, such as multi-object date math or a weighted score. Keep external integration work outside the evaluator transaction. |
+Choose the simplest Evaluation Type that can answer the business question.
 
-Representative Account patterns in the [examples library](../examples/README.md):
+| Evaluation Type shown in Setup | Use it when | Example |
+| --- | --- | --- |
+| **Verify with a formula** | The answer is on the current record or a parent record that a Salesforce formula can reach. | Billing Country is populated. |
+| **Verify with a query** | The answer requires records found by one SOQL query. | The Account has at least one Contact. |
+| **Compare two queries** | The answer requires comparing the results of two separate SOQL queries. | Every open Opportunity has a Contact Role. |
+| **Verify with Apex** | Formula and query options cannot express the rule safely. Your team must create, test, and deploy an Apex class. | Recent activity includes either Tasks or Events and follows custom business rules. |
 
-| Pattern | Example |
-| --- | --- |
-| Formula | Billing City is required |
-| Formula + applicability | Partner Accounts must have Billing Country; others are skipped |
-| Query + `ONE_RESULT` | Account has at least one Contact |
-| Query + `ANY_ROW_PASSES` | At least one open Opportunity exceeds 10% of Annual Revenue |
-| `COMPARE_TWO_QUERIES` | Contact count equals open Opportunity count |
-| Dependency | Contact Email checked only after "has Contacts" passes |
-| Apex | Recent activity across Tasks and Events |
+Start with the [examples library](../examples/README.md) for complete Setup values. Use **Verify with
+Apex** only when the other Evaluation Types cannot meet the requirement.
 
 ## 3. Check Set fields
 
-Field tables live in the metadata reference. This guide does not duplicate them.
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New**.
 
-Every field on **Record Health Check Set** (`Record_Health_Check_Set__mdt`), including picklist values for **When Checks Run**, **Run Button Display**, **Found/Expected Display**, display modes, and **Show Diagnostics**, is documented in **[Check Set fields](../metadata/fields-check-set.md)**. Use that page when you need Setup labels, API names, defaults, or allowed values.
+Use values like these for the Account handoff example:
 
-For the Run and Rerun action, use **Label and icon** for the default experience. Choose **Label
-only** or **Icon only** when the page needs a smaller action. Run and Rerun can have different
-labels. **Hide** is available only when **When Checks Run** is **When the page opens**. When the
-action is hidden, the title uses the space that the action would have occupied. Lightning App
-Builder can inherit the Check Set setting or change the display for one card placement without
-changing when the Check Set runs.
-
-An automatic Check Set still offers **Rerun** after results appear unless the card uses **Hide** or
-the set resolves to zero Checks. Refresh and Rerun both reevaluate saved data, but only Rerun can
-publish user-run lifecycle events. Metadata validation warns when publication is enabled for a
-hidden automatic Check Set or one of its Checks, because users cannot publish from that card. The
-validation reads Custom Metadata, not Lightning page configuration, so also review any **Hide**
-override in Lightning App Builder.
-
-## 4. Check fields
-
-Field tables live in the metadata reference. This guide does not duplicate them.
-
-Every field on **Record Health Check** (`Record_Health_Check__mdt`) is documented in **[Check fields](../metadata/fields-check.md)**. Optional **Category** is metadata-only for now; the current card does not group rows by it. Optional **Fix Message**, **Action Label**, and **Action URL** fields render guidance and navigation on failed checks. Examples: [Configure action links](configure-action-links.md).
-
-## 5. Result meanings
-
-| Status | Meaning | Typical response |
-| ------ | ------- | ---------------- |
-| `PASS` | Check ran and passed. Card label: **Pass**. | No action. |
-| `FAIL` | Check ran and found a data issue. Card label: **Failed**, **Warning**, or **Info** by Failure Severity. | Record or process owner. |
-| `SKIPPED` | Check did not apply or dependency did not pass. Card label: **Skipped**. | Review applicability or dependencies if unexpected. |
-| `UNABLE_TO_EVALUATE` | Metadata, permissions, SOQL, or data blocked safe evaluation. Card label: **Unable to Check**. Setup fields say **Unable to Evaluate**. | Review configuration, field-level security, and the Reason Code. |
-| `ERROR` | Unexpected Framework or Apex exception. Card label: **System Error**. | Review the Apex plugin, Salesforce logs, and the Reason Code. |
-
-| Severity | Use when |
-| -------- | -------- |
-| Critical (`CRITICAL`) | Important problem to fix. |
-| Warning (`WARNING`) | Should be reviewed. |
-| Info (`INFO`) | Contextual information. |
-
-Severity applies **only** to `FAIL` results.
-
-## 6. Formula checks
-
-Use Formula when the result is expressible with Salesforce formula syntax on the current record or
-its parent relationships. Start with [Seller research readiness](../examples/formula/account-research-ready.md); use the
-[Formula reference](../reference/evaluation/formula.md) for the complete contract.
-
-| Formula result | Check status |
-| --- | --- |
-| `true` | Pass |
-| `false` | Fail |
-| `null`, including an unavailable parent relationship such as `Parent.Field` with no parent | Unable to Evaluate |
-
-Use this one example as the model for a meaningful Formula Check. It combines three business
-requirements and traverses two parent levels. The Account passes when it has a contact channel, has
-a billing country, and its revenue is at least 10% of the top-level portfolio Account's revenue.
-
-<table>
-  <thead><tr><th>Setup field</th><th>Value</th></tr></thead>
-  <tbody>
-    <tr><td>Evaluation Type</td><td><code>FORMULA</code></td></tr>
-    <tr><td>Pass Condition</td><td><pre><code>AND(
-  OR(NOT(ISBLANK(Phone)), NOT(ISBLANK(Website))),
-  NOT(ISBLANK(BillingCountry)),
-  AnnualRevenue &gt;= Parent.Parent.AnnualRevenue * 0.10
-)</code></pre></td></tr>
-    <tr><td>Display Found Formula</td><td><code>AnnualRevenue</code></td></tr>
-    <tr><td>Display Expected Formula</td><td><code>Parent.Parent.AnnualRevenue * 0.10</code></td></tr>
-    <tr><td>Formula Result Type</td><td><code>NUMBER</code></td></tr>
-    <tr><td>Message When Failed</td><td><code>{!record.Name} needs a contact channel, billing country, and revenue equal to at least 10% of its top-level portfolio account.</code></td></tr>
-  </tbody>
-</table>
-
-If either parent relationship or a required revenue value is unavailable, the Check cannot reach a
-reliable conclusion and returns **Unable to Evaluate**. Use a shallower path when the object model
-does not guarantee two Account parents.
-
-### Formula operands can be formula or roll-up fields
-
-| Supported operand | How to use it |
-| --- | --- |
-| Formula field | Reference its field API name directly. |
-| Roll-up summary field | Reference its field API name directly. |
-| Formula that depends on another formula | Reference the final field API name; the engine loads the dependency chain. |
-| Number, text, date, Boolean, or picklist calculation | Use its normal Salesforce formula type and functions. |
-
-Calculated dependencies can be nested to any depth. Reference the calculated field's API name
-directly; the engine loads its dependency chain.
-
-### Showing Found vs Expected (optional)
-
-By default, a Formula check shows only a **Passes when** line containing the unquoted pass/fail
-formula and no **Found** value. That line requires **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`). Other
-users see the business message plus any configured Found/Expected chips. For balance and comparison
-checks, declare two optional single-value formulas so the row shows readable values on each side:
-
-| Setup field | Effect on pass or fail | Purpose |
+| Setup field | Example value | What it controls |
 | --- | --- | --- |
-| Display Found Formula (`DisplayFoundFormula__c`) | Display only | Single-value formula shown as **Found**, representing what the record has. |
-| Display Expected Formula (`DisplayExpectedFormula__c`) | Display only | Single-value formula shown as **Expected**, representing the required or target value. |
-| Pass Condition (`PassConditionFormula__c`) | Decides pass or fail | Boolean formula that decides the result. |
+| **Label** | Account Handoff Review | The name administrators see in Setup. |
+| **Record Health Check Set Name** | `Account_Handoff_Review` | The stable API name used by Apex, Flow, and the Lightning component. |
+| **Object** | `Account` | The Salesforce object this Check Set can evaluate. |
+| **Card Title** | Account Handoff Review | The heading users see on the card. |
+| **Card Subtitle** | Complete these checks before changing ownership. | Why the review matters. |
+| **When Checks Run** | Run on request | Users select **Run** when they are ready to check saved data. |
+| **Reveal Mode** | One by one | Results appear in Evaluation Order. |
+| **Passed Checks** | Show each check | Users can see what is already complete. |
+| **Skipped Checks** | Show each check | Users can see which Checks did not apply. |
+| **Found/Expected Display** | On demand | Users can reveal comparison details when needed. |
+| **Show Diagnostics** | Unchecked | Detailed diagnostic data stays hidden during normal use. |
+| **Active** | Unchecked while building | Prevents users from running an unfinished Check Set. |
 
-`PassConditionFormula__c` still decides pass/fail (it must return Boolean); these two are display-only and additive. The engine does not compare Found and Expected to each other: there is no separate "formula comparison operator" setting; the comparison lives inside `PassConditionFormula__c`.
+The **Record Health Check Set Name** becomes the Developer Name. When code asks for the Check Set's
+**Qualified API Name**, copy the exact value shown in Setup. A Check Set created by an administrator
+in your org normally has no `rhc__` prefix. A Check Set included with the installed package can have
+that prefix. Do not add or remove it yourself.
 
-In the example above, a failing row displays the Account's revenue as **Found** and 10% of the
-grandparent Account's revenue as **Expected**, while the complete Boolean formula remains the only
-pass/fail decision.
+For every available field and value, see [Check Set fields](../metadata/fields-check-set.md).
 
-> [!CAUTION]
-> **Keep Found/Expected consistent with Pass Condition.** Because the engine does not compare the two sides itself, nothing stops you from showing values that disagree with the actual result. If `PassConditionFormula__c` compares A to B, use A for `DisplayFoundFormula__c` and B for `DisplayExpectedFormula__c`. Otherwise a row can **pass while Found ≠ Expected** or fail while the values look equal. A safe habit: copy each side of the comparison in `PassConditionFormula__c` exactly into the matching display formula.
+## Step 4: Create the first Check
 
-| Situation | Configuration | Display behavior |
-| --- | --- | --- |
-| Simple presence or condition check, such as `NOT(ISBLANK(Phone))` or `ISPICKVAL(Type, "Partner")` | Leave Display Found Formula and Display Expected Formula blank. | Shows the default Expected value from Pass Condition and no Found value. |
-| Balance, threshold, equality, or date comparison | Put the actual value in Display Found Formula and the target value in Display Expected Formula. | Shows both values without changing the pass/fail decision. |
-| A display formula cannot be resolved | No configuration change is required. | Silently returns to the default display and never changes pass/fail. |
-| Formula type is known | Set Single-Value Formula Return Type to Number, Text, Date, or the matching type. | Avoids unnecessary FormulaEval calls in bulk and Flow runs. |
-| Formula type is uncertain | Leave Single-Value Formula Return Type as Auto. | The Framework determines the type. |
+In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**.
 
-### Display: Value Format
+This example checks Billing Country with a formula:
 
-**Display: Value Format** (`DisplayValueFormat__c`) controls how Found and Expected values are written
-on the card for every Evaluation Type. The default is **Auto**, which chooses a format from the
-value's type. Set an explicit format when both sides of a comparison must read in the same units,
-for example Currency, Percent, or Ratio as Percent.
-
-A format that cannot apply to a value returns the value with its original spelling. Display format
-never changes Pass, Fail, Skipped, Unable to Evaluate, or System Error.
-
-Primary contract: [Display value format](../reference/contracts/display-value-format.md). Field
-catalog: [Display: Value Format](../metadata/fields-check.md#display-value-format-displayvalueformat__c).
-
-### Which Evaluation Type compares what?
-
-To have the Framework compare two sides with a **Comparison Operator**, instead of encoding the comparison inside **Pass Condition**, use **Verify with a query**:
-
-| You want to compare… | Evaluation Type | How |
-| -------------------- | ------------ | --- |
-| A SOQL result vs a **fixed value** | Verify with a query | `ExpectedValueSource__c = FIXED_VALUE`, set `ExpectedFixedValue__c` |
-| A SOQL result vs a **record formula** | Verify with a query | `ExpectedValueSource__c = RECORD_FORMULA`, set `ExpectedRecordFormula__c` |
-| A SOQL result vs **another SOQL result** | Verify with a query, or Compare two queries | `ExpectedValueSource__c = COMPARISON_QUERY` (or the **Compare two queries** Evaluation Type) |
-| Two values **on the record** (formula vs formula, or formula vs fixed value) | Verify with a formula | Encode the comparison in `PassConditionFormula__c`; optionally add Found/Expected to display each side |
-
-## 7. Verify with a query Checks
-
-Use **Verify with a query** when one SOQL result is the primary value. Start with the
-[Customer handoff](../examples/query/customer-contact.md); use the [Query reference](../reference/evaluation/query.md)
-for result modes and edge cases.
-
-### At least one Contact
-
-| Setup field | Value |
+| Setup field | Example value |
 | --- | --- |
-| Source Query | <code>SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</code> |
-| How To Read Query Results | `ONE_RESULT` |
-| Comparison Operator | `GREATER_THAN` |
-| Expected Value Source | `FIXED_VALUE` |
-| Expected Fixed Value | `0` |
+| **Label** | Billing Country Is Complete |
+| **Developer Name** | `Billing_Country_Is_Complete` |
+| **Check Set** | `Account_Handoff_Review` |
+| **Check Title** | Billing Country Is Complete |
+| **Evaluation Type** | Verify with a formula |
+| **Pass Condition** | `NOT(ISBLANK(BillingCountry))` |
+| **Failure Severity** | Warning |
+| **Message When Failed** | Enter the verified Billing Country before handing off `{!record.Name fallback="this Account"}`. |
+| **Fix Message** | Edit the Account and confirm the country with a reliable source. |
+| **Action Label** | Edit account |
+| **Action URL** | `/lightning/r/Account/{!record.Id}/edit` |
+| **Evaluation Order** | `10` |
+| **Active** | Checked |
 
-### Supported aggregate functions
+The Pass Condition must return `true` or `false`:
 
-An alias is required except for bare `COUNT()`.
+- `true` produces `PASS`.
+- `false` produces `FAIL`.
+- A formula that cannot return a reliable value produces `UNABLE_TO_EVALUATE`.
 
-| Aggregate | Example | Result |
-| --- | --- | --- |
-| `COUNT()` | `SELECT COUNT() FROM Contact` | Number of returned records |
-| `COUNT(field)` | `SELECT COUNT(Email) emailCount FROM Contact` | Number of non-null field values |
-| `COUNT_DISTINCT(field)` | `SELECT COUNT_DISTINCT(LeadSource) sourceCount FROM Contact` | Number of distinct non-null values |
-| `SUM(field)` | `SELECT SUM(Amount) totalAmount FROM Opportunity` | Total numeric value |
-| `AVG(field)` | `SELECT AVG(Amount) averageAmount FROM Opportunity` | Average numeric value |
-| `MIN(field)` | `SELECT MIN(CloseDate) earliestCloseDate FROM Opportunity` | Lowest value |
-| `MAX(field)` | `SELECT MAX(CloseDate) latestCloseDate FROM Opportunity` | Highest value |
+The action link appears only when the Check fails. Opening it does not save a change; the user still
+reviews and saves the Account. See [Configure action links](configure-action-links.md) for safe URL
+patterns.
 
-### Open pipeline equals 10% of Annual Revenue
+## Step 5: Add a related-record Check
 
-| Setup field | Value |
+Create another Check in the same Check Set. This example counts related Contacts:
+
+| Setup field | Example value |
 | --- | --- |
-| Source Query | <code>SELECT SUM(Amount) totalAmount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</code> |
-| Source Query Field | `totalAmount` |
-| How To Read Query Results | `ONE_RESULT` |
-| Comparison Operator | `EQUALS` |
-| Expected Value Source | `RECORD_FORMULA` |
-| Expected Record Formula | `AnnualRevenue * 0.1` |
+| **Label** | Account Has a Contact |
+| **Developer Name** | `Has_At_Least_One_Contact` |
+| **Check Set** | `Account_Handoff_Review` |
+| **Check Title** | Account Has at Least One Contact |
+| **Evaluation Type** | Verify with a query |
+| **Source Query** | `SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}` |
+| **Source Query Field** | Leave blank because bare `COUNT()` returns the number directly. |
+| **How To Read Query Results** | One row or aggregate |
+| **Comparison Operator** | Greater than |
+| **Expected Value Comes From** | Fixed value |
+| **Expected Value (Fixed)** | `0` |
+| **Failure Severity** | Warning |
+| **Message When Failed** | Add at least one verified Contact before handing off this Account. |
+| **Evaluation Order** | `20` |
+| **Active** | Checked |
 
-## 8. Compare two queries Checks
+The query runs with the running user's Salesforce access. A Contact hidden from that user is not
+counted. Missing access to Contact or `AccountId` can produce `UNABLE_TO_EVALUATE`; it should not be
+described as a business failure.
 
-Use when both sides come from SOQL. Start with the
-[Opportunity Contact Role coverage](../examples/compare-two-queries/opportunity-contact-role-coverage.md); use the
-[Compare two queries reference](../reference/evaluation/compare-two-queries.md) for the complete
-contract.
+For all Query settings and empty-result choices, see the [Query reference](../reference/evaluation/query.md).
 
-| Result shape | How To Read Query Results | Comparison operators | Matching behavior |
-| --- | --- | --- | --- |
-| One value from each query | `ONE_RESULT` | Single-value operators | `CONTAINS` and `DOES_NOT_CONTAIN` text comparisons are case-sensitive. |
-| A list from each query | `COMPARE_AS_LISTS` | `LISTS_OVERLAP`, `LISTS_CONTAIN_ALL`, `LISTS_MATCH_EXACTLY` | List matching is case-insensitive. |
+## Step 6: Decide when a Check should run
 
-### Customer contact coverage keeps pace with open pipeline
-
-| Setup field | Value |
-| --- | --- |
-| Source Query | <code>SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</code> |
-| Comparison Query | <code>SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</code> |
-| How To Read Query Results | `ONE_RESULT` |
-| Comparison Operator | `GREATER_THAN_OR_EQUAL` |
-
-## 9. Apex checks
-
-Use Apex when metadata cannot express the Check safely. See the
-[Apex reference](../reference/evaluation/apex-check-contract.md), [Recent Account activity](../examples/apex/recent-activity.md),
-and [Apex examples](../examples/README.md#apex-examples).
-
-The documented Apex class names are examples. Create, test, and deploy your own class before
-referencing it in **Apex Class**.
-
-| Setup label | API name | Role |
-| ----------- | -------- | ---- |
-| Apex Class | `ApexClass__c` | Class implementing `rhc.RecordHealthCheckPlugin` |
-| Apex Parameters (JSON) | `ApexParametersJson__c` | Optional configuration values passed as `context.parameters` |
-
-For AI-assisted drafting, see [LLM Configuration Guide: Apex](draft-configuration-with-ai.md#54-apex-evaluationtype__c--apex) and [recent-activity Apex pattern](draft-configuration-with-ai.md#106-recent-taskevent-activity-apex-multi-object).
-
-## 10. Applicability and dependencies
-
-**Applicability**: does this Check run for this record?
-
-| Mode | When to use |
-| ---- | ----------- |
-| All records | Universal data quality checks. |
-| `FORMULA` | Condition is on the record (for example, `ISPICKVAL(Type, "Partner")`). |
-| `SOQL` | Condition needs a related COUNT (for example, at least one open Opportunity exists). |
-
-**Dependencies**: does this Check wait for another Check to pass?
-
-Set **Prerequisite Check** to the prerequisite `DeveloperName`. Use sparingly for checks that are misleading unless a foundation check passed first.
-
-## 11. Merge tokens
-
-Merge tokens let one Check speak about the record, its configuration, and its result without hard-coding those
-values. Use the namespace and property exactly as shown. For the complete namespace, surface,
-fallback, and limit contract, see the [Merge-token reference](../reference/contracts/merge-tokens.md).
-
-The fallback is optional. A token without one inserts the resolved value when populated and inserts blank text when
-the value is null, empty, or whitespace-only:
-
-`{!rhcCheck.checkTitle}`
-
-For example, adding ` needs attention.` after that token produces `Data quality needs attention.` when the Check
-Title is `Data quality`. If the Check Title is blank, it produces ` needs attention.`. Check Title is required on
-active Checks, but the same blank behavior matters for optional record fields and relationships.
-
-Add a quoted `fallback` attribute when a blank value should produce clear wording instead:
+Use **Applies To** when a Check is relevant only to certain records. For example, a partner-only
+requirement can use a formula such as:
 
 ```text
-{!record.Parent.Name fallback="Independent account"}
-{!record.Owner.Manager.Name fallback="No manager assigned"}
-{!rhcResult.foundValue fallback="Not measured"}
+ISPICKVAL(Type, "Partner")
 ```
 
-The fallback is literal text; it is not parsed as another merge token. Without an explicit fallback, display text
-keeps the existing graceful behavior and inserts blank text. A URL with a blank token and no fallback is suppressed
-instead of producing a broken link. In SOQL, the fallback is converted to the field's type; an invalid number,
-date, date/time, time, or Boolean fallback returns `MISSING_BIND_VALUE` rather than running a misleading query.
+An Account that is not a Partner produces `SKIPPED`, not `FAIL`.
 
-### `record`: Record fields
+Use **Prerequisite Check** when a second Check would be misleading unless an earlier Check passed.
+For example, a Contact Email Check can depend on `Has_At_Least_One_Contact`.
 
-Use any readable field API name from the current record. Relationship paths may cross up to five lookups.
+A prerequisite must:
 
-<table>
-  <thead><tr><th>Merge syntax</th><th>What it inserts</th><th>Example</th></tr></thead>
-  <tbody>
-    <tr><td><code>{!record.Name}</code></td><td>The current record's Name.</td><td><code>Review {!record.Name} before approval.</code></td></tr>
-    <tr><td><code>{!record.FieldApiName}</code></td><td>Any readable field on the current record. Replace <code>FieldApiName</code> with the Salesforce API name. Add a quoted <code>fallback</code> attribute when a blank value needs a substitute.</td><td><code>{!record.Customer_Tier__c fallback="Standard"} customers require an annual review.</code></td></tr>
-    <tr><td><code>{!record.Owner.Name}</code></td><td>A field from a related record.</td><td><code>Ask {!record.Owner.Name} to confirm the account details.</code></td></tr>
-    <tr><td><code>{!record.Parent.Parent.Name}</code></td><td>A field reached through multiple lookup relationships.</td><td><code>Escalate the review to {!record.Parent.Parent.Name}.</code></td></tr>
-  </tbody>
-</table>
+- belong to the same Check Set;
+- be active;
+- have a lower **Evaluation Order**; and
+- return `PASS` before the dependent Check runs.
 
-### `rhcCheck`: Current Check
+Do not use a prerequisite merely to group Checks. Use it only when the later result cannot be
+interpreted correctly without the earlier pass.
 
-<table>
-  <thead><tr><th>Merge syntax</th><th>What it inserts</th><th>Example</th></tr></thead>
-  <tbody>
-    <tr><td><code>{!rhcCheck.developerName}</code></td><td>The Check's stable Developer Name.</td><td><code>Give support check {!rhcCheck.developerName}.</code></td></tr>
-    <tr><td><code>{!rhcCheck.masterLabel}</code></td><td>The Check label shown in Setup.</td><td><code>Review the configuration for {!rhcCheck.masterLabel}.</code></td></tr>
-    <tr><td><code>{!rhcCheck.checkTitle}</code></td><td>The user-facing Check Title.</td><td><code>{!rhcCheck.checkTitle} needs attention.</code></td></tr>
-    <tr><td><code>{!rhcCheck.checkDescription}</code></td><td>The Check Description.</td><td><code>Requirement: {!rhcCheck.checkDescription}.</code></td></tr>
-    <tr><td><code>{!rhcCheck.category}</code></td><td>The Check's Category label.</td><td><code>This is a {!rhcCheck.category} readiness requirement.</code></td></tr>
-    <tr><td><code>{!rhcCheck.evaluationType}</code></td><td>The Evaluation Type label.</td><td><code>This requirement uses {!rhcCheck.evaluationType}.</code></td></tr>
-    <tr><td><code>{!rhcCheck.failureSeverity}</code></td><td>The Failure Severity label.</td><td><code>This is a {!rhcCheck.failureSeverity} issue.</code></td></tr>
-    <tr><td><code>{!rhcCheck.evaluationOrder}</code></td><td>The Check's evaluation order.</td><td><code>This requirement runs at position {!rhcCheck.evaluationOrder}.</code></td></tr>
-  </tbody>
-</table>
+## Step 7: Understand the results
 
-### `rhcSet`: Current Check Set
+| Health result | What it means | What to do |
+| --- | --- | --- |
+| `PASS` | The Check ran and the record met the requirement. | No correction is needed for this Check. |
+| `FAIL` | The Check ran and found a business condition that needs attention. | Follow the failure and fix messages. |
+| `SKIPPED` | The Check did not apply, its prerequisite did not pass, or its configured empty-result behavior says to skip. | Review the applicability or prerequisite only if the skip was unexpected. |
+| `UNABLE_TO_EVALUATE` | Configuration, access, missing values, or a Salesforce limit prevented a reliable answer. | An administrator should review the Reason Code and configuration. |
+| `ERROR` | Record Health Check or custom Apex encountered an unexpected problem. | An administrator or developer should investigate the Reason Code and logs. |
 
-<table>
-  <thead><tr><th>Merge syntax</th><th>What it inserts</th><th>Example</th></tr></thead>
-  <tbody>
-    <tr><td><code>{!rhcSet.developerName}</code></td><td>The Check Set's stable Developer Name.</td><td><code>Give support Check Set {!rhcSet.developerName}.</code></td></tr>
-    <tr><td><code>{!rhcSet.masterLabel}</code></td><td>The Check Set label shown in Setup.</td><td><code>Review the configuration for {!rhcSet.masterLabel}.</code></td></tr>
-    <tr><td><code>{!rhcSet.cardTitle}</code></td><td>The title users see on the card.</td><td><code>Return to {!rhcSet.cardTitle} after making the correction.</code></td></tr>
-    <tr><td><code>{!rhcSet.cardSubtitle}</code></td><td>The subtitle users see on the card.</td><td><code>Review scope: {!rhcSet.cardSubtitle}.</code></td></tr>
-    <tr><td><code>{!rhcSet.objectApiName}</code></td><td>The Salesforce object API name configured for the Check Set.</td><td><code>This requirement evaluates a {!rhcSet.objectApiName} record.</code></td></tr>
-  </tbody>
-</table>
+Failure Severity (Critical, Warning, or Info) changes how a `FAIL` appears. It does not change the
+meaning of `PASS`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`.
 
-### `rhcResult`: Final Check result
+## Step 8: Place the card on the record page
 
-These values are available after the Check has been evaluated.
+1. Open **Setup → Lightning App Builder**.
+2. Edit the Account record page used by the intended users.
+3. Drag **Record Health Check** onto the page.
+4. In the component properties, select **Account Handoff Review** for **Check Set**.
+5. Save and activate the Lightning page for the intended apps and users.
 
-<table>
-  <thead><tr><th>Merge syntax</th><th>What it inserts</th><th>Example</th></tr></thead>
-  <tbody>
-    <tr><td><code>{!rhcResult.status}</code></td><td>The final status, such as Pass, Fail, Skipped, or Unable to Evaluate.</td><td><code>The review returned {!rhcResult.status}.</code></td></tr>
-    <tr><td><code>{!rhcResult.foundValue}</code></td><td>The value the Check found.</td><td><code>Found {!rhcResult.foundValue} open cases.</code></td></tr>
-    <tr><td><code>{!rhcResult.foundValuePluralSuffix}</code></td><td>An empty value for one item or <code>s</code> for multiple items.</td><td><code>Found {!rhcResult.foundValue} issue{!rhcResult.foundValuePluralSuffix fallback="s"}.</code></td></tr>
-    <tr><td><code>{!rhcResult.expectedValue}</code></td><td>The value the Check expected.</td><td><code>Expected {!rhcResult.expectedValue}.</code></td></tr>
-    <tr><td><code>{!rhcResult.failedRecordCount}</code></td><td>The number of returned records that failed.</td><td><code>{!rhcResult.failedRecordCount} contacts are missing email.</code></td></tr>
-    <tr><td><code>{!rhcResult.totalRecordCount}</code></td><td>The total number of returned records evaluated.</td><td><code>Reviewed {!rhcResult.totalRecordCount} related contacts.</code></td></tr>
-    <tr><td><code>{!rhcResult.reasonCode}</code></td><td>The diagnostic Reason Code.</td><td><code>The check could not finish because {!rhcResult.reasonCode}.</code></td></tr>
-  </tbody>
-</table>
+The component is for Lightning record pages because it needs the current record ID. Do not place it
+on a Home page or App page.
 
-### `rhcRun`: Current run
+If the dropdown does not show the Check Set, confirm that its **Object** matches the record page and
+that the Check Set is active. If exactly one active Check Set matches the object, Salesforce selects
+it automatically.
 
-<table>
-  <thead><tr><th>Merge syntax</th><th>What it inserts</th><th>Example</th></tr></thead>
-  <tbody>
-    <tr><td><code>{!rhcRun.runId}</code></td><td>The identifier shared by checks in the same run.</td><td><code>If the problem continues, give support run {!rhcRun.runId}.</code></td></tr>
-    <tr><td><code>{!rhcRun.source}</code></td><td>Where the run started, such as the record page, Apex, or Flow.</td><td><code>This review was started from {!rhcRun.source}.</code></td></tr>
-    <tr><td><code>{!rhcRun.startedAt}</code></td><td>When the run started.</td><td><code>The review started at {!rhcRun.startedAt}.</code></td></tr>
-    <tr><td><code>{!rhcRun.completedAt}</code></td><td>When the run completed.</td><td><code>The review completed at {!rhcRun.completedAt}.</code></td></tr>
-    <tr><td><code>{!rhcRun.durationMs}</code></td><td>How many milliseconds the run took.</td><td><code>The review completed in {!rhcRun.durationMs} milliseconds.</code></td></tr>
-  </tbody>
-</table>
+## Step 9: Test before activation
 
-The field determines which contexts are valid:
+Test in a sandbox with realistic records and the same permissions users will have.
 
-| Check field type | Valid token namespaces |
-| --- | --- |
-| Failure, unable-to-evaluate, not-applicable, fix, action-label, Found-text, and Expected-text fields | `record`, `rhcResult`, `rhcRun`, `rhcCheck`, `rhcSet` |
-| Action URL | `record`, `rhcRun`, `rhcCheck`, `rhcSet`; result tokens are intentionally rejected |
-| Source Query, Comparison Query, and applicability Count Query | `record` only |
-| Salesforce formula fields | Use Salesforce formula syntax directly; leave merge tokens for message and SOQL fields |
+1. Keep the Check Set inactive while completing its Checks.
+2. Review every Check's exact Setup values and activate the Checks that belong in the test.
+3. Activate the Check Set and select it on the Lightning record page.
+4. Test a record that passes every Check.
+5. Test a record that fails each Check, one condition at a time.
+6. Test records that should be skipped because of applicability or a prerequisite.
+7. In a sandbox-only permission test, remove access to a queried field and confirm
+   `UNABLE_TO_EVALUATE`. Restore access after the test.
+8. Test as a user with restricted sharing and confirm that query results include only records that
+   user can see.
+9. Follow every action link and confirm it opens the intended page without immediately changing
+   data.
+10. Rerun after correcting the saved record and confirm the result changes as expected.
 
-- Use field API names exactly as shown in Setup; custom fields include the `__c` suffix.
-- Record tokens support text, ID/reference, number, currency, percent, checkbox, date, date/time, picklist,
-  multi-select picklist, email, phone, URL, encrypted-text values, and relationship fields when readable.
-- A blank value resolves to blank text. A null relationship makes its record token blank.
-- The explicit fallback applies to null, empty, and whitespace-only values. It does not replace `0`, `false`, or a
-  populated value.
-- Fallback text may contain spaces and pipe characters inside its quoted value.
-- Fallback text is inserted once and never recursively expanded.
-- Curly braces are reserved for complete merge tokens. Extra, nested, or unmatched braces are rejected as
-  `MALFORMED_TOKEN` instead of being rendered as text.
-- Quotes, apostrophes, slashes, and additional pipes in a fallback are literal characters; they do not enable
-  formulas, Markdown, HTML, nested tokens, or code execution.
-- URL token values are URL-encoded automatically.
-- SOQL tokens are escaped and typed automatically: strings are quoted; numbers, dates, date/times, and Booleans
-  are bound in their native form. An unquoted multi-select token expands to a value tuple for `INCLUDES` or
-  `EXCLUDES`; a quoted token preserves its semicolon-delimited text.
-- The engine loads token fields before evaluation. If the running user lacks object or field access, the result
-  can be `RECORD_NOT_ACCESSIBLE` or `MISSING_BIND_VALUE`.
+Turn on **Show Diagnostics** only for authorized troubleshooting. The installed **Record Health
+Check Admin** permission set includes the **Record Health Check View Diagnostics** Custom Permission.
+Turn diagnostics off again after the investigation.
 
-SOQL examples live in the local [Query](../examples/README.md#query-examples) and
-[Compare two queries](../examples/README.md#compare-two-queries-examples) libraries.
+## Limits to consider
 
-## 11a. Multi-line messages
+- One direct Apex or Flow request accepts at most 200 record IDs.
+- One Check Set run evaluates at most the first 25 active Checks in Evaluation Order.
+- A Query Check can return at most the configured **Max Query Rows**, from 1 through 2,000.
+- Formula Checks share Salesforce transaction limits. A large number of records and formulas can
+  require a smaller Batch Apex size.
 
-**Message When Failed** and **Message When Unable To Evaluate** support multiple lines. Press **Enter** in Setup to start a new line; each line renders as a separate line on the card. Use a blank line (press Enter twice) to add spacing between paragraphs.
+These are separate limits. For example, a request can check 100 Accounts, and each Account can run
+up to 25 active Checks. Test realistic data volumes before scheduling or automating a large run.
 
-```text
-{!record.Name} is out of balance.
-
-Debit total: {!record.Debit_Total__c fallback="0"}
-Expected credit net: {!record.Credit_Net__c}
-
-Contact Finance to reconcile.
-```
-
-- Merge tokens work on any line.
-- Single-line messages are unchanged: no extra spacing is added.
-- Messages are always plain text (HTML and links are not rendered), and screen readers announce the lines as one sentence with a pause between them.
-
-## 12. Security and guardrails
-
-- Sharing, CRUD, and field access apply (`WITH USER_MODE` on dynamic SOQL).
-- Keep queries narrow: clear `WHERE` clauses, merge tokens instead of hard-coded Ids.
-- Editing **Record Health Check** (`Record_Health_Check__mdt`) is a privileged operation: anyone with Check edit access can run SOQL as the viewing user.
-- Keep user-facing messages free of secrets and stack traces.
-- Unsafe SOQL (DML keywords, `FOR UPDATE`, `ALL ROWS`) is rejected.
+See [Batch Apex](../api/batch.md) for large-volume examples and the Evaluation Type references for
+query and formula behavior.
 
 ## 13. Troubleshooting
 
-| Symptom | Likely cause | What to check |
-| ------- | ------------ | ------------- |
-| Health Check Needs Setup / not ready yet | LWC has no Check Set selected | In App Builder, choose a Check Set and save the page. |
-| Ask admin to activate a Check Set | Check Sets exist for the object but all are inactive | Activate a Check Set, then choose it in App Builder. |
-| Ask admin to set up a Check Set | No Check Set matches the page object | Create and activate a Check Set whose Object matches the page object. |
-| Check Set was not found | Selected Check Set was renamed or deleted | Re-open App Builder and choose an active Check Set. |
-| Check Set is inactive | Selected Check Set has `IsActive__c = false` | Activate it, or choose another active Check Set. |
-| Invalid configuration | Blank/invalid Object, or a bad display setting | Object plus Passed/Skipped Checks Display, Run Checks When, How Checks Appear, Comparison Display. |
-| Object mismatch | Check Set `ObjectApiName__c` does not match the page object | Check Set object vs record page object. |
-| No active checks | Check Set has no active Checks (inactive Checks may still exist) | Activate an existing Check, or add a new active Check. |
-| No checks run | Inactive Check Set or Checks | `IsActive__c` on Set and Checks. |
-| Check skipped | Applicability false or required check did not pass | Applicability fields and `PrerequisiteCheck__c`. |
-| Unable to Check | SOQL, Formula, permissions, or limits | Check fields, field-level security, Show Diagnostics, and the Reason Code. |
-| System Error | Apex or framework exception | Apex class, Salesforce logs, and Show Diagnostics. |
-| Stale results after metadata edit | Component not reloaded | Refresh the record page. |
-| Stale results after inline edit | No auto-rerun on record save | With a visible action, click **Rerun**. With a hidden automatic action, refresh the page. Refresh reevaluates but never publishes user-run lifecycle events. |
-| Prerequisite skipped | Framework run cap | Lower the prerequisite's Evaluation Order so it falls within the configured execution window, or reduce active Checks. |
-| Custom automation runs slowly or hits limits | The request includes too many records or the Check Set expands into too much work for the transaction | Keep one request within 200 records and one Check Set within the first 25 active Checks. Use `rhc.RecordHealthCheck.evaluate(...)` with a focused Check Set; see [Apex API](../api/apex-api.md) or [Flow actions](../integration/flow-actions.md). |
-| Check passes in UI but fails from custom automation | Different running user (FLS) | Automation runs as the integration or invoking user: verify field access. |
-| Expected a lifecycle event but none arrived | Publishing is off, the run was automatic page load/refresh, the action is hidden, or the transaction rolled back | Enable **Publish User Run Event** or **Publish User Result Event**; use visible Run/Rerun, Apex, or Flow; review metadata validation warnings and App Builder overrides; confirm the transaction committed; see [Platform events](../integration/lifecycle-events.md). |
-| Expected an Error Log event but none arrived | The Check Set opted out, the package prevented a feedback loop, or publication failed | Check **Publish Error Log Event**, subscriber logs, and platform-event allocations; Salesforce debug logging remains independent. |
+| What the user sees | What to check first |
+| --- | --- |
+| **Record Health Check needs setup** | Select an active Check Set in Lightning App Builder. |
+| The Check Set is not available in the component dropdown | Confirm the Check Set is active and its Object matches the record page object. |
+| No Checks appear | Confirm at least one Check in the selected Check Set is active. |
+| A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |
+| **Unable to check** | Review the Reason Code, query or formula configuration, and the running user's object and field access. |
+| **System error** | Review custom Apex, Salesforce debug logs, and the Reason Code. |
+| Results did not change after an edit | Save the record, then select **Rerun**. If the action is hidden, refresh the page. |
+| A Platform Event was expected but not received | Confirm publication is enabled, the run source publishes events, the transaction committed, and receiving automation is active. |
 
-For Reason Codes, see [Reason Codes](../reference/contracts/reason-codes.md).
-
-The package release process runs its internal metadata audit before promotion. That validator is a
-maintainer tool, not a subscriber Apex API. In a subscriber org, use the field rules on this page,
-test the Check Set as a regular user, and review Lightning App Builder overrides separately because
-they are stored on the Lightning page rather than in Custom Metadata.
+Use [Troubleshoot Record Health Check](troubleshoot-with-show-diagnostics.md) for a complete,
+step-by-step investigation.
 
 ## 14. Review checklist
 
-Before activating a Check Set:
+- [ ] The Check Set name, title, and subtitle describe one recognizable business review.
+- [ ] The Check Set Object exactly matches the Lightning record page object.
+- [ ] Every Check uses the simplest suitable Evaluation Type.
+- [ ] Every failure message explains the problem in language users understand.
+- [ ] Every fix message gives a safe and specific next step.
+- [ ] Applicability and prerequisites produce `SKIPPED` only where intended.
+- [ ] Queries were tested with realistic sharing and field permissions.
+- [ ] Pass, fail, skipped, unable-to-evaluate, and error behavior is understood.
+- [ ] Diagnostics and Platform Event publication are off unless a defined process needs them.
+- [ ] The Check Set was tested as an intended user, not only as an administrator.
 
-- [ ] Permission Set **Record Health Check User** (`rhc__Record_Health_Check_User`) assigned to users who run the card (assign **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) when Show Diagnostics is needed).
-- [ ] Component **Check Set** selection points to the intended active Check Set.
-- [ ] `ObjectApiName__c` matches the record page object.
-- [ ] Component is on a **record page** (not App/Home).
-- [ ] Every active Check has Check Title, Evaluation Order, Evaluation Type, Failure Severity, and Message When Failed.
-- [ ] Longer panels use Category consistently for authoring (UI grouping not implemented yet), or leave it blank to group checks as Uncategorized.
-- [ ] Any Fix Message or Action URL are advisory/read-only. They can guide users on failed checks, but Record Health Check does not update records.
-- [ ] **Found/Expected Display** matches the amount of Found/Expected detail users need (`ON_DEMAND` for audit-friendly panels, `FAILURES_ONLY` for compact pass checks).
-- [ ] **Display: Value Format** is Auto unless a comparison Check needs an explicit Number, Currency, Percent, Ratio as Percent, Checkbox, Date, Date/Time, Text, or Raw format ([Display value format](../reference/contracts/display-value-format.md)).
-- [ ] Verify with a query and Compare two queries Checks have required query fields and **How To Read Query Results** set appropriately.
-- [ ] `NoRowsResult__c` is set for `ANY_ROW_PASSES` / `ALL_ROWS_PASS` / `COMPARE_AS_LISTS` Checks.
-- [ ] Apex Checks reference deployed classes that implement `rhc.RecordHealthCheckPlugin`.
-- [ ] Dependencies reference active Checks with lower Evaluation Order in the same Check Set.
-- [ ] **Show Diagnostics** is off for production unless actively troubleshooting (requires **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) via **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`): see [Troubleshoot Record Health Check](troubleshoot-with-show-diagnostics.md)).
-- [ ] Lifecycle publication switches stay off until subscribers and allocations are reviewed; explicitly review the default-on **Publish Error Log Event** setting ([Lifecycle events](../integration/lifecycle-events.md)).
-- [ ] Tested on records that pass, fail, skip, and unable-to-evaluate.
+## Where results go
 
-## 15. Runtime and integration
+| How the Check Set runs | Where the result is available |
+| --- | --- |
+| Lightning record page | On the Record Health Check card. |
+| Flow | In the packaged action outputs, including status counts and Result JSON. |
+| Apex | In `rhc.RecordHealthCheckResponse`. |
+| Batch Apex | In custom records created by your Batch, Platform Events, or another result-handling process your team implements. |
 
-Record Health Check evaluates configuration at read time and returns results to the caller. It does
-not store card results as Salesforce records.
+Record Health Check does not automatically create a Salesforce record for every health result. See
+[Batch Apex](../api/batch.md), [Flow actions](../integration/flow-actions.md), and
+[Lifecycle events](../integration/lifecycle-events.md) before building automation.
 
-| Surface | What happens | Full detail |
-| --- | --- | --- |
-| Lightning record page | The card loads definitions, evaluates Checks, and shows Pass / Fail / Skipped / Unable to Check / System Error | [Lightning component](../integration/lightning-component.md) |
-| Apex | `rhc.RecordHealthCheck.evaluate(request)` returns a typed response for one Check or Check Set | [Apex API](../api/apex-api.md) |
-| Flow | Packaged actions return status counts and Result JSON | [Flow actions](../integration/flow-actions.md) |
-| Lifecycle events | Optional after-commit Set Run / Check Result events for deliberate runs | [Lifecycle events](../integration/lifecycle-events.md) |
+## 11. Merge tokens
 
-For layers, limits, and class ownership, see [Architecture](../reference/framework/architecture.md).
-For SOQL edge cases (empty results, multi-select binds, prerequisites), see the Evaluation Type
-references and [§13 Troubleshooting](#13-troubleshooting).
+Merge tokens insert values from the current record or health-check result into messages, queries,
+and supported URLs. For example, `{!record.Name fallback="this Account"}` uses the Account name when
+it is populated and the words `this Account` when it is blank. Use the
+[Merge-token reference](../reference/contracts/merge-tokens.md) for supported fields, fallback
+behavior, and security rules.
 
 ## Related
 
-- [Create your first Check](../installation/create-your-first-check.md): first install and first Check
-- [Examples library](../examples/README.md): practical patterns by Evaluation Type
-- [Architecture](../reference/framework/architecture.md): published Framework architecture and source ownership
-- [Check Set fields](../metadata/fields-check-set.md) · [Check fields](../metadata/fields-check.md)
-- [Apex API](../api/apex-api.md) · [Flow actions](../integration/flow-actions.md)
+- [Create your first Check](../installation/create-your-first-check.md)
+- [Examples library](../examples/README.md)
+- [Check Set fields](../metadata/fields-check-set.md)
+- [Check fields](../metadata/fields-check.md)
+- [Merge tokens](../reference/contracts/merge-tokens.md)
+- [Configure action links](configure-action-links.md)

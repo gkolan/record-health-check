@@ -1,8 +1,9 @@
-# Reference: Apex results, definitions, and plugins (L1)
+# Apex result, Lightning, and plugin types (L1)
 
 > [!NOTE]
-> On this page, look up the L1 result and definition types, the `RecordHealthCheckPlugin`
-> interface, shipped example plugins, and test helpers that are not runtime entry points.
+> Use this page to understand the objects returned by the Apex API, the data sent to the Lightning
+> card, the interface implemented by a custom Apex Check, and the examples included in the
+> repository.
 
 This page is part of the [Apex class reference](README.md). For writing a plugin, see
 [Apex Check contract](../evaluation/apex-check-contract.md) and
@@ -12,26 +13,31 @@ This page is part of the [Apex class reference](README.md). For writing a plugin
 
 ### `RecordHealthCheckEvaluationResult` / `RecordHealthCheckResultDisplay`
 
-**Role:** Separate stable machine data from optional human-facing rendering.
+**Role:** Keep values used by automation separate from text formatted for a person.
+
 **Type:** Global data holders
 
-`RecordHealthCheckEvaluationResult` carries status, qualified Check identity, reason code, severity,
-and typed Found/Expected values. `RecordHealthCheckResultDisplay` carries labels, messages, links,
-and formatted values only when the selected result mode requests display content.
+`RecordHealthCheckEvaluationResult` contains Status, the Check Qualified API Name, Reason Code,
+Severity, and Found and Expected values in their Salesforce data types.
+`RecordHealthCheckResultDisplay` contains labels, messages, links, and formatted values only when the
+request asks for display content.
 
 ### `RecordHealthCheckResponse` / `RecordHealthCheckResultItem`
 
-**Role:** Common response shape for both Check and Check Set requests.
+**Role:** Return results for either one Check or a complete Check Set.
+
 **Type:** Global data holders
 
-The response preserves the detached input record order and selected Check order. Each result item
-contains one evaluation plus optional display content; the summary holds terminal status totals.
+The response keeps the input record order and selected Check order. Each item contains one
+evaluation and, when requested, its display content. The summary contains the number of PASS, FAIL,
+SKIPPED, UNABLE_TO_EVALUATE, and ERROR results.
 
 **See also:** [Apex API response contract](../../api/apex-api.md#response-contract)
 
 ### `RecordHealthCheckDefinition` / `RecordHealthCheckDefinitionResponse`
 
-**Role:** Lightning definition response (not evaluation results).
+**Role:** Tell the Lightning card which Checks and display settings to use.
+
 **Type:** Data holders (`@AuraEnabled`) · `public` (no sharing keyword)
 
 **Key members:**
@@ -46,12 +52,14 @@ contains one evaluation plus optional display content; the summary holds termina
 | `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks` | Diagnostics visibility flag and the ordered Check definitions |
 
 **Notable behavior:**
-- **Note:** `inactiveCheckLabels` - the list of names, not just the count - is only meaningful to an
- admin auditing why a Check did not run.
+
+- `inactiveCheckLabels` contains the names of inactive Checks, not only their count. The Lightning
+  card uses this information only when an authorized administrator opens diagnostics.
 
 ### `RecordHealthCheckAdminDetail`
 
-**Role:** Structured diagnostics for authorized Show Diagnostics viewers.
+**Role:** Hold troubleshooting details shown only to users allowed to view diagnostics.
+
 **Type:** Data holder (`@AuraEnabled`) · `public` (no sharing keyword)
 
 Left blank on a normal business response.
@@ -60,17 +68,20 @@ Left blank on a normal business response.
 
 | Member | Purpose |
 | --- | --- |
-| `containsRestrictedDetail` | Whether restricted detail is present; read by `RecordHealthCheckLifecyclePublisher` to set `ContainsRestrictedDetail__c` on the outgoing event |
+| `containsRestrictedDetail` | Whether the diagnostic object contains access-sensitive details |
 | `reasonCode` | Diagnostics reason code |
 | `message` | Diagnostics message text |
 
 **Notable behavior:**
-- **Note:** all three fields are `@AuraEnabled` with no constructor - callers set them field by
- field.
+
+- All three fields are `@AuraEnabled` and are assigned individually by package code.
+- The current Platform Event publisher always sets `ContainsRestrictedDetail__c` to `false`; it does
+  not copy `containsRestrictedDetail` from this object into an event.
 
 ### `RecordHealthCheckValueSource`
 
-**Role:** Structured Found/Expected diagnostic detail.
+**Role:** Build readable notes explaining where a Found or Expected value came from.
+
 **Type:** Data holder · `public` (no sharing keyword)
 
 **Key members:**
@@ -82,14 +93,15 @@ Left blank on a normal business response.
 | `rowCount(...)` | Formats pluralized row counts |
 
 **Notable behavior:**
-- **Important:** `render` returns `null` - not an empty string - when every part of the `Detail` is
- blank, so the engine can leave the public `*Detail` string `null` rather than showing an empty
- parenthetical note. `rowCount` exists solely so a value-source note never reads "1 row(s)": it
- special-cases `n == 1` to `"1 row"` and treats a `null` count as `0`.
+
+- `render` returns `null`, not an empty string, when every part is blank. The Lightning card
+  therefore does not show an empty pair of parentheses.
+- `rowCount` produces natural wording: **1 row**, **2 rows**, and **0 rows** when the count is `null`.
 
 ### `RecordHealthCheckPlugin` (interface)
 
-**Role:** Plugin interface for Apex Evaluation Type.
+**Role:** Define the method every custom Apex Check must provide.
+
 **Type:** Interface · `global`
 
 ```apex
@@ -98,17 +110,21 @@ global interface RecordHealthCheckPlugin {
 }
 ```
 
-Implementations are bulk by contract: query once for the complete scope, seed every requested Id,
-overlay returned facts, and isolate record-specific conversion errors inside the record loop.
+The package calls `evaluate` once with all record IDs in the current request. A plugin should query
+for all IDs together, create one initial outcome for every requested ID, apply the facts returned by
+the query, and handle a record-specific conversion problem inside the record loop.
 
 **Notable behavior:**
-- **Important:** the signature cannot prove query growth or access mode. `RecordHealthCheckPluginDispatch` validates exact
-  key coverage and prohibited effects; the supplied contract test measures behavior across scope
-  sizes and can use a controlled least-privilege test setup as evidence.
+
+- The method signature cannot prove that a plugin queries efficiently or respects the running
+  user's access. Package code rejects missing or extra result IDs and prohibited database changes.
+  The supplied contract test checks behavior with 1, 10, 50, and 200 records. A human must still
+  review each SOQL query's access mode.
 
 ### `RecordHealthCheckScope`
 
-**Role:** Input to `RecordHealthCheckPlugin.evaluate`.
+**Role:** Supply the records and configuration to `RecordHealthCheckPlugin.evaluate`.
+
 **Type:** Read-only global data holder
 
 **Key members:**
@@ -116,35 +132,38 @@ overlay returned facts, and isolate record-specific conversion errors inside the
 | Member | Purpose |
 | --- | --- |
 | `objectApiName` | Object API name (for example `Account`) |
-| `recordIds` | Detached copy of every record Id in the request scope |
-| `parameters` | Detached parsed `ApexParametersJson__c` map |
+| `recordIds` | Copy of every record ID in the request |
+| `parameters` | Copy of the JSON object from `ApexParametersJson__c`, converted to an Apex map |
 | `checkQualifiedApiName` | Qualified Check identity |
 | `checkSetQualifiedApiName` | Qualified parent Check Set identity |
-| `runId` | Correlation id for the request |
+| `runId` | ID that connects logs and events from the same request |
 
 **Notable behavior:**
-- **Important:** getters return detached collections. A plugin cannot mutate the pipeline's record Ids
-  or parameter map through the scope object.
+
+- The getters return copies of the record IDs and parameters. Changing those returned collections
+  cannot change the package's original request.
 
 **See also:** [Reference: Apex](../evaluation/apex-check-contract.md)
 
 ---
 
 
-## Example Apex plugins
+## Apex plugin examples
 
-These classes implement `RecordHealthCheckPlugin`. They are examples and fixtures, not required for
-the engine to run Formula or Query Checks.
+These classes implement `RecordHealthCheckPlugin`. They show how a custom Apex Check works. Formula,
+Query, and Compare two queries Checks do not depend on them.
 
 ### `AccountHasRecentActivityCheck`
 
-**Role:** Shipped Apex Check for recent Account Task/Event activity.
+**Role:** Example that checks recent Account Task or Event activity.
+
 **Type:** Example plugin (implements `RecordHealthCheckPlugin`) · `global with sharing`
 
-Ships with Record Health Check in the Framework package. Passes when the Account has at least one completed Task or Event in
-a look-back window. Tunable with `ApexParametersJson__c`: `{"daysBack": 90}` (default 30, bounds
-1–3650). Sets Found/Expected and value-source detail; label, severity, and failure message come from
-metadata.
+This class is included with the installed Record Health Check package. It returns PASS when an
+Account has at least one closed Task or one Event dated on or after the calculated cutoff date. Use
+`{"daysBack": 90}` in **Apex Parameters JSON** to check the previous 90 days. The default is 30; the
+allowed range is 1 through 3,650. The Check Custom Metadata supplies the label, severity, and failure
+message.
 
 **Key members:**
 
@@ -155,17 +174,18 @@ metadata.
 | `resolveDaysBack(...)` | Parses and bounds-checks the `daysBack` parameter |
 
 **Notable behavior:**
-- **Important:** an omitted `daysBack` uses `DEFAULT_DAYS_BACK`; a supplied value that is nonnumeric or
- outside `MIN_DAYS_BACK`/`MAX_DAYS_BACK` returns `UNABLE_TO_EVALUATE` with `INVALID_CONFIG`. Both queries run
- `WITH USER_MODE` and use `SELECT COUNT()`, so Task/Event visibility follows the running user's
- sharing and FLS like every other Framework query.
+
+- When `daysBack` is omitted, the class uses 30. A nonnumeric value or a number outside 1 through
+  3,650 returns `UNABLE_TO_EVALUATE`/`INVALID_CONFIG`.
+- Both queries use `WITH USER_MODE`, so the result respects the running user's record, object, and
+  field access.
 
 **See also:** [Recent Account activity example](../../examples/apex/recent-activity.md)
 
 ### Integration-test plugins
 
-These live under `integration-tests/main/default/classes/` and accompany the examples library. They
-are not part of Record Health Check unless you deploy that folder.
+These live under `integration-tests/main/default/classes/`. Installing Record Health Check does not
+install them. They become available only if your team deliberately deploys that folder.
 
 | Class | What it checks | Typical JSON parameters |
 | --- | --- | --- |
@@ -178,12 +198,12 @@ are not part of Record Health Check unless you deploy that folder.
 ---
 
 
-## Test helpers (not runtime)
+## Package test helpers
 
 | Class | Note |
 | --- | --- |
-| `RecordHealthCheckTestDataFactory` | `@isTest` factory for Accounts/Contacts and related coverage data; not used at runtime |
-| `*Test.cls` / coverage classes | Unit and coverage tests; not part of the Framework API |
+| `RecordHealthCheckTestDataFactory` | `@isTest` factory for Accounts, Contacts, and related test records; health checks do not use it |
+| `*Test.cls` / coverage classes | Package tests; custom Apex should not call them as a supported API |
 
 ---
 

@@ -3,7 +3,7 @@
 [![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
 [![Namespaced Apex coverage: 99.60%](https://img.shields.io/badge/Namespaced_Apex_coverage-99.60%25-brightgreen)](config/quality-metrics.json)
-[![LWC line coverage: 98.88%](https://img.shields.io/badge/LWC_lines-98.88%25-brightgreen)](config/quality-metrics.json)
+[![LWC line coverage: 98.99%](https://img.shields.io/badge/LWC_lines-98.99%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
 [![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO)
@@ -89,7 +89,7 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 2GP unlocked package  | `rhc` namespace                                                                                                          |
 | Apex                  | 174 classes, including 80 test classes · 99.60% namespaced package coverage · 99.53% subscriber-style floor              |
-| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 98.88% line coverage                                                   |
+| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 98.99% line coverage                                                   |
 | Packaged examples     | 4 packaged Example Check Sets containing 21 Checks                                                                       |
 | Permission sets       | Record Health Check User and Record Health Check Admin                                                                   |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                         |

@@ -1,9 +1,9 @@
 # Troubleshoot Record Health Check
 
 > [!NOTE]
-> On this page, diagnose configuration, access, evaluation, card, Flow, Apex, asynchronous, and
-> event-delivery problems from one starting point. Capture authorized evidence, identify the failing
-> layer, and remove temporary diagnostic access when the investigation is complete.
+> On this page, diagnose problems with the Lightning card, Check configuration, Salesforce access,
+> Flow, Apex, background jobs, and Platform Events. Start with the result users see, collect only the
+> evidence you are authorized to view, and turn diagnostics off when the investigation is complete.
 >
 > **Reference**
 >
@@ -31,23 +31,23 @@ on [Install and verify](../installation/install-and-verify.md).
 | What appears in the browser console? | One `[RHC]` group containing run identity, results, timing, and available source details |
 | How do I return to normal operation? | Uncheck Show Diagnostics and remove temporary administrator access when appropriate |
 
-## Start by identifying the failing layer
+## Start with the symptom users see
 
-Do not begin by changing Check logic. First reproduce once, record the exact time, user, record,
-Check Set Qualified API Name, and Run ID, then choose the matching path.
+Do not begin by changing the Check. Reproduce the problem once and record the exact time, running
+user, Salesforce record, Check Set Qualified API Name, and Run ID. Then choose the matching row.
 
-| Symptom | First evidence | Likely layer | Go to |
+| Symptom | Check first | Likely cause area | Go to |
 | --- | --- | --- | --- |
 | Card is missing, empty, or says no Check Set is configured | App Builder component properties and Check Set identity | Lightning page or metadata selection | [Card and definition problems](#card-and-definition-problems) |
-| Run button is absent | **When Checks Run**, **Run Button Display**, and Lightning-page override | Intended card configuration | [Card and definition problems](#card-and-definition-problems) |
+| Run button is absent | **When Checks Run** and **Run Button Display** on the Check Set | Intended card configuration | [Card and definition problems](#card-and-definition-problems) |
 | One user succeeds and another does not | Permission Sets, record sharing, object access, and field access | Salesforce authorization | [Access differences](#access-differences-between-users) |
 | Check is Skipped | Reason Code and prerequisite/applicability diagnostics | Applicability or dependency | [Read the result first](#read-the-result-first) |
 | Check is Unable to Check | Reason Code, troubleshooting detail, and source details | Data, access, query, formula, or limit | [Show Diagnostics](#both-steps-are-required) |
-| Check shows System Error | Run ID, Salesforce debug log, and Log event | Configuration, plugin, or Framework defect | [Server-side evidence](#server-side-evidence) |
+| Check shows System Error | Run ID, Salesforce debug log, and Log event | Configuration, custom Apex, or Record Health Check | [Developer and integration evidence](#developer-and-integration-evidence) |
 | Flow action faults or returns an aligned error | Flow interview details and returned category/message | Flow input, grouping, size, or evaluation | [Non-card entry points](#non-card-entry-points) |
-| Apex call throws | Exception type/message and calling request | Caller contract, authorization, or fatal plugin behavior | [Non-card entry points](#non-card-entry-points) |
+| Apex call throws | Exception type/message and calling request | Invalid request, missing authorization, or prohibited custom Apex behavior | [Non-card entry points](#non-card-entry-points) |
 | Queueable, Batch, or Scheduled job fails | Async job status plus the submitting/running user's debug log | Submission, scope, or finalization | [Non-card entry points](#non-card-entry-points) |
-| Expected platform event never arrives | Publication option, metadata switch, event access, and subscriber logs | Publication or subscriber | [Platform-event delivery](#platform-event-delivery) |
+| Expected Platform Event never arrives | Publication option, Check settings, event access, and receiving automation logs | Event publication or receiving Flow, Apex, or integration | [Platform Event delivery](#platform-event-delivery) |
 
 ## Read the result first
 
@@ -58,27 +58,19 @@ Status and Reason Code are the fastest route to the correct layer:
 | Pass | The Check ran and its condition was met | Investigate only if the business expectation or displayed value is wrong |
 | Fail | The Check ran and its condition was not met | Inspect Found, Expected, operator, and Check configuration; this is normally not a system defect |
 | Skipped | The Check did not apply | Inspect applicability, prerequisite, and no-row behavior |
-| Unable to Check | The Framework could not safely reach a verdict | Inspect access, missing data, query/formula validity, and limits |
+| Unable to Check | Record Health Check could not reach a reliable result | Inspect access, missing data, query or formula validity, and limits |
 | System Error | Configuration or execution is broken | Capture the Run ID and use server-side evidence |
 
 Look up the exact machine value in [Reason Codes](../reference/contracts/reason-codes.md). Do not
 reinterpret Unable or Skipped as Fail; each means a different remediation and automation outcome.
 
-## Validate configuration before runtime debugging
+## Review configuration before collecting developer logs
 
-Run the metadata audit after a deployment or whenever several records fail in the same way:
-
-```apex
-List<RecordHealthCheckMetadataValidator.ValidationIssue> issues =
-  RecordHealthCheckMetadataValidator.validate();
-System.debug(LoggingLevel.ERROR, JSON.serializePretty(issues));
-```
-
-Package maintainers can run that source form directly. Subscriber Apex cannot call this
-package-internal `public` class across the `rhc` namespace; subscribers should review the Check Set
-and Check fields using [Configure Check Sets and Checks](configure-check-sets-and-checks.md), or ask
-the package maintainer to run the supported validation procedure. An empty list means the metadata
-audit found no issue; it does not prove that the running user can access every record and field.
+When several records fail the same way, compare the Check Set and Check with
+[Configure Check Sets and Checks](configure-check-sets-and-checks.md) and the appropriate Evaluation
+Type reference. Confirm the exact Setup labels, API names, active settings, Evaluation Order, query
+fields, operators, empty-result choices, and prerequisites. A correct configuration still requires
+testing as the intended user because administrators can see records and fields other users cannot.
 
 ## Card and definition problems
 
@@ -87,7 +79,7 @@ audit found no issue; it does not prove that the running user can access every r
 2. Confirm the Check Set is active, uses the record's object API name, and has at least one active
    Check in the first 25 ordered Checks.
 3. Treat a hidden Run button as configuration until proven otherwise. Check **When Checks Run**,
-   **Run Button Display**, and any component override. Hidden and icon-only controls intentionally
+   **Run Button Display** on the selected Check Set. Hidden and icon-only controls intentionally
    release their unused header space to the title.
 4. Refresh the record page after metadata, permission, or Lightning-page changes.
 5. If definition loading still fails, capture the browser console error and a Salesforce debug log
@@ -97,14 +89,15 @@ audit found no issue; it does not prove that the running user can access every r
 
 Compare users without granting broad administrator access permanently:
 
-- both need the **Record Health Check User** Permission Set to run the Framework;
+- both need the **Record Health Check User** Permission Set to run Record Health Check;
 - Show Diagnostics additionally requires the diagnostics Custom Permission described below;
 - record sharing and object/field permissions remain those of the running user;
-- an Apex Check plugin is responsible for its own user-mode access; and
-- a platform-event subscriber needs access to that specific event independently of run access.
+- a custom Apex Check must query with the running user's access; and
+- a Flow, Apex trigger, or integration receiving a Platform Event needs separate access to that
+  event.
 
 Test as the affected user whenever possible. A System Administrator success does not establish that
-the intended persona has the required access.
+the intended user has the required access.
 
 > [!WARNING]
 > Turning on **Show Diagnostics** on the Check Set alone does **nothing** visible. Both the Check Set flag **and** the **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) permission are required for troubleshooting output.
@@ -139,16 +132,16 @@ troubleshooting information. The Record Health Check Admin Permission Set includ
 
 | Capability | View Diagnostics required | Show Diagnostics required | What the authorized user receives |
 | --- | --- | --- | --- |
-| Formula **Passes when** | Yes | No | The Formula Check's pass condition when the row uses the Framework's default Formula comparison display. Users without View Diagnostics see the business message instead of the formula expression. |
+| Formula **Passes when** | Yes | No | The Formula Check's pass condition when the row uses the default Formula comparison display. Users without View Diagnostics see the business message instead of the formula expression. |
 | Result troubleshooting line | Yes | Yes | Status, Reason Code, duration, and Evaluation Type beneath each result. |
 | **Troubleshooting detail** | Yes | Yes | Technical context for a Check that returned `UNABLE_TO_EVALUATE` or `ERROR`, when detail is available. |
 | Browser-console prompt | Yes | Yes | The **Check console (F12) for diagnostics** message on the card. |
 | `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, and a table of Check results in the browser console. |
 | Found and Expected source detail | Yes | Yes | `actualValueDetail` and `expectedValueDetail` notes inside the console's `[RHC] Source detail` group. These explain where displayed values came from and never appear on the card. |
 
-The Custom Permission does not grant record or field access. Record Health Check still evaluates
-with the running user's Salesforce access, and diagnostic output can describe only information the
-Framework was allowed to evaluate.
+The Custom Permission does not grant record or field access. Record Health Check still uses the
+running user's Salesforce access, and diagnostic output can describe only information the user was
+allowed to evaluate.
 
 After changing the Check Set or Permission Set assignment, **refresh the record page**.
 
@@ -191,7 +184,7 @@ The console prints a redaction warning immediately before the support report. Re
 queries, source values, and customer data can still be present; “support report” does not mean “safe
 to publish without review.”
 
-## Server-side evidence
+## Developer and integration evidence
 
 ### Salesforce debug logs
 
@@ -211,26 +204,26 @@ request that never returns enough detail to the browser.
    before sharing the log.
 
 Debug output is evidence, not durable monitoring. Log availability is time-limited and an
-uncatchable governor-limit termination may prevent the Framework from writing its final diagnostic
+an uncatchable Salesforce limit may prevent Record Health Check from writing its final diagnostic
 line.
 
 ### Log platform event
 
-`Record_Health_Check_Log__e` carries structured Framework `ERROR` diagnostics for restricted
+`Record_Health_Check_Log__e` carries structured Record Health Check `ERROR` details for restricted
 monitoring. Its Check Set control is **Publish Error Log Event** (`PublishErrorLogEvent__c`), which
 is enabled by default. This event is separate from Check Result and Set Run lifecycle events.
 
-Use it when an operations integration needs ongoing error notification. Do not treat it as a
-replacement for debug logs: event publication is best effort, a transaction-ending limit can
-prevent publication, and subscribers require explicit access. See the complete field, security,
-loop-prevention, and subscriber contract in [Log Platform Event](../metadata/event-log.md).
+Use it when a Flow, Apex trigger, or integration needs ongoing error notification. Do not treat it
+as a replacement for debug logs: publication can fail, a transaction-ending limit can prevent the
+event, and receiving automation requires explicit event access. See the complete field, security,
+and loop-prevention details in [Log Platform Event](../metadata/event-log.md).
 
 ## Non-card entry points
 
 | Entry point | Evidence to capture | Important distinction |
 | --- | --- | --- |
 | Flow | Failed interview details, input row, returned category/message, Run ID | An aligned error output is different from a Flow fault; group and response-size limits are validated by the adapter |
-| Apex API | Request selection/options, exception type, response status/reason, Run ID | Fatal caller-contract and plugin side-effect failures are thrown rather than converted to Fail |
+| Apex API | Request selection/options, exception type, response status/reason, Run ID | An invalid request or prohibited custom Apex action throws an exception instead of returning `FAIL`. |
 | Queueable | `AsyncApexJob` status, job ID, submitting user, Finalizer/debug output | Submission and worker/finalizer failures occur in different transactions |
 | Batch | Job ID, failing scope, first record IDs after redaction, scope debug log | One failing scope does not identify the Check without the request identity and Run ID |
 | Scheduled | Cron job identity, scheduled user, launched Batch job ID | The schedule launches Batch; inspect both jobs |
@@ -241,7 +234,7 @@ Use [Apex API](../api/apex-api.md), [Flow actions](../integration/flow-actions.m
 
 ## Platform-event delivery
 
-Work from publisher to subscriber in order:
+Work from Record Health Check to the receiving Flow, Apex trigger, or integration in this order:
 
 1. Confirm the run was deliberate. Record-page `RUN_ON_LOAD` activity does not publish lifecycle
    events.
@@ -249,15 +242,15 @@ Work from publisher to subscriber in order:
    `ACTIONABLE` or `ALL`; the programmatic default is `NONE`.
 3. For a user Run/Rerun, confirm the Check Set and Check publication fields are enabled. A hidden
    Run/Rerun control means that interactive publication path is unreachable.
-4. Confirm the subscriber has access to the exact event and uses the namespaced channel in an
+4. Confirm the receiving user has access to the exact event and uses the namespaced channel in an
    installed package, such as `/event/rhc__Record_Health_Check_Result__e`.
-5. Check subscriber logs, replay handling, filters, and event allocations. A successful health
+5. Check receiving automation logs, replay handling, filters, and event allocations. A successful health
    check is not proof that best-effort publication or downstream processing succeeded.
-6. Prevent feedback loops. A Log-event subscriber must not call Record Health Check from the same
+6. Prevent repeated processing. Automation started by a Log event must not call Record Health Check from the same
    event transaction.
 
 See [Lifecycle events](../integration/lifecycle-events.md) for publication rules and
-[Subscribe with Pub/Sub API](../platform-events/external-pub-sub-api.md) for external subscriber
+[Subscribe with Pub/Sub API](../platform-events/external-pub-sub-api.md) for external integration
 ideas and channel names.
 
 ## Escalation package
@@ -269,7 +262,7 @@ Before escalating, collect one coherent evidence set rather than unrelated scree
 - Check Set and Check Qualified API Names, record object, and redacted record ID;
 - Run ID, status, Reason Code, and visible message;
 - redacted browser-console group and matching debug-log excerpt;
-- Flow interview, async job, or event-subscriber identifier when applicable; and
+- Flow interview, background job, or receiving-automation identifier when applicable; and
 - the smallest metadata configuration that reproduces the problem.
 
 Never include session IDs, access/refresh tokens, authentication URLs, passwords, or customer data.

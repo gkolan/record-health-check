@@ -4,9 +4,9 @@
 > On this page, understand what the Record Health Check card evaluates, what each result means, and
 > when advisory guidance fits better than save-time enforcement.
 
-Record Health Check places useful advisory guidance directly on a Salesforce record. When someone opens an
-Account, Contact, Opportunity, or another supported record, the card answers a set of questions
-about its readiness and explains anything that needs attention.
+Record Health Check places guidance directly on a Salesforce record page. When someone opens an
+Account, Contact, Opportunity, or custom-object record whose object matches the selected Check Set,
+the card answers a set of readiness questions and explains anything that needs attention.
 
 It is designed for decisions people make while reviewing a record. It does not change the record
 and it does not prevent a save.
@@ -47,11 +47,11 @@ question into the component.
 | **System Error** | An unexpected technical problem prevented the check from completing |
 
 These distinctions keep the result honest. A Check that does not apply is not treated as a pass, and
-a Check the Framework could not evaluate is not treated as a failure in the business data.
+a Check that could not be evaluated is not treated as a failure in the business data.
 
 ## Where a Check can find its answer
 
-| The question depends on | The Framework can |
+| The question depends on | Use this Evaluation Type |
 | --- | --- |
 | Fields on the open record or its parent | Verify with a formula |
 | Contacts, Opportunities, Cases, Activities, or other related records | Verify with a query |
@@ -65,7 +65,7 @@ the [examples library](../examples/README.md) helps you choose the simplest reli
 
 A useful failure does more than display a red status. A Check can show:
 
-- what the Framework **Found**;
+- what Record Health Check **Found**;
 - what it **Expected**;
 - why the difference matters;
 - how to resolve it; and
@@ -85,8 +85,10 @@ quarterly review, a health check is a better fit.
 
 ## Access and troubleshooting
 
-People who run the card receive **Record Health Check User**. Administrators who configure checks or
-investigate unexpected results receive **Record Health Check Admin**.
+People who run the card receive **Record Health Check User**. Administrators who configure Checks or
+investigate unexpected results receive **Record Health Check Admin** plus the Salesforce Setup
+access needed for the work. Neither installed permission set grants access to your Account, Contact,
+Opportunity, Case, or custom-object data.
 
 Everyday users see business guidance. Administrators can temporarily use **Show Diagnostics** when
 they need evidence about configuration, access, or an unexpected result. Diagnostic detail should
@@ -103,7 +105,7 @@ user's access before changing the Check.
 
 | Your next goal | Continue with |
 | --- | --- |
-| Add the Framework to an org you already use | [Install and verify in your org](install-and-verify.md) |
+| Add Record Health Check to an org you already use | [Install and verify in your org](install-and-verify.md) |
 | Evaluate a prepared scenario in a separate org | [Deploy to a demo scratch org](create-rhc-scratch-org.md) |
 | Build one small check in Salesforce Setup | [Create your first Check](create-your-first-check.md) |
 | Compare this approach with blocking Salesforce tools | [Compare to native Salesforce](../guides/compare-to-native-salesforce.md) |

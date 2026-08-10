@@ -1,29 +1,34 @@
-# Technical references
+# Record Health Check technical reference
 
 > [!NOTE]
-> On this page, choose the trusted technical reference for a Framework outcome, field limit, or
-> source-code responsibility and find the related Salesforce configuration contract.
+> On this page, find the exact behavior, limit, field contract, or Apex implementation detail you
+> need after reading a task guide or example.
 
-Use these references when you need exact Framework behavior rather than a task walkthrough. For a
-guided configuration path, begin with the [documentation home](../README.md) or
-the [examples library](../examples/README.md).
+Use this folder when you need an exact answer, such as what a Reason Code means, which merge token is
+available, how a Query Check handles no records, or which Apex class implements a behavior.
+
+For step-by-step instructions, begin with the [documentation home](../README.md) or choose a
+complete configuration from the [examples library](../examples/README.md).
 
 **Looking up Setup fields?** Use [Metadata reference](../metadata/README.md), not this folder.
 
-**Writing an Apex Check plugin?** Use [Apex Check contract](evaluation/apex-check-contract.md).
-**Maintaining Framework Apex classes?** Use the [Apex class reference](apex/README.md).
+**Writing a custom Apex Check?** Use the [Apex Check contract](evaluation/apex-check-contract.md).
+
+**Maintaining the Record Health Check package source?** Use the
+[internal Apex class reference](apex/README.md). Those pages describe package implementation, not
+the supported Apex APIs used by code in your org.
 
 ## Recommended path
 
 | Step | Reference | What it provides |
 | ---: | --- | --- |
-| 1 | [Glossary](glossary.md) | Exact Framework terms and the primary page for each term |
+| 1 | [Glossary](glossary.md) | Record Health Check and Salesforce terms used throughout the documentation |
 | 2 | [Evaluation Type references](#evaluation-types) | Formula, Query, Compare two queries, and Apex behavior |
 | 3 | [Contracts](#contracts) | Reason Codes, merge tokens, display formatting, and field limits |
-| 4 | [Framework references](#framework-references) | Architecture, security, compatibility, identity, and package behavior |
-| 5 | [Apex class guides](#apex-class-guides) | Source ownership and implementation detail for maintainers |
+| 4 | [Package behavior](#package-behavior) | Architecture, security, compatibility, identity, and upgrades |
+| 5 | [Internal Apex class guides](#internal-apex-class-guides) | Implementation details for developers maintaining the package source |
 
-## Framework references
+## Package behavior
 
 | Reference | What it provides |
 | --- | --- |
@@ -32,8 +37,8 @@ the [examples library](../examples/README.md).
 | [Data model](framework/data-model.md) | ERD and relationship summary |
 | [Compatibility](framework/compatibility.md) | Editions, Lightning Experience, API version |
 | [Localization](framework/localization.md) | Translation Workbench, display formats |
-| [Configuration identity](framework/configuration-identity.md) | Qualified API Names, `rhc` namespace, Demo vs subscriber |
-| [Package testing and upgrades](framework/package-testing-and-upgrades.md) | Test ownership, RunLocalTests, subscriber upgrade path |
+| [Configuration identity](framework/configuration-identity.md) | Qualified API Names, the `rhc` namespace, installed metadata, and metadata created in your org |
+| [Package testing and upgrades](framework/package-testing-and-upgrades.md) | Test ownership, `RunLocalTests`, package installation, and upgrade behavior |
 
 Terms: [Glossary](glossary.md).
 
@@ -55,10 +60,14 @@ Terms: [Glossary](glossary.md).
 | Compare two queries | [Compare two queries](evaluation/compare-two-queries.md) |
 | Verify with Apex | [Apex Check contract](evaluation/apex-check-contract.md) |
 
-## Apex class guides
+## Internal Apex class guides
 
-The [Apex class reference](apex/README.md) explains its maintainer-only layer numbering before the
-class index. Plugin authors can stay on the public [Apex Check contract](evaluation/apex-check-contract.md).
+The [internal Apex class reference](apex/README.md) is for developers changing the package source.
+It explains which classes load configuration, run Checks, build results, publish events, and support
+tests.
+
+Developers creating an Apex Check in their own org do not need those internal pages. Use the public
+[Apex Check contract](evaluation/apex-check-contract.md) instead.
 
 ## Related
 

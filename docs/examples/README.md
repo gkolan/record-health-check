@@ -1,34 +1,40 @@
 # Record Health Check examples
 
 > [!NOTE]
-> On this page, turn the question you want to answer about a Salesforce record into the right Evaluation Type and a practical Check you can adapt with confidence.
+> On this page, choose an Evaluation Type and a complete example that matches the Salesforce
+> requirement you want to check.
 
 Use these examples to build a health check for a Salesforce record. Each example starts with a
 business question, explains which Evaluation Type fits, lists the Setup values, and shows how to
 test the result.
 
-You do not need to read every page. Choose the row that is closest to what you want to check, copy
-the example, and adapt its fields and messages for your organization.
+You do not need to read every page. Choose the row closest to your requirement, create a Check from
+the example values, and replace its fields, limits, and messages with values approved for your org.
 
-All example Check Set tables use the standard run action unless they say otherwise: **Run Button
-Display** = **Label and icon**, **Run Button Label** = **Run**, **Rerun Button Label** = **Rerun**,
-and **Run Button Icon** = `utility:play`. **Hide** is reserved for automatic page-load Check Sets.
+> [!IMPORTANT]
+> The pages in this library are instructions, not metadata installed in your org. The installed
+> package includes four Check Sets whose names begin with `rhc__Example_`. Other examples exist only
+> in these documentation pages unless an administrator creates them.
+
+Unless a page states otherwise, its Check Set shows a **Run** button with the `utility:play` icon
+and changes the button label to **Rerun** after the first run. The configuration tables give the
+exact field values.
 
 > [!TIP]
 > **Not installed yet?** Finish [Install and verify](../installation/install-and-verify.md) first,
-> then return here. Prefer the shipped Example Check Sets for a first sandbox proof, then adapt an
-> example for your org.
+> then return here. Use an example Check Set included with the installed package for the first
+> sandbox test. Create a new Check Set for your org before adapting a documentation example.
 
 ## Choose the right Evaluation Type
 
-Start with where the information for your check is stored.
+Start with where Salesforce stores the information needed to decide whether the record passes.
 
 | What do you need to check? | Use | Good first example |
 | --- | --- | --- |
 | Fields on the current record or a parent record | [**Verify with a formula**](formula/README.md) | [Seller research readiness](formula/account-research-ready.md) |
 | Related records, such as Contacts, Opportunities, or Cases | [**Verify with a query**](query/README.md) | [Customer handoff](query/customer-contact.md) |
 | Whether the results of two queries match or overlap | [**Compare two queries**](compare-two-queries/README.md) | [Opportunity Contact Role coverage](compare-two-queries/opportunity-contact-role-coverage.md) |
-| Logic that formulas and queries cannot express clearly | [**Verify with Apex**](apex/README.md) | [Recent Account activity](apex/recent-activity.md) |
+| A decision that requires custom code | [**Verify with Apex**](apex/README.md) | [Recent Account activity](apex/recent-activity.md) |
 
 > [!TIP]
 > Start with a formula when possible. Move to a query when the answer depends on related records.
@@ -37,15 +43,21 @@ Start with where the information for your check is stored.
 ## How to use an example
 
 1. Open an example that resembles your business requirement.
-2. Read **Why use this Evaluation Type** to confirm that it is the right approach.
-3. Copy the values from **Configure the Check** into **Setup → Custom Metadata Types → Record
-   Health Check Check → Manage Records**.
-4. Replace the sample fields, values, and messages with the ones approved for your organization.
-5. Follow **Test the Check** and confirm both a passing and a failing result before activating it.
+2. Read **Why use this Evaluation Type** to confirm why the example uses Formula, Query, Compare
+   Two Queries, or Apex.
+3. Create the Check Set first when the example requires a new one. In Setup, go to **Custom Metadata
+   Types → Record Health Check Set → Manage Records**.
+4. Create the Check. In Setup, go to **Custom Metadata Types → Record Health Check → Manage
+   Records** and copy the values from **Configure the Check**.
+5. Replace the sample fields, limits, and messages with values that match your org's requirement.
+6. Add the Record Health Check component to the correct Lightning record page if it is not already
+   present.
+7. Follow **Test the Check** and confirm the documented passing, failing, skipped, or error results
+   that apply before making the Check available to users.
 
-The shared [reference folder](../reference/README.md) keeps all Evaluation Type contracts in one place. Use
-the practical examples when you are learning or building a Check. Use a reference when you need all
-available settings, operators, limits, or result behavior.
+The [technical reference](../reference/README.md) lists every setting, operator, limit, and result
+rule. Use an example when creating a Check. Use the reference when the example does not cover a
+setting you need.
 
 | Evaluation Type | Start with | Detailed reference |
 | --- | --- | --- |
@@ -106,12 +118,12 @@ coverage before deployment.
 | [Strategic Account readiness](apex/strategic-readiness.md) | A Strategic Account meets a weighted readiness score | Calculate and explain a configurable score |
 | [Inactive approval participants](apex/inactive-approver.md) | An approval assignment does not include an inactive user | Inspect approval data while accounting for licensed product objects |
 
-## Framework functionality covered
+## What makes each example different
 
-The library is organized so each practical example adds a different Framework technique. Examples
-may use the same Salesforce object, but they do not repeat the same Check pattern.
+Each example teaches a different Record Health Check feature. Examples can use the same Salesforce
+object without repeating the same configuration pattern.
 
-| Example | Distinct Framework depth |
+| Example | Feature demonstrated |
 | --- | --- |
 | [Seller research readiness](formula/account-research-ready.md) | Formula `OR`, optional alternatives, and an edit action |
 | [Billing address review](formula/billing-address-ready.md) | Formula `AND` with display-only Found and Expected formulas |
@@ -133,9 +145,7 @@ may use the same Salesforce object, but they do not repeat the same Check patter
 | [Strategic Account readiness](apex/strategic-readiness.md) | Weighted Apex score, multiple JSON parameters, and formula applicability |
 | [Inactive approval participants](apex/inactive-approver.md) | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior |
 
-The reference pages document additional operators and limits that do not need a separate business
-example. The library favors a smaller set of credible, clearly differentiated Checks over one page
-for every possible picklist value.
+The reference pages document additional operators and limits that do not need separate examples.
 
 ## Related documentation
 

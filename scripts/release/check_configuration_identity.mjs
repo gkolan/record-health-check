@@ -22,6 +22,13 @@ const component = fs.readFileSync(
   ),
   "utf8"
 );
+const componentMetadata = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/recordHealthCheck.js-meta.xml"
+  ),
+  "utf8"
+);
 const runner = fs.readFileSync(
   path.join(
     root,
@@ -65,6 +72,20 @@ const definitionLoader = fs.readFileSync(
   "utf8"
 );
 const failures = [];
+
+const appBuilderProperties = [
+  ...componentMetadata.matchAll(
+    /<property\s+[\s\S]*?name="([^"]+)"[\s\S]*?\/>/g
+  )
+].map((match) => match[1]);
+if (
+  appBuilderProperties.length !== 1 ||
+  appBuilderProperties[0] !== "checkSetName"
+) {
+  failures.push(
+    `Lightning App Builder must expose only checkSetName; found: ${appBuilderProperties.join(", ") || "none"}`
+  );
+}
 
 for (const parameter of [
   "String checkSetQualifiedApiName",
@@ -150,5 +171,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Verified exact QualifiedApiName identity and strict configuration contracts."
+  "Verified exact QualifiedApiName identity, Check Set-only App Builder configuration, and strict configuration contracts."
 );

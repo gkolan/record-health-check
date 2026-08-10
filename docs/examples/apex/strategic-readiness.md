@@ -9,10 +9,8 @@
 
 > [!IMPORTANT]
 > The supporting Apex class lives under `integration-tests/` and does not install with the package.
-> The source block mirrors the repository's same-namespace test class; it is teaching source, not a
-> subscriber-ready copy. Build a subscriber class from the
-> [public Apex Check contract](../../reference/evaluation/apex-check-contract.md), which uses
-> `rhc.*` types.
+> Create and deploy the subscriber-owned class in Step 2 before configuring the Check. The code on
+> this page uses the public `rhc.*` types provided by the installed package.
 
 ## Scenario
 
@@ -29,6 +27,15 @@ separate reviews:
 >
 > Record Health Check combines the four reviews into one score and points the director to the areas
 > that still need attention.
+
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Have a Salesforce developer review, test, and deploy the Apex class. Record Health Check does not
+  install this example class.
+- Confirm that `Strategic` is the exact Account Type picklist API value used in your org. If it is
+  not, change the applicability formula in Step 4.
 
 ## What you will learn
 
@@ -57,7 +64,7 @@ separate reviews:
 | **Fail** (`FAIL`) | The score is below `minScore` |
 | **Skipped** (`SKIPPED`) | Account Type is not Strategic, so the scoring class does not run |
 
-### Choose how your team measures readiness
+### Choose how your org measures readiness
 
 The included configuration uses:
 
@@ -109,7 +116,7 @@ List<Id> accountIds = scope.recordIds;
 The complete class below queries Accounts, Contacts, Opportunities, Tasks, and Events once per
 scope and then assembles one score for every requested Account.
 
-## Step 1: Understand the parameters
+## Step 1: Choose the score and activity window
 
 Use Check parameters to change the passing score and activity window without editing the class:
 
@@ -120,15 +127,10 @@ Use Check parameters to change the passing score and activity window without edi
 }
 ```
 
-After building and deploying a subscriber-compatible class from this pattern:
-
-1. Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**.
-2. Create or edit the Check record.
-3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check** (`Record_Health_Check__mdt`).
-
 Record Health Check parses the JSON and supplies both named values in `scope.parameters`.
 `minScore` accepts `1`–`100`, and `activityDaysBack` accepts `1`–`3650`; missing or invalid values
-use 80 and 30. See
+silently use 80 and 30. Enter and test explicit valid whole numbers rather than relying on those
+fallbacks. See
 [Parameter parsing patterns](../../reference/evaluation/apex-check-contract.md#scope)
 for validation and type-conversion guidance.
 
@@ -145,11 +147,10 @@ Applicability evaluates `ISPICKVAL(Type, "Strategic")` before Apex runs. An open
 blank Amount earns no pipeline points; any missing billing component loses all billing points; one
 Contact or one qualifying activity is sufficient for its respective criterion.
 
-## Step 2: Review the integration-test class
+## Step 2: Create and test the Apex class
 
-This is the complete integration-test class used by the repository. Comments explain the Record
-Health Check inputs, administrator settings, user access, pass logic, and returned values. A
-subscriber implementation must use the public `rhc.*` types.
+Create an Apex class named `AccountStrategicReadinessCheck` from the code below. Comments explain
+the inputs, administrator settings, user access, pass logic, and returned values.
 
 <!-- BEGIN GENERATED APEX CLASS -->
 
@@ -164,7 +165,7 @@ subscriber implementation must use the public `rhc.*` types.
  * Example implementation retained here only as an integration-test sample.
  * {"minScore": 80, "activityDaysBack": 60}
  */
-global with sharing class AccountStrategicReadinessCheck implements RecordHealthCheckPlugin {
+global with sharing class AccountStrategicReadinessCheck implements rhc.RecordHealthCheckPlugin {
   private static final Integer DEFAULT_MIN_SCORE = 80;
   private static final Integer DEFAULT_ACTIVITY_DAYS = 30;
   private static final Integer MIN_SCORE = 1;
@@ -173,8 +174,8 @@ global with sharing class AccountStrategicReadinessCheck implements RecordHealth
   private static final Integer MAX_ACTIVITY_DAYS = 3650;
   private static final Integer POINTS_PER_CRITERION = 25;
 
-  global Map<Id, RecordHealthCheckOutcome> evaluate(
-    RecordHealthCheckScope scope
+  global Map<Id, rhc.RecordHealthCheckOutcome> evaluate(
+    rhc.RecordHealthCheckScope scope
   ) {
     List<Id> recordIds = scope.recordIds;
     Integer minScore = resolveInt(
@@ -200,8 +201,8 @@ global with sharing class AccountStrategicReadinessCheck implements RecordHealth
     Set<Id> withPipeline = accountsWithOpenPipeline(recordIds);
     Set<Id> withActivity = accountsWithRecentActivity(recordIds, activityDays);
 
-    RecordHealthCheckValue expected = RecordHealthCheckValue.ofCount(minScore);
-    Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
+    rhc.RecordHealthCheckValue expected = rhc.RecordHealthCheckValue.ofCount(minScore);
+    Map<Id, rhc.RecordHealthCheckOutcome> results = new Map<Id, rhc.RecordHealthCheckOutcome>();
     for (Id recordId : recordIds) {
       Account acct = accounts.get(recordId);
       if (acct == null) {
@@ -210,8 +211,8 @@ global with sharing class AccountStrategicReadinessCheck implements RecordHealth
         // exists.
         results.put(
           recordId,
-          RecordHealthCheckOutcome.unableToEvaluate(
-            RecordHealthCheckReasonCodes.RECORD_NO_LONGER_AVAILABLE
+          rhc.RecordHealthCheckOutcome.unableToEvaluate(
+            'RECORD_NO_LONGER_AVAILABLE'
           )
         );
         continue;
@@ -234,9 +235,9 @@ global with sharing class AccountStrategicReadinessCheck implements RecordHealth
       results.put(
         recordId,
         (score >= minScore
-            ? RecordHealthCheckOutcome.pass('APEX_PASS')
-            : RecordHealthCheckOutcome.fail('APEX_FAIL'))
-          .withFound(RecordHealthCheckValue.ofCount(score))
+            ? rhc.RecordHealthCheckOutcome.pass('APEX_PASS')
+            : rhc.RecordHealthCheckOutcome.fail('APEX_FAIL'))
+          .withFound(rhc.RecordHealthCheckValue.ofCount(score))
           .withComparison('GREATER_THAN_OR_EQUAL', expected)
       );
     }
@@ -345,12 +346,18 @@ global with sharing class AccountStrategicReadinessCheck implements RecordHealth
 
 <!-- END GENERATED APEX CLASS -->
 
+Create an Apex test class before deployment. Test a score of 0, each individual 25-point
+criterion, a score of 100, both parameter fallbacks, an unavailable Account, 200 Account IDs, and
+constant SOQL query usage as the number of Accounts increases. The repository's
+[`AccountStrategicReadinessCheckTest`](../../../packages/record-health-check/integration-tests/main/default/classes/AccountStrategicReadinessCheckTest.cls)
+is a package-development reference; a subscriber test must use the public `rhc.*` types.
+
 ## Context and result contract
 
 Record Health Check calls the plugin once for a scope:
 
 ```apex
-Map<Id, RecordHealthCheckOutcome> evaluate(RecordHealthCheckScope scope)
+Map<Id, rhc.RecordHealthCheckOutcome> evaluate(rhc.RecordHealthCheckScope scope)
 ```
 
 The context contains:
@@ -382,13 +389,35 @@ unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
 [Returning an outcome](../../reference/evaluation/apex-check-contract.md#outcome).
 
 
-## Step 3: Configure the Check
+## Step 3: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Apex Readiness |
+| **Record Health Check Set Name** | `Account_Apex_Readiness` |
+| **Object** | `Account` |
+| **Card Title** | Account Readiness |
+| **Card Subtitle** | Confirm the Account meets the strategic readiness score. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 4: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Strategic_Account_Is_Ready` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Strategic_Account_Is_Ready` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Strategic Account Is Ready |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Strategic Account Is Ready |
@@ -418,36 +447,15 @@ Confirm the `Strategic` Type picklist API value in your org. Skip comes from app
 
 `minScore` and `activityDaysBack` change the passing score and activity window without changing the class.
 
-The applicability fields in **Configure the Check** are required for the documented skip behavior.
-The pack supplies description, failure settings, applicability, order, and Active. The remaining
-rows document recommended choices. Add an action link only when it helps the user fix the issue;
-an Account view link alone does not show which readiness item is missing.
-
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Apex_Readiness` |
-| **Object** | `Account` |
-| **Card Title** | `Account Readiness` |
-| **Card Subtitle** | Confirm the Account meets the weighted strategic readiness score. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+The applicability fields in **Configure the Check** are required for the documented `SKIPPED`
+result. Add an action link only when it helps the user identify the missing readiness area; an
+Account view link alone does not explain which criterion lost points.
 
 ## What the user sees
 
 The Apex class turns the weighted score and configured threshold into these user-facing values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | A Strategic Account at or above `minScore` passes. |
 | **`FAIL`** | A score below `minScore` shows Needs attention with Critical severity. |
@@ -468,11 +476,16 @@ The readiness score follows the running user's Salesforce access.
 
 - A lower user-mode score is not proof that the related record does not exist. Keep `WITH USER_MODE` so scores reflect the running user's access.
 
+- If a query throws because the running user cannot access an object or queried field, Record
+  Health Check returns `ERROR` with reason code `APEX_EVALUATOR_ERROR`. If the Account is deleted or
+  is no longer visible after the run starts, the class returns `UNABLE_TO_EVALUATE` with
+  `RECORD_NO_LONGER_AVAILABLE`.
+
 - The class reads data only and performs no DML or callouts.
 
 - Compare the score for the intended user and an administrator, then confirm the difference matches the approved sharing model.
 
-## Step 4: Test the Check
+## Step 5: Test the Check
 
 1. Set Type to Strategic on an Account with no Contacts, no open pipeline Amount, no recent activity, and incomplete billing (score **0**). Confirm Critical (`0` vs `80+`).
 2. Add only Contacts (score **25**). Confirm still Critical while `minScore` is 80.
@@ -488,7 +501,8 @@ placeholder with an Account ID you can access:
 ```apex
 Id accountId = '001XXXXXXXXXXXXXXX';
 rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
-  rhc.RecordHealthCheckRequest.forCheck('Example_Strategic_Account_Is_Ready', accountId)
+  // This is the Check Qualified API Name created in Step 4.
+  rhc.RecordHealthCheckRequest.forCheck('Strategic_Account_Is_Ready', accountId)
     .withResultMode(rhc.RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
 );
 System.debug(LoggingLevel.INFO, JSON.serializePretty(response));

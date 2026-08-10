@@ -1,97 +1,190 @@
-# Subscribe to the Log event
+# Save or route restricted Record Health Check errors
 
-> [!NOTE]
-> On this page, build and verify a restricted Flow or Apex subscriber for
-> `Record_Health_Check_Log__e` without creating a logging loop.
+Use the **Record Health Check Log** Platform Event when restricted administrator, developer, or
+support automation must receive technical errors encountered by Record Health Check.
 
-> [!TIP]
-> **Event navigation:** [Publication behavior](../integration/lifecycle-events.md) ·
-> **Build a Log subscriber** ·
-> [Look up Log fields](../metadata/event-log.md)
+| Setup value | Name |
+| --- | --- |
+| Platform Event label | Record Health Check Log |
+| API name | `Record_Health_Check_Log__e` |
+| Apex name after package installation | `rhc__Record_Health_Check_Log__e` |
 
-The Log event reports Framework `ERROR` diagnostics when error-event publication is enabled for the
-Check Set. It publishes immediately and can contain record and user IDs, exception messages,
-exception types, and stack traces.
+This event can contain Salesforce record and user IDs, exception messages, exception types, and
+stack traces. Do not use it for ordinary health-result workflows or broad notifications. Use the
+[Check Result event](check-result.md) for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` outcomes that
+business automation needs.
 
-## Before creating a subscriber
+## Before you receive this event
 
-Restrict event access and every stored copy to approved operational users. Define retention before
-storing diagnostics. Review the [Log event metadata reference](../metadata/event-log.md) for the
-complete field contract and limitations.
+The **Publish Error Log Event** checkbox on each Check Set is selected by default. Clear it when your
+org must not publish these technical details for that Check Set. Clearing it does not turn off
+Salesforce debug logs.
 
-Create a protected destination with a unique Event ID. Useful fields include Run ID, occurred time,
-error code, Check Set and Check API names, Record ID, User ID, exception type, message, stack trace,
-contract version, and Framework version. Separate access to messages and stack traces from general run
-history.
+The installed **Record Health Check User** and **Record Health Check Admin** Permission Sets do not
+provide access to this event. Grant access separately and only to the users or integration that must
+receive restricted errors.
 
-## Subscribe with Flow
+Define all of these controls before creating automation:
 
-1. Create a **Platform Event-Triggered Flow** for **Record Health Check Log**.
-2. Get the protected destination record by `EventId__c` and end when it already exists.
-3. Create the diagnostic record before starting notifications or follow-on automation.
-4. Route stable error codes to approved operational queues and unknown codes to review.
-5. Keep message and stack-trace fields out of email, chat, and unrestricted records.
-6. Connect fault paths to monitoring that does not run another Record Health Check.
-7. Activate the Flow and test with synthetic, non-production diagnostic values.
+- who can receive and read the event;
+- which fields may be saved;
+- how long saved errors are retained;
+- where processing failures are monitored; and
+- which destinations must never receive messages or stack traces, such as broad email or chat
+  channels.
 
-The subscriber must not call Record Health Check or republish Log events. Keep the Flow limited to
-storing restricted diagnostics and notifying approved operational users.
+See the [complete Log event field reference](../metadata/event-log.md).
 
-## Subscribe with Apex
+## Recommended: Save restricted errors with Flow
 
-Keep the trigger thin and pass the complete event batch to one restricted handler:
+### 1. Create a protected custom object
+
+Create a custom object owned by your team, such as **Record Health Check Error**
+(`Record_Health_Check_Error__c`). This is an example; the package does not create it.
+
+Add only fields approved by your security team:
+
+| Destination field | Suggested type | Platform Event field |
+| --- | --- | --- |
+| Event ID | Text(80), Unique | `$Record.EventId__c` |
+| Run ID | Text(120) | `$Record.RunId__c` |
+| Occurred At | Date/Time | `$Record.OccurredAt__c` |
+| Code | Text(120) | `$Record.Code__c` |
+| Check Set Developer Name | Text(120) | `$Record.CheckSetDeveloperName__c` |
+| Check Developer Name | Text(120) | `$Record.CheckDeveloperName__c` |
+| Salesforce Record ID | Text(18) | `$Record.RecordId__c` |
+| Running User ID | Text(18) | `$Record.UserId__c` |
+| Exception Type | Text(120) | `$Record.ExceptionType__c` |
+| Message | Long Text Area | `$Record.Message__c` |
+| Stack Trace | Long Text Area | `$Record.StackTrace__c` |
+| Contract Version | Text(10) | `$Record.ContractVersion__c` |
+
+Message and Stack Trace are optional. Omit them when the use case needs only error counts and codes.
+If you save them, restrict those fields and every report, export, backup, or integration that can
+read them.
+
+### 2. Create the Platform Event-triggered Flow
+
+1. In Setup, open **Flows**, select **New Flow**, and choose **Platform Event-Triggered Flow**.
+2. Select **Record Health Check Log**.
+3. Use **Get Records** to find `Record_Health_Check_Error__c` where Event ID equals
+   `$Record.EventId__c`.
+4. End successfully when the Event ID already exists.
+5. Create the protected error record before sending any approved notification.
+6. Route known codes to a restricted support queue and unknown codes to review.
+7. Connect fault paths to monitoring that does not run another health check.
+8. Test with synthetic error text, then activate the Flow.
+
+Do not call Record Health Check or publish another Log event from this Flow. Keep it focused on
+saving the error and notifying approved support staff.
+
+## Alternative: Save restricted errors with Apex
+
+Use Apex when a development team needs bulk processing or controlled routing. The following example
+saves only identifying fields and the error code. Add Message or Stack Trace only after an access
+and retention review.
 
 ```apex
-trigger RhcLogSubscriber on rhc__Record_Health_Check_Log__e (after insert) {
-  RhcLogSubscriberHandler.handle(Trigger.New);
+trigger RecordHealthCheckLogTrigger on rhc__Record_Health_Check_Log__e (
+  after insert
+) {
+  RecordHealthCheckLogHandler.saveErrors(Trigger.new);
 }
 ```
 
-Process the complete batch in a restricted handler:
-
 ```apex
-public without sharing class RhcLogSubscriberHandler {
-  /**
-   * Persists a restricted batch of Framework diagnostics.
-   * Readers must independently enforce the approved access boundary.
-   *
-   * @param events Complete trigger batch supplied by Trigger.New.
-   */
-  public static void handle(List<rhc__Record_Health_Check_Log__e> events) {
+public with sharing class RecordHealthCheckLogHandler {
+  public static void saveErrors(
+    List<rhc__Record_Health_Check_Log__e> events
+  ) {
     Set<String> eventIds = new Set<String>();
     for (rhc__Record_Health_Check_Log__e eventRecord : events) {
       eventIds.add(eventRecord.EventId__c);
     }
 
-    // Query protected diagnostic records once by unique Event ID.
-    // Copy only approved fields, insert once, and monitor partial DML errors.
-    // Never include real messages or stack traces in unrestricted notifications.
+    Set<String> savedEventIds = new Set<String>();
+    for (Record_Health_Check_Error__c savedError : [
+      SELECT Event_Id__c
+      FROM Record_Health_Check_Error__c
+      WHERE Event_Id__c IN :eventIds
+    ]) {
+      savedEventIds.add(savedError.Event_Id__c);
+    }
+
+    List<Record_Health_Check_Error__c> errorsToSave =
+      new List<Record_Health_Check_Error__c>();
+
+    for (rhc__Record_Health_Check_Log__e eventRecord : events) {
+      if (savedEventIds.contains(eventRecord.EventId__c)) {
+        continue;
+      }
+
+      errorsToSave.add(
+        new Record_Health_Check_Error__c(
+          Event_Id__c = eventRecord.EventId__c,
+          Run_Id__c = eventRecord.RunId__c,
+          Occurred_At__c = eventRecord.OccurredAt__c,
+          Code__c = eventRecord.Code__c,
+          Check_Set_Developer_Name__c = eventRecord.CheckSetDeveloperName__c,
+          Check_Developer_Name__c = eventRecord.CheckDeveloperName__c,
+          Salesforce_Record_Id__c = eventRecord.RecordId__c,
+          Running_User_Id__c = eventRecord.UserId__c,
+          Exception_Type__c = eventRecord.ExceptionType__c
+        )
+      );
+      savedEventIds.add(eventRecord.EventId__c);
+    }
+
+    if (!errorsToSave.isEmpty()) {
+      List<Database.SaveResult> saveResults = Database.insert(
+        errorsToSave,
+        false
+      );
+      // Send each failed SaveResult to restricted monitoring owned by your team.
+    }
   }
 }
 ```
 
-`without sharing` does not remove object or field checks. Use it only when the approved operational
-design requires a protected system-owned store, and enforce object and field access at every reader.
-The handler must not call Record Health Check. The package's internal loop guard is not a subscriber
-API.
+`rhc__` appears on the Platform Event because it comes from the installed package. The example
+error object has no prefix because your team creates it in your org.
 
-## Test the subscriber
+`RecordHealthCheckLogger.enterSubscriberContext()` is package-internal and cannot be called by Apex
+created in your org. Prevent a loop by never calling Record Health Check from this trigger
+or handler. Production code must also inspect every failed `Database.SaveResult`.
 
-Publish a Log event containing synthetic message and stack-trace text. Deliver it with
-`Test.getEventBus().deliver()` and assert the protected stored record. Publish the same Event ID
-again and assert one record. Exercise a handler failure and verify that no second Log event is
-published.
+## Understand Publish Immediately
 
-## Known limits
+The Log event uses **Publish Immediately**. Record Health Check holds errors until its request
+reaches a normal completion point and then publishes them in groups of up to 100. An event accepted
+before a later transaction rollback is not rolled back with that transaction.
 
-Publish Immediately allows an accepted event to survive a later publisher rollback. An uncatchable
-governor-limit failure can still prevent Record Health Check from reaching its publish step. Keep Salesforce debug
-logs and platform exception monitoring available.
+This does not guarantee an event for every failure. A transaction that stops immediately after
+reaching an uncatchable Salesforce limit might never reach the publication step. Keep Salesforce
+debug logs and your normal Apex exception monitoring available.
+
+Salesforce accepting the event also does not prove that the receiving Flow, Apex trigger, or
+integration processed it. Monitor that automation separately.
+
+## Test before activation
+
+Test these cases with synthetic values in a sandbox:
+
+1. An event creates one protected error record.
+2. Reusing the same Event ID does not create another record or notification.
+3. A missing optional Record ID, Check, or exception field does not fail processing.
+4. An unknown Code or Contract Version goes to a review path.
+5. A destination save failure is visible only to approved support staff.
+6. Receiving automation does not call Record Health Check or create another Log event.
+7. Users without access cannot read the event, object, reports, or restricted fields.
+
+In an Apex test, publish a Log event and call `Test.getEventBus().deliver()` before asserting the
+saved record.
 
 ## Related
 
-- [Log event metadata](../metadata/event-log.md)
-- [Check Result subscription](check-result.md)
-- [Lifecycle event behavior](../integration/lifecycle-events.md)
+- [Record Health Check Log event fields](../metadata/event-log.md)
 - [Troubleshoot Record Health Check](../guides/troubleshoot-with-show-diagnostics.md)
-- [External Pub/Sub API subscriber](external-pub-sub-api.md)
+- [Save individual Check results](check-result.md)
+- [Choose whether to publish result events](../integration/lifecycle-events.md)
+- [Failure and recovery policy](README.md#failure-and-recovery-policy)

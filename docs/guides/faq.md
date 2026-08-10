@@ -9,10 +9,10 @@ guided path instead.
 
 ## Does Record Health Check block saves?
 
-No. Record Health Check evaluates a record after it already exists and never performs DML on the
-record it evaluates. A `FAIL` result has no transactional effect: the user can still save, edit, and
-continue working. When Salesforce must prevent a save, use a Validation Rule, a before-save Flow, or
-an Apex trigger instead. See
+No. Record Health Check evaluates an existing record and does not change it. A `FAIL` tells the user
+that a business requirement needs attention; it does not prevent or undo a save. When Salesforce
+must prevent a save, use a Validation Rule, a record-triggered Flow custom error, or an Apex trigger.
+See
 [Compare Record Health Check to native Salesforce tools](compare-to-native-salesforce.md).
 
 ## Which Salesforce editions does it work on?
@@ -28,7 +28,7 @@ platform features are available before installing. See
 
 Yes. They solve different problems and do not conflict. A Validation Rule can enforce a
 non-negotiable minimum at save time while a Record Health Check reviews a fuller readiness
-picture on read, including data a Validation Rule cannot reach (related records, aggregates, or
+picture for existing records, including data a Validation Rule cannot reach (related records, totals, or
 records that existed before the Check did). See
 [Compare Record Health Check to native Salesforce tools](compare-to-native-salesforce.md).
 
@@ -38,7 +38,7 @@ Install the namespaced unlocked package (`rhc`) for production, sandboxes, and e
 The current stable `04t` ID and install URLs live in
 [`config/package-releases.json`](../../config/package-releases.json).
 
-Deploying unpackaged source is a **contributor-only** workflow for changing the Framework itself.
+Deploying unpackaged source is a **contributor-only** workflow for changing Record Health Check.
 See [Source development](../contributing/source-development.md). Subscribers must not use source
 deploy as an installation path. Package-owned metadata carries the `rhc__` prefix on its
 `QualifiedApiName`. See [Install and verify](../installation/install-and-verify.md) and
@@ -55,12 +55,26 @@ namespaced unlocked package. Maintainers run packaged tests during package-versi
 promoting a new `04t`. See
 [Package testing and upgrades](../reference/framework/package-testing-and-upgrades.md).
 
+## Which installed permission set should I assign?
+
+Assign **Record Health Check User** to people who run health checks. Assign **Record Health Check
+Admin** to administrators who configure the package or need authorized diagnostics.
+
+Both permission sets include the **Record Health Check Run** Custom Permission and the Apex class
+access needed to run a health check. **Record Health Check Admin** also includes the permissions used
+to manage configuration and view diagnostics.
+
+These permission sets do not grant access to your Account, Contact, Opportunity, Case, or custom
+object data. Users still need the appropriate access from your org's profiles or permission sets.
+See [Install and verify](../installation/install-and-verify.md).
+
 ## Are lifecycle events on by default?
 
 No, not the two result events. **Publish User Run Event** (Check Set) and **Publish User Result
 Event** (Check) both default to off, because publication consumes the org's Platform Event allocation
-and can trigger subscriber automation. **Publish Error Log Event** (Check Set) defaults to **on**,
-so Framework errors stay observable unless an administrator opts a Check Set out. Automatic
+and can start your org's Flow, Apex, or integration automation. **Publish Error Log Event** (Check
+Set) defaults to **on**, so unexpected errors can be monitored unless an administrator turns it off
+for that Check Set. Automatic
 page-load runs never publish, regardless of these settings. See
 [Lifecycle events](../integration/lifecycle-events.md).
 
@@ -74,10 +88,9 @@ the Check Set from Apex or Flow when a subscriber also needs an event.
 
 ## What Salesforce access does evaluation use?
 
-The running user's own access, always. Every query against a business record runs
-`WITH USER_MODE`, so a user only sees results based on records and fields they can already read in
-Salesforce. Record Health Check never elevates privilege and never runs a query as
-`WITH SYSTEM_MODE`. See [Security and data access](../reference/framework/security.md).
+The running user's own Salesforce access. A user sees results based only on records and fields they
+can read. Record Health Check does not give the user additional access. See
+[Security and data access](../reference/framework/security.md).
 
 ## What are the Example Check Sets, and should I use them in production?
 
@@ -98,15 +111,14 @@ whether the prefix applies. See
 
 ## Does a Check failure ever cause data loss or a rollback?
 
-No. A `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR` result is just a returned status. The one
-exception involving a rollback is a custom Apex plugin that attempts DML, a callout, email, an
-event publication, or asynchronous work: the Framework detects that forbidden write and
-rolls it back before it can commit, then reports a Framework exception rather than letting it
-through. See [Security and data access: Plugin write restrictions](../reference/framework/security.md#plugin-write-restrictions).
+No. A `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR` result does not change Salesforce data. If
+a custom Apex Check attempts a prohibited data change, callout, email, Platform Event, or
+asynchronous job, Record Health Check prevents that work from being committed and returns an error.
+See [Security and data access: Apex Check restrictions](../reference/framework/security.md#plugin-write-restrictions).
 
 ## Does Record Health Check work in single-currency and multi-currency orgs?
 
-Yes. Install and day-to-day evaluation work the same in both modes. At runtime the Framework:
+Yes. Installation and day-to-day use work in both modes. Record Health Check:
 
 - selects `CurrencyIsoCode` on the card record only when the org is multi-currency;
 - formats currency Found / Expected values with a **symbol** in a single-currency org and an **ISO
@@ -125,10 +137,13 @@ On Windows run that script from **Git Bash**. See
 
 ## Why did contributor source deploy fail Apex tests in a multi-currency org?
 
+This question applies only to contributors deploying unpackaged source. Package subscribers do not
+need this workflow.
+
 A contributor source deploy with `--test-level RunLocalTests` into a multi-currency org can fail
 `RecordHealthCheckFieldPlannerTest.rejectsMissingInaccessibleAndMalformedPaths` when the assertion
 expects only `{Id}` but the planner correctly returns `{CurrencyIsoCode, Id}`. That is a test
-assertion issue, not a Framework currency bug. Unlocked-package installs into subscriber orgs are
+assertion issue, not a Record Health Check currency bug. Unlocked-package installs into subscriber orgs are
 unaffected. See [Source development](../contributing/source-development.md).
 
 ## Where do I go next?

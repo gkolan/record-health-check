@@ -1,11 +1,13 @@
 # Lightning component
 
 > [!NOTE]
-> On this page, choose how the Record Health Check card runs on a Lightning record page and understand how that choice shapes user control, concurrent requests, visible results, and lifecycle-event eligibility.
+> On this page, choose whether the Record Health Check card runs when a record page opens or waits
+> for the user to select Run, then understand what users see and when optional Platform Events can
+> be published.
 
 Use this reference to choose whether a Check Set runs when the record page opens or waits for the
-user to select **Run**. The choice affects the card experience and whether the run is eligible to
-publish lifecycle events.
+user to select **Run**. The choice affects when users see results and whether the card can publish
+Platform Events.
 
 The **Record Health Check** Lightning Web Component supports both experiences. Automatic page-load
 evaluation is read-only and never publishes. An explicit **Run** or **Rerun** is a deliberate user
@@ -17,7 +19,7 @@ Builder palettes.
 
 ## Choose the run experience
 
-| User experience | Check Set setting | When to use it | Lifecycle events |
+| User experience | Check Set setting | When to use it | Platform Events |
 | --- | --- | --- | --- |
 | Results appear after the page opens | **When the page opens** (`RUN_ON_LOAD`) | Users need passive readiness guidance whenever they view the record | Never publishes |
 | The card waits for the user | **When the user clicks Run** (`RUN_ON_REQUEST`) | The review is deliberate, data may change first, or publication may be enabled | Run and Rerun can publish when configured |
@@ -25,7 +27,7 @@ Builder palettes.
 ## What the component is
 
 - A record-page component that displays and coordinates runs for one configured Check Set.
-- A transient view of Set and Check results under the current user's access.
+- A view of the current run's Check Set and Check results using the current user's Salesforce access.
 - An optional event publisher only when the user explicitly clicks Run or Rerun.
 
 ## What the component is not
@@ -33,7 +35,7 @@ Builder palettes.
 - It is not a result-history store.
 - It does not block record save or automatically remediate failures.
 - Automatic page load is not consent to publish lifecycle events.
-- A completed card does not prove that an event subscriber processed anything.
+- A completed card does not prove that a receiving Flow, Apex trigger, or integration processed an event.
 - It is not available on App Pages or Home Pages. The component evaluates one record, so it is
   published only for record pages and does not appear in the App Builder palette elsewhere.
 
@@ -57,7 +59,7 @@ For installation details, use [Create your first Check](../installation/create-y
 diagnostic values additionally require **Show Diagnostics** and the
 **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission.
 
-## Behavior matrix
+## When the card publishes result events
 
 | Component action | Source | Set event | Check events |
 | --- | --- | --- | --- |
@@ -65,33 +67,32 @@ diagnostic values additionally require **Show Diagnostics** and the
 | User clicks Run | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
 | User clicks Rerun | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
 
-Lifecycle Custom Metadata switches remain off by default:
+Leave these settings off when users only need results on the card:
 
 - `PublishUserRunEvent__c` enables one Set Run completion event for the Check Set.
 - `PublishUserResultEvent__c` enables a Check Result event for that Check.
 
 Error Log events use a separate default-on Check Set setting. `PublishErrorLogEvent__c` publishes
-Framework `ERROR` diagnostics from automatic and deliberate runs; uncheck it to opt that Check Set
+Record Health Check `ERROR` details from automatic and deliberate runs; uncheck it to opt that Check Set
 out. This does not disable Salesforce debug-log output.
 
 An automatic run never publishes lifecycle events even when both lifecycle switches are enabled.
 It can still publish an Error Log event when the default-on error setting permits it.
 
 The block is intentional. Opening or refreshing a record page is passive navigation, not a request
-to notify downstream systems. If automatic runs published, ordinary browsing could consume Platform
-Event allocations, create duplicate history, and trigger subscriber automation repeatedly. Run and
+to notify another process. If automatic runs published, ordinary browsing could consume Platform
+Event allocations, create repeated history, and start receiving automation repeatedly. Run and
 Rerun provide the deliberate boundary required before publication is eligible.
 
 ## Component inputs and visible outputs
 
 | Input/context | Meaning |
 | --- | --- |
-| Check Set selected in App Builder | Configuration loaded and evaluated by the card |
+| Check Set selected in App Builder | One active Check Set whose Object matches the record page. The dropdown shows its Label and stores its exact Qualified API Name. |
 | Current record ID | Record evaluated |
 | Check Set **When Checks Run** = **When the page opens** (`RUN_ON_LOAD`) | Run after definitions load; publication blocked |
 | Check Set **When Checks Run** = **When the user clicks Run** (`RUN_ON_REQUEST`) | Wait for an explicit Run; publication can be enabled |
 | Check Set **Run Button Display** | Show label and icon, label only, a compact icon, or hide the action on automatic Check Sets only |
-| App Builder **Run Button Display** | Inherit the Check Set or override its display for this component instance |
 | Run or Rerun button | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank. |
 
 When the display is **Hide**, the card removes the complete action area, so the title and subtitle
@@ -110,7 +111,7 @@ does not show Rerun because there is nothing to evaluate again.
 A browser refresh and **Rerun** can both obtain current results, but only Rerun is an explicit user
 action that can publish lifecycle events. Refreshing the page runs the automatic Check Set as part
 of page load and never publishes those events. When the action is hidden, refresh the page to
-reevaluate the card, or call the Check Set from Apex or Flow when a subscriber needs an event.
+reevaluate the card, or call the Check Set from Apex or Flow when another process needs an event.
 
 The visible output is the completed row list and summary counts. Long Found and Expected values
 clamp to two lines; use the adjacent `+`/`−` control to expand or collapse the complete value.
@@ -132,10 +133,10 @@ Each server-finalized Check with publication enabled can produce `Record_Health_
 [Check Result event fields](../metadata/event-check-result.md#fields)
 for the complete field list.
 
-## Why publication happens in two stages
+## What happens while the card runs
 
-The component evaluates Checks through separate Apex requests so it can enforce dependencies,
-control concurrency, stop after system errors, and progressively reveal results.
+The component evaluates Checks through separate Salesforce requests so it can honor prerequisites,
+stop after system errors when configured, and show results progressively.
 
 When **Stop after a system error** is unchecked, the component allows up to five evaluations at a
 time so the card can finish promptly without flooding the browser or Salesforce with one request per
@@ -151,28 +152,27 @@ For an explicit run:
 Results the client determines without calling Apex, such as a dependency skip, count toward the Set
 totals but do not create a separate Check Result event, because no server Check evaluation finalized.
 
-Within one server evaluation, a prerequisite shared by multiple dependent Checks is memoized and
-evaluated once. The cache is cleared when that top-level evaluation finishes; a later Run or Rerun
-starts from current record data.
+Within one request, a prerequisite shared by multiple dependent Checks is evaluated once and reused.
+A later Run or Rerun starts again from the current saved record data.
 
 ## Best-effort behavior
 
 Event publication never changes the card result. If the completion call or event publication fails,
-the user still sees the completed health-check results. Consumers should monitor their own event and
-subscriber processing rather than treating the card as delivery confirmation.
+the user still sees the completed health-check results. The receiving Flow, Apex trigger, or
+integration needs its own monitoring; the card is not event-delivery confirmation.
 
 Use the [lifecycle-events overview](lifecycle-events.md) for cross-event behavior and
-the linked metadata references for exact field types, replay, retention, and subscriber design.
+the linked metadata references for exact field types, replay, retention, and receiving-process design.
 
 ## Versioning and compatibility
 
-The component reads the contract value included in the synchronous response. Events created by an
+The component reads the contract value included in the response returned to it. Events created by an
 explicit Run or Rerun carry their own independent contract value. No component run behavior is
 currently deprecated.
 
-The contract numbers identify response and event shapes for integrations; the Framework version
+The contract numbers identify response and event fields for integrations; the Record Health Check version
 identifies the installed release. Keeping them separate allows compatible updates without
-making the Lightning component or subscribers treat every product release as a breaking schema
+making the Lightning component or receiving integrations treat every product release as a breaking schema
 change.
 
 ## Related

@@ -42,13 +42,42 @@ A seller is preparing an Account for a handoff or account review.
 
 - **Report:** A report can find many Accounts with no Contacts. It does not place the answer on the Account page beside the other handoff checks.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that intended users can read Contact and `AccountId` and can see the Contacts that should
+  count for this handoff requirement.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Related Record Review |
+| **Record Health Check Set Name** | `Account_Related_Record_Review` |
+| **Object** | `Account` |
+| **Card Title** | Related Record Review |
+| **Card Subtitle** | Confirm at least one related Contact exists for handoff. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Has_At_Least_One_Contact` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Has_At_Least_One_Contact` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Has At Least One Contact |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Has At Least One Contact |
@@ -82,31 +111,11 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 Field**, **If Query Finds No Records**, and **If Field Value Is Empty** do not apply. Comparison Query,
 list, Formula, and Apex fields also do not apply.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | `Related Record Review` |
-| **Card Subtitle** | Confirm at least one related Contact exists for handoff. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
-
 ## What the user sees
 
-The aggregate Contact count becomes these Framework outcomes and card values:
+The Contact count produces these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | The Check passes when at least one visible related Contact exists. |
 | **`FAIL`** | A count of zero shows Needs attention with Warning severity. |
@@ -124,11 +133,14 @@ Record Health Check counts Contacts related to the open Account with the running
 
 Before activation, run the no-Contact and has-Contact cases with the sharing access assigned to handoff users.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Remove all Contacts from an Account. Run the check and confirm Warning.
 2. Add one Contact, rerun, and confirm a pass.
-3. Repeat step 1 as a user who cannot see Contacts and confirm the result matches your sharing model.
+3. Keep one Contact that an administrator can see but the handoff user cannot see. Run as the
+   handoff user and confirm Found is `0` and the result is `FAIL`.
+4. Remove the user's Read access to Contact or `AccountId` in a sandbox-only permission test and
+   confirm `UNABLE_TO_EVALUATE`. Restore access after the test.
 
 ## Failures and remedies
 

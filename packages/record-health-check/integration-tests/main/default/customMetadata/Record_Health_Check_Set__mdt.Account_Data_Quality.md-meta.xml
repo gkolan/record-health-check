@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Data Quality</label>
+    <label>Review: Hidden Automatic Run</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,15 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Account Data Quality</value>
+        <value
+      xsi:type="xsd:string"
+    >Automated Account Data Quality and Customer Readiness Review</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Checks that key account fields are populated and correctly formatted.</value>
+    >Checks begin automatically when the page loads. No Run or Rerun action is shown, leaving the full header available for the card title.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>
@@ -54,7 +56,7 @@
     </values>
     <values><field>RunButtonDisplay__c</field><value
       xsi:type="xsd:string"
-    >LABEL_AND_ICON</value></values>
+    >HIDE</value></values>
     <values><field>RunButtonLabel__c</field><value
       xsi:type="xsd:string"
     >Run</value></values>

@@ -42,13 +42,44 @@ A strategic-account seller is preparing for a pipeline review and needs to know 
 
 - **Report:** A report can support portfolio analysis. It does not place the answer directly on the Account beside the other strategic-account checks.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that Annual Revenue and Opportunity Amount are the approved values for this pipeline
+  requirement and that 10% is the approved threshold.
+- Confirm that intended users can read Annual Revenue, Opportunity Amount, and the Opportunity
+  fields used by the query.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Related Record Review |
+| **Record Health Check Set Name** | `Account_Related_Record_Review` |
+| **Object** | `Account` |
+| **Card Title** | Related Record Review |
+| **Card Subtitle** | Confirm an open Opportunity is significant for this Account. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Has_Significant_Open_Opportunity` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Has_Significant_Open_Opportunity` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Has Significant Open Opportunity |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Has Significant Open Opportunity |
@@ -85,34 +116,16 @@ percentage approved for your pipeline review.
 | **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
 | **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
-Display Found/Expected Text applies only to **Every record passes**, so leave it blank here.
-Comparison Query, list, Formula, and Apex fields do not apply.
-
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | `Related Record Review` |
-| **Card Subtitle** | Confirm a significant open Opportunity relative to the Account. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+Leave **Display: Found Text** and **Display: Expected Text** blank to show the Opportunity Amount and
+calculated threshold produced by the query and formula. Those optional fields can customize any
+Query Check's display; they are not limited to **Every record passes**. Comparison Query, list,
+Formula, and Apex fields do not apply.
 
 ## What the user sees
 
-Formula applicability and the query comparison become these Framework outcomes and card values:
+Formula applicability and the query comparison produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | At least one visible open Opportunity Amount is greater than 10% of Account Annual Revenue. |
 | **`FAIL`** | No visible open Opportunity exceeds the Account-specific threshold, so the card shows Needs attention with Info severity. |
@@ -130,7 +143,7 @@ Record Health Check reads Account Annual Revenue and visible open Opportunity Am
 
 Before activation, run the Check with the Account and Opportunity access assigned to pipeline reviewers.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Set Annual Revenue and open Opportunity Amounts so none exceed 10% of Annual Revenue. Confirm Info.
 2. Raise one open Opportunity Amount above that formula result, rerun, and confirm a pass.

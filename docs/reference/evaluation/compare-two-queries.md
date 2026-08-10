@@ -1,11 +1,13 @@
-# Reference: Compare two queries
+# Compare two SOQL queries
 
 > [!NOTE]
-> On this page, learn how the Framework compares two independent SOQL results, counts, single values, or lists, and choose the operator, empty-result behavior, and limits that fit the Check.
+> On this page, configure a Check that compares the result of one SOQL query with the result of a
+> second SOQL query. Use it for two counts, two single values, or two lists.
 >
 > **Reference**
 >
-> - This page defines both query shapes, compatible modes, security, limits, and outcomes.
+> - This page defines the required SOQL, compatible result settings and operators, access behavior,
+>   limits, and outcomes.
 > - For every field's size, default, help text, and examples, use the [Check field reference](../../metadata/fields-check.md).
 
 ## Required Compare two queries settings
@@ -20,17 +22,31 @@
 | **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | **One row or aggregate** or **Compare as lists** |
 | **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Operator compatible with the selected mode |
 
-Expected Value Comes From is not used: Comparison Query is always the right side.
+**Expected Value Comes From** is not used. The Comparison Query always supplies the Expected value.
 
 ## Single-value mode
 
-Choose **One row or aggregate**: `ONE_RESULT` to compare numeric, text, date, Date/Time, or Boolean
-values. Common shapes include two bare `COUNT()` queries or two aliased aggregates.
+Choose **One row or aggregate** (`ONE_RESULT`) to compare Number, Text, Date, Date/Time, or Checkbox
+values. Common examples are two bare `COUNT()` queries or two aggregate queries with aliases.
 
 - Leave both query-field settings blank for bare `COUNT()`.
 - For an aliased aggregate, enter each alias in its corresponding Query Field.
 - For a selected field, each query must produce the single value expected by the comparison.
 - Use equality, ordering, contains, or empty-value operators supported by Comparison Operator.
+
+For example, compare the total number of Opportunity Contact Roles with the number marked Primary:
+
+```sql
+SELECT COUNT()
+FROM OpportunityContactRole
+WHERE OpportunityId = {!record.Id}
+```
+
+```sql
+SELECT COUNT()
+FROM OpportunityContactRole
+WHERE OpportunityId = {!record.Id} AND IsPrimary = TRUE
+```
 
 ## List mode
 
@@ -39,11 +55,12 @@ Choose **Compare as lists**: `COMPARE_AS_LISTS` and one of these operators:
 | Setup label | API value | Pass condition |
 | --- | --- | --- |
 | **Lists overlap** | `LISTS_OVERLAP` | At least one normalized value occurs in both lists |
-| **Lists contain all** | `LISTS_CONTAIN_ALL` | The source list contains every comparison-list value |
-| **Lists match exactly** | `LISTS_MATCH_EXACTLY` | Both normalized lists contain the same values |
+| **Lists contain all** | `LISTS_CONTAIN_ALL` | The Comparison/Expected list contains every value in the Source/Found list; it may contain additional values |
+| **Lists match exactly** | `LISTS_MATCH_EXACTLY` | Both lists contain the same values the same number of times |
 
-List matching is case-insensitive. Single-value **Contains** remains case-sensitive. Select the list
-column with each Query Field and configure explicit no-row behavior.
+List matching ignores letter case. For example, `Chicago` and `CHICAGO` match. Single-value
+**Contains** remains case-sensitive. Select the list column with each Query Field and configure the
+result to use when either query finds no records.
 
 ## No rows, empty values, and row caps
 
@@ -56,15 +73,19 @@ column with each Query Field and configure explicit no-row behavior.
 Both queries execute in the same evaluation transaction. Keep their selected fields and row counts
 as small as the comparison requires.
 
+A bare `COUNT()` query always returns one aggregate row, even when the count is zero. **If Query
+Finds No Records** therefore applies to a query that returns zero rows, not to a `COUNT()` value of
+zero.
+
 ## SOQL templates and security
 
 - Both templates support current-record merge tokens such as `{!record.Id}` and parent paths. Add a quoted `fallback` attribute when an optional lookup can be blank (for example `{!record.ParentId fallback="001000000000000AAA"}`).
 - Use API names in SOQL and aliases in the matching Query Field setting.
 - Queries run using the current user's effective record, object, and field access.
-- Access, invalid-query, alias, conversion, and incompatible-shape problems return
-  `UNABLE_TO_EVALUATE` when the framework can report a result.
-- Unexpected platform or evaluator failures return `ERROR`; governor limits can still throw like
-  any synchronous Apex transaction.
+- Access, invalid-query, alias, value-conversion, and incompatible result problems return
+  `UNABLE_TO_EVALUATE` when Record Health Check can safely return a result.
+- Unexpected Apex failures return `ERROR`; Salesforce governor limits can still stop the current
+  Apex transaction.
 
 ## Outcomes and testing
 
@@ -77,9 +98,11 @@ Query value; Expected represents the resolved Comparison Query value.
 
 ## Compatibility and deprecation
 
-Compare-two-queries Checks return synchronous contract `1.0`; lifecycle events use an independent
-`1.0` contract. Additive result fields are compatible. Removing or renaming a field, status,
-operator, or reason requires a new contract version. No Compare-two-queries field is deprecated.
+The Apex response does not contain a separate Compare-two-queries version number. Its global Apex
+types are the compile-time contract supplied by the installed package. Flow responses currently
+report contract `2.0`, and Platform Events report their separate contract `1.0`. A future field can
+be added without changing existing fields; removing or renaming a field, Status, operator, or Reason
+Code requires a new contract version. No Compare-two-queries field is currently deprecated.
 
 ## Related
 

@@ -5,19 +5,19 @@
 > in a safe order, uninstall the package, and verify that the org is clean.
 
 Use this guide when an org no longer needs Record Health Check. You will preserve anything needed
-for a future reinstall, remove the places where people and automation depend on the Framework, and
-then uninstall it without leaving broken pages or processes behind.
+for a future reinstall, remove the places where people and automation depend on Record Health
+Check, and then uninstall it without leaving broken pages or processes behind.
 
 ## Before you start
 
 Uninstalling removes the card, Check Set and Check configuration types, permission sets, and
-automation entry points. Before making that change, identify where the Framework is used:
+automation entry points. Before making that change, identify where Record Health Check is used:
 
 1. List every Lightning record page that contains the **Record Health Check** card.
-2. Ask the owners of Salesforce automation whether a Flow, Apex class, scheduled job, or event
-   subscriber uses Record Health Check.
+2. Ask the owners of Salesforce automation whether a Flow, Apex class, scheduled job, or integration
+   uses Record Health Check or receives its Platform Events.
 3. List the people assigned **Record Health Check User** or **Record Health Check Admin**.
-4. Agree on when users and automation should stop relying on the Framework.
+4. Agree on when users and automation should stop relying on Record Health Check.
 
 ## Preserve the configuration first
 
@@ -29,8 +29,10 @@ Export them before removing anything:
 3. Record which Lightning record pages had the component placed, and which Check Set each one
    selected.
 
-Store the export with the record-page list and access assignments. If the removal is temporary,
-these items turn a future reinstall into a restoration instead of a reconstruction exercise.
+Open the retrieved files and confirm that they contain every administrator-created Check Set and
+Check you expect. Store that verified backup with the record-page list and access assignments. If
+the removal is temporary, these items turn a future reinstall into a restoration instead of
+rebuilding the configuration from memory.
 
 ## Step 1: Remove Lightning placements
 
@@ -50,15 +52,15 @@ If your organization does not connect Record Health Check to Flow, Apex, schedul
 Events, continue to Step 3. Otherwise, work with the automation owner to disable those dependencies
 before uninstalling:
 
-1. Deactivate or delete Flows that call **Run Record Health Check** or **Run Record Health
-   Check Set**.
-2. Deactivate or delete platform-event-triggered Flows subscribed to
+1. Deactivate Flows that call **Run Record Health Check** or **Run Record Health Check Set**. Keep
+   them for rollback unless your normal change process separately approves deletion.
+2. Deactivate Platform Event-triggered Flows that receive
    `Record_Health_Check_Set_Run__e`, `Record_Health_Check_Result__e`, or
    `Record_Health_Check_Log__e`.
-3. Remove or stop scheduling any Apex class that calls the public
-   `RecordHealthCheck.evaluate(...)` API, implements `RecordHealthCheckPlugin`, or subscribes to the
-   platform events above.
-4. Remove any scheduled job created from `RecordHealthCheckScheduled`.
+3. Stop scheduled work and update your own Apex that calls `rhc.RecordHealthCheck.evaluate(...)`,
+   implements `rhc.RecordHealthCheckPlugin`, or receives the Platform Events above. Apex references
+   to removed package classes or interfaces can block uninstall or fail a later deployment.
+4. Remove scheduled jobs created from `rhc.RecordHealthCheckScheduled`.
 
 ## Step 3: Remove user access
 
@@ -76,22 +78,33 @@ sf org list users --target-org <org-alias>
 ```
 
 ```bash
-sf org remove permsetassign --name Record_Health_Check_User --target-org <org-alias> --on-behalf-of <username>
-sf org remove permsetassign --name Record_Health_Check_Admin --target-org <org-alias> --on-behalf-of <username>
+sf org remove permsetassign --name rhc__Record_Health_Check_User --target-org <org-alias> --on-behalf-of <username>
+sf org remove permsetassign --name rhc__Record_Health_Check_Admin --target-org <org-alias> --on-behalf-of <username>
 ```
+
+The `rhc__` prefix belongs to the permission-set API names from the installed package. Replace the
+org alias and username placeholders; do not remove the namespace prefix.
 
 ## Step 4: Uninstall the package
 
-Open **Setup → Installed Packages**, find **Record Health Check**, and select **Uninstall**. Teams
-that manage packages with the Salesforce CLI can use:
+Open **Setup → Installed Packages**, find **Record Health Check**, and select **Uninstall**. Review
+Salesforce's list of components and dependencies before confirming. Uninstalling removes package
+components and cannot be undone without installing the package again.
+
+Teams that manage packages with the Salesforce CLI should first find the exact installed package
+version ID:
 
 ```bash
-sf package uninstall --package "Record Health Check" --target-org <org-alias> --wait 30
+sf package installed list --target-org <org-alias>
+sf package uninstall --package <installed-04t-package-version-id> --target-org <org-alias> --wait 30
 ```
 
+Replace `<installed-04t-package-version-id>` with the Record Health Check ID returned by the first
+command. Confirm the target org and `04t` value before running the uninstall command.
+
 Salesforce blocks an uninstall if other metadata in the org still depends on package components
-(for example, a Flow that references a packaged Custom Metadata Type field, or a non-packaged Apex
-class extending a packaged interface without an override). Resolve every dependency identified in
+(for example, a Flow that references a packaged Custom Metadata field or an Apex class that
+implements the packaged interface). Resolve every dependency identified in
 [Before you start](#before-you-start) first, then retry.
 
 ## Contributor-only alternative: Remove development source
@@ -132,7 +145,7 @@ installer should follow [Step 4](#step-4-uninstall-the-package).
 | Search Setup for `Record Health Check` object and Apex references | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check** (`Record_Health_Check__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
 | Review Permission Sets | **Record Health Check User** (`rhc__Record_Health_Check_User`) and **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) no longer exist or have no assignees |
 | Review scheduled jobs | No job references `RecordHealthCheckScheduled` |
-| Review Flow and Apex subscribers | No automation still references the removed platform events or Apex classes |
+| Review Flow, Apex, and integrations | No automation still references the removed Platform Events or Apex classes |
 
 ## Roll back a removal
 
@@ -145,7 +158,7 @@ backup:
 3. Reassign **Record Health Check User** (`rhc__Record_Health_Check_User`) and **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) to the users identified in
    [Before you start](#before-you-start).
 4. Re-add the Lightning component to the record pages that had it.
-5. Re-enable any Flow, Apex, or event subscriber automation that was disabled during removal.
+5. Re-enable any Flow, Apex, or Platform Event integration that was disabled during removal.
 6. Re-verify with the same passing and failing scenarios described in
    [Install and verify in your org: Verify the experience as a user](install-and-verify.md#step-4-verify-the-experience-as-a-user).
 

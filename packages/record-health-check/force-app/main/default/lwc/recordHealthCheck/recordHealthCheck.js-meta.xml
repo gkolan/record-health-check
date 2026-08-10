@@ -22,14 +22,6 @@
         datasource="apex://RecordHealthCheckSetPicklist"
         description="Choose the Check Set to run on this record page. The list shows active Check Sets whose Record Object API Name matches this page's object. If the list is empty, create and activate a Check Set for this object under Setup - Custom Metadata Types - Record Health Check Set."
       />
-            <property
-        name="runButtonDisplay"
-        type="String"
-        label="Run Button Display"
-        datasource="Inherit,LABEL_AND_ICON,LABEL_ONLY,ICON_ONLY,HIDE"
-        default="Inherit"
-        description="Override how the Run/Rerun control appears on this record page. Inherit uses the Check Set setting. Hide requires the Check Set to run when the page opens."
-      />
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

@@ -1,8 +1,8 @@
-# Reference: Apex entry points (L5)
+# Apex entry points (L5)
 
 > [!NOTE]
-> On this page, look up the L5 entry-point classes that expose Record Health Check to Apex,
-> Flow, Lightning, schedulers, and lifecycle publication.
+> Use this page to identify the package class behind each supported way to start a health check or
+> publish its results. Follow the linked task guide when you need working setup steps and examples.
 
 This page is part of the [Apex class reference](README.md). For the architecture story, see
 [Architecture](../framework/architecture.md).
@@ -11,34 +11,39 @@ This page is part of the [Apex class reference](README.md). For the architecture
 
 ### `RecordHealthCheck`
 
-**Role:** Single public Apex request API.
+**Role:** Run a Check or Check Set from Apex and return its results.
+
 **Type:** Service class · `global with sharing`
 
-Runs one qualified Check or Check Set selection over a detached record scope. The request carries its
-result mode, event-publication choice, and optional correlation id explicitly.
+Pass a `RecordHealthCheckRequest` containing the exact Check or Check Set Qualified API Name, the
+record IDs to check, the type of response needed, whether to publish Platform Events, and an optional
+run ID. The method returns one `RecordHealthCheckResponse` containing the results.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `evaluate(RecordHealthCheckRequest)` | Evaluate one qualified selection and return the common response envelope |
+| `evaluate(RecordHealthCheckRequest)` | Run the requested Check or Check Set and return a `RecordHealthCheckResponse` |
 
 **Notable behavior:**
+
 - **When to use it:** any Apex process that needs typed results for one Check or every active Check in
   one Check Set.
-- **Important:** selection identities are Custom Metadata `QualifiedApiName` values, not labels or bare
-  names chosen with `LIMIT 1`.
+- **Important:** copy the Check or Check Set's exact **Qualified API Name** from Setup. An item created
+  by an administrator in your org might be `My_Account_Checks`. An item included with the installed
+  package can begin with `rhc__`. Do not use its label and do not add or remove `rhc__`.
 
 **See also:** [Reference: Apex API](../../api/apex-api.md)
 
 ### `RecordHealthCheckController`
 
-**Role:** Aura-enabled API for the Lightning card.
+**Role:** Load and run Checks for the Record Health Check Lightning card.
+
 **Type:** Service class · `public with sharing`
 
-Exposes four card operations and nothing else. It does not contain evaluation logic; it cleans up
-inputs, supplies Lightning lifecycle sources, and delegates to `RecordHealthCheckConfigService` and
-`RecordHealthCheckScopePipeline`.
+Exposes four card operations and nothing else. It cleans up the card's inputs, identifies whether the
+run came from page load or a button click, and passes the work to the package classes that load and
+run the Checks.
 
 **Key members:**
 
@@ -50,76 +55,88 @@ inputs, supplies Lightning lifecycle sources, and delegates to `RecordHealthChec
 | `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)` | After a user-initiated run: filters completed card results, calculates the summary, and publishes the Set completion event |
 
 **Notable behavior:**
+
 - **Source behavior:** the browser may request only Lightning-allowed source values. Unknown values
- fall back to non-publishable `RUN_ON_LOAD` behavior (as documented in architecture).
+  are treated as `RUN_ON_LOAD`, which does not publish health-result Platform Events.
 - **Important:** `getCheckDefinitions` distinguishes a caught `ConfigException` (logged at `DEBUG`,
- reason code passed through as-is) from any other exception (logged at `ERROR`, always rethrown as
- `LOAD_FAILED`) so a real governor-limit or null-reference failure is never mistaken by the card for
- a genuine missing-Check-Set condition. `completeRun` does not evaluate Checks again. It accepts
- only the current record, one result for each Check in the resolved Check Set, and a
- `USER_INITIATED` source before calculating the summary and publishing the advisory event.
+  reason code passed through as-is) from any other exception (logged at `ERROR` and returned as
+  `LOAD_FAILED`). The card can therefore distinguish an invalid setup from an unexpected Apex
+  failure. `completeRun` does not run the Checks again. It accepts only the current record, one
+  result for each Check in the selected Check Set, and a `USER_INITIATED` source before calculating
+  the summary and publishing the configured events.
 
 **See also:** [Lightning component](../../integration/lightning-component.md)
 
 ### `RecordHealthCheckRunCheckFlowAction`
 
-**Role:** Packaged Flow action "Run Record Health Check".
+**Role:** Run one Check for each input record in Flow.
+
 **Type:** Invocable Flow action · `public with sharing`
 
-Invocable wrapper around the scope pipeline for one qualified Check per request. It returns the common
-evaluation fields and JSON response for advanced consumers.
+This class provides the installed **Run Record Health Check** Flow action. Each input supplies a Check
+Qualified API Name, one record ID, and `NONE`, `ACTIONABLE`, or `ALL` for Platform Event publication.
+Each output contains success or error details, Status, Reason Code, and the complete result as JSON.
 
 **Notable behavior:**
-- **Important:** the action validates the complete request list before evaluation and uses the shared
-  scope ceiling from `RecordHealthCheckConstants`.
+
+- **Important:** the action checks the entire input collection before running any Checks. It accepts
+  no more than 200 input rows in one Flow action call.
 
 ### `RecordHealthCheckRunSetFlowAction`
 
-**Role:** Packaged Flow action "Run Record Health Check Set".
+**Role:** Run every active Check in one Check Set for each input record in Flow.
+
 **Type:** Invocable Flow action · `public with sharing`
 
-Invocable wrapper around the scope pipeline for one qualified Check Set per request. It returns the
-shared summary counts and JSON response.
+This class provides the installed **Run Record Health Check Set** Flow action. Each output contains
+success or error details, an overall Status, the PASS/FAIL/SKIPPED/UNABLE_TO_EVALUATE/ERROR counts,
+and the complete response as JSON.
 
 **Notable behavior:**
-- **Important:** the action validates request shape and scope size before dispatch, so malformed bulk
-  input fails before partial work.
+
+- **Important:** the action checks the request fields and the number of inputs before running any
+  Checks. Invalid bulk input therefore does not leave a partly completed run.
 
 **See also:** [Flow actions](../../integration/flow-actions.md)
 
 ### `RecordHealthCheckLifecyclePublisher`
 
-**Role:** Optional Set Run and Check Result platform events.
+**Role:** Publish optional Check Result and Check Set Run Platform Events.
+
 **Type:** Service class · `public with sharing`
 
-Publishes deliberate-run lifecycle events. Shipped callers attribute `APEX_API`, `FLOW`,
-`USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT` on `Source__c`.
-`RUN_ON_LOAD` is never published (Lightning keeps page-load publication off). Honors Check Set
-`PublishUserRunEvent__c` and Check `PublishUserResultEvent__c`. Publishes in batches of 100, never
-fails the health-check run when publish fails, and blocks publication in subscriber context to
-prevent loops.
+Publishes events for deliberately started runs. Package callers identify the source as `APEX_API`,
+`FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT` on `Source__c`.
+`RUN_ON_LOAD` is never published. For Apex, Flow, Batch, and other programmatic runs, the request's
+`NONE`, `ACTIONABLE`, or `ALL` value controls publication. For a person clicking Run or Rerun on the
+Lightning card, the Check Set's `PublishUserRunEvent__c` and each Check's
+`PublishUserResultEvent__c` settings control publication. The class publishes up to 100 events in
+each EventBus call and logs a publication failure without failing the health check itself.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `CONTRACT_VERSION`, `FRAMEWORK_VERSION`, `SOURCE_*`, `PUBLISH_CHUNK_SIZE` | Event contract, Framework version, source attribution values, and the 100-row publish batch size |
+| `CONTRACT_VERSION`, `FRAMEWORK_VERSION`, `SOURCE_*`, `PUBLISH_CHUNK_SIZE` | Event contract version, package version reported by the event, source values, and the 100-event publish group size |
 | `publishResponse(...)` | Publish Check and optional Set events for a deliberate programmatic run |
 | `publishInteractiveResponse(...)` | Publish filtered outcomes for an explicit Lightning Run / Rerun |
 | `isRunPublicationEnabled(...)` | Whether the Check Set's `PublishUserRunEvent__c` allows Set publication |
-| `enterSubscriberContext()` | Internal loop guard used by package-owned event handling |
+| `enterSubscriberContext()` | Package-internal loop guard; custom Apex in an org that installs the package cannot call this `public` method through the `rhc` namespace |
 
 **Notable behavior:**
+
 - **Important:** `newEventId` builds a unique key from the run id and a suffix so a caller-supplied run
-  id cannot exceed the platform event's `EventId__c` field. The package's internal subscriber
-  context prevents package-owned event handling from publishing the same event again. Subscriber
-  code cannot call this `public` package-internal class across the managed-package namespace.
+  id cannot exceed the platform event's `EventId__c` field. An internal setting prevents the
+  package's own event-handling code from publishing the same event again. A Flow or Apex trigger
+  that receives these events must also avoid starting the same health check again, or it can create
+  a loop.
 
 **See also:** [Lifecycle events](../../integration/lifecycle-events.md)
 
 ### `RecordHealthCheckRunContext`
 
-**Role:** Run id, source, and timing for one evaluation.
+**Role:** Store the run ID, source, and elapsed time for one health-check request.
+
 **Type:** Data holder · `public` (no sharing keyword)
 
 Holds `runId`, `source`, `startedAt`, `completedAt`, and `durationMs`. Created at the start of an
@@ -127,26 +144,27 @@ evaluation path; `complete()` stamps end time. Exposed to merge tokens (`rhcRun.
 building lifecycle events.
 
 **Notable behavior:**
-- **Important:** `complete()` is safe to call more than once - it only stamps `completedAt`/`durationMs`
- when `completedAt` is still `null`, so calling it again along a call chain cannot overwrite the
- original duration with a later, longer one.
+
+- **Important:** `complete()` is safe to call more than once. It sets `completedAt` and `durationMs`
+  only the first time, so a later call cannot replace the original completion time.
 
 ### `RecordHealthCheckSetPicklist`
 
-**Role:** App Builder dynamic picklist for Check Set Developer Name.
+**Role:** Provide the Check Set list shown in Lightning App Builder.
+
 **Type:** Service class · `public with sharing`, extends `VisualEditor.DynamicPickList`
 
-Lists active Check Set Developer Names for the page's object
-(`DesignTimePageContext.entityName`). Both label and stored value are the Developer Name. When
-exactly one active Check Set matches, it becomes the default so a first drop onto the page needs no
-extra click.
+Lists active Check Sets that match the Lightning record page's Salesforce object. App Builder shows
+each Check Set's label and stores its exact Qualified API Name. When exactly one active Check Set
+matches, the component selects it automatically.
 
 **Notable behavior:**
-- **Why it exists:** DeveloperName, not MasterLabel, is used for both the picklist label and value
- because MasterLabels are not guaranteed unique across Check Sets while the DeveloperName is. This
- also avoids configuration mistakes caused by free-text entry. When
- `entityName` is blank (for example, a template being edited outside a record page), `getValues()`
- falls back to listing every active Check Set rather than none.
+
+- **Why it exists:** the list avoids mistakes caused by typing a Check Set name manually. The label
+  helps the administrator recognize the Check Set, while the stored Qualified API Name keeps an
+  administrator-created item such as `My_Account_Checks` distinct from an installed-package item
+  such as `rhc__Account_Data_Quality`. When App Builder does not provide an object name, such as
+  while editing a template outside a record page, the list shows every active Check Set.
 
 ---
 

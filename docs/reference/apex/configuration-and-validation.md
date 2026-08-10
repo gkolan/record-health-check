@@ -1,8 +1,8 @@
-# Reference: Apex configuration and validation (L2)
+# Internal configuration and validation classes (L2)
 
 > [!NOTE]
-> On this page, look up the L2 classes that load Check Sets and Checks, validate configuration,
-> and own Framework constants and reason-code helpers.
+> On this page, find the internal classes that load Check Sets and Checks, identify invalid
+> configuration, and define the allowed values and limits used by the package.
 
 This page is part of the [Apex class reference](README.md).
 
@@ -10,12 +10,13 @@ This page is part of the [Apex class reference](README.md).
 
 ### `RecordHealthCheckConfigService`
 
-**Role:** Load Check Sets/Checks and runtime validation adapter.
+**Role:** Load Check Sets and Checks and convert configuration problems into health-check results.
+
 **Type:** Service class · `public with sharing`
 
 Queries Check Set and Check Custom Metadata, builds Lightning definition responses (including
-truncation at `FRAMEWORK_MAX_CHECKS`), reports Check Set availability for an object, resolves a
-Check's parent Check Set, loads Checks for evaluation, and maps the first
+limiting a run to `FRAMEWORK_MAX_CHECKS`), reports Check Set availability for a Salesforce object,
+resolves a Check's parent Check Set, loads Checks for evaluation, and maps the first
 `RecordHealthCheckValidator` finding into an `UNABLE_TO_EVALUATE` / `INVALID_CONFIG` result.
 
 **Key members:**
@@ -23,7 +24,7 @@ Check's parent Check Set, loads Checks for evaluation, and maps the first
 | Member | Purpose |
 | --- | --- |
 | `ConfigException` (nested) | Exception carrying `reasonCode` |
-| `RC_*` | Reason-code string aliases used across load paths - the single source of truth callers compare against, rather than a literal (e.g. `RC_CONFIG_INACTIVE`, `RC_OBJECT_MISMATCH`, `RC_NO_ACTIVE_CHECKS`) |
+| `RC_*` | Shared Reason Code constants, such as `RC_CONFIG_INACTIVE`, `RC_OBJECT_MISMATCH`, and `RC_NO_ACTIVE_CHECKS` |
 | `findCheckSetDeveloperName(...)` | Resolve a Check's parent Check Set |
 | `getCheckSetAvailabilityForObject(...)` | Active/inactive Check Sets for an object |
 | `getDefinitionResponse(...)` | Build the Lightning definition response |
@@ -32,56 +33,58 @@ Check's parent Check Set, loads Checks for evaluation, and maps the first
 | `cachedCheckPublicationSettings(...)` | Transaction-cached publication flags |
 
 **Notable behavior:**
-- **Important:** `getDefinitionResponse` rejects a blank `CardTitle__c` with `INVALID_CONFIG`; it does
- not substitute Master Label or Developer Name for administrator-authored card text. When active
- Checks for a Check Set exceed `FRAMEWORK_MAX_CHECKS` (25), it logs a `WARN` server-side
- in addition to the truncation metadata the LWC shows as its "First 25 of N shown" badge, so the
- excess is visible in logs too, not only in the UI.
+
+- `getDefinitionResponse` rejects a blank `CardTitle__c` with `INVALID_CONFIG`. It does not
+  substitute Label or Developer Name for the card title an administrator must provide. When a
+  Check Set has more than 25 active Checks, the class records a `WARN` entry and tells the Lightning
+  card to show **First 25 of N shown**. Only the first 25 Checks run.
 
 ### `RecordHealthCheckValidator`
 
-**Role:** Shared Check-field validation for every Evaluation Type.
+**Role:** Apply the same Check-field rules to every Evaluation Type.
+
 **Type:** Shared validator · `public with sharing`
 
-Returns ordered `Finding` values (`FindingCode` enum) once. Runtime (`ConfigService`) takes the first
-finding; deploy-time (`MetadataValidator`) collects all findings. Keeps the decision logic in one
-place so the two validators cannot disagree on *what* is invalid - only on how findings are mapped to
-messages and field names.
+Returns ordered `Finding` values using the `FindingCode` enum. When a Check runs,
+`RecordHealthCheckConfigService` uses the first finding to return one clear configuration result.
+The metadata audit collects every finding so package maintainers can correct all configuration
+problems together. Both paths therefore use the same validity rules.
 
 **Notable behavior:**
-- **Important:** `MaxQueryRows__c` and `EmptyValueHandling__c` / `NoRowsResult__c` are deliberately
- *excluded* from `queryFindings`/`compareQueriesFindings` - callers run `maxRowsFindings` and
- `nullEmptyFindings` separately, since `ConfigService` applies them only to Query/CompareTwoQueries
- checks while `MetadataValidator` runs them once at the top level for every Evaluation Type; folding
- them into the per-type producers would double-count findings for the collect-all caller. Mutually
- exclusive conditions (operator, `QueryResultHandling__c`, comparison-value source) use `if`/`else
- if` chains for the same reason - so at most one `Finding` is returned per field even by the
- collect-everything path.
+
+- `MaxQueryRows__c`, `EmptyValueHandling__c`, and `NoRowsResult__c` are checked separately from the
+ Query and Compare two queries field groups. This prevents the metadata audit from reporting the
+ same field problem twice. Mutually exclusive choices use one decision chain so the audit returns
+ at most one finding for a field.
 
 ### `RecordHealthCheckMetadataValidator`
 
-**Role:** Deploy-time / CI Custom Metadata audit.
+**Role:** Audit all active Check Set and Check Custom Metadata before a release.
+
 **Type:** Service class · `public with sharing`
 
 Validates all active Check Sets and Checks in the org and returns `ValidationIssue` rows (`ERROR` /
-`WARNING`) with component name, field, message, and reason code. An empty list means the audit
-passed. Package maintainers use it before promoting configuration between orgs. It is `public`, so
-subscriber Apex cannot call it across the managed-package namespace.
+`WARNING`) with component name, field, message, and Reason Code. An empty list means the audit
+passed. Package maintainers use it before promoting configuration between Salesforce orgs.
+
+The class is `public`, not `global`. That means other package classes can call it, but Apex created
+in an org that installs Record Health Check cannot call it through the `rhc` namespace.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
 | `validate()` | Validate every active Check Set and Check in the org |
-| `validateRecords(...)` | Validate a supplied set of records |
+| `validateRecords(...)` (private) | Validate Check Set and Check records supplied by `validate()` or package tests |
 
 **Notable behavior:**
-- **Important:** `validateRecords` treats a Check Set with more active Checks than
+
+- `validateRecords` treats a Check Set with more active Checks than
  `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as `WARNING`/`CHECK_LIMIT_EXCEEDED`, not
- `ERROR` - the excess Checks still deploy and are still valid, they simply will not run. It then
- checks whether any *included* Check's `PrerequisiteCheck__c` points outside that first-25 execution
- window and adds a second `WARNING`/`DEPENDENCY_NOT_IN_RUN` for each affected Check. At runtime,
- Apex and the Lightning component skip a Check whose Prerequisite Check was not included.
+ `ERROR`. Salesforce can save the additional Checks, but only the first 25 run. It then checks
+ whether any of those first 25 Checks depends on a Check outside the first 25. For each affected
+ Check, it adds `WARNING`/`DEPENDENCY_NOT_IN_RUN`. During a health check, Apex and the Lightning card
+ skip a Check when its prerequisite was not included.
 - When an automatic card hides Run and Rerun, users cannot publish lifecycle events from the card.
   The audit returns `WARNING`/`USER_RUN_PUBLICATION_UNREACHABLE` when Check Set publication is
   enabled and `WARNING`/`USER_RESULT_PUBLICATION_UNREACHABLE` for each Check whose publication is
@@ -90,46 +93,52 @@ subscriber Apex cannot call it across the managed-package namespace.
 
 ### `RecordHealthCheckConfigValidator`
 
-**Role:** Shared validation helpers.
+**Role:** Provide validation helpers used by more than one package class.
+
 **Type:** Shared helper · `public with sharing`
 
-First template token issue, object API name checks, Apex plugin class validation / creation helpers
-(`isValidApexPlugin`, `takeValidatedPlugin`), and JSON-object shape checks. Used by both runtime and
-deploy-time paths.
+Finds the first merge-token issue, checks Salesforce object API names, validates and creates Apex
+Check classes with `isValidApexPlugin` and `takeValidatedPlugin`, and confirms that Apex parameters
+contain a JSON object. Both the health-check run and the metadata audit use these helpers.
 
 **Notable behavior:**
-- **Important:** `isValidApexPlugin` creates an instance of the class while validating it, then caches
+
+- `isValidApexPlugin` creates an instance of the class while validating it, then saves
  that instance in `validatedPluginInstances` by class name; `takeValidatedPlugin` retrieves and
  removes it so `RecordHealthCheckApexEvaluator` can reuse the already-built plugin instead of
  calling `newInstance()` a second time. `isJsonObject` treats a blank string as valid (returns
- `true`) since `ApexParametersJson__c` is optional - only a non-blank value that fails to parse as a
+ `true`) because `ApexParametersJson__c` is optional. Only a non-blank value that fails to parse as a
  JSON object is rejected.
 
 ### `RecordHealthCheckConstants`
 
-**Role:** Allowed values and numeric limits (single source of truth).
+**Role:** Store the package's allowed values and numeric limits in one place.
+
 **Type:** Constants holder · `public with sharing`
 
-Owns `FRAMEWORK_MAX_CHECKS` (25), `FRAMEWORK_MAX_ROWS` (2000), and Set accessors that return a copy
+Owns `FRAMEWORK_MAX_CHECKS` (25), `FRAMEWORK_MAX_ROWS` (2,000), and Set accessors that return a copy
 for display modes, trigger/reveal modes, Evaluation Types, operators, null/empty behaviors,
-severities, applicability modes, and related allowed-value lists. Runtime and deploy-time validators
-both read from here so they cannot get out of sync.
+severities, applicability modes, and related allowed-value lists. The health-check run and metadata
+audit both read from here so their allowed values stay aligned.
 
 **Notable behavior:**
-- **Why it exists:** runtime and metadata validation need one approved list of values. Every
+
+- The package needs one approved list of values. Every
  `public static Set<String>` accessor here returns a `new Set<String>(...)` copy,
- not the internal set itself, so a caller changing the returned set can never overwrite the
- Framework's official values. The class also owns the Apex-to-LWC value translation
+ not the internal set itself. A caller therefore cannot overwrite the package's official values by
+ changing the returned Set. The class also owns the Apex-to-Lightning-card value translation
  (`toLwcTriggerMode`, `toLwcSeverity`, `toLwcEvaluatorType`, etc.) that maps metadata API values
  (for example `CRITICAL`) to the card's presentation terms (for example `Error`).
 
 ### `RecordHealthCheckReasonCodes`
 
-**Role:** Selected stable reason-code helpers.
-**Type:** Constants holder · `public` (no sharing keyword - data-only)
+**Role:** Identify Reason Codes that contain access details and should appear only in diagnostics.
 
-Declares commonly referenced codes (for example applicability and access) and marks which codes are
-diagnostics-only (`isDiagnosticsOnly`). Full outcome list lives in
+**Type:** Constants holder · `public` with no sharing keyword because it does not query records
+
+Declares commonly referenced codes, such as applicability and access codes. The
+`isDiagnosticsOnly` method identifies codes that should be available for troubleshooting but hidden
+from users who are not allowed to see the underlying access details. The full outcome list is in
 [Reference: Reason Codes](../contracts/reason-codes.md).
 
 **Key members:**
@@ -139,15 +148,16 @@ diagnostics-only (`isDiagnosticsOnly`). Full outcome list lives in
 | `isDiagnosticsOnly(reasonCode)` | Whether a reason code should be treated as diagnostics-only |
 
 **Notable behavior:**
-- **Example:** `DIAGNOSTICS_ONLY` contains exactly `FIELD_NOT_ACCESSIBLE` and
- `RECORD_NOT_ACCESSIBLE` - the two reason codes that reveal FLS/sharing details an unauthorized
- viewer should not see; `isDiagnosticsOnly(reasonCode)` simply checks whether the code is in that
- pair.
+
+- `DIAGNOSTICS_ONLY` contains exactly `FIELD_NOT_ACCESSIBLE` and
+  `RECORD_NOT_ACCESSIBLE`. These Reason Codes can reveal field-access or record-sharing details.
+  `isDiagnosticsOnly(reasonCode)` returns `true` for either code.
 
 ### `RecordHealthCheckSetAvailability`
 
-**Role:** Check Set availability data for setup messaging.
-**Type:** Data holder · `public` (no sharing keyword)
+**Role:** Tell the Lightning card whether the current object has active or inactive Check Sets.
+
+**Type:** Data holder · `public` with no sharing keyword because it does not query records
 
 Used when the Lightning card has no Check Set selected.
 
@@ -159,9 +169,10 @@ Used when the Lightning card has no Check Set selected.
 | `hasInactive` | Whether the object has any inactive Check Sets |
 
 **Notable behavior:**
-- **Important:** the no-arg constructor sets both `@AuraEnabled` booleans to `false`, so a caller that
+
+- The constructor with no parameters sets both `@AuraEnabled` Boolean fields to `false`. A caller that
  returns early before filling them in (for example `RecordHealthCheckController` on a `null`
- `recordId`) still returns a valid, non-null shape to the LWC.
+ `recordId`) therefore still returns a valid response to the Lightning card.
 
 ---
 

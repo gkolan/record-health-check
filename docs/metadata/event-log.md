@@ -1,86 +1,106 @@
-# Log Platform Event (`Record_Health_Check_Log__e`)
+# Record Health Check Log Platform Event
 
-> [!NOTE]
-> On this page, look up the restricted Log event fields, immediate-publication behavior, access
-> requirements, and safeguards for error subscribers.
-
-> [!TIP]
-> **Event navigation:** [Publication behavior](../integration/lifecycle-events.md) ·
-> [Build a Log subscriber](../platform-events/error-log.md) ·
-> **Look up Log fields**
-
-`Record_Health_Check_Log__e` carries structured Framework `ERROR` information. Unlike the two
-lifecycle events, it uses **Publish Immediately**, contains restricted diagnostic detail, and is
-enabled by default through the Check Set's **Publish Error Log Event** setting.
-
-Use this event for restricted technical operations and support, not readiness workflows.
-
-## When to use this event
-
-| Possibility | What the subscriber can do |
+| Setup value | Name |
 | --- | --- |
-| Persisted error history | Persist Framework errors beyond debug-log and Platform Event retention |
-| Technical alerting | Notify a restricted support channel when a new error Code or exception appears |
-| Incident correlation | Group errors by Run ID, Salesforce record, Check Set, Check, user, and Framework version |
-| Release monitoring | Compare error rates before and after a Framework or configuration deployment |
-| Reproduction support | Use record and metadata identifiers to reproduce a failure under controlled access |
+| Label | Record Health Check Log |
+| API name | `Record_Health_Check_Log__e` |
 
-Use the Log event for ERROR diagnostics; use Check Result and Set Run events for finalized
-outcomes.
+This Platform Event reports technical errors that Record Health Check encounters while it is trying
+to run. It can include an Apex exception message and stack trace, so use it only for restricted
+administrator, developer, or support monitoring.
 
-The packaged User and Admin Permission Sets do **not** grant create or read access on
-`Record_Health_Check_Log__e`. Grant that object access separately to the restricted users or
-integration that subscribe to error diagnostics.
+This event is different from the result events:
 
-## How publication works
-
-`RecordHealthCheckLogger` holds each Framework log entry whose level is `ERROR`. The public Apex,
-Flow, and Lightning boundaries call `flush()`, which publishes held events in chunks of 100 and
-clears held entries for the transaction.
-
-| Behavior | Log event |
+| If you need to know... | Use... |
 | --- | --- |
-| Event type | High Volume |
-| Publish behavior | Publish Immediately |
-| Default | Enabled (`PublishErrorLogEvent__c = true`) |
-| Published levels | `ERROR` only |
-| Check Set Custom Metadata field | `PublishErrorLogEvent__c`; uncheck to opt out for that Check Set |
-| Contract version | `1.0` |
-| Failure behavior | Best effort; publishing failure is logged and does not change the health-check result |
+| Whether a Salesforce record passed or failed a Check | [Record Health Check Result](event-check-result.md) |
+| The totals for an entire Check Set run | [Record Health Check Set Run](event-set-run.md) |
+| Why Record Health Check encountered a technical error | **Record Health Check Log**, described on this page |
 
-`Publish Immediately` allows an accepted event to survive a later transaction rollback. However, an
-uncatchable governor-limit abort can prevent `flush()` from running, so this event is not a complete
-replacement for Salesforce debug logs and platform exception monitoring.
+## When this event is useful
 
-When the Framework cannot resolve a Check Set, publication remains enabled. This preserves error
-visibility for missing or invalid configuration. Unchecking the field affects only Log platform
-events; Salesforce debug-log output is unchanged.
+Create a Platform Event-triggered Flow, Apex trigger, or integration for this event when your team
+needs to:
+
+- notify a restricted support channel when Record Health Check encounters an error;
+- save errors in a custom object for longer than Salesforce retains Platform Events;
+- investigate errors from the same run by using **Run ID**; or
+- compare errors before and after a Check Set, Check, formula, or Apex change.
+
+Do not use this event to decide whether a record is ready for a business process. Use the Check
+Result event or the results returned directly to Flow or Apex for that purpose.
+
+## Before you create receiving automation
+
+The **Record Health Check User** and **Record Health Check Admin** Permission Sets do not provide
+access to this event. That is intentional because it can contain restricted troubleshooting details.
+
+Give access to `Record_Health_Check_Log__e` separately and only to the users or integration that
+must receive these errors. Also restrict access to any custom object, external system, email, or
+collaboration channel where the receiving automation sends the details.
+
+For step-by-step Flow and Apex examples, see
+[Save or route Record Health Check errors](../platform-events/error-log.md).
+
+## When Record Health Check publishes the event
+
+The **Publish Error Log Event** checkbox on each Check Set controls this event. The checkbox is on
+by default.
+
+- Leave it selected when restricted error monitoring is configured or may be needed.
+- Clear it when your org must not publish technical error details for that Check Set.
+- Clearing it does not turn off Salesforce debug logs.
+- If Record Health Check cannot find or load the Check Set, it leaves publication enabled so that
+  the configuration error can still be reported.
+
+Record Health Check creates this event only for an `ERROR`. It does not create one for informational,
+warning, or debug messages.
+
+The event is configured as a **High Volume Platform Event** with **Publish Immediately** behavior.
+Record Health Check holds errors until the current request reaches its normal completion point, then
+publishes them in groups of up to 100. If Salesforce accepts an event and later work in the same
+transaction rolls back, the event is not rolled back with that work.
+
+Publication is best effort. A transaction that stops immediately because it reaches an uncatchable
+Salesforce limit might never reach the publication step. Salesforce accepting a Platform Event also
+does not prove that a Flow, Apex trigger, or external integration processed it successfully. Monitor
+both the Salesforce process that runs Record Health Check and the automation that receives the
+events.
 
 ## Fields
 
-| Setup label | API name | Type | Required/default | Meaning |
-| --- | --- | --- | --- | --- |
-| Event ID | `EventId__c` | Text(80) | Required; generated | Application-level unique key. |
-| Run ID | `RunId__c` | Text(120) | Required; generated or inherited | Correlates errors from one Framework run. |
-| Occurred At | `OccurredAt__c` | DateTime | Required; generated | UTC event-construction time. |
-| Contract Version | `ContractVersion__c` | Text(10) | Required; `1.0` | Version of the diagnostics-event schema. |
-| Framework Version | `FrameworkVersion__c` | Text(20) | Optional; Framework supplied | Framework release that produced the error. |
-| Level | `Level__c` | Text(10) | Required; `ERROR` | Log level. Record Health Check publishes only `ERROR` events. |
-| Code | `Code__c` | Text(120) | Optional | Stable or internal event code such as `APEX_EVALUATOR_ERROR` or `UNHANDLED_EXCEPTION`. |
-| Message | `Message__c` | Long Text Area(32,768) | Optional | Cleaned-up exception message or compact sorted field summary. |
-| Exception Type | `ExceptionType__c` | Text(120) | Optional | Apex exception type when an exception is available. |
-| Stack Trace | `StackTrace__c` | Long Text Area(32,768) | Optional | Cleaned-up Apex stack trace. |
-| Record ID | `RecordId__c` | Text(18) | Optional | Salesforce record being evaluated, when known. |
-| Check Set Developer Name | `CheckSetDeveloperName__c` | Text(120) | Optional | Check Set `DeveloperName` associated with the error. |
-| Check Developer Name | `CheckDeveloperName__c` | Text(120) | Optional | Check `DeveloperName` associated with the error. |
-| User ID | `UserId__c` | Text(18) | Optional | Running Salesforce user from `UserInfo.getUserId()`. |
+The API names below are the field names used by Flow, Apex, and integrations.
 
-## Example event body
+| Field label | API name | Type | What it contains |
+| --- | --- | --- | --- |
+| Event ID | `EventId__c` | Text(80), required | Unique ID generated for this error event. Save it in a unique field to prevent the same event from creating duplicate work. |
+| Run ID | `RunId__c` | Text(120), required | ID that connects errors from the same Record Health Check run. |
+| Occurred At | `OccurredAt__c` | Date/Time, required | Date and time when Record Health Check created the event. |
+| Contract Version | `ContractVersion__c` | Text(10), required | Version of this event's field contract. The current value is `1.0`. |
+| Framework Version | `FrameworkVersion__c` | Text(20) | Record Health Check code version that created the event. |
+| Level | `Level__c` | Text(10), required | Always `ERROR` for events published by Record Health Check. |
+| Code | `Code__c` | Text(120) | Technical error code, such as `APEX_EVALUATOR_ERROR` or `UNHANDLED_EXCEPTION`. These codes can change as the package implementation changes. |
+| Message | `Message__c` | Long Text Area(32,768) | Cleaned exception message or a short summary of the error details available to Record Health Check. |
+| Exception Type | `ExceptionType__c` | Text(120) | Apex exception type, when an exception caused the error. |
+| Stack Trace | `StackTrace__c` | Long Text Area(32,768) | Cleaned Apex stack trace, when one is available. |
+| Record ID | `RecordId__c` | Text(18) | Salesforce record that was being checked, when known. |
+| Check Set Developer Name | `CheckSetDeveloperName__c` | Text(120) | Developer Name of the Check Set associated with the error, when known. |
+| Check Developer Name | `CheckDeveloperName__c` | Text(120) | Developer Name of the Check associated with the error, when known. |
+| User ID | `UserId__c` | Text(18) | ID of the Salesforce user whose transaction ran Record Health Check. |
+
+**Developer Name or Qualified API Name?** These two event fields contain developer names used by
+the package while it runs. When Apex or Flow starts a health check, continue to pass the Check Set's
+exact **Qualified API Name** copied from Setup. See
+[Check Set fields](fields-check-set.md) for the distinction.
+
+## Example event
+
+This example shows the shape of a Log event. The IDs and error details are illustrative.
 
 ```json
 {
   "ContractVersion__c": "1.0",
-  "FrameworkVersion__c": "current-release",
+  "FrameworkVersion__c": "2.0.1",
   "EventId__c": "rhc-run-001-APEX_EVALUATOR_ERRO-18273",
   "RunId__c": "rhc-run-001",
   "OccurredAt__c": "2026-07-21T15:30:00.000Z",
@@ -91,58 +111,54 @@ events; Salesforce debug-log output is unchanged.
   "RecordId__c": "001000000000001AAA",
   "UserId__c": "005000000000001AAA",
   "ExceptionType__c": "System.QueryException",
-  "Message__c": "Illustrative cleaned-up exception message",
-  "StackTrace__c": "Illustrative cleaned-up stack trace"
+  "Message__c": "Illustrative cleaned exception message",
+  "StackTrace__c": "Illustrative cleaned stack trace"
 }
 ```
 
-Use illustrative cleaned-up values in public documentation and unrestricted support channels;
-keep real stack traces, IDs, and production error messages out of those surfaces.
+Do not paste real production event bodies into unrestricted tickets, chat channels, or public
+documentation. A message or stack trace can contain record IDs, field names, or other details about
+your org.
 
-## Security requirements
+## Prevent duplicate work and logging loops
 
-This event can contain a record ID, user ID, exception message, exception type, and stack trace.
-Treat the event and every persisted copy as restricted operational data.
+Salesforce can deliver a Platform Event more than once. Before creating a case, notification, or
+saved error record, check whether your destination already contains `EventId__c`. Store that field
+as **Unique** when the destination supports it. Make the rest of the processing safe to run again.
 
-| Concern | Requirement |
-| --- | --- |
-| Access | Grant event subscription and persisted-log access only to approved administrators or support staff. |
-| Subscriber permissions | Apply least privilege to the Apex class, Flow, integration user, and destination object. |
-| Retention | Define deletion requirements for persisted diagnostics. |
-| External sharing | Share Log event data only after a security review. |
-| Safe handling | Assume an exception message can still contain organization-specific identifiers. |
-| Custom additions | Keep Found, Expected, and source field values out of custom logging. |
-
-## Subscriber loop protection
-
-A subscriber that processes `rhc__Record_Health_Check_Log__e` must not call Record Health Check or
-republish Log events. The package uses an internal loop guard for its own code, but that guard is not
-a subscriber API.
+`RecordHealthCheckLogger.enterSubscriberContext()` is an internal package safeguard, not an Apex API
+available to code created in an installing org. The practical safeguard is to keep the receiving
+trigger focused on saving or routing the error and never call Record Health Check from it.
 
 ```apex
 trigger RecordHealthCheckLogSubscriber on rhc__Record_Health_Check_Log__e (after insert) {
-    // Hand off only to restricted processing that is safe to run again.
+  // Pass the events to your restricted handler. The handler should check EventId__c
+  // before creating a record, notification, or other follow-up work.
+  MyRecordHealthCheckLogHandler.handle(Trigger.new);
 }
 ```
 
-The subscriber must also keep unique by `EventId__c`, handle replay, and make follow-on work safe to
-repeat.
+`rhc__` appears in this example because the Platform Event and Apex class come from the installed
+Record Health Check package. Your handler class, such as `MyRecordHealthCheckLogHandler`, belongs to
+your org and does not use the package prefix.
 
-## Known limitations
+Do not start another health check or deliberately publish another Log event from automation that
+receives this event. That can create a repeating loop.
 
-| Limitation | Design response |
+## What this event cannot guarantee
+
+| Situation | What to do |
 | --- | --- |
-| An uncatchable governor-limit abort can prevent `flush()` and produce no Log event. | Keep Salesforce debug logs and platform exception monitoring available. |
-| Publish acceptance does not prove delivery, persistence, alerting, or investigation. | Monitor the subscriber and every downstream destination independently. |
-| Platform Event retention is temporary. | Persist events in a subscriber-owned store when long-term history is required. |
-| Record ID or metadata name can be blank when the failure occurred before that context was known. | Treat those fields as optional during correlation. |
-| `Code__c` can contain Framework-internal codes. | Use the public [Reason Code registry](../reference/contracts/reason-codes.md) only for public Check outcomes. |
+| A transaction stops before Record Health Check can publish its held errors | Keep Salesforce debug logs and your normal Apex exception monitoring available. |
+| Salesforce accepts the event, but receiving automation later fails | Monitor the Platform Event-triggered Flow, Apex trigger, or integration separately. |
+| Your team needs a lasting error history | Save the event to a restricted custom object or external monitoring system because Platform Event retention is temporary. |
+| Record ID, Check Set, or Check is blank | Continue investigating with Run ID, Code, User ID, and time. The error can occur before Record Health Check knows every value. |
+| Your automation needs stable business outcome codes | Use the public [Reason Code reference](../reference/contracts/reason-codes.md). `Code__c` on this technical event can contain package-internal codes. |
 
 ## Related
 
-- [Subscribe with Flow or Apex](../platform-events/error-log.md)
-- [Lifecycle-events overview](../integration/lifecycle-events.md)
-- [Check Set Run Platform Event](event-set-run.md)
-- [Check Result Platform Event](event-check-result.md)
+- [Save or route Record Health Check errors](../platform-events/error-log.md)
+- [Choose whether to publish result events](../integration/lifecycle-events.md)
+- [Record Health Check Set Run Platform Event](event-set-run.md)
+- [Record Health Check Result Platform Event](event-check-result.md)
 - [Troubleshoot Record Health Check](../guides/troubleshoot-with-show-diagnostics.md)
-- [Reason Codes](../reference/contracts/reason-codes.md)

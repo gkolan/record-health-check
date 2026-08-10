@@ -42,13 +42,41 @@ A seller is preparing to contact an Account and needs a reliable place to begin.
 
 - The readiness question belongs in the seller's outreach preparation with the other checks for that work.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that intended users can read Account, Phone, and Website.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Data Quality |
+| **Record Health Check Set Name** | `Account_Data_Quality` |
+| **Object** | `Account` |
+| **Card Title** | Account Data Quality |
+| **Card Subtitle** | Confirm Phone or Website is available before seller research. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Phone_Or_Website_Is_Required` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Phone_Or_Website_Is_Required` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Phone or Website Is Required |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Phone or Website Is Required |
@@ -75,40 +103,21 @@ These values improve presentation. Change them for your process, or leave an opt
 | **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
 | **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
-Leave the Found and Expected display formulas and Formula Result Type blank. The failure message
-already identifies both acceptable fields. Query and Apex fields do not apply.
-
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Data_Quality` |
-| **Object** | `Account` |
-| **Card Title** | `Account Data Quality` |
-| **Card Subtitle** | Confirm phone or website is available before seller research. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+Leave **Display: Found Formula** and **Display: Expected Formula** blank because there is no single
+value to show: either Phone or Website can satisfy the Check. Leave **Formula Result Type** as
+**Auto**. Query and Apex fields do not apply.
 
 ## What the user sees
 
-The Formula result becomes these Framework outcomes and card values:
+The Formula result produces these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | The Check passes as soon as Phone or Website has a value. |
 | **`FAIL`** | When both fields are blank, the card shows Needs attention with Warning severity and the configured guidance. |
 | **`SKIPPED`** | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`. |
-| **Found** | The standard Formula result identifies the evaluated value when the user reveals Found and Expected. |
-| **Expected** | The standard Formula result identifies the passing requirement when the user reveals Found and Expected. |
+| **Found** | Blank because **Display: Found Formula** is blank and either of two fields can satisfy the Check. |
+| **Expected** | The expanded details label the Pass Condition as **Passes when** and show the `OR(…)` formula. |
 
 ## Security and access
 
@@ -118,7 +127,7 @@ Record Health Check reads Phone and Website on the Account with the running user
 
 Before activation, run the Check with the Permission Sets and field access assigned to the sellers who will use the card.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Open an Account on a page that includes Record Health Check for this Check’s Check Set.
 2. Clear both Phone and Website. Run the check and confirm Warning with the failure message.

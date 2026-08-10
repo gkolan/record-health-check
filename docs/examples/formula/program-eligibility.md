@@ -41,13 +41,43 @@ A territory planner is reviewing Accounts for a small-business program whose con
 
 - Program eligibility should be reviewed when needed instead of blocking unrelated Account updates.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that **Employees** (`NumberOfEmployees`) is the approved source for employee count and
+  that 10 is the approved program minimum.
+- Confirm that intended users can read Employees.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Data Quality |
+| **Record Health Check Set Name** | `Account_Data_Quality` |
+| **Object** | `Account` |
+| **Card Title** | Account Data Quality |
+| **Card Subtitle** | Confirm employee count meets the program minimum. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | Every check |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Employee_Count_Meets_Minimum` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Employee_Count_Meets_Minimum` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Employee Count Meets Minimum |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Employee Count Meets Minimum |
@@ -60,7 +90,9 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 This scenario uses a confirmed minimum of 10 employees. When adapting the Check, replace `10` in the
 Pass Condition and Expected Formula with the minimum approved for your program.
 
-Keep the display formulas consistent with the Pass Condition. The engine does not compare Found to Expected; only Pass Condition decides the status. Mirror each side of the comparison: Found is the left side, Expected the right side.
+Keep the display formulas consistent with the Pass Condition. Record Health Check does not compare
+Found with Expected for a Formula Check; only **Pass Condition** decides the status. Mirror each side
+of the comparison: Found is the left side and Expected is the right side.
 
 ## Optional configuration
 
@@ -88,40 +120,20 @@ Copy this value into **Message When Failed**:
 
 Query and Apex fields do not apply. This Check leaves **Display: Found Text** / **Display: Expected
 Text** blank and gets its readable values from the Found/Expected formulas. Set them when the
-wording around a value matters more than the value alone - they replace what the Framework wrote on
-a Formula Check too.
-
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Data_Quality` |
-| **Object** | `Account` |
-| **Card Title** | `Account Data Quality` |
-| **Card Subtitle** | Confirm employee count meets the program threshold. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | Every check |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+wording around a value matters more than the value alone. They replace the standard Formula Check
+display.
 
 ## What the user sees
 
 The card turns the numeric Formula result and its display formulas into these user-facing values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | An Account with 10 or more employees passes. |
 | **`FAIL`** | An Account with fewer than 10 employees shows Needs attention. |
 | **`SKIPPED`** | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`. |
 | **Found** | Found shows the Account's current Number of Employees. |
-| **Expected** | Expected shows the program minimum: `10 employees`. |
+| **Expected** | Expected shows the numeric program minimum: `10`. |
 
 This Check Set uses **Every check** for **Found/Expected Display** because the employee count and
 program minimum are useful during both passing and failing eligibility reviews.
@@ -137,7 +149,7 @@ Record Health Check reads Number of Employees with the running user's Salesforce
 
 Before activation, confirm the result and Found / Expected display with the Permission Sets assigned to program planners.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Set Employees below 10. Confirm Warning and Found / Expected when display is configured.
 2. Set Employees to 10 or more, rerun, and confirm a pass.

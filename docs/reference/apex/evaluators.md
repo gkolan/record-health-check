@@ -1,26 +1,27 @@
-# Reference: Apex evaluators (L3)
+# Apex classes that run each Evaluation Type (L3)
 
 > [!NOTE]
-> On this page, look up the L3 evaluator classes for Formula, Query, Compare two queries, and
-> Apex Check plugins.
+> Use this page to understand what the package does when a Check uses Formula, Query, Compare two
+> queries, or Apex. These are internal package classes, not the Apex API used to start a health
+> check.
 
 This page is part of the [Apex class reference](README.md). For the plugin author contract, see
 [Apex Check contract](../evaluation/apex-check-contract.md).
 
 ## Evaluators (L3)
 
-Each evaluator implements the same shape: build an empty result, run Evaluation Type logic, catch
-failures into `UNABLE_TO_EVALUATE` / `ERROR` with a reason code, and set `durationMs` /
-`evaluatorType`.
+Each class runs one Evaluation Type and returns the same result format. A condition that prevents a
+safe answer becomes `UNABLE_TO_EVALUATE`; an unexpected package or Apex plugin failure becomes
+`ERROR`. Every result identifies the Evaluation Type and how long the evaluation took.
 
 ### `RecordHealthCheckFormulaEvaluator`
 
-**Role:** Formula Evaluation Type (`FORMULA`).
+**Role:** Run a Formula Check (`FORMULA`).
+
 **Type:** Evaluator · `public with sharing`
 
-Evaluates `PassConditionFormula__c` against the loaded record via Salesforce `FormulaEval`. Also
-used by other paths for applicability formulas, expected-record formulas, and list-membership
-primary values (`FindInListFormula__c`).
+Evaluates `PassConditionFormula__c` against the Salesforce record. The package also uses this class
+for applicability formulas, Expected Value formulas, and `FindInListFormula__c`.
 
 **Key members:**
 
@@ -28,47 +29,47 @@ primary values (`FindInListFormula__c`).
 | --- | --- |
 | `evaluate(check, recordId, record)` | Main entry point for a Formula Check |
 | `resolveFormulaSingleValue(...)` | Shared formula resolution used by other paths |
-| Governor safety | Tracks FormulaEval calls for the whole transaction (platform limit 100) with a safety margin; caches resolved return types so bulk callers do not retry every record |
+| Formula limit protection | Stops before Salesforce's 100 Formula Evaluation calls per transaction and remembers a formula's result type for the remaining records |
 
 **Notable behavior:**
-- **Important:** a formula that resolves to `null` (e.g. a null relationship traversal) is treated as
- `UNABLE_TO_EVALUATE`/`INVALID_FORMULA`, not `FAIL` - the class comments explain that letting null
- count as false would produce false failures. `evaluateFormulaAnyType` tries the admin-declared
- `FormulaResultType__c` or a cached previously-resolved return type first, and only falls back to
- trying all eight `formulaeval.FormulaReturnType` values (in a fixed cheapest-first order:
- `BOOLEAN`, `DECIMAL`, `DATE`, `DATETIME`, `STRING`, `DOUBLE`, `INTEGER`, `LONG`) when that preferred
- type fails, since every failed attempt still uses one of the 100 FormulaEval calls for the
- transaction. `FORMULA_EVAL_SAFETY_MARGIN` is `5`, so calls stop being attempted once
- `formulaEvalCallCount` reaches 95, leaving spare room for later checks' applicability checks in
- the same transaction.
+
+- **Null result:** a formula that returns `null`, such as when a related record is missing, returns
+  `UNABLE_TO_EVALUATE`/`INVALID_FORMULA`. It does not return `FAIL`, because `null` is not the same as
+  `false`.
+- **Result type:** the class first tries the Formula Result Type selected on the Check. If needed, it
+  tries the other supported types. It remembers the successful type so it does not repeat that work
+  for every record.
+- **Transaction limit:** Salesforce allows 100 Formula Evaluation calls in one transaction. The
+  package stops at 95 so later Checks still have room to evaluate applicability formulas. Use a
+  smaller Batch size when a Check Set contains several Formula Checks.
 
 **See also:** [Reference: Formula](../evaluation/formula.md)
 
 ### `RecordHealthCheckSoqlEvaluator`
 
-**Role:** Query Evaluation Type (`QUERY`).
+**Role:** Run a Query Check (`QUERY`).
+
 **Type:** Evaluator · `public with sharing`
 
-Binds merge tokens in `SourceQuery__c`, runs the query through
-`RecordHealthCheckQueryEvaluatorSupport` / `RecordHealthCheckSoqlTemplate`, extracts Found values,
-resolves Expected from fixed value / record formula / comparison query, and applies operators via
-`RecordHealthCheckComparisonEngine`. Supports one-result, multi-row, list-membership, and unary
-operators according to Check configuration.
+Replaces merge tokens in `SourceQuery__c`, runs the SOQL query, reads the Found Value, determines the
+Expected Value configured on the Check, and compares them. It supports a single result, multiple
+rows, list membership, and operators such as **Is Empty** that do not need an Expected Value.
 
 **Notable behavior:**
-- **Important:** an indeterminate operator result is split into two distinct causes that must not be
- handled the same way: a genuine zero-row query is governed by `NoRowsResult__c`, while a present
- row whose field value is null is governed by `EmptyValueHandling__c` and resolves to `SKIPPED` - 
- collapsing the two would let "null value + no rows" wrongly resolve to `FAIL`. `bindTokens` also
-  resolves each `{!record.FieldApiName}` token (with an optional quoted `fallback` attribute) in both a quoted and unquoted form, since a multi-select
- picklist token expands differently depending on whether it appears inside quotes (raw `'A;B;C'`
- value) or unquoted (an `INCLUDES (...)` list).
+
+- **No rows and an empty field are different:** when the query returns no records,
+  `NoRowsResult__c` decides the result. When the query returns a record but the selected field is
+  empty, `EmptyValueHandling__c` applies and an undecidable comparison returns `SKIPPED`.
+- **Merge tokens:** `{!record.FieldApiName}` can include a fallback, such as
+  `{!record.Name fallback="(no name)"}`. A multi-select picklist token is formatted differently when
+  it appears inside quotes and when it is used unquoted in an `INCLUDES` condition.
 
 **See also:** [Reference: Query](../evaluation/query.md)
 
 ### `RecordHealthCheckCompareQueriesEvaluator`
 
-**Role:** Compare two queries Evaluation Type (`COMPARE_TWO_QUERIES`).
+**Role:** Run a Compare two queries Check (`COMPARE_TWO_QUERIES`).
+
 **Type:** Evaluator · `public with sharing`
 
 Runs `SourceQuery__c` and `ComparisonQuery__c`, then compares either one value per side
@@ -82,22 +83,23 @@ follows `NoRowsResult__c`, consistent with the single-query evaluator.
 | `LISTS_OVERLAP`, `LISTS_CONTAIN_ALL`, `LISTS_MATCH_EXACTLY` | Supported list operators (the last compares how often each cleaned-up value appears, so duplicate counts must match, not just shared values) |
 
 **Notable behavior:**
-- **Important:** under `AS_NO_MATCH` empty-value handling, a missing list value is not converted to an
- empty string (which would let two nulls wrongly "match" as blanks) - it is replaced with a unique
- placeholder, `' __rhc_missing__:' + side + ':' + index`, so a null on one side matches nothing, not
- even another null.
+
+- **Empty list values:** with `AS_NO_MATCH`, an empty value does not match another empty value. The
+  class assigns each empty item a unique internal value, so it cannot accidentally count two blank
+  items as a match.
 
 **See also:** [Reference: Compare two queries](../evaluation/compare-two-queries.md)
 
 ### `RecordHealthCheckApexEvaluator`
 
-**Role:** Apex Evaluation Type (`APEX`).
+**Role:** Run a custom Apex Check (`APEX`).
+
 **Type:** Evaluator · `public with sharing`
 
-Resolves `ApexClass__c` with `Type.forName`, confirms the instance implements
-`RecordHealthCheck`, parses `ApexParametersJson__c` into `scope.parameters`, and invokes the
-plugin once with the complete record scope. `RecordHealthCheckPluginDispatch` validates exact record-key coverage,
-supported statuses, and forbidden writes before the Framework derives display content.
+Creates the class named in `ApexClass__c`, confirms that it implements `RecordHealthCheckPlugin`,
+converts `ApexParametersJson__c` to the parameters supplied to the plugin, and calls the plugin once
+for all records in the request. The package then confirms that the plugin returned one valid result
+for every requested record and did not perform a prohibited database write.
 
 **Key members:**
 
@@ -106,22 +108,23 @@ supported statuses, and forbidden writes before the Framework derives display co
 | `APEX_CLASS_NOT_FOUND`, `INVALID_APEX_PARAMETERS`, `APEX_EVALUATOR_ERROR` | Typical failure reason codes |
 
 **Notable behavior:**
-- **Important:** the plugin dispatch requires exactly one outcome for every requested record ID and
- no outcomes for unknown IDs. Missing or extra keys, forbidden writes, and malformed plugin
- responses become `ERROR` results with stable plugin-contract reason codes. Configuration or data
- conditions that prevent a safe verdict become `UNABLE_TO_EVALUATE` instead.
+
+- **Important:** the plugin must return exactly one outcome for every requested record ID and none
+  for records that were not requested. Missing or extra record IDs, prohibited database writes, and
+  invalid results become `ERROR`. A configuration or data condition that prevents a safe answer
+  becomes `UNABLE_TO_EVALUATE`.
 
 **See also:** [Reference: Apex](../evaluation/apex-check-contract.md)
 
 ### `RecordHealthCheckQueryEvaluatorSupport`
 
-**Role:** Shared query execution for both SOQL evaluators.
+**Role:** Apply the same SOQL row limit and empty-result behavior to both Query Evaluation Types.
+
 **Type:** Shared helper · `public with sharing`
 
-`runQuery` prepares SOQL (row limit +1 so it can detect too many rows), executes `Database.query`,
-maps template and query exceptions to evaluator exceptions, and rejects results over the row limit
-with `GOVERNOR_LIMIT_RISK`. Also provides shared `buildEmptyResult` / `buildNullIndeterminateResult`
-and the safe "cannot evaluate" message helper.
+`runQuery` safely adds a row limit, runs the query, and returns `GOVERNOR_LIMIT_RISK` when the query
+finds more records than the Check permits. The other methods create consistent results when a query
+returns no records or an empty field value.
 
 **Key members:**
 
@@ -132,16 +135,15 @@ and the safe "cannot evaluate" message helper.
 | `buildNullIndeterminateResult(...)` | Shared null-value result shape |
 
 **Notable behavior:**
-- **Important:** `runQuery` asks `RecordHealthCheckSoqlTemplate.prepareForExecution` for `maxRows + 1`
- rows rather than `maxRows` - fetching one extra row is how it distinguishes "exactly at the limit"
- from "over the limit" and raises `GOVERNOR_LIMIT_RISK` only in the latter case, without needing a
- separate `COUNT()` query. `buildEmptyResult`'s four-way branch on `NoRowsResult__c` (`PASS`, `FAIL`,
- `UNABLE_TO_EVALUATE`, or the default `SKIPPED`/`APPLICABILITY_NOT_MET`) is shared exactly by both
- SOQL evaluators so a zero-row query behaves identically regardless of Evaluation Type.
+
+- **How it detects too many rows:** if the Check allows 200 rows, the class asks for 201. Receiving
+  201 proves that the query exceeded the setting; receiving 200 does not. This avoids running a
+  separate count query.
+- **No Rows Result:** both Query Evaluation Types use the same `NoRowsResult__c` setting. It can make
+  a zero-row query return `PASS`, `FAIL`, `UNABLE_TO_EVALUATE`, or the default
+  `SKIPPED`/`APPLICABILITY_NOT_MET`.
 
 ---
-
-Documentation example of a merge token with a quoted fallback attribute: `{!record.Name fallback="(no name)"}`.
 
 ## Related
 

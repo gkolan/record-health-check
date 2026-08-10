@@ -54,9 +54,11 @@
                         aria-busy={actionButtonBusy}
                         disabled={actionButtonDisabled}
                       >
-                        <template if:true={showRunButtonLabel}
-                          >{actionButtonLabel}</template
-                        >
+                        <template if:true={showRunButtonLabel}>
+                          <span class="rhc-action-button__label"
+                            >{actionButtonLabel}</span
+                          >
+                        </template>
                         <template if:true={showActionButtonGlyph}>
                           <span
                             class="rhc-action-button__glyph"
@@ -81,13 +83,6 @@
                         </template>
                       </button>
                     </template>
-                    <template if:true={showLimitNotice}>
-                      <lightning-badge
-                        class="rhc-check-pill rhc-check-pill--warn"
-                        label={limitNoticeLabel}
-                        title={limitNoticeTitle}
-                      ></lightning-badge>
-                    </template>
                   </template>
                 </div>
               </template>
@@ -100,6 +95,11 @@
 
           <template if:true={showPreRunHint}>
             <p class="rhc-pre-run-hint" role="status">{preRunHintText}</p>
+          </template>
+          <template if:true={showHiddenEvaluationHint}>
+            <p class="rhc-pre-run-hint" role="status">
+              {hiddenEvaluationHintText}
+            </p>
           </template>
 
           <ul class="rhc-list" role="list">

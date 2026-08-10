@@ -1,130 +1,135 @@
-# Reference: Apex merge-token classes (L2)
+# Apex classes that resolve merge tokens (L2)
 
 > [!NOTE]
-> On this page, look up the L2 classes that parse, validate, and resolve namespaced merge
-> tokens. For the administrator-facing token syntax contract, see
+> Use this page to understand the internal classes that read, validate, and replace merge tokens.
+> For the token names and syntax an administrator can use, see
 > [Merge tokens](../contracts/merge-tokens.md).
 
 This page is part of the [Apex class reference](README.md).
 
-## Merge tokens (L2)
+## Merge-token classes (L2)
 
 ### `RecordHealthCheckTemplateService`
 
-**Role:** Parse, validate, and resolve merge tokens.
+**Role:** Validate merge tokens and replace them with Salesforce values.
+
 **Type:** Shared service · `public` (no sharing keyword)
 
-Handles namespaced tokens such as `{!record.Name}`, with optional quoted attributes such as
-`{!record.Amount format="CURRENCY" fallback="Not available"}`, for display messages, URLs, and SOQL
-text.
-Enforces max 100 tokens and 20,000 characters of resolved text. Unknown namespaces, unknown
-properties, unsupported flat tokens, and stray braces become structured `RecordHealthCheckTokenIssue`s.
+Handles tokens such as `{!record.Name}` in messages, URLs, and SOQL. A token can include quoted
+settings, as in `{!record.Amount format="CURRENCY" fallback="Not available"}`. One template can
+contain up to 100 tokens, and the completed text can contain up to 20,000 characters. An unknown
+token name, property, or setting returns a `RecordHealthCheckTokenIssue` instead of partially
+replacing the template.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `SURFACE_DISPLAY`, `SURFACE_URL`, `SURFACE_SOQL` | The three contexts tokens can resolve for |
-| `resolveFieldPath(...)` | Resolve a dotted `record.*` token to a field value |
-| `applyFoundExpectedText(...)` | Apply administrator Found and Expected wording after evaluator values are formatted |
+| `SURFACE_DISPLAY`, `SURFACE_URL`, `SURFACE_SOQL` | Identify whether the completed text is a message, URL, or SOQL query |
+| `resolveFieldPath(...)` | Read the value of a `record.*` field path |
+| `applyFoundExpectedText(...)` | Add the administrator's Found Value and Expected Value wording after a Check finishes |
 
-**Notable behavior:**
-- **Important:** `resolveFieldPath` rejects a dotted record token whose relationship depth exceeds 5
- hops (`parts.size() > 6`) with `TOKEN_NOT_AVAILABLE_IN_PHASE`, so a runaway relationship chain in an
- admin-authored template fails immediately rather than describing arbitrarily deep schema. On
- `SURFACE_URL`, a token that resolves blank and has no `fallback` attribute throws `MISSING_TOKEN_VALUE`
- instead of silently substituting an empty string - a blank display value is harmless, but a blank
- URL segment could produce a broken or unintended link. `rhcResult` tokens can only be resolved once
- `context.resultFinalized` is true, since a result's Found/Expected values are not meaningful until
- the evaluator has finished.
+**Important behavior:**
 
-**See also:** [Reference: Merge tokens](../contracts/merge-tokens.md)
+- **Related fields:** a `record.*` token can follow no more than five Salesforce relationships. A
+  deeper path returns `TOKEN_NOT_AVAILABLE_IN_PHASE`.
+- **URLs:** when a token used in a URL is empty, the token must have a `fallback` value. Otherwise,
+  the class returns `MISSING_TOKEN_VALUE` instead of creating a broken or unintended link.
+- **Result values:** `rhcResult.*` tokens become available only after the Check has produced its final
+  result. Found and Expected values are not reliable before that point.
+
+**See also:** [Merge tokens](../contracts/merge-tokens.md)
 
 ### `RecordHealthCheckTokenRegistry`
 
-**Role:** Allowed list of merge-token namespaces and properties.
+**Role:** Store the allowed first part and property names for merge tokens.
+
 **Type:** Constants holder · `public` (no sharing keyword)
 
-Record properties are any non-blank field path; other namespaces use fixed property sets (Developer
-Name, status, run id, and so on).
+The first part identifies the source, such as `record` in `{!record.Name}` or `rhcResult` in
+`{!rhcResult.status}`. A record token can use a nonblank field path. The other sources have fixed
+property lists.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun` | The five allowed token namespaces |
-| `RESULT_PROPERTIES` | Fixed property set for the `rhcResult` namespace |
+| `record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun` | The five allowed first parts of a token |
+| `RESULT_PROPERTIES` | Allowed properties after `rhcResult.` |
 
-**Notable behavior:**
-- **Example:** `RESULT_PROPERTIES` is exactly `{status, foundValue, foundValuePluralSuffix,
- expectedValue, failedRecordCount, totalRecordCount, reasonCode}` - `foundValuePluralSuffix` in
- particular exists so a multi-row summary message can render "1 Contact" vs "2 Contacts" without the
- admin hand-authoring a conditional.
+For example, `foundValuePluralSuffix` lets a message display **1 Contact** or **2 Contacts** without
+requiring an administrator to write conditional logic.
 
 ### `RecordHealthCheckToken`
 
-**Role:** One parsed merge token.
+**Role:** Store the parts of one merge token after it has been read.
+
 **Type:** Data holder · `public` (no sharing keyword)
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `expression` | The full raw token text |
-| `namespaceName` | The token's namespace (e.g. `record`, `rhcCheck`) |
-| `propertyPath` | The property or field path within that namespace |
-| `formatName` | Optional official uppercase Display: Value Format API name |
-| `fallbackValue` | Optional text from the quoted `fallback` attribute; `null` when omitted |
-| `attributeError` | Parser error for unknown, duplicate, unquoted, or otherwise invalid attributes |
-| `startIndex` / `endIndex` | Start and end position of the token within the template string |
+| `expression` | Complete token text, including `{!` and `}` |
+| `namespaceName` | First part, such as `record` or `rhcCheck` |
+| `propertyPath` | Property or Salesforce field path after the first part |
+| `formatName` | Optional uppercase Value Format API name from `format="..."` |
+| `fallbackValue` | Optional text from `fallback="..."`; `null` when omitted |
+| `attributeError` | Error for an unknown, repeated, unquoted, or otherwise invalid setting |
+| `startIndex` / `endIndex` | Token's location in the complete template |
 
-**Notable behavior:**
-- **Note:** a convenience constructor omits `fallbackValue` (defaults to `null`) for callers that
- only need the namespace/property/span.
+A shorter constructor omits `fallbackValue` and leaves it `null` for package code that does not need
+a fallback.
 
 ### `RecordHealthCheckTokenIssue`
 
-**Role:** One merge-token validation failure.
+**Role:** Describe one invalid merge token.
+
 **Type:** Data holder · `public` (no sharing keyword)
 
-**Key members:**
+The constructor accepts a Reason Code, the invalid token, and a message. For example:
 
-| Member | Purpose |
-| --- | --- |
-| `RecordHealthCheckTokenIssue(String reasonCode, String token, String message)` | Constructor, for example `('UNSUPPORTED_TOKEN_NAMESPACE', '{!foo.bar}', 'Unsupported token namespace "foo".')` <!-- rejected-token-fixture --> |
+```apex
+new RecordHealthCheckTokenIssue(
+  'UNSUPPORTED_TOKEN_NAMESPACE',
+  '{!foo.bar}', // rejected-token-fixture
+  'Unsupported token namespace "foo".'
+);
+```
 
 ### `RecordHealthCheckMergeContext`
 
-**Role:** Values available while resolving merge tokens.
-**Type:** Chainable builder · `public` (no sharing keyword)
+**Role:** Supply the Salesforce values that merge tokens can use.
 
-Chainable `withRecord` / `withCheck` / `withResult` / `withRun` builders supply the record, Check (and
-parent Check Set), result, and run context used by token resolution. Also carries optional
-failed/total record counts for plural-aware result tokens.
+**Type:** Chainable data holder · `public` (no sharing keyword)
+
+The `withRecord`, `withCheck`, `withResult`, and `withRun` methods supply the record, Check, parent
+Check Set, result, and run details used to replace tokens. The class can also supply failed and total
+record counts for messages that need singular or plural wording.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `withRecord(...)` | Supply the record for `record.*` tokens |
-| `withCheck(...)` | Supply the Check (and derive its parent Check Set) for `rhcCheck.*` / `rhcSet.*` tokens |
-| `withResult(value, finalized)` | Supply the result for `rhcResult.*` tokens; only usable when `finalized` is true |
-| `withRun(...)` | Supply the run context for `rhcRun.*` tokens |
+| `withRecord(...)` | Supply the Salesforce record for `record.*` tokens |
+| `withCheck(...)` | Supply the Check and its parent Check Set for `rhcCheck.*` and `rhcSet.*` tokens |
+| `withResult(value, finalized)` | Supply the result; `rhcResult.*` is available only when `finalized` is `true` |
+| `withRun(...)` | Supply the run details for `rhcRun.*` tokens |
 
-**Notable behavior:**
-- **Important:** `withCheck` also derives `checkSet` by calling
- `value.getSObject('Record_Health_Check_Set__r')` on the passed-in Check record - callers never set
- `checkSet` directly, so a Check query that omits the `Record_Health_Check_Set__r` relationship will
- silently leave `rhcSet.*` tokens unresolved. `resultFinalized` defaults to `false` and is only
- ever set `true` through `withResult(value, finalized)`, which controls when `rhcResult.*` tokens
- become available.
-- **Attributes:** raw `record.*` tokens may carry `format="API_NAME"` and `fallback="text"` in
- either order. Values must be double-quoted. Unknown, duplicate, or unquoted attributes produce a
- token issue; result tokens cannot be formatted again because they already contain display text.
+**Important behavior:**
+
+- **Check Set tokens:** `withCheck` reads the parent Check Set from the
+  `Record_Health_Check_Set__r` relationship on the supplied Check record. Internal package code must
+  include that relationship in its Check query or `rhcSet.*` tokens have no value.
+- **Result tokens:** `withResult(value, true)` marks the result as complete and makes `rhcResult.*`
+  tokens available. They are unavailable by default.
+- **Token settings:** raw `record.*` tokens can contain `format="API_NAME"` and `fallback="text"` in
+  either order. Values must use double quotes. Unknown, repeated, or unquoted settings produce a
+  token issue. Result tokens cannot use `format` because they already contain display text.
 
 ---
 
 ## Related
 
 - [Apex class reference](README.md)
-- [Architecture](../framework/architecture.md)
+- [Merge tokens](../contracts/merge-tokens.md)

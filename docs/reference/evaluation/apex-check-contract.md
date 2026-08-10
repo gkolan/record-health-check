@@ -1,8 +1,8 @@
-# Reference: Apex Check plugins
+# Create a custom Apex Check
 
 > [!NOTE]
-> On this page, build a bulk Apex Check plugin that returns one typed outcome for every requested
-> record ID and verify its access, limit, and prohibited-write behavior.
+> On this page, create an Apex class for logic that cannot be expressed with a Formula or Query
+> Check. The class receives up to 200 record IDs at once and must return one result for every ID.
 
 ## Interface
 
@@ -12,39 +12,43 @@ global interface RecordHealthCheckPlugin {
 }
 ```
 
-This is the interface as declared inside the package. Subscriber classes refer to it as
-`rhc.RecordHealthCheckPlugin`, as shown in the complete example below.
+This is the interface declared inside the installed package. A class created in your org uses the
+`rhc.` prefix, as shown in the complete example below.
 
-Use a `global with sharing` class for a plugin that must be callable across the `rhc` package
-boundary.
-Run its SOQL with user access. The Framework validates returned keys, statuses, reason
-codes, and forbidden writes, but the plugin remains responsible for its own data access.
+Declare the class `global with sharing` so the installed package can call it. Run every SOQL query
+with the intended user access; the example uses `WITH USER_MODE`. Record Health Check validates the
+returned record IDs, Statuses, Reason Codes, and prohibited actions, but your class remains
+responsible for object, field, and record access in its own queries.
 
-Plugin deployment is a trusted-code action. The Framework cannot isolate or observe privileged
-reads performed by custom subscriber Apex: `with sharing` covers record sharing, while the plugin
-must still enforce object and field access and use user-mode queries. The write check is not
-a read-security boundary, and passing the contract test is not proof that every query is safe.
+Treat deployment of a custom Apex Check like any other security-sensitive Apex deployment. `with
+sharing` enforces record sharing, but it does not by itself enforce object and field access. Record
+Health Check can detect prohibited changes; it cannot prove whether every custom query used user
+mode. A code review is therefore required even when the contract test passes.
 
 ## Scope
+
+The Scope contains the information supplied to the custom Apex Check.
 
 `rhc.RecordHealthCheckScope` provides:
 
 | Property | Meaning |
 | --- | --- |
 | `objectApiName` | Object shared by the requested IDs |
-| `recordIds` | Defensive copy of the complete ordered scope |
-| `recordIdAt(index)` | One ID without allocating another defensive list; use for index-based loops |
+| `recordIds` | Copy of all requested record IDs in order |
+| `recordIdAt(index)` | One ID at a numbered position, without creating another list copy |
 | `parameters` | Parsed Check parameter JSON |
 | `checkQualifiedApiName` | Selected Check identity |
 | `checkSetQualifiedApiName` | Parent Check Set identity |
-| `runId` | Correlation ID |
+| `runId` | ID that connects results, logs, and events from the same run |
 
-The scope is immutable to subscriber code. Read `recordIds` once, query once, index the result,
-then create outcomes in a record loop. For index-based processing, call `size()` and
-`recordIdAt(index)` instead of repeatedly accessing `recordIds`, because each property access
-intentionally returns a detached copy.
+The class cannot change the package's original request. Read `recordIds` into a local variable once,
+query for all IDs together, organize the query results in a map, and then build one outcome per
+record. Each access to `scope.recordIds` returns another list copy. For a numbered loop, use
+`scope.size()` and `scope.recordIdAt(index)` instead.
 
 ## Outcome
+
+Return one Outcome for every requested record ID.
 
 Build outcomes with the factories on `rhc.RecordHealthCheckOutcome`:
 
@@ -57,28 +61,30 @@ rhc.RecordHealthCheckOutcome.pass('RECENT_ACTIVITY_FOUND')
   );
 ```
 
-Available verdict factories are `pass`, `fail`, `unableToEvaluate`, and `skipped`.
-`error` is reserved for Framework contract failures. Found and Expected use
+Available Status factories are `pass`, `fail`, `unableToEvaluate`, and `skipped`.
+`error` is reserved for package contract failures. Found and Expected use
 `rhc.RecordHealthCheckValue` factories for String, Boolean, Number, Date, DateTime, ID, Count,
 and List values.
 
-Plugins do not set record identity, Check identity, severity, display text, links, or
-diagnostics. The Framework derives those values from the map key and metadata.
+The custom class does not set record identity, Check identity, Severity, display text, links, or
+diagnostics. Record Health Check gets those values from the returned map key and Check Custom
+Metadata.
 
-### Found and Expected text ownership
+### Provide Found and Expected values
 
-An Apex plugin must return typed Found and Expected values for every `PASS` or `FAIL` outcome.
+An Apex Check must return Found and Expected values with their Salesforce data types for every
+`PASS` or `FAIL` outcome.
 The Check fields **Display: Found Text** and **Display: Expected Text** do not wrap or replace
-those plugin values. If either field is populated on an Apex Check, metadata validation reports
-the non-blocking `APEX_DISPLAY_TEXT_IGNORED` warning. Put the values in the plugin with
+those custom Apex values. If either field is populated on an Apex Check, metadata validation reports
+the non-blocking `APEX_DISPLAY_TEXT_IGNORED` warning. Put the values in the custom class with
 `.withFound()`, `.withExpected()`, or `.withComparison()`; use the Check failure message when
-administrators need configurable explanatory prose.
+administrators need configurable explanatory wording.
 
 ## Bulk pattern
 
-Start by placing every requested ID in the output map. Run grouped queries above the
-record loop, then replace each seeded outcome with its evaluated result. This preserves a
-result for records that have zero related rows.
+This example checks whether each Account has at least one Contact. It first creates a FAIL outcome
+with a count of zero for every Account. One grouped query finds Accounts that have Contacts, and the
+code replaces only those outcomes with PASS. Accounts with no query row still have a result.
 
 ```apex
 global with sharing class ContactPresenceCheck
@@ -86,20 +92,28 @@ global with sharing class ContactPresenceCheck
   global Map<Id, rhc.RecordHealthCheckOutcome> evaluate(
     rhc.RecordHealthCheckScope scope
   ) {
+    // Read the property once because it returns a new list copy each time.
+    List<Id> accountIds = scope.recordIds;
+
     Map<Id, rhc.RecordHealthCheckOutcome> outcomes =
       new Map<Id, rhc.RecordHealthCheckOutcome>();
-    for (Id recordId : scope.recordIds) {
+    for (Id accountId : accountIds) {
       outcomes.put(
-        recordId,
+        accountId,
         rhc.RecordHealthCheckOutcome.fail('NO_CONTACTS')
           .withFound(rhc.RecordHealthCheckValue.ofCount(0))
+          .withComparison(
+            'GREATER_THAN',
+            rhc.RecordHealthCheckValue.ofCount(0)
+          )
       );
     }
 
+    // One query checks every Account. Do not put SOQL inside the Account loop.
     for (AggregateResult row : [
       SELECT AccountId parentId, COUNT(Id) total
       FROM Contact
-      WHERE AccountId IN :scope.recordIds
+      WHERE AccountId IN :accountIds
       WITH USER_MODE
       GROUP BY AccountId
     ]) {
@@ -109,6 +123,10 @@ global with sharing class ContactPresenceCheck
         recordId,
         rhc.RecordHealthCheckOutcome.pass('CONTACTS_FOUND')
           .withFound(rhc.RecordHealthCheckValue.ofCount(total))
+          .withComparison(
+            'GREATER_THAN',
+            rhc.RecordHealthCheckValue.ofCount(0)
+          )
       );
     }
     return outcomes;
@@ -116,33 +134,36 @@ global with sharing class ContactPresenceCheck
 }
 ```
 
-## Forbidden writes and isolation
+## Actions a custom Apex Check must not perform
 
-A plugin must not perform DML, publish events, enqueue work, send email, make callouts, or
-start asynchronous work. Dispatch uses a savepoint for each plugin call and rejects a
-forbidden write. Catch record-specific evaluation failures inside the record loop and return
-`UNABLE_TO_EVALUATE` for that record so one bad record does not erase the rest of the
-scope.
+A custom Apex Check must not create, update, or delete records; publish events; enqueue work; send
+email; make callouts; or start asynchronous Apex. Record Health Check uses a savepoint around each
+call and rejects a prohibited action. Catch a problem that affects only one record inside the record
+loop and return `UNABLE_TO_EVALUATE` for that record so one problem does not erase the results for
+every other record in the request.
 
 ## Verification
 
-Extend `rhc.RecordHealthCheckContractTest`, provide a new plugin instance and an
+Extend `rhc.RecordHealthCheckContractTest`, provide a new custom Apex Check instance and an
 `rhc.RecordHealthCheckContractTestData` factory, then call `verifyContract()` from an Apex
 test. The contract test measures scopes of 1, 10, 50, and 200 records.
 
-Permission behavior needs a controlled least-privilege test setup. Apex exposes no runtime
-counter for query access mode, so behavioral evidence and source scanning remain distinct.
+To test access behavior, create a user who genuinely cannot read a record or field used by the
+Check. Apex does not expose a counter that proves whether a query used user mode, so the test result
+and a review of the SOQL source remain separate requirements.
 
-## Supported contract
+## Supported classes
 
-The bulk interface shown on this page is the supported plugin contract. Implement
+The interface shown on this page is the supported custom Apex Check contract. Implement
 `rhc.RecordHealthCheckPlugin` with `rhc.RecordHealthCheckScope`,
-`rhc.RecordHealthCheckOutcome`, and `rhc.RecordHealthCheckValue`; no alternate plugin interface is
-packaged.
+`rhc.RecordHealthCheckOutcome`, and `rhc.RecordHealthCheckValue`; the package does not include a
+second custom Apex Check interface.
 
-The response and Platform Event contract versions are independent of the plugin interface. Plugin
-authors should compile and run the contract test against the package release they plan to
-install; do not infer plugin compatibility from an event or response version number.
+## Version compatibility
+
+The response and Platform Event contract versions are independent of this interface. Compile and
+run the contract test against the package version you plan to install. An event or response version
+does not prove that a custom Apex Check compiles with that package version.
 
 ## Related
 

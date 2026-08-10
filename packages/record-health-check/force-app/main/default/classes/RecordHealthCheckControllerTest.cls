@@ -21,7 +21,6 @@ private class RecordHealthCheckControllerTest {
       LIMIT 1
     ]
     .CardTitle__c;
-
     Test.startTest();
     RecordHealthCheckDefinitionResponse response = RecordHealthCheckController.getCheckDefinitions(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -31,7 +30,6 @@ private class RecordHealthCheckControllerTest {
       'test-run-1'
     );
     Test.stopTest();
-
     Assert.areEqual(
       expectedTitle,
       response.displayTitle,
@@ -42,11 +40,9 @@ private class RecordHealthCheckControllerTest {
       'Expected visible check definitions.'
     );
   }
-
   @IsTest
   static void getCheckDefinitionsWrapsConfigErrorsForAura() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-
     try {
       RecordHealthCheckController.getCheckDefinitions(
         'Missing_Config',
@@ -58,6 +54,10 @@ private class RecordHealthCheckControllerTest {
       Assert.isTrue(
         ex.getMessage().contains('CONFIG_NOT_FOUND'),
         'Expected serialized reason code in the Aura error message.'
+      );
+      Assert.isTrue(
+        ex.getMessage().contains('Missing_Config'),
+        'The structured Aura payload should retain the safe configuration message.'
       );
     }
   }

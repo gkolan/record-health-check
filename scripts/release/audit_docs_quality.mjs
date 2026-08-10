@@ -162,7 +162,7 @@ function structureMatches(type, markdown) {
       return hasAll(markdown, [
         /^## Choose .+ example$/m,
         /^## When .+ (?:is|are) the right choice$/m,
-        /\| Example \| Salesforce question \| Distinct Framework technique \|/,
+        /\| Example \| Salesforce question \| (?:Distinct Framework technique|What .+ demonstrates) \|/,
         /^## Related$/m
       ]);
     case "Installation home":

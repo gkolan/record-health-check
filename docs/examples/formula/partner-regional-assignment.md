@@ -42,13 +42,43 @@ A channel manager is preparing a Partner Account for regional assignment.
 
 - Customer and prospect Accounts are outside this assignment process and should not be blocked.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- In **Setup → Object Manager → Account → Fields & Relationships → Type**, confirm that `Partner`
+  is the exact picklist API value used for Partner Accounts in your org.
+- Confirm that intended users can read Account Type and Billing Country.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Data Quality |
+| **Record Health Check Set Name** | `Account_Data_Quality` |
+| **Object** | `Account` |
+| **Card Title** | Account Data Quality |
+| **Card Subtitle** | Confirm Partner Accounts have a Billing Country. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show count only |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Partner_Has_Billing_Country` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Partner_Has_Billing_Country` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Partner Has Billing Country |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Partner Has Billing Country |
@@ -77,40 +107,21 @@ Confirm the `Partner` picklist API value in your org before relying on the appli
 | **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 The applicability fields in **Configure the Check** create the skip for non-Partner Accounts. Leave
-Found and Expected display formulas and Formula Result Type blank because the failure already names
-the missing field. Query and Apex fields do not apply.
-
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Data_Quality` |
-| **Object** | `Account` |
-| **Card Title** | `Account Data Quality` |
-| **Card Subtitle** | Confirm partner Accounts have a billing country when the Check applies. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show count only |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+**Display: Found Formula** and **Display: Expected Formula** blank because the failure message
+already names Billing Country. Leave **Formula Result Type** as **Auto**. Query and Apex fields do
+not apply.
 
 ## What the user sees
 
-Formula applicability and the Pass Condition become these Framework outcomes and card values:
+Formula applicability and the Pass Condition produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | A Partner Account passes when Billing Country is populated. |
 | **`FAIL`** | A Partner Account with blank Billing Country shows Needs attention with Critical severity. |
 | **`SKIPPED`** | A non-Partner Account is skipped because the Check does not apply to its regional-assignment process. |
-| **Found** | Found shows the evaluated Billing Country value when the user reveals Found and Expected. |
-| **Expected** | Expected shows that Billing Country must be populated when the user reveals Found and Expected. |
+| **Found** | Blank because **Display: Found Formula** is blank. |
+| **Expected** | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(BillingCountry))`. |
 
 This Check Set uses **Show count only** for passed Checks so successful partner requirements do not
 crowd the card. Skipped Checks remain visible because the `SKIPPED` result explains why the Check did
@@ -122,11 +133,12 @@ Record Health Check evaluates both applicability and the Pass Condition with the
 
 - Type decides whether the Check applies; Billing Country decides Pass or Needs attention.
 
-- Missing access to either field can prevent the framework from deciding whether to Skip, Pass, or show Needs attention.
+- Missing access to either field can prevent Record Health Check from deciding whether to Skip,
+  Pass, or show Needs attention.
 
 Before activation, test a Partner Account and a non-Partner Account with the Permission Sets assigned to the regional-assignment team.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Set Type to Partner and clear Billing Country. Confirm Critical.
 2. Set Billing Country, rerun, and confirm a pass.

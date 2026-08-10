@@ -1,14 +1,13 @@
-# Reference: Merge tokens
+# Use merge tokens
 
 > [!NOTE]
-> On this page, learn the namespaced merge-token syntax Record Health Check uses in display text
-> (including Action Label), Action URLs, and administrator-authored SOQL, including which namespaces
-> are available, when a fallback helps, and which Reason Codes apply.
+> Use this page to insert Salesforce record, Check, Check Set, result, or run values into messages,
+> Action Labels, Action URLs, and SOQL. It explains the exact token names, when to provide a fallback,
+> and what happens when a token is invalid or empty.
 >
 > **Reference**
 >
-> - This page is the source of truth for merge-token behavior; configuration guides and examples
->   link here rather than restating the full contract.
+> - Use the tables on this page as the complete list of supported token names and locations.
 > - For field-level Setup examples, use the [Check field reference](../../metadata/fields-check.md).
 >   For Action URL patterns, use [Configure action links](../../guides/configure-action-links.md).
 
@@ -16,7 +15,7 @@ A merge token is a placeholder in a failure message, Fix Message, Action Label, 
 or Expected display text, or SOQL template. When the Check runs, Record Health Check replaces the
 placeholder with a live value from the current record, Check, Check Set, result, or run.
 
-Merge tokens use a namespace and property:
+Every merge token has two parts separated by a period:
 
 ```text
 {!record.Name}
@@ -24,10 +23,10 @@ Merge tokens use a namespace and property:
 
 | Part | Meaning |
 | --- | --- |
-| Namespace | Where the value comes from: `record`, `rhcCheck`, `rhcSet`, `rhcResult`, or `rhcRun` |
+| Namespace | The first part, which says where the value comes from: `record`, `rhcCheck`, `rhcSet`, `rhcResult`, or `rhcRun` |
 | Property | Which field or metadata value to insert, such as `Name` or `checkTitle` |
 
-Raw record-field tokens also support quoted `format` and `fallback` attributes:
+Record-field tokens can also contain quoted `format` and `fallback` settings:
 
 ```text
 {!record.Amount format="CURRENCY" fallback="Not available"}
@@ -36,10 +35,10 @@ Raw record-field tokens also support quoted `format` and `fallback` attributes:
 Format values are official, case-sensitive API names: `CURRENCY` is valid; `currency` and the
 Setup label `Currency` are not. Supported names are `AUTO`, `NUMBER`, `CURRENCY`, `PERCENT`,
 `RATIO_PERCENT`, `BOOLEAN`, `DATE`, `DATETIME`, `TEXT`, and `RAW`. `format` is allowed only on
-`record.*` tokens because those tokens retain a raw typed value. Result tokens already contain
-completed display text and cannot be formatted again. Attributes may appear in either order;
-attribute names are lower-case, values must be double-quoted, and duplicate or unknown attributes
-are configuration errors. Attribute values must use the quoted syntax shown above.
+`record.*` tokens because Salesforce still knows those fields' data types. Result tokens already
+contain completed display text and cannot be formatted again. The two settings may appear in either
+order. Their names are lowercase, their values must use double quotes, and repeated, unknown, or
+unquoted settings are configuration errors.
 
 Use a fallback when the value might be blank and empty wording would confuse the reader. A bare
 token is enough when no substitute is needed or the value is always present, such as
@@ -59,7 +58,7 @@ Review {!record.Name fallback="this record"} before approval.
 The same token without a fallback (`{!record.Name}`) still becomes `Acme` when Name has a value.
 When Name is blank, it inserts nothing, so the sentence reads `Review  before approval.`
 
-### Examples by namespace
+### Examples by value source
 
 Most messages and queries use the current record:
 
@@ -84,28 +83,28 @@ Use Check and Check Set tokens when the message should name the check or card:
 {!rhcSet.cardTitle}
 ```
 
-Unknown namespaces and properties are configuration errors. Every token must include one of the
-documented namespaces; `{!Id}` is therefore rejected. <!-- rejected-token-fixture -->
+An unknown first part or property is a configuration error. Every token must include one of the
+documented value sources; `{!Id}` is therefore rejected. <!-- rejected-token-fixture -->
 
-Blank tokens behave differently in display text (including Action Label), Action URLs, and SOQL. See
+Empty tokens behave differently in display text (including Action Label), Action URLs, and SOQL. See
 [Fallbacks](#fallbacks).
 
-## Surfaces
+## Where merge tokens can be used
 
-| Surface | Where it appears | Allowed namespaces |
+| Location | Where it appears | Allowed value sources |
 | --- | --- | --- |
-| Display text | **Message When Failed**, **Message When Unable To Evaluate**, **Message When Not Applicable**, **Fix Message**, **Action Label** (80 characters; defaults to `Fix this` when blank and Action URL is valid), **Display: Found Text**, and **Display: Expected Text** | `record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun` when that data exists in the current phase |
+| Display text | **Message When Failed**, **Message When Unable To Evaluate**, **Message When Not Applicable**, **Fix Message**, **Action Label** (80 saved characters; defaults to `Fix this` when blank and Action URL is valid), **Display: Found Text**, and **Display: Expected Text** | `record`, `rhcCheck`, `rhcSet`, `rhcResult`, and `rhcRun` when that value is available at that point in the run |
 | Action URL | **Action URL** on a Check | `record`, `rhcCheck`, `rhcSet`, `rhcRun` (result tokens are not allowed); each inserted value is URL-encoded before the URL safety check |
 | SOQL | Source Query, Comparison Query, and applicability count queries | `record` only |
 
-## Namespaces and properties
+## Value sources and properties
 
-| Namespace | Source | Properties |
+| First part | Value source | Allowed property after the period |
 | --- | --- | --- |
 | `record` | Current Salesforce record | Any readable field API path, such as `Name`, `AnnualRevenue`, or `Owner.Name` |
 | `rhcCheck` | Current Check metadata | `developerName`, `masterLabel`, `checkTitle`, `checkDescription`, `category`, `evaluationType`, `failureSeverity`, `evaluationOrder` |
 | `rhcSet` | Current Check Set metadata | `developerName`, `masterLabel`, `cardTitle`, `cardSubtitle`, `objectApiName` |
-| `rhcResult` | Finalized Check result; available after the evaluator finishes | `status`, `foundValue`, `foundValuePluralSuffix`, `expectedValue`, `failedRecordCount`, `totalRecordCount`, `reasonCode` |
+| `rhcResult` | Completed Check result; available after the Evaluation Type finishes | `status`, `foundValue`, `foundValuePluralSuffix`, `expectedValue`, `failedRecordCount`, `totalRecordCount`, `reasonCode` |
 | `rhcRun` | Current run context | `runId`, `source`, `startedAt`, `completedAt`, `durationMs` |
 
 `foundValuePluralSuffix` exists so a multi-row summary can render "1 Contact" versus "2 Contacts"
@@ -113,15 +112,15 @@ without a separate conditional.
 
 ## Fallbacks
 
-How a blank token behaves depends on the surface:
+What happens when a token's Salesforce value is empty depends on where the token is used:
 
-| Surface | Blank token, no fallback | Blank token with fallback |
+| Location | Empty token without a fallback | Empty token with a fallback |
 | --- | --- | --- |
 | Display text | Inserts blank text | Inserts the fallback text |
 | Action URL | Suppresses the link (`MISSING_TOKEN_VALUE`) | Uses the fallback text in the URL |
-| SOQL | Leaves a blank bind; an invalid typed bind may return `MISSING_BIND_VALUE` | Converts the fallback to the field's type and binds it |
+| SOQL | Uses an empty query value; a value that cannot be converted to the field's data type can return `MISSING_BIND_VALUE` | Converts the fallback to the field's data type and uses it in the query |
 
-Use a fallback when a blank value would produce unclear wording or an unsafe bind. These fields are
+Use a fallback when an empty value would produce unclear wording or an unsafe SOQL value. These fields are
 often blank, so a substitute helps:
 
 ```text
@@ -129,7 +128,7 @@ often blank, so a substitute helps:
 {!record.Owner.Manager.Name fallback="No manager assigned"}
 ```
 
-In SOQL, use a typed fallback only when the bound field can be blank and a blank bind would be
+In SOQL, use a fallback only when the record field can be empty and an empty query value would be
 wrong:
 
 ```text
@@ -156,7 +155,7 @@ SELECT AnnualRevenue FROM Account WHERE Id = {!record.ParentId fallback="0010000
 
 Fallback text is literal. It is not parsed as another merge token. A pipe inside the quoted
 fallback is ordinary text. Invalid number, date, date/time, time, or Boolean
-fallbacks in SOQL return `MISSING_BIND_VALUE` rather than running a misleading query.
+fallbacks in SOQL return `MISSING_BIND_VALUE` instead of running a misleading query.
 
 ## Tokens in SOQL
 
@@ -173,13 +172,13 @@ fallbacks in SOQL return `MISSING_BIND_VALUE` rather than running a misleading q
 
 | Reason code | Typical cause |
 | --- | --- |
-| `TOKEN_NAMESPACE_REQUIRED` | Token such as `{!Id}` omits a required namespace <!-- rejected-token-fixture --> |
-| `UNSUPPORTED_TOKEN_NAMESPACE` | Namespace is not on the allowed list |
+| `TOKEN_NAMESPACE_REQUIRED` | Token such as `{!Id}` omits the required first part <!-- rejected-token-fixture --> |
+| `UNSUPPORTED_TOKEN_NAMESPACE` | First part is not on the allowed list |
 | `MISSING_TOKEN_VALUE` | URL token resolved blank with no fallback |
-| `MISSING_BIND_VALUE` | SOQL fallback could not be converted to the field type |
+| `MISSING_BIND_VALUE` | SOQL fallback could not be converted to the Salesforce field's data type |
 | `TOKEN_LIMIT_EXCEEDED` | More than 100 tokens in one template |
 | `RESOLVED_TEMPLATE_TOO_LONG` | Resolved text exceeded 20,000 characters |
-| `TOKEN_NOT_AVAILABLE_IN_PHASE` | `rhcResult` used before the evaluator finishes, or a record relationship path exceeds five parent lookups |
+| `TOKEN_NOT_AVAILABLE_IN_PHASE` | `rhcResult` is used before the Check finishes, or a record field path follows more than five parent relationships |
 
 When **Action URL** resolves to more than 2,000 characters, the link is suppressed and Fix Message
 can still render. URL scheme and path checks live in

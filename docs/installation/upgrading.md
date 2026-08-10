@@ -19,7 +19,7 @@ flowchart TB
     backup["Back up configuration, placements, access, and known outcomes"]
     baseline["Confirm the current sandbox experience"]
     upgrade["Upgrade the representative sandbox"]
-    verify["Revalidate users, Checks, pages, automation, and subscribers"]
+    verify["Revalidate users, Checks, pages, and automation"]
     passed{"All required evidence passes?"}
     production["Upgrade production and repeat verification"]
     investigate["Stop and investigate the first difference"]
@@ -57,7 +57,7 @@ Back up -> baseline -> sandbox upgrade -> revalidate
 
 ## Before you start
 
-An established installation can include configuration created by your organization, Lightning page
+An established installation can include configuration created by administrators in your org, Lightning page
 placements, permission assignments, and automation. Capture enough information to restore and
 retest that experience before changing the package.
 
@@ -67,11 +67,13 @@ Keep:
 - the currently installed package version;
 - a list of Lightning pages that contain the card and the Check Set selected on each page;
 - the users assigned **Record Health Check User** and **Record Health Check Admin**;
-- a list of Flows, Apex callers, scheduled work, or event subscribers connected to the Framework;
+- a list of Flows, Apex callers, scheduled work, or integrations that receive Record Health Check
+  Platform Events;
 - one record that should pass and one that should need attention for each important Check Set.
 
-Store the backup somewhere the person responsible for the release can restore it. A backup is most
-useful when its restoration has already been rehearsed in a safe org.
+Open the retrieved metadata files and confirm that every Check Set and Check created by an
+administrator in your org is present. Store the backup somewhere the person responsible for the
+release can restore it. Prove the restoration in a safe org before relying on it for rollback.
 
 ## Step 1: Confirm the current experience
 
@@ -88,8 +90,8 @@ Open the current installation link from
 [`config/package-releases.json`](../../config/package-releases.json), sign in to the validation
 sandbox, and follow the Salesforce upgrade prompts.
 
-Keep the organization's own Check Sets and Checks. A package upgrade should not silently replace
-configuration your organization owns. Compare the upgraded configuration with the export if
+Keep the Check Sets and Checks created by administrators in your org. A package upgrade should not
+silently replace that configuration. Compare the upgraded configuration with the export if
 anything appears missing, blank, inactive, or unexpectedly changed.
 
 ### Optional command-line installation
@@ -97,17 +99,13 @@ anything appears missing, blank, inactive, or unexpectedly changed.
 Teams that automate upgrades can use the Salesforce CLI:
 
 ```bash
-sf package install \
-  --package <package-version-id> \
-  --target-org <validation-org> \
-  --upgrade-type DeprecateOnly \
-  --wait 30 \
-  --publish-wait 10
+sf org display --target-org <validation-org>
+sf package install --package <package-version-id> --target-org <validation-org> --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
 ```
 
 The package version ID is the value beginning with `04t` in
 [`config/package-releases.json`](../../config/package-releases.json). The command works on Windows,
-macOS, and Linux.
+macOS, and Linux. The first command confirms the target org before the upgrade changes it.
 
 ## Step 3: Revalidate what people use
 
@@ -117,10 +115,10 @@ macOS, and Linux.
 | Passing scenario | The expected Checks pass |
 | Attention scenario | The same guidance, severity, Found, Expected, and action remain meaningful |
 | Regular user | The user can run the card without seeing diagnostic detail |
-| Framework administrator | Show Diagnostics is available only when intentionally enabled |
-| Organization-owned configuration | Check Sets and Checks match the approved pre-upgrade configuration |
+| Record Health Check administrator | Show Diagnostics is available only when intentionally enabled |
+| Configuration created by administrators in your org | Check Sets and Checks match the approved pre-upgrade configuration |
 | Flow or Apex automation | Every caller still receives and handles the expected outcomes |
-| Event subscribers | Publication and downstream behavior remain intentional and do not duplicate work |
+| Platform Event automation | The intended Flow, Apex trigger, or integration receives events and does not repeat follow-up work |
 
 Investigate a changed Check result before approving production. The cause may be the package,
 configuration, user access, or changed Salesforce data; the retained before-and-after record helps
@@ -133,7 +131,7 @@ Proceed to production only when:
 - the package installed successfully in the sandbox;
 - the retained business scenarios behave as expected;
 - regular-user access remains correct;
-- organization-owned configuration is intact;
+- configuration created by administrators in your org is intact;
 - connected automation still works; and
 - the backup and recovery path are understood.
 
@@ -152,22 +150,29 @@ Set.
 | A Check changed outcome | The underlying record data, the user's access, and the Check configuration |
 | A user lost access | Permission-set assignments and the user's record, object, and field access |
 | Automation stopped working | The Flow or Apex error, the outcome it received, and its permission assignments |
-| Event-driven work changed | Event publication settings, duplicate handling, and subscriber errors |
+| Platform Event work changed | Event publication settings, repeated-event handling, and errors in the receiving Flow, Apex trigger, or integration |
 
 Use [Show Diagnostics](../guides/troubleshoot-with-show-diagnostics.md) when the card result needs
 deeper evidence.
 
-## Recover the previous experience
+## If the sandbox upgrade cannot be approved
+
+Do not assume that an unlocked package can be downgraded in place by installing an older `04t`
+version over a newer one. The sandbox test exists to prevent an unapproved version from reaching
+production.
 
 If the upgraded sandbox cannot be approved:
 
 1. stop connected automation that could act on unverified results;
-2. restore the previously approved package version when Salesforce permits that path;
-3. restore the exported Check Sets and Checks;
-4. restore Lightning page selections and permission assignments; and
-5. rerun the retained passing and attention scenarios.
+2. preserve the installation error, changed results, package versions, and affected configuration;
+3. investigate whether the problem is package behavior, configuration, access, or changed test data;
+4. correct the cause and repeat the upgrade in a refreshed or otherwise representative sandbox; and
+5. if your approved recovery plan requires uninstalling and reinstalling, follow
+   [Uninstall and rollback](uninstall-and-rollback.md), restore the exported Check Sets and Checks,
+   and repeat every verification step.
 
-Do not resume the release until the restored org produces the expected user experience.
+Uninstalling and reinstalling is a separate destructive operation, not an automatic downgrade. Do
+not use it without a verified configuration backup and an approved dependency-removal plan.
 
 ## Next steps
 
@@ -175,5 +180,5 @@ Do not resume the release until the restored org produces the expected user expe
 | --- | --- |
 | Operate the verified installation | [Operate in production](../guides/operate-in-production.md) |
 | Investigate a result | [Troubleshoot Record Health Check](../guides/troubleshoot-with-show-diagnostics.md) |
-| Remove the Framework | [Uninstall and rollback](uninstall-and-rollback.md) |
+| Remove Record Health Check | [Uninstall and rollback](uninstall-and-rollback.md) |
 | Review connected surfaces | [Integration overview](../integration/README.md) |

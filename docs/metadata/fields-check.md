@@ -1,12 +1,17 @@
-# Check fields (**Record Health Check** (`Record_Health_Check__mdt`))
+# Record Health Check fields
 
 > [!NOTE]
-> On this page, look up every Check field by Setup label or API name and verify its type, default,
-> allowed values, runtime behavior, and example.
+> On this page, look up every Check field by its Setup label or API name. Each field explains when
+> to use it, what to enter, and what happens when the Check runs.
 
-This page preserves the exact contract for every Check field: the label shown in Setup, API name,
-type, default, allowed values, runtime behavior, and an example. Use the decision path first, then
-open an individual field when you need the full detail.
+| Setup value | Name |
+| --- | --- |
+| Custom Metadata Type label | Record Health Check |
+| Custom Metadata Type API name | `Record_Health_Check__mdt` |
+
+Use this page while creating or reviewing a Check in **Setup → Custom Metadata Types → Record
+Health Check → Manage Records**. Start with the decision tables below. Open an individual field
+only when that field applies to the Evaluation Type you chose.
 
 ## Build a Check in the order it runs
 
@@ -81,216 +86,114 @@ that adapts to the record and result, use [Merge Syntax](../guides/configure-che
 | [Apex Parameters (JSON)](#apex-parameters-json-apexparametersjson__c) | `ApexParametersJson__c` | Custom Apex (`APEX`) |
 | [Publish User Result Event](#publish-user-result-event-publishuserresultevent__c) | `PublishUserResultEvent__c` | Lifecycle events |
 
-## Read an individual field
-
-| If you need to know… | Read these rows |
-| --- | --- |
-| What Salesforce calls it | Setup label and API name |
-| Whether you must configure it | Required for and Default |
-| What you can enter | Type, Capacity, and Allowed values |
-| When it affects evaluation | Used when |
-| What users or the Framework experience | Description, Help text, and Runtime behavior |
-| What a realistic value looks like | Example |
-
 ## 1. Identity and execution
 
 ### Developer Name (`DeveloperName`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Developer Name** |
-| API name | `DeveloperName` |
-| Type | Text |
-| Capacity | 40 characters |
-| Always required | Yes |
-| Default | No default |
-| Used when | Every Check; dependencies and programmatic calls use this stable name. |
-| Description | Stable API identifier for the Custom Metadata record. |
-| Help text | Referenced by dependencies and programmatic Check execution. |
-| Allowed values | Any value valid for the field type |
-| Example | `Account_Pipeline_Readiness` |
+Required Text(40). This is the stable name Salesforce uses for the Custom Metadata record. A
+prerequisite Check refers to this value, not the Check Title shown on the card. Example:
+`Account_Pipeline_Readiness`.
+
+After saving, Setup shows the complete **Qualified API Name**. A Check created by an administrator
+in your org normally has a name such as `Account_Pipeline_Readiness`. A Check included with the
+installed package can have a name such as `rhc__Account_Has_Recent_Activity`. Copy the exact value
+from Setup; do not add or remove `rhc__`.
 
 ### Label (`MasterLabel`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Label** |
-| API name | `MasterLabel` |
-| Type | Text |
-| Capacity | 80 characters |
-| Always required | Yes |
-| Default | No default |
-| Used when | Every Check; identifies the Custom Metadata record in Setup. |
-| Description | Setup list label for the Custom Metadata record. |
-| Help text | This is not the user-facing card row title; use Check Title for that. |
-| Allowed values | Any value valid for the field type |
-| Example | `Account pipeline readiness` |
+Required Text(80). This identifies the Custom Metadata record in Setup. It is not the title users
+see on the card; configure that in **Check Title**. Example: `Account pipeline readiness`.
 
 ### Check Set (`Record_Health_Check_Set__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Check Set** |
-| API name | `Record_Health_Check_Set__c` |
-| Type | Metadata Relationship |
-| Capacity | MetadataRelationship |
-| Always required | Yes |
-| Default | No default |
-| Used when | Every Check; assigns the Check to one Check Set. |
-| Description | <p>The parent Check Set this check belongs to. Required - every check must belong to exactly one Check Set.</p><p>The Check Set defines the object the checks run on and how the card behaves.</p> |
-| Help text | <p>Required. The Check Set this check belongs to. Each check belongs to exactly one Check Set.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `Account_Data_Quality` from the integration-test metadata |
+Required Metadata Relationship. Select the Check Set that owns this Check. Each Check belongs to
+one Check Set, and that Check Set determines the Salesforce object and card behavior.
+
+For example, select your `Account_Readiness` Check Set for a Check that evaluates Account records.
 
 ### Evaluation Order (`EvaluationOrder__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Evaluation Order** |
-| API name | `EvaluationOrder__c` |
-| Type | Number |
-| Capacity | 4 digits, 0 decimal places |
-| Always required | No |
-| Default | `100` |
-| Used when | Every Check; controls execution and display order. |
-| Description | <p>Controls the order in which checks run and appear on the card - lower numbers run and display first. Ties are broken alphabetically by the record's Name (DeveloperName).</p><p>This order also governs prerequisites: a check named in another check's "Prerequisite Check" must have a lower "Evaluation Order". Defaults to 100.</p> |
-| Help text | <p>Lower number runs and shows first (default 100). Tip: use 10, 20, 30... so you can insert new checks between existing ones later.</p><p>A prerequisite check must have a lower number than the check that requires it.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `100` |
+Optional Number(4,0). The default is `100`. Checks with lower numbers run and appear first. When
+two Checks have the same number, Salesforce orders them by Developer Name.
+
+Use values such as `10`, `20`, and `30` so a new Check can be inserted later. A prerequisite Check
+must have a lower Evaluation Order than the Check that depends on it.
 
 ### Active (`IsActive__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Active** |
-| API name | `IsActive__c` |
-| Type | Checkbox |
-| Capacity | Checkbox |
-| Always required | No |
-| Default | **Checked**: `true` |
-| Used when | Every Check; uncheck to exclude the Check from evaluation. |
-| Description | <p>When checked, this check is included whenever its Check Set runs. When unchecked, the check is ignored during evaluation - a way to disable it temporarily without deleting the record.</p> |
-| Help text | <p>Checked = the check runs as part of its Check Set. Uncheck to disable it without deleting it.</p> |
-| Allowed values | **Checked**: `true`<br>**Unchecked**: `false` |
+Checkbox, selected by default. Clear it to stop this Check from running without deleting its Custom
+Metadata record. Other active Checks in the Check Set continue to run.
 
 
 ## 2. What users see
 
 ### Check Title (`CheckTitle__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Check Title** |
-| API name | `CheckTitle__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | Yes |
-| Default | No default |
-| Used when | Every Check; displayed as the check title on the card. |
-| Description | <p>The name end users see for this check in the card row on the record page. Required on every check.</p><p>This is the friendly, user-facing title only - it is NOT the record's Label or Record Name (DeveloperName) shown in Setup. Keep it short, specific, and plain-language so a user immediately understands what was checked, e.g. "Billing City present".</p> |
-| Help text | <p>Required. The title users see for this check on the record page, e.g. "Billing City present". Keep it short and plain.</p><p>Separate from the record's Setup Name/Label.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `Pipeline readiness` |
+Required Text(255). This is the title users see for the Check on the card. Use a short statement
+that makes the requirement obvious, such as `Billing City is present` or `Account has an active
+Contact`. This is separate from Label and Developer Name, which identify the record in Setup.
 
 ### Check Description (`CheckDescription__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Check Description** |
-| API name | `CheckDescription__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for every Evaluation Type; displayed on title hover or keyboard focus. |
-| Description | <p>Optional extra context shown when a user hovers over (or keyboard-focuses) the "Check Title" on the record page. Use it to explain, in plain language, what the check looks at and why it matters.</p><p>It is shown only on hover/focus - never inline on the row.</p> |
-| Help text | <p>Optional. Extra context shown on hover over the check's title. Explain what the check looks at, in plain language.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `Checks open Opportunity count and pipeline amount.` |
+Optional Text(255). This additional explanation appears when a user hovers over the Check Title or
+moves keyboard focus to it. Explain what is checked and why it matters. It does not appear inline in
+the row. Example: `Checks open Opportunity count and pipeline amount.`
 
 ### Category (`Category__c`)
 
-| Attribute | Value |
+Optional restricted picklist. Category classifies the business purpose of a Check. It does not
+change the result, severity, order, or current card layout.
+
+| Setup choice | Stored value |
 | --- | --- |
-| Setup label | **Category** |
-| API name | `Category__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for every Evaluation Type; classification only in the current card. |
-| Description | <p>Optional classification for the business outcome protected by this Check, such as Completeness, Readiness, Risk, or Compliance. Use it to make metadata easier to find, report on, and reuse.</p><p>The current card does not group checks by Category. This choice does not change evaluation, severity, order, or the result shown to users.</p> |
-| Help text | <p>Optional business-outcome classification. The current card does not group checks by this value, and it does not affect the result.</p> |
-| Allowed values | **Completeness**: `COMPLETENESS`<br>**Consistency**: `CONSISTENCY`<br>**Timeliness**: `TIMELINESS`<br>**Eligibility**: `ELIGIBILITY`<br>**Readiness**: `READINESS`<br>**Risk**: `RISK`<br>**Compliance**: `COMPLIANCE`<br>**Relationship coverage**: `RELATIONSHIP_COVERAGE` |
+| Completeness | `COMPLETENESS` |
+| Consistency | `CONSISTENCY` |
+| Timeliness | `TIMELINESS` |
+| Eligibility | `ELIGIBILITY` |
+| Readiness | `READINESS` |
+| Risk | `RISK` |
+| Compliance | `COMPLIANCE` |
+| Relationship coverage | `RELATIONSHIP_COVERAGE` |
 
 ### Failure Severity (`FailureSeverity__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Failure Severity** |
-| API name | `FailureSeverity__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | **Warning**: `WARNING` |
-| Used when | Every Check; displayed only for a `FAIL` result. |
-| Description | <p>The business-impact level shown only when this check results in Fail: "Critical" shows red, "Warning" shows amber, "Info" shows blue. It has no effect on Pass, Skipped, Unable to Evaluate, or system-error outcomes.</p><p>Defaults to "Warning". Severity is deliberately separate from the engine's system-error status, which is why there is no "Error" choice.</p> |
-| Help text | <p>Sets the color/level when the check fails: "Critical" = red, "Warning" = amber (default), "Info" = blue. No effect on non-fail outcomes.</p> |
-| Allowed values | **Critical**: `CRITICAL`<br>**Warning**: `WARNING`<br>**Info**: `INFO` |
+Optional restricted picklist. It applies only when the result is `FAIL`; it does not change `PASS`,
+`SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`.
+
+| Setup choice | Stored value | Card color |
+| --- | --- | --- |
+| Critical | `CRITICAL` | Red |
+| Warning | `WARNING` | Amber; default |
+| Info | `INFO` | Blue |
+
+Choose the business impact of failing the requirement. `ERROR` is not a severity choice because it
+is a separate result that means Record Health Check encountered a technical problem.
 
 ### Message When Failed (`FailureMessage__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Message When Failed** |
-| API name | `FailureMessage__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for every Evaluation Type; displayed for `FAIL`. Apex plugins return evaluation data, while metadata owns user-facing guidance. |
-| Description | <p>The message users see when this check results in Fail. It supports the display merge tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a>.</p><p>Press Enter to start a new line; each line is shown as a separate line on the card.</p> |
-| Help text | <p>Shown when the check fails. Merge tokens can insert record and Framework values with optional fallback text.</p><p>Press Enter for a new line.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Long Text Area(32,768), shown for `FAIL`. Explain what requirement was not met in language
+the card user understands. Do not include SOQL, formulas, or exception details.
 
-Examples:
+This field supports [merge tokens](../guides/configure-check-sets-and-checks.md#11-merge-tokens).
+Press Enter for a new line on the card.
+
+Choose the shortest useful example for the Check:
 
 ```text
-{!record.Name} has {!record.NumberOfEmployees fallback="no recorded"} employees and is owned by {!record.Owner.Name}.
-
-{!rhcCheck.checkTitle} found a {!rhcCheck.failureSeverity} {!rhcCheck.category} issue for {!record.Name}.
-
-{!record.Name} does not meet the requirements in {!rhcSet.cardTitle}.
-
 Found {!rhcResult.foundValue}; expected {!rhcResult.expectedValue}.
 
 {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} contacts for {!record.Name} are missing email.
-
-The check returned {!rhcResult.status}. If you need help, reference run {!rhcRun.runId}.
 ```
 
 ### Message When Unable To Evaluate (`UnableToEvaluateMessage__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Message When Unable To Evaluate** |
-| API name | `UnableToEvaluateMessage__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for every Evaluation Type; replaces the default `UNABLE_TO_EVALUATE` message. |
-| Description | <p>Optional. Replaces the default message users see when a check cannot be evaluated - for example a bad query or formula (the "Unable to Evaluate" outcome). It supports the display merge tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a>. Keep it user-friendly; never include SOQL, errors, or technical detail.</p><p>Press Enter to start a new line; each line is shown as a separate line on the card.</p> |
-| Help text | <p>Optional. Friendly text shown when the check can't run (Unable to Evaluate). Don't include technical details.</p><p>Press Enter for a new line.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Long Text Area(32,768). It replaces the standard message for `UNABLE_TO_EVALUATE`.
+Explain that Salesforce could not determine the result and what the user should do next. Do not
+show a query, formula, or technical error on the card. Merge tokens and line breaks are supported.
 
 Examples:
 
 ```text
-We could not evaluate {!record.Name} for parent account {!record.Parent.Name fallback="not assigned"}.
-
-{!rhcCheck.checkTitle} could not be completed in {!rhcSet.cardTitle}.
-
 We could not confirm the requirement for {!record.Name} ({!rhcResult.reasonCode}).
 
 Try again later. If the problem continues, give support run {!rhcRun.runId}, started at {!rhcRun.startedAt}.
@@ -298,73 +201,41 @@ Try again later. If the problem continues, give support run {!rhcRun.runId}, sta
 
 ### Fix Message (`FixMessage__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Fix Message** |
-| API name | `FixMessage__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for every Evaluation Type; displayed in failed-check details. |
-| Description | <p>Optional next-step guidance displayed in the detail for a failed check. It supports the display merge tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a>. Tell the user what to review or change, using language that is specific to the failed requirement.</p><p>Pair it with an Action URL when a useful page, record, report, or playbook can take the user directly to that next step.</p> |
-| Help text | <p>Optional guidance shown after a failure. Give the user a specific next step, such as "Review open Opportunities and their Amount values."</p> |
-| Allowed values | Any value valid for the field type |
+Optional Long Text Area(32,768), shown in failed-Check details. Tell the user exactly what to review
+or change. Pair it with Action URL when Salesforce can take the user directly to the relevant
+record, related list, report, or instructions. Merge tokens are supported.
 
 Examples:
 
 ```text
 Ask {!record.Owner.Name} to update the phone number for {!record.Name}; the current value is {!record.Phone fallback="not provided"}.
 
-Change the found value of {!rhcResult.foundValue} to the expected value of {!rhcResult.expectedValue}.
-
-Resolve the {!rhcCheck.failureSeverity} issue identified by {!rhcCheck.checkTitle}.
-
-Complete this correction, then rerun {!rhcSet.cardTitle}.
-
-If the values still look wrong, contact Operations with run {!rhcRun.runId}.
+Review the open Opportunities and correct their Amount values, then rerun {!rhcSet.cardTitle}.
 ```
 
 ### Action Label (`ActionLabel__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Action Label** |
-| API name | `ActionLabel__c` |
-| Type | Text |
-| Capacity | 80 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional when Action URL is set; blank defaults to **Fix this**. |
-| Description | <p>Optional user-facing text for the action link displayed when this Check fails. Use a short verb phrase that describes the destination.</p><p>It supports the display merge tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a> (same checks as Fix Message). The field is 80 characters, so keep labels short.</p><p>Action URL controls whether the link appears. When Action URL is set and this field is blank, the link is labeled "Fix this".</p> |
-| Help text | <p>Optional text for the failure action link. Supports merge tokens with optional fallback text. Requires Action URL; blank uses "Fix this".</p> |
-| Allowed values | Any value valid for the field type |
+Optional Text(80) for the failure action link. Use a short verb phrase that describes where the link
+goes, such as `Edit Account`, `Review Contacts`, or `Open playbook`. It supports merge tokens.
+
+Action URL controls whether the link appears. When a URL is present and Action Label is blank, the
+card uses **Fix this**.
 
 Examples:
 
 ```text
 Review {!record.Name}
-Contact {!record.Owner.Name}
-Fix {!rhcCheck.checkTitle}
-Return to {!rhcSet.cardTitle}
-Correct {!rhcResult.foundValue} open case{!rhcResult.foundValuePluralSuffix fallback="s"}
-Review run {!rhcRun.runId}
+Review Contacts
 ```
 
 ### Action URL (`ActionUrl__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Action URL** |
-| API name | `ActionUrl__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for every Evaluation Type; displayed only for `FAIL` when the resolved URL is safe. |
-| Description | <p>Optional destination displayed as an action link when this Check fails. Link to a Salesforce record, edit or create page, related list, report, Knowledge article, or HTTPS playbook.</p><p>It supports URL-safe record, Check, Check Set, and run tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a>; result tokens are not allowed in URLs. Token values are URL-encoded automatically. Blank, unsafe, or overlong resolved URLs are hidden.</p><p>Action Label is optional and defaults to "Fix this".</p> |
-| Help text | <p>Optional failure-action destination. Use a same-org path or HTTPS URL. Merge tokens with optional fallback text are supported.</p><p>Action Label is optional.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Long Text Area(32,768), displayed only for `FAIL`. Use a Salesforce path beginning with
+`/` or an approved `https://` address. You can link to a record, edit page, related list, report,
+Knowledge article, or external playbook.
+
+Record, Check, Check Set, and run tokens are supported and URL-encoded automatically. Result tokens
+are not allowed in URLs. The card hides blank, unsafe, or overlong resolved URLs.
 
 Examples:
 
@@ -384,39 +255,39 @@ Examples:
 
 ### Evaluation Type (`EvaluationType__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Evaluation Type** |
-| API name | `EvaluationType__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | No default |
-| Used when | Every Check; selects the Formula, Query, Compare two queries, or Apex evaluator. |
-| Description | <p>How this check decides pass or fail. Required - there is no default, so you must choose one, and your choice determines which other fields you fill in (complete only the matching section).</p><ul><li>"Verify with a formula" evaluates a true/false formula on the current record - fill in "Pass Condition".</li><li>"Verify with a query" runs one SOQL query and compares its result - fill in "Source Query", "Comparison Operator", and "Expected Value Comes From".</li><li>"Compare two queries" compares the results of two SOQL queries - fill in "Source Query" and "Comparison Query".</li><li>"Verify with Apex" runs your own Apex class - fill in "Apex Class".</li></ul> |
-| Help text | Required. Choose Formula for record fields, Query for related or aggregate data, Compare two queries for two result sets, or Apex for logic the other options cannot express. |
-| Allowed values | **Verify with a formula**: `FORMULA`<br>**Verify with a query**: `QUERY`<br>**Compare two queries**: `COMPARE_TWO_QUERIES`<br>**Verify with Apex**: `APEX` |
+Required restricted picklist with no default. Choose one Evaluation Type, then complete only the
+fields that type uses.
+
+| Setup choice | Stored value | Use it when |
+| --- | --- | --- |
+| Verify with a formula | `FORMULA` | A true/false Salesforce formula can check fields on the current record. Configure **Pass Condition**. |
+| Verify with a query | `QUERY` | One SOQL query can return the related records, count, total, or value to compare. |
+| Compare two queries | `COMPARE_TWO_QUERIES` | The result from one SOQL query must be compared with another query result. |
+| Verify with Apex | `APEX` | The requirement needs Apex logic that the other types cannot express. Configure **Apex Class**. |
 
 ### Display: Value Format (`DisplayValueFormat__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Display: Value Format** |
-| API name | `DisplayValueFormat__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | **Auto**: `AUTO` |
-| Used when | Optional on any Check. Apex Checks use the same formatter with the typed values returned by the plugin. |
-| Description | <p>Display only. Controls how Found and Expected are written, including separate Salesforce Percent and Ratio as Percent semantics. Both sides use the same format, and formatting never changes pass or fail.</p><p>Leave "Auto" unless you want a specific look, such as showing Annual Revenue as currency, a fraction as a percentage, or an external Id as raw text.</p> |
-| Help text | <p>Display only. Does not change pass or fail. Sets how Found and Expected are written, such as "Currency" for Annual Revenue, "Number" for an employee count, or "Raw" for an external Id.</p><p>Leave "Auto" unless you need a specific look.</p> |
-| Allowed values | **Auto**: `AUTO`<br>**Number**: `NUMBER`<br>**Currency**: `CURRENCY`<br>**Percent**: `PERCENT`<br>**Ratio as Percent**: `RATIO_PERCENT`<br>**Checkbox**: `BOOLEAN`<br>**Date**: `DATE`<br>**Date/Time**: `DATETIME`<br>**Text**: `TEXT`<br>**Raw**: `RAW` |
+Optional restricted picklist, default **Auto** (`AUTO`). It changes only how Found and Expected
+values appear; it never changes whether the Check passes.
+
+| Setup choice | Stored value | Example use |
+| --- | --- | --- |
+| Auto | `AUTO` | Let Record Health Check choose from the value type. |
+| Number | `NUMBER` | Employee count |
+| Currency | `CURRENCY` | Annual Revenue |
+| Percent | `PERCENT` | A Salesforce Percent field |
+| Ratio as Percent | `RATIO_PERCENT` | Show `0.25` as `25%` |
+| Checkbox | `BOOLEAN` | True or false |
+| Date | `DATE` | A date without time |
+| Date/Time | `DATETIME` | A date and time |
+| Text | `TEXT` | A name or description |
+| Raw | `RAW` | An external ID without display formatting |
 
 This is a different setting from [Formula Result Type](#formula-result-type-formularesulttype__c),
 which declares the type a formula returns so the Check can calculate with it. A Formula Check can set
 Formula Result Type to **Number** and Display: Value Format to **Currency** at the same time.
 
-Naming a format that cannot apply to a value is not an error - the value keeps its original
+Naming a format that cannot apply to a value is not an error. The value keeps its original
 spelling. Full contract:
 [Reference: Display value format](../reference/contracts/display-value-format.md).
 
@@ -425,18 +296,8 @@ spelling. Full contract:
 
 ### Pass Condition (`PassConditionFormula__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Pass Condition** |
-| API name | `PassConditionFormula__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Evaluation Type is **Verify with a formula** (`FORMULA`). |
-| Description | <p>A Salesforce formula that returns true (pass) or false (fail), evaluated against the current record. Required when "Evaluation Type" is "Verify with a formula"; not used by any other Evaluation Type.</p><p>Formula syntax only. Example: NOT(ISBLANK(BillingCity)).</p><p>For list-membership checks use "Value to find in the list (formula)" instead.</p> |
-| Help text | <p>Required for "Verify with a formula". Return true (pass) or false (fail), e.g. NOT(ISBLANK(BillingCity)).</p><p>Not used for query or Apex checks.</p> |
-| Allowed values | Any value valid for the field type |
+Long Text Area(32,768), required only for **Verify with a formula**. Enter a Salesforce formula that
+returns `true` to pass or `false` to fail. Do not enter Apex or SOQL.
 
 Examples:
 
@@ -451,18 +312,12 @@ Examples:
 
 ### Display: Found Formula (`DisplayFoundFormula__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Display: Found Formula** |
-| API name | `DisplayFoundFormula__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for Formula Checks; display only. |
-| Description | <p>Optional and display only - it never affects pass/fail. A formula, evaluated on the current record, whose result is shown as the "Found" value on the result row (the left side of the comparison - what the record has).</p><p>Write fixed values in formula syntax: text in double quotes ("Cold"), numbers bare (100), TRUE or FALSE, dates as DATE(2025,1,31). Its return type is set by "Formula Result Type".</p><p>Leave blank for no Found value. Example: BLANKVALUE(`Debit_Total__c`, 0).</p> |
-| Help text | <p>Display only (not pass/fail). Formula for the "Found" value shown on the row, e.g. BLANKVALUE(`Debit_Total__c`, 0).</p><p>Fixed values use formula syntax ("Cold", 100, TRUE). Blank = no Found value.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Long Text Area(32,768) for Formula Checks. This formula supplies the Found value shown on
+the card; it does not affect pass or fail. Leave it blank when the card does not need a Found value.
+
+Enter a formula evaluated on the current record. Fixed text uses double quotes, numbers are
+unquoted, and Boolean values use `TRUE` or `FALSE`. **Formula Result Type** declares the returned
+type.
 
 Examples:
 
@@ -481,18 +336,9 @@ Examples:
 
 ### Display: Expected Formula (`DisplayExpectedFormula__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Display: Expected Formula** |
-| API name | `DisplayExpectedFormula__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for Formula Checks; display only. |
-| Description | <p>Optional and display only - it never affects pass/fail. A formula, evaluated on the current record, whose result is shown as the "Expected" value on the result row (the right side of the comparison - what the record should have had).</p><p>Write fixed values in formula syntax, the same way as "Display: Found Formula". Its return type is set by "Formula Result Type".</p><p>Leave blank to show the default "Passes when..." line echoing the "Pass Condition".</p> |
-| Help text | <p>Display only (not pass/fail). Formula for the "Expected" value shown on the row.</p><p>Fixed values use formula syntax. Blank = shows the default "Pass Condition" line.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Long Text Area(32,768) for Formula Checks. It supplies the Expected value shown on the
+card and never changes pass or fail. Leave it blank to show the generated **Passes when...** text
+based on Pass Condition.
 
 Examples:
 
@@ -510,63 +356,49 @@ Examples:
 
 ### Formula Result Type (`FormulaResultType__c`)
 
-| Attribute | Value |
+Optional restricted picklist. It declares the return type for every single-value formula in this
+Check, including Found, Expected, record-formula expected values, and list-search values.
+
+| Setup choice | Stored value |
 | --- | --- |
-| Setup label | **Formula Result Type** |
-| API name | `FormulaResultType__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | **Auto**: `AUTO` |
-| Used when | Optional when the Check uses a record formula; `AUTO` is valid for all supported formula result types. |
-| Description | <p>Declares the data type your formulas return. It applies to all single-value formulas in this check - "Value to find in the list (formula)" and "Expected Value (Formula)", which affect pass/fail, as well as "Display: Found Formula" and "Display: Expected Formula", which are display only.</p><p>Leave "Auto" unless you know the return type; declaring it saves formula calls, but "Auto" always resolves correctly. Choices: "Auto", "Checkbox", "Number", "Date", "Date/Time", "Text".</p> |
-| Help text | <p>The type your formulas return. Applies to every formula in the check (the list/expected value formulas and the display formulas).</p><p>Leave "Auto" unless you know the type - "Auto" always works but uses more formula calls.</p> |
-| Allowed values | **Auto**: `AUTO`<br>**Checkbox**: `BOOLEAN`<br>**Number**: `NUMBER`<br>**Date**: `DATE`<br>**Date/Time**: `DATETIME`<br>**Text**: `TEXT` |
+| Auto | `AUTO` (default) |
+| Checkbox | `BOOLEAN` |
+| Number | `NUMBER` |
+| Date | `DATE` |
+| Date/Time | `DATETIME` |
+| Text | `TEXT` |
+
+Leave **Auto** when you are unsure. Choosing the exact type can reduce formula evaluations, but all
+formulas in this Check that use this setting must return that type.
 
 
 ## 5. Query sources (`QUERY` / `COMPARE_TWO_QUERIES`)
 
 ### Source Query (`SourceQuery__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Source Query** |
-| API name | `SourceQuery__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required for Query and Compare two queries Checks, except Query list-membership mode uses Comparison Query as its list source. |
-| Description | <p>The primary SOQL query that fetches what you are checking. Required when "Evaluation Type" is "Verify with a query" or "Compare two queries".</p><p>Use record merge tokens to insert typed values from the current record, and COUNT() for "how many" checks. Leave blank only for the list-membership operators "List contains any" / "List contains none", which read the record value from "Value to find in the list (formula)" and the list from "Comparison Query".</p> |
-| Help text | <p>Required for "Verify with a query" and "Compare two queries". SOQL returning the data to check; record merge tokens support optional typed fallbacks.</p><p>Use COUNT() for "how many" checks.</p> |
-| Allowed values | Any value valid for the field type |
+Long Text Area(32,768). This is normally the first SOQL query for **Verify with a query** and
+**Compare two queries**. Use `COUNT()` when the business question asks “how many?” and use record
+merge tokens to filter for the current record.
+
+Leave Source Query blank only for a one-query **List contains any** or **List contains none** Check.
+That pattern takes the value to search for from **Value to find in the list (formula)** and the list
+from **Comparison Query**.
 
 Examples:
 
 ```sql
 SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}
-SELECT Id FROM Account WHERE Industry = {!record.Industry fallback="Technology"}
-SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND OwnerId = {!record.Owner.ManagerId}
-SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND Amount >= {!record.AnnualRevenue fallback="0"}
-SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate >= {!record.CreatedDate}
-SELECT Id FROM Account WHERE IsDeleted = {!record.IsDeleted}
-SELECT Id FROM Account WHERE Name LIKE '{!record.Name}%'
+SELECT SUM(Amount) totalAmount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false
 ```
 
 ### Source Query Field (`SourceQueryField__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Source Query Field** |
-| API name | `SourceQueryField__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Set when Source Query returns a selected field or an aliased aggregate; leave blank only for bare `COUNT()`. |
-| Description | <p>The API name of the field or aggregate alias to read from the "Source Query" result.</p><p>Leave blank only for bare `COUNT()`. For `SUM()`, `MIN()`, `MAX()`, `AVG()`, `COUNT(field)`, or `COUNT_DISTINCT(field)`, give the expression an alias and enter that alias here.</p> |
-| Help text | <p>Column or aggregate alias to read, such as `MailingCity` or `totalAmount`. Leave blank only for bare `COUNT()`.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Text(255). Enter the field API name or aggregate alias whose value Record Health Check
+must read from Source Query. For example, enter `MailingCity` for `SELECT MailingCity ...`, or
+`totalAmount` for the aliased `SUM(Amount)` query below.
+
+Leave this field blank only when Source Query uses bare `COUNT()`. Give `SUM()`, `MIN()`, `MAX()`,
+`AVG()`, `COUNT(field)`, and `COUNT_DISTINCT(field)` an alias and enter that alias here.
 
 Example: use `totalAmount` for the aliased aggregate below. Leave this field blank for bare `COUNT()`.
 
@@ -576,18 +408,13 @@ SELECT SUM(Amount) totalAmount FROM Opportunity WHERE AccountId = {!record.Id}
 
 ### Comparison Query (`ComparisonQuery__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Comparison Query** |
-| API name | `ComparisonQuery__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required for Compare two queries, comparison-query expected values, and Query list-membership operators. |
-| Description | <p>The second SOQL query. Used when "Expected Value Comes From" is "Comparison query", for a "Compare two queries" check, or as the list source for the "List contains any" / "List contains none" operators.</p><p>Supports record merge tokens with optional typed fallbacks. Read a specific column from it with "Comparison Query Field".</p> |
-| Help text | The second SOQL query - for "Comparison query" comparisons, "Compare two queries" checks, or the list for "List contains any"/"List contains none". |
-| Allowed values | Any value valid for the field type |
+Long Text Area(32,768). This is the second SOQL query when:
+
+- Evaluation Type is **Compare two queries**;
+- **Expected Value Comes From** is **Comparison query**; or
+- a one-query Check uses **List contains any** or **List contains none**.
+
+Use **Comparison Query Field** to identify the selected field or aggregate alias to read.
 
 Examples:
 
@@ -600,18 +427,8 @@ SELECT MailingState FROM Contact WHERE AccountId = {!record.Id} AND MailingState
 
 ### Comparison Query Field (`ComparisonQueryField__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Comparison Query Field** |
-| API name | `ComparisonQueryField__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Set when Comparison Query returns a selected field or an aliased aggregate; leave blank only for bare `COUNT()`. |
-| Description | <p>The API name of the field or aggregate alias to read from the "Comparison Query" result.</p><p>Leave blank only for bare `COUNT()`. Other aggregate expressions require an alias entered here.</p> |
-| Help text | <p>Column or aggregate alias to read, such as `Country_Code__c` or `comparisonTotal`. Leave blank only for bare `COUNT()`.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Text(255). It follows the same rule as Source Query Field: enter the selected field API
+name or aggregate alias, and leave it blank only for bare `COUNT()`.
 
 Example: use `comparisonTotal` for the aliased aggregate below.
 
@@ -621,83 +438,64 @@ SELECT SUM(Amount) comparisonTotal FROM Opportunity WHERE AccountId = {!record.I
 
 ### Value to find in the list (formula) (`FindInListFormula__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Value to find in the list (formula)** |
-| API name | `FindInListFormula__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required for Query Checks using **List contains any** or **List contains none**. |
-| Description | <p>Required when "Evaluation Type" is "Verify with a query" and "Comparison Operator" is "List contains any" or "List contains none" (also set "How To Read Query Results" to "Compare as lists"). Enter a Salesforce formula, evaluated on the current record, whose result is the single value searched for in the list returned by "Comparison Query" - the list is the query, not this field.</p><p>A bare field name is the simplest formula, e.g. BillingCountry; a literal is written in formula syntax, e.g. "US". Leave blank for every other Evaluation Type and operator.</p> |
-| Help text | <p>For "Verify with a query" with "List contains any"/"List contains none". A formula on the record giving the value to look for in the "Comparison Query" list, e.g. BillingCountry (a bare field) or "US" (a literal).</p><p>Leave blank otherwise.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `BillingCity` |
+Long Text Area(32,768), required only for a **Verify with a query** Check using **List contains any**
+or **List contains none**. Enter a Salesforce formula that returns the one value to search for. The
+Comparison Query returns the list.
+
+For example, enter `BillingCity` to look for the Account's Billing City, or `"Chicago"` to look for
+fixed text. Also set **How To Read Query Results** to **Compare as lists**. Leave this field blank for
+all other operators.
 
 
 ## 6. Query comparison
 
 ### Comparison Operator (`ComparisonOperator__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Comparison Operator** |
-| API name | `ComparisonOperator__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | No default |
-| Used when | Required for Query and Compare two queries Checks. |
-| Description | <p>How the value from the "Source Query" is compared to the expected value. Required for "Verify with a query" and "Compare two queries"; not used for "Verify with a formula". No default, so you must choose one.</p><p>"Is empty" and "Is not empty" need nothing to compare against. The list operators split into two groups:</p><ul><li>"List contains any" and "List contains none" work with "Verify with a query" and "How To Read Query Results" set to "Compare as lists" - the record value comes from "Value to find in the list (formula)" and the list comes from "Comparison Query".</li><li>"Lists overlap", "Lists contain all", and "Lists match exactly" work only with "Compare two queries" and "How To Read Query Results" set to "Compare as lists" - both lists come from the two queries.</li></ul> |
-| Help text | <p>Required for query checks. Choose how Found is compared with Expected.</p><p>Empty operators need no Expected value; list operators require "Compare as lists".</p> |
-| Allowed values | **Equals**: `EQUALS`<br>**Does not equal**: `NOT_EQUALS`<br>**Greater than**: `GREATER_THAN`<br>**Greater than or equal**: `GREATER_THAN_OR_EQUAL`<br>**Less than**: `LESS_THAN`<br>**Less than or equal**: `LESS_THAN_OR_EQUAL`<br>**Contains text**: `CONTAINS`<br>**Does not contain text**: `DOES_NOT_CONTAIN`<br>**Is empty**: `IS_BLANK`<br>**Is not empty**: `IS_NOT_BLANK`<br>**List contains any**: `LIST_CONTAINS_ANY`<br>**List contains none**: `LIST_CONTAINS_NONE`<br>**Lists overlap**: `LISTS_OVERLAP`<br>**Lists contain all**: `LISTS_CONTAIN_ALL`<br>**Lists match exactly**: `LISTS_MATCH_EXACTLY` |
+Required restricted picklist with no default for Query and Compare two queries Checks.
+
+| Setup choice | Stored value | Used with |
+| --- | --- | --- |
+| Equals | `EQUALS` | One value or aggregate |
+| Does not equal | `NOT_EQUALS` | One value or aggregate |
+| Greater than | `GREATER_THAN` | One value or aggregate |
+| Greater than or equal | `GREATER_THAN_OR_EQUAL` | One value or aggregate |
+| Less than | `LESS_THAN` | One value or aggregate |
+| Less than or equal | `LESS_THAN_OR_EQUAL` | One value or aggregate |
+| Contains text | `CONTAINS` | Text value |
+| Does not contain text | `DOES_NOT_CONTAIN` | Text value |
+| Is empty | `IS_BLANK` | No Expected value needed |
+| Is not empty | `IS_NOT_BLANK` | No Expected value needed |
+| List contains any | `LIST_CONTAINS_ANY` | One-query list search |
+| List contains none | `LIST_CONTAINS_NONE` | One-query list search |
+| Lists overlap | `LISTS_OVERLAP` | Compare two query result lists |
+| Lists contain all | `LISTS_CONTAIN_ALL` | Compare two query result lists |
+| Lists match exactly | `LISTS_MATCH_EXACTLY` | Compare two query result lists |
+
+Every list operator requires **How To Read Query Results = Compare as lists**.
 
 ### Expected Value Comes From (`ExpectedValueSource__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Expected Value Comes From** |
-| API name | `ExpectedValueSource__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | No default |
-| Used when | Set for Query Checks when the operator needs a right-side value; omit for empty-value operators and Compare two queries. |
-| Description | <p>For a "Verify with a query" check, this says where the expected value comes from. No default.</p><ul><li>"Fixed value" - type it in "Expected Value (Fixed)".</li><li>"Record formula" - enter it in "Expected Value (Formula)".</li><li>"Comparison query" - the expected value comes from the "Comparison Query" result.</li></ul><p>Leave unset for "Compare two queries" (both sides are queries) and for the operators "Is empty" / "Is not empty".</p> |
-| Help text | <p>Where the expected value comes from (query checks).</p><ul><li>"Fixed value" -> "Expected Value (Fixed)".</li><li>"Record formula" -> "Expected Value (Formula)".</li><li>"Comparison query" -> "Comparison Query".</li></ul><p>Leave unset for Compare two queries and "Is empty"/"Is not empty".</p> |
-| Allowed values | **Fixed value**: `FIXED_VALUE`<br>**Record formula**: `RECORD_FORMULA`<br>**Comparison query**: `COMPARISON_QUERY` |
+Use this restricted picklist for a **Verify with a query** Check when its operator needs an Expected
+value. There is no default.
+
+| Setup choice | Stored value | Complete this field |
+| --- | --- | --- |
+| Fixed value | `FIXED_VALUE` | Expected Value (Fixed) |
+| Record formula | `RECORD_FORMULA` | Expected Value (Formula) |
+| Comparison query | `COMPARISON_QUERY` | Comparison Query and, when needed, Comparison Query Field |
+
+Leave it blank for **Is empty**, **Is not empty**, and **Compare two queries**.
 
 ### Expected Value (Fixed) (`ExpectedFixedValue__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Expected Value (Fixed)** |
-| API name | `ExpectedFixedValue__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Expected Value Comes From is **Fixed value**. |
-| Description | <p>The fixed value to compare against - a plain value, not a formula. Used only when "Expected Value Comes From" is "Fixed value".</p><p>Enter it literally, with no formula syntax or quotes: text as Approved, a number as 0 / 5 / 100000, a date as 2025-01-31.</p> |
-| Help text | <p>A plain fixed value (not a formula) - enter literally with no quotes, e.g. Approved, 5, or 2025-01-31. Only used when "Expected Value Comes From" = "Fixed value".</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `0` |
+Text(255), required when **Expected Value Comes From** is **Fixed value**. Enter a plain value with no
+formula syntax or quotation marks: `Approved`, `5`, or `2025-01-31`.
 
 ### Expected Value (Formula) (`ExpectedRecordFormula__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Expected Value (Formula)** |
-| API name | `ExpectedRecordFormula__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Expected Value Comes From is **Record formula**. |
-| Description | <p>A Salesforce formula, evaluated on the current record, that produces the value to compare against. Used only when "Expected Value Comes From" is "Record formula".</p><p>Formula syntax only - not Apex or SOQL.</p> |
-| Help text | <p>Salesforce formula giving the value to compare against. It may return literal text, a field, a relationship field, or a calculated value. Used when "Expected Value Comes From" = "Record formula".</p> |
-| Allowed values | Any value valid for the field type |
+Long Text Area(32,768), required when **Expected Value Comes From** is **Record formula**. Enter a
+Salesforce formula evaluated on the current record. It can return fixed text, a field,
+relationship field, or calculated value. Do not enter Apex or SOQL.
 
 Examples:
 
@@ -717,122 +515,83 @@ Examples:
 
 ### How To Read Query Results (`QueryResultHandling__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **How To Read Query Results** |
-| API name | `QueryResultHandling__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | **One row or aggregate**: `ONE_RESULT` |
-| Used when | Required for Query and Compare two queries Checks. |
-| Description | <p>Tells the engine how to read the "Source Query" result. Required for "Verify with a query" and "Compare two queries".</p><ul><li>"One row or aggregate" expects a single row or an aggregate such as COUNT() or SUM().</li><li>"Any record passes" passes if at least one returned record passes.</li><li>"Every record passes" passes only if all returned records pass.</li><li>"Compare as lists" treats results as lists - required for every list operator (both the "List contains any/none" membership checks and the "Lists overlap / contain all / match exactly" comparisons).</li></ul><p>Defaults to "One row or aggregate".</p> |
-| Help text | <p>How to read the query result.</p><ul><li>"One row or aggregate" = one row, COUNT(), or SUM().</li><li>"Any record passes" = one passing record is enough.</li><li>"Every record passes" = all must pass.</li><li>"Compare as lists" = required for every list operator.</li></ul> |
-| Allowed values | **One row or aggregate**: `ONE_RESULT`<br>**Any record passes**: `ANY_ROW_PASSES`<br>**Every record passes**: `ALL_ROWS_PASS`<br>**Compare as lists**: `COMPARE_AS_LISTS` |
+Required restricted picklist for Query and Compare two queries Checks.
+
+| Setup choice | Stored value | Meaning |
+| --- | --- | --- |
+| One row or aggregate | `ONE_RESULT` | Read one row, `COUNT()`, `SUM()`, or another aggregate. This is the default. |
+| Any record passes | `ANY_ROW_PASSES` | The Check passes when at least one returned record matches. |
+| Every record passes | `ALL_ROWS_PASS` | The Check passes only when every returned record matches. |
+| Compare as lists | `COMPARE_AS_LISTS` | Treat query results as lists. Required for every list operator. |
 
 ### If Query Finds No Records (`NoRowsResult__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **If Query Finds No Records** |
-| API name | `NoRowsResult__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | No default |
-| Used when | Required for multi-row and list query modes; not used by Formula or Apex Checks. |
-| Description | <p>What the check should do when the "Source Query" returns no records. No default - you must choose, because Pass versus Fail can invert the meaning of a check.</p><p>Required when "How To Read Query Results" is "Any record passes", "Every record passes", or "Compare as lists". Choices: "Pass" (no records is healthy), "Fail" (no records is a problem), "Skip" (not applicable here), or "Unable to evaluate" (cannot tell).</p><p>Example: a query for open high-priority cases finding none usually means the record is healthy, so choose "Pass".</p> |
-| Help text | <p>Required for multi-row and list checks. Choose the business meaning of no matching records: Pass, Fail, Skip, or Unable to evaluate.</p> |
-| Allowed values | **Pass**: `PASS`<br>**Fail**: `FAIL`<br>**Skip**: `SKIP`<br>**Unable to evaluate**: `UNABLE_TO_EVALUATE` |
+Required with **Any record passes**, **Every record passes**, and **Compare as lists**. There is no
+default because no records can have different business meanings.
+
+| Setup choice | Stored value | Use it when no records means... |
+| --- | --- | --- |
+| Pass | `PASS` | The requirement is satisfied. For example, no open high-priority Cases is healthy. |
+| Fail | `FAIL` | A required related record is missing. |
+| Skip | `SKIP` | The Check does not apply. |
+| Unable to evaluate | `UNABLE_TO_EVALUATE` | The available data cannot answer the question. |
 
 ### If Field Value Is Empty (`EmptyValueHandling__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **If Field Value Is Empty** |
-| API name | `EmptyValueHandling__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | **Treat as not matching**: `AS_NO_MATCH` |
-| Used when | Optional for non-aggregate Query and Compare two queries comparisons. |
-| Description | <p>How to handle an empty field value while comparing query results. Applies to "Verify with a query" and "Compare two queries"; ignored for "Verify with a formula", "Verify with Apex", and pure aggregate queries.</p><ul><li>"Ignore the record" leaves records with an empty value out of the comparison.</li><li>"Treat as blank" compares the empty value as blank text.</li><li>"Treat as not matching" makes an empty value always fail the comparison.</li></ul><p>Defaults to "Treat as not matching", so an empty value does not silently pass a data-quality check.</p> |
-| Help text | <p>How empty field values are compared.</p><ul><li>"Ignore the record" = leave them out.</li><li>"Treat as blank" = compare as blank text.</li><li>"Treat as not matching" (default) = an empty value fails the comparison.</li></ul> |
-| Allowed values | **Ignore the record**: `SKIP_RECORD`<br>**Treat as blank**: `AS_BLANK`<br>**Treat as not matching**: `AS_NO_MATCH` |
+Optional restricted picklist for non-aggregate Query and Compare two queries Checks.
+
+| Setup choice | Stored value | Behavior |
+| --- | --- | --- |
+| Ignore the record | `SKIP_RECORD` | Leave that returned record out of the comparison. |
+| Treat as blank | `AS_BLANK` | Compare the value as blank text. |
+| Treat as not matching | `AS_NO_MATCH` | The empty value does not match. This is the default. |
+
+Formula Checks, Apex Checks, and aggregate queries ignore this field.
 
 ### Max Query Rows (1-2000) (`MaxQueryRows__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Max Query Rows (1-2000)** |
-| API name | `MaxQueryRows__c` |
-| Type | Number |
-| Capacity | 4 digits, 0 decimal places |
-| Always required | No |
-| Default | `200` |
-| Used when | Applies to Query and Compare two queries Checks; aggregate queries still follow Salesforce limits. |
-| Description | <p>The maximum number of rows this Check's query may return, from 1 to 2000. Defaults to 200.</p><p>The Framework applies the cap because every returned row consumes Salesforce query-row, heap, comparison, and response-building resources in the current transaction. A bounded result also prevents one broadly filtered Check from crowding out other Checks in the Check Set.</p><p>Keep the smallest value that can answer the business question. Raise it only when a tested Check genuinely needs more than 200 rows; narrowing the SOQL filter is usually safer than increasing the cap.</p> |
-| Help text | <p>Maximum rows returned for this Check, from 1 to 2000 (default 200). Keep it as low as the business decision allows.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `500` when the Check intentionally needs more than the default 200 rows |
+Optional Number(4,0) from `1` through `2000`; default `200`. It limits rows returned by this Check's
+Query or Compare two queries SOQL.
+
+Keep it as low as the business question allows because each row uses Salesforce query rows, memory,
+and processing time in the current transaction. Narrow the SOQL before increasing this number. If
+more than 200 rows are genuinely required, test the real Check and realistic records in a sandbox.
 
 
 ## 8. Advanced display text
 
 ### Display: Found Text (`DisplayFoundText__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Display: Found Text** |
-| API name | `DisplayFoundText__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional on any Evaluation Type whose Found line the Framework writes - Query, Formula, and Compare two queries; display only. An Apex Check writes its own Found value, so this field is ignored there and metadata validation reports `APEX_DISPLAY_TEXT_IGNORED` when it is populated. |
-| Description | <p>Optional and display only. Plain text (not a formula) that replaces the Found line the Framework writes: the auto-generated "N of M records did not pass" summary on a multi-row ("Every record passes") query check, and the Found value on any other Query, Formula, or Compare two queries Check.</p><p>It supports the display merge tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a>, including <code>{!rhcResult.foundValue}</code> for the value it replaces.</p> |
-| Help text | <p>Display only. Plain text (not a formula) for the "Found" line. Supports record and result merge tokens with optional fallback text.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Text(255) that replaces the Found line for Formula, Query, and Compare two queries Checks.
+It changes only the displayed text, not the result. For an **Every record passes** query, it replaces
+the generated “N of M records did not pass” summary.
+
+Merge tokens are supported, including `{!rhcResult.foundValue}` for the original value. Apex Checks
+return their own Found value, so this field is ignored for Apex and validation reports
+`APEX_DISPLAY_TEXT_IGNORED`.
 
 Examples:
 
 ```text
 {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} contacts for {!record.Name} are missing email.
-
-{!rhcCheck.checkTitle} found {!rhcResult.foundValue} issue{!rhcResult.foundValuePluralSuffix fallback="s"}.
-
-{!rhcSet.cardTitle}: {!rhcResult.failedRecordCount} related records need attention.
-
-Found during run {!rhcRun.runId}.
 ```
 
 ### Display: Expected Text (`DisplayExpectedText__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Display: Expected Text** |
-| API name | `DisplayExpectedText__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional on any Evaluation Type whose Expected line the Framework writes - Query, Formula, and Compare two queries; display only. An Apex Check writes its own Expected value, so this field is ignored there and metadata validation reports `APEX_DISPLAY_TEXT_IGNORED` when it is populated. |
-| Description | <p>Optional and display only. Plain text (not a formula) that replaces the Expected line the Framework writes, on a multi-row ("Every record passes") query check and on any other Query, Formula, or Compare two queries Check. On a Formula Check it replaces the "Passes when" echo of the pass condition, and the row goes back to the plain Expected caption.</p><p>It supports the display merge tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a>, including <code>{!rhcResult.expectedValue}</code> for the value it replaces.</p> |
-| Help text | <p>Display only. Plain text (not a formula) for the "Expected" line. Supports record and result merge tokens with optional fallback text.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Text(255) that replaces the Expected line for Formula, Query, and Compare two queries
+Checks. It changes only the displayed text. On a Formula Check, it replaces the generated **Passes
+when** text.
 
-Examples:
+Merge tokens are supported, including `{!rhcResult.expectedValue}` for the original value. Apex
+Checks return their own Expected value, so this field is ignored for Apex and validation reports
+`APEX_DISPLAY_TEXT_IGNORED`.
+
+Examples (choose one that fits the Check):
 
 ```text
 Expected {!rhcResult.expectedValue} for every contact related to {!record.Name}.
 
 All {!rhcResult.totalRecordCount} contacts should have an email address.
-
-{!rhcCheck.checkTitle} expects every related record to pass.
-
-Meet the standard defined by {!rhcSet.cardTitle}.
-
-Expectation evaluated from {!rhcRun.source} run {!rhcRun.runId}.
 ```
 
 
@@ -840,186 +599,118 @@ Expectation evaluated from {!rhcRun.source} run {!rhcRun.runId}.
 
 ### Applies To (`ApplicabilityMode__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Applies To** |
-| API name | `ApplicabilityMode__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | **All records**: `ALL_RECORDS` |
-| Used when | Every Check; defaults to all records. |
-| Description | <p>Decides whether this check applies to the current record before it runs.</p><ul><li>"All records" runs it on every record.</li><li>"When a formula is true" runs it only when the formula in "Applies When (Formula)" returns true.</li><li>"When a count query matches" runs it only when the count from "Applies When (Count Query)" satisfies "Count Must Be" and "Count Value".</li></ul><p>When the condition is not met, the check is marked Skipped (not Failed). Defaults to "All records".</p> |
-| Help text | <p>Chooses whether the check applies to this record.</p><ul><li>"All records" = always.</li><li>"When a formula is true" = gate on "Applies When (Formula)".</li><li>"When a count query matches" = gate on "Applies When (Count Query)".</li></ul><p>If the gate isn't met, the check is Skipped.</p> |
-| Allowed values | **All records**: `ALL_RECORDS`<br>**When a formula is true**: `WHEN_FORMULA_TRUE`<br>**When a count query matches**: `WHEN_COUNT_QUERY_MATCHES` |
+Optional restricted picklist. It decides whether the Check applies before Record Health Check runs
+its pass/fail logic. When the condition is not met, the result is `SKIPPED`, not `FAIL`.
+
+| Setup choice | Stored value | Configure next |
+| --- | --- | --- |
+| All records | `ALL_RECORDS` | Nothing; this is the default. |
+| When a formula is true | `WHEN_FORMULA_TRUE` | Applies When (Formula) |
+| When a count query matches | `WHEN_COUNT_QUERY_MATCHES` | Applies When (Count Query), Count Must Be, and Count Value |
 
 ### Message When Not Applicable (`ApplicabilityNotMetMessage__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Message When Not Applicable** |
-| API name | `ApplicabilityNotMetMessage__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional when Applies To is conditional; displayed when the applicability condition is not met. |
-| Description | <p>Optional explanation shown when a Check is skipped because its applicability condition is not met.</p><p>It supports the display merge tokens documented in the <a href="../guides/configure-check-sets-and-checks.md#11-merge-tokens">merge-token guide</a>.</p> |
-| Help text | <p>Explain why this check does not apply to the current record. Supports merge tokens with optional fallback text.</p> |
-| Allowed values | Any value valid for the field type |
+Optional Long Text Area(32,768). Explain why a conditional Check was skipped. It supports
+[merge tokens](../guides/configure-check-sets-and-checks.md#11-merge-tokens).
 
 Examples:
 
 ```text
 {!record.Name} is a {!record.Type} account; this requirement applies only to channel partners.
 
-{!record.Name} belongs to {!record.Parent.Name fallback="no parent account"}; this check runs only for independent accounts.
-
-{!rhcCheck.checkTitle} in {!rhcSet.cardTitle} does not apply to this segment.
-
-The applicability condition was not met during {!rhcRun.source} run {!rhcRun.runId}.
+This Check applies only to channel-partner Accounts.
 ```
 
 ### Applies When (Formula) (`ApplicabilityFormula__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Applies When (Formula)** |
-| API name | `ApplicabilityFormula__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Applies To is **When a formula is true**. |
-| Description | <p>A Salesforce formula returning true or false, evaluated against the current record. Required when "Applies To" is "When a formula is true".</p><p>True means the check applies and runs; false means it is Skipped. Leave blank for any other "Applies To" choice.</p><p>Formula syntax only - not Apex or SOQL.</p> |
-| Help text | <p>Required when "Applies To" = "When a formula is true". Salesforce formula returning true/false, e.g. ISPICKVAL(Type, "Partner").</p><p>True = run the check; false = Skipped.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `ISPICKVAL(Type, "Customer")` |
+Long Text Area(32,768), required when **Applies To** is **When a formula is true**. Enter a
+Salesforce formula evaluated on the current record. `true` runs the Check; `false` produces
+`SKIPPED`. Example: `ISPICKVAL(Type, "Customer")`.
 
 ### Applies When (Count Query) (`ApplicabilityCountQuery__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Applies When (Count Query)** |
-| API name | `ApplicabilityCountQuery__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Applies To is **When a count query matches**. |
-| Description | <p>A COUNT() SOQL query used only to decide whether this check applies - it is not part of the pass/fail logic. Required when "Applies To" is "When a count query matches".</p><p>Its returned count is compared using "Count Must Be" and "Count Value"; the check runs only when that comparison is true, otherwise it is Skipped. Supports record merge tokens with optional typed fallbacks.</p><p>Leave blank for any other "Applies To" choice.</p> |
-| Help text | <p>Required when "Applies To" = "When a count query matches". Enter a COUNT() query and compare it using "Count Must Be" and "Count Value".</p> |
-| Allowed values | Any value valid for the field type |
+Long Text Area(32,768), required when **Applies To** is **When a count query matches**. Enter a
+`COUNT()` SOQL query. Record Health Check compares the returned count with **Count Must Be** and
+**Count Value**. A matching count runs the Check; a nonmatching count produces `SKIPPED`.
+
+This query decides only whether the Check applies. It does not decide pass or fail.
 
 Examples:
 
 ```sql
 SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false
-SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND Owner.ManagerId = {!record.Owner.ManagerId fallback="005000000000000AAA"}
-SELECT COUNT() FROM Contract WHERE AccountId = {!record.Id} AND EndDate <= {!record.LastActivityDate fallback="2099-12-31"}
-SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND Priority = 'High' AND CreatedDate >= {!record.CreatedDate fallback="2026-01-01T00:00:00Z"}
-SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} AND MailingState = {!record.BillingState fallback="Illinois"}
 ```
 
 ### Count Must Be (`ApplicabilityCountOperator__c`)
 
-| Attribute | Value |
+Required restricted picklist when **Applies To** is **When a count query matches**.
+
+| Setup choice | Stored value |
 | --- | --- |
-| Setup label | **Count Must Be** |
-| API name | `ApplicabilityCountOperator__c` |
-| Type | Picklist |
-| Capacity | Restricted picklist |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Applies To is **When a count query matches**. |
-| Description | <p>Part of the applicability gate only - not the main pass/fail check. Sets how the count from "Applies When (Count Query)" is compared to "Count Value"; the check runs only when this comparison is true.</p><p>Required when "Applies To" is "When a count query matches". Choices: "Equal to", "Not equal to", "Greater than", "At least" (greater than or equal), "Less than", "At most" (less than or equal).</p> |
-| Help text | <p>Applicability gate only. How the count is compared to "Count Value", e.g. "Greater than" with a "Count Value" of 0 runs the check only when at least one row matches.</p><p>Required when "Applies To" = "When a count query matches".</p> |
-| Allowed values | **Equal to**: `EQUALS`<br>**Not equal to**: `NOT_EQUALS`<br>**Greater than**: `GREATER_THAN`<br>**At least**: `GREATER_THAN_OR_EQUAL`<br>**Less than**: `LESS_THAN`<br>**At most**: `LESS_THAN_OR_EQUAL` |
+| Equal to | `EQUALS` |
+| Not equal to | `NOT_EQUALS` |
+| Greater than | `GREATER_THAN` |
+| At least | `GREATER_THAN_OR_EQUAL` |
+| Less than | `LESS_THAN` |
+| At most | `LESS_THAN_OR_EQUAL` |
 
 ### Count Value (`ApplicabilityCountThreshold__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Count Value** |
-| API name | `ApplicabilityCountThreshold__c` |
-| Type | Number |
-| Capacity | 4 digits, 0 decimal places |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Applies To is **When a count query matches**. |
-| Description | <p>Part of the applicability gate only - not the main pass/fail check. The number the count from "Applies When (Count Query)" is compared against, using "Count Must Be".</p><p>The check runs only when that comparison is true; otherwise it is Skipped. Required when "Applies To" is "When a count query matches".</p> |
-| Help text | <p>Applicability gate only. The number compared to the count, e.g. 0 with "Greater than" runs the check only when the count query returns at least one row.</p><p>Required when "Applies To" = "When a count query matches".</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `1` |
+Number(4,0), required when **Applies To** is **When a count query matches**. This is the number used
+with Count Must Be. For example, **Greater than** and `0` runs the Check only when the query finds at
+least one record.
 
 ### Prerequisite Check (`PrerequisiteCheck__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Prerequisite Check** |
-| API name | `PrerequisiteCheck__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for every Evaluation Type; names an earlier active Check in the same Check Set. |
-| Description | <p>Optional. Enter the Record Name (API Name / DeveloperName, shown in the Name column in Setup - NOT the "Check Title" users see) of another active check in the same Check Set that must PASS before this check runs. The prerequisite must have a lower "Evaluation Order".</p><p>If the prerequisite does not pass, this check is Skipped. A value that does not match a check in the same Check Set also Skips this check silently at runtime; the mismatch is reported only when the Check Set configuration is validated, not when you save this record.</p> |
-| Help text | <p>Optional. The Record Name (API Name in Setup, not the "Check Title") of an earlier check (lower "Evaluation Order") in the same Check Set that must pass first. If it fails or the name doesn't match, this check is Skipped.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `Account_DQ_Phone` from the integration-test metadata; use the Developer Name of an earlier active Check in the same Check Set |
+Optional Text(255). Enter the **Developer Name** shown in Setup, not the Check Title, of another
+active Check in the same Check Set. That Check must have a lower Evaluation Order and must return
+`PASS` before this Check can run.
+
+If the prerequisite returns any other result, this Check is `SKIPPED`. A misspelled or unmatched
+name also produces `SKIPPED`; run Check Set validation to find the configuration error. Example:
+`Account_Phone_Is_Present`.
 
 
 ## 10. Custom Apex (`APEX`)
 
 ### Apex Class (`ApexClass__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Apex Class** |
-| API name | `ApexClass__c` |
-| Type | Text |
-| Capacity | 255 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Required when Evaluation Type is **Verify with Apex** (`APEX`). |
-| Description | <p>The API name of the Apex class to run for this check. Required when "Evaluation Type" is "Verify with Apex".</p><p>The class must implement the RecordHealthCheckPlugin interface. Example: AccountApprovalHealthCheck.</p> |
-| Help text | <p>Required for "Verify with Apex". The Apex class name to run, e.g. AccountApprovalHealthCheck.</p><p>It must implement RecordHealthCheckPlugin.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `AccountHasRecentActivityCheck` |
+Text(255), required for **Verify with Apex**. Enter the API name of an Apex class that implements
+`rhc.RecordHealthCheckPlugin`.
+
+For example, `AccountHasRecentActivityCheck` is included with the installed Record Health Check
+package. A class created by your development team might be named `MyAccountApprovalCheck`. See the
+[Apex Check examples](../examples/apex/README.md) for the complete class contract and tests.
 
 ### Apex Parameters (JSON) (`ApexParametersJson__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Apex Parameters (JSON)** |
-| API name | `ApexParametersJson__c` |
-| Type | Long Text Area |
-| Capacity | 32768 characters |
-| Always required | No |
-| Default | No default |
-| Used when | Optional for Apex Checks; passed to the plugin as `scope.parameters`. |
-| Description | <p>Optional JSON parameters passed to the class named in "Apex Class". Must be valid JSON; invalid JSON makes the check report that it cannot run (reason INVALID_APEX_PARAMETERS).</p><p>These are per-check parameters, not org-wide settings. Leave blank if the class needs none.</p> |
-| Help text | <p>Optional. Valid JSON passed to your Apex class, e.g. {"threshold": 5}. Leave blank if the class needs no parameters.</p> |
-| Allowed values | Any value valid for the field type |
-| Example | `{"daysBack": 90}` for `AccountHasRecentActivityCheck` |
+Optional Long Text Area(32,768) for Apex Checks. Enter valid JSON required by the class, such as
+`{"daysBack": 90}` for `AccountHasRecentActivityCheck`. Leave it blank when the class has no
+parameters.
+
+The values belong only to this Check. Invalid JSON produces `UNABLE_TO_EVALUATE` with reason code
+`INVALID_APEX_PARAMETERS`.
 
 
 ## Lifecycle events
 
 ### Publish User Result Event (`PublishUserResultEvent__c`)
 
-| Attribute | Value |
-| --- | --- |
-| Setup label | **Publish User Result Event** |
-| API name | `PublishUserResultEvent__c` |
-| Type | Checkbox |
-| Capacity | Checkbox |
-| Always required | No |
-| Default | **Unchecked**: `false` |
-| Used when | Optional for every Evaluation Type; affects deliberate runs only and defaults off. |
-| Description | <p>Publishes this finalized Check result after a deliberately initiated run. Page-load runs and page refreshes never publish because passive navigation could otherwise consume event allocations and repeatedly trigger subscriber automation.</p><p>When the parent Check Set is automatic and hides its Run/Rerun action, metadata validation warns that this Check has no in-card deliberate publication path. Apex and Flow can still publish deliberately.</p><p>Leave unchecked unless a reviewed subscriber needs this Check's individual status, reason, and severity. Enable only the Checks the subscriber uses; per-Check publication can create many more events than one Check Set Run summary.</p> |
-| Help text | <p>Publish this Check's result for deliberate API, Flow, scheduled, batch, or user-requested runs. Page-load runs never publish.</p> |
-| Allowed values | **Checked**: `true`<br>**Unchecked**: `false` |
+Checkbox, cleared by default. It applies only when a person clicks Run or Rerun on the Lightning
+card.
+
+Select this field only when a Platform Event-triggered Flow, Apex trigger, or integration must
+receive this individual Check result after a person clicks **Run** or **Rerun** on the Lightning
+card. An automatic page-load check does not publish it.
+
+This checkbox does not control Flow, Apex, Batch, Queueable, Future, Scheduled Apex, or agent runs.
+Those callers choose `NONE`, `ACTIONABLE`, or `ALL` when they start the health check. For example,
+`ALL` publishes every result even when this checkbox is cleared.
+
+Leave it cleared when nothing receives the event. Select it only for the individual Checks the
+receiving automation uses; publishing one event per Check can create considerably more Platform
+Events than publishing one Check Set summary. See
+[Choose whether to publish result events](../integration/lifecycle-events.md).
 
 ## Related
 

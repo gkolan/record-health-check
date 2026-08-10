@@ -1,150 +1,158 @@
-# Subscribe to Record Health Check Platform Events
+# Use Record Health Check Platform Events
 
-> [!NOTE]
-> On this page, choose a Record Health Check event and build a Flow or Apex subscriber that handles duplicate delivery, access, retention, and subscriber failures.
+Platform Events let a separate Flow, Apex trigger, or integration receive health-check results after
+Record Health Check publishes them. Use them when another process must react to or save results
+without being part of the process that ran the health check.
 
-Record Health Check publishes three Platform Events. Check Set Run and Check Result events announce
-finalized outcomes after the publishing transaction commits. Log events report restricted
-Framework errors immediately when error-event publication is enabled.
+For example, a nightly scheduled Batch checks Accounts. A Platform Event-triggered Flow saves one
+summary for each Account so administrators can report on changes over time.
 
-The event names shown in subscriber Apex use the package namespace, such as
-`rhc__Record_Health_Check_Set_Run__e`. Salesforce Setup may display the label without that prefix.
+Platform Events are optional. If the same Flow or Apex code that runs the health check can use or
+save the returned results, choose `NONE` and handle those results directly. That is easier to follow
+and does not use your org's Platform Event allocation.
 
-## Choose an event
+## Decide whether you need a Platform Event
 
-| Event guide | Publish behavior |
+| Requirement | Recommended approach |
 | --- | --- |
-| [Check Set Run](check-set-run.md) | Publish After Commit - one completion summary |
-| [Check Result](check-result.md) | Publish After Commit - one outcome per selected Check |
-| [Log](error-log.md) | Publish Immediately - restricted Framework errors |
+| The current Flow or Apex transaction needs the result immediately | Use the result returned by the [Flow action](../integration/flow-actions.md) or [Apex API](../api/apex-api.md). |
+| A custom Batch must save results after each group of records | Use `NONE` and save the returned results in the Batch `execute()` method. |
+| A separate Flow, Apex trigger, or integration must receive results | Publish a Platform Event. |
+| Administrators need a lasting history | Save direct results or received events in a custom object created by your team. Platform Events are not permanent storage. |
 
-Start with Check Set Run when counts and overall completion are sufficient. Add Check Result only
-when automation needs Check-level status, severity, or Reason Code. Restrict Log subscribers because
-messages and stack traces can contain organization-specific information.
+## Choose a Platform Event
 
-## Pick a task
+Record Health Check includes three Platform Events:
 
-| I want to… | Guide |
-| --- | --- |
-| One completion summary for a Check Set | [Check Set Run](check-set-run.md) |
-| One finalized outcome for each Check | [Check Result](check-result.md) |
-| Restricted Framework error diagnostics | [Log](error-log.md) |
-| Send events to middleware, a warehouse, or monitoring | [External Pub/Sub API](external-pub-sub-api.md) |
-
-These pages teach subscriber implementation. For publication timing, eligible execution sources,
-and trust boundaries, use [Lifecycle event behavior](../integration/lifecycle-events.md). For
-exact event fields, use the [Platform Event metadata reference](../metadata/README.md#platform-events).
-
-## Choose Flow or Apex
-
-| Subscriber | Best fit | Main constraint |
+| Event | What one event represents | Use it when |
 | --- | --- | --- |
-| Platform event-triggered Flow | Declarative routing, record creation, and notifications | Runs asynchronously and needs a lasting duplicate check |
-| Apex trigger | Complex transformations, controlled bulk DML, and reusable handlers | Requires tests, access review, and independent monitoring |
+| [Record Health Check Set Run](check-set-run.md) | One summary for one Salesforce record after its Check Set finishes | Totals are enough, such as 4 passed and 1 failed. Start here for history and dashboards. |
+| [Record Health Check Result](check-result.md) | One result for one Check and one Salesforce record | Receiving automation must know the exact Check, status, severity, or Reason Code. |
+| [Record Health Check Log](error-log.md) | One restricted technical error | A restricted administrator, developer, or support process must investigate Record Health Check errors. |
 
-Both subscribers receive events asynchronously. Neither can change the synchronous health-check
-response. Store `EventId__c` in a unique field when processing must happen once, and store the
-Salesforce replay ID only when an external subscriber needs a replay position.
+Use Set Run alone when counts answer the business need. Publishing a Result event for every Check
+can create much more event traffic. Restrict Log access because its message and stack trace can
+contain details about your org.
 
-## Subscriber ideas
+For the exact fields, see the [Platform Event metadata reference](../metadata/README.md#platform-events).
 
-Start with the smallest event and action that satisfy the requirement. Persist the event before
-performing a side effect when missed work would matter.
+## Choose how to receive the event
 
-| Idea | Start with | Suggested action | Guardrail |
-| --- | --- | --- | --- |
-| Run-history dashboard | Check Set Run | Store one summary per `EventId__c` and report by Check Set, source, and outcome | Derive status from counts; do not use Run ID as the unique receipt |
-| Critical-result alert | Check Result | Notify an owning queue for selected `FAIL`, `UNABLE_TO_EVALUATE`, or `ERROR` outcomes | Add deduplication and a cooldown so repeated runs do not create alert noise |
-| Remediation work queue | Check Result | Create a review item keyed by Event ID and route by Check API name, status, Reason Code, and severity | Require human review before changing the evaluated record unless the action is independently validated |
-| Trend or compliance export | Check Result | Send minimal outcomes to a warehouse for longitudinal analysis | Define retention, record-ID handling, and deletion obligations before exporting |
-| Release health monitoring | Set Run and Log | Compare completion and restricted error rates before and after a release | Keep Log event data in a restricted destination; never send stack traces to broad channels |
-| External observability | Set Run and Log | Consume with Pub/Sub API and correlate by Run ID | Checkpoint only after durable processing and alert before the 72-hour replay window is exhausted |
+| Receiving option | Use it when | Important consideration |
+| --- | --- | --- |
+| Platform Event-triggered Flow | An administrator needs to create records, route work, or send notifications without custom code. | Add a duplicate check before creating the destination record. Use fault paths for actions that can fail. |
+| Apex trigger | A development team needs bulk processing, complex transformations, or reusable handlers. | Include tests, bulk-safe record operations, duplicate handling, and error monitoring. |
+| External integration using Pub/Sub API | Middleware, a warehouse, or monitoring outside Salesforce needs the events. | Save a Replay ID only after durable processing and reconnect before Salesforce's retention window expires. |
 
-Avoid using an event subscriber for a decision the current transaction must make. Use the
-synchronous Apex, Flow, or Lightning response for that decision.
+Receiving automation runs separately from the health check. Its failure does not change the result
+already returned to the user, Flow, Apex code, or Batch job.
+
+## Quick start: Save Check Set summaries with Flow
+
+This is the simplest Platform Event pattern when your org needs a history.
+
+1. Create a custom object owned by your team, such as **Health Check Run History**
+   (`Health_Check_Run_History__c`). This object is an example; the package does not create it.
+2. Add a Text(80) field for Event ID. Mark the field **Unique** so one event cannot create the same
+   history record twice.
+3. Add the Check Set name, Record ID, date/time, source, and result-count fields your reports need.
+4. Create a **Platform Event-Triggered Flow** for **Record Health Check Set Run**.
+5. Before creating history, use **Get Records** to look for the event's `EventId__c`. End the Flow
+   successfully when it already exists.
+6. Create the history record and map only the event fields your team approved.
+7. Test one event, the same event a second time, and a Flow fault before activating it.
+
+See [Save Check Set run summaries](check-set-run.md) for the complete field mapping and Apex option.
+
+## Prevent duplicate work
+
+Salesforce can deliver or replay an event more than once. Every receiving Flow, Apex trigger, or
+integration must be safe when that happens.
+
+- Store `EventId__c` in a **Unique** field before creating a notification, case, or other follow-up
+  work.
+- If that Event ID already exists, end successfully without repeating the work.
+- Use `RunId__c` to connect events from the same health-check run. Do not use it as the unique event
+  key because one run can produce events for many records and Checks.
+- For an external Pub/Sub API integration, keep Replay ID as the event-stream position. It does not
+  replace `EventId__c` as the application's duplicate key.
 
 ## Failure and recovery policy
 
-Define these outcomes before activating a subscriber:
+Plan how receiving automation responds before activating it.
 
-```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
-flowchart TB
-    receive(["Receive event"])
-    duplicate{"EventId__c already stored?"}
-    valid{"Contract and required values supported?"}
-    receipt["Store the unique receipt"]
-    action["Perform the approved subscriber action"]
-    success{"Action completed?"}
-    checkpoint["Save external replay position after successful processing"]
-    finish(["Complete processing"])
-    review["Store a review item and complete this event"]
-    retry{"Temporary and within retry limit?"}
-    failure["Record the subscriber failure for operations"]
-
-    receive --> duplicate
-    duplicate -->|"Yes"| finish
-    duplicate -->|"No"| valid
-    valid -->|"No"| review --> finish
-    valid -->|"Yes"| receipt --> action --> success
-    success -->|"Yes"| checkpoint --> finish
-    success -->|"No"| retry
-    retry -->|"Yes"| action
-    retry -->|"No"| failure --> finish
-
-    style receive fill:#a7f3d0,stroke:#047857,color:#1f2937
-    style finish fill:#a7f3d0,stroke:#047857,color:#1f2937
-    style duplicate fill:#fde68a,stroke:#b45309,color:#1f2937
-    style valid fill:#fde68a,stroke:#b45309,color:#1f2937
-    style success fill:#fde68a,stroke:#b45309,color:#1f2937
-    style retry fill:#fde68a,stroke:#b45309,color:#1f2937
-    style action fill:#c7d2fe,stroke:#4338ca,color:#1f2937
-    style checkpoint fill:#99f6e4,stroke:#0f766e,color:#1f2937
-    style review fill:#e2e8f0,stroke:#334155,color:#1f2937
-```
-
-Text fallback:
-
-```text
-Receive -> duplicate? -> supported? -> store receipt -> perform action
-             |              |                              |
-             +-> complete   +-> review and complete        +-> success: checkpoint
-                                                           +-> temporary: retry
-                                                           +-> permanent: record failure
-```
-
-| Outcome | Response |
+| Situation | What receiving automation should do |
 | --- | --- |
-| Duplicate event | Return successfully after finding the existing unique `EventId__c` receipt |
-| Temporary dependency or lock failure | Retry with a bounded attempt count; make repeated processing safe |
-| Invalid or unsupported event | Persist a review item and complete processing so one poison event does not block later events |
-| Partial destination DML failure | Record each failed Event ID and error; do not silently treat the complete batch as successful |
-| Subscriber unavailable | Recover from the last successful replay position or from durable receipts |
-| Outage longer than 72 hours | Reconcile from subscriber-owned history or source records; the event bus is not a permanent ledger |
+| The Event ID already exists | End successfully without repeating the action. |
+| A temporary record lock or external-service interruption occurs | Retry a limited number of times. Keep every action safe to repeat. |
+| The event has an unsupported Contract Version or value | Save a review item and end processing so one event does not stop later events. |
+| Some records in an Apex trigger fail to save | Record each failed Event ID and error. Do not report the entire group as successful. |
+| The Flow, trigger, or integration is unavailable | Recover from saved destination records or the last external Replay ID. |
+| An external integration is offline for longer than Salesforce retains the events | Reconcile from your saved history or original Salesforce records. The event bus is not permanent storage. |
 
-For an Apex platform event trigger, use
-`EventBus.TriggerContext.currentContext().setResumeCheckpoint(replayId)` after each successfully
-processed event when ordered recovery is required. Throw `EventBus.RetryableException` only for a
-transient condition and cap retries. Do not retry an invalid event indefinitely. These mechanisms
-complement, rather than replace, a unique `EventId__c` receipt.
+For an Apex Platform Event trigger, Salesforce provides resume checkpoints and retryable exceptions
+for ordered recovery. Use them only with a deliberate retry policy; they do not replace the unique
+`EventId__c` check. See Salesforce's
+[Platform Event Apex Trigger documentation](https://developer.salesforce.com/docs/atlas.en-us.platform_events.meta/platform_events/platform_events_subscribe_apex.htm).
 
-## Shared subscriber checklist
+## Understand retention and Replay ID
 
-1. Grant read access to the selected Platform Event only to the subscriber identity.
-2. Create a lasting receipt or destination record with a unique `EventId__c` field.
-3. Route using API fields such as Status, Reason Code, source, and metadata names.
-4. Treat new field values as a review path instead of dropping the event.
-5. Keep processing safe when Salesforce retries or replays an event.
-6. Monitor subscriber failures separately from publication and health-check results.
-7. Define retention for every stored result or diagnostic record.
-8. Test commit, rollback, duplicate delivery, missing optional fields, and restricted access.
-9. Test a temporary failure, an invalid event, a partial DML failure, and recovery after downtime.
-10. Alert on subscriber failures, processing lag, event allocation usage, and records awaiting review.
+Salesforce stores high-volume Platform Events for 72 hours. Events older than that can sometimes
+remain available, but Salesforce does not guarantee it. Save results to your own object or external
+system when the business needs longer retention.
+
+An external Pub/Sub API integration saves the Replay ID from the last event it processed durably.
+After reconnecting, it requests events after that position. Replay IDs are opaque, are not
+guaranteed to be consecutive, and must not be calculated. See Salesforce's
+[Event Message Durability](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/event-message-durability.html).
+
+## Access and data protection
+
+The installed **Record Health Check User** and **Record Health Check Admin** Permission Sets include
+access to the Set Run and Check Result events. They do not include access to the restricted Log
+event.
+
+Also review access for:
+
+- the Platform Event-triggered Flow, Apex class, or integration user;
+- every custom object or external destination that stores an event;
+- the Salesforce records referenced by `RecordId__c`; and
+- any email, case, or collaboration channel that receives event details.
+
+Grant Log event access separately and only to the administrators, developers, or support staff who
+must investigate technical errors.
+
+## Receiving automation checklist
+
+Before activation, confirm that the Flow, Apex trigger, or integration:
+
+- has only the event and destination access it needs;
+- checks a unique `EventId__c` before repeating any work;
+- handles new or unsupported values through a review path;
+- records failures where administrators can monitor them; and
+- has a documented retention and recovery process.
+
+## Test before activation
+
+Test all of these situations in a sandbox:
+
+1. The expected event creates the expected destination record or action.
+2. Sending the same Event ID again does not repeat the work.
+3. A missing optional field does not fail the Flow, trigger, or integration.
+4. An unsupported status or Contract Version goes to a review path.
+5. A temporary failure retries only as designed.
+6. A permanent failure is visible to administrators.
+7. Users without access cannot read restricted event or destination data.
+8. An external integration can reconnect from its saved Replay ID.
+
+Monitor receiving failures, processing delay, Platform Event allocation usage, and review records
+after activation.
 
 ## Related
 
-- [API examples](../api/README.md)
-- [Lifecycle event behavior](../integration/lifecycle-events.md)
-- [Platform Event metadata](../metadata/README.md#platform-events)
-- [External Pub/Sub API subscriber](external-pub-sub-api.md)
-- [Reason Codes](../reference/contracts/reason-codes.md)
+- [Choose whether to publish result events](../integration/lifecycle-events.md)
+- [Record Health Check Platform Event fields](../metadata/README.md#platform-events)
+- [Save Check Set run summaries](check-set-run.md)
+- [Save or route individual Check results](check-result.md)
+- [Save or route restricted errors](error-log.md)
+- [Receive events with Pub/Sub API](external-pub-sub-api.md)

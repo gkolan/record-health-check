@@ -9,10 +9,8 @@
 
 > [!IMPORTANT]
 > The supporting Apex class lives under `integration-tests/` and does not install with the package.
-> The source block mirrors the repository's same-namespace test class; it is teaching source, not a
-> subscriber-ready copy. Build a subscriber class from the
-> [public Apex Check contract](../../reference/evaluation/apex-check-contract.md), which uses
-> `rhc.*` types.
+> Create and deploy the subscriber-owned class in Step 2 before configuring the Check. The code on
+> this page uses the public `rhc.*` Apex types provided by the installed package.
 
 ## Scenario
 
@@ -26,6 +24,15 @@ A sales manager opens an Account before pipeline coaching.
 > **Why use Record Health Check**
 >
 > Record Health Check identifies deals where all three warning signs occur together, so the manager can coach the Opportunity that needs attention instead of reconciling separate warnings.
+
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator who creates the Check Set and Check.
+- Have a Salesforce developer review, test, and deploy the Apex class. Record Health Check does not
+  install this example class.
+- Confirm that intended users can read Account, Opportunity, and the Opportunity fields listed
+  under [Security and access](#security-and-access).
 
 ## What you will learn
 
@@ -64,7 +71,7 @@ List<Id> accountIds = scope.recordIds;
 
 The complete class below returns one outcome for every requested Account.
 
-## Step 1: Understand the parameters
+## Step 1: Choose the stale-activity window
 
 Use Check parameters to change the stale-activity window without editing the Apex class:
 
@@ -74,22 +81,17 @@ Use Check parameters to change the stale-activity window without editing the Ape
 }
 ```
 
-After building and deploying a subscriber-compatible class from this pattern:
-
-1. Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**.
-2. Create or edit the Check record.
-3. Paste the object into **Apex Parameters (JSON)** (`ApexParametersJson__c`) on **Record Health Check** (`Record_Health_Check__mdt`).
-
 Record Health Check parses the JSON and supplies it as `scope.parameters`. The class accepts
-`staleDays` from `1` through `3650`; a missing or invalid value uses 30. See
+`staleDays` from `1` through `3650`. A missing, nonnumeric, or out-of-range value silently uses 30.
+Enter and test an explicit valid whole number rather than relying on that fallback. See
 [Parameter parsing patterns](../../reference/evaluation/apex-check-contract.md#scope)
 for validation and type-conversion guidance.
 
-## Step 2: Review the integration-test class
+## Step 2: Create and test the Apex class
 
-The complete evaluator logic is below. It reads only open Opportunities visible to the running user,
-calculates the current calendar-quarter boundaries, and counts a row only when all three conditions
-are true.
+Create an Apex class named `AccountOpenOpportunityHealthCheck` from the code below. It reads open
+Opportunities visible to the running user, calculates the current calendar-quarter boundaries, and
+counts an Opportunity only when all three conditions are true.
 
 <!-- BEGIN GENERATED APEX CLASS -->
 
@@ -104,13 +106,13 @@ are true.
  * stale, missing Next Step, and not closing this quarter. Tunable via
  * {"staleDays": 30}
  */
-global with sharing class AccountOpenOpportunityHealthCheck implements RecordHealthCheckPlugin {
+global with sharing class AccountOpenOpportunityHealthCheck implements rhc.RecordHealthCheckPlugin {
   private static final Integer DEFAULT_STALE_DAYS = 30;
   private static final Integer MIN_STALE_DAYS = 1;
   private static final Integer MAX_STALE_DAYS = 3650;
 
-  global Map<Id, RecordHealthCheckOutcome> evaluate(
-    RecordHealthCheckScope scope
+  global Map<Id, rhc.RecordHealthCheckOutcome> evaluate(
+    rhc.RecordHealthCheckScope scope
   ) {
     Integer staleDays = resolveStaleDays(scope.parameters);
     Date staleCutoff = Date.today().addDays(-staleDays);
@@ -151,17 +153,17 @@ global with sharing class AccountOpenOpportunityHealthCheck implements RecordHea
       }
     }
 
-    RecordHealthCheckValue expected = RecordHealthCheckValue.ofCount(0);
-    Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
+    rhc.RecordHealthCheckValue expected = rhc.RecordHealthCheckValue.ofCount(0);
+    Map<Id, rhc.RecordHealthCheckOutcome> results = new Map<Id, rhc.RecordHealthCheckOutcome>();
     for (Id recordId : recordIds) {
       Integer unhealthyCount = unhealthyByAccount.get(recordId);
-      RecordHealthCheckOutcome outcome = unhealthyCount == 0
-        ? RecordHealthCheckOutcome.pass('APEX_PASS')
-        : RecordHealthCheckOutcome.fail('APEX_FAIL');
+      rhc.RecordHealthCheckOutcome outcome = unhealthyCount == 0
+        ? rhc.RecordHealthCheckOutcome.pass('APEX_PASS')
+        : rhc.RecordHealthCheckOutcome.fail('APEX_FAIL');
       results.put(
         recordId,
         outcome
-          .withFound(RecordHealthCheckValue.ofCount(unhealthyCount))
+          .withFound(rhc.RecordHealthCheckValue.ofCount(unhealthyCount))
           .withComparison('EQUALS', expected)
       );
     }
@@ -217,12 +219,24 @@ global with sharing class AccountOpenOpportunityHealthCheck implements RecordHea
 
 <!-- END GENERATED APEX CLASS -->
 
+Create an Apex test class that proves these cases before deployment:
+
+1. one healthy open Opportunity returns `PASS`;
+2. one Opportunity with all three warning signs returns `FAIL`;
+3. warning signs split across different Opportunities do not produce a false failure;
+4. 200 Account IDs receive 200 outcomes; and
+5. the number of SOQL queries does not increase as more Accounts are supplied.
+
+The repository's
+[`AccountOpenOpportunityHealthCheckTest`](../../../packages/record-health-check/integration-tests/main/default/classes/AccountOpenOpportunityHealthCheckTest.cls)
+shows the package-development tests. A subscriber test must use the public `rhc.*` types.
+
 ## Context and result contract
 
 Record Health Check calls the plugin once for a scope:
 
 ```apex
-Map<Id, RecordHealthCheckOutcome> evaluate(RecordHealthCheckScope scope)
+Map<Id, rhc.RecordHealthCheckOutcome> evaluate(rhc.RecordHealthCheckScope scope)
 ```
 
 The context contains:
@@ -254,13 +268,35 @@ unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
 [Returning an outcome](../../reference/evaluation/apex-check-contract.md#outcome).
 
 
-## Step 3: Configure the Check
+## Step 3: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Apex Readiness |
+| **Record Health Check Set Name** | `Account_Apex_Readiness` |
+| **Object** | `Account` |
+| **Card Title** | Account Readiness |
+| **Card Subtitle** | Confirm open Opportunities are ready for coaching. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 4: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Open_Opportunities_Are_Healthy` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Open_Opportunities_Are_Healthy` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Open Opportunities Are Healthy |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Open Opportunities Are Healthy |
@@ -290,36 +326,14 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 `staleDays` sets how old `LastActivityDate` must be before an Opportunity counts as stale.
 
-The applicability fields in **Configure the Check** are required for the documented skip behavior;
-they are not repeated here. The pack metadata currently supplies the description, messages,
-applicability, order, and Active. Add the recommended Fix Message and action link in Setup when the
-standard Opportunities related list is available on the Account page.
-
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Apex_Readiness` |
-| **Object** | `Account` |
-| **Card Title** | `Account Readiness` |
-| **Card Subtitle** | Confirm open Opportunities are not stale on amount, close date, and next step. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+The applicability fields in **Configure the Check** are required for the documented `SKIPPED`
+result when the Account has no open Opportunities.
 
 ## What the user sees
 
-Count-query applicability and the Apex result become these Framework outcomes and card values:
+Count-query applicability and the Apex result produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | Zero unhealthy open Opportunities passes. |
 | **`FAIL`** | One or more Opportunities has all three warning signs, so the card shows Needs attention with Critical severity. |
@@ -330,7 +344,7 @@ Count-query applicability and the Apex result become these Framework outcomes an
 `LastActivityDate = null` counts as stale, blank `NextStep` counts as missing, and null `CloseDate`
 counts as outside the quarter. An Opportunity remains healthy when it has only one or two warning
 signs because the class combines all three conditions with AND logic. Calling the class directly
-with no open Opportunities returns `PASS`; only Framework applicability creates `SKIPPED`.
+with no open Opportunities returns `PASS`; the Check's applicability settings create `SKIPPED`.
 
 ## Security and access
 
@@ -340,13 +354,14 @@ The class uses sharing and a user-mode Opportunity query so its result follows t
 
 - A hidden unhealthy Opportunity does not contribute to the result and can change Needs attention to Pass or Skip.
 
-- Missing object or field permission must show **Unable to evaluate**, not a false Pass.
+- If the user-mode query throws because the running user cannot access Opportunity or a queried
+  field, Record Health Check returns `ERROR` with reason code `APEX_EVALUATOR_ERROR`.
 
 - The evaluator performs no DML or callouts.
 
 - Prove the access-limited case with the actual Permission Sets and Opportunity sharing assigned to card users.
 
-## Step 4: Test the Check
+## Step 5: Test the Check
 
 1. Add an open Opportunity with blank Next Step, `LastActivityDate` older than the stale window, and `CloseDate` outside the current quarter. Confirm Critical.
 2. Fix or remove that Opportunity, rerun, and confirm a pass.
@@ -359,7 +374,8 @@ Execute Anonymous alternative:
 ```apex
 rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
   rhc.RecordHealthCheckRequest.forCheck(
-    'Example_Open_Opportunities_Are_Healthy',
+    // This is the Check Qualified API Name created in Step 4.
+    'Open_Opportunities_Are_Healthy',
     '001XXXXXXXXXXXXXXX'
   ).withResultMode(rhc.RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
 );

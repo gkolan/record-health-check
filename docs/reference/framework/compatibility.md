@@ -1,80 +1,90 @@
-# Reference: Compatibility
+# Compatibility requirements
 
 > [!NOTE]
-> On this page, check whether Record Health Check's Salesforce edition, API version, interface, and
-> mobile requirements match your org before you install or evaluate it.
+> Use this page to confirm that your Salesforce edition and user interface can run Record Health
+> Check before you install it. Items marked **Not tested** require your own sandbox test.
 
-Use this page for a quick compatibility check. It states what the project's manifest and shipped
-metadata require directly, and it says plainly where a claim has not been independently verified.
+## Quick answer
 
-## Salesforce API version
+Record Health Check is designed for Enterprise, Unlimited, Performance, and Developer editions in
+Lightning Experience. The package uses Apex, Custom Metadata Types, Platform Events, and a Lightning
+Web Component on record pages.
 
-| Item | Value | Source |
+Do not plan an installation in Professional, Group, or Essentials edition. Platform Events are not
+available in those editions, and this project has not tested a reduced installation without them.
+
+## Salesforce release and API version
+
+| Item | Required value | Where this repository records it |
 | --- | --- | --- |
-| Source API version | `66.0` | Root and packaging `sfdx-project.json` |
-| Package | Record Health Check (`rhc`), unlocked second-generation package | `packages/record-health-check/sfdx-project.json` |
-| Stable package version | See `stable` in [`config/package-releases.json`](../../../config/package-releases.json) | Promoted release record |
-| Production install | `installUrl.production` in `config/package-releases.json` | Promoted package version |
-| Sandbox install | `installUrl.sandbox` in `config/package-releases.json` | Promoted package version |
+| Metadata API version | `66.0` | `sourceApiVersion` in the root and package `sfdx-project.json` files |
+| Package type | Namespaced second-generation unlocked package | `packages/record-health-check/sfdx-project.json` |
+| Installed package namespace | `rhc` | `namespace` in `packages/record-health-check/sfdx-project.json` |
+| Current installation links | The `stable` entry | [`config/package-releases.json`](../../../config/package-releases.json) |
 
-Confirm your org's Salesforce release supports API version 66.0 or later before installing or
-deploying source metadata. A newer org release accepts an older API version; an org on an older
-release does not accept a newer one.
+Install the package in an org running a Salesforce release that supports API version 66.0. If an
+installation or source deployment rejects that API version, update the org to a supported
+Salesforce release before continuing.
+
+The Dev Hub used to create package versions is a maintainer requirement. An administrator who
+installs a promoted package version does not need to enable Dev Hub in the destination org.
 
 ## Salesforce editions
 
-Record Health Check depends on Custom Metadata Types, Platform Events, Lightning App Builder, and
-Apex. These are standard Salesforce features available in:
+| Edition | Project support | Reason |
+| --- | --- | --- |
+| Enterprise | Supported | Includes the Salesforce features used by the package |
+| Unlimited | Supported | Includes the Salesforce features used by the package |
+| Performance | Supported | Includes the Salesforce features used by the package |
+| Developer | Supported for development and testing | Includes the required features, subject to Developer Edition limits |
+| Professional | Not supported | Salesforce does not support Platform Events in this edition; buying API access does not add Platform Events |
+| Group | Not supported | Salesforce does not support Platform Events in this edition |
+| Essentials | Not supported | Salesforce does not provide the required API and Platform Event capabilities |
 
-| Edition | Expected to work |
-| --- | --- |
-| Enterprise | Yes |
-| Unlimited | Yes |
-| Performance | Yes |
-| Developer | Yes |
-| Professional | Only with the API access add-on that enables Custom Metadata Types, Platform Events, and Apex; not evaluated by this project |
-| Essentials | Not expected to work; these platform features are generally unavailable |
+Edition names and entitlements can change. Before a production rollout, confirm the required
+features with your Salesforce account team and install the package in a sandbox with the same
+edition and licenses as production.
 
-This table reflects the platform capabilities the Framework depends on, not edition-by-edition
-testing by the project. If your org's edition or add-on configuration is uncertain, verify Custom
-Metadata Type, Platform Event, and Apex availability in a sandbox before planning a rollout.
+## Salesforce user interfaces
 
-Second-generation unlocked packages also require Dev Hub-enabled tooling to build and publish;
-that requirement applies to package maintainers, not to subscribers installing a published package
-version.
+| Where a person uses Salesforce | Project support | What to do |
+| --- | --- | --- |
+| Lightning Experience record page | Supported | Add the **Record Health Check** component in Lightning App Builder |
+| Salesforce Classic | Not supported | Classic pages cannot display the package's Lightning Web Component |
+| Salesforce mobile app | Not tested | Add the component to the intended record page and test it in the mobile app before rollout |
+| Experience Cloud site | Not supported by the component metadata | The component is exposed only to `lightning__RecordPage`, not an Experience Builder page |
 
-## Salesforce interface
+Apex and Flow automation do not depend on a person opening the Lightning component. They still
+require an otherwise supported Salesforce edition and the package permissions described in
+[Security and data access](security.md).
 
-| Interface | Support |
-| --- | --- |
-| Lightning Experience | Supported. The Lightning Web Component is designed for the Lightning record page and Lightning App Builder |
-| Salesforce Classic | Not supported. The card is a Lightning Web Component; Classic pages cannot host it |
-| Salesforce mobile app | Not independently verified. Lightning Web Components placed on a Lightning record page generally render in the Salesforce mobile app, but the project has not run a dedicated mobile verification pass. Test in a sandbox on the target mobile client before relying on it in production |
-| Experience Cloud (Communities) | Not independently verified. The component is built and tested for internal Lightning record pages; Experience Cloud placement, guest-user access, and licensing implications have not been evaluated by this project |
+## Multiple currencies
 
-## Multi-currency orgs
+Multiple currencies are supported for display. Found and Expected can each show their own currency,
+and every row in a list can show its own currency.
 
-Supported. Found and Expected values render with the correct currency per side and per list row.
-The Framework does not convert currencies or normalize cross-currency comparisons; that remains the
-responsibility of the Check's query, formula, or Apex plugin. See
+Record Health Check does not convert money from one currency to another. If a Check compares values
+in different currencies, its Formula, Query, or Apex code must perform the required conversion. See
 [Display value format: Currency](../contracts/display-value-format.md#currency).
 
-## Translation Workbench
+## Translated Salesforce labels
 
-Framework-owned labels (status text, operator phrases, Boolean Yes/No wording) support Salesforce
-Translation Workbench. Administrator-authored Check content (messages, Check Titles, Card Titles) is
-plain text and is not automatically translated; an org that needs translated Check content must
-author it per language or build its own translation layer. See
-[Reference: Localization](localization.md).
+Package labels such as Status text, comparison wording, and Yes/No can use Salesforce Translation
+Workbench. Text entered by an administrator, such as Card Title, Check Title, and Failure Message,
+is not translated automatically. See [Localization](localization.md) for the supported choices.
 
-## What this page does not cover
+## Features not tested by this project
 
-- Named Credential, External Service, or REST API compatibility: Record Health Check has no REST
-  API surface. See [Architecture: Out of scope](architecture.md#16-out-of-scope).
-- Shield Platform Encryption interaction with encrypted fields read by a Check: not evaluated by this
-  project.
-- Multi-org, Salesforce-to-Salesforce, or omni-channel routing interactions: out of scope for the
-  Framework, which evaluates one record in one org per call.
+The project has not completed compatibility testing for:
+
+- fields encrypted with Shield Platform Encryption;
+- the Salesforce mobile app; or
+- running the component in Experience Cloud, which is not currently exposed as an Experience
+  Builder component.
+
+Record Health Check does not include a REST API, Named Credential, External Service, cross-org
+connection, or Omni-Channel routing feature. Those items do not need a compatibility check for a
+standard installation. See [Architecture: Out of scope](architecture.md#16-out-of-scope).
 
 ## Related
 

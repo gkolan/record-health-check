@@ -1,14 +1,11 @@
 # 07 · High-priority Case Backlog Is Within Review Capacity
 
 > [!NOTE]
-> On this page, enforce a maximum high-priority Case backlog with an aggregate Query Check and enable lifecycle events only when an approved subscriber needs completion facts.
+> On this page, count open high-priority Cases, compare the count with your team's agreed limit, and optionally publish the result for a Flow, Apex trigger, or integration.
 >
 > **Setup reference**
 >
 > Use the [Query reference](../../reference/evaluation/query.md) for the complete setup fields and behavior.
-
-> [!IMPORTANT]
-> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
 
 ## Scenario
 
@@ -30,7 +27,7 @@ A service manager is preparing for the daily review of an important customer Acc
 | Count a filtered backlog | SOQL counts only high-priority open Cases. |
 | Enforce a maximum | The Check passes while the count stays within team capacity. |
 | Make operational limits visible | **Found** shows the backlog and **Expected** shows the approved ceiling. |
-| Publish completion facts | Explicit runs can publish the Check Result and Check Set Run lifecycle events. |
+| Share results with automation | An optional Platform Event can tell a Flow, Apex trigger, or integration how the Check finished. |
 
 ## Why use Verify with a query
 
@@ -47,7 +44,39 @@ A service manager is preparing for the daily review of an important customer Acc
 
 - **Report:** A report is useful for service-wide workload planning. It does not place this Account's count and limit beside the other review checks.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm the Case Priority value used for urgent work. This example uses the standard value `High`.
+- Confirm the maximum number of matching Cases your service team considers manageable. This
+  example uses `3` only to demonstrate the setup.
+- Confirm that intended users can read Case, `AccountId`, `IsClosed`, and `Priority` and can see the
+  Cases included in the service review.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Related Record Review |
+| **Record Health Check Set Name** | `Account_Related_Record_Review` |
+| **Object** | `Account` |
+| **Card Title** | Related Record Review |
+| **Card Subtitle** | Confirm open high-priority Cases stay within capacity. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked unless a Flow, Apex trigger, or integration needs one summary after the Check Set finishes |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
@@ -63,7 +92,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 | **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate |
 | **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Less than or equal |
 | **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) | `3` (**Replace with your approved capacity limit**) |
+| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) | `3`; replace this example with your team's agreed limit |
 | **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200` (default; `COUNT()` returns one result) |
 
 Confirm the `High` Priority API value and replace `3` with the limit approved by your service team.
@@ -84,37 +113,17 @@ Confirm the `High` Priority API value and replace `3` with the limit approved by
 | **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Cases/view` |
 | **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `140` |
 | **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked only after confirming the Priority value and approved capacity limit |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Checked only when an approved subscriber needs this per-Check result |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked unless a Flow, Apex trigger, or integration needs the result from this Check |
 
 Source Query Field stays blank because bare `COUNT()` produces the value directly. Comparison
 Query, row-empty, list, Formula-result, and Apex fields do not apply. The count is `0` when no Case
 matches, so the Check passes rather than skipping.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | `Related Record Review` |
-| **Card Subtitle** | Confirm open high-priority Cases stay within capacity. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Checked only when an approved subscriber needs one completion summary |
-| **Active** | Checked |
-
 ## What the user sees
 
 The card turns the aggregate count and upper limit into these user-facing values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | Zero through three visible open high-priority Cases is within the example limit. |
 | **`FAIL`** | Four or more visible open high-priority Cases exceeds the limit and shows Needs attention with Warning severity. |
@@ -122,9 +131,20 @@ The card turns the aggregate count and upper limit into these user-facing values
 | **Found** | When the user reveals Found and Expected, Found shows the current visible high-priority Case count. |
 | **Expected** | When the user reveals Found and Expected, Expected shows the maximum allowed count: `3`. |
 
-Because **When Checks Run** is **Run on request**, an explicit Run or Rerun can publish lifecycle
-events when the two publication settings are checked. Automatic page-load evaluation never
-publishes. Configure subscribers for replay and duplicate delivery before enabling either setting.
+## Optional: Send the result to automation
+
+Leave both event settings unchecked when users only need to see results on the Account. This avoids
+publishing Platform Events that nothing uses.
+
+Use **Publish User Result Event** when a Flow, Apex trigger, or integration needs the result from this
+individual Check. Use **Publish User Run Event** when it needs one summary after the entire Check Set
+finishes. A user must select **Run** or **Rerun** for these settings to publish events; a Check that
+runs automatically when the page opens does not publish them.
+
+Creating an event is only the sending side. Before enabling either setting, build and test the Flow,
+Apex trigger, or integration that receives the event, including how it handles a replayed or repeated
+event. See [Lifecycle events](../../integration/lifecycle-events.md) for the event fields and setup
+choices.
 
 ## Security and access
 
@@ -132,17 +152,23 @@ Record Health Check counts open high-priority Cases related to the Account with 
 
 - Hidden Cases are not counted. A service manager with broader Case access may see a higher backlog than another user.
 
-- Missing Case or filter-field permission can show **Unable to evaluate** instead of a smaller count.
+- Missing Read access to Case, `AccountId`, `IsClosed`, or `Priority` can produce
+  `UNABLE_TO_EVALUATE` instead of a smaller count.
 
 Before activation, confirm the capacity result with the Case sharing model used by service managers.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Confirm the Priority API value and replace the example limit with your approved number.
 2. Create three visible open high-priority Cases. Confirm a pass with Found `3` and Expected `3`.
 3. Create a fourth matching Case. Confirm Warning with Found `4` and Expected `3`.
 4. Lower the count below the limit by closing a matching Case, rerun, and confirm a pass.
-5. Repeat the failing test as a user with restricted Case sharing and confirm the visible count follows your security model.
+5. Keep a matching Case that an administrator can see but the intended user cannot. Run as the
+   intended user and confirm the hidden Case is not counted.
+6. In a sandbox-only permission test, remove Read access to Case Priority and confirm
+   `UNABLE_TO_EVALUATE`. Restore access after the test.
+7. If you enabled either event setting, run the Check by selecting **Run** or **Rerun** and confirm
+   that the receiving Flow, Apex trigger, or integration records exactly the expected event data.
 
 ## Failures and remedies
 

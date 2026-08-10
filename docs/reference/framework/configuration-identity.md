@@ -1,42 +1,67 @@
-# Reference: Configuration identity and package boundary
+# Use the correct Check Set and Check API names
 
 > [!NOTE]
-> On this page, preserve one exact Custom Metadata identity contract and keep shipped Example
-> Check Sets clearly labeled so administrators can distinguish starter content from org policy.
+> Apex, Flow, Lightning App Builder, and Platform Events identify a Check Set or Check by its exact
+> **Qualified API Name**. Copy that value from Salesforce. Do not type or remove `rhc__` yourself.
 
-Apply this standard whenever code, Flow, Lightning, events, tests, examples, or documentation
-identifies a Check Set or Check.
+## Which name should I use?
 
-## What ships where
+A Custom Metadata record has several names. Only one belongs in Record Health Check requests.
 
-| Surface | What it contains | Who installs it |
+| Name shown in Salesforce | Example | Use in Apex or Flow? |
 | --- | --- | --- |
-| Framework unlocked package (`rhc`) | Engine, Lightning card, Permission Sets, Custom Metadata Types, public Apex/Flow APIs, four `Example_…` Check Sets | Subscribers (supported path) |
-| `packages/record-health-check/force-app` | Same Framework metadata used to build the package | Contributors (`npm run dev:setup`) |
-| `packages/record-health-check/integration-tests/` | Integration-test metadata, including mirrors of the packaged Example records | CI and local verification only (not subscriber installs) |
-| `subscriber-app/` | External subscriber smoke tests and optional subscriber-owned verification metadata | Subscriber demo setup (`npm run setup`) after package install |
+| Label | Account checks | No. This is text shown to administrators |
+| Developer Name | `My_Account_Checks` | Do not use it as a substitute for the Qualified API Name |
+| Qualified API Name | `My_Account_Checks` or `rhc__Example_Account_Profile_Readiness` | Yes. Copy this exact value |
 
-Example Check Set `CardTitle__c` values start with `Example:` so Lightning App Builder and the card make
-starter status obvious. Subscriber policy should use different Developer Names and titles.
+For a Check Set created by an administrator in your org, Developer Name and Qualified API Name
+usually look the same. They are still different Salesforce fields. Always copy **Qualified API
+Name** so the same instructions also work for metadata installed from a package.
 
-The package namespace is `rhc`. Metadata **owned by** the package receives an `rhc__` prefix on its
-`QualifiedApiName`. Subscriber-owned Custom Metadata records do not.
+## Why does an installed example begin with `rhc__`?
 
-## Use Qualified API Name at every Framework boundary
+`rhc` is the Record Health Check package namespace. Salesforce adds `rhc__` to the Qualified API
+Name of a Custom Metadata record included with that installed package.
 
-Every external entry point accepts the exact `QualifiedApiName` returned by Salesforce. Do not ask
-a caller to construct it, remove a namespace, or try multiple forms.
-
-| Record ownership | `DeveloperName` | `QualifiedApiName` supplied to the Framework |
+| Who created the Custom Metadata record? | Developer Name | Qualified API Name example |
 | --- | --- | --- |
-| Subscriber-owned metadata | `Account_Readiness` | `Account_Readiness` |
-| Metadata owned by the `rhc` package | `Account_Readiness` | `rhc__Account_Readiness` |
-| Metadata owned by another package | `Account_Readiness` | `other__Account_Readiness` |
+| An administrator in your org | `My_Account_Checks` | `My_Account_Checks` |
+| The installed Record Health Check package | `Example_Account_Profile_Readiness` | `rhc__Example_Account_Profile_Readiness` |
+| Another installed package with namespace `other` | `Account_Readiness` | `other__Account_Readiness` |
 
-The namespace belongs to the package that owns the Custom Metadata record. It is not necessarily
-the namespace of the Framework's Custom Metadata Type. Salesforce is the source of truth.
+The prefix belongs to the package that supplied that particular Custom Metadata record. It does not
+come from the Check Set's object or from the Apex class calling Record Health Check.
 
-Discover the value instead of constructing it:
+## Copy the Qualified API Name from Setup
+
+1. From **Setup**, enter `Custom Metadata Types` in **Quick Find**.
+2. Select **Custom Metadata Types**.
+3. Next to **Record Health Check Set**, select **Manage Records**.
+4. Open the Check Set.
+5. Copy **Qualified API Name** exactly as Salesforce shows it.
+
+To run one Check instead of its entire Check Set, repeat the steps for **Record Health Check** and
+copy that Check's **Qualified API Name**.
+
+Use the copied value without changing it:
+
+```apex
+// This example represents a Check Set created by an administrator in your org.
+// Replace it with the exact Qualified API Name copied from Setup.
+String checkSetApiName = 'My_Account_Checks';
+```
+
+Do not add `rhc__` because the Apex class begins with `rhc.`. These are separate names:
+
+```apex
+// rhc. identifies the installed Apex class.
+// checkSetApiName identifies the selected Custom Metadata record.
+rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
+  rhc.RecordHealthCheckRequest.forCheckSet(checkSetApiName, accountIds)
+);
+```
+
+If you need to confirm the values with SOQL, query the installed Custom Metadata Type:
 
 ```sql
 SELECT DeveloperName, QualifiedApiName
@@ -44,59 +69,51 @@ FROM rhc__Record_Health_Check_Set__mdt
 ORDER BY QualifiedApiName
 ```
 
-Use the corresponding Check query for Check entry points. Store or pass the returned
-`QualifiedApiName` exactly.
+The `rhc__` after `FROM` identifies the Custom Metadata **Type** installed by Record Health Check.
+The returned `QualifiedApiName` identifies each Check Set record. Copy the returned value; do not
+add or remove a prefix.
 
-> [!NOTE]
-> The `rhc__` in the `FROM` clause names the packaged Custom Metadata **Type**, which subscriber code
-> must always qualify. That is a separate matter from the record **identity** checks below: never add
-> or remove a namespace on the `QualifiedApiName` value itself.
+## What happens if the name is wrong?
 
-## Prohibited identity behavior
+Record Health Check does not guess. It does not remove a namespace, add `rhc__`, retry with Developer
+Name, or select a record with a similar label. The request fails clearly when the exact Qualified
+API Name is missing or unknown.
 
-Do not:
-
-- prepend `rhc__` or any other namespace;
-- strip a namespace;
-- retry a failed `QualifiedApiName` lookup with `DeveloperName`;
-- accept qualified or unqualified input and guess which the caller meant;
-- substitute a label, display title, or Master Label for record identity;
-- use `qualifiedApiName || developerName` at a client boundary; or
-- describe a Developer Name as sufficient input for Apex, Flow, Lightning, or an integration.
-
-Fail clearly when the exact identity is absent or unknown. A deterministic configuration error is
-safer than selecting a different record whose short name happens to match.
-
-`DeveloperName` still has legitimate internal uses: displaying a short name, resolving a
-same-package Custom Metadata relationship, and keying dependencies within one already-loaded Check
-Set. It is not the public selection contract.
+This prevents a request from silently running a different Check Set that happens to have the same
+Developer Name.
 
 ## Keep Example starter configuration explicit
 
-`packages/record-health-check/force-app` contains the engine, Lightning component, permissions,
-Custom Metadata Type definitions, public APIs, reusable evaluator code, and the four shipped
-`Example_` Check Sets (with their Checks). Those records are teaching and sandbox-ready starters.
+The package installs four example Check Sets whose Developer Names begin with `Example_` and whose
+card titles begin with `Example:`. They are learning examples, not business rules for your org:
 
-The same Example records are mirrored under
-`packages/record-health-check/integration-tests/main/default/customMetadata` so local and CI sample
-deploys stay identical to the package content.
+- `Example_Account_Profile_Readiness`
+- `Example_Account_Relationship_Risk`
+- `Example_Contact_Relationship_Readiness`
+- `Example_Opportunity_Deal_Readiness`
 
-Do not add unlabeled business-policy records to the Framework package. Keep `All` list views
-unfiltered. The `Examples (Example_)` list views may filter by the `Example_` DeveloperName prefix
-for Setup browsing.
+Create separate Check Sets with names and titles that describe your own business requirements. A
+package upgrade can update its installed examples; it must not overwrite Custom Metadata records
+created by your team.
 
-Subscribers must not modify packaged test classes or `RecordHealthCheckTestDataFactory`. See
-[Package testing and upgrades](package-testing-and-upgrades.md).
+## Repository checks for contributors
 
-Contributors changing Example metadata or identity code: follow
-[Contributing: Configuration identity](../../../.github/CONTRIBUTING.md#configuration-identity-and-package-boundary)
-and run `npm run check:configuration-identity` plus `npm run check:package-boundary`.
+Package contributors must keep the same Qualified API Name behavior in Apex, Flow, Lightning, tests,
+and documentation. After changing selection logic or installed examples, run:
+
+```bash
+npm run check:configuration-identity
+npm run check:package-boundary
+```
+
+The package source is under `packages/record-health-check/force-app`. Test-only metadata under
+`packages/record-health-check/integration-tests` and `subscriber-app` is not included in a normal
+installation.
 
 ## Related
 
-- [Install and verify](../../installation/install-and-verify.md)
-- [Security and data access](security.md)
-- [Integration overview](../../integration/README.md)
+- [Apex API](../../api/apex-api.md)
 - [Flow actions](../../integration/flow-actions.md)
+- [Install and verify](../../installation/install-and-verify.md)
+- [Package testing and upgrades](package-testing-and-upgrades.md)
 - [Glossary](../glossary.md)
-- [Contributing](../../../.github/CONTRIBUTING.md)

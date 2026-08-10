@@ -4,7 +4,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>1. Identity &amp; Placement</label>
+        <label>Identity &amp; Placement</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -43,7 +43,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>2. User-Facing Content &amp; Remediation</label>
+        <label>User-Facing Content &amp; Remediation</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -90,7 +90,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>3. Evaluation Type &amp; Value Display</label>
+        <label>Evaluation Type &amp; Value Display</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -109,7 +109,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>4. Record Formula: Found (Left) vs Expected (Right)</label>
+        <label>Record Formula: Found (Left) vs Expected (Right)</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -136,7 +136,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>5. Query Values: Found (Left) vs Expected (Right)</label>
+        <label>Query Values: Found (Left) vs Expected (Right)</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -175,7 +175,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>6. Comparison &amp; Query Behavior</label>
+        <label>Comparison &amp; Query Behavior</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -218,7 +218,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>7. Applicability &amp; Dependencies</label>
+        <label>Applicability &amp; Dependencies</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -257,7 +257,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>8. Custom Apex</label>
+        <label>Custom Apex</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -276,7 +276,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>9. Lifecycle Events</label>
+        <label>Lifecycle Events</label>
         <layoutColumns>
             <layoutItems><behavior>Edit</behavior><field
         >PublishUserResultEvent__c</field></layoutItems>

@@ -1,31 +1,33 @@
-# Reference: Apex classes
+# Internal Apex class reference
 
 > [!NOTE]
-> On this page, choose the layer-specific Apex class guide for Record Health Check. Use this
-> when reading source or extending the Framework. Writing an Apex Check plugin? Start with
+> On this page, find the production Apex class responsible for an internal Record Health Check
+> behavior. Use this while reading or changing the package source. Writing a custom Apex Check? Start with
 > [Apex Check contract](../evaluation/apex-check-contract.md), not this folder.
 
-This guide covers every **production** class under
+This guide covers every production class under
 `packages/record-health-check/force-app/main/default/classes/` (excluding
-`*Test` classes and coverage helpers). Shipped and integration-test example plugins are listed in
+`*Test` classes and coverage helpers). The Apex Check installed with the package and the examples
+used only by repository integration tests are identified separately in
 [Results, definitions, and plugins](results-and-plugins.md).
 
-This is also a source-maintenance catalog. In the installed namespaced unlocked package, a
-top-level `public` class is package-internal across the namespace boundary; subscriber Apex can
-call only the `global` types
-documented by the [Apex API](../../api/apex-api.md) and
+This is an internal package-maintenance catalog. It is not a list of Apex APIs available to custom
+code in your org. After installing the namespaced unlocked package, a top-level `public` class can
+be used only by other classes inside the package. Apex created in your org can call only the
+`global` types documented by the [Apex API](../../api/apex-api.md) and
 [Apex Check contract](../evaluation/apex-check-contract.md).
 
-Unless noted otherwise, Framework service classes are `public with sharing`. Result and definition
+Unless noted otherwise, Record Health Check service classes are `public with sharing`. Result and definition
 data holders, the plugin interface, merge-token helpers, and a few other types are plain `public`
 classes (no sharing keyword) because they hold data or interfaces rather than query Salesforce
 records.
 
-## Recommended path (L5 → L1)
+## Recommended path
 
-The layer numbers describe dependency direction for maintainers: L5 entry points call lower
-layers, while L1 data and contract types do not call back into higher layers. They are not product
-versions, maturity levels, or a sequence plugin authors must learn.
+The L5 through L1 labels describe which internal classes can call which other classes. L5 receives
+requests from Lightning, Flow, or Apex and calls lower layers. L1 holds results, requests, and
+public contracts and does not call back into the higher layers. These labels are not package
+versions or steps an administrator must learn.
 
 | Step | Layer | Page |
 | ---: | --- | --- |
@@ -35,7 +37,7 @@ versions, maturity levels, or a sequence plugin authors must learn.
 | 4 | L2 Configuration and validation | [Configuration and validation](configuration-and-validation.md) |
 | 5 | L2 Shared evaluation services | [Shared services](shared-services.md) |
 | 6 | L2 Merge-token classes | [Merge-token classes](merge-token-classes.md) |
-| 7 | L2-L5 Supporting runtime types | [Runtime support classes](runtime-support.md) |
+| 7 | L2-L5 Supporting classes used while a Check runs | [Run-support classes](runtime-support.md) |
 | 8 | L1 Results, definitions, and plugins | [Results and plugins](results-and-plugins.md) |
 | 9 | Plugin verification test | [Plugin verification](plugin-verification.md) |
 | 10 | Test-only access / architecture policy | [Contributor policy: Apex test-only access](test-only-access.md) |
@@ -47,15 +49,12 @@ versions, maturity levels, or a sequence plugin authors must learn.
 | Scan classes by layer | [Class index by level](#class-index-by-level) |
 | Understand who calls whom | [Layers at a glance](#layers-at-a-glance) |
 | Read a detailed description | The layer sections below |
-| Call the Framework from Apex or Flow | Entry points, then [Apex API](../../api/apex-api.md) / [Flow actions](../../integration/flow-actions.md) |
+| Call Record Health Check from Apex or Flow | [Apex API](../../api/apex-api.md) or [Flow actions](../../integration/flow-actions.md); do not call internal classes from this folder |
 | Implement `RecordHealthCheckPlugin` | Plugin interface classes, then [Apex reference](../evaluation/apex-check-contract.md) |
 
-Every class entry below follows the same order, so you can find any given fact in the same place
-every time: **Role** (what it is, read in under three seconds) → **Type** (declared sharing mode or
-data holder / interface / exception) → what it does → **Key members** (the constants/methods/fields
-worth knowing) → **Notable behavior** (gotchas, rationale, or a concrete example grounded in the
-code) → **See also**. A class skips a slot only when there's genuinely nothing to put there - the
-order never changes.
+Each detailed class entry uses the same order: its job, Apex type and sharing mode, behavior, key
+methods or fields, important limits, and related classes. This makes it easier to compare the
+documentation with the source.
 
 ## Layers at a glance
 
@@ -84,9 +83,9 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L5 | [`RecordHealthCheckController`](entry-points.md#recordhealthcheckcontroller) | Aura-enabled API for the Lightning card |
 | L5 | [`RecordHealthCheckRunCheckFlowAction`](entry-points.md#recordhealthcheckruncheckflowaction) | Packaged Flow action "Run Record Health Check" |
 | L5 | [`RecordHealthCheckRunSetFlowAction`](entry-points.md#recordhealthcheckrunsetflowaction) | Packaged Flow action "Run Record Health Check Set" |
-| L5 | `RecordHealthCheckQueueable` | Packaged asynchronous adapter for one bounded Check Set scope; outcomes remain transient unless events are requested |
-| L5 | `RecordHealthCheckBatch` | Splits one explicit 1–2,000-ID population into 100-record scopes sharing the Batch job Run ID |
-| L5 | `RecordHealthCheckScheduled` | Runs the same captured ID population daily by launching `RecordHealthCheckBatch` |
+| L5 | `RecordHealthCheckQueueable` | Runs one bounded Check Set group in the background; results are not saved unless the caller publishes events or custom code saves them |
+| L5 | `RecordHealthCheckBatch` | Splits an explicit list of 1–2,000 IDs into scopes of 1–200 records that share the Batch job Run ID; defaults to 100 |
+| L5 | `RecordHealthCheckScheduled` | Runs the same saved list of IDs daily by launching `RecordHealthCheckBatch` |
 | L5 | `RecordHealthCheckAsyncSupport` | Shared validation and request construction for asynchronous adapters |
 | L5 | `RecordHealthCheckFlowSupport` | Shared Flow input normalization, result alignment, and summary status logic |
 | L5 | `RecordHealthCheckFlowGroupExecutor` | Shared normalized grouping and engine execution for both Flow actions |
@@ -94,7 +93,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L5 | [`RecordHealthCheckRunContext`](entry-points.md#recordhealthcheckruncontext) | Run id, source, and timing for one evaluation |
 | L5 | [`RecordHealthCheckSetPicklist`](entry-points.md#recordhealthchecksetpicklist) | App Builder dynamic picklist for Check Set Developer Name |
 
-### L4 - Engine
+### L4 - Run coordination
 
 | Level | Class | One-line purpose |
 | --- | --- | --- |
@@ -128,7 +127,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 
 | Level | Class | One-line purpose |
 | --- | --- | --- |
-| L2 | [`RecordHealthCheckConfigService`](configuration-and-validation.md#recordhealthcheckconfigservice) | Load Check Sets/Checks; definitions; runtime validation adapter |
+| L2 | [`RecordHealthCheckConfigService`](configuration-and-validation.md#recordhealthcheckconfigservice) | Loads Check Sets and Checks, builds definitions, and reports configuration problems found while a Check runs |
 | L2 | [`RecordHealthCheckValidator`](configuration-and-validation.md#recordhealthcheckvalidator) | Shared per-Evaluation-Type Check field validation |
 | L2 | [`RecordHealthCheckMetadataValidator`](configuration-and-validation.md#recordhealthcheckmetadatavalidator) | Deploy-time / CI audit of Custom Metadata |
 | L2 | [`RecordHealthCheckConfigValidator`](configuration-and-validation.md#recordhealthcheckconfigvalidator) | Shared validation helpers (object names, plugins, JSON, tokens) |
@@ -146,13 +145,13 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L2 | `RecordHealthCheckDiagnosticTrace` | Builds authorized Check configuration and resolution snapshots for browser diagnostics |
 | L2 | `RecordHealthCheckSettingsProvider` | Resolves lifecycle and diagnostic publication settings |
 | L2 | [`RecordHealthCheckTemplateService`](merge-token-classes.md#recordhealthchecktemplateservice) | Parse, validate, and resolve namespaced merge tokens and their optional fallback text |
-| L2 | `RecordHealthCheckTemplateValueResolver` | Resolves namespace-specific values from the runtime merge context |
+| L2 | `RecordHealthCheckTemplateValueResolver` | Resolves namespace-specific values available while merge text is built |
 | L2 | [`RecordHealthCheckTokenRegistry`](merge-token-classes.md#recordhealthchecktokenregistry) | Allowed token namespaces and properties |
 | L2 | [`RecordHealthCheckToken`](merge-token-classes.md#recordhealthchecktoken) | One parsed merge token |
 | L2 | [`RecordHealthCheckTokenIssue`](merge-token-classes.md#recordhealthchecktokenissue) | One token validation failure |
 | L2 | [`RecordHealthCheckMergeContext`](merge-token-classes.md#recordhealthcheckmergecontext) | Values available while resolving merge tokens |
 | L2 | `RecordHealthCheckComparisonDisplay` | Converts comparison operands into stable display content |
-| L2 | `RecordHealthCheckConfigFindingMapper` | Maps validation findings to runtime configuration results |
+| L2 | `RecordHealthCheckConfigFindingMapper` | Converts validation findings into configuration results returned during a run |
 | L2 | `RecordHealthCheckDefinitionLoader` | Loads and validates Lightning definition metadata |
 | L2 | `RecordHealthCheckDisplayCurrencyRenderer` | Renders currency symbols and minor units |
 | L2 | `RecordHealthCheckDisplayCurrencyResolver` | Resolves row and corporate currency context with transaction caching |
@@ -175,7 +174,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L1 | `RecordHealthCheckResultDisplay` | Optional human-facing rendering derived from evaluation data |
 | L1 | `RecordHealthCheckResultItem` | Evaluation data plus optional display content |
 | Internal | `RecordHealthCheckInternalResult` | Package-only evaluator handoff used before the public result split |
-| L1 | `RecordHealthCheckSelection` | Qualified Check or Check Set selection with XOR construction |
+| L1 | `RecordHealthCheckSelection` | Requires exactly one qualified Check name or one qualified Check Set name |
 | L1 | `RecordHealthCheckQualifiedIdentity` | Shared trim and length validation for qualified metadata identities |
 | L1 | `RecordHealthCheckOptions` | Result, publication, and run correlation options |
 | L1 | `RecordHealthCheckExecutionOrigin` | Typed caller attribution for lifecycle events |
@@ -187,7 +186,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L1 | `RecordHealthCheckStatus` | The status values: PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, ERROR |
 | L1 | `RecordHealthCheckResultMode` | Selects how much data a result carries |
 | L1 | `RecordHealthCheckEventPublication` | Whether a programmatic run publishes lifecycle Platform Events |
-| L1 | `RecordHealthCheckPluginDispatch` | Runs a custom Check and holds it to its contract, including the write check that blocks DML, callouts, email, events, and async work |
+| L1 | `RecordHealthCheckPluginDispatch` | Runs a custom Check and verifies that it did not change Salesforce records, make callouts, send email, publish events, or start asynchronous work |
 
 | L1 | [`RecordHealthCheckDefinition`](results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | One Check row in the Lightning definition response |
 | L1 | [`RecordHealthCheckDefinitionResponse`](results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | Check Set display settings + ordered Check definitions |

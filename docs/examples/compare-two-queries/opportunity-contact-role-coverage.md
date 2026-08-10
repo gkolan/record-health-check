@@ -1,20 +1,22 @@
 # 01 · Open Opportunities Have Contact Roles
 
 > [!NOTE]
-> On this page, compare two aggregate SOQL results to reveal whether any open Opportunity is missing the Contact Role context needed for forecast review.
+> On this page, compare two SOQL counts to show whether every open Opportunity has at least one
+> Contact Role.
 >
 > **Setup reference**
 >
 > Use the [Compare-two-queries reference](../../reference/evaluation/compare-two-queries.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
-> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
+> This example is not installed by the package. Create the Check Set and Check in your org by
+> following the steps below.
 
 ## Scenario
 
 A seller opens an Account before forecast review.
 
-- Every open Opportunity must identify at least one Contact Role so the team knows who is involved in the buying decision.
+- Every open Opportunity must identify at least one Contact Role so sellers know who is involved in the buying decision.
 - A deal without a buyer, evaluator, or stakeholder leaves the forecast without customer relationship context.
 - Opening every Opportunity separately makes missing Contact Roles easy to overlook.
 
@@ -45,7 +47,37 @@ A seller opens an Account before forecast review.
 
 - **Report:** A report can find gaps across the pipeline. It does not place the answer directly on the Account being prepared for forecast review.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that intended users can read Account, Opportunity, Opportunity Contact Role, and the
+  fields used in both queries.
+- Test the example in a sandbox with the same sharing access intended users have.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Record Alignment |
+| **Record Health Check Set Name** | `Account_Record_Alignment` |
+| **Object** | `Account` |
+| **Card Title** | Account Record Alignment |
+| **Card Subtitle** | Confirm open Opportunities have Contact Roles. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
@@ -87,31 +119,15 @@ These values improve presentation. Change them for your process, or leave an opt
 
 Comparison display text, event publishing, and prerequisite behavior are optional. Expected-value, value-to-find, Formula-result, and Apex fields do not apply to Compare two queries.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Record_Alignment` |
-| **Object** | `Account` |
-| **Card Title** | `Account Record Alignment` |
-| **Card Subtitle** | Confirm open Opportunities have Contact Roles. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+The Source Query uses `COUNT_DISTINCT(OpportunityId)`. If one Opportunity has several Contact
+Roles, it is still counted once. The Comparison Query counts every open Opportunity once. The Check
+passes only when those two counts are equal.
 
 ## What the user sees
 
 The card turns the two aggregate query results into these user-facing values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | Every open Opportunity has at least one Contact Role. |
 | **`FAIL`** | One or more open Opportunities has no Contact Role, so the card shows Needs attention. |
@@ -131,7 +147,7 @@ Record Health Check runs both coverage counts with the running user's Salesforce
 
 - Compare the result for a seller and a manager whose Opportunity visibility differs.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Create two open Opportunities and add a Contact Role to only one. Run the check and confirm Info with Found `1` and Expected `2`.
 2. Add a Contact Role to the second Opportunity, rerun, and confirm a pass.

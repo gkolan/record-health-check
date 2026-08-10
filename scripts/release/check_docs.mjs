@@ -35,7 +35,8 @@ const plainLanguageAvoidList = [
   "result shell",
   "row cap",
   "request caps",
-  "invocation"
+  "invocation",
+  "population"
 ];
 
 function walk(directory) {

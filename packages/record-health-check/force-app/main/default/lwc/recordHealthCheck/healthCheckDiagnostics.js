@@ -8,19 +8,19 @@ export function setupErrorHint(reasonCode) {
   switch (reasonCode) {
     case "CONFIG_NOT_FOUND":
     case "SETUP_REQUIRED":
-      return "Ask your Salesforce admin to choose a Check Set for this page.";
+      return "Ask your Salesforce admin to edit this record page and select an existing active Check Set.";
     case "INACTIVE_CHECK_SETS_ONLY":
-      return "Ask your Salesforce admin to activate a Check Set for this object.";
+      return "Ask your Salesforce admin to activate a Check Set for this object, then select it on this record page.";
     case "NO_ACTIVE_CHECK_SETS":
-      return "Ask your Salesforce admin to set up a Check Set for this object.";
+      return "Ask your Salesforce admin to create and activate a Check Set for this object, then select it on this record page.";
     case "CONFIG_INACTIVE":
-      return "Ask your Salesforce admin to activate this Check Set.";
+      return "Ask your Salesforce admin to activate this Check Set or select another active Check Set on the record page.";
     case "OBJECT_MISMATCH":
-      return "Ask your Salesforce admin to choose a Check Set for this object.";
+      return "Ask your Salesforce admin to select a Check Set whose Record Object API Name matches this record page.";
     case "NO_ACTIVE_CHECKS":
-      return "Ask your Salesforce admin to add an active Check.";
+      return "Ask your Salesforce admin to add or activate at least one Check in this Check Set.";
     case "NO_RECORD_CONTEXT":
-      return "Ask your Salesforce admin to place this on a record page.";
+      return "Ask your Salesforce admin to place this component on a supported Salesforce record page.";
     case "INVALID_CONFIG":
       return "Ask your Salesforce admin to review this Check Set in Setup.";
     default:

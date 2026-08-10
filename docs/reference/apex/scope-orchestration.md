@@ -1,101 +1,120 @@
-# Reference: Apex scope orchestration (L4)
+# Apex classes that coordinate a health-check request (L4)
 
 > [!NOTE]
-> On this page, look up the L4 classes that resolve a Check Set or Check selection and evaluate
-> one complete ordered record scope.
+> Use this page to understand the internal classes that select the Checks, load the Salesforce
+> records, run each Evaluation Type, and assemble the response. Custom Apex should start with
+> `rhc.RecordHealthCheck.evaluate(...)`, not call these classes directly.
 
 This page is part of the [Apex class reference](README.md). For the architecture story, see
 [Architecture § How one Check is evaluated](../framework/architecture.md#6-how-one-check-is-evaluated).
 
-## Scope orchestration (L4)
+## Request coordination (L4)
 
 ### `RecordHealthCheckScopePipeline`
 
-**Role:** Resolves a qualified selection and evaluates one complete ordered record scope.
+**Role:** Coordinate one request from its Qualified API Name through its final response.
+
 **Type:** Service class · `public with sharing`
 
-Every public surface (`RecordHealthCheck.evaluate`, Flow actions, Lightning
-`evaluateCheck` / `completeRun`) ends in this pipeline. It plans the scope, loads records in
-USER_MODE, dispatches Evaluation Types, shapes display results, and returns the common response
-envelope.
+`RecordHealthCheck.evaluate`, the installed Flow actions, and the Lightning card's `evaluateCheck`
+method use this class. It validates the request, loads the requested Salesforce records with user
+access enforced, runs the applicable Checks in order, optionally adds display content, publishes the
+requested Platform Events, and returns `RecordHealthCheckResponse`. The Lightning card's
+`completeRun` method publishes already-completed results and does not run this class again.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `evaluate(...)` | Run one qualified Check or Check Set selection over a detached record scope |
+| `evaluate(...)` | Run the requested Check or Check Set for the supplied record IDs |
 
 **Notable behavior:**
+
 - **Important:** the card evaluates one Check per Apex transaction; Apex and Flow may evaluate a whole
-  Check Set in one call. Do not assume identical governor budgets across those surfaces.
-- **Important:** selection identities are Custom Metadata `QualifiedApiName` values.
+  Check Set in one transaction. The same Check Set can therefore use more transaction limits in Apex
+  or Flow than it does on the card.
+- **Important:** use the exact Check or Check Set **Qualified API Name** copied from Setup. Do not use
+  its label or add or remove `rhc__`.
 
 **See also:** [Entry points](entry-points.md), [Evaluators](evaluators.md)
 
 ### `RecordHealthCheckScopePlanner`
 
-**Role:** Selection, request budgets, applicability, and prerequisite planning.
+**Role:** Decide which Checks and records can run before evaluation begins.
+
 **Type:** Service class · `public with sharing`
 
-Decides which Checks run, which records are in scope, and whether applicability or prerequisite
-checks skip a Check before evaluation.
+Loads the selected Check or Check Set, confirms that it is active and matches the record IDs' object,
+and enforces the 25-Check and 200-record limits. It also checks the planned Formula Evaluation and
+custom Apex Check limits before any Check runs. For each Check, it determines which records are
+applicable and whether a prerequisite result requires the Check to be skipped.
 
 **Notable behavior:**
+
 - **Important:** an applicability miss returns `SKIPPED` with a Reason Code; it is not a Fail.
 
 ### `RecordHealthCheckEvaluatorRegistry`
 
-**Role:** Maps Evaluation Type values to a common scope evaluator contract.
+**Role:** Send each Check to the class that runs its Evaluation Type.
+
 **Type:** Service class · `public with sharing`
 
-Dispatches `FORMULA`, `SOQL`, `COMPARE_QUERIES`, and `APEX` to the matching L3 evaluator.
+Maps the Custom Metadata values `FORMULA`, `QUERY`, `COMPARE_TWO_QUERIES`, and `APEX` to the matching
+evaluator class.
 
 **See also:** [Evaluators](evaluators.md)
 
 ### `RecordHealthCheckFieldPlanner`
 
-**Role:** Internal field-planning support used by the scope pipeline.
+**Role:** Identify which fields must be loaded from each Salesforce record.
+
 **Type:** Service class · `public with sharing`
 
-Builds the approved set of readable record fields needed by a Check before
-`RecordHealthCheckScopePipeline` performs its scope-wide user-mode load. Public callers use
-`RecordHealthCheck.evaluate(request)` and do not call the planner directly.
+Reads the Check's formulas, merge tokens, and other settings to identify the record fields it needs.
+The pipeline then loads those fields for all requested records in one user-mode query. Custom Apex
+uses `RecordHealthCheck.evaluate(request)` and does not call this class directly.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
-| `collectRecordFields(...)` | Plan the record fields needed by a Check before the scope-wide user-mode load |
+| `collectRecordFields(...)` | Identify the record fields referenced by a Check |
 
 **Notable behavior:**
-- **Important:** candidate fields are resolved through describe metadata before entering dynamic SOQL;
-  malformed, unavailable, and unreadable paths are ignored.
+
+- Before a field enters dynamic SOQL, the class confirms through Salesforce describe information
+  that the field path exists and is readable. An invalid or inaccessible field is not added to the
+  record query; the affected Check later returns the appropriate configuration or access result.
 
 ### `RecordHealthCheckBulkQuerySupport`
 
-**Role:** Executes supported query templates once for a complete scope.
+**Role:** Run a supported Query Check SOQL template once for all requested records.
+
 **Type:** Service class · `public with sharing`
 
-Runs a validated SOQL template across the whole record scope and attributes rows back to each
-requested record Id.
+Replaces the record-specific condition with one query that covers all requested record IDs, then
+assigns the returned rows to the matching record. This prevents one SOQL query per record.
 
 **See also:** [Query Evaluation Type](../evaluation/query.md)
 
 ### `RecordHealthCheckBulkQueryRewriter`
 
-**Role:** Rewrites validated query templates for scope-wide execution.
+**Role:** Convert a record-specific SOQL template into one bulk query.
+
 **Type:** Service class · `public with sharing`
 
-Transforms a Check's SOQL template so one query can serve every record in the scope without changing
-the Check author's intent.
+Changes a validated SOQL template so one query can serve all requested record IDs without changing
+the condition configured by the Check author. An unsupported query shape is rejected instead of
+falling back to a query inside a record loop.
 
 ### `RecordHealthCheckScopeResultSupport`
 
-**Role:** Converts internal outcomes into public results, diagnostics, display text, and safe URLs.
+**Role:** Convert each internal result into the response returned to Apex, Flow, or Lightning.
+
 **Type:** Service class · `public with sharing`
 
-Applies display shaping, Reason Code remapping for access-sensitive failures, and Action URL safety
-after evaluation completes.
+Adds requested display text, hides or replaces access-sensitive Reason Codes when needed, and checks
+that an Action URL is safe before returning it.
 
 **See also:** [Security and data access](../framework/security.md), [Results and plugins](results-and-plugins.md)
 

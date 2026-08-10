@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Advanced Checks</label>
+    <label>Review: Icon-Only Run Control</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,13 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Account Advanced Health Checks</value>
+        <value xsi:type="xsd:string">Icon-Only Run and Rerun</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Advanced evaluator patterns: Formula and SOQL applicability gates, dependency chains, AnyRowPasses and AllRowsPass with RecordFormula comparison, and ListContainsAny with a formula-resolved primary value.</value>
+    >Screenshot example: the visible action is only a refresh icon. Its accessible name changes from Run advanced Account health checks to Run advanced Account health checks again after completion.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>
@@ -54,14 +54,14 @@
     </values>
     <values><field>RunButtonDisplay__c</field><value
       xsi:type="xsd:string"
-    >LABEL_AND_ICON</value></values>
+    >ICON_ONLY</value></values>
     <values><field>RunButtonLabel__c</field><value
       xsi:type="xsd:string"
-    >Run</value></values>
+    >Run advanced Account health checks</value></values>
     <values><field>RerunButtonLabel__c</field><value
       xsi:type="xsd:string"
-    >Rerun</value></values>
+    >Run advanced Account health checks again</value></values>
     <values><field>RunButtonIcon__c</field><value
       xsi:type="xsd:string"
-    >utility:play</value></values>
+    >utility:refresh</value></values>
 </CustomMetadata>

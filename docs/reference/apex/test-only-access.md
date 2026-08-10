@@ -1,21 +1,28 @@
-# Contributor policy: Apex test-only access and architecture checks
+# Contributor checks for Apex test-only access
 
 > [!NOTE]
-> On this page, follow the contributor policy for `@TestVisible`, `Test.isRunningTest()`, and the
-> Apex architecture release check. This is not a Framework outcome or Evaluation Type reference.
+> Use this page when changing Apex in this repository. It explains when test-only access is allowed
+> and what `npm run check:apex-architecture` enforces.
 
-This project treats `@TestVisible` and `Test.isRunningTest()` as a temporary workaround, not as a
-testing strategy. Prefer testing production behavior through public Apex APIs or the class that
-owns the behavior whenever possible.
+Use `@TestVisible` or `Test.isRunningTest()` only when a test cannot verify the behavior through a
+normal method call or returned result. Existing uses are recorded as a maximum, not as permission to
+add more.
 
 The baseline file is
 [`scripts/release/generated/apex-architecture-baseline.json`](../../../scripts/release/generated/apex-architecture-baseline.json).
-`npm run check:apex-architecture` fails when a change:
+Run this command after changing Apex:
+
+```bash
+npm run check:apex-architecture
+```
+
+The command scans Apex in `force-app` and `integration-tests`. It fails when a change:
 
 - adds `@TestVisible` to an unapproved file or increases an approved file's count;
 - adds a `Test.isRunningTest()` branch outside the two approved test-only branches;
 - adds `System.debug` outside the structured logger or scratch-org exhaustive test class;
-- adds a production Apex class above the 500-line review ceiling;
+- takes an Apex class above the normal 500-line review ceiling without a named per-file ceiling in
+  the baseline;
 - places redundant `@TestVisible` on a public or global member; or
 - introduces language implying private compatibility with an older implementation.
 
@@ -23,30 +30,31 @@ The baseline file is
 
 | Category | Why it currently exists | Required direction |
 | --- | --- | --- |
-| Permission and setting override | Salesforce permissions and Custom Metadata cannot always be varied cheaply inside a focused unit test. | Replace with access or settings providers the test can supply when that layer is introduced. |
-| Forced failure | Tests verify how the Framework maps errors without depending on an accidental platform failure. | Replace with evaluator, publisher, or logger dependencies the test can supply. |
-| Transaction cache reset | Tests must isolate static describe and currency caches between cases. | Keep only reset or state access that cannot be observed through the public API. |
-| Algorithm access | Parser, formatter, comparison, and field-planning tests still reach private implementation. | Extract focused helper classes and retarget tests; delete the original `@TestVisible` access. |
-| Integration test support | Scratch-org test data exposes state used only to validate scale and plugin contracts. | Keep outside the subscriber package and remove access that is no longer asserted. |
+| Permission and setting override | A focused test cannot always change Salesforce permissions or Custom Metadata. | Replace the override with a replaceable access or settings provider when that class is introduced. |
+| Forced failure | A test must verify a known error path without causing an unrelated Salesforce failure. | Replace it with an evaluator, publisher, or logger that the test can supply. |
+| Transaction cache reset | Tests must isolate static object, field, and currency information between cases. | Keep only reset or state access that cannot be verified through the public API. |
+| Internal calculation access | Parser, formatter, comparison, and field-planning tests still call private methods. | Move the calculation to a focused helper, test that helper, and remove the original `@TestVisible`. |
+| Integration test support | Scratch-org examples expose state used only to verify scale and custom Apex Check behavior. | Keep it in `integration-tests` and remove access that no test still verifies. |
 
-The baseline records a maximum, not a standing allowance. Reductions should update the baseline in the
-same change. Moving an annotation to another file is treated as new test-only access and fails the check.
+When you remove an approved annotation, reduce its baseline count in the same change. Moving an
+annotation to a different file counts as new test-only access and fails the check.
 
-## Current approved runtime branches
+## Current approved `Test.isRunningTest()` branch
 
-- `RecordHealthCheckAccess` permits a test-supplied permission answer.
-- `RecordHealthCheckLogger` permits a test-supplied publication setting.
+Only `RecordHealthCheckAccess` has an approved branch. In tests, `canRunChecks()` can use the value
+set through its private `@TestVisible` override instead of a real Custom Permission assignment.
 
-No other production method may branch on `Test.isRunningTest()`. These two branches remain queued
-for dependency supply from tests and must not be cited as compatibility with an older org or API.
+No other production method may branch on `Test.isRunningTest()`. Replace this remaining branch with
+a permission provider that a test can supply when that supporting class is introduced. Do not add a
+branch to preserve behavior from an older org or API.
 
 ## Review evidence
 
-Every pull request runs the architecture check before deployment. The release workflow then runs a
-strict configured analyzer profile and a separately labeled neutral advisory scan. Reviewers can
-therefore see both the enforceable project contract and the generic findings that the project has
-chosen not to use as release thresholds. The neutral profile also disables suppression processing,
-so every inline-suppressed finding remains visible in the advisory evidence.
+Continuous integration runs the architecture check before Salesforce validation. Release checks
+also run the repository's required Salesforce Code Analyzer configuration and a separately labeled
+advisory scan. The required scan enforces this project's rules. The advisory scan reports additional
+findings without turning them into release thresholds and ignores inline suppressions so reviewers
+can still see those findings.
 
 ## Related
 

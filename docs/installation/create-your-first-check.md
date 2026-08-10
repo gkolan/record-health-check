@@ -8,8 +8,17 @@ Use this guide to turn one familiar business question into a working health chec
 have a Billing City? You will create the configuration in Salesforce Setup, place it on an Account
 page, and prove that the guidance makes sense when the field is blank and when it is populated.
 
-You need Record Health Check installed, permission to manage Custom Metadata and edit Lightning
-record pages, and **Record Health Check User** access.
+## Before you start
+
+The administrator completing this guide needs:
+
+- the installed **Record Health Check Admin** Permission Set;
+- the Salesforce Setup access required to manage Custom Metadata and edit Lightning record pages;
+  and
+- Read access to Account and `BillingCity`.
+
+People who only run the completed card need **Record Health Check User** plus access to the Account
+records and fields being checked.
 
 **You do not need:** Apex, Flow, or command-line tools.
 
@@ -36,7 +45,7 @@ result without blocking record save or changing Account data.
 | Setup field | Value | Why this value is useful now |
 | --- | --- | --- |
 | **Label** | Account Readiness | Gives the configuration a recognizable name |
-| **Developer Name** | `Account_Readiness` | Gives Salesforce a stable identity for the Check Set |
+| **Developer Name** | `Account_Readiness` | Gives Salesforce a stable API name for the Check Set |
 | **Object** | `Account` | Makes the Check Set available on Account pages |
 | **Card Title** | Account Readiness | Tells users what the card is reviewing |
 | **When Checks Run** | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
@@ -67,8 +76,10 @@ Manual execution makes the first test easier to follow because the card waits fo
 | **Evaluation Type** | **Verify with a formula** | Reads a field on the open Account |
 | **Pass Condition** | `NOT(ISBLANK(BillingCity))` | Passes when Billing City contains a value |
 | **Failure Severity** | **Warning** | Signals that the missing value deserves attention without presenting it as the most serious outcome |
-| **Message When Failed** | Billing City is missing. Add it before the Account review. | Explains why the result matters |
+| **Message When Failed** | `{!record.Name fallback="This Account"}` is missing Billing City. Add it before the Account review. | Explains which Account needs attention and remains clear if its Name is unavailable |
 | **Fix Message** | Edit the Account billing address and rerun the check. | Gives the user a concrete next step |
+| **Action Label** | Edit account | Gives the destination a clear link label |
+| **Action URL** | `/lightning/r/Account/{!record.Id}/edit` | Opens the current Account's standard edit page without saving a change |
 | **Evaluation Order** | `100` | Sets this Check's position when more Checks are added later |
 | **Active** | Checked | Allows the Check to run |
 
@@ -82,7 +93,7 @@ The Formula Check reads only the current Account, so it does not need SOQL or Ap
 2. Select **Setup → Edit Page**.
 3. Drag **Record Health Check** onto the Lightning record page.
 4. In the component properties, select the `Account_Readiness` Check Set.
-5. Leave **Run Button Display** at **Inherit** so this page uses the Check Set configuration.
+5. Confirm the component is using the intended **Check Set**; its Run/Rerun presentation comes from that Check Set.
 6. Save and activate the page.
 7. Return to the Account and refresh the page.
 
@@ -100,12 +111,16 @@ Use an Account you can safely edit.
 
 | Test | What to do | Expected result |
 | --- | --- | --- |
-| Failing record | Clear Billing City, save the Account, and select **Run** | **Warning** (Fail) with the failure and fix messages |
+| Failing record | Clear Billing City, save the Account, and select **Run** | **Warning** (`FAIL`) with the failure message, fix message, and **Edit account** link |
 | Passing record | Add Billing City, save, and select **Rerun** | **Pass** |
 
 The card does not rerun automatically after a record edit. This manual example should use
 **Rerun**. For an automatic Check Set whose action is hidden, refresh reevaluates the saved data,
 but that refresh does not publish user-run lifecycle events.
+
+Open **Edit account** during the failing test and confirm it opens the same Account. The link does
+not save anything automatically; close the edit page without saving or restore the test value when
+you finish.
 
 ## If the Check does not work
 

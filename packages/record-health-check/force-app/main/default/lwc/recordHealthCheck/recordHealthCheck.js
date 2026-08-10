@@ -84,7 +84,6 @@ export default class RecordHealthCheck extends LightningElement {
   static stylesheets = [themeStyles];
 
   _checkSetName;
-  _runButtonDisplayOverride = "INHERIT";
   @track _isSlds2 = false;
 
   get themeClass() {
@@ -101,17 +100,6 @@ export default class RecordHealthCheck extends LightningElement {
     if (this._connected && changed) {
       this._loadDefinitions();
     }
-  }
-
-  @api
-  get runButtonDisplay() {
-    return this._runButtonDisplayOverride;
-  }
-  set runButtonDisplay(value) {
-    this._runButtonDisplayOverride =
-      typeof value === "string" && value.trim()
-        ? value.trim().toUpperCase()
-        : "INHERIT";
   }
 
   // recordId is a getter/setter so the component reloads when the record page
@@ -503,14 +491,9 @@ export default class RecordHealthCheck extends LightningElement {
       this.runButtonLabel = response.runButtonLabel;
       this.rerunButtonLabel = response.rerunButtonLabel;
       this.runButtonIcon = response.runButtonIcon;
-      this._requireMode(
-        this.effectiveRunButtonDisplay,
-        RUN_BUTTON_DISPLAYS,
-        "Run Button Display override"
-      );
       if (
         this.triggerMode === "Manual" &&
-        this.effectiveRunButtonDisplay === "HIDE"
+        this.checkSetRunButtonDisplay === "HIDE"
       ) {
         const configurationError = new Error(
           "Run Button Display cannot be Hide when checks run only after a user clicks Run. Choose a visible display or configure the Check Set to run when the page opens."
@@ -614,17 +597,18 @@ export default class RecordHealthCheck extends LightningElement {
     this.isLoading = false;
     if (availability.hasActive) {
       this.componentError =
-        "Record Health Check is not ready on this page yet.";
+        "No Check Set is selected for this Record Health Check component.";
       this.componentErrorCode = "SETUP_REQUIRED";
       return;
     }
     if (availability.hasInactive) {
       this.componentError =
-        "Record Health Check is not ready on this page yet.";
+        "Check Sets exist for this object, but none of them are active.";
       this.componentErrorCode = "INACTIVE_CHECK_SETS_ONLY";
       return;
     }
-    this.componentError = "Record Health Check is not ready on this page yet.";
+    this.componentError =
+      "No Check Set has been configured for this object's records.";
     this.componentErrorCode = "NO_ACTIVE_CHECK_SETS";
   }
 
@@ -687,6 +671,8 @@ export default class RecordHealthCheck extends LightningElement {
 
   get visibleChecks() {
     const signature = JSON.stringify([
+      this.triggerMode,
+      this.runComplete,
       this.revealMode,
       this.successDisplayMode,
       this.skippedDisplayMode,
@@ -699,6 +685,19 @@ export default class RecordHealthCheck extends LightningElement {
       this._visibleChecksSource === this.checks &&
       this._visibleChecksSignature === signature
     ) {
+      return this._visibleChecksCache;
+    }
+    // Manual Check Sets do not disclose rule names before the user starts the
+    // first evaluation. Reveal mode controls how results appear during a run;
+    // it must not expose the configured rules in the idle pre-run state.
+    if (
+      this.triggerMode === "Manual" &&
+      !this.runComplete &&
+      !this._runner.isRunning
+    ) {
+      this._visibleChecksSource = this.checks;
+      this._visibleChecksSignature = signature;
+      this._visibleChecksCache = [];
       return this._visibleChecksCache;
     }
     let filtered;
@@ -838,8 +837,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   // Count phrase for the pre-run hint: pluralized, and when the set exceeds the
-  // 25-check cap it makes clear only the first 25 will run (matching the
-  // limit badge).
+  // 25-check cap it makes clear only the first 25 will run.
   get checkCountPhrase() {
     if (this.checksOmittedByLimit) {
       return `the first ${this.frameworkMaxChecks} of ${this.totalAvailableCheckCount} checks`;
@@ -848,39 +846,23 @@ export default class RecordHealthCheck extends LightningElement {
     return `${n} ${n === 1 ? "check" : "checks"}`;
   }
 
-  get limitNoticeLabel() {
-    return `First ${this.frameworkMaxChecks} of ${this.totalAvailableCheckCount} shown`;
-  }
-
-  get limitNoticeTitle() {
-    return `Showing the first ${this.frameworkMaxChecks} of ${this.totalAvailableCheckCount} active checks.`;
-  }
-
   get showActionButton() {
     return this.showRunButton || this.showRerunButton;
   }
 
-  get effectiveRunButtonDisplay() {
-    const override = this._runButtonDisplayOverride;
-    if (override && override !== "INHERIT") {
-      return override;
-    }
-    return this.checkSetRunButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY;
-  }
-
   get hideRunButton() {
-    return this.effectiveRunButtonDisplay === "HIDE";
+    return this.checkSetRunButtonDisplay === "HIDE";
   }
 
   get showRunButtonLabel() {
     return ["LABEL_AND_ICON", "LABEL_ONLY"].includes(
-      this.effectiveRunButtonDisplay
+      this.checkSetRunButtonDisplay
     );
   }
 
   get showRunButtonIcon() {
     return ["LABEL_AND_ICON", "ICON_ONLY"].includes(
-      this.effectiveRunButtonDisplay
+      this.checkSetRunButtonDisplay
     );
   }
 
@@ -906,19 +888,18 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get actionButtonClass() {
-    return this.effectiveRunButtonDisplay === "ICON_ONLY"
+    return this.checkSetRunButtonDisplay === "ICON_ONLY"
       ? "slds-button slds-button_neutral rhc-action-button rhc-action-button_icon-only"
       : "slds-button slds-button_neutral rhc-action-button";
   }
 
   get showHeaderActions() {
-    return this.isLoading || this.showActionButton || this.showLimitNotice;
+    return this.isLoading || this.showActionButton;
   }
 
   get showPreRunHint() {
-    // Shown before the first Manual run in BOTH reveal modes for a consistent
-    // call to action: OneAtATime shows the hint alone (no rows yet),
-    // AllAtOnce shows it above the already-listed rows.
+    // Shown before the first Manual run in both reveal modes. Rule names stay
+    // hidden until the user starts evaluation.
     return (
       this.triggerMode === "Manual" &&
       this.showActionButton &&
@@ -930,7 +911,23 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get preRunHintText() {
-    return `Click Run to evaluate ${this.checkCountPhrase}.`;
+    const action = this.showRunButtonLabel
+      ? this.actionButtonLabel
+      : "the icon";
+    return `Click ${action} to evaluate ${this.checkCountPhrase}.`;
+  }
+
+  get showHiddenEvaluationHint() {
+    return (
+      this.triggerMode === "Automatic" &&
+      this.hideRunButton &&
+      this.checksOmittedByLimit &&
+      this._runner.isRunning
+    );
+  }
+
+  get hiddenEvaluationHintText() {
+    return `Evaluating ${this.checkCountPhrase}.`;
   }
 
   get showSummaryStats() {
@@ -971,9 +968,7 @@ export default class RecordHealthCheck extends LightningElement {
         ? `Re-running ${this.checkCountLabel}`
         : `Running ${this.checkCountLabel}`;
     }
-    return this.hasCompletedRunOnce
-      ? `Re-run ${this.checkCountLabel}`
-      : `Run ${this.checkCountLabel}`;
+    return `${this.actionButtonLabel} · ${this.checkCountLabel}`;
   }
 
   get actionButtonLabel() {
@@ -1064,10 +1059,6 @@ export default class RecordHealthCheck extends LightningElement {
       this.inactiveCheckCount,
       this.inactiveCheckLabels
     );
-  }
-
-  get showLimitNotice() {
-    return this.checksOmittedByLimit;
   }
 
   _isSkipped(check) {

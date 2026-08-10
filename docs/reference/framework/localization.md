@@ -1,85 +1,104 @@
-# Reference: Localization
+# Languages, locale, and translated text
 
 > [!NOTE]
-> On this page, learn what Record Health Check translates automatically through Salesforce
-> Translation Workbench, what an administrator must translate by hand, and why comparisons never
-> change based on the running user's language.
+> This page explains which text Salesforce can translate, which values use the running user's
+> locale, and which Check text an administrator must maintain in the required language.
 
-Use this page when planning a multi-language rollout, or when two users report seeing the same Check
-in different wording and you need to know whether that is expected.
+Language and locale are related but different:
 
-## Two kinds of text, two owners
+- **Language** controls translated labels, such as a translated picklist label.
+- **Locale** controls how Salesforce displays numbers and dates, such as `70,000.50` or `70.000,50`.
+- **Time zone** controls the date and time shown for a Date/Time value.
 
-| Text | Owner | Translatable through Translation Workbench |
+Record Health Check uses the settings of the user who runs the Check.
+
+## What Record Health Check can translate
+
+The package includes Salesforce Custom Labels for:
+
+- **Yes** and **No**; and
+- the comparison wording shown between Found and Expected, such as **to equal**, **at least**, and
+  **to contain all of**.
+
+An administrator can translate these package Custom Labels with Salesforce Translation Workbench.
+The package currently supplies the `en_US` values; your org must supply any additional translations.
+
+Status API values such as `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` do not change
+by language. Automation must use these stable API values, not wording shown to a user.
+
+## What Salesforce formats for each user
+
+| Result value | What the user sees |
+| --- | --- |
+| Number, Currency, Percent, or Ratio as Percent | The user's decimal mark and digit-grouping style |
+| Date | The user's Salesforce date format |
+| Date/Time | The user's Salesforce date, time, and time-zone settings |
+| Picklist value | The translated picklist label when the org has one; otherwise the available Salesforce label |
+| Checkbox or Boolean | The translated Record Health Check **Yes** or **No** Custom Label |
+| Currency in a single-currency org | The currency symbol where Salesforce can provide it |
+| Currency in a multiple-currency org | The ISO currency code, such as `USD` or `EUR` |
+
+Example: two users can run the same Check against the same amount. One might see `70,000.50`; the
+other might see `70.000,50`. The Check result remains the same because formatting happens after the
+comparison.
+
+See [Display value format](../contracts/display-value-format.md) for every supported format.
+
+## Which Check text is not translated automatically?
+
+Text entered in Record Health Check Custom Metadata is ordinary text. Translation Workbench does
+not create a different version for each user language.
+
+This includes:
+
+- Card Title and Card Subtitle;
+- Run and Rerun button labels;
+- Check Title and Check Description;
+- Failure Message, Fix Message, Unable to Evaluate Message, and Applicability Not Met Message; and
+- Action Label.
+
+For example, if **Failure Message** contains `Enter the Account's billing country`, every user sees
+that sentence in English unless your team chooses a different configuration for that audience.
+
+## Plan a Check Set for users in more than one language
+
+Choose an approach before rollout:
+
+| Approach | When it fits | What the administrator maintains |
 | --- | --- | --- |
-| Framework labels: status words, operator phrases, Boolean Yes/No wording | Record Health Check (Custom Labels) | Yes |
-| Administrator-authored Check content: Check Title, Card Title, Failure Message, Fix Message, Action Label | The org's administrator (plain text fields) | No, not automatically. An org that needs multiple languages must author or translate this content itself |
+| One shared language | Everyone can work in the same business language | One Check Set |
+| Separate Check Sets by language | Different groups require fully translated titles and messages | One Check Set per language, plus a clear way to place the correct Check Set on the record page used by each group |
+| Custom user interface | Language must be selected dynamically for each user | Your own component or automation that uses stable result fields and supplies translated wording |
 
-Framework-owned wording ships as Salesforce Custom Labels, which Translation Workbench can translate
-without touching a Check's logic. Administrator-authored fields are ordinary Custom Metadata text
-fields; Salesforce does not translate their content for you, and a Check has only one
-`FailureMessage__c` value regardless of who is reading it. See
-[Display value format: Locale](../contracts/display-value-format.md#locale) for the boundary between
-these two categories in the rendering pipeline.
+Test the chosen record-page assignments and visibility rules with a user from every intended
+language group. Record Health Check does not choose a Check Set automatically from `User.LanguageLocaleKey`.
 
-## What is locale-aware automatically
+## Comparisons do not use translated display text
 
-Display value formatting reads the **running user's** locale, time zone, and language at the moment
-a Check evaluates, not the author's locale and not a fixed org default.
+Record Health Check compares Salesforce values, not the translated words shown on screen. For
+example, a Check against the Account `Industry` picklist compares its stored API value. A translated
+picklist label can change what the user reads, but it does not change `PASS` or `FAIL`.
 
-| Display element | Locale-aware behavior |
-| --- | --- |
-| Number, Currency, Percent, Ratio as Percent | Grouping separators and decimal marks follow the running user's locale (`70,000` vs `70.000`) |
-| Date, Date/Time | Rendered in the running user's locale date/time format |
-| Currency symbol vs ISO code | Symbol in a single-currency org, ISO code in a multi-currency org, independent of language |
-| Picklist labels | Rendered in the running user's language when Salesforce has a translated label for that value |
-| Boolean Yes/No, operator phrases | Framework Custom Labels; translated per the org's Translation Workbench configuration |
+This also means a translation must not be placed in **Expected Fixed Value** when the Check needs a
+picklist API value. Use the stored value required by the field and let Salesforce translate the
+display label.
 
-Two users viewing the same Check result at the same moment can see different formatted text for
-Found and Expected while the underlying value and the Pass/Fail outcome stay identical. That is
-expected: formatting is a presentation concern layered on top of a comparison that already
-finished. See [Display value format](../contracts/display-value-format.md) for every formatting check.
+## Merge tokens do not translate a sentence
 
-## Comparisons always use API values, never labels
+A merge token inserts a value into the surrounding message. It does not translate the message
+itself.
 
-Pass/Fail decisions compare the raw values Salesforce returns, such as a picklist's stored API
-value, never the translated label a user happens to see. A Check that compares `Industry` to
-`Technology` compares the API value `Technology`, regardless of which language label a French or
-German user sees on their own screen. This is what makes a Check's outcome stable across every
-language the org supports.
+```text
+Review {!record.Name fallback="this Account"} before approval.
+```
 
-## What an administrator must translate by hand
-
-Salesforce Translation Workbench does not translate values inside Custom Metadata text fields. If a
-multi-language org needs a Check's message to read correctly in more than one language, choose one
-of these approaches:
-
-| Approach | Trade-off |
-| --- | --- |
-| Author the message in the org's dominant language and accept it will not localize | Simplest; acceptable when most users share one language |
-| Create parallel Check Sets or Checks per language and route by profile, permission set, or page assignment | More configuration, but every user gets a fully native message; no Framework support required |
-| Have the Check author write English (or another shared language) and rely on the record's own locale-aware Found/Expected formatting to carry most of the meaning | Reduces, but does not remove, the need for translated prose |
-
-Record Health Check ships no built-in mechanism for translating administrator-authored message
-content per running-user language, because that content is business policy the org owns, not
-Framework behavior.
-
-## Merge tokens and localization
-
-Merge tokens insert live Salesforce values into a message; they do not translate the surrounding
-template text. `{!record.Name}` resolves to whatever the field holds regardless of language, and a
-result token such as `{!rhcResult.foundValue}` already contains the display-formatted (and
-therefore locale-aware) text produced by the checks in
-[Display value format](../contracts/display-value-format.md). Add a quoted `fallback` when a token
-might be blank in some languages' data, for example
-`{!record.Name fallback="this record"}`, so the completed sentence still reads correctly. See
-[Reference: Merge tokens](../contracts/merge-tokens.md) for the complete token contract.
+The Account name is inserted, but `Review` and `before approval` remain exactly as the administrator
+wrote them. Result tokens such as `{!rhcResult.foundValue}` use the already formatted display value.
+See [Merge tokens](../contracts/merge-tokens.md) for available tokens and fallback behavior.
 
 ## Related
 
 - [Display value format](../contracts/display-value-format.md)
-- [Reference: Merge tokens](../contracts/merge-tokens.md)
-- [Reference: Compatibility](compatibility.md)
+- [Merge tokens](../contracts/merge-tokens.md)
+- [Compatibility requirements](compatibility.md)
 - [Configure Check Sets and Checks](../../guides/configure-check-sets-and-checks.md)
-- [FAQ: single-currency and multi-currency orgs](../../guides/faq.md#does-record-health-check-work-in-single-currency-and-multi-currency-orgs)
-- [Create the demo scratch org: Currency mode](../../installation/create-rhc-scratch-org.md#currency-mode)

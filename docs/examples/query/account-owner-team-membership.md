@@ -1,14 +1,11 @@
 # 06 · Account Owner Is Included on the Account Team
 
 > [!NOTE]
-> On this page, use Query list-membership mode to compare the current Account Owner from a record formula with the User IDs returned by an Account Team query.
+> On this page, confirm that the current Account Owner has an Account Team Member record by comparing `OwnerId` with the User IDs returned by an Account Team query.
 >
 > **Setup reference**
 >
 > Use the [Query reference](../../reference/evaluation/query.md) for the complete setup fields and behavior.
-
-> [!IMPORTANT]
-> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
 
 ## Scenario
 
@@ -28,7 +25,7 @@ A sales manager is preparing an Account for an ownership handoff.
 | Skill | How this example teaches it |
 | --- | --- |
 | Build a list from related records | The query returns Account Team member user IDs. |
-| Resolve a value from the current Account | The value to find is the Account Owner ID. |
+| Read a value from the current Account | A formula supplies the Account Owner ID that the query results must contain. |
 | Verify list membership | The Check checks whether the Owner appears in the team-member list. |
 
 ## Why use Verify with a query
@@ -40,7 +37,7 @@ A sales manager is preparing an Account for an ownership handoff.
 | **Compare two queries** | Would require two query result sets when only the Account Team is queried; the value being searched for already exists on the Account. |
 | **Verify with Apex** | Would add code for list membership that Verify with a query already supports. |
 
-## Confirm the team policy first
+## Confirm your Account Team policy first
 
 This Check requires an explicit Account Team Member row for the owner. The Account Owner's record
 access does not replace that row. Use this pattern only when your organization has enabled Account
@@ -52,7 +49,40 @@ Teams and requires the owner to appear in the team list.
 
 - **Report:** A report can find ownership gaps across many Accounts. It does not place the alignment result beside the other handoff checks on the Account.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Enable Account Teams in Salesforce Setup.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that your Account ownership process requires a separate Account Team Member record for
+  the owner. The Account Owner already has access to the Account, but that access does not create an
+  Account Team Member record.
+- Confirm that intended users can read Account `OwnerId`, Account Team Member, and its `UserId`
+  field and can see the Account Team Members included in the ownership review.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Related Record Review |
+| **Record Health Check Set Name** | `Account_Related_Record_Review` |
+| **Object** | `Account` |
+| **Card Title** | Related Record Review |
+| **Card Subtitle** | Confirm the Account Owner appears on the Account Team. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
@@ -70,7 +100,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 | **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Compare as lists |
 | **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | List contains any |
 | **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Fail |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200` |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200`; raise it only if your Account Teams can contain more than 200 members |
 | **Formula Result Type** | [`FormulaResultType__c`](../../metadata/fields-check.md#formula-result-type-formularesulttype__c) | Text |
 
 ## Optional configuration
@@ -93,41 +123,27 @@ These values improve presentation. Change them for your process, or leave an opt
 | **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked only when Account Teams are enabled and your policy requires an explicit row for the owner |
 | **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
-This is the Query Evaluation Type's list-membership mode. **Source Query** stays blank because the
-value comes from `OwnerId` and the candidate list comes from **Comparison Query**. Expected-value,
-row-empty, Formula pass-condition, and Apex fields do not apply.
+This setup uses the Query Evaluation Type's list-membership option:
 
-## Check Set configuration
+- **Value to find in the list (formula)** reads `OwnerId` from the Account being checked.
+- **Comparison Query** returns the Account Team Member `UserId` values.
+- **List contains any** passes when one returned `UserId` matches `OwnerId`.
+- **Source Query** stays blank because the Account supplies the value to find and the Comparison
+  Query supplies the list to search.
 
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | `Related Record Review` |
-| **Card Subtitle** | Confirm the Account Owner appears on the Account Team. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+Expected-value, field-empty, Formula pass-condition, and Apex fields do not apply.
 
 ## What the user sees
 
-The record formula and Account Team query become these Framework outcomes and card values:
+The Account Owner formula and Account Team query produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | The Account Owner's User ID appears in the visible Account Team Member User IDs. |
 | **`FAIL`** | The visible Account Team is empty or does not include the Owner, so the card shows Needs attention with Warning severity. |
 | **`SKIPPED`** | This configuration has no applicability check or prerequisite and treats an empty Account Team as `FAIL`, so it does not produce `SKIPPED`. |
-| **Found** | Found shows the Account Owner ID resolved from the record formula. |
-| **Expected** | Expected represents the visible Account Team User IDs searched for that Owner ID. |
+| **Found** | Found shows the Account Owner ID read from `OwnerId`. Salesforce IDs are shown because no custom display text is configured. |
+| **Expected** | Expected shows a preview of the visible Account Team Member User IDs searched for the Owner ID. |
 | **`UNABLE_TO_EVALUATE`** | Missing access to `OwnerId`, `AccountTeamMember`, or `UserId` prevents a reliable comparison. |
 
 ## Security and access
@@ -136,16 +152,21 @@ Record Health Check compares the Account Owner with visible Account Team Members
 
 - The owner can appear missing when the running user cannot see the matching Account Team Member row.
 
-- Missing OwnerId, AccountTeamMember, or UserId permission can show **Unable to evaluate**.
+- Missing Read access to Account `OwnerId`, Account Team Member, or `UserId` can produce
+  `UNABLE_TO_EVALUATE`.
 
 Before activation, confirm the Check with users who have the Account Team visibility intended for ownership handoffs.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Remove the Account Owner from the Account Team. Run the Check and confirm Warning.
 2. Add the Owner as an Account Team Member with an approved team role. Rerun and confirm a pass.
 3. Change OwnerId to another active User who is not on the Account Team and confirm Warning.
-4. Repeat the failing test as a user with limited Account Team access and confirm the result follows your sharing model.
+4. Keep an owner membership row that an administrator can see but the intended user cannot. Run as
+   the intended user and confirm the result is based only on the Account Team Members that user can
+   see.
+5. In a sandbox-only permission test, remove Read access needed for the Account Team query and
+   confirm `UNABLE_TO_EVALUATE`. Restore access after the test.
 
 ## Failures and remedies
 

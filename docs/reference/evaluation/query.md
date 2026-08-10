@@ -1,11 +1,13 @@
-# Reference: Query
+# Verify records with a SOQL Query
 
 > [!NOTE]
-> On this page, learn how one Query Check turns SOQL rows into a count, value, or list and compares that result with the source best suited to the Salesforce decision.
+> On this page, configure one Query Check that turns SOQL results into a count, a single value, a
+> decision across several rows, or a list-membership check.
 >
 > **Reference**
 >
-> - This page defines Query Check modes, conditional fields, security, limits, and outcomes.
+> - This page defines the required fields, query-result choices, Expected Value choices, access
+>   behavior, limits, and outcomes.
 > - For every field's size, default, help text, and examples, use the [Check field reference](../../metadata/fields-check.md).
 
 ## Required Query settings
@@ -31,6 +33,33 @@
 For row modes, Source Query Field identifies the compared column. For a bare `COUNT()`, leave the
 field blank. For `SUM()`, `AVG()`, `MIN()`, or `MAX()`, give the aggregate an alias and enter that
 alias as Source Query Field.
+
+### Example: Compare one count
+
+To return PASS when an Account has at least one Contact:
+
+```sql
+SELECT COUNT()
+FROM Contact
+WHERE AccountId = {!record.Id}
+```
+
+Use **One row or aggregate**, **Greater than or equal**, **Fixed value**, and an Expected Value of
+`1`. Leave **Source Query Field** blank because bare `COUNT()` does not use an alias.
+
+### Example: Check several returned records
+
+To confirm that every open Opportunity has a Next Step:
+
+```sql
+SELECT NextStep
+FROM Opportunity
+WHERE AccountId = {!record.Id} AND IsClosed = FALSE
+```
+
+Set **Source Query Field** to `NextStep`, choose **Every record passes**, and use **Is not empty**.
+Then decide explicitly what should happen when the Account has no open Opportunities by setting
+**If Query Finds No Records**.
 
 ## Expected-value sources
 
@@ -61,37 +90,53 @@ and return the candidate list from Comparison Query. Source Query is blank in th
 
 | Setup field | API name | Behavior |
 | --- | --- | --- |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Explicitly returns Pass, Fail, Skip, or Unable to evaluate for multi-row/list modes |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Returns Pass, Fail, Skip, or Unable to evaluate when a query returns zero rows |
 | **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../metadata/fields-check.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignore the row, compare blank, or force no match |
 | **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | Defaults to `200`; maximum `2000` |
 
 No-row behavior is a business decision. Configure it explicitly where required; zero rows can mean
 pass, fail, skip, or unable depending on the Check.
 
+A bare `COUNT()` query always returns one aggregate row, even when the count is zero. **If Query
+Finds No Records** therefore does not replace a `COUNT()` value of zero. Compare that zero with the
+Expected Value normally.
+
+**If Field Value Is Empty** applies when a row exists but the selected field is `null`. That is
+different from the query returning no rows:
+
+- **Ignore the record** removes that row from a multi-row decision.
+- **Treat as blank** compares the value as empty text.
+- **Treat as not matching** makes that value fail to match another value, including another empty
+  value.
+
 ## SOQL templates and security
 
-- Use `{!record.Id}` and supported `{!record.FieldName}` tokens for current-record values. Append a typed substitute when a blank bind needs one, such as `{!record.AnnualRevenue fallback="0"}`.
+- Use `{!record.Id}` and supported `{!record.FieldName}` tokens for current-record values. Add a
+  fallback that matches the Salesforce field's data type when an empty value needs a substitute,
+  such as `{!record.AnnualRevenue fallback="0"}`.
 - Use field API names, not labels, in SOQL.
-- Evaluation runs in the current user's access context and query execution uses the framework's
-  user-mode security controls.
+- Queries run in user mode and enforce the running user's record, object, and field access.
 - A missing object, field, record, or relationship permission can return `UNABLE_TO_EVALUATE`.
-- Query text comes from trusted Custom Metadata; keep it in administrator configuration rather than building it from untrusted user input.
+- Store reviewed SOQL in Check Custom Metadata. Do not build Check SOQL from text entered by an end
+  user.
 - Keep the selected columns and row limit as small as the decision requires.
 
 ## Outcomes and testing
 
 `PASS` and `FAIL` are completed business decisions. `SKIPPED` means the Check did not apply or a
-dependency prevented it. Configuration, access, query-shape, or data-conversion problems return
-`UNABLE_TO_EVALUATE` with a stable Reason Code; unexpected evaluator failures return `ERROR`.
+dependency prevented it. Configuration, access, unsupported SOQL, or value-conversion problems
+return `UNABLE_TO_EVALUATE` with a stable Reason Code; unexpected Apex failures return `ERROR`.
 
 Test the pass, fail, no-row, empty-field, row-cap, access-denied, and every configured applicability
 or prerequisite path. For aggregate queries, also test null aggregate values and the exact alias.
 
 ## Compatibility and deprecation
 
-Query Checks return synchronous contract `1.0`; lifecycle events use an independent `1.0` contract.
-Additive result fields are compatible. Removing or renaming a field, status, operator, or reason
-requires a new contract version. No Query field is currently deprecated.
+The Apex response does not contain a Query-specific version number. Its global Apex types are the
+compile-time contract supplied by the installed package. Flow responses currently report contract
+`2.0`, and Platform Events report their separate contract `1.0`. Removing or renaming a public
+field, Status, operator, or Reason Code requires a new contract version. No Query field is currently
+deprecated.
 
 ## Related
 

@@ -1,37 +1,40 @@
 # Operate Record Health Check in production
 
 > [!NOTE]
-> On this page, run Record Health Check as an ongoing production service: keep event allocation
-> usage healthy, manage diagnostics access, back up configuration on a schedule, monitor
-> subscribers, and verify a release before and after it ships.
+> On this page, keep Record Health Check reliable after go-live by reviewing Platform Event usage,
+> limiting diagnostics, backing up Check configuration, monitoring receiving automation, and
+> retesting after Salesforce changes.
 
 Use this page after [Install and verify](../installation/install-and-verify.md) and
 [Configure Check Sets and Checks](configure-check-sets-and-checks.md) have already produced a working
-Check Set. This guide covers the ongoing operational discipline of running it in a live org, not the
-initial setup.
+Check Set. This guide covers the recurring work needed in a live org, not the initial setup.
 
-## Event enablement and allocation hygiene
+## Keep Platform Events off until automation needs them
 
-Lifecycle publication is off by default because it consumes the org's Platform Event allocation and
-can trigger subscriber automation. Treat every enabled publication as a standing cost, not a
-one-time switch.
+Leave **Publish User Run Event** and **Publish User Result Event** unchecked when users only need the
+results on the Lightning card or when Apex, Flow, or Batch Apex saves results directly. Publishing
+an event uses the org's Platform Event allocation and can start receiving automation every time a
+result is published.
+
+In this guide, **receiving automation** means a Platform Event-triggered Flow, Apex trigger, or
+external integration that listens for a Record Health Check event.
 
 | Practice | Why it matters |
 | --- | --- |
-| Enable **Publish User Run Event** and **Publish User Result Event** one Check Set or Check at a time | Isolates a volume spike to one source instead of the whole org |
-| Review org Platform Event allocation usage on a schedule, not only when a limit is hit | High-volume event allocations are shared across every publisher in the org, not owned by Record Health Check alone |
-| Keep **Publish Error Log Event** on unless a specific Check Set's errors are noisy and already handled elsewhere | It defaults on so Framework failures stay observable; opting out removes that visibility for that Check Set |
-| Audit which Check Sets and Checks have publication enabled at least quarterly | Configuration drifts as Checks are copied or repurposed; an old test Check with publication still on wastes allocation |
-| Confirm automatic page-load runs are not publishing | They cannot, by design, but a new integration built directly against the Lightning component's data should not assume otherwise |
+| Enable **Publish User Run Event** and **Publish User Result Event** for one Check Set or Check at a time | Makes it clear which configuration caused an unexpected increase in event volume. |
+| Review Platform Event usage regularly instead of waiting for a limit error | The allocation is shared by every Platform Event publisher in your org, not reserved for Record Health Check. |
+| Keep **Publish Error Log Event** on unless a specific Check Set's errors are already monitored another way | It defaults on so unexpected Record Health Check errors can be monitored. Turning it off removes that event for the Check Set. |
+| Review which Check Sets and Checks have publication enabled at least quarterly | A copied or retired Check can continue publishing events that no process uses. |
+| Confirm receiving automation handles `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` as intended | A completed Batch or Check Set can still contain business failures or results that could not be evaluated. |
 
 See [Lifecycle events: Admin checklist before enabling](../integration/lifecycle-events.md#admin-checklist-before-enabling)
-for the pre-enablement checklist and [Publication settings](../integration/lifecycle-events.md#publication-settings)
+for the pre-enablement checklist and [What controls publication](../integration/lifecycle-events.md#what-controls-publication)
 for exact field defaults.
 
-## Diagnostics on/off discipline
+## Turn diagnostics on only while investigating
 
-**Show Diagnostics** is a Check Set-wide switch, not a per-user or per-session toggle. Operate it
-like a temporary elevated-access grant:
+**Show Diagnostics** applies to the entire Check Set. It is not a temporary switch for only the
+administrator's current browser session:
 
 1. Enable **Show Diagnostics** on the specific Check Set being investigated, not broadly.
 2. Confirm only users holding **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) (via **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`))
@@ -45,39 +48,40 @@ for why both the Check Set setting and the Custom Permission must be true togeth
 [Troubleshoot Record Health Check](troubleshoot-with-show-diagnostics.md) for a full
 investigation workflow.
 
-## Configuration backup cadence
+## Back up Check configuration regularly
 
 Check Set and Check configuration is Custom Metadata, so it deploys and can be version-controlled
 like other metadata. Direct Setup edits can still leave a production org out of sync with source.
-Establish a cadence, not a one-time export:
+Use a repeatable schedule, not a one-time export:
 
 | Cadence | Action |
 | --- | --- |
 | Before every deployment | Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) record, per [Upgrade and revalidate: Before you start](../installation/upgrading.md#before-you-start) |
-| On a recurring schedule (for example, weekly) | Export current production configuration between deployments to find differences caused by direct Setup edits |
+| On a recurring schedule appropriate for your change volume, such as weekly | Export current production configuration between deployments to find direct Setup edits that are not yet in source control. |
 | Before any planned removal | Follow [Preserve the configuration first](../installation/uninstall-and-rollback.md#preserve-the-configuration-first) |
 | After any bulk Setup edit session | Re-export immediately so the backup reflects the edit, not the state before it |
 
-Store exports somewhere the release owner can restore from, and periodically prove that a restore
-actually works in a sandbox. A backup that has never been restored is not verified rollback
-evidence.
+Store the retrieved metadata in the repository your team uses for Salesforce changes. Periodically
+deploy the backup to a sandbox and confirm the Check Sets and Checks are restored correctly. A file
+that has never been restored is only an untested copy.
 
-## Subscriber monitoring
+## Monitor the Flow, Apex, or integration that receives events
 
-A publish failure or a subscriber failure never changes a completed health-check result, which
-means it can go unnoticed unless something is watching for it deliberately.
+An event can fail to publish, or it can publish successfully and then fail in the receiving Flow,
+Apex trigger, or integration. Neither failure changes the health result already returned to the
+caller, so monitor both sides separately.
 
 | What to monitor | Why |
 | --- | --- |
 | Publish failures in debug logs | Publishing is best-effort; a failed publish is logged as a warning and does not retry automatically |
-| Subscriber processing errors (Flow fault paths, Apex trigger exceptions) | Independent of publication success; a published event can still fail to process |
-| Duplicate or replayed event handling | Platform events are not delivered exactly once; confirm subscribers use `EventId__c` to keep follow-on work safe when the same event arrives again |
-| `Record_Health_Check_Log__e` access list | Confirm only the intended subscriber or integration user still has access, since this event carries restricted error detail |
-| Event volume trend per Check Set and Check | A sudden increase usually means a new caller, a changed run frequency, or a misconfigured automatic trigger upstream of a deliberate run |
+| Receiving automation errors, including Flow fault paths and Apex trigger exceptions | A Platform Event can publish successfully even when the process receiving it fails. |
+| Repeated or replayed events | Confirm receiving automation uses `EventId__c` so the same event does not create the same follow-up record or notification twice. |
+| `Record_Health_Check_Log__e` access list | Confirm only the users and integrations responsible for error monitoring have access because this event contains restricted troubleshooting details. |
+| Event volume by Check Set and Check | An increase can mean a new caller, a changed schedule, or automation starting the same health check more often than intended. |
 
-See [Lifecycle events: Subscriber failure guidance](../integration/lifecycle-events.md#subscriber-failure-guidance)
+See [Lifecycle events: missing or repeated events](../integration/lifecycle-events.md#when-an-event-is-missing-or-processed-twice)
 for symptom-to-cause mapping, and
-[Platform Event subscriptions: Shared subscriber checklist](../platform-events/README.md#shared-subscriber-checklist)
+[Platform Event receiving automation checklist](../platform-events/README.md#receiving-automation-checklist)
 for the subscriber-side implementation checklist.
 
 ## Production verification checklist
@@ -95,7 +99,7 @@ on the health check:
 - [ ] Confirm no Check Set has **Show Diagnostics** enabled outside an active investigation.
 - [ ] Confirm event publication settings match the intended production configuration, not a
       leftover testing state.
-- [ ] Exercise each Apex, Flow, and event-subscriber integration and confirm it still handles every
+- [ ] Exercise each Apex, Flow, and Platform Event integration and confirm it still handles every
       returned status.
 - [ ] Compare current Custom Metadata against the most recent backup and investigate any
       unexpected deletion, blank value, or inactive record.

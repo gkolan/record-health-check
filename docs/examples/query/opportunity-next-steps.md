@@ -8,7 +8,8 @@
 > Use the [Query reference](../../reference/evaluation/query.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
-> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
+> This example is not installed by the package. Create the Check Set and Check in your org by
+> following the steps below.
 
 ## Scenario
 
@@ -45,7 +46,36 @@ An account executive opens an Account before a pipeline discussion.
 
 - **Report:** A report can list missing values across the pipeline. It does not place the answer directly on the Account being prepared for review.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that intended users can read Opportunity, `AccountId`, `IsClosed`, and `NextStep` and can
+  see all Opportunities that should be included in pipeline review.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Related Record Review |
+| **Record Health Check Set Name** | `Account_Related_Record_Review` |
+| **Object** | `Account` |
+| **Card Title** | Related Record Review |
+| **Card Subtitle** | Confirm every open Opportunity has a Next Step. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
@@ -84,36 +114,16 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 Comparison Query, list, Formula, and Apex fields do not apply.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | `Related Record Review` |
-| **Card Subtitle** | Confirm open Opportunities have a Next Step. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
-
 ## What the user sees
 
-The query rows and no-row behavior become these Framework outcomes and card values:
+The query rows and no-record behavior produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | Every visible open Opportunity has Next Step populated. |
 | **`FAIL`** | At least one visible open Opportunity has blank Next Step, so the card shows Needs attention with Warning severity. |
 | **`SKIPPED`** | An Account with no open Opportunities is skipped because **No rows result** is **Skipped**. |
-| **Found** | Found identifies the returned Next Step value or empty value that determined the result. |
+| **Found** | For **Every record passes**, Found summarizes the result, such as `1 of 5 Opportunities did not pass`; it does not list every Next Step. |
 | **Expected** | Expected shows that Next Step must not be empty. |
 
 ## Security and access
@@ -126,7 +136,7 @@ Record Health Check reads open Opportunities and their Next Step with the runnin
 
 Before activation, repeat the test as a user who can see only part of the Account's pipeline.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Add an open Opportunity with Next Step blank. Confirm Warning.
 2. Enter Next Step on every open Opportunity, rerun, and confirm a pass.

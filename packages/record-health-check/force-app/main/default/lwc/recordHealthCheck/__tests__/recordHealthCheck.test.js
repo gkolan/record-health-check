@@ -335,7 +335,29 @@ describe("c-record-health-check — load and error states", () => {
     expect(hint.textContent).toContain("the first 25 of 40 checks");
   });
 
-  it("shows the pre-run hint above the rows in AllAtOnce mode too", async () => {
+  it("uses the configured Run label in the pre-run hint", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ runButtonLabel: "Evaluate account health" })
+    );
+    await appendAndLoad(element);
+
+    const hint = element.shadowRoot.querySelector(".rhc-pre-run-hint");
+    expect(hint.textContent).toContain(
+      "Click Evaluate account health to evaluate 2 checks."
+    );
+  });
+
+  it("refers to the icon when the Check Set uses an icon-only action", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ runButtonDisplay: "ICON_ONLY" })
+    );
+    await appendAndLoad(element);
+
+    const hint = element.shadowRoot.querySelector(".rhc-pre-run-hint");
+    expect(hint.textContent).toContain("Click the icon to evaluate 2 checks.");
+  });
+
+  it("does not reveal rule names before a Manual AllAtOnce run", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ revealMode: "AllAtOnce" })
     );
@@ -344,10 +366,7 @@ describe("c-record-health-check — load and error states", () => {
     const hint = element.shadowRoot.querySelector(".rhc-pre-run-hint");
     expect(hint).not.toBeNull();
     expect(hint.textContent).toContain("2 checks");
-    // Rows are visible up-front in this mode, so the hint sits alongside them.
-    expect(
-      element.shadowRoot.querySelectorAll(".rhc-list li").length
-    ).toBeGreaterThan(0);
+    expect(element.shadowRoot.querySelectorAll(".rhc-list li")).toHaveLength(0);
   });
 
   it("shows error banner when getCheckDefinitions rejects with JSON body", async () => {
@@ -386,7 +405,28 @@ describe("c-record-health-check — load and error states", () => {
     expect(completeRun).not.toHaveBeenCalled();
   });
 
-  it("shows first-25 badge when checksOmittedByLimit is true", async () => {
+  it("describes an in-progress capped run when the automatic action is hidden", async () => {
+    const pending = deferred();
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        runButtonDisplay: "HIDE",
+        checksOmittedByLimit: true,
+        totalAvailableCheckCount: 30
+      })
+    );
+    evaluateCheck.mockReturnValue(pending.promise);
+    await appendAndLoad(element);
+
+    const hint = element.shadowRoot.querySelector(".rhc-pre-run-hint");
+    expect(hint).not.toBeNull();
+    expect(hint.textContent).toContain("Evaluating the first 25 of 30 checks.");
+
+    pending.resolve(PASS_RESULT("Check_A"));
+    await flushPromises();
+  });
+
+  it("does not duplicate the limit instruction in a warning badge", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         checksOmittedByLimit: true,
@@ -395,10 +435,9 @@ describe("c-record-health-check — load and error states", () => {
     );
     await appendAndLoad(element);
 
-    const badge = element.shadowRoot.querySelector(".rhc-check-pill--warn");
-    expect(badge).not.toBeNull();
-    expect(badge.label).toBe("First 25 of 40 shown");
-    expect(badge.title).toContain("first 25 of 40");
+    expect(
+      element.shadowRoot.querySelector(".rhc-check-pill--warn")
+    ).toBeNull();
   });
 
   it("shows a load error when a definition has a duplicate developerName", async () => {
@@ -529,10 +568,10 @@ describe("c-record-health-check — load and error states", () => {
     expect(banner).not.toBeNull();
     expect(banner.textContent).toContain("Health Check Needs Setup");
     expect(banner.textContent).toContain(
-      "Record Health Check is not ready on this page yet"
+      "No Check Set is selected for this Record Health Check component"
     );
     expect(banner.textContent).toContain("Ask your Salesforce admin");
-    expect(banner.textContent).toContain("choose a Check Set for this page");
+    expect(banner.textContent).toContain("select an existing active Check Set");
     expect(getCheckSetAvailabilityForRecord).toHaveBeenCalledWith({
       recordId: element.recordId
     });
@@ -550,7 +589,7 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner).not.toBeNull();
     expect(banner.textContent).toContain(
-      "Record Health Check is not ready on this page yet"
+      "Check Sets exist for this object, but none of them are active"
     );
     expect(banner.textContent).toContain(
       "activate a Check Set for this object"
@@ -569,9 +608,11 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner).not.toBeNull();
     expect(banner.textContent).toContain(
-      "Record Health Check is not ready on this page yet"
+      "No Check Set has been configured for this object's records"
     );
-    expect(banner.textContent).toContain("set up a Check Set for this object");
+    expect(banner.textContent).toContain(
+      "create and activate a Check Set for this object"
+    );
     expect(getCheckDefinitions).not.toHaveBeenCalled();
   });
 
@@ -592,9 +633,32 @@ describe("c-record-health-check — load and error states", () => {
     expect(banner.textContent).toContain("Health Check Needs Setup");
     expect(banner.textContent).toContain("no active checks");
     expect(banner.textContent).toContain("Ask your Salesforce admin");
-    expect(banner.textContent).toContain("add an active Check");
+    expect(banner.textContent).toContain("add or activate at least one Check");
     expect(icon.iconName).toBe("utility:setup");
     expect(icon.alternativeText).toBe("Setup required");
+  });
+
+  it.each([
+    ["CONFIG_NOT_FOUND", "The selected Check Set was not found."],
+    ["CONFIG_INACTIVE", "The selected Check Set is inactive."],
+    ["OBJECT_MISMATCH", "The Check Set is for a different object."],
+    ["NO_ACTIVE_CHECKS", "The Check Set has no active Checks."],
+    ["NO_RECORD_CONTEXT", "A record page context is required."],
+    ["INVALID_CONFIG", "Card Title is required."]
+  ])("renders complete setup guidance for %s", async (reasonCode, message) => {
+    getCheckDefinitions.mockRejectedValue({
+      body: { message: JSON.stringify({ reasonCode, message }) }
+    });
+
+    await appendAndLoad(element);
+
+    const banner = element.shadowRoot.querySelector(".rhc-error-banner");
+    expect(banner.textContent).toContain("Health Check Needs Setup");
+    expect(banner.textContent).toContain(message);
+    expect(banner.textContent).toContain("Ask your Salesforce admin");
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__hint").textContent
+    ).not.toHaveLength(0);
   });
 });
 
@@ -758,11 +822,15 @@ describe("c-record-health-check — run orchestration", () => {
   });
 
   it("renders label-only chrome with custom Run and Rerun labels", async () => {
+    const runLabel =
+      "Run the complete Account profile readiness evaluation for this record now";
+    const rerunLabel =
+      "Run the complete Account profile readiness evaluation for this record again";
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         runButtonDisplay: "LABEL_ONLY",
-        runButtonLabel: "Evaluate",
-        rerunButtonLabel: "Check again",
+        runButtonLabel: runLabel,
+        rerunButtonLabel: rerunLabel,
         runButtonIcon: "utility:refresh"
       })
     );
@@ -770,13 +838,16 @@ describe("c-record-health-check — run orchestration", () => {
     await appendAndLoad(element);
 
     let btn = element.shadowRoot.querySelector(".rhc-action-button");
-    expect(btn.textContent.trim()).toBe("Evaluate");
+    expect(btn.textContent.trim()).toBe(runLabel);
+    expect(btn.querySelector(".rhc-action-button__label")).not.toBeNull();
+    expect(btn.title).toContain(runLabel);
     expect(btn.querySelector("lightning-icon")).toBeNull();
     expect(btn.querySelector(".rhc-action-button__play")).toBeNull();
 
     await clickRun(element);
     btn = element.shadowRoot.querySelector(".rhc-action-button");
-    expect(btn.textContent.trim()).toBe("Check again");
+    expect(btn.textContent.trim()).toBe(rerunLabel);
+    expect(btn.title).toContain(rerunLabel);
   });
 
   it("renders compact icon-only chrome with a custom accessible name", async () => {
@@ -813,29 +884,10 @@ describe("c-record-health-check — run orchestration", () => {
     expect(btn.getAttribute("aria-label")).toBe("Run");
   });
 
-  it("lets an App Builder override re-show a hidden Automatic control", async () => {
-    element.runButtonDisplay = "LABEL_ONLY";
+  it("rejects a hidden Manual Check Set returned by the server", async () => {
     getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({
-        triggerMode: "Automatic",
-        runButtonDisplay: "HIDE"
-      })
+      makeDefinitions({ runButtonDisplay: "HIDE" })
     );
-    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
-    await appendAndLoad(element);
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-    await flushPromises();
-
-    const btn = element.shadowRoot.querySelector(".rhc-action-button");
-    expect(btn).not.toBeNull();
-    expect(btn.textContent.trim()).toBe("Rerun");
-    expect(btn.querySelector(".rhc-action-button__play")).toBeNull();
-  });
-
-  it("rejects an App Builder Hide override for a Manual Check Set", async () => {
-    element.runButtonDisplay = "HIDE";
-    getCheckDefinitions.mockResolvedValue(makeDefinitions());
     await appendAndLoad(element);
 
     expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
@@ -3770,14 +3822,14 @@ describe("summary statistics — System Error labels", () => {
 
 describe("healthCheckDiagnostics — complete view-model decisions", () => {
   it.each([
-    ["CONFIG_NOT_FOUND", "choose a Check Set for this page"],
-    ["SETUP_REQUIRED", "choose a Check Set for this page"],
+    ["CONFIG_NOT_FOUND", "select an existing active Check Set"],
+    ["SETUP_REQUIRED", "select an existing active Check Set"],
     ["INACTIVE_CHECK_SETS_ONLY", "activate a Check Set for this object"],
-    ["NO_ACTIVE_CHECK_SETS", "set up a Check Set for this object"],
+    ["NO_ACTIVE_CHECK_SETS", "create and activate a Check Set"],
     ["CONFIG_INACTIVE", "activate this Check Set"],
-    ["OBJECT_MISMATCH", "choose a Check Set for this object"],
-    ["NO_ACTIVE_CHECKS", "add an active Check"],
-    ["NO_RECORD_CONTEXT", "place this on a record page"],
+    ["OBJECT_MISMATCH", "Record Object API Name matches"],
+    ["NO_ACTIVE_CHECKS", "add or activate at least one Check"],
+    ["NO_RECORD_CONTEXT", "place this component on a supported"],
     ["INVALID_CONFIG", "review this Check Set in Setup"]
   ])("maps %s to administrator guidance", (reasonCode, expectedText) => {
     expect(setupErrorHint(reasonCode)).toContain(expectedText);

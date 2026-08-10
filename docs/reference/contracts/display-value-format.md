@@ -1,14 +1,13 @@
-# Reference: Display value format
+# Display Found and Expected values
 
 > [!NOTE]
-> On this page, learn how Record Health Check formats Found and Expected values for display: the
-> **Display: Value Format** choices on a Check, and the automatic handling of blanks, numbers,
-> currency, Booleans, dates, picklist labels, multi-select picklists, and list previews.
+> Use this page to choose **Display: Value Format** on a Check and understand exactly how Record
+> Health Check displays blanks, numbers, currency, checkboxes, dates, picklists, and lists.
 >
 > **Reference**
 >
-> - This page is the source of truth for readable Found and Expected formatting on the card and in
->   evaluator results.
+> - These rules apply to Found and Expected values on the Lightning card and in display content
+>   returned by Apex or Flow.
 > - Formatting is implemented by
 >   [`RecordHealthCheckDisplayFormat`](../apex/shared-services.md#recordhealthcheckdisplayformat),
 >   reached through
@@ -16,15 +15,15 @@
 >   Merge-token substitution uses a different path; see
 >   [Reference: Merge tokens](merge-tokens.md).
 
-When any Evaluation Type finishes, the Framework can turn typed Found and Expected values into
-short display text for the card chips. The goal is readable comparison values without changing how
-the Check decides pass or fail. Apex plugins return `RecordHealthCheckValue` objects through
-`RecordHealthCheckOutcome`; they do not author rendered strings or bypass the shared formatter.
+After an Evaluation Type finishes, Record Health Check turns Found and Expected values into short,
+readable text for the Lightning card. This formatting cannot change PASS or FAIL. A custom Apex
+Check returns values through `RecordHealthCheckValue`; the package formats them in the same way as
+values from Formula and Query Checks.
 
 ## Choosing a format
 
 **Display: Value Format** (`DisplayValueFormat__c`) on the Check sets how both Found and Expected are
-written. Leave it on **Auto** and the Framework works the format out from the field definition and
+written. Leave it on **Auto** and Record Health Check chooses the format from the field definition and
 value type. Name a format when the business meaning requires a specific presentation.
 
 | Format | What it does | Example |
@@ -36,19 +35,19 @@ value type. Name a format when the business meaning requires a specific presenta
 | Ratio as Percent | Multiplies a ratio by 100 for display, then adds a percent sign | `0.75` → `75%` |
 | Checkbox | Yes or No | `true` or `1` → `Yes`; `false` or `0` → `No` |
 | Date | Locale date | `2026-07-04` → `7/4/2026` |
-| Date/Time | Locale date and time | → `7/4/2026, 5:30 PM` |
+| Date/Time | Locale date and time | a typed July 4, 2026 5:30 PM value → `7/4/2026, 5:30 PM` for an English (US) user |
 | Text | The value exactly as written | `true` → `true` |
 | Raw | The value exactly as written | `0012345` → `0012345` |
 
 One format covers both sides of the comparison, so Found and Expected always read in the same units.
 A Check that names Currency shows `$70,000.00` against `at least $50,000.00`, never one of each.
 
-Text and Raw both return the value as written and neither humanizes anything. They are kept apart
-so a Check records why the author chose it: Text for names and free
-text, Raw for identifiers, external keys, and codes.
+Text and Raw both return the value as written. They are separate choices so the Check records the
+reason for the decision: use Text for names and ordinary wording, and Raw for identifiers, external
+keys, and codes.
 
-`PERCENT` follows Salesforce Percent-field semantics and does not multiply. `RATIO_PERCENT` is the
-explicit fraction format; it does not clamp values, so `1.4` renders as `140%`. The format applies
+`PERCENT` follows Salesforce Percent-field behavior and does not multiply. `RATIO_PERCENT` is the
+explicit fraction format; it does not restrict values to 100%, so `1.4` displays as `140%`. The format applies
 to list entries and to the operator phrase as well, and it never affects whether
 a Check passes or fails. Pass and fail are decided from the raw typed values before any of this runs.
 
@@ -87,7 +86,7 @@ Values are not wrapped in quotes. The card chip already separates them from surr
 
 ## Auto: The field's own definition
 
-On **Auto**, a queried field that has a display shape of its own decides the format:
+On **Auto**, these Salesforce field types determine their own format:
 
 | Field type in Setup | Renders as | Example |
 | --- | --- | --- |
@@ -97,8 +96,8 @@ On **Auto**, a queried field that has a display shape of its own decides the for
 | Multi-select picklist | Visible labels in stored order | `Hot;Warm` → `Hot, Warm` |
 
 Naming a format on the Check always wins over the field definition, so Number on a Currency field
-drops the symbol as asked. Field types without a shape of their own - Number, Text, Checkbox, Date,
-Date/Time - fall through to the type checks below.
+drops the symbol as asked. Other field types - Number, Text, Checkbox, Date, and Date/Time - use the
+data type rules below.
 
 Picklist label resolution uses the field's global definition. It works for dependent picklists too;
 record-type filtering does not change the label for a stored value. If a stored or inactive value is
@@ -115,8 +114,8 @@ field behind it, so it stays on the type checks; name a format on the Check when
 
 ## Auto: Typed values
 
-When there is no field definition to read, and the Framework still has the Apex type, it formats
-from that type:
+When there is no field definition to read and Record Health Check still has the Apex data type, it
+formats from that type:
 
 | Type | Display check | Example |
 | --- | --- | --- |
@@ -139,7 +138,8 @@ Display: Value Format to Number.
 
 ## Auto: Text values without a retained type
 
-Fixed Custom Metadata operands and other flattened strings are recognized in this order:
+Fixed Expected Values from Custom Metadata and other values stored as text are recognized in this
+order:
 
 | Shape | Display check | Example |
 | --- | --- | --- |
@@ -232,9 +232,9 @@ entry carries the currency of the row it came from.
 
 - Pass and fail decisions still use the raw typed values and operators. No Display: Value Format
   choice can move a Check between pass and fail.
-- Ordinary text, Salesforce Ids, postal codes, phone-style strings, and other non-matching shapes
+- Ordinary text, Salesforce IDs, postal codes, phone-style strings, and other values that do not match a format
   keep their exact characters.
-- Administrator-authored **Display: Found Text** and **Display: Expected Text** templates are merge
+- **Display: Found Text** and **Display: Expected Text** written by an administrator are merge
   token templates; they are not re-run through this formatter after tokens resolve. They read the
   already-formatted values through `{!rhcResult.foundValue}` and `{!rhcResult.expectedValue}`, so a
   Check can quote a formatted amount inside its own wording.
@@ -251,7 +251,7 @@ Prefer returning the typed amount from a display formula and choosing **Currency
 text such as `"$" & TEXT(AnnualRevenue)` inside the formula freezes one symbol and number style,
 cannot follow the running user's locale, and cannot distinguish currencies in a multi-currency org.
 
-## Deliberate boundaries
+## Current limits
 
 | Boundary | What happens today |
 | --- | --- |
@@ -265,4 +265,4 @@ cannot follow the running user's locale, and cannot distinguish currencies in a 
 - [Reference: Query](../evaluation/query.md): Found and Expected on Query Checks
 - [Reference: Formula](../evaluation/formula.md): optional Found and Expected display formulas
 - [Reference: Compare two queries](../evaluation/compare-two-queries.md): two-sided Found and Expected
-- [Reference: Apex](../evaluation/apex-check-contract.md): plugin-authored Found and Expected strings
+- [Apex Check contract](../evaluation/apex-check-contract.md): Found and Expected values returned by a custom Apex Check

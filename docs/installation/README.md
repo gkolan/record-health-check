@@ -4,17 +4,18 @@
 > On this page, choose the installation, demo, upgrade, or removal path that matches the outcome you
 > need in your Salesforce org.
 
-Start with the outcome you need. Installing into an org you already use and verifying a prepared
-demo are different journeys: one proves the Framework with your environment and records; the other
-proves a known experience in a separate scratch org.
+Start with the outcome you need. Most administrators should install the package in a sandbox, assign
+the installed permission sets, and test with records that represent their own business process. The
+demo scratch-org path is for evaluators or contributors who have Salesforce CLI and Dev Hub access
+and want a separate disposable org with prepared data.
 
 ## Choose your path
 
 | Your starting point | Follow this path | What you will accomplish |
 | --- | --- | --- |
 | I want to understand the experience before installing | [How Record Health Check works](how-it-works.md) | Understand Check Sets, Checks, outcomes, and when advisory guidance fits |
-| I want to add the Framework to an org I already use | [Install and verify in your org](install-and-verify.md) | Install the package, assign access, place the card, and verify it with that org's records |
-| I want to evaluate known data and outcomes separately | [Deploy to a demo scratch org](create-rhc-scratch-org.md) | Create a disposable prepared org and confirm every expected Demo result |
+| I want to add Record Health Check to a sandbox or another org I already use | [Install and verify in your org](install-and-verify.md) | Install the package, assign access, place the card, and verify it with that org's records |
+| I have Salesforce CLI and Dev Hub access and want a separate prepared demo | [Deploy to a demo scratch org](create-rhc-scratch-org.md) | Create a disposable org with prepared records and confirm the expected demo results |
 | I want to create a check for my organization | [Create your first Check](create-your-first-check.md) | Build one Account Check and test both attention and passing states |
 | Record Health Check is already installed | [Upgrade and revalidate](upgrading.md) | Protect the configuration and prove the user experience still works after an upgrade |
 | I need to remove Record Health Check | [Uninstall and rollback](uninstall-and-rollback.md) | Remove dependencies in a safe order and confirm the org is clean |
@@ -27,8 +28,9 @@ proves a known experience in a separate scratch org.
 | 2 | [Install and verify in your org](install-and-verify.md) | The package, access, page placement, and a working result against your records |
 | 3 | [Create your first Check](create-your-first-check.md) | How to turn one familiar business question into useful guidance |
 
-If you prefer to see the complete prepared experience before configuring anything, start with
-[Deploy to a demo scratch org](create-rhc-scratch-org.md).
+If you have Salesforce CLI and Dev Hub access and prefer a separate prepared experience, start with
+[Deploy to a demo scratch org](create-rhc-scratch-org.md). Otherwise, use a sandbox you already
+manage.
 
 ## Upgrade sequence
 

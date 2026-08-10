@@ -1,16 +1,17 @@
 # Flow actions
 
 > [!NOTE]
-> On this page, build a Flow that runs the right scope of health check, branches on its Framework Status, and keeps evaluation faults separate from ordinary readiness outcomes.
+> On this page, build a Flow that runs one Check Set or Check, branches on the returned Status, and
+> keeps an unhealthy record separate from a Flow input, access, or transaction problem.
 
 Use the packaged Flow actions to evaluate a Salesforce record without writing Apex. A Flow can run
 one Check or a complete Check Set, then use a Decision element to respond to the result.
 
 Start with the Check Set action unless your Flow intentionally needs only one specific Check.
 
-Salesforce can bulk an invocable action into one transaction. Each packaged action accepts at most
-200 request records per call; the package does not expose an Apex constant for this limit. The Framework's
-25-Check cap still applies to the health-check work inside each request.
+Salesforce can send a collection of Flow inputs to one action call. Each packaged action accepts at
+most 200 inputs, using no more than ten distinct Check-or-Check-Set and Event Publication
+combinations. A Check Set evaluates at most the first 25 active Checks in Evaluation Order.
 
 ## Choose the right Flow action
 
@@ -28,39 +29,14 @@ Salesforce can bulk an invocable action into one transaction. Each packaged acti
 This pattern runs a Check Set for one record and sends healthy and unhealthy results down different
 Flow paths.
 
-### Runnable demo sample
-
-For a contributor demonstration org with integration fixtures, use `npm run dev:setup`, then run:
-
-```bash
-cd packages/record-health-check
-
-sf apex run \
-  --file integration-tests/scripts/demo_apex_api.apex \
-  --target-org my-scratch-org
-sf apex run \
-  --file integration-tests/scripts/demo_flow_actions.apex \
-  --target-org my-scratch-org
-```
-
-For a subscriber demo org that installed the promoted package, use `npm run setup` instead. That path
-does not deploy `integration-tests` fixtures.
-
-The first script creates a reusable **Record Health Check API Demo** Account. The second invokes the
-same two invocable methods Flow Builder calls and prints their Status, counts, Reason Code, and
-contract version. To demonstrate visually in Flow Builder, create an autolaunched Flow with an
-Account record-ID input, add **Run Record Health Check Set**, use
-`Account_Data_Quality` as **Check Set API Name**, and branch on the returned Status. Add a second
-Action using **Run Record Health Check** and `Account_DQ_BillingCity` to show a predictable
-`PASS` result.
-
 ### Before you begin
 
 - Create or install an active Check Set with at least one active Check.
 - Assign the Flow's running user the **Record Health Check User** Permission Set, or equivalent
   access to the packaged Flow action and `RecordHealthCheck` Apex class.
-- Query or copy the Check Set's exact **Qualified API Name**. It can be `Account_Readiness`,
-  `rhc__Account_Readiness`, or another package's qualified value, depending on who owns the record.
+- Copy the Check Set's exact **Qualified API Name** from Setup. An administrator-created Check Set
+  in your org might be `Account_Readiness`. A Check Set included with the installed package might
+  be `rhc__Example_Account_Profile_Readiness`. Do not add or remove `rhc__` yourself.
 - Make the current record ID available to the Flow.
 
 ### Step 1: Add the action
@@ -70,34 +46,48 @@ Action using **Run Record Health Check** and `Account_DQ_BillingCity` to show a 
 3. Select **Run Record Health Check Set**.
 4. Set **Check Set Qualified API Name** to the exact `QualifiedApiName` returned by Salesforce.
 5. Set **Record ID** to the ID of the record you want to evaluate.
+6. Set **Event Publication** to `NONE`. The Flow already receives the result directly, so it does
+   not need a Platform Event unless a separate process must also receive the result.
 
-### Step 2: Add a Decision element
+### Step 2: Check whether the action succeeded
 
-Add a Decision element after the action and create explicit branches for the returned **Status**.
+Add a Decision element immediately after the action:
+
+- When **Success** is `false`, route by **Error Type** and record the safe **Error Message** for an
+  administrator.
+- When **Success** is `true`, continue to the Status Decision described next.
+
+Do not read **Status** or the count outputs when **Success** is false because the action did not
+produce a health result for that input.
+
+### Step 3: Branch on Status
+
+After the **Success = true** path, add another Decision element with explicit branches for the
+returned **Status**.
 
 | Decision outcome | Status | Recommended use |
 | --- | --- | --- |
 | Healthy | `PASS` | Continue the normal business process |
 | Needs attention | `FAIL` | Guide the user or automation to review the unhealthy conditions |
 | Not applicable | `SKIPPED` | Continue only when skipping is acceptable for this process |
-| Could not determine | `UNABLE_TO_EVALUATE` | Route for configuration, access, dependency, or data review |
+| Could not determine | `UNABLE_TO_EVALUATE` | Route for configuration, access, required data, or Salesforce limit review |
 | System problem | `ERROR` | Route for technical investigation |
 
 Route `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` separately.
 `UNABLE_TO_EVALUATE` and `ERROR` need their own handling because neither confirms that the record is
 healthy.
 
-### Step 3: Handle recoverable errors and connect the fault path
+### Step 4: Connect the fault path
 
 Connect the action's fault connector. Returned statuses and Flow faults are different:
 
 | Result | How Flow receives it | How to handle it |
 | --- | --- | --- |
 | `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR` | Normal action output | Use the Decision element |
-| Invalid request or exceeded request limit | Normal action output with **Success** false | Branch on **Error Type** and inspect **Error Message** |
+| Missing authorization, invalid input, too many inputs or groups, response too large, or another recoverable execution problem | Normal action output with **Success** false | Branch on **Error Type** and inspect **Error Message** |
 | Unhandled platform or transaction failure | Flow fault | Use the fault connector |
 
-### Step 4: Test the Flow
+### Step 5: Test the Flow
 
 Test with records that produce each status your Flow handles. Also test using the same user context
 and access model that the activated Flow will use.
@@ -123,16 +113,16 @@ This action runs every active Check in one Check Set. Its Apex implementation is
 
 | Input | Required | What to provide |
 | --- | --- | --- |
-| **Check Set Qualified API Name** | Yes | Check Set `QualifiedApiName`, such as `rhc__Account_Readiness` in a namespaced install |
+| **Check Set Qualified API Name** | Yes | Exact value copied from Setup, such as `Account_Readiness` for an administrator-created Check Set or `rhc__Example_Account_Profile_Readiness` for an installed example |
 | **Record ID** | Yes | ID of the Salesforce record to evaluate |
-| **Event Publication** | Yes | Choose `NONE`, `ACTIONABLE`, or `ALL`. Use `NONE` when the Flow must not publish lifecycle events. |
+| **Event Publication** | Yes | Use `NONE` for no Platform Events, `ACTIONABLE` for only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, or `ALL` for every result, including `PASS` and `SKIPPED`. |
 
 #### Outputs
 
 | Output | What it tells you | Typical Flow use |
 | --- | --- | --- |
 | **Success** | Whether this input produced an evaluation response | Branch before reading Status or counts |
-| **Error Type** | `VALIDATION`, `LIMIT`, or `EXECUTION` for a recoverable input failure | Route stable error categories without parsing text |
+| **Error Type** | `AUTHORIZATION`, `VALIDATION`, `LIMIT`, or `EXECUTION` for a recoverable action problem | Route stable error categories without parsing text |
 | **Error Message** | Safe explanation when Success is false | Log or display administrator guidance |
 | **Status** | Overall Check Set result | Branch in a Decision element |
 | **Passed Count** | Number of Checks that passed | Display or record a summary |
@@ -140,7 +130,7 @@ This action runs every active Check in one Check Set. Its Apex implementation is
 | **Skipped Count** | Number of Checks that did not apply or did not run | Identify intentionally omitted checks |
 | **Unable Count** | Number of Checks that could not reach a reliable conclusion | Route for configuration or access review |
 | **System Error Count** | Number of Checks with unexpected execution problems | Route for technical investigation |
-| **Result JSON** | Complete serialized `RecordHealthCheckResponse` for the input record | Use only when downstream automation needs Check-level fields not exposed separately |
+| **Result JSON** | Complete serialized `RecordHealthCheckResponse` for the input record | Use only when later Flow elements or another integration need Check-level fields not exposed separately |
 | **Contract Version** | Version carried by the returned response | Preserve and inspect it when a long-lived integration stores or forwards the response |
 
 The overall Set status reflects the most serious contained result:
@@ -160,20 +150,20 @@ This action runs one Check. Its Apex implementation is `RecordHealthCheckRunChec
 
 | Input | Required | What to provide |
 | --- | --- | --- |
-| **Check Qualified API Name** | Yes | Check `QualifiedApiName`, such as `rhc__Billing_City_Is_Populated` in a namespaced install |
+| **Check Qualified API Name** | Yes | Exact value copied from Setup, such as `Billing_City_Is_Populated` for an administrator-created Check or `rhc__Example_Profile_Billing_Address` for an installed example |
 | **Record ID** | Yes | ID of the Salesforce record to evaluate |
-| **Event Publication** | Yes | Choose `NONE`, `ACTIONABLE`, or `ALL`. Use `NONE` when the Flow must not publish lifecycle events. |
+| **Event Publication** | Yes | Use `NONE` for no Platform Events, `ACTIONABLE` for only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, or `ALL` for every result, including `PASS` and `SKIPPED`. |
 
 #### Outputs
 
 | Output | What it tells you | Typical Flow use |
 | --- | --- | --- |
 | **Success** | Whether this input produced an evaluation response | Branch before reading Status or Reason Code |
-| **Error Type** | `VALIDATION`, `LIMIT`, or `EXECUTION` for a recoverable input failure | Route stable error categories without parsing text |
+| **Error Type** | `AUTHORIZATION`, `VALIDATION`, `LIMIT`, or `EXECUTION` for a recoverable action problem | Route stable error categories without parsing text |
 | **Error Message** | Safe explanation when Success is false | Log or display administrator guidance |
 | **Status** | `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR` | Branch in a Decision element |
 | **Reason Code** | Stable technical reason for a non-normal result | Route or log a known condition without reading message text |
-| **Result JSON** | Complete serialized `RecordHealthCheckResultItem` | Use when downstream automation needs additional result fields |
+| **Result JSON** | Complete serialized `RecordHealthCheckResultItem` | Use when later Flow elements or another integration need additional result fields |
 | **Contract Version** | Version carried by the returned response | Preserve and inspect it when a long-lived integration stores or forwards the response |
 
 The success value is `PASS`, not `SUCCESS`.
@@ -185,7 +175,7 @@ The success value is `PASS`, not `SUCCESS`.
 | `PASS` | The configured health condition is satisfied | No |
 | `FAIL` | Evaluation completed and found an unhealthy business condition | No |
 | `SKIPPED` | The Check intentionally did not run because of applicability, dependency, or stop behavior | No |
-| `UNABLE_TO_EVALUATE` | Configuration, access, dependency, or available data prevented a reliable conclusion | No |
+| `UNABLE_TO_EVALUATE` | Configuration, access, required data, or a Salesforce limit prevented a reliable conclusion | No |
 | `ERROR` | An unexpected evaluator or platform problem occurred | No; route the returned status, then investigate |
 
 Use **Reason Code** or the documented count outputs for automation. Branch automation on Status,
@@ -214,13 +204,15 @@ call.
 | Limit | Maximum | What to do when you exceed it |
 | --- | ---: | --- |
 | Flow requests | 200 | Split the collection across transactions |
+| Distinct Check-or-Check-Set and Event Publication combinations in one action call | 10 | Use fewer Check identities or publication choices in the call, or split the work across transactions. |
+| Combined Result JSON returned by one action call | 2,000,000 characters | Use fewer records or a smaller Check Set per transaction. |
 
-The 200-request cap limits the incoming Flow collection. Every Check can consume SOQL, formula
-evaluation, Apex, and heap resources inside the same Flow transaction. Choose a smaller collection
-or Check Set when the Flow transaction cannot support the expanded work.
+The 200-input cap does not guarantee that every collection of 200 will fit in one Salesforce
+transaction. Each Check can use query, formula, Apex CPU-time, and memory limits. Use fewer records
+or a smaller Check Set when realistic testing reaches one of those limits.
 
-The action runs inside the current Flow transaction. A later fault or rollback also rolls back work
-associated with that transaction and prevents Publish After Commit events from being delivered.
+The action runs inside the current Flow transaction. If later Flow work causes Salesforce to roll
+back that transaction, Platform Events configured to publish after commit are not delivered.
 
 ## Troubleshoot faults and unexpected results
 
@@ -235,29 +227,36 @@ associated with that transaction and prevents Publish After Commit events from b
 Use the [reason-code reference](../reference/contracts/reason-codes.md) when the action returns a code you do
 not recognize.
 
-## Optional: Publish lifecycle events
+## Optional: Publish Platform Events
 
-The synchronous Flow result is enough for most decisions. Enable lifecycle events only when an
-independent subscriber needs an after-commit notification.
+The Flow outputs are enough for most automation. Use Platform Events only when a separate Flow,
+Apex trigger, or external integration must also receive the results after Salesforce successfully
+commits the Flow transaction.
 
-| Action | Event | Enable with | Quantity |
-| --- | --- | --- | --- |
-| Check Set action | `Record_Health_Check_Set_Run__e` | Check Set **Publish User Run Event** | One per evaluated record |
-| Check Set action | `Record_Health_Check_Result__e` | Each Check's **Publish User Result Event** | One per enabled finalized Check |
-| Check action | `Record_Health_Check_Result__e` | Check **Publish User Result Event** | One per completed Check request |
+| **Event Publication** input | Platform Events from the Flow call |
+| --- | --- |
+| `NONE` | No Set Run or Check Result events. Use this when the current Flow handles the result itself. |
+| `ACTIONABLE` | Check Result events only for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus the Set Run event when the call contains at least one of those results. |
+| `ALL` | A Check Result event for every result, including `PASS` and `SKIPPED`, plus the Set Run event. |
 
-Flow-published events use `Source__c = FLOW`. Publication is off by default, best effort, and does
-not change the synchronous result. A successful Flow action does not prove that an asynchronous
-subscriber completed.
+**Event Publication** is required, so explicitly use `NONE` when no event is needed. For Flow calls,
+this input controls result publication directly. The Check Set's **Publish User Run Event** and the
+Check's **Publish User Result Event** settings control user-initiated Lightning-card runs; they do
+not override the Flow input.
 
-Framework `ERROR` diagnostics are separate from these lifecycle events. The Check Set's
+Flow-published events use `Source__c = FLOW`. Publication can fail and does not change the result
+returned to Flow. A successful Flow action does not prove that the receiving Flow, Apex trigger, or
+integration completed.
+
+Record Health Check `ERROR` diagnostics are separate from these result events. The Check Set's
 default-on `PublishErrorLogEvent__c` controls `Record_Health_Check_Log__e`; uncheck it to opt out
 without disabling Salesforce debug logs.
 
-Subscribers must tolerate duplicate or replayed delivery. For the complete event bodies and subscriber
+Receiving automation must tolerate repeated or replayed delivery. Use `EventId__c` so the same event
+does not create the same follow-up work twice. For the complete event fields and receiving-process
 guidance, see [Lifecycle events](lifecycle-events.md).
 
-## Schema compatibility
+## Response and event versions
 
 Flow responses and lifecycle events carry independent contract-version fields because they are
 different response shapes. Do not substitute one field for the other or infer either value from the
@@ -267,8 +266,8 @@ The version is useful when a Flow result is stored, serialized, or passed to ano
 it identifies the shape of that response. It is separate from the Record Health Check product
 version so compatible product updates do not require every Flow to be rebuilt.
 
-Additive JSON fields can appear without breaking the current contract, so integrations must ignore
-fields they do not recognize. No Flow action is deprecated.
+New JSON fields can be added without changing the existing fields, so integrations should ignore
+fields they do not recognize.
 
 ## Related
 

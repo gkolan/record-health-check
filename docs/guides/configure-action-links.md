@@ -14,7 +14,7 @@ external site, or prefilled create page instead of requiring the user to search 
 
 ## What you will learn
 
-| Goal | Framework setting |
+| Goal | Record Health Check setting |
 | --- | --- |
 | Explain what the user should correct | **Fix Message** (`FixMessage__c`) |
 | Give the destination a clear button label | **Action Label** (`ActionLabel__c`) |
@@ -30,8 +30,8 @@ These settings are configured on the Check:
 These fields render only on `FAIL` rows, not on `PASS`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`
 rows.
 
-Rendering or opening the link does not make Record Health Check perform DML. A user can still edit or
-create a record on the destination page and choose to save it.
+Showing or opening the link does not change Salesforce data. If the destination is an edit or create
+page, the user still reviews the information and chooses whether to save it.
 
 ## What users see
 
@@ -97,8 +97,8 @@ For the full namespace list and fallback checks, see
 
 ## Common link patterns
 
-Copy a pattern below and replace placeholder Ids and API names with values from the target org. See
-[Allowed URL formats](#allowed-url-formats) for which URLs the Framework accepts.
+Copy a pattern below and replace placeholder IDs and API names with values from your org. See
+[Allowed URL formats](#allowed-url-formats) for the URLs Record Health Check accepts.
 
 | Goal | Action URL pattern |
 | --- | --- |
@@ -130,7 +130,7 @@ The two patterns that use a fallback value are written out here so you can copy 
 ```
 
 Replace the placeholder `00O...`, `ka0...`, object, relationship, field, and page API names with
-values that exist in the target org. A default-field-values URL prefills the create form; the user
+values that exist in your org. A default-field-values URL prefills the create form; the user
 still reviews and saves the record.
 
 ## Report links
@@ -189,9 +189,9 @@ Use this when the next step is a help page outside Salesforce.
 
 ## Review checklist
 
-- [ ] The link itself does not perform DML or launch hidden automation.
+- [ ] Opening the link does not immediately change data or start automation the user cannot see.
 - [ ] The URL starts with `/` or `https://`.
-- [ ] Report links use the report Id from the target org.
+- [ ] Report links use the report ID from the org where the Check will run.
 - [ ] Merge tokens refer to fields readable on the current record.
 - [ ] Fix Message still makes sense if the link is hidden.
 - [ ] The Check has a useful failure message before the action link.

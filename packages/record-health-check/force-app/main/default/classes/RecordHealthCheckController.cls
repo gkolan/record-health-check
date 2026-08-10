@@ -389,15 +389,16 @@ public with sharing class RecordHealthCheckController {
   ) {
     // Surface a safe message to the LWC; reasonCode is embedded for diagnostic use.
     // Raw internal details are never passed through this public boundary.
-    AuraHandledException ex = new AuraHandledException(message);
-    ex.setMessage(
-      JSON.serialize(
-        new Map<String, String>{
-          'reasonCode' => reasonCode,
-          'message' => message
-        }
-      )
+    String payload = JSON.serialize(
+      new Map<String, String>{
+        'reasonCode' => reasonCode,
+        'message' => message
+      }
     );
+    // The Lightning transport uses the constructor payload while direct Apex
+    // tests observe getMessage(). Keep both paths identical and structured.
+    AuraHandledException ex = new AuraHandledException(payload);
+    ex.setMessage(payload);
     return ex;
   }
 }

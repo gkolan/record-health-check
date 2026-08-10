@@ -19,7 +19,7 @@ for metadata XML, Apex, automation, and generated configuration.
 | [Check fields](fields-check.md) | Every field on **Record Health Check** (`Record_Health_Check__mdt`) |
 | [Check Set Run Platform Event](event-set-run.md) | Set-run summary event fields |
 | [Check Result Platform Event](event-check-result.md) | Per-Check outcome event fields |
-| [Log Platform Event](event-log.md) | Restricted Framework `ERROR` diagnostics |
+| [Log Platform Event](event-log.md) | Restricted Record Health Check `ERROR` details |
 
 ## Pick a task
 
@@ -38,9 +38,11 @@ for metadata XML, Apex, automation, and generated configuration.
 | Record Health Check Result | [Check Result fields](event-check-result.md) |
 | Record Health Check Log | [Log fields](event-log.md) |
 
-These pages are field references. For publication timing and trust boundaries, use
-[Lifecycle event behavior](../integration/lifecycle-events.md). For a working Flow or Apex
-subscriber, use the [Platform Event subscription guides](../platform-events/README.md).
+These pages define fields; they are not setup walkthroughs. For when events publish and which
+process controls publication, use
+[Platform Events after a health-check run](../integration/lifecycle-events.md). For a working Flow,
+Apex trigger, or external integration that receives events, use the
+[Platform Event receiving-process guides](../platform-events/README.md).
 
 ## Related
 

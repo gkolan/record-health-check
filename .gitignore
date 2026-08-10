@@ -99,6 +99,9 @@ scripts/*
 # Shared path helpers for subscriber / contributor / package commands.
 !scripts/lib/
 !scripts/lib/**
+# Isolated, explicitly invoked review fixtures that must never enter package source.
+!scripts/review/
+!scripts/review/**
 # Subscriber scratch-org install / upgrade / smoke (npm run subscriber:*).
 !scripts/subscriber/
 !scripts/subscriber/**

@@ -42,13 +42,42 @@ A seller is preparing an Account for forecast review.
 
 - **Report:** A report can find missing Amounts across the pipeline. It does not place the summary directly on the Account being prepared for forecast review.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that intended users can read Opportunity, `AccountId`, `IsClosed`, and `Amount` and can
+  see every open Opportunity included in forecast review.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Related Record Review |
+| **Record Health Check Set Name** | `Account_Related_Record_Review` |
+| **Object** | `Account` |
+| **Card Title** | Related Record Review |
+| **Card Subtitle** | Confirm every open Opportunity has a positive Amount. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Q_AllOppsPositiveAmt` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Open_Opps_Have_Positive_Amount` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | All Open Opportunities Have Positive Amount |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | All Open Opportunities Have Positive Amount |
@@ -91,37 +120,17 @@ Copy this value into **Display: Found Text**:
 
 Comparison Query, list, Formula, and Apex fields do not apply.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | `Related Record Review` |
-| **Card Subtitle** | Confirm open Opportunities have positive Amount values. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
-
 ## What the user sees
 
-The query rows and no-row behavior become these Framework outcomes and card values:
+The query rows and no-record behavior produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | Every visible open Opportunity has Amount greater than zero. |
 | **`FAIL`** | At least one visible open Opportunity has blank, zero, or negative Amount, so the card shows Needs attention with Warning severity. |
 | **`SKIPPED`** | An Account with no open Opportunities is skipped because **No rows result** is **Skipped**. |
 | **Found** | Found summarizes how many returned Opportunities need an Amount, using the configured result-count merge tokens. |
-| **Expected** | Expected shows the fixed comparison value: an Amount greater than `0`. |
+| **Expected** | The configured display text shows `Every open opportunity has Amount greater than zero`. |
 
 ## Security and access
 
@@ -133,12 +142,15 @@ Record Health Check reads Amount on open Opportunities with the running user's S
 
 Before activation, test as a forecast user with restricted Opportunity sharing and confirm the result matches the records that user may review.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Add an open Opportunity with Amount zero. Confirm Warning.
 2. Set all open Amounts above zero, rerun, and confirm a pass.
 3. Remove open Opportunities and confirm skip.
-4. Repeat the zero-Amount test as a user with restricted Opportunity or Amount access and confirm the Check follows that user's access.
+4. Keep a zero-Amount Opportunity that an administrator can see but a forecast user cannot. Run as
+   the forecast user and confirm the hidden Opportunity is not counted.
+5. In a sandbox-only permission test, remove Read access to Amount and confirm
+   `UNABLE_TO_EVALUATE`. Restore access after the test.
 
 ## Failures and remedies
 

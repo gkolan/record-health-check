@@ -12,7 +12,7 @@
 A Salesforce user is preparing an Account for tax and territory review.
 
 - Billing City, Billing State, and Billing Country determine where the Account belongs and which tax process applies.
-- A missing part of the address can delay the review or send the Account to the wrong team.
+- A missing part of the address can delay the review or send the Account to the wrong territory.
 - The complete billing location is needed before the review begins.
 
 > [!TIP]
@@ -42,13 +42,43 @@ A Salesforce user is preparing an Account for tax and territory review.
 
 - Blocking every save would interrupt users who are updating unrelated information.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm that Billing City, Billing State, and Billing Country are the address fields required by
+  your tax or territory process.
+- Confirm that intended users can read all three fields.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Data Quality |
+| **Record Health Check Set Name** | `Account_Data_Quality` |
+| **Object** | `Account` |
+| **Card Title** | Account Data Quality |
+| **Card Subtitle** | Confirm billing address fields are complete for tax and territory review. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Example_Billing_Address_Is_Complete` |
+| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Billing_Address_Is_Complete` |
 | **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Billing Address Is Complete |
 | **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
 | **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Billing Address Is Complete |
@@ -79,31 +109,11 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 The Found formula names the missing address parts, so the user does not have to inspect all three
 fields. Query and Apex fields do not apply.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Data_Quality` |
-| **Object** | `Account` |
-| **Card Title** | `Account Data Quality` |
-| **Card Subtitle** | Confirm billing address fields are complete for fulfillment. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
-
 ## What the user sees
 
 The card turns the Formula result and its display formulas into these user-facing values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | The Account passes only when Billing City, Billing State, and Billing Country are all populated. |
 | **`FAIL`** | Clearing any required field shows Needs attention with Critical severity and the configured failure and fix guidance. |
@@ -119,7 +129,7 @@ Record Health Check reads Billing City, Billing State, and Billing Country on th
 
 Before activation, run the complete-address and missing-address cases with the Permission Sets assigned to the intended reviewers.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Populate City and State, clear Billing Country. Confirm Critical.
 2. Populate all three, rerun, and confirm a pass.

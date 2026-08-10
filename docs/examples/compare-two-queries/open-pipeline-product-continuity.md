@@ -8,7 +8,8 @@
 > Use the [Compare-two-queries reference](../../reference/evaluation/compare-two-queries.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
-> This configuration is illustrative teaching metadata. It is not installed by the Framework package.
+> This example is not installed by the package. Create the Check Set and Check in your org by
+> following the steps below.
 
 ## Scenario
 
@@ -22,6 +23,10 @@ An account manager is preparing an existing customer for a pipeline review.
 > **Why use Record Health Check**
 >
 > Record Health Check compares the open and purchased Product lists on the Account. The manager can see whether they overlap without opening every Opportunity and comparing its **Products** related list manually.
+
+This example assumes your org treats Opportunity Products on closed-won Opportunities as purchase
+history. Do not use it unchanged when orders, assets, contracts, or another object is the approved
+source for purchased Products.
 
 ## What you will learn
 
@@ -46,7 +51,36 @@ An account manager is preparing an existing customer for a pipeline review.
 
 - **Report:** A joined or custom report can support portfolio analysis. It does not place this product-continuity decision beside the other Account review checks.
 
-## Configure the Check
+## Before you start
+
+- Install Record Health Check.
+- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
+- Confirm which Salesforce object is the approved source of purchased-product history in your org.
+- Confirm that intended users can read Account, Opportunity, Opportunity Product, and Product.
+
+## Step 1: Create the Check Set
+
+In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
+create this Check Set:
+
+| Setup field | Value |
+| --- | --- |
+| **Label** | Account Record Alignment |
+| **Record Health Check Set Name** | `Account_Record_Alignment` |
+| **Object** | `Account` |
+| **Card Title** | Account Record Alignment |
+| **Card Subtitle** | Compare open-pipeline and previously purchased Products. |
+| **When Checks Run** | Run on request |
+| **Reveal Mode** | One by one |
+| **Passed Checks** | Show each check |
+| **Skipped Checks** | Show each check |
+| **Found/Expected Display** | On demand |
+| **Stop after a system error** | Unchecked |
+| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event** | Unchecked |
+| **Active** | Checked |
+
+## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
@@ -92,31 +126,16 @@ The applicability count keeps the Check focused on Accounts with purchased-produ
 Query Finds No Records** then skips an Account whose open Opportunities have no Opportunity
 Products. Expected-value, value-to-find, Formula-result, and Apex fields do not apply.
 
-## Check Set configuration
-
-Use these Check Set values:
-
-| Check Set setting | Value |
-| --- | --- |
-| **Check Set** | `Account_Record_Alignment` |
-| **Object** | `Account` |
-| **Card Title** | `Account Record Alignment` |
-| **Card Subtitle** | Confirm open pipeline Products overlap purchased Products. |
-| **When Checks Run** | Run on request |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+Both queries return `Product2Id`, so Record Health Check compares stable Salesforce record IDs
+rather than Product names that can be changed or repeated. When users expand Found and Expected,
+they see those Product IDs. The **Review opportunities** action is the practical way to identify
+the corresponding Products.
 
 ## What the user sees
 
-The two Product lists and no-row behavior become these Framework outcomes and card values:
+The two Product lists and no-row behavior produce these health results and card values:
 
-| Framework result or card value | What the user sees |
+| Health result or card value | What the user sees |
 | --- | --- |
 | **`PASS`** | At least one Product ID appears in both the open-pipeline and closed-won lists. |
 | **`FAIL`** | Both lists contain Products but none of their Product IDs overlap, so the card shows Needs attention. |
@@ -136,7 +155,7 @@ Record Health Check builds both Product lists with the running user's Salesforce
 
 - Run the overlap and no-overlap cases with the Opportunity Product access assigned to account managers.
 
-## Test the Check
+## Step 3: Test the Check
 
 1. Add Product A to a closed-won Opportunity and Product B to an open Opportunity. Run the Check and confirm Info.
 2. Add Product A to the open Opportunity, rerun, and confirm a pass because the lists overlap.

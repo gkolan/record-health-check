@@ -1,9 +1,9 @@
 # Deploy to a demo scratch org
 
 > [!NOTE]
-> On this page, create a disposable, fully prepared scratch org. One command installs the
-> Framework and provisions examples, a Lightning page, permissions, deterministic records, and
-> verified outcomes without changing an existing sandbox or production org.
+> On this page, create a disposable, fully prepared scratch org. One command installs Record Health
+> Check and adds examples, a Lightning page, permissions, predictable records, and a package smoke
+> test without changing an existing sandbox or production org.
 
 Use this path when you want to judge a known, repeatable experience rather than interpret whatever
 data happens to be in an existing sandbox. When setup finishes, you can open Acme Corporation and
@@ -25,7 +25,9 @@ npm install
 
 The final `sf org display` command confirms which Dev Hub will create the org. `npm install` prepares
 the checked-in setup tools; it does not install Record Health Check into Salesforce. The setup
-creates a 30-day org by default; pass `--duration-days` when you need a shorter one.
+command first verifies the repository's pinned Salesforce CLI version and confirms that the Dev Hub
+has scratch-org capacity. It creates a 30-day org by default; pass `--duration-days` with a whole
+number from 1 through 30 when you need a shorter lifetime.
 
 ## Step 1: Create the demo org
 
@@ -45,10 +47,10 @@ The command creates a separate scratch org and prepares the entire experience:
 3. Gives the scratch-org user Record Health Check administrator access.
 4. Adds the prepared Lightning page and demo configuration.
 5. Creates the Acme records used by the Example Check Set.
-6. Runs automated verification before reporting success.
+6. Runs the subscriber smoke test before reporting success.
 
-This is an installed-package experience, like a subscriber org. It does not replace the package
-with development source.
+This uses the promoted installed package, the same way a sandbox or production org would. It does
+not replace the package with development source.
 
 ## What the demo prepares
 
@@ -92,9 +94,9 @@ Jonas Keller similarly produces exactly two passed and two failed Contact checks
 realistic department, address, reporting-line, email, and business-context data.
 
 The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
-relationships, and health-check outcomes remain deterministic.
+relationships, and health-check outcomes remain predictable.
 
-The setup also verifies all eight Check outcomes before you open the org:
+After setup, use these expected outcomes to verify the eight Checks on Acme Corporation:
 
 | What the Check reviews | Expected outcome |
 | --- | --- |
@@ -122,11 +124,20 @@ Open **Acme Corporation**. Its Account page already contains Record Health Check
 confirm the summary is three passed, four failed, and one skipped. Expand the results and follow the
 guidance as someone preparing for the customer review would.
 
+To verify the prepared data and outcomes from the command line, run:
+
+```bash
+sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
+```
+
+This verification is separate from `npm run setup`; run it after setup finishes.
+
 ## Step 3: Know that verification succeeded
 
 The demo is ready when:
 
 - the setup command completes without an error;
+- if you run `verifyDemo.apex`, it completes without an assertion error;
 - Acme Corporation opens on the prepared Account page;
 - the summary shows three passed, four failed, and one skipped Check; and
 - the expanded results explain the known Acme data in the tables above.
@@ -136,8 +147,17 @@ use [Install and verify in your org](install-and-verify.md) for that outcome.
 
 ## If setup does not finish
 
-The setup command does not overwrite an existing org alias. If setup fails, read the final operation
-shown in the terminal, correct that problem, and rerun with a new alias.
+The setup command does not overwrite an existing org alias. If setup fails after creating the
+scratch org, read the final operation shown in the terminal. If you no longer need that incomplete
+org, delete that exact scratch org before retrying:
+
+```bash
+sf org delete scratch --target-org rhc-demo --no-prompt
+```
+
+This deletion cannot be undone. Confirm that `rhc-demo` is the disposable scratch org created by
+this setup before running the command. If you need the incomplete org for troubleshooting, keep it
+and rerun setup with a different alias.
 
 Common checks:
 
@@ -168,7 +188,7 @@ npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
 ```
 
 Do not use WSL to call a Salesforce CLI installed only in Windows. Use PowerShell, Command Prompt,
-or Git Bash instead. Contributors changing Framework source follow [Source
+or Git Bash instead. Contributors changing Record Health Check source follow [Source
 development](../contributing/source-development.md), which is a different workflow.
 
 ## Next steps

@@ -1,130 +1,46 @@
-# Reference: Package testing and upgrades
+# Package testing and upgrades
 
 > [!NOTE]
-> On this page, learn which tests belong to the package, how packaged tests behave for subscribers,
-> and how versioned unlocked-package upgrades differ from contributor source deploys.
+> This page separates the steps an administrator follows to upgrade an installed package from the
+> release checks that package contributors must complete.
 
-Record Health Check ships as a **namespaced 2GP unlocked package** (`rhc`). Subscribers install
-promoted package versions and upgrade in place. Contributors deploy source for development and CI.
-This reference explains the design of those two paths so you do not mix them.
+Record Health Check is delivered as a namespaced second-generation unlocked package. An
+administrator installs a promoted package version in a sandbox and then upgrades the existing
+installation. Package contributors use source deployments only while developing and testing the
+package.
 
-## Subscriber policy
+## For Salesforce administrators
 
-> **Package-installed Record Health Check components, including test classes and test utilities,
-> must not be modified by subscribers.** Subscriber-specific tests and test-data customization belong
-> outside the package. Source deployment is supported for contributors and development environments,
-> not as the normal upgrade mechanism.
+### Use a package version, not a source deployment
 
-| Do | Do not |
+| Use this approach | Do not use this approach |
 | --- | --- |
-| Install promoted `04t` package versions | Clone source and redeploy for every release |
-| Upgrade `2.0` → `2.1` → `2.2` in the same org | Edit `RecordHealthCheckTestDataFactory` or other packaged Apex |
-| Author Custom Metadata Check Sets and Checks in Setup | Fork packaged classes in the subscriber org |
-| Write your own Apex plugins and tests in your repo | Expect `RunLocalTests` to execute packaged RHC tests |
+| Install the promoted package version whose ID begins with `04t` | Clone the repository and deploy package source into a production org |
+| Test the upgrade in a sandbox first | Edit installed Apex classes or package test utilities |
+| Create your own Check Sets and Checks in Setup | Rename or repurpose installed example metadata as your business configuration |
+| Keep org-specific Apex and tests in your team's repository | Add org-specific code to the Record Health Check package source |
 
-Treat any change to installed package Apex as an unsupported fork. Package upgrades overwrite
-packaged metadata.
+Custom Metadata records created by an administrator in your org belong to your team. The release
+process tests that those records remain after an upgrade. The four `Example_` Check Sets included
+with the package remain package content and can change in a later package version.
 
-## Three test layers
+### Before an upgrade
 
-| Layer | Location | Runs when | Subscriber edits? |
-| --- | --- | --- | --- |
-| Package unit tests | `packages/record-health-check/force-app` test classes | Package-version create (`--code-coverage`) and contributor source deploy with `RunLocalTests` | Never |
-| Package integration tests | `packages/record-health-check/integration-tests/` | Release gate and maintainer scratch orgs only | Never |
-| Customer tests | Subscriber repository | Customer CI and deploy pipelines | Yes |
+1. Read the release notes and identify configuration or permission changes.
+2. Confirm the current package version in **Setup → Installed Packages**.
+3. Back up Check Sets and Checks created by your team through the normal metadata process.
+4. Install the new promoted version in a sandbox that represents production.
+5. Reassign or verify the installed Permission Sets.
+6. Run the checks and automation used in everyday workflows.
+7. Confirm that your team's Check Sets, Checks, Apex classes, Flows, and saved result records still
+   behave as expected.
 
-Package unit tests:
+Follow [Revalidate or upgrade](../../installation/upgrading.md) for the complete administrator
+procedure and current installation link.
 
-- Exercise Framework classes in isolation.
-- Create deterministic data through `RecordHealthCheckTestDataFactory`.
-- Use schema tokens and queried `QualifiedApiName` values instead of hardcoded namespace prefixes.
-- Must pass before a package version is promoted.
+### CLI upgrade example
 
-Integration tests:
-
-- Cover sample metadata, demo configuration, persona access, platform events, and upgrade scenarios.
-- Stay outside the root `sfdx-project.json` `packageDirectories` so they never ship to subscribers.
-
-Customer tests:
-
-- Cover org-specific Checks, Apex plugins, Validation Rules, and business automation.
-- Live in the customer repository, not inside the Record Health Check package.
-
-## How RunLocalTests behaves with installed packages
-
-Normal subscriber deployments that use `RunLocalTests` **do not execute** Apex tests originating
-from an installed **namespaced** unlocked package. Those tests run only when explicitly selected or
-when the org uses `RunAllTestsInOrg`.
-
-Maintainers run packaged tests during `sf package version create --code-coverage`. Salesforce
-stores the resulting coverage on the package version before it can be promoted.
-
-Subscriber sandboxes that install only the unlocked package are therefore not blocked by Framework
-package tests during their own metadata deployments.
-
-Contributor source deploys into scratch orgs **do** run local Framework tests because the classes
-are org-owned until packaged. That path is for development, not the supported subscriber install.
-
-## Namespace-neutral test utilities
-
-`RecordHealthCheckSchemaTestDataFactory` resolves org-specific API names at runtime;
-record construction stays on `RecordHealthCheckTestDataFactory`:
-
-- Custom Metadata identities: query `QualifiedApiName` (never construct `rhc__` + `DeveloperName`).
-- Schema tokens: `Record_Health_Check_Set__mdt.SObjectType.getDescribe().getName()` and field
-  `getDescribe().getName()` return the correct qualified or unqualified name for the org.
-- Global describe helpers: resolve integration sample objects by local API name suffix when sample
-  metadata is deployed.
-
-Hardcoded `rhc__` string literals in package Apex under `packages/record-health-check/force-app`
-are prohibited. CI enforces this through `npm run check:test-data-factory`.
-
-Prove both shapes before release:
-
-| Shape | Maintainer command | What it proves |
-| --- | --- | --- |
-| Namespaced development org | `npm run dev:setup` | Unpackaged source deploys and `RunLocalTests` pass with the `rhc` namespace |
-| No-namespace portable org | `npm run dev:test-no-namespace` | The same `force-app` deploys without a namespace |
-
-Both commands accept `--dev-hub` and work on Windows, macOS, and Linux. See
-[Source development](../../contributing/source-development.md).
-
-## Optional subscriber test-data extension (future)
-
-Some heavily customized orgs may need extra field values when inserting standard objects during an
-**optional** subscriber smoke-test path. Do not edit the packaged factory for that case.
-
-When demand exists, provide an optional external class (for example a customer-owned
-`MyCompanyRHCTestDataCustomizer`) that the verification invokes when present. Constraints:
-
-- The customizer lives outside the Record Health Check package.
-- Package upgrades must not overwrite it.
-- Absence of the class is normal.
-- Package-version creation must not depend on it.
-
-The core package unit tests do not use this extension.
-
-## Recommended release process
-
-For every version:
-
-1. Run tests in a namespaced scratch org.
-2. Deploy source into a no-namespace scratch org and run tests.
-3. Commit the exact release source and complete the release preflight.
-4. Create one package candidate with `--code-coverage`.
-5. Retrieve and audit the server-generated package artifact.
-6. Install the candidate in a clean subscriber-style org.
-7. Install the previous promoted `04t` in a separate validation org, add representative
-   subscriber-owned Custom Metadata, and upgrade that org to the candidate.
-8. Verify the subscriber-owned Custom Metadata remains intact.
-9. Promote only after clean installation, upgrade, and smoke tests pass.
-
-Record promoted install URLs and the `04t` ID in `config/package-releases.json`, then update
-`CHANGELOG.md`. See [Releasing](../../../.github/RELEASING.md).
-
-## Subscriber upgrade command
-
-Install the newer promoted version over the existing package:
+Administrators who use Salesforce CLI can install the new promoted version over the existing one:
 
 ```bash
 sf package install \
@@ -132,12 +48,75 @@ sf package install \
   --target-org customer-sandbox \
   --upgrade-type DeprecateOnly \
   --wait 30 \
-  --publish-wait 10
+  --publish-wait 10 \
+  --no-prompt
 ```
 
-`DeprecateOnly` is the conservative default while the project is young: it does not aggressively
-delete components removed from newer versions. Salesforce also supports `Mixed` (CLI default) and
-`Delete`; choose explicitly when your rollback plan requires it.
+Replace `04tNEW_VERSION_ID` with the promoted package version ID recorded as `stable` in
+[`config/package-releases.json`](../../../config/package-releases.json). Replace `customer-sandbox`
+with the alias for your sandbox.
+
+This repository uses `DeprecateOnly` as its reviewed default so an upgrade does not delete package
+components merely because they are absent from the newer version. Do not change the upgrade type
+without reviewing Salesforce's behavior and your rollback plan.
+
+## Which tests run where?
+
+| Tests | Location | Who runs them? | Purpose |
+| --- | --- | --- | --- |
+| Package unit tests | Test classes inside `packages/record-health-check/force-app` | Package maintainers during source validation and package-version creation | Verify the Apex and Lightning package code |
+| Package integration tests | `packages/record-health-check/integration-tests` | Package maintainers in release scratch orgs | Verify installed examples, access, events, and end-to-end behavior |
+| Org-specific tests | Your team's Salesforce repository | Your team in its normal deployment pipeline | Verify Check Sets, custom Apex Checks, Flows, and other business automation created for your org |
+
+An ordinary `RunLocalTests` deployment in an org with the namespaced package installed does not run
+the package's namespaced test classes. `RunAllTestsInOrg` or explicitly selected test classes can run
+them. Your own tests must not depend on or modify `RecordHealthCheckTestDataFactory`; that class is a
+package test utility, not a public extension point.
+
+## For package contributors
+
+### Why two Salesforce org shapes are tested
+
+The source must compile and work in both forms:
+
+| Test org | What it proves |
+| --- | --- |
+| Namespaced `rhc` scratch org | Package source compiles when Salesforce applies the package namespace |
+| No-namespace scratch org | The same source remains portable for the repository's no-namespace verification gate |
+
+Never build a Qualified API Name by adding `rhc__`. Tests query Salesforce for
+`QualifiedApiName`, and Apex uses schema describe results when an object or field name can differ by
+org shape.
+
+Run the documented source-development commands in
+[Source development](../../contributing/source-development.md). The repository checks also reject
+hard-coded `rhc__` strings in package Apex where the code should discover the name.
+
+### Required release checks
+
+For each proposed version, maintainers must:
+
+1. Run the repository release preflight on the exact committed source.
+2. Prove the source in a namespaced scratch org.
+3. Prove the source in a clean no-namespace scratch org.
+4. Confirm Dev Hub scratch-org and package-version capacity.
+5. Create one package candidate with code coverage enabled.
+6. Retrieve the package artifact and confirm that every Custom Metadata member has a physical file.
+7. Install the candidate in a clean org and run the installation smoke tests.
+8. Install the previous promoted version in a separate clean org, create representative
+   customer-owned Check Sets and Checks, and upgrade that org to the candidate.
+9. Confirm that the customer-owned Custom Metadata remains intact and rerun the smoke tests.
+10. Promote the candidate only after all checks pass.
+11. Move the former stable version to `previous`, record the new promoted `04t` and installation
+    links in `config/package-releases.json`, update `CHANGELOG.md`, and create the matching release
+    tag.
+
+These are separate checks. A successful clean installation does not prove that an upgrade preserves
+an administrator's Custom Metadata, and a successful source deployment does not prove that the
+package artifact contains every intended file.
+
+See [Releasing](../../../.github/RELEASING.md) for commands, required evidence, and scratch-org
+cleanup rules.
 
 ## Related
 
