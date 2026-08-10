@@ -74,6 +74,7 @@ These checks apply to every AI coding agent and automated contributor working in
   `--release-ready`; verify that candidate before merge and promotion.
 - Retain redacted JSON evidence for create, install, upgrade, test, coverage, promote, and deployment
   operations. A successful command without retained evidence is not a completed release gate.
-- Generate a retrievable package zip for every candidate. Before creating a subscriber org or
-  installing, retrieve it and prove that every Custom Metadata member in `package.xml` has a
-  physical file. Stop on the first mismatch; do not create a retry candidate in the same window.
+- Validate the locally converted package artifact before candidate creation, then use installation
+  into a clean subscriber org as the authoritative server-artifact gate. Package ZIP retrieval is
+  optional diagnostic evidence and must not block installation when Salesforce marks a generated
+  ZIP as unretrievable.

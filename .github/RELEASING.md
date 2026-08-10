@@ -45,8 +45,7 @@ Before creating a release candidate:
 After creating the single candidate and before promotion:
 
 1. Run `npm run package:verify` against its explicit `04t`.
-2. Confirm the retrieved server artifact passes the physical-file audit.
-3. Confirm clean install, N-1 upgrade, and subscriber-owned Custom Metadata preservation gates.
+2. Confirm clean install, N-1 upgrade, and subscriber-owned Custom Metadata preservation gates.
 
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
 
@@ -169,10 +168,10 @@ npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 ```
 
 Run the commands from a clean, committed release branch. `package:create` repeats the release
-preflight, checks Dev Hub capacity, requests code coverage and a retrievable package ZIP, and records
-redacted creation evidence. `package:verify` retrieves and audits that immutable server artifact
-before it creates a subscriber scratch org. If ZIP retrieval or the physical-file audit fails, stop:
-do not install, promote, update `stable`, or create a speculative retry candidate.
+preflight, checks Dev Hub capacity, requests code coverage, and records redacted creation evidence.
+`package:verify` treats installation into a clean subscriber org as the authoritative validation of
+the immutable server artifact. ZIP retrieval can be retained as optional diagnostic evidence, but
+Salesforce reporting a generated ZIP as unretrievable does not block install verification.
 
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
 on the bash-only `VAR=value command` prefix.
@@ -203,9 +202,8 @@ npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 
 This runs:
 
-- Retrieval of the immutable server-generated package artifact
-- Refusal to continue unless all 25 Custom Metadata records exist in both its manifest and files
 - Clean no-namespace install of the candidate
+- Verification that all packaged Custom Metadata types and records are installed
 - Subscriber verification metadata deployment and `RHCSubscriberSmokeTest`
 - Previous-to-candidate upgrade rehearsal when `previous` is a promoted `04t`
 
@@ -241,11 +239,9 @@ excludes it from the package, which is how `2.0.0.6` came to install with zero E
 Demo _data_ is different. The Acme Accounts and related records the demo org uses are subscriber
 owned, come from `scripts/subscriber/data`, and must never be packaged.
 
-Package artifact evidence is retained locally under
-`packages/record-health-check/.package-artifacts/<04t>/`. Verification never overwrites an existing
-artifact directory. If retrieval is interrupted, inspect and move or delete the incomplete directory
-before retrying. The Dev Hub user must have Salesforce's package-zip download permission; a missing
-permission blocks verification before a scratch org is created.
+When Salesforce makes an optional package ZIP available, diagnostic artifact evidence can be
+retained locally under `packages/record-health-check/.package-artifacts/<04t>/`. This evidence is
+supplemental; clean installation and subscriber smoke tests remain the release gates.
 
 ## Rollback
 
