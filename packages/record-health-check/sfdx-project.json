@@ -2,7 +2,7 @@
   "packageDirectories": [
     {
       "versionName": "August 2026 Release",
-      "versionNumber": "2.0.1.NEXT",
+      "versionNumber": "2.0.2.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Record Health Check",

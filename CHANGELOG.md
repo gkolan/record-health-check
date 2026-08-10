@@ -62,6 +62,12 @@ For installation and verification, start with
 [Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
 [Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
 
+## [2.0.2] - Unreleased
+
+### Changed
+
+- Improved the subscriber-facing package version name and description shown during installation.
+
 ## [2.0.1] - 2026-08-10
 
 ### Added
