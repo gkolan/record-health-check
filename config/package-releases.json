@@ -3,19 +3,25 @@
   "package2Id": "0Hoak0000004kKPCAY",
   "namespace": "rhc",
   "stable": {
-    "version": "2.0.0.6",
-    "subscriberPackageVersionId": "04tak000000ZXVlAAO"
+    "version": "2.0.2.1",
+    "subscriberPackageVersionId": "04tak000000aWZFAA2"
   },
   "previous": {
-    "version": "2.0.0.6",
-    "subscriberPackageVersionId": "04tak000000ZXVlAAO"
+    "version": "2.0.1.11",
+    "subscriberPackageVersionId": "04tak000000aWJ7AAM"
+  },
+  "candidate": {
+    "version": "2.0.2.1",
+    "subscriberPackageVersionId": "04tak000000aWZFAA2",
+    "status": "released",
+    "sandboxInstallUrl": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2"
   },
   "permissionSets": {
     "user": "Record_Health_Check_User",
     "admin": "Record_Health_Check_Admin"
   },
   "installUrl": {
-    "production": "https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO",
-    "sandbox": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO"
+    "production": "https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2",
+    "sandbox": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2"
   }
 }

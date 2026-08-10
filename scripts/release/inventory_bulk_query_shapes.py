@@ -190,9 +190,9 @@ def classify(soql):
 def collect():
     rows = []
     for package, source in SOURCES:
-        for path in sorted(source.glob("Record_Health_Check__mdt.*.md-meta.xml")):
+        for path in sorted(source.glob("Record_Health_Check.*.md-meta.xml")):
             root = ET.parse(path).getroot()
-            developer_name = path.name.split("__mdt.")[1][: -len(".md-meta.xml")]
+            developer_name = path.name.split(".", 1)[1][: -len(".md-meta.xml")]
             for values in root.findall("m:values", NS):
                 field_node = values.find("m:field", NS)
                 value_node = values.find("m:value", NS)

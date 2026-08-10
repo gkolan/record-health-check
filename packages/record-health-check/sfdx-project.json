@@ -1,12 +1,12 @@
 {
   "packageDirectories": [
     {
-      "versionName": "2.0.1",
-      "versionNumber": "2.0.1.NEXT",
+      "versionName": "August 2026 Release",
+      "versionNumber": "2.0.2.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Record Health Check",
-      "versionDescription": "Record Health Check 2.0.1"
+      "versionDescription": "Add configurable, read-only health checks to Lightning record pages. Includes four starter Check Sets and 21 Checks, Apex and Flow APIs, diagnostic tools, and permission sets for users and administrators."
     }
   ],
   "name": "RecordHealthCheckPackaging",
@@ -16,6 +16,9 @@
   "packageAliases": {
     "Record Health Check": "0Hoak0000004kKPCAY",
     "Record Health Check@2.0.0-6": "04tak000000ZXVlAAO",
-    "Record Health Check@2.0.1-9": "04tak000000aUxFAAU"
+    "Record Health Check@2.0.1-9": "04tak000000aUxFAAU",
+    "Record Health Check@2.0.1-10": "04tak000000aVenAAE",
+    "Record Health Check@2.0.1-11": "04tak000000aWJ7AAM",
+    "Record Health Check@2.0.2-1": "04tak000000aWZFAA2"
   }
 }

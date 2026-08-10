@@ -45,8 +45,7 @@ Before creating a release candidate:
 After creating the single candidate and before promotion:
 
 1. Run `npm run package:verify` against its explicit `04t`.
-2. Confirm the retrieved server artifact passes the physical-file audit.
-3. Confirm clean install, N-1 upgrade, and subscriber-owned Custom Metadata preservation gates.
+2. Confirm clean install, N-1 upgrade, and subscriber-owned Custom Metadata preservation gates.
 
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
 
@@ -58,6 +57,86 @@ See [Salesforce operations standard](SALESFORCE_OPERATIONS.md) for the mandatory
 the redacted migration record.
 
 ## Create a package candidate
+
+### Package source layout
+
+Second-generation packaging builds from the local source directory declared in
+`packages/record-health-check/sfdx-project.json`. The Dev Hub and namespace-registry org do not
+supply missing package content. Every component intended for subscribers must therefore exist under
+`packages/record-health-check/force-app` before package-version creation starts.
+
+Custom Metadata types and Custom Metadata records use different filename conventions:
+
+```text
+packages/record-health-check/force-app/main/default/
+├── objects/
+│   ├── Record_Health_Check_Set__mdt/
+│   │   └── Record_Health_Check_Set__mdt.object-meta.xml
+│   └── Record_Health_Check__mdt/
+│       └── Record_Health_Check__mdt.object-meta.xml
+└── customMetadata/
+    ├── Record_Health_Check_Set.Example_Account_Profile_Readiness.md-meta.xml
+    └── Record_Health_Check.Example_Account_Billing_Address.md-meta.xml
+```
+
+The type directory and object definition retain the `__mdt` suffix. A record filename does **not**:
+
+```text
+<CustomMetadataTypeDeveloperName>.<RecordDeveloperName>.md-meta.xml
+```
+
+For example, use
+`Record_Health_Check_Set.Example_Account_Profile_Readiness.md-meta.xml`, not
+`Record_Health_Check_Set__mdt.Example_Account_Profile_Readiness.md-meta.xml`. The second segment is
+the record's Developer Name, not its displayed Master Label. Package source also stays unprefixed;
+Salesforce applies the package's `rhc` namespace while building the namespaced artifact.
+
+The package manifest must identify records by the same metadata full name used by the physical
+files. Do not add `rhc__` or `__mdt` to a Custom Metadata record member merely because Apex refers
+to its SObject type as `rhc__Record_Health_Check_Set__mdt` after installation.
+
+### Prove Custom Metadata round-trip before packaging
+
+Before running the release preflight, deploy the exact package source to a namespaced `rhc` scratch
+org, retrieve the Custom Metadata records into a clean temporary directory, and compare the
+retrieved names and XML with the committed source. A successful deployment alone is insufficient:
+Salesforce can accept a source name that is later normalized differently in the server-generated
+package ZIP.
+
+From the nested package project:
+
+```bash
+cd packages/record-health-check
+
+sf project deploy start \
+  --source-dir force-app/main/default/objects/Record_Health_Check_Set__mdt \
+  --source-dir force-app/main/default/objects/Record_Health_Check__mdt \
+  --source-dir force-app/main/default/customMetadata \
+  --target-org <namespaced-scratch-org> \
+  --wait 30
+
+sf project retrieve start \
+  --metadata CustomMetadata \
+  --target-org <namespaced-scratch-org> \
+  --target-metadata-dir <empty-directory> \
+  --unzip \
+  --wait 30
+```
+
+Use a new, empty directory outside the tracked package source so retrieval cannot silently overwrite
+the files being audited. Confirm all of the following before continuing:
+
+1. The retrieve returns 25 records: four Check Sets and 21 Checks.
+2. Each manifest member has one physical record file with the same metadata full name.
+3. Record filenames omit `__mdt` and the `rhc__` namespace.
+4. Record XML field names remain unprefixed in package source.
+5. No record exists only in the org or only in the repository.
+
+Stop if deployment and retrieval produce different names. Correct the committed source and repeat
+both org-shape gates before creating a candidate. Do not use another immutable package version to
+diagnose a source-layout mismatch.
+
+### Run the guarded package workflow
 
 Package creation is manual and happens once, at the end of release-branch preparation. Do not create
 a package version for every commit and do not add creation to ordinary pull-request CI. Commit the
@@ -76,6 +155,23 @@ cause; it is not a retry mechanism for package debugging.
 ```bash
 npm run package:create -- --dev-hub <dev-hub> --release-ready
 ```
+
+The guarded workflow is:
+
+```bash
+npm ci
+npm run check:toolchain
+npm run check:toolchain-latest
+npm run release:preflight
+npm run package:create -- --dev-hub <dev-hub> --release-ready
+npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
+```
+
+Run the commands from a clean, committed release branch. `package:create` repeats the release
+preflight, checks Dev Hub capacity, requests code coverage, and records redacted creation evidence.
+`package:verify` treats installation into a clean subscriber org as the authoritative validation of
+the immutable server artifact. ZIP retrieval can be retained as optional diagnostic evidence, but
+Salesforce reporting a generated ZIP as unretrievable does not block install verification.
 
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
 on the bash-only `VAR=value command` prefix.
@@ -106,9 +202,8 @@ npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 
 This runs:
 
-- Retrieval of the immutable server-generated package artifact
-- Refusal to continue unless all 25 Custom Metadata records exist in both its manifest and files
 - Clean no-namespace install of the candidate
+- Verification that all packaged Custom Metadata types and records are installed
 - Subscriber verification metadata deployment and `RHCSubscriberSmokeTest`
 - Previous-to-candidate upgrade rehearsal when `previous` is a promoted `04t`
 
@@ -144,11 +239,9 @@ excludes it from the package, which is how `2.0.0.6` came to install with zero E
 Demo _data_ is different. The Acme Accounts and related records the demo org uses are subscriber
 owned, come from `scripts/subscriber/data`, and must never be packaged.
 
-Package artifact evidence is retained locally under
-`packages/record-health-check/.package-artifacts/<04t>/`. Verification never overwrites an existing
-artifact directory. If retrieval is interrupted, inspect and move or delete the incomplete directory
-before retrying. The Dev Hub user must have Salesforce's package-zip download permission; a missing
-permission blocks verification before a scratch org is created.
+When Salesforce makes an optional package ZIP available, diagnostic artifact evidence can be
+retained locally under `packages/record-health-check/.package-artifacts/<04t>/`. This evidence is
+supplemental; clean installation and subscriber smoke tests remain the release gates.
 
 ## Rollback
 

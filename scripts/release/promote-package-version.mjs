@@ -39,7 +39,8 @@ run("sf", [
   "--package",
   packageVersionId,
   "--target-dev-hub",
-  devHub
+  devHub,
+  "--no-prompt"
 ]);
 
 console.log("");
