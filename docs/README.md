@@ -29,7 +29,7 @@ Salesforce developers who want a separate test org with prepared examples can
 | I want to… | Start here | What you will learn |
 | --- | --- | --- |
 | Decide whether Record Health Check fits a requirement | [Compare Record Health Check with standard Salesforce features](guides/compare-to-native-salesforce.md) | When to use Record Health Check, Validation Rules, Required Fields, Flow, or reports |
-| Install, verify, upgrade, or remove the package | [Installation](installation/README.md) | The correct instructions for each package task |
+| Install, choose a version, upgrade, or remove the package | [Installation](installation/README.md) | Installation paths, immutable versions, and safe recovery guidance |
 | Configure a Check Set and its Checks | [Configuration guides](guides/README.md) | Check behavior, action links, card design, testing, and troubleshooting |
 | Start with an example | [Examples](examples/README.md) | Complete Formula, Query, Compare Two Queries, and Apex configurations |
 | Run Checks from Flow or Apex | [Integration overview](integration/README.md) | How to start a run and receive its results |

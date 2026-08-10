@@ -120,6 +120,23 @@ for (const [type, sourceMembers] of inventory) {
   }
 }
 
+for (const member of inventory.get("CustomMetadata") ?? []) {
+  if (member.includes("__mdt.")) {
+    errors.push(
+      `Noncanonical CustomMetadata source filename: ${member}. ` +
+        "Record filenames must omit the __mdt suffix."
+    );
+  }
+}
+for (const member of manifestByType.get("CustomMetadata") ?? []) {
+  if (member.includes("__mdt.")) {
+    errors.push(
+      `Noncanonical CustomMetadata manifest member: ${member}. ` +
+        "Record members must omit the __mdt suffix."
+    );
+  }
+}
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exitCode = 1;

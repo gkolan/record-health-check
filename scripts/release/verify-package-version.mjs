@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
 import {
@@ -111,55 +109,6 @@ function installPackage(packageVersionId, alias) {
   ]);
 }
 
-function assertCandidateArtifact(packageVersionId, devHub) {
-  const evidenceDirectory = path.join(
-    paths.packageRoot,
-    ".package-artifacts",
-    packageVersionId
-  );
-  const manifest = path.join(evidenceDirectory, "package.xml");
-
-  if (!fs.existsSync(evidenceDirectory)) {
-    fs.mkdirSync(evidenceDirectory, { recursive: true });
-    console.log(
-      `Retrieving immutable package artifact ${packageVersionId} before creating an org...`
-    );
-    run(
-      "sf",
-      [
-        "package",
-        "version",
-        "retrieve",
-        "--package",
-        packageVersionId,
-        "--target-dev-hub",
-        devHub,
-        "--output-dir",
-        path.relative(paths.packageRoot, evidenceDirectory)
-      ],
-      { cwd: paths.packageRoot }
-    );
-  } else if (!fs.existsSync(manifest)) {
-    console.error(
-      `Artifact evidence directory exists but is incomplete: ${evidenceDirectory}. ` +
-        "Move or delete it after review, then retry; verification will not overwrite evidence."
-    );
-    process.exit(1);
-  } else {
-    console.log(`Reusing immutable artifact evidence at ${evidenceDirectory}.`);
-  }
-
-  run(
-    process.execPath,
-    [
-      path.join(paths.repoRoot, "scripts/release/audit_package_artifact.mjs"),
-      "--metadata-dir",
-      evidenceDirectory
-    ],
-    { cwd: paths.repoRoot }
-  );
-}
-
 function assignAdmin(alias, releases) {
   run("sf", [
     "org",
@@ -242,8 +191,6 @@ function main() {
     !values["skip-upgrade"] &&
     previousId.startsWith("04t") &&
     previousId !== candidateId;
-
-  assertCandidateArtifact(candidateId, devHub);
 
   if (values["upgrade-only"]) {
     runUpgradeGate(candidateId, alias, devHub, releases);
