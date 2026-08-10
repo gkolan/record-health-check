@@ -47,10 +47,10 @@ Choose the destination that matches the org where you are signed in:
 
 | Destination | Use it when | Install |
 | --- | --- | --- |
-| Sandbox | You are installing or verifying the current release | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWJ7AAM) |
-| Production or Developer Edition | You are installing the current release | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWJ7AAM) |
+| Sandbox | You are installing or verifying the current release | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) |
+| Production or Developer Edition | You are installing the current release | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) |
 
-Both links install the promoted **2.0.1.11** release. The different login domains route the same
+Both links install promoted package version **2.0.2.1**. The different login domains route the same
 immutable package version to the appropriate Salesforce environment.
 
 On the Salesforce installation page, choose **Install for Admins Only**. This installs the complete
@@ -163,7 +163,7 @@ macOS, and Linux after the Salesforce CLI is installed.
 ```bash
 sf org login web --instance-url https://test.salesforce.com --alias rhc-sandbox
 sf org display --target-org rhc-sandbox
-sf package install --package 04tak000000aWJ7AAM --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
+sf package install --package 04tak000000aWZFAA2 --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
 sf org assign permset --name rhc__Record_Health_Check_User --target-org rhc-sandbox
 ```
 
