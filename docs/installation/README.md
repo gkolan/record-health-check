@@ -15,6 +15,7 @@ and want a separate disposable org with prepared data.
 | --- | --- | --- |
 | I want to understand the experience before installing | [How Record Health Check works](how-it-works.md) | Understand Check Sets, Checks, outcomes, and when advisory guidance fits |
 | I want to add Record Health Check to a sandbox or another org I already use | [Install and verify in your org](install-and-verify.md) | Install the package, assign access, place the card, and verify it with that org's records |
+| I need a specific released version or recovery path | [Package versions, installation, and rollback](package-versions.md) | Choose an immutable version and understand safe rollback options |
 | I have Salesforce CLI and Dev Hub access and want a separate prepared demo | [Deploy to a demo scratch org](create-rhc-scratch-org.md) | Create a disposable org with prepared records and confirm the expected demo results |
 | I want to create a check for my organization | [Create your first Check](create-your-first-check.md) | Build one Account Check and test both attention and passing states |
 | Record Health Check is already installed | [Upgrade and revalidate](upgrading.md) | Protect the configuration and prove the user experience still works after an upgrade |
