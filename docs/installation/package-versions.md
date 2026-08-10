@@ -7,7 +7,13 @@
 Each Salesforce package version has a unique `04t` ID. The sandbox and production buttons for a row
 install the same immutable package; only the Salesforce login destination differs.
 
-## Available versions
+## Before you start
+
+Confirm whether the destination is a sandbox, production org, Developer Edition, or clean org. If
+Record Health Check is already installed, preserve organization-owned Check Sets and Checks before
+changing versions and follow the full [upgrade and revalidation procedure](upgrading.md).
+
+## Step 1: Choose a version
 
 Versions are listed newest first. This catalog begins with Record Health Check 2.0.2.1; earlier
 2.0.1 development and release-candidate versions are intentionally not listed.
@@ -20,7 +26,7 @@ Choose **Install for Admins Only** on the Salesforce installation page, then ass
 Check User** or **Record Health Check Admin** as described in [Install and verify in your
 org](install-and-verify.md).
 
-## Install an exact version with Salesforce CLI
+## Step 2: Install an exact version with Salesforce CLI
 
 Use the `04t` value from the table when an automated process must install a specific version:
 
@@ -38,7 +44,7 @@ sf package install \
 Confirm the target org before running the command. After installation, follow the permission,
 Lightning page, and user-verification steps in [Install and verify](install-and-verify.md).
 
-## Roll back safely
+## Step 3: Roll back safely
 
 A released 2GP package version is immutable, but that does not make in-place downgrade a dependable
 rollback mechanism. Salesforce package upgrades follow version ancestry and dependency rules. Test
@@ -59,9 +65,8 @@ export organization-owned `Record_Health_Check_Set__mdt` and `Record_Health_Chec
 record the Lightning page placements that use them. See [Upgrade and
 revalidate](upgrading.md) for the complete safety and verification procedure.
 
-## Related guides
+## Next steps
 
 - [Install and verify in your org](install-and-verify.md)
 - [Upgrade and revalidate](upgrading.md)
 - [Uninstall and rollback](uninstall-and-rollback.md)
-
