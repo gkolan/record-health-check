@@ -6,11 +6,10 @@
 [![LWC line coverage: 98.99%](https://img.shields.io/badge/LWC_lines-98.99%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
-[![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aUxFAAU)
-[![Install in Production](https://img.shields.io/badge/Install_in_Production-0176D3?style=for-the-badge)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO)
+[![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWJ7AAM)
+[![Install in Production](https://img.shields.io/badge/Install_in_Production-0176D3?style=for-the-badge)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWJ7AAM)
 
-> The sandbox button installs the unreleased 2.0.1.9 verification candidate. The production button
-> remains pinned to the promoted 2.0.0.6 release.
+> Both buttons install promoted package version 2.0.1.11.
 
 > **Make informed decisions before taking action on Salesforce data.**
 

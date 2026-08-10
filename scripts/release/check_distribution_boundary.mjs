@@ -118,8 +118,18 @@ if (!candidateVersionId.startsWith("04t")) {
     "config/package-releases.json: candidate subscriberPackageVersionId must start with 04t"
   );
 }
-if (releases.candidate?.status !== "beta") {
-  fail("config/package-releases.json: candidate status must be beta");
+if (!["beta", "released"].includes(releases.candidate?.status)) {
+  fail(
+    "config/package-releases.json: candidate status must be beta or released"
+  );
+}
+if (
+  releases.candidate?.status === "released" &&
+  candidateVersionId !== stableVersionId
+) {
+  fail(
+    "config/package-releases.json: a released candidate must match the stable subscriberPackageVersionId"
+  );
 }
 const expectedCandidateSandboxUrl = `https://test.salesforce.com/packaging/installPackage.apexp?p0=${candidateVersionId}`;
 if (releases.candidate?.sandboxInstallUrl !== expectedCandidateSandboxUrl) {
@@ -128,9 +138,9 @@ if (releases.candidate?.sandboxInstallUrl !== expectedCandidateSandboxUrl) {
   );
 }
 
-// Production links must always target the promoted stable release. A clearly
-// labeled sandbox verification link may target the beta candidate, but the
-// candidate must never appear on login.salesforce.com.
+// Production links must always target the promoted stable release. A beta
+// candidate may appear only on the sandbox domain; a released candidate must
+// match stable and therefore appears on both domains.
 for (const relativePath of [
   "README.md",
   "docs/installation/install-and-verify.md"
@@ -165,6 +175,7 @@ for (const relativePath of [
     );
   }
   if (
+    releases.candidate?.status === "beta" &&
     contents.includes(
       `https://login.salesforce.com/packaging/installPackage.apexp?p0=${candidateVersionId}`
     )

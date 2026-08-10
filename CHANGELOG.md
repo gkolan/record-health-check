@@ -6,12 +6,11 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.0-6`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.1-11`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](config/package-releases.json).
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Sandbox verification candidate: `Record Health Check@2.0.1-9`; its beta install URL is recorded
-  separately under `candidate` and is not a production release.
+- Current released candidate: `Record Health Check@2.0.1-11`.
 
 ### Evaluation and integration
 
@@ -63,7 +62,7 @@ For installation and verification, start with
 [Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
 [Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
 
-## [2.0.1] - Unreleased
+## [2.0.1] - 2026-08-10
 
 ### Added
 
