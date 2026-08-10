@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CardRunMode__c</fullName>
+    <label>When Checks Run</label>
+    <description
+  >Decides whether checks run on their own when the page opens, or only after the user clicks Run. "When the page opens" runs automatically and still offers Rerun after results appear unless Run Button Display is Hide. "When the user clicks Run" shows a Run button and runs nothing until it is clicked. Defaults to "When the user clicks Run".</description>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>RUN_ON_LOAD</fullName><label
+        >When the page opens</label><default>false</default></value><value
+      ><fullName>RUN_ON_REQUEST</fullName><label
+        >When the user clicks Run</label><default
+        >true</default></value></valueSetDefinition>
+    </valueSet>
+        <inlineHelpText
+  >"When the page opens" = run on load, then offer Rerun unless hidden. "When the user clicks Run" (default) = wait for Run. Hide is valid only with page-open runs.</inlineHelpText>
+    <required>false</required>
+</CustomField>

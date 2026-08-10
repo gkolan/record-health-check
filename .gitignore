@@ -8,13 +8,13 @@
 .localdevserver/
 deploy-options.json
 /config/*
-# Scratch-org definitions the published setup scripts depend on.
-!/config/project-scratch-def.json
-!/config/display-formats-scratch-def.json
+# Published install / subscriber setup inputs (scratch defs live under the package).
+!/config/package-releases.json
+!/config/subscriber-scratch-def.json
+!/config/quality-metrics.json
+!/config/toolchain.json
 .claude/
 .playwright-mcp/
-/AGENTS.md
-/CLAUDE.md
 
 # LWC VSCode autocomplete
 **/lwc/jsconfig.json
@@ -65,6 +65,8 @@ $RECYCLE.BIN/
 /spec/
 /specs/
 /releases/
+packages/record-health-check/.package-artifacts/
+packages/record-health-check/.package-evidence/
 .backups/
 tasks/
 slides_build/
@@ -94,10 +96,24 @@ scripts/*
 # Release-gate scripts used by package.json and CI are public and tracked.
 !scripts/release/
 !scripts/release/**
+# Shared path helpers for subscriber / contributor / package commands.
+!scripts/lib/
+!scripts/lib/**
+# Isolated, explicitly invoked review fixtures that must never enter package source.
+!scripts/review/
+!scripts/review/**
+# Subscriber scratch-org install / upgrade / smoke (npm run subscriber:*).
+!scripts/subscriber/
+!scripts/subscriber/**
+# Contributor source-development scratch orgs (npm run dev:*).
+!scripts/contributor/
+!scripts/contributor/**
+# Package-scoped Jest runner (npm run test:unit*).
+!scripts/run-package-jest.mjs
 # Public Apex plugin scaffolding shipped as the 2.0 migration path.
 !scripts/templates/
 !scripts/templates/**
-# Reproducible demo scratch-org provisioning (see docs/installation/05-*).
+# Reproducible demo scratch-org provisioning (see docs/installation/create-rhc-scratch-org.md).
 !scripts/setup-demo.sh
 # Reproducible multi-currency integration-demo provisioning.
 !scripts/setup-integration-demo.sh
@@ -143,6 +159,3 @@ recycle-bin/
 
 # Personal, portable local org kit — never tracked; meant to be movable out of the repo.
 /local-orgs/
-
-# Local-only docs site scaffold (Jekyll/GitHub Pages preview — not published).
-docs/site/

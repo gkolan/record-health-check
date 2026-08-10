@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RerunButtonLabel__c</fullName>
+    <label>Rerun Button Label</label>
+    <description
+  >Optional plain-text label for the Run control after a completed run. Blank uses Rerun.</description>
+    <inlineHelpText
+  >Enter up to 80 characters. Blank uses "Rerun". This text also names an icon-only Rerun control for assistive technology.</inlineHelpText>
+    <type>Text</type>
+    <length>80</length>
+    <required>false</required>
+</CustomField>

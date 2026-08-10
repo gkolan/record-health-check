@@ -11,64 +11,85 @@ const root = path.resolve(
 const controller = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/classes/RecordHealthCheckController.cls"
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckController.cls"
   ),
   "utf8"
 );
 const component = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/lwc/recordHealthCheck/recordHealthCheck.js"
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/recordHealthCheck.js"
+  ),
+  "utf8"
+);
+const componentMetadata = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/recordHealthCheck.js-meta.xml"
   ),
   "utf8"
 );
 const runner = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/lwc/recordHealthCheck/healthCheckRunner.js"
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/healthCheckRunner.js"
   ),
   "utf8"
 );
 const constants = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/classes/RecordHealthCheckConstants.cls"
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckConstants.cls"
   ),
   "utf8"
 );
 const formulaEvaluator = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/classes/RecordHealthCheckFormulaEvaluator.cls"
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFormulaEvaluator.cls"
   ),
   "utf8"
 );
 const activityCheck = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/classes/AccountHasRecentActivityCheck.cls"
+    "packages/record-health-check/force-app/main/default/classes/AccountHasRecentActivityCheck.cls"
   ),
   "utf8"
 );
 const configService = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/classes/RecordHealthCheckConfigService.cls"
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckConfigService.cls"
   ),
   "utf8"
 );
 const definitionLoader = fs.readFileSync(
   path.join(
     root,
-    "force-app/main/default/classes/RecordHealthCheckDefinitionLoader.cls"
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckDefinitionLoader.cls"
   ),
   "utf8"
 );
 const failures = [];
 
+const appBuilderProperties = [
+  ...componentMetadata.matchAll(
+    /<property\s+[\s\S]*?name="([^"]+)"[\s\S]*?\/>/g
+  )
+].map((match) => match[1]);
+if (
+  appBuilderProperties.length !== 1 ||
+  appBuilderProperties[0] !== "checkSetName"
+) {
+  failures.push(
+    `Lightning App Builder must expose only checkSetName; found: ${appBuilderProperties.join(", ") || "none"}`
+  );
+}
+
 for (const parameter of [
   "String checkSetQualifiedApiName",
-  "String ruleQualifiedApiName"
+  "String checkQualifiedApiName"
 ]) {
   if (!controller.includes(parameter)) {
     failures.push(
@@ -77,7 +98,7 @@ for (const parameter of [
   }
 }
 
-for (const retiredKey of ["checkSetDeveloperName:", "ruleDeveloperName:"]) {
+for (const retiredKey of ["checkSetDeveloperName:", "checkDeveloperName:"]) {
   if (component.includes(retiredKey) || runner.includes(retiredKey)) {
     failures.push(`Lightning Apex payload uses prohibited key: ${retiredKey}`);
   }
@@ -85,7 +106,7 @@ for (const retiredKey of ["checkSetDeveloperName:", "ruleDeveloperName:"]) {
 
 for (const requiredKey of [
   "checkSetQualifiedApiName:",
-  "ruleQualifiedApiName:"
+  "checkQualifiedApiName:"
 ]) {
   if (!component.includes(requiredKey) && !runner.includes(requiredKey)) {
     failures.push(
@@ -150,5 +171,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Verified exact QualifiedApiName identity and strict configuration contracts."
+  "Verified exact QualifiedApiName identity, Check Set-only App Builder configuration, and strict configuration contracts."
 );

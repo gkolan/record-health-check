@@ -1,0 +1,375 @@
+<!--
+  @author Gautam Kolan (https://github.com/gkolan)
+  SPDX-License-Identifier: Apache-2.0
+-->
+<template>
+  <div class={themeClass}>
+    <template if:true={hasComponentError}>
+      <div class="rhc-error-banner" role="alert" aria-live="assertive">
+        <lightning-icon
+          icon-name={errorBannerIcon}
+          size="x-small"
+          variant="error"
+          alternative-text={errorBannerIconAltText}
+        ></lightning-icon>
+        <div class="rhc-error-banner__body">
+          <span class="rhc-error-banner__title">{errorBannerTitle}</span>
+          <span class="rhc-error-banner__msg">{componentError}</span>
+          <template if:true={isSetupError}>
+            <span class="rhc-error-banner__hint"> {setupErrorHint} </span>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <template if:false={hasComponentError}>
+      <article class="rhc-card">
+        <div class="rhc-body">
+          <div class="rhc-header">
+            <div class="rhc-header__bar">
+              <div class="rhc-header__main">
+                <h2 class="rhc-header__title">{displayTitle}</h2>
+              </div>
+
+              <p aria-live="polite" class="slds-assistive-text">
+                Completed Checks: {completedCheckCount} / {totalCheckCount}
+              </p>
+
+              <template if:true={showHeaderActions}>
+                <div class="rhc-header__actions">
+                  <template if:true={isLoading}>
+                    <lightning-spinner
+                      alternative-text="Loading health checks"
+                      size="small"
+                    ></lightning-spinner>
+                  </template>
+                  <template if:false={isLoading}>
+                    <template if:true={showActionButton}>
+                      <button
+                        type="button"
+                        class={actionButtonClass}
+                        onclick={handleAction}
+                        title={actionTitle}
+                        aria-label={actionButtonAriaLabel}
+                        aria-busy={actionButtonBusy}
+                        disabled={actionButtonDisabled}
+                      >
+                        <template if:true={showRunButtonLabel}>
+                          <span class="rhc-action-button__label"
+                            >{actionButtonLabel}</span
+                          >
+                        </template>
+                        <template if:true={showActionButtonGlyph}>
+                          <span
+                            class="rhc-action-button__glyph"
+                            aria-hidden="true"
+                          >
+                            <template if:true={actionButtonBusy}>
+                              <span class="rhc-action-button__spinner"></span>
+                            </template>
+                            <template if:false={actionButtonBusy}>
+                              <template if:true={useLightningRunButtonIcon}>
+                                <lightning-icon
+                                  icon-name={normalizedRunButtonIcon}
+                                  size="xx-small"
+                                  alternative-text=""
+                                ></lightning-icon>
+                              </template>
+                              <template if:true={useCssRunButtonIcon}>
+                                <span class="rhc-action-button__play"></span>
+                              </template>
+                            </template>
+                          </span>
+                        </template>
+                      </button>
+                    </template>
+                  </template>
+                </div>
+              </template>
+            </div>
+
+            <template if:true={displayDescription}>
+              <p class="rhc-header__desc">{displayDescription}</p>
+            </template>
+          </div>
+
+          <template if:true={showPreRunHint}>
+            <p class="rhc-pre-run-hint" role="status">{preRunHintText}</p>
+          </template>
+          <template if:true={showHiddenEvaluationHint}>
+            <p class="rhc-pre-run-hint" role="status">
+              {hiddenEvaluationHintText}
+            </p>
+          </template>
+
+          <ul class="rhc-list" role="list">
+            <template for:each={visibleChecks} for:item="check">
+              <li
+                key={check.developerName}
+                class={check.rowClass}
+                aria-label={check.accessibleLabel}
+                data-tooltip={check.description}
+                tabindex={check.tabIndex}
+              >
+                <template if:true={check.showRowAccent}>
+                  <span class={check.rowAccentClass} aria-hidden="true"></span>
+                </template>
+                <div class="rhc-row__icon" aria-hidden="true">
+                  <template if:true={check.isPending}>
+                    <div class="rhc-dot rhc-dot--pending"></div>
+                  </template>
+                  <template if:true={check.isLoading}>
+                    <lightning-spinner
+                      alternative-text=""
+                      size="x-small"
+                    ></lightning-spinner>
+                  </template>
+                  <template if:true={check.isResolved}>
+                    <span class={check.statusIconClass}></span>
+                  </template>
+                </div>
+
+                <div class="rhc-row__content">
+                  <div class="rhc-row__heading">
+                    <span class="rhc-row__label">{check.label}</span>
+                    <template if:true={check.isResolved}>
+                      <span class="slds-assistive-text" role="status">
+                        Status: {check.statusLabel}
+                      </span>
+                    </template>
+                    <template if:true={check.showCaret}>
+                      <button
+                        type="button"
+                        class={check.caretClass}
+                        onclick={handleToggleDetail}
+                        data-check={check.developerName}
+                        aria-expanded={check.caretExpanded}
+                        aria-label={check.caretLabel}
+                        title={check.caretLabel}
+                      >
+                        <span
+                          class="rhc-caret__glyph"
+                          aria-hidden="true"
+                        ></span>
+                      </button>
+                    </template>
+                  </div>
+                  <template if:true={check.showMessage}>
+                    <span class="rhc-expandable" data-expandable>
+                      <span class={check.messageClass} data-clampcontent>
+                        <template for:each={check.messageLines} for:item="line">
+                          <span key={line.key} class={line.lineClass}
+                            >{line.text}</span
+                          >
+                        </template>
+                      </span>
+                      <button
+                        class="rhc-cmp__toggle"
+                        type="button"
+                        data-clamptoggle
+                        data-expand-label="message"
+                        data-symbol="+"
+                        hidden
+                        aria-expanded="false"
+                        aria-label="Expand message"
+                        onclick={handleToggleContent}
+                      ></button>
+                    </span>
+                  </template>
+                  <template if:true={check.showActionBlock}>
+                    <div class="rhc-row__action">
+                      <template if:true={check.showAction}>
+                        <a
+                          class="rhc-row__action-link"
+                          href={check.actionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          >{check.actionLabel}</a
+                        >
+                      </template>
+                      <template if:true={check.showFixInstructions}>
+                        <span class="rhc-expandable" data-expandable>
+                          <span
+                            class="rhc-row__fix-instructions rhc-expandable__content rhc-expandable__content--guidance"
+                            data-clampcontent
+                            >{check.fixInstructions}</span
+                          >
+                          <button
+                            class="rhc-cmp__toggle"
+                            type="button"
+                            data-clamptoggle
+                            data-expand-label="fix instructions"
+                            data-symbol="+"
+                            hidden
+                            aria-expanded="false"
+                            aria-label="Expand fix instructions"
+                            onclick={handleToggleContent}
+                          ></button>
+                        </span>
+                      </template>
+                    </div>
+                  </template>
+                  <template if:true={check.showComparisonDivider}>
+                    <hr class="rhc-row__divider" aria-hidden="true" />
+                  </template>
+                  <template if:true={check.showInlineComparison}>
+                    <span class="rhc-row__comparison">
+                      <template
+                        for:each={check.inlineComparisonValues}
+                        for:item="comparison"
+                      >
+                        <span
+                          key={comparison.key}
+                          class="rhc-cmp__pair"
+                          data-expandable
+                        >
+                          <span class="rhc-cmp__main">
+                            <span class="rhc-cmp__key">{comparison.label}</span>
+                            <span class="rhc-cmp__value-wrap">
+                              <span
+                                class="rhc-cmp__val rhc-cmp__val--clampable"
+                                data-clampcontent
+                                >{comparison.value}</span
+                              >
+                              <button
+                                class="rhc-cmp__toggle"
+                                type="button"
+                                data-clamptoggle
+                                data-expand-label="value"
+                                data-symbol="+"
+                                hidden
+                                aria-expanded="false"
+                                aria-label="Expand value"
+                                onclick={handleToggleContent}
+                              ></button>
+                            </span>
+                          </span>
+                        </span>
+                      </template>
+                    </span>
+                  </template>
+                  <template if:true={check.detailExpanded}>
+                    <div class="rhc-row__detail">
+                      <template
+                        for:each={check.expandedComparisonValues}
+                        for:item="comparison"
+                      >
+                        <span
+                          key={comparison.key}
+                          class="rhc-cmp__pair"
+                          data-expandable
+                        >
+                          <span class="rhc-cmp__main">
+                            <span class="rhc-cmp__key">{comparison.label}</span>
+                            <span class="rhc-cmp__value-wrap">
+                              <span
+                                class="rhc-cmp__val rhc-cmp__val--clampable"
+                                data-clampcontent
+                                >{comparison.value}</span
+                              >
+                              <button
+                                class="rhc-cmp__toggle"
+                                type="button"
+                                data-clamptoggle
+                                data-expand-label="value"
+                                data-symbol="+"
+                                hidden
+                                aria-expanded="false"
+                                aria-label="Expand value"
+                                onclick={handleToggleContent}
+                              ></button>
+                            </span>
+                          </span>
+                        </span>
+                      </template>
+                    </div>
+                  </template>
+                  <template if:true={check.showDiagnosticsMeta}>
+                    <span class="rhc-debug-meta">{check.diagnosticsMeta}</span>
+                  </template>
+                  <template if:true={check.showAdminDetail}>
+                    <div class="rhc-debug-detail">
+                      <span class="rhc-debug-detail__label"
+                        >Troubleshooting detail</span
+                      >
+                      <!-- Keep the value flush-left: whitespace inside pre is rendered. -->
+                      <span class="rhc-expandable" data-expandable>
+                        <pre
+                          class="rhc-debug-detail__body rhc-expandable__content rhc-expandable__content--diagnostic"
+                          data-clampcontent
+                        >
+{check.adminDetailMessage}</pre
+                        >
+                        <button
+                          class="rhc-cmp__toggle"
+                          type="button"
+                          data-clamptoggle
+                          data-expand-label="troubleshooting detail"
+                          data-symbol="+"
+                          hidden
+                          aria-expanded="false"
+                          aria-label="Expand troubleshooting detail"
+                          onclick={handleToggleContent}
+                        ></button>
+                      </span>
+                    </div>
+                  </template>
+                </div>
+              </li>
+            </template>
+          </ul>
+
+          <template if:true={showHiddenResultsNotice}>
+            <p class="rhc-hidden-results" role="status">
+              {hiddenResultsNotice}
+            </p>
+          </template>
+
+          <template if:true={showSummaryStats}>
+            <div class="rhc-stats-bar">
+              <template for:each={summaryGroups} for:item="group">
+                <div key={group.key} class={group.cssClass}>
+                  <template if:true={group.label}>
+                    <div class="rhc-stats-group__label">{group.label}</div>
+                  </template>
+                  <template if:true={group.assistiveLabel}>
+                    <span class="slds-assistive-text"
+                      >{group.assistiveLabel}</span
+                    >
+                  </template>
+                  <div class="rhc-stats-group__pills">
+                    <template for:each={group.stats} for:item="stat">
+                      <span key={stat.key} class="rhc-summary-pill">
+                        <span
+                          class={stat.cssClass}
+                          data-tooltip={stat.tooltip}
+                          tabindex={stat.tabIndex}
+                        >
+                          <span
+                            class={stat.iconClass}
+                            aria-hidden="true"
+                          ></span>
+                          {stat.label}
+                        </span>
+                        <span class="rhc-stat__nubbin-host" aria-hidden="true">
+                          <span class="rhc-stat__nubbin"></span>
+                        </span>
+                      </span>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <template if:true={showDiagnosticsConsoleHint}>
+            <p class="rhc-debug-console-hint" role="status">
+              Open the browser console (F12), then find the [RHC] Start here
+              section.
+            </p>
+          </template>
+        </div>
+      </article>
+    </template>
+  </div>
+</template>

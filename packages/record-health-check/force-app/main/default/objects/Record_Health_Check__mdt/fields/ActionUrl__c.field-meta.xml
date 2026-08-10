@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ActionUrl__c</fullName>
+    <label>Action URL</label>
+    <description
+  >Optional destination displayed as an action link when this Check fails. Link to a Salesforce record, edit or create page, related list, report, Knowledge article, or HTTPS playbook. Current-record merge tokens are resolved before display and may traverse relationships, for example {!record.Id} or {!record.Owner.ManagerId}. Blank, unsafe, or overlong resolved URLs are hidden. Action Label is optional and defaults to "Fix this".</description>
+    <type>LongTextArea</type>
+    <length>32768</length>
+    <visibleLines>3</visibleLines>
+    <inlineHelpText
+  >Optional failure-action destination. Use a same-org path or HTTPS URL; {!record.FieldName} merge tokens are supported. Action Label is optional.</inlineHelpText>
+    <required>false</required>
+</CustomField>

@@ -1,0 +1,9 @@
+# Normalise line endings so a Windows checkout does not fail prettier:verify.
+* text=auto eol=lf
+
+# Binary assets must never be normalised.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary

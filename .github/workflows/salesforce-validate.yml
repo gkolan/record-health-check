@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: salesforce-release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-dev-hub-secret:
     runs-on: ubuntu-latest
@@ -24,7 +28,7 @@ jobs:
             echo "has-secret=true" >> "$GITHUB_OUTPUT"
           fi
 
-  scratch-org:
+  package-source-tests:
     needs: check-dev-hub-secret
     if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
@@ -57,7 +61,8 @@ jobs:
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts
         run: npm run check:permission-sets
-      - run: npm install --global @salesforce/cli@2.139.6
+      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm run check:toolchain
       - run: echo y | sf plugins install code-analyzer@5.14.0
       - name: Record analyzer toolchain versions
         run: |
@@ -68,36 +73,40 @@ jobs:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
-      - run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 1 --wait 15
+      - name: Check scratch-org capacity
+        run: npm run check:scratch-capacity -- --dev-hub devhub
+      - run: sf org create scratch --definition-file packages/record-health-check/config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
       - name: Dry-run production package deployment
-        run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
+        run: sf project deploy start --manifest packages/record-health-check/manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy production package artifact
-        run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --wait 30
+        run: sf project deploy start --manifest packages/record-health-check/manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --wait 30
       - name: Dry-run integration harness deployment
-        run: sf project deploy start --source-dir integration-tests --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
+        run: sf project deploy start --source-dir packages/record-health-check/integration-tests --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy integration fixtures and fixture-dependent tests
-        run: sf project deploy start --source-dir integration-tests --target-org rhc-ci --test-level RunLocalTests --wait 30
+        run: sf project deploy start --source-dir packages/record-health-check/integration-tests --target-org rhc-ci --test-level RunLocalTests --wait 30
       - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
       - name: Enforce production Apex coverage class by class
         run: npm run check:apex-coverage -- rhc-ci --list
+      - name: Verify published Apex and LWC coverage statistics
+        run: npm run test:unit:coverage && npm run check:quality-metrics -- --apex-org rhc-ci
       - name: Verify bounded query behavior against the accepted baseline
         run: npm run check:query-verdicts -- --target-org rhc-ci --namespace rhc
       - name: Run metadata validator
         run: sf apex run --target-org rhc-ci --file scripts/apex/validateMetadata.apex
       # Run static analysis last. The blocking release-policy profile documents
-      # package-specific rule decisions; every enabled finding fails CI. The
-      # separate neutral audit runs every rule as advisory debt evidence.
+      # package-specific check decisions; every enabled finding fails CI. The
+      # separate neutral audit runs every check as advisory debt evidence.
       - name: Enforce Code Analyzer output locations
         run: npm run check:code-analyzer-output-paths
       - name: Run blocking Code Analyzer release-policy gate
         run: |
           mkdir -p code-analyzer/logs
-          sf code-analyzer run --workspace force-app --workspace integration-tests --rule-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
-      - name: Run all-rules neutral advisory debt audit
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --rule-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
+      - name: Run all-checks neutral advisory debt audit
         if: always()
         continue-on-error: true
         run: |
-          sf code-analyzer run --workspace force-app --workspace integration-tests --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
       - name: Upload Code Analyzer evidence
         if: always()
         uses: actions/upload-artifact@v4

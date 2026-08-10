@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Subscriber Smoke Extension</label>
+    <protected>false</protected>
+    <values><field>rhc__ObjectApiName__c</field><value
+      xsi:type="xsd:string"
+    >Account</value></values>
+    <values><field>rhc__CardTitle__c</field><value
+      xsi:type="xsd:string"
+    >Subscriber-owned Check Set</value></values>
+    <values><field>rhc__CardSubtitle__c</field><value
+      xsi:type="xsd:string"
+    >Coexists with packaged Demo Check Sets after install.</value></values>
+    <values><field>rhc__CardRunMode__c</field><value
+      xsi:type="xsd:string"
+    >RUN_ON_REQUEST</value></values>
+    <values><field>rhc__CardRevealMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_AT_ONCE</value></values>
+    <values><field>rhc__PassedChecksDisplay__c</field><value
+      xsi:type="xsd:string"
+    >SHOW_EACH_CHECK</value></values>
+    <values><field>rhc__PublishErrorLogEvent__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+    <values><field>rhc__SkippedChecksDisplay__c</field><value
+      xsi:type="xsd:string"
+    >SHOW_EACH_CHECK</value></values>
+    <values><field>rhc__StopOnSystemError__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+    <values><field>rhc__IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+    <values><field>rhc__FoundExpectedDisplay__c</field><value
+      xsi:type="xsd:string"
+    >ON_DEMAND</value></values>
+</CustomMetadata>

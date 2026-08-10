@@ -22,7 +22,7 @@ const targetOrg = positionalArguments[0] || process.env.SF_TARGET_ORG;
 const threshold = Number(optionValue("--threshold", "98"));
 const sourceDirectory = optionValue(
   "--source-dir",
-  "force-app/main/default/classes"
+  "packages/record-health-check/force-app/main/default/classes"
 );
 if (helpRequested) {
   console.log(
@@ -95,6 +95,9 @@ const coverageByName = new Map(
 const failures = [];
 const notApplicable = [];
 const coverageRows = [];
+let aggregateCovered = 0;
+let aggregateExecutable = 0;
+let fullyCoveredClasses = 0;
 for (const className of productionClasses) {
   const coverage = coverageByName.get(className);
   if (!coverage) {
@@ -115,6 +118,11 @@ for (const className of productionClasses) {
     continue;
   }
   const percent = (covered * 100) / total;
+  if (covered === total) {
+    fullyCoveredClasses += 1;
+  }
+  aggregateCovered += covered;
+  aggregateExecutable += total;
   coverageRows.push(
     `${className}\t${percent.toFixed(2)}%\t${covered}/${total}`
   );
@@ -127,6 +135,16 @@ for (const className of productionClasses) {
 
 console.log(
   `Checked ${productionClasses.length} production Apex classes; ${notApplicable.length} N/A (0 executable lines).`
+);
+const aggregatePercent =
+  aggregateExecutable === 0
+    ? 100
+    : (aggregateCovered * 100) / aggregateExecutable;
+console.log(
+  `Framework Apex coverage: ${aggregatePercent.toFixed(2)}% (${aggregateCovered}/${aggregateExecutable} executable lines).`
+);
+console.log(
+  `${fullyCoveredClasses} executable production Apex classes are at 100% coverage.`
 );
 if (notApplicable.length > 0) {
   console.log(`N/A: ${notApplicable.join(", ")}`);

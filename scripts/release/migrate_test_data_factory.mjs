@@ -2,8 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 const roots = [
-  path.resolve("force-app/main/default/classes"),
-  path.resolve("integration-tests/main/default/classes")
+  path.resolve("packages/record-health-check/force-app/main/default/classes"),
+  path.resolve(
+    "packages/record-health-check/integration-tests/main/default/classes"
+  )
 ];
 const methods = new Map([
   ["Account", "RecordHealthCheckTestDataFactory.account"],
@@ -13,7 +15,7 @@ const methods = new Map([
   ["Event", "RecordHealthCheckTestDataFactory.event"],
   ["Case", "RecordHealthCheckTestDataFactory.caseRecord"],
   ["User", "RecordHealthCheckTestDataFactory.user"],
-  ["Record_Health_Check_Rule__mdt", "RecordHealthCheckTestDataFactory.rule"],
+  ["Record_Health_Check__mdt", "RecordHealthCheckTestDataFactory.check"],
   ["Record_Health_Check_Set__mdt", "RecordHealthCheckTestDataFactory.checkSet"],
   ["RHC_Benchmark_Result__c", "RHCIntegrationTestDataFactory.benchmarkResult"],
   ["RHC_Event_Export__c", "RHCIntegrationTestDataFactory.eventExport"]

@@ -1,56 +1,72 @@
 # Apex examples
 
 > [!NOTE]
-> On this page, choose a practical Apex Rule for readiness logic that requires several Salesforce objects, configurable calculations, or defensive runtime behavior.
+> On this page, choose an Apex example when a Formula or Query Check cannot express the Salesforce
+> requirement clearly.
 
-Use **Verify with Apex** when Formula, Query, and Compare two queries cannot express the business
-decision clearly. An Apex plugin receives a bulk scope and administrator-controlled JSON
-parameters, reads Salesforce data in the intended security mode, and returns one explicit outcome
-for every requested record ID.
+Use this page to select an example before creating a **Verify with Apex** Check. Record Health Check
+calls an Apex class written for the requirement. The
+class receives the record IDs being checked and any values entered in **Apex Parameters (JSON)**.
+It must return one result for every record ID.
 
 ## Choose an Apex example
 
-| Example | Salesforce question | Distinct Framework technique | Packaging |
+| Example | Salesforce question | What the Apex demonstrates | Availability |
 | --- | --- | --- | --- |
-| [Recent Account activity](01-recent-activity.md) | Does the Account have a recent completed Task or Event? | Multiple objects and a bounded JSON activity window | Ships in the Framework package (`force-app`) |
-| [Open Opportunity health](02-open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Several conditions applied to each related record plus count-query applicability | Integration-test sample only (`integration-tests/`); not part of the Framework install |
-| [Strategic Account readiness](03-strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Weighted scoring, multiple JSON parameters, and Formula applicability | Integration-test sample only (`integration-tests/`); not part of the Framework install |
-| [Inactive approval participants](04-inactive-approver.md) | Is a pending approval assigned to an inactive user? | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior | Integration-test sample only (`integration-tests/`); not part of the Framework install |
+| [Recent Account activity](recent-activity.md) | Does the Account have a recent completed Task or Event? | Reads two objects and accepts a configurable number of days | Included with the installed package |
+| [Open Opportunity health](open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Applies several conditions to each related record | Source example for package development and testing; not installed |
+| [Strategic Account readiness](strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Calculates a score using several configurable values | Source example for package development and testing; not installed |
+| [Inactive approval participants](inactive-approver.md) | Is a pending approval assigned to an inactive user? | Checks optional product objects and reports when they are unavailable | Source example for package development and testing; not installed |
 
-Only **Recent Account activity** installs with the Framework. The other three pages teach patterns
-from classes that live under `integration-tests/` for CI and demos. Copy them into your org when you
-want those behaviors.
+Only **Recent Account activity** is ready to use after package installation. The other classes live
+under `packages/record-health-check/integration-tests` and are not installed. Their pages explain
+how to build a subscriber-owned class from the pattern by using the public `rhc.*` Apex types. Do
+not copy an integration-test class unchanged into an org with the installed package.
 
 ## What Record Health Check passes to Apex
 
-Every Apex example uses the same bulk scope contract. Full detail lives in
-[Apex Rule contract](../../reference/evaluation/04-apex-rule-contract.md).
+The class must implement `rhc.RecordHealthCheckPlugin`. Record Health Check calls its `evaluate()`
+method once for all record IDs in the current transaction.
 
-| Input in Apex | Where it comes from |
+| Apex value | What it contains |
 | --- | --- |
-| `scope.recordIds` | The records being evaluated in this run (one Id on the card; up to 200 from Apex or Flow) |
-| `scope.parameters` | **Apex Parameters (JSON)** (`ApexParametersJson__c`) on the Rule |
+| `scope.recordIds` | The records being checked: normally one from the Lightning card, or as many as 200 in one Apex or Flow request |
+| `scope.parameters` | The values an administrator entered in **Apex Parameters (JSON)** on the Check |
+| Returned `Map<Id, rhc.RecordHealthCheckOutcome>` | Exactly one `PASS`, `FAIL`, `SKIPPED`, or `UNABLE_TO_EVALUATE` outcome for every supplied record ID |
 
-Leave the evaluated record Id out of the parameter JSON. Copy `scope.recordIds` once and bind it in
-SOQL so one query serves the whole scope:
+Do not put record IDs in **Apex Parameters (JSON)**. Record Health Check supplies them in
+`scope.recordIds`. Copy that list once and use it in a SOQL `IN` filter so one query reads the data
+for every record in the transaction:
 
 ```apex
 List<Id> recordIds = scope.recordIds;
+
+List<Account> accounts = [
+  SELECT Id, Industry
+  FROM Account
+  WHERE Id IN :recordIds
+  WITH USER_MODE
+];
 ```
+
+The Apex class must not run SOQL once per record. It also must not perform DML, make callouts, start
+another background job, or publish events. Record Health Check rejects those side effects. The
+[Apex Check contract](../../reference/evaluation/apex-check-contract.md) explains the complete
+interface, security rules, result values, and tests.
 
 ## When Apex is the right choice
 
-Choose Apex only after confirming that the declarative Evaluation Types would make the decision
-unclear or incomplete. Apex is appropriate for multi-object logic, weighted calculations, dynamic
-schema, and carefully handled product dependencies, but it also requires secure implementation and
-Apex test coverage.
+Choose Apex after confirming that Formula, Query, or Compare Two Queries cannot state the
+requirement clearly. Apex is useful for calculations, reading several Salesforce objects, or
+handling an optional installed product. It also requires a developer to create, secure, test, and
+deploy the class.
 
-For the plugin interface, context, parameters, result contract, security, and deployment checklist,
-use [Reference: Apex](../../reference/evaluation/04-apex-rule-contract.md).
+Start with [Recent Account activity](recent-activity.md) for the complete, installed example. It
+shows the class, its test behavior, every Check field, and what an administrator sees.
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Apex](../../reference/evaluation/04-apex-rule-contract.md)
-- [Apex API](../../api/01-apex-api.md)
-- [Rule fields](../../metadata/02-fields-check-rule.md)
+- [Reference: Apex](../../reference/evaluation/apex-check-contract.md)
+- [Apex API](../../api/apex-api.md)
+- [Check fields](../../metadata/fields-check.md)

@@ -27,6 +27,6 @@ See CONTRIBUTING.md for the full workflow.
 ## Checklist
 
 - [ ] Tests added/updated for every behavior change (positive **and** misconfiguration where applicable).
-- [ ] Did **not** weaken CRUD/FLS, the 25-Rule run cap, the 5-way Apex concurrency cap, debug-detail authorization, or result normalization.
+- [ ] Did **not** weaken CRUD/FLS, the 25-Check run cap, the 5-way Apex concurrency cap, debug-detail authorization, or result normalization.
 - [ ] Docs updated in the same change set when behavior or public contracts change.
 - [ ] `CHANGELOG.md` updated under **Unreleased** when the change is user-visible.

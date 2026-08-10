@@ -1,0 +1,21 @@
+{
+  "packageName": "Record Health Check",
+  "package2Id": "0Hoak0000004kKPCAY",
+  "namespace": "rhc",
+  "stable": {
+    "version": "2.0.0.6",
+    "subscriberPackageVersionId": "04tak000000ZXVlAAO"
+  },
+  "previous": {
+    "version": "2.0.0.6",
+    "subscriberPackageVersionId": "04tak000000ZXVlAAO"
+  },
+  "permissionSets": {
+    "user": "Record_Health_Check_User",
+    "admin": "Record_Health_Check_Admin"
+  },
+  "installUrl": {
+    "production": "https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO",
+    "sandbox": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO"
+  }
+}

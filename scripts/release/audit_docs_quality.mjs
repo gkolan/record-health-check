@@ -105,18 +105,22 @@ function classify(relative) {
   if (relative === "docs/guides/README.md") return "Guides home";
   if (relative === "docs/reference/README.md")
     return "Technical reference home";
-  if (/docs\/examples\/[^/]+\/\d[^/]+\.md$/.test(relative))
+  if (
+    /docs\/examples\/[^/]+\/[^/]+\.md$/.test(relative) &&
+    !relative.endsWith("/README.md")
+  )
     return "Worked example";
   if (
-    /docs\/reference\/evaluation\/(?:formula|query|compare-two-queries|apex-rule-contract)\.md$/.test(
+    /docs\/reference\/evaluation\/(?:formula|query|compare-two-queries|apex-check-contract)\.md$/.test(
       relative
     )
   )
     return "Evaluation reference";
   if (/docs\/(?:api|platform-events)\//.test(relative))
     return "Integration reference";
-  if (/docs\/installation\/01-how-it-works\.md$/.test(relative))
+  if (/docs\/installation\/how-it-works\.md$/.test(relative))
     return "Concept guide";
+  if (/docs\/contributing\//.test(relative)) return "Installation task";
   if (/docs\/installation\//.test(relative)) return "Installation task";
   if (/docs\/integration\/apex-api\/README\.md$/.test(relative))
     return "Navigation page";
@@ -158,7 +162,7 @@ function structureMatches(type, markdown) {
       return hasAll(markdown, [
         /^## Choose .+ example$/m,
         /^## When .+ (?:is|are) the right choice$/m,
-        /\| Example \| Salesforce question \| Distinct Framework technique \|/,
+        /\| Example \| Salesforce question \| (?:Distinct Framework technique|What .+ demonstrates) \|/,
         /^## Related$/m
       ]);
     case "Installation home":
@@ -196,10 +200,10 @@ function structureMatches(type, markdown) {
         /^> On this page,/m,
         /^## Scenario$/m,
         /^## (?:Why use|Why this Evaluation Type)/m,
-        /^## (?:Step \d+: )?Configure the Rule$/m,
+        /^## (?:Step \d+: )?Configure the Check$/m,
         /^## What the user sees$/m,
         /^## Security and access$/m,
-        /^## (?:Step \d+: )?Test the Rule$/m
+        /^## (?:Step \d+: )?Test the Check$/m
       ]);
     case "Evaluation reference":
       return hasAll(markdown, [
@@ -211,8 +215,8 @@ function structureMatches(type, markdown) {
       ]);
     case "Concept guide":
       return hasAll(markdown, [
-        /^## The plain-English model$/m,
-        /^## The words you need$/m,
+        /read-only checklist|advisory guidance/i,
+        /^## Terms to know$/m,
         /^## Example:/m,
         /troubleshooting/i,
         /^## Next steps$/m
