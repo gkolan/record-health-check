@@ -17,10 +17,14 @@ These checks apply to every AI coding agent and automated contributor working in
 
 ## Scratch-org lifecycle
 
-- Before creating an org, run the Dev Hub capacity guard. Creation must stop when either
-  `ActiveScratchOrgs` or `DailyScratchOrgs` lacks the required capacity.
-- Reuse a suitable project org when doing so cannot invalidate clean-install, upgrade, namespace, or
-  isolation evidence. Never reuse an org for a gate that explicitly requires a clean org.
+- Always inventory and reuse a suitable existing project scratch org before considering creation.
+  Do not create a scratch org merely for convenience, a new alias, or because an automated workflow
+  defaults to creation. An explicit need exists only when no compatible existing org is available or
+  when reusing one would invalidate a required clean-install, upgrade, namespace, or isolation gate.
+- Create a scratch org only after documenting that explicit need. Before creation, run the Dev Hub
+  capacity guard; creation must stop when either `ActiveScratchOrgs` or `DailyScratchOrgs` lacks the
+  required capacity. Never reuse an org for a gate that explicitly requires a clean org unless its
+  recorded state proves that the attempted operation did not install or otherwise contaminate it.
 - Use unique, purpose-specific aliases and request the maximum 30-day lifetime. Long lifetimes make
   orgs useful for review; ownership tracking and explicit cleanup protect active-org capacity.
 - A workflow must delete every scratch org it creates, including on failure or cancellation. Never
