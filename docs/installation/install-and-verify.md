@@ -47,11 +47,12 @@ Choose the destination that matches the org where you are signed in:
 
 | Destination | Use it when | Install |
 | --- | --- | --- |
-| Sandbox | You are evaluating or preparing Record Health Check | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO) |
+| Sandbox | You are verifying the 2.0.1 release candidate | [Verify 2.0.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aUxFAAU) |
 | Production or Developer Edition | You have completed your sandbox review | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO) |
 
-Both links install Record Health Check version **2.0.0.6**. The links differ only because Salesforce
-uses a separate sign-in page for sandboxes.
+The sandbox link installs the unreleased **2.0.1.9** verification candidate. Use it only in a sandbox
+or other non-production test org while completing the release gates. The production link remains
+pinned to the promoted **2.0.0.6** release until 2.0.1 is verified and promoted.
 
 On the Salesforce installation page, choose **Install for Admins Only**. This installs the complete
 package, but it does not automatically grant its packaged permissions to every user profile. You
@@ -163,7 +164,7 @@ macOS, and Linux after the Salesforce CLI is installed.
 ```bash
 sf org login web --instance-url https://test.salesforce.com --alias rhc-sandbox
 sf org display --target-org rhc-sandbox
-sf package install --package 04tak000000ZXVlAAO --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
+sf package install --package 04tak000000aUxFAAU --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
 sf org assign permset --name rhc__Record_Health_Check_User --target-org rhc-sandbox
 ```
 

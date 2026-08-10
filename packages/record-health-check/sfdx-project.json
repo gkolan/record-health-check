@@ -1,12 +1,12 @@
 {
   "packageDirectories": [
     {
-      "versionName": "2.0.1",
+      "versionName": "Record Health Check 2.0.1",
       "versionNumber": "2.0.1.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Record Health Check",
-      "versionDescription": "Record Health Check 2.0.1"
+      "versionDescription": "The first namespaced release of Record Health Check. It brings configurable, read-only health checks directly to Salesforce record pages, helping users understand what needs attention, why it matters, and what to do next."
     }
   ],
   "name": "RecordHealthCheckPackaging",

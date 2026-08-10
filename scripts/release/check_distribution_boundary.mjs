@@ -107,15 +107,30 @@ if (packageJson.scripts?.["subscriber:setup"] !== subscriberSetupCommand) {
 
 const releases = readPackageReleases();
 const stableVersionId = releases.stable.subscriberPackageVersionId;
+const candidateVersionId = releases.candidate?.subscriberPackageVersionId ?? "";
 if (!stableVersionId.startsWith("04t")) {
   fail(
     "config/package-releases.json: stable subscriberPackageVersionId must start with 04t"
   );
 }
+if (!candidateVersionId.startsWith("04t")) {
+  fail(
+    "config/package-releases.json: candidate subscriberPackageVersionId must start with 04t"
+  );
+}
+if (releases.candidate?.status !== "beta") {
+  fail("config/package-releases.json: candidate status must be beta");
+}
+const expectedCandidateSandboxUrl = `https://test.salesforce.com/packaging/installPackage.apexp?p0=${candidateVersionId}`;
+if (releases.candidate?.sandboxInstallUrl !== expectedCandidateSandboxUrl) {
+  fail(
+    "config/package-releases.json: candidate sandboxInstallUrl must target the candidate 04t on test.salesforce.com"
+  );
+}
 
-// The one-click install buttons hard-code the promoted 04t. Keep every published
-// install link pinned to the current stable release so a promote cannot leave the
-// README pointing subscribers at a superseded package version.
+// Production links must always target the promoted stable release. A clearly
+// labeled sandbox verification link may target the beta candidate, but the
+// candidate must never appear on login.salesforce.com.
 for (const relativePath of [
   "README.md",
   "docs/installation/install-and-verify.md"
@@ -129,22 +144,34 @@ for (const relativePath of [
     continue;
   }
   for (const id of linked) {
-    if (id !== stableVersionId) {
+    if (id !== stableVersionId && id !== candidateVersionId) {
       fail(
-        `${relativePath}: install link points at ${id}; stable release is ${stableVersionId}`
+        `${relativePath}: install link points at untracked package version ${id}`
       );
     }
   }
-  for (const host of ["login.salesforce.com", "test.salesforce.com"]) {
-    if (
-      !contents.includes(
-        `https://${host}/packaging/installPackage.apexp?p0=${stableVersionId}`
-      )
-    ) {
-      fail(
-        `${relativePath}: missing ${host} install link for ${stableVersionId}`
-      );
-    }
+  if (
+    !contents.includes(
+      `https://login.salesforce.com/packaging/installPackage.apexp?p0=${stableVersionId}`
+    )
+  ) {
+    fail(
+      `${relativePath}: missing production install link for ${stableVersionId}`
+    );
+  }
+  if (!contents.includes(expectedCandidateSandboxUrl)) {
+    fail(
+      `${relativePath}: missing sandbox candidate link for ${candidateVersionId}`
+    );
+  }
+  if (
+    contents.includes(
+      `https://login.salesforce.com/packaging/installPackage.apexp?p0=${candidateVersionId}`
+    )
+  ) {
+    fail(
+      `${relativePath}: beta candidate must not have a production install link`
+    );
   }
 }
 

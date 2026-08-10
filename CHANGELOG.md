@@ -10,6 +10,8 @@ interfaces and product-generation terminology.
 install URLs are recorded in [`config/package-releases.json`](config/package-releases.json).
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
+- Sandbox verification candidate: `Record Health Check@2.0.1-9`; its beta install URL is recorded
+  separately under `candidate` and is not a production release.
 
 ### Evaluation and integration
 

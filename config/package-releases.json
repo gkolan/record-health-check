@@ -10,6 +10,12 @@
     "version": "2.0.0.6",
     "subscriberPackageVersionId": "04tak000000ZXVlAAO"
   },
+  "candidate": {
+    "version": "2.0.1.9",
+    "subscriberPackageVersionId": "04tak000000aUxFAAU",
+    "status": "beta",
+    "sandboxInstallUrl": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aUxFAAU"
+  },
   "permissionSets": {
     "user": "Record_Health_Check_User",
     "admin": "Record_Health_Check_Admin"
