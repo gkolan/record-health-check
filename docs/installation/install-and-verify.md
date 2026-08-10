@@ -47,7 +47,7 @@ Choose the destination that matches the org where you are signed in:
 
 | Destination | Use it when | Install |
 | --- | --- | --- |
-| Sandbox | You are verifying the 2.0.1 release candidate | [Verify 2.0.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aUxFAAU) |
+| Sandbox | You are verifying the 2.0.1 candidate | [Verify 2.0.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aUxFAAU) |
 | Production or Developer Edition | You have completed your sandbox review | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO) |
 
 The sandbox link installs the unreleased **2.0.1.9** verification candidate. Use it only in a sandbox
