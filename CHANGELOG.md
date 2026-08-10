@@ -6,16 +6,21 @@ interfaces and product-generation terminology.
 
 ## Current release
 
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.0-6`. Stable `04t` and
+install URLs are recorded in [`config/package-releases.json`](config/package-releases.json).
+
+- Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
+
 ### Evaluation and integration
 
-- Formula, Query, Compare two queries, and bulk Apex Rule plugins use one bounded evaluation
+- Formula, Query, Compare two queries, and bulk Apex Check plugins use one bounded evaluation
   pipeline for Lightning, Apex, and Flow.
 - `RecordHealthCheck.evaluate(RecordHealthCheckRequest)` returns ordered, typed evaluation results
   with optional display content.
-- Apex plugins implement `RecordHealthCheckRule`, receive one `RecordHealthCheckScope`, and return
+- Apex plugins implement `RecordHealthCheck`, receive one `RecordHealthCheckScope`, and return
   one `RecordHealthCheckOutcome` per requested record ID.
-- Flow actions expose Rule and Check Set evaluation without requiring custom Apex.
-- Optional Set Run, Rule Result, and Error Log Platform Events carry independent machine-readable
+- Flow actions expose Check and Check Set evaluation without requiring custom Apex.
+- Optional Set Run, Check Result, and Error Log Platform Events carry independent machine-readable
   contract versions.
 
 ### Trust and safety
@@ -27,7 +32,7 @@ interfaces and product-generation terminology.
   specific restricted reason.
 - Merge tokens use explicit namespaces, typed fallbacks, bounded resolution, and safe Action URL
   handling.
-- Rules per run, records per request, query rows, FormulaEval work, token count, and completed text
+- Checks per run, records per request, query rows, FormulaEval work, token count, and completed text
   all have documented limits.
 
 ### Administrator experience
@@ -40,8 +45,8 @@ interfaces and product-generation terminology.
   Checkbox, Date, Date/Time, Text, and Raw display formats.
 - Optional remediation text and safe links guide a user without changing Salesforce data.
 - Teaching examples and deterministic demo data cover Account, Contact, and Opportunity scenarios.
-  The Framework package ships four Demo Check Sets (`Example_…`, card titles prefixed with
-  `Demo:`) plus matching integration fixtures.
+  The Framework package ships four Example Check Sets (`Example_…`, card titles prefixed with
+  `Example:`) plus matching integration fixtures.
 
 ### Engineering gates
 
@@ -52,9 +57,19 @@ interfaces and product-generation terminology.
   gates.
 
 For installation and verification, start with
-[Install and verify](docs/installation/02-install-and-verify.md). For the public contracts, use the
-[Apex API](docs/api/01-apex-api.md), [Flow actions](docs/integration/02-flow-actions.md), and
-[Apex Rule plugin reference](docs/reference/evaluation/04-apex-rule-contract.md).
+[Install and verify](docs/installation/install-and-verify.md). For the public contracts, use the
+[Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
+[Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
+
+## [2.0.1] - Unreleased
+
+### Added
+
+- Added Check Set and Lightning App Builder controls for labeled, label-only, compact icon-only, or
+  hidden Run/Rerun actions. Hidden automatic actions release their header space; manual Check Sets
+  cannot hide their only run action. Empty automatic Check Sets no longer show a decorative Rerun,
+  and metadata validation warns when hidden automatic cards have lifecycle publication enabled but
+  no in-card deliberate publication path.
 
 ## [2.0.0] - 2026-08-04
 
@@ -69,9 +84,10 @@ For installation and verification, start with
 ### Changed
 
 - Install documentation states the namespaced unlocked package as the supported subscriber path,
-  with source deploy reserved for contribution and scratch-org workflows.
+  with concrete Production and Sandbox install URLs for promoted `04tak000000ZXVlAAO`, and source
+  deploy reserved for contribution and scratch-org workflows.
 - Configuration identity guidance lives under
-  [Configuration identity](docs/reference/framework/06-configuration-identity.md).
+  [Configuration identity](docs/reference/framework/configuration-identity.md).
 - Technical references are grouped under `docs/reference/{framework,evaluation,contracts,apex}/`
   instead of a flat `reference-*.md` list. Old GitHub blob URLs to the previous filenames will not
   redirect.

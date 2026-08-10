@@ -32,12 +32,12 @@ def candidate_files(root: Path) -> list[Path]:
 def migrate(root: Path, check: bool) -> int:
     changed: list[Path] = []
     for path in candidate_files(root):
-        original = path.read_text()
+        original = path.read_text(encoding="utf-8")
         updated = migrated_text(original)
         if updated != original:
             changed.append(path)
             if not check:
-                path.write_text(updated)
+                path.write_text(updated, encoding="utf-8")
 
     for old_name, new_name in RENAMES.items():
         old_file = root / f"{old_name}.field-meta.xml"

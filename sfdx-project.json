@@ -1,25 +1,12 @@
 {
   "packageDirectories": [
     {
-      "versionName": "Record Health Check 2.0.0",
-      "versionNumber": "2.0.0.NEXT",
-      "path": "force-app",
-      "default": true,
-      "package": "Record Health Check",
-      "versionDescription": "Record Health Check 2.0.0"
+      "path": "subscriber-app",
+      "default": true
     }
   ],
-  "name": "RecordHealthCheck",
-  "namespace": "rhc",
+  "name": "RecordHealthCheckSubscriber",
+  "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "66.0",
-  "packageAliases": {
-    "Record Health Check": "0Hoak0000004kKPCAY",
-    "Record Health Check@2.0.0-1": "04tak000000ZP3ZAAW",
-    "Record Health Check@2.0.0-2": "04tak000000ZP5BAAW",
-    "Record Health Check@2.0.0-3": "04tak000000ZP6nAAG",
-    "Record Health Check@2.0.0-4": "04tak000000ZPA1AAO",
-    "Record Health Check@2.0.0-5": "04tak000000ZXU9AAO",
-    "Record Health Check@2.0.0-6": "04tak000000ZXVlAAO"
-  }
+  "sourceApiVersion": "66.0"
 }

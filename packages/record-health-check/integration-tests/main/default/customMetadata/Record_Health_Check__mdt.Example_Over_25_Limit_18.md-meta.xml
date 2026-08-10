@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Limit Check 18</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Account_Over_25_Checks</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Check 18 of 30</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >A lightweight passing Check used to review the first-25 Framework limit in the Lightning card.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >true</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >This display-only limit Check unexpectedly failed.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >180</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

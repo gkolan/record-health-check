@@ -1,10 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { paths } from "../lib/paths.mjs";
 
-const ROOT = process.cwd();
-const SOURCE = path.join(ROOT, "force-app", "main", "default");
+const SOURCE = path.join(paths.forceApp, "main", "default");
 const manifest = fs.readFileSync(
-  path.join(ROOT, "manifest", "package.xml"),
+  path.join(paths.manifest, "package.xml"),
   "utf8"
 );
 const manifestByType = new Map();

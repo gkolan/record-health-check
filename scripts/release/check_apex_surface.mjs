@@ -1,12 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const classRoot = "force-app/main/default/classes";
+const classRoot = "packages/record-health-check/force-app/main/default/classes";
 // Measured no-growth ceilings. Existing hotspots are recorded in the Step 10
 // review; reductions must lower these values in the same change.
 const maxMethodLines = 416;
 const maxDecisionPoints = 51;
-const approvedProductionRhcNames = new Set(["RHCMetadataDependencyValidator"]);
+const approvedProductionRhcNames = new Set([
+  "RHCConstructorMutationCheck",
+  "RHCMetadataDependencyValidator"
+]);
 const failures = [];
 let globalMembers = 0;
 let methods = 0;

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>RHC Persona Restricted</label><protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_Persona_Access</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Restricted value is present</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Verifies that one inaccessible field cannot abort an accessible sibling Check.</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >COMPLETENESS</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(ISBLANK(rhc__Restricted_Value__c))</value></values>
+    <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >rhc__Restricted_Value__c</value></values>
+    <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >A value the persona must not receive</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >The restricted value is missing.</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The restricted value is not accessible.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >20</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

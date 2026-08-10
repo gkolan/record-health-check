@@ -2,7 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ROOT = process.cwd();
-const DEFAULT = path.join(ROOT, "force-app", "main", "default");
+const DEFAULT = path.join(
+  ROOT,
+  "packages/record-health-check/force-app",
+  "main",
+  "default"
+);
 const PERMISSION_SETS = path.join(DEFAULT, "permissionsets");
 const MAX_SALESFORCE_DESCRIPTION = 255;
 const PROJECT_DESCRIPTION_BUDGET = 200;
@@ -14,14 +19,14 @@ const expected = {
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
       "RecordHealthCheckMetadataValidator",
-      "RecordHealthCheckRunRuleFlowAction",
+      "RecordHealthCheckRunCheckFlowAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
       "RecordHealthCheckScheduled",
       "RecordHealthCheckSetPicklist"
     ],
     objects: [
-      "Record_Health_Check_Rule_Result__e",
+      "Record_Health_Check_Result__e",
       "Record_Health_Check_Set_Run__e"
     ],
     customPermissions: [
@@ -29,7 +34,7 @@ const expected = {
       "Record_Health_Check_View_Diagnostics"
     ],
     customMetadataTypes: [
-      "Record_Health_Check_Rule__mdt",
+      "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"
     ]
   },
@@ -38,18 +43,18 @@ const expected = {
       "RecordHealthCheck",
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
-      "RecordHealthCheckRunRuleFlowAction",
+      "RecordHealthCheckRunCheckFlowAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
       "RecordHealthCheckScheduled"
     ],
     objects: [
-      "Record_Health_Check_Rule_Result__e",
+      "Record_Health_Check_Result__e",
       "Record_Health_Check_Set_Run__e"
     ],
     customPermissions: ["Record_Health_Check_Run"],
     customMetadataTypes: [
-      "Record_Health_Check_Rule__mdt",
+      "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"
     ]
   }

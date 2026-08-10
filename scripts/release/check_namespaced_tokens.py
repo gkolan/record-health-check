@@ -10,17 +10,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TOKEN = re.compile(r"\{!([A-Za-z_][A-Za-z0-9_.]*)\}")
-NAMESPACES = {"record", "rhcRule", "rhcSet", "rhcResult", "rhcRun"}
+NAMESPACES = {"record", "rhcCheck", "rhcSet", "rhcResult", "rhcRun"}
 COMPUTED = {
     "failCount": "rhcResult.failedRecordCount",
     "totalCount": "rhcResult.totalRecordCount",
 }
 TARGETS = (
-    ROOT / "force-app" / "main" / "default" / "customMetadata",
-    ROOT / "force-app" / "main" / "default" / "classes",
+    ROOT / "packages/record-health-check/force-app/main/default/customMetadata",
+    ROOT / "packages/record-health-check/force-app/main/default/classes",
     ROOT / "docs",
 )
-REVALIDATION_GUIDE = ROOT / "docs" / "installation" / "04-upgrading.md"
+REVALIDATION_GUIDE = ROOT / "docs" / "installation" / "upgrading.md"
 # Current docs occasionally show an intentionally rejected token as an example
 # A line carrying this marker is left as-is so
 # the gate can't be re-broken by a legitimate documentation example.
@@ -62,7 +62,7 @@ def main() -> int:
     args = parser.parse_args()
     changes = []
     for path in files():
-        original = path.read_text()
+        original = path.read_text(encoding="utf-8")
 
         def convert(match: re.Match[str]) -> str:
             new = replacement(match.group(1))
@@ -84,7 +84,7 @@ def main() -> int:
 
         updated = TOKEN.sub(convert, original)
         if args.mode == "apply" and updated != original:
-            path.write_text(updated)
+            path.write_text(updated, encoding="utf-8")
     if args.manifest:
         args.manifest.write_text(json.dumps({"changes": changes}, indent=2) + "\n")
     print(json.dumps({"mode": args.mode, "invalidTokenCount": len(changes)}))

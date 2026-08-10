@@ -9,7 +9,7 @@
 //   CreatedDate        → Date/Time (locale and time zone)
 //   Opportunity.CloseDate   → Date
 //   Opportunity.Probability → Percent
-//   Opportunity.Amount      → Currency on the Compare two queries Rule
+//   Opportunity.Amount      → Currency on the Compare two queries Check
 
 String accountName = 'Display Format Coverage';
 
@@ -52,7 +52,7 @@ if (target.Id == null) {
   Database.update(target, dmlOptions);
 }
 
-// One open opportunity feeds the Percent, Date, and Compare two queries Rules.
+// One open opportunity feeds the Percent, Date, and Compare two queries Checks.
 delete [SELECT Id FROM Opportunity WHERE AccountId = :target.Id];
 
 Opportunity pipeline = new Opportunity(

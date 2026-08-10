@@ -1,17 +1,19 @@
 # Salesforce integrations
 
 > [!NOTE]
-> On this page, place each readiness decision on the right Salesforce surface by comparing how Lightning, Apex, Flow, and platform events start work, return outcomes, and handle failure.
+> On this page, choose whether a health result belongs on a Lightning record page, in the current
+> Flow or Apex process, in a large background job, or in optional Platform Event automation.
 
 > [!TIP]
 > **Only placing the Lightning card?** Follow
-> [Install and verify](../installation/02-install-and-verify.md), then return here when you need Apex,
-> Flow, or platform-event subscribers.
+> [Install and verify](../installation/install-and-verify.md), then return here when you need Apex,
+> Flow, Batch Apex, or Platform Event automation.
 
-Use this page to decide where a readiness decision belongs: a Lightning record page, Flow,
-Apex, or an independent subscriber receiving an after-commit lifecycle event.
+Use this page to decide who or what needs the result. Most implementations start with the Lightning
+card, Flow, or Apex. Use Platform Events only when a separate Flow, Apex trigger, or external
+integration must receive the result after the Record Health Check transaction completes successfully.
 
-Record Health Check uses the same metadata-defined Check Sets and Rules across those surfaces. The
+Record Health Check uses the same metadata-defined Check Sets and Checks across those surfaces. The
 integration choice changes how the evaluation starts and how the caller receives the result; it
 does not create a second configuration model.
 
@@ -19,65 +21,116 @@ does not create a second configuration model.
 
 | Step | Guide | What you finish |
 | ---: | --- | --- |
-| 1 | [Lightning component](01-lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
-| 2 | [Flow actions](02-flow-actions.md) | Branch in automation without custom Apex |
-| 3 | [Lifecycle events](03-lifecycle-events.md) | After-commit publication behavior for independent subscribers |
+| 1 | [Lightning component](lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
+| 2 | [Flow actions](flow-actions.md) | Branch in automation without custom Apex |
+| 3 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
 
-For Apex API patterns (sync and async), use [API examples](../api/README.md). For subscriber
-recipes, use [Platform Event subscriptions](../platform-events/README.md).
+For immediate and background Apex patterns, use [API examples](../api/README.md). For receiving
+Flow, Apex, or external-integration examples, use
+[Platform Event subscriptions](../platform-events/README.md).
 
 ## Choose an integration
 
 | Goal | Start here | What you will learn |
 | --- | --- | --- |
-| Show health to a user on a record page | [Lightning component](01-lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
-| Make an immediate or asynchronous decision in code | [API examples](../api/README.md) | Choose synchronous Apex, Queueable, Batch, or Scheduled Apex |
-| Branch in automation without custom Apex | [Flow actions](../integration/02-flow-actions.md) | Configure an Action and Decision element with explicit status paths |
-| Notify independent automation after commit | [Platform Event subscriptions](../platform-events/README.md) | Build a Flow or Apex subscriber and handle replay or duplicate delivery |
-| Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/01-recent-activity.md) | Write the class used by a Verify with Apex Rule |
+| Show health to a user on a record page | [Lightning component](lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
+| Make an immediate or background decision in code | [API examples](../api/README.md) | Choose the direct Apex API, Queueable, Batch, or Scheduled Apex |
+| Branch in automation without custom Apex | [Flow actions](../integration/flow-actions.md) | Configure an Action and Decision element with explicit status paths |
+| Notify a separate process after the health-check transaction completes | [Platform Event subscriptions](../platform-events/README.md) | Build a receiving Flow, Apex trigger, or external integration and handle repeated delivery |
+| Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/recent-activity.md) | Write the class used by a Verify with Apex Check |
+
+### Integration decision flow
+
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 80, "rankSpacing": 70}} }%%
+flowchart TB
+    start(["What must consume the result?"])
+    user{"A person on a record page?"}
+    immediate{"Must the current Flow or Apex process branch on it now?"}
+    recurring{"Does it run on a schedule or check many records?"}
+    independent{"Must a separate process receive it after completion?"}
+    lightning["Lightning record-page component"]
+    flow["Flow action or direct Apex API"]
+    async["Queueable, Batch, or Scheduled Apex"]
+    event["Platform Event plus receiving automation"]
+    review["Review the requirement before choosing a caller"]
+
+    start --> user
+    user -->|"Yes"| lightning
+    user -->|"No"| immediate
+    immediate -->|"Yes"| flow
+    immediate -->|"No"| recurring
+    recurring -->|"Yes"| async
+    recurring -->|"No"| independent
+    independent -->|"Yes"| event
+    independent -->|"No"| review
+
+    style start fill:#a7f3d0,stroke:#047857,color:#1f2937
+    style user fill:#fde68a,stroke:#b45309,color:#1f2937
+    style immediate fill:#fde68a,stroke:#b45309,color:#1f2937
+    style recurring fill:#fde68a,stroke:#b45309,color:#1f2937
+    style independent fill:#fde68a,stroke:#b45309,color:#1f2937
+    style lightning fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style flow fill:#c7d2fe,stroke:#4338ca,color:#1f2937
+    style async fill:#ddd6fe,stroke:#6d28d9,color:#1f2937
+    style event fill:#99f6e4,stroke:#0f766e,color:#1f2937
+```
+
+Text fallback:
+
+```text
+Record-page user -> Lightning component
+Immediate Flow or Apex decision -> Flow action or Apex API
+Scheduled work or many records -> Queueable, Batch, or Scheduled Apex
+Separate process after successful completion -> Platform Event
+```
 
 ## What Record Health Check is
 
-Record Health Check is a synchronous evaluation framework for Salesforce records.
+Record Health Check evaluates Salesforce records and returns the results to whatever started the
+run. The Lightning card, Flow action, and direct Apex API receive their response during the current
+request. Queueable, Batch, and Scheduled Apex perform the work in the background.
 
-- A **Check Set** is the parent configuration and normal unit of execution.
-- A **Rule** is one ordered check inside a Check Set.
-- A run returns structured status data immediately.
-- Optional lifecycle events announce completed runs after the transaction commits.
-- Evaluation respects the running user's Salesforce access.
+| Concept | Meaning |
+| --- | --- |
+| **Check Set** | The parent configuration and normal unit of execution |
+| **Check** | One ordered check inside a Check Set |
+| Immediate response | The Lightning card, Flow, or direct Apex caller receives structured status data during its request. |
+| Lifecycle events | Optional Platform Events announce completed runs only after Salesforce successfully commits the transaction. |
+| Access | Evaluation respects the running user's Salesforce access |
 
-Start with a Check Set. Use a single Rule only when your process intentionally needs one specific
+Start with a Check Set. Use a single Check only when your process intentionally needs one specific
 check rather than the complete configured health assessment.
 
 ## What it is not
 
-Record Health Check is not:
-
-- A database of historical results. Responses are transient unless a subscriber stores them.
-- A validation rule. It reports health; it does not block record save.
-- A remediation engine. It does not automatically update unhealthy records.
-- A guaranteed-message queue. Platform-event publication and delivery are asynchronous and best effort.
-- A record-change listener. A run happens only when Lightning, Apex, Flow, or scheduled code invokes it.
-- A replacement for Salesforce security. It evaluates with the caller's effective access.
-- An all-record bulk scanner. Public requests are deliberately bounded.
+| Not this | Why |
+| --- | --- |
+| A database of historical results | Record Health Check does not automatically create a result record. Flow, Apex, Batch Apex, or receiving automation must save one when history is required. |
+| A Validation Rule | It reports health; it does not block record save |
+| A remediation engine | It does not automatically update unhealthy records |
+| A guaranteed-message queue | Platform Event publication or delivery can fail, and the same event can be delivered again. |
+| A record-change listener | A run happens only when Lightning, Apex, Flow, or scheduled code invokes it |
+| A replacement for Salesforce security | It evaluates with the caller's effective access |
+| An all-record bulk scanner | Public requests are deliberately bounded |
 
 ## Compare integration outputs
 
 | Goal | Start here | Immediate output | Optional event source |
 | --- | --- | --- | --- |
-| Show health on a record page | [Lightning component](01-lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
-| Make a code-level decision | [Apex API](../api/01-apex-api.md) | Typed Rule or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
-| Branch in automation without code | [Flow actions](02-flow-actions.md) | Flow output variables and JSON | `FLOW` |
-| React asynchronously or export results | [Platform events](03-lifecycle-events.md) | Event body | Depends on the publisher |
-| Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/01-recent-activity.md) | Normal Rule result | Inherits the calling run |
+| Show health on a record page | [Lightning component](lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
+| Make a code-level decision | [Apex API](../api/apex-api.md) | Typed Check or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
+| Branch in automation without code | [Flow actions](flow-actions.md) | Flow output variables and JSON | `FLOW` |
+| Notify a separate process or export results | [Platform events](lifecycle-events.md) | Platform Event fields | Depends on what started the run |
+| Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/recent-activity.md) | Normal Check result | Inherits the calling run |
 
 ## Evaluation model
 
 ```text
 Check Set
-├── Rule A
-├── Rule B
-└── Rule C
+├── Check A
+├── Check B
+└── Check C
 
 evaluate(request) -> RecordHealthCheckResponse
                      ├── summary with outcome counts
@@ -97,28 +150,33 @@ The successful status is `PASS`, not `SUCCESS`.
 A Check Set uses the strongest contained result in this order:
 `ERROR → UNABLE_TO_EVALUATE → FAIL → PASS → SKIPPED`.
 
-## Contract versions
+## Versions in API responses and Platform Events
 
-The synchronous response and lifecycle-event schemas carry independent contract-version fields.
-Subscribers must use the contract field that arrives with each event instead of inferring a
-schema from the installed package version.
+The direct response and Platform Events have separate contract-version fields.
+Receiving automation should read the contract-version field included in the response or event. Do
+not guess the available fields from the installed package version.
 
 ## Basic Apex pattern
 
 ```apex
-RecordHealthCheckResponse health = RecordHealthCheck.evaluate(
-  RecordHealthCheckRequest.forCheckSet(
+rhc.RecordHealthCheckResponse healthResponse = rhc.RecordHealthCheck.evaluate(
+  rhc.RecordHealthCheckRequest.forCheckSet(
     'Account_Readiness', // Exact QualifiedApiName returned by Salesforce.
     accountId
   )
 );
 
-if (health.summary.failed > 0) {
-  // Use health.results for business handling.
+if (healthResponse.summary.failed > 0) {
+  // At least one Account Check returned FAIL.
+  // Use healthResponse.results to decide what this process should do next.
 }
 ```
 
-For method overloads, fields, limits, and exceptions, use the [Apex API reference](../api/01-apex-api.md).
+`rhc` is the installed package namespace. `Account_Readiness` represents a Check Set created by an
+administrator in your org. Replace it with the exact **Qualified API Name** copied from Setup; do
+not add or remove `rhc__` yourself.
+
+For method overloads, fields, limits, and exceptions, use the [Apex API reference](../api/apex-api.md).
 
 ## Basic Flow pattern
 
@@ -126,49 +184,53 @@ For method overloads, fields, limits, and exceptions, use the [Apex API referenc
 2. Provide **Check Set Qualified API Name** and **Record ID**.
 3. Add a Decision element with explicit branches for the returned **Status**.
 4. Connect the fault path.
-5. Use the count outputs or Result JSON when the decision needs Rule-level detail.
+5. Use the count outputs or Result JSON when the decision needs Check-level detail.
 
-For every input and output, use the [Flow actions reference](02-flow-actions.md).
+For every input and output, use the [Flow actions reference](flow-actions.md).
 
 ## Synchronous results versus events
 
 | Output | Timing | Use |
 | --- | --- | --- |
 | Apex/Flow/LWC result | During the call | Make the current decision or render the card |
-| Lifecycle event | After commit | Notify subscribers, persist history, export, or trigger independent automation |
+| Platform Event | After Salesforce commits successfully | Notify a separate process, save history, or export results |
 
-Enabling events does not change the synchronous result. A successful synchronous run does not prove
-that an event subscriber completed.
+Enabling events does not change the result returned to the caller. A successful run does not prove
+that the receiving Flow, Apex trigger, or integration completed.
 
 Lifecycle publication is off by default; error-log publication is on by default:
 
 - Check Set **Publish User Run Event** enables one completed Set event.
-- Rule **Publish User Result Event** enables one event for that server-finalized Rule.
-- Check Set **Publish Error Log Event** publishes Framework `ERROR` diagnostics; uncheck it to opt
+- Check **Publish User Result Event** enables one event for that server-finalized Check.
+- Check Set **Publish Error Log Event** publishes Record Health Check `ERROR` diagnostics; uncheck it to opt
   that Check Set out without changing Salesforce debug logs.
-- Automatic Lightning page-load runs never publish.
+- Automatic Lightning page-load runs and page refreshes never publish. If an automatic card hides
+  Run and Rerun, show the action or call the Check Set from Apex or Flow when another process needs an
+  event.
 
 ## Limits
 
 | Limit | Value |
 | --- | --- |
 | Records in one public Apex or Flow call | 200 |
-| Concurrent Lightning Rule evaluations | 5 |
+| Concurrent Lightning Check evaluations | 5 |
 | Platform-event publish chunk | 100 |
 
-For a Set request, planned evaluations equal records × active Rules.
+For a Set request, planned evaluations equal records × active Checks.
 
 ## Design for failures
 
 Handle these cases separately:
 
-- A valid unhealthy result: `FAIL`.
-- An intentional non-run: `SKIPPED`.
-- No reliable conclusion: `UNABLE_TO_EVALUATE`.
-- An unexpected execution problem: `ERROR`.
-- An exception before a response is available, such as an invalid request or governor limit.
-- A successful response followed by a transaction rollback, which suppresses Publish After Commit events.
-- Duplicate or replayed subscriber processing.
+| Case | Status / handling | Notes |
+| --- | --- | --- |
+| Valid unhealthy result | `FAIL` | The Check ran and found something that needs attention |
+| Intentional non-run | `SKIPPED` | Applicability or a dependency kept the Check from running |
+| No reliable conclusion | `UNABLE_TO_EVALUATE` | Card label: **Unable to Check**; Setup says **Unable to Evaluate** |
+| Unexpected execution problem | `ERROR` | Card label: **System Error** |
+| Exception before a response | Thrown fault | Invalid request, missing access, or a governor limit |
+| Successful response, then rollback | Events suppressed | Publish After Commit events do not fire when the transaction rolls back |
+| Repeated or replayed event work | Receiving automation responsibility | Use `EventId__c` so repeated delivery does not repeat the same follow-up action. |
 
 Use stable Statuses, Reason Codes, Failure Severities, and Qualified API Names for automation. Branch
 automation on those fields rather than administrator-authored message text.
@@ -179,16 +241,16 @@ automation on those fields rather than administrator-authored message text.
 2. Verify every status branch your integration handles.
 3. Test with users who have different record and field access.
 4. Confirm request volume stays within evaluation and event allocations.
-5. Enable publication for one Set or Rule at a time.
-6. Verify commit, rollback, duplicate-processing, and subscriber-failure behavior.
+5. Enable publication for one Set or Check at a time.
+6. Verify successful commit, rollback, repeated-event handling, and receiving-automation failures.
 
 ## Next steps
 
 - [API examples](../api/README.md)
-- [Flow actions](../integration/02-flow-actions.md)
-- [Flow API pattern](../api/02-flow.md)
-- [Lightning component](01-lightning-component.md)
+- [Flow actions](../integration/flow-actions.md)
+- [Flow API pattern](../api/flow.md)
+- [Lightning component](lightning-component.md)
 - [Platform Event subscriptions](../platform-events/README.md)
-- [Lifecycle event behavior](03-lifecycle-events.md)
-- [Reason Codes](../reference/contracts/01-reason-codes.md)
-- [Configure Check Sets and Rules](../guides/03-configure-check-sets-and-rules.md)
+- [Lifecycle event behavior](lifecycle-events.md)
+- [Reason Codes](../reference/contracts/reason-codes.md)
+- [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md)

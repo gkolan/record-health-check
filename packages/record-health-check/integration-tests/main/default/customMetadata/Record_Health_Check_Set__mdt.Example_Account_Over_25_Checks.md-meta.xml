@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Account Over 25 Checks</label>
+    <protected>false</protected>
+    <values><field>ObjectApiName__c</field><value
+      xsi:type="xsd:string"
+    >Account</value></values>
+    <values><field>CardTitle__c</field><value
+      xsi:type="xsd:string"
+    >Example: More Than 25 Checks</value></values>
+    <values><field>CardSubtitle__c</field><value
+      xsi:type="xsd:string"
+    >Thirty active checks demonstrate the Framework limit: the card runs and displays the first 25 in evaluation order and reports that 5 are omitted.</value></values>
+    <values><field>CardRunMode__c</field><value
+      xsi:type="xsd:string"
+    >RUN_ON_REQUEST</value></values>
+    <values><field>CardRevealMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_AT_ONCE</value></values>
+    <values><field>PassedChecksDisplay__c</field><value
+      xsi:type="xsd:string"
+    >SHOW_EACH_CHECK</value></values>
+    <values><field>SkippedChecksDisplay__c</field><value
+      xsi:type="xsd:string"
+    >SHOW_EACH_CHECK</value></values>
+    <values><field>FoundExpectedDisplay__c</field><value
+      xsi:type="xsd:string"
+    >ON_DEMAND</value></values>
+    <values><field>ShowDiagnostics__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+    <values><field>StopOnSystemError__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+    <values><field>PublishErrorLogEvent__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+    <values><field>RunButtonDisplay__c</field><value
+      xsi:type="xsd:string"
+    >LABEL_AND_ICON</value></values>
+    <values><field>RunButtonLabel__c</field><value
+      xsi:type="xsd:string"
+    >Run 25 Checks</value></values>
+    <values><field>RerunButtonLabel__c</field><value
+      xsi:type="xsd:string"
+    >Run Again</value></values>
+    <values><field>RunButtonIcon__c</field><value
+      xsi:type="xsd:string"
+    >utility:play</value></values>
+</CustomMetadata>

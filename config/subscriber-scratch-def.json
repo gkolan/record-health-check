@@ -1,0 +1,14 @@
+{
+  "orgName": "Record Health Check Subscriber Demo",
+  "edition": "Developer",
+  "hasSampleData": true,
+  "features": ["EnableSetPasswordInApi"],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    }
+  }
+}

@@ -1,44 +1,45 @@
 # Account relationship and risk demo
 
-Create a complete 30-day scratch org with one command. Set `DEV_HUB_ALIAS` to your
-Dev Hub org alias first:
+> [!NOTE]
+> On this page, create the subscriber demo scratch org with one command and confirm the deterministic
+> Acme outcomes that maintainers use for first-run verification.
+
+Create a subscriber demo scratch org with one command. Pass your Dev Hub org alias with `--dev-hub`.
+The same command works on Windows, macOS, and Linux:
 
 ```bash
-DEV_HUB_ALIAS=my-dev-hub ./scripts/setup-demo.sh rhc-demo
+npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
 ```
 
 Use a different scratch-org alias when needed:
 
 ```bash
-DEV_HUB_ALIAS=my-dev-hub ./scripts/setup-demo.sh my-demo-alias
+npm run setup -- --dev-hub my-dev-hub --alias my-demo-alias
 ```
 
-The setup deploys the Framework package, then explicitly deploys the retained integration-fixture
-copy of the optional Check Sets and Rules. It also deploys the demo record page and reviewed
-Set and Rule layouts, and an Account record page containing the health-check
-component. It assigns `Record_Health_Check_Admin`, creates a login password,
-and seeds the complete Acme scenario plus the realistic Account, Contact, and Opportunity portfolio
-used by all four shipped Check Sets.
+The setup installs the promoted **Record Health Check** package (`04t` from
+`config/package-releases.json`), assigns `Record_Health_Check_Admin`, deploys subscriber-owned
+metadata from `subscriber-app`, seeds demo Account data from `scripts/subscriber/data/`, and runs
+`RHCSubscriberSmokeTest`.
 
-The deterministic data includes:
+It does **not** deploy unpackaged Framework source or `integration-tests` samples.
 
-- `Asteron Global Holdings → Asteron Industrial Systems → Acme Corporation`;
-- Jordan Blake assigned as owner and then deactivated in a separate transaction;
-- 38 realistic contacts, including six without email addresses;
-- three reachable Opportunity Contact Roles with `Executive Sponsor`;
-- two open opportunities totaling $70,000 against $500,000 annual revenue;
-- two completed activities in the last 90 days;
-- four open high-priority cases.
+The deterministic Acme data seeded by `setupDemoData.apex` includes:
 
-The object-specific portfolio adds four fictional companies, eight populated Contacts, and eight
-populated Opportunities. `Harborline Dispatch Pilot` has three Tasks, two Events, an Executive
-Sponsor, and a Technical Buyer while intentionally retaining the two missing fields used by its
-failing checks.
+- `Asteron Global Holdings → Asteron Industrial Systems → Acme Corporation`
+- Jordan Blake assigned as owner and then deactivated in a separate transaction
+- 38 realistic contacts, including six without email addresses
+- three reachable Opportunity Contact Roles with `Executive Sponsor`
+- two open opportunities totaling $70,000 against $500,000 annual revenue
+- two completed activities in the last 90 days
+- four open high-priority cases
 
-The final verification fails the setup immediately unless the health check
-returns exactly **3 passed, 4 failed, and 1 skipped**. The skipped channel rule
-must remain business-valid for Acme's `Customer` account type.
+`setupDemoData.apex` is safe to run again for the named Acme demo records. On rerun, it replaces
+Acme's Contacts, Opportunities, Opportunity Contact Roles, Tasks, Events, and Cases so the scenario
+does not get out of sync or accumulate duplicates.
 
-`setupDemoData.apex` is idempotent for the named Acme demo records. On rerun,
-it replaces Acme's Contacts, Opportunities, Opportunity Contact Roles, Tasks,
-Events, and Cases so the scenario does not drift or accumulate duplicates.
+For the full walkthrough, including Windows shell notes, see
+[Create the demo scratch org](../../docs/installation/create-rhc-scratch-org.md).
+
+Contributors changing Framework source use
+[`npm run dev:setup`](../../docs/contributing/source-development.md) instead.

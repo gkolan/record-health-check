@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RunButtonIcon__c</fullName>
+    <label>Run Button Icon</label>
+    <description
+  >Optional SLDS icon name used by the Run and Rerun control, such as utility:play or utility:refresh. Blank uses the built-in CSS play glyph.</description>
+    <inlineHelpText
+  >Enter an SLDS icon name such as utility:play or utility:refresh. Blank uses the built-in play glyph.</inlineHelpText>
+    <type>Text</type>
+    <length>80</length>
+    <required>false</required>
+</CustomField>

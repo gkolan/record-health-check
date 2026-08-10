@@ -29,7 +29,7 @@ rules:
       disabled: true
     # The neutral audit remains visible in the release evidence. PMD cannot
     # distinguish subscriber-facing contracts from internal/test helpers, so
-    # requiring this rule would encourage hundreds of low-value comments.
+    # requiring this check would encourage hundreds of low-value comments.
     ApexDoc:
       disabled: true
     ApexUnitTestClassShouldHaveRunAs:

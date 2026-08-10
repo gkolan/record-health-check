@@ -1,0 +1,76 @@
+name: Subscriber validation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: subscriber-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-dev-hub-secret:
+    runs-on: ubuntu-latest
+    outputs:
+      has-secret: ${{ steps.check.outputs.has-secret }}
+    steps:
+      - id: check
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          if [ -z "${SFDX_AUTH_URL}" ]; then
+            echo "::warning::SFDX_AUTH_URL secret is not configured. Skipping subscriber install and upgrade gates."
+            echo "has-secret=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-secret=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  subscriber-clean-install:
+    needs: check-dev-hub-secret
+    if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm run check:toolchain
+      - name: Authenticate Dev Hub
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
+      - name: Clean subscriber install and smoke test
+        env:
+          DEV_HUB_ALIAS: devhub
+          RHC_SKIP_DEMO_DATA: "1"
+        run: npm run package:verify -- --alias rhc-ci-subscriber --skip-upgrade
+
+  subscriber-upgrade:
+    needs: check-dev-hub-secret
+    if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm run check:toolchain
+      - name: Authenticate Dev Hub
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
+      - name: Previous-to-stable subscriber upgrade gate
+        env:
+          DEV_HUB_ALIAS: devhub
+        run: npm run package:verify -- --alias rhc-ci-upgrade --upgrade-only

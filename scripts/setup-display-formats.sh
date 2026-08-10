@@ -4,9 +4,16 @@
 #
 # Deploys the Framework plus the integration-test fixtures, seeds an Account and
 # Opportunity chosen so each format has something to show, then prints the Found
-# and Expected chips for every Rule.
+# and Expected chips for every Check.
+#
+# Prefer Git Bash on Windows. The VAR=value prefix is bash/zsh only.
 #
 #   DEV_HUB_ALIAS=my-dev-hub ./scripts/setup-display-formats.sh [alias] [days]
+#
+# Single-currency:
+#   DEV_HUB_ALIAS=my-dev-hub \
+#   SCRATCH_DEF=packages/record-health-check/config/project-scratch-def.json \
+#   ./scripts/setup-display-formats.sh rhc-display-single 7
 
 set -euo pipefail
 
@@ -14,7 +21,8 @@ TARGET_ALIAS="${1:-rhc-display-formats}"
 DURATION_DAYS="${2:-7}"
 # The definition turns on MultiCurrency so the card can show a record keeping its
 # own currency. Pass a single-currency definition to see the symbol style instead.
-SCRATCH_DEF="${SCRATCH_DEF:-config/display-formats-scratch-def.json}"
+SCRATCH_DEF="${SCRATCH_DEF:-packages/record-health-check/config/display-formats-scratch-def.json}"
+PACKAGE_ROOT="packages/record-health-check"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 export SF_DISABLE_LOG_FILE=true
@@ -23,6 +31,7 @@ export SFDX_DISABLE_DNS_CHECK=true
 if [[ -z "${DEV_HUB_ALIAS:-}" ]]; then
   echo "Set DEV_HUB_ALIAS to your Dev Hub org alias, then re-run." >&2
   echo "Example: DEV_HUB_ALIAS=my-dev-hub ./scripts/setup-display-formats.sh" >&2
+  echo "On Windows PowerShell, set the variable first, or run from Git Bash." >&2
   exit 1
 fi
 
@@ -43,14 +52,14 @@ sf org create scratch \
 
 echo "==> Deploying the Record Health Check Framework..."
 sf project deploy start \
-  --source-dir force-app \
+  --source-dir "$PACKAGE_ROOT/force-app" \
   --target-org "$TARGET_ALIAS" \
   --wait 30
 
-echo "==> Deploying the display-format fixture Check Set and Rules..."
-# Fixtures live outside the packaged directory and never ship to a customer org.
+echo "==> Deploying the display-format sample Check Set and Checks..."
+# Samples live outside the packaged directory and never ship to a customer org.
 sf project deploy start \
-  --source-dir integration-tests \
+  --source-dir "$PACKAGE_ROOT/integration-tests" \
   --target-org "$TARGET_ALIAS" \
   --wait 30
 
@@ -75,7 +84,7 @@ if grep -q '"MultiCurrency"' "$SCRATCH_DEF"; then
     --values "IsoCode=EUR ConversionRate=0.92 DecimalPlaces=2 IsActive=true" >/dev/null
 fi
 
-echo "==> Seeding the Account and Opportunity the Rules read..."
+echo "==> Seeding the Account and Opportunity the Checks read..."
 SEED_LOG="$(sf apex run --target-org "$TARGET_ALIAS" --file scripts/apex/setupDisplayFormatData.apex 2>&1)"
 
 # Only USER_DEBUG lines are real output; the log also echoes the script source back.
@@ -84,7 +93,7 @@ ACCOUNT_URL="$(printf '%s\n' "$SEED_LOG" |
   grep -oE 'RHC_DISPLAY_FORMAT_ACCOUNT_URL=.*' |
   sed 's/RHC_DISPLAY_FORMAT_ACCOUNT_URL=//' | tail -1)"
 
-echo "==> Running every Rule and printing the Found and Expected chips..."
+echo "==> Running every Check and printing the Found and Expected chips..."
 echo
 sf apex run \
   --target-org "$TARGET_ALIAS" \

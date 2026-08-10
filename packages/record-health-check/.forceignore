@@ -1,0 +1,20 @@
+# Used by source push/pull/status and package version create.
+# Do not ignore bare package.xml — that can corrupt version-create zips
+# (members listed in package.xml but missing from the zip).
+# Do not ignore *.md / **.md — that also matches *.md-meta.xml Custom Metadata.
+
+# Inventory manifest is not package source; keep it out of version-create context.
+manifest/
+
+# LWC configuration files
+**/jsconfig.json
+**/.eslintrc.json
+
+# LWC Jest
+**/__tests__/**
+
+node_modules/
+
+# Explicitly keep Custom Metadata records (defense against *.md ignore patterns).
+!**/customMetadata/**
+!**/*.md-meta.xml

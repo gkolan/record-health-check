@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account FC Three Fields Req</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Account_Formula_Coverage</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Full Billing Address Is Complete (City, State, and Country)</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Three required fields in a single check using AND(). Extends the one-field pattern (`Account_DQ_BillingCity`) and two-field (`Account_FC_TwoFieldsAnd`) examples. The AND() wraps any number of NOT(ISBLANK()) checks: the check fails if any field is missing.</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">FORMULA</value>
+    </values>
+    <values>
+        <field>PassConditionFormula__c</field>
+        <value
+      xsi:type="xsd:string"
+    >AND(NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingCountry)))</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">CRITICAL</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name} billing address is incomplete. City, State, and Country are all required.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">15</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

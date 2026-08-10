@@ -6,7 +6,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_Active_Signed_Contract",
+      "check": "Account_Active_Signed_Contract",
       "status": "SKIPPED"
     },
     {
@@ -14,7 +14,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_Adv_AllOppsHaveAmount",
+      "check": "Account_Adv_AllOppsHaveAmount",
       "status": "SKIPPED"
     },
     {
@@ -23,7 +23,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Adv_AnyOppAbove50k",
+      "check": "Account_Adv_AnyOppAbove50k",
       "status": "SKIPPED"
     },
     {
@@ -32,21 +32,21 @@
         "ComparisonQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Adv_BillingStateInContacts",
+      "check": "Account_Adv_BillingStateInContacts",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_Adv_ContactHasEmail",
+      "check": "Account_Adv_ContactHasEmail",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_Adv_HasContact",
+      "check": "Account_Adv_HasContact",
       "status": "FAIL"
     },
     {
@@ -55,7 +55,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Adv_OppAboveRevenue",
+      "check": "Account_Adv_OppAboveRevenue",
       "status": "SKIPPED"
     },
     {
@@ -64,14 +64,14 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Agg_Avg",
+      "check": "Account_Agg_Avg",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_Agg_Count",
+      "check": "Account_Agg_Count",
       "status": "FAIL"
     },
     {
@@ -79,7 +79,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "INVALID_SOQL_TEMPLATE",
-      "rule": "Account_Agg_CountDistinct",
+      "check": "Account_Agg_CountDistinct",
       "status": "UNABLE_TO_EVALUATE"
     },
     {
@@ -88,7 +88,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Agg_Max",
+      "check": "Account_Agg_Max",
       "status": "SKIPPED"
     },
     {
@@ -97,7 +97,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Agg_Min",
+      "check": "Account_Agg_Min",
       "status": "SKIPPED"
     },
     {
@@ -106,7 +106,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Agg_Sum",
+      "check": "Account_Agg_Sum",
       "status": "SKIPPED"
     },
     {
@@ -114,7 +114,7 @@
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_AppComp_Equals",
+      "check": "Account_AppComp_Equals",
       "status": "SKIPPED"
     },
     {
@@ -122,7 +122,7 @@
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_AppComp_GreaterThan",
+      "check": "Account_AppComp_GreaterThan",
       "status": "SKIPPED"
     },
     {
@@ -130,21 +130,21 @@
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_AppComp_GreaterThanOrEqual",
+      "check": "Account_AppComp_GreaterThanOrEqual",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
-      "rule": "Account_AppComp_LessThan",
+      "check": "Account_AppComp_LessThan",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
-      "rule": "Account_AppComp_LessThanOrEqual",
+      "check": "Account_AppComp_LessThanOrEqual",
       "status": "FAIL"
     },
     {
@@ -152,7 +152,7 @@
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_AppComp_NotEquals",
+      "check": "Account_AppComp_NotEquals",
       "status": "SKIPPED"
     },
     {
@@ -162,7 +162,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_AvgVsMax",
+      "check": "Account_CTQ_AvgVsMax",
       "status": "SKIPPED"
     },
     {
@@ -172,7 +172,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_CountDistinctVsCount",
+      "check": "Account_CTQ_CountDistinctVsCount",
       "status": "SKIPPED"
     },
     {
@@ -182,7 +182,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NO_ROWS_RETURNED",
-      "rule": "Account_CTQ_ERB_UnableToEvaluate",
+      "check": "Account_CTQ_ERB_UnableToEvaluate",
       "status": "UNABLE_TO_EVALUATE"
     },
     {
@@ -192,7 +192,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_MinVsMaxCloseDate",
+      "check": "Account_CTQ_MinVsMaxCloseDate",
       "status": "SKIPPED"
     },
     {
@@ -202,7 +202,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_SumVsAnnualRevenue",
+      "check": "Account_CTQ_SumVsAnnualRevenue",
       "status": "SKIPPED"
     },
     {
@@ -212,7 +212,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_T7_ContactCityMatchesBilling",
+      "check": "Account_CTQ_T7_ContactCityMatchesBilling",
       "status": "SKIPPED"
     },
     {
@@ -220,7 +220,7 @@
         "ComparisonQuery__c",
         "SourceQuery__c"
       ],
-      "rule": "Account_CTQ_T7_ContactVsOppCount",
+      "check": "Account_CTQ_T7_ContactVsOppCount",
       "status": "PASS"
     },
     {
@@ -230,7 +230,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_T9_ExactListMatch",
+      "check": "Account_CTQ_T9_ExactListMatch",
       "status": "SKIPPED"
     },
     {
@@ -240,7 +240,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_T9_ListContainsAll",
+      "check": "Account_CTQ_T9_ListContainsAll",
       "status": "SKIPPED"
     },
     {
@@ -250,7 +250,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_CTQ_T9_ListsOverlap",
+      "check": "Account_CTQ_T9_ListsOverlap",
       "status": "SKIPPED"
     },
     {
@@ -259,14 +259,14 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_Consented_Reachable_Contact",
+      "check": "Account_Consented_Reachable_Contact",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_Contacts_Have_Individual",
+      "check": "Account_Contacts_Have_Individual",
       "status": "PASS"
     },
     {
@@ -274,21 +274,21 @@
         "ComparisonQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_Country_Not_Restricted",
+      "check": "Account_Country_Not_Restricted",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_DVF_Auto",
+      "check": "Account_DVF_Auto",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_DVF_Auto_Currency",
+      "check": "Account_DVF_Auto_Currency",
       "status": "FAIL"
     },
     {
@@ -297,7 +297,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_DVF_CTQ_Currency",
+      "check": "Account_DVF_CTQ_Currency",
       "status": "SKIPPED"
     },
     {
@@ -305,7 +305,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "VALUE_IS_EMPTY",
-      "rule": "Account_DVF_Currency",
+      "check": "Account_DVF_Currency",
       "status": "SKIPPED"
     },
     {
@@ -313,14 +313,14 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_DVF_Date",
+      "check": "Account_DVF_Date",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_DVF_Datetime",
+      "check": "Account_DVF_Datetime",
       "status": "PASS"
     },
     {
@@ -328,7 +328,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "VALUE_IS_EMPTY",
-      "rule": "Account_DVF_Number",
+      "check": "Account_DVF_Number",
       "status": "SKIPPED"
     },
     {
@@ -336,42 +336,42 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_DVF_Percent",
+      "check": "Account_DVF_Percent",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_DVF_Raw",
+      "check": "Account_DVF_Raw",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_DVF_Text",
+      "check": "Account_DVF_Text",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_EU_AllContactsHaveEmail",
+      "check": "Account_EU_AllContactsHaveEmail",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_EU_AllContactsHavePhone",
+      "check": "Account_EU_AllContactsHavePhone",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_EU_AllContactsHaveTitle",
+      "check": "Account_EU_AllContactsHaveTitle",
       "status": "PASS"
     },
     {
@@ -380,28 +380,28 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_EU_AtLeastOneContactHasEmail",
+      "check": "Account_EU_AtLeastOneContactHasEmail",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_EU_HasAtLeastOneContact",
+      "check": "Account_EU_HasAtLeastOneContact",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_EU_NoOpenCases",
+      "check": "Account_EU_NoOpenCases",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_EU_NoOverdueOpenTasks",
+      "check": "Account_EU_NoOverdueOpenTasks",
       "status": "PASS"
     },
     {
@@ -410,7 +410,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_EU_NoPastDueOpenOpps",
+      "check": "Account_EU_NoPastDueOpenOpps",
       "status": "SKIPPED"
     },
     {
@@ -419,7 +419,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_EU_NoUnreachableContacts",
+      "check": "Account_EU_NoUnreachableContacts",
       "status": "SKIPPED"
     },
     {
@@ -428,21 +428,21 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Account_EU_OpenOppsFutureClose",
+      "check": "Account_EU_OpenOppsFutureClose",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_EU_OwnerIsActive",
+      "check": "Account_EU_OwnerIsActive",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_No_Expired_Active_Contracts",
+      "check": "Account_No_Expired_Active_Contracts",
       "status": "PASS"
     },
     {
@@ -450,7 +450,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_QC_Contains",
+      "check": "Account_QC_Contains",
       "status": "SKIPPED"
     },
     {
@@ -458,21 +458,21 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_QC_DoesNotContain",
+      "check": "Account_QC_DoesNotContain",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_ERB_Fail",
+      "check": "Account_QC_ERB_Fail",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_ERB_Pass_NullNoMatch",
+      "check": "Account_QC_ERB_Pass_NullNoMatch",
       "status": "PASS"
     },
     {
@@ -480,7 +480,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NO_ROWS_RETURNED",
-      "rule": "Account_QC_ERB_UnableToEvaluate",
+      "check": "Account_QC_ERB_UnableToEvaluate",
       "status": "UNABLE_TO_EVALUATE"
     },
     {
@@ -488,49 +488,49 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_QC_Equals",
+      "check": "Account_QC_Equals",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_GreaterThan",
+      "check": "Account_QC_GreaterThan",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_GreaterThanOrEqual",
+      "check": "Account_QC_GreaterThanOrEqual",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_IsBlank",
+      "check": "Account_QC_IsBlank",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_IsNotBlank",
+      "check": "Account_QC_IsNotBlank",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_LessThan",
+      "check": "Account_QC_LessThan",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_LessThanOrEqual",
+      "check": "Account_QC_LessThanOrEqual",
       "status": "PASS"
     },
     {
@@ -538,7 +538,7 @@
         "ComparisonQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_QC_ListContainsAny",
+      "check": "Account_QC_ListContainsAny",
       "status": "SKIPPED"
     },
     {
@@ -546,14 +546,14 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Account_QC_NotEquals",
+      "check": "Account_QC_NotEquals",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_NullBehavior_TreatAsBlank",
+      "check": "Account_QC_NullBehavior_TreatAsBlank",
       "status": "PASS"
     },
     {
@@ -561,28 +561,28 @@
         "ComparisonQuery__c",
         "SourceQuery__c"
       ],
-      "rule": "Account_QC_QueryResult",
+      "check": "Account_QC_QueryResult",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_Rel_HasContact",
+      "check": "Account_Rel_HasContact",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_Rel_HasOpenOpp",
+      "check": "Account_Rel_HasOpenOpp",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Account_Source_Not_Manually_Set",
+      "check": "Example_Account_Source_Not_Manually_Set",
       "status": "PASS"
     },
     {
@@ -591,7 +591,7 @@
         "ComparisonQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Billing_State_In_Contact_Mailing_States",
+      "check": "Example_BillState_In_Contact_States",
       "status": "SKIPPED"
     },
     {
@@ -599,14 +599,14 @@
         "ComparisonQuery__c",
         "SourceQuery__c"
       ],
-      "rule": "Contact_Count_Covers_Open_Case_Count",
+      "check": "Example_Contacts_Cover_Open_Cases",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Demo_Long_Found_Expected",
+      "check": "Example_Long_Found_Expected",
       "status": "FAIL"
     },
     {
@@ -614,7 +614,7 @@
         "ComparisonQuery__c",
         "SourceQuery__c"
       ],
-      "rule": "Ex_CTQ_ContactVsOppCount",
+      "check": "Example_CTQ_ContactVsOppCount",
       "status": "PASS"
     },
     {
@@ -624,7 +624,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Ex_CTQ_ExactListMatch",
+      "check": "Example_CTQ_ExactListMatch",
       "status": "SKIPPED"
     },
     {
@@ -634,7 +634,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Ex_CTQ_ListContainsAll",
+      "check": "Example_CTQ_ListContainsAll",
       "status": "SKIPPED"
     },
     {
@@ -644,7 +644,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Ex_CTQ_ListsOverlap",
+      "check": "Example_CTQ_ListsOverlap",
       "status": "SKIPPED"
     },
     {
@@ -652,35 +652,35 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Ex_Q_AllOppsPositiveAmt",
+      "check": "Example_Q_AllOppsPositiveAmt",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Ex_Q_ContactStateVsBilling",
+      "check": "Example_Q_ContactStateVsBilling",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Example_Contacts_Have_Email",
+      "check": "Example_Contacts_Have_Email",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Example_Executive_Sponsorship",
+      "check": "Example_Executive_Sponsorship",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Example_No_High_Priority_Issues",
+      "check": "Example_No_High_Priority_Issues",
       "status": "PASS"
     },
     {
@@ -690,7 +690,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Example_Open_Deals_Have_Contacts",
+      "check": "Example_Open_Deals_Have_Contacts",
       "status": "SKIPPED"
     },
     {
@@ -699,35 +699,35 @@
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Example_Pipeline_Protects_Revenue",
+      "check": "Example_Pipeline_Protects_Revenue",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Fewer_Than_Ten_Open_Cases",
+      "check": "Example_Fewer_Than_Ten_Open_Cases",
       "status": "PASS"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Has_At_Least_One_Contact",
+      "check": "Example_Has_At_Least_One_Contact",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Has_At_Least_Two_Contacts",
+      "check": "Example_Has_At_Least_Two_Contacts",
       "status": "FAIL"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Has_Closed_Won_Opportunity",
+      "check": "Example_Has_Closed_Won_Opportunity",
       "status": "FAIL"
     },
     {
@@ -735,7 +735,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Has_High_Value_Open_Opportunity",
+      "check": "Example_Has_High_Value_Open_Opportunity",
       "status": "SKIPPED"
     },
     {
@@ -743,7 +743,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Has_Significant_Open_Opportunity",
+      "check": "Example_Has_Significant_Open_Opportunity",
       "status": "SKIPPED"
     },
     {
@@ -753,7 +753,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Oldest_Contact_City_Matches_Billing_City",
+      "check": "Example_Oldest_City_Matches_Billing",
       "status": "SKIPPED"
     },
     {
@@ -761,7 +761,7 @@
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "rule": "Open_Opportunities_Are_Healthy",
+      "check": "Example_Open_Opportunities_Are_Healthy",
       "status": "SKIPPED"
     },
     {
@@ -769,7 +769,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Open_Opportunities_Have_Amount",
+      "check": "Example_Open_Opportunities_Have_Amount",
       "status": "SKIPPED"
     },
     {
@@ -779,7 +779,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Open_Pipeline_Covers_Annual_Revenue",
+      "check": "Example_Pipeline_Covers_Revenue",
       "status": "SKIPPED"
     },
     {
@@ -787,14 +787,14 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Rating_Is_Not_Cold",
+      "check": "Example_Rating_Is_Not_Cold",
       "status": "SKIPPED"
     },
     {
       "queryFields": [
         "SourceQuery__c"
       ],
-      "rule": "Rating_Is_Set",
+      "check": "Example_Rating_Is_Set",
       "status": "FAIL"
     },
     {
@@ -802,7 +802,7 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Website_Does_Not_Use_Plain_HTTP",
+      "check": "Example_Website_Does_Not_Use_Plain_HTTP",
       "status": "SKIPPED"
     },
     {
@@ -810,11 +810,11 @@
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "rule": "Website_Uses_HTTPS",
+      "check": "Example_Website_Uses_HTTPS",
       "status": "SKIPPED"
     }
   ],
-  "ruleCount": 101,
+  "checkCount": 101,
   "schemaVersion": 1,
   "templateCount": 150
 }
