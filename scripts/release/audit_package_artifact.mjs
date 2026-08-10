@@ -79,6 +79,14 @@ try {
   );
   const errors = [];
 
+  for (const member of new Set([...manifestMembers, ...physicalMembers])) {
+    if (member.includes("__mdt.")) {
+      errors.push(
+        `CustomMetadata record uses a noncanonical __mdt filename or member: ${member}`
+      );
+    }
+  }
+
   for (const member of manifestMembers) {
     if (!physicalMembers.has(member)) {
       errors.push(
@@ -95,10 +103,10 @@ try {
   }
 
   const checkSets = [...manifestMembers].filter((member) =>
-    member.startsWith("Record_Health_Check_Set__mdt.")
+    member.startsWith("Record_Health_Check_Set.")
   );
   const checks = [...manifestMembers].filter((member) =>
-    member.startsWith("Record_Health_Check__mdt.")
+    member.startsWith("Record_Health_Check.")
   );
   if (checkSets.length !== 4 || checks.length !== 21) {
     errors.push(
@@ -147,6 +155,7 @@ try {
   const checkNames = new Set(checks.map((member) => member.split(".")[1]));
   for (const member of physicalMembers) {
     const [typeName] = member.split(".");
+    const objectTypeName = `${typeName}__mdt`;
     const recordXml = fs.readFileSync(
       path.join(customMetadataDirectory, `${member}.md`),
       "utf8"
@@ -158,7 +167,7 @@ try {
       const value = valueBlock[1]
         .match(/<value[^>]*>([\s\S]*?)<\/value>/)?.[1]
         ?.trim();
-      if (field && !typeFields.get(typeName)?.has(field)) {
+      if (field && !typeFields.get(objectTypeName)?.has(field)) {
         errors.push(`${member} references missing field ${field}.`);
       }
       if (

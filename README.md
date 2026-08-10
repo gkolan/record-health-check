@@ -6,7 +6,7 @@
 [![LWC line coverage: 98.99%](https://img.shields.io/badge/LWC_lines-98.99%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
-[![Verify 2.0.1 in Sandbox](https://img.shields.io/badge/Verify_2.0.1_in_Sandbox-032D60?style=for-the-badge)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aUxFAAU)
+[![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aUxFAAU)
 [![Install in Production](https://img.shields.io/badge/Install_in_Production-0176D3?style=for-the-badge)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ZXVlAAO)
 
 > The sandbox button installs the unreleased 2.0.1.9 verification candidate. The production button

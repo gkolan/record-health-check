@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>QC - No Rows Fail</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Account_Query_Coverage</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Has at Least One Closed Won Opportunity</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >If Query Finds No Records = Fail: no matching records means the check fails. Use it when an empty result is itself the problem: here, no Closed Won opportunities means the account has never converted. How To Interpret Query Results = AnyRowPasses passes</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">QUERY</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Closed Won'</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">Amount</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ANY_ROW_PASSES</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">GREATER_THAN_OR_EQUAL</value>
+    </values>
+    <values>
+        <field>ExpectedValueSource__c</field>
+        <value xsi:type="xsd:string">FIXED_VALUE</value>
+    </values>
+    <values>
+        <field>ExpectedFixedValue__c</field>
+        <value xsi:type="xsd:string">0</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">FAIL</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">SKIP_RECORD</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name} has no Closed Won opportunities. This account has not yet converted.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">80</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>
