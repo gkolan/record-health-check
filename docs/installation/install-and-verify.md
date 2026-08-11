@@ -47,11 +47,11 @@ Choose the destination that matches the org where you are signed in:
 
 | Destination | Use it when | Install |
 | --- | --- | --- |
-| Sandbox | You are installing or verifying the current release | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) |
-| Production or Developer Edition | You are installing the current release | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) |
+| Sandbox | You are installing or verifying the current release | [Install in Sandbox](https://recordhealthcheck.com/install/sandbox) |
+| Production or Developer Edition | You are installing the current release | [Install in Production](https://recordhealthcheck.com/install/production) |
 
-Both links install promoted package version **2.0.2.1**. The different login domains route the same
-immutable package version to the appropriate Salesforce environment.
+Both links route to the latest Record Health Check package version. The different login domains
+send the same package version to the appropriate Salesforce environment.
 
 On the Salesforce installation page, choose **Install for Admins Only**. This installs the complete
 package, but it does not automatically grant its packaged permissions to every user profile. You
