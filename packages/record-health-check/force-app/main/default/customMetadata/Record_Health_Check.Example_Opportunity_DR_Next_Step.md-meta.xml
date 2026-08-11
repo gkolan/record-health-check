@@ -15,9 +15,6 @@
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
     >An open deal needs a concrete next action so the team can maintain momentum.</value></values>
-    <values><field>Category__c</field><value
-      xsi:type="xsd:string"
-    >READINESS</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>

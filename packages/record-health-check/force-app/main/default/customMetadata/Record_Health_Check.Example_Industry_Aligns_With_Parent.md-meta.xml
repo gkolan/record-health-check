@@ -21,10 +21,6 @@
     >Checks industry alignment across the account hierarchy for consistent segmentation and reporting.</value>
     </values>
     <values>
-        <field>Category__c</field>
-        <value xsi:type="xsd:string">COMPLETENESS</value>
-    </values>
-    <values>
         <field>EvaluationType__c</field>
         <value xsi:type="xsd:string">FORMULA</value>
     </values>

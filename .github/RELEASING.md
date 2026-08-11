@@ -12,7 +12,10 @@ Source deployment is a contributor workflow and is not the supported subscriber 
 The Framework follows Semantic Versioning. `package.json` carries the Framework version and
 `packages/record-health-check/sfdx-project.json` carries the Salesforce package version as
 `MAJOR.MINOR.PATCH.NEXT`. Each package build uses `MAJOR.MINOR.PATCH.BUILD`; later build numbers are
-immutable candidates for the same semantic release.
+immutable candidates for the same semantic release. The package version name must be
+`Record Health Check - Version MAJOR.MINOR.PATCH` so Salesforce installation messages show the
+semantic version. Run `npm run check:version-sync`; CI and release preflight run the same gate and
+fail when the three values do not match.
 
 ## Single source of truth for subscriber installs
 

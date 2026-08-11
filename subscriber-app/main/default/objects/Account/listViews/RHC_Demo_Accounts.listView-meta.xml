@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RHC_Demo_Accounts</fullName>
+    <columns>ACCOUNT.NAME</columns>
+    <columns>ACCOUNT.ACCOUNT_NUMBER</columns>
+    <columns>ACCOUNT.TYPE</columns>
+    <columns>ACCOUNT.INDUSTRY</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>ACCOUNT.ACCOUNT_NUMBER</field>
+        <operation>startsWith</operation>
+        <value>RHC-DEMO-</value>
+    </filters>
+    <label>RHC Demo Accounts</label>
+</ListView>

@@ -1,8 +1,8 @@
 {
   "packageDirectories": [
     {
-      "versionName": "August 2026 Release",
-      "versionNumber": "2.0.2.NEXT",
+      "versionName": "Record Health Check - Version 2.0.3",
+      "versionNumber": "2.0.3.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Record Health Check",

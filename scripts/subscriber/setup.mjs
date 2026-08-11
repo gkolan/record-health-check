@@ -197,7 +197,7 @@ function main() {
   console.log("Subscriber demo org is ready.");
   console.log(`Alias: ${options.alias}`);
   console.log(
-    `Open: sf org open --target-org ${options.alias} --path lightning/o/Account/list`
+    `Open: sf org open --target-org ${options.alias} --path 'lightning/o/Account/list?filterName=RHC_Demo_Accounts'`
   );
   console.log("");
   console.log(

@@ -23,10 +23,6 @@
     >Confirms that an opportunity on this account has a reachable Executive Sponsor who can support strategic decisions, renewals, and escalations.</value>
     </values>
     <values>
-        <field>Category__c</field>
-        <value xsi:type="xsd:string">RELATIONSHIP_COVERAGE</value>
-    </values>
-    <values>
         <field>EvaluationType__c</field>
         <value xsi:type="xsd:string">QUERY</value>
     </values>
