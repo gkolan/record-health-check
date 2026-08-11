@@ -21,7 +21,7 @@ listed.
 
 | Version | Release name | Package version ID | Sandbox | Production or Developer Edition |
 | --- | --- | --- | --- | --- |
-| **2.0.3.1** | Record Health Check - Version 2.0.3 | `04tak000000ajbJAAQ` | [Install 2.0.3.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) | [Install 2.0.3.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) |
+| **2.0.3.1** | Version 2.0.3 | `04tak000000ajbJAAQ` | [Install 2.0.3.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) | [Install 2.0.3.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) |
 | **2.0.2.1** | August 2026 Release | `04tak000000aWZFAA2` | [Install 2.0.2.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) | [Install 2.0.2.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) |
 
 Choose **Install for Admins Only** on the Salesforce installation page, then assign **Record Health

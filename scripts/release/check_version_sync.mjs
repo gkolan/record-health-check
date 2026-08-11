@@ -26,7 +26,7 @@ if (!packageDirectory) {
 
 const productVersion = packageJson.version;
 const expectedVersionNumber = `${productVersion}.NEXT`;
-const expectedVersionName = `${packageDirectory.package} - Version ${productVersion}`;
+const expectedVersionName = `Version ${productVersion}`;
 const failures = [];
 
 if (!/^\d+\.\d+\.\d+$/.test(productVersion)) {
