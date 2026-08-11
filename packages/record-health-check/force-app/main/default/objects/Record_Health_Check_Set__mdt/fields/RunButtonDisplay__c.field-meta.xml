@@ -3,9 +3,9 @@
     <fullName>RunButtonDisplay__c</fullName>
     <label>Run Button Display</label>
     <description
-  >Controls whether and how the Run/Rerun control appears in the card header. Hide is supported when checks run on page load; a manual Check Set must keep a visible Run control.</description>
+  >Choose how the Run and Rerun buttons appear in the card header. A Check Set that waits for the user must display a button. Hide is available only when checks run automatically when the page opens.</description>
     <inlineHelpText
-  >Choose label and icon, label only, icon only, or Hide. Hide requires When Checks Run to be When the page opens.</inlineHelpText>
+  >Show a label and icon, label only, or icon only. Hide the buttons only when When Checks Run is set to When the page opens.</inlineHelpText>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>

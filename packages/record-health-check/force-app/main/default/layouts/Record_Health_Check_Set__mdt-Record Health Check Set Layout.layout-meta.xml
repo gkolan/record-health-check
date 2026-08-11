@@ -77,7 +77,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Run &amp; Rerun Control</label>
+        <label>Run and Rerun Buttons</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>

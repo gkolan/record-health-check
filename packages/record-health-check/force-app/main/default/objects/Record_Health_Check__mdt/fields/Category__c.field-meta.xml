@@ -3,7 +3,7 @@
     <fullName>Category__c</fullName>
     <label>Category</label>
     <description
-  >Optional classification for the business outcome protected by this Check, such as Completeness, Readiness, Risk, or Compliance. Use it to make metadata easier to find, report on, and reuse. The current card does not group checks by Category. This choice does not change evaluation, severity, order, or the result shown to users.</description>
+  >Optionally groups this Check with related Checks in the card's results summary, such as Completeness, Readiness, Risk, or Compliance. When categories are used, category groups appear alphabetically and Checks without a category appear under Other. Category does not change how the Check is evaluated, ordered, or displayed in the results.</description>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
@@ -25,6 +25,6 @@
         >false</default></value></valueSetDefinition>
     </valueSet>
     <inlineHelpText
-  >Optional business-outcome classification. The current card does not group checks by this value, and it does not affect the result.</inlineHelpText>
+  >Optionally group this Check in the card's results summary. Checks without a category appear under Other. Category does not affect the result.</inlineHelpText>
     <required>false</required>
 </CustomField>

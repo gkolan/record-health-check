@@ -13,6 +13,7 @@ const gates = [
   "check:apex-architecture",
   "check:apex-surface",
   "check:plugin-sharing",
+  "check:version-sync",
   "check:product-version-language",
   "check:docs",
   "check:field-limits",

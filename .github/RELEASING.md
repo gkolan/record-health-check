@@ -12,7 +12,10 @@ Source deployment is a contributor workflow and is not the supported subscriber 
 The Framework follows Semantic Versioning. `package.json` carries the Framework version and
 `packages/record-health-check/sfdx-project.json` carries the Salesforce package version as
 `MAJOR.MINOR.PATCH.NEXT`. Each package build uses `MAJOR.MINOR.PATCH.BUILD`; later build numbers are
-immutable candidates for the same semantic release.
+immutable candidates for the same semantic release. The package version name must be
+`Record Health Check - Version MAJOR.MINOR.PATCH` so Salesforce installation messages show the
+semantic version. Run `npm run check:version-sync`; CI and release preflight run the same gate and
+fail when the three values do not match.
 
 ## Single source of truth for subscriber installs
 
@@ -46,6 +49,9 @@ After creating the single candidate and before promotion:
 
 1. Run `npm run package:verify` against its explicit `04t`.
 2. Confirm clean install, N-1 upgrade, and subscriber-owned Custom Metadata preservation gates.
+3. Run `npm run release:preflight` again from the final committed release source.
+4. Confirm the pull request's complete GitHub Actions **CI** workflow is green. Do not promote while
+   CI is absent, pending, cancelled, or failing.
 
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
 
@@ -213,6 +219,17 @@ This runs:
 npm run package:promote -- --dev-hub <dev-hub> --package <candidate-04t>
 ```
 
+The promotion command prints all four release-owner URLs. Copy the exact Salesforce Production and
+Sandbox URLs into the release evidence, then verify that both tracked public URLs redirect to those
+same destinations:
+
+```text
+Production: https://login.salesforce.com/packaging/installPackage.apexp?p0=<candidate-04t>
+Sandbox: https://test.salesforce.com/packaging/installPackage.apexp?p0=<candidate-04t>
+Tracked Production: https://recordhealthcheck.com/install/production
+Tracked Sandbox: https://recordhealthcheck.com/install/sandbox
+```
+
 Then update `config/package-releases.json`:
 
 1. Move the current stable entry to `previous`.
@@ -221,7 +238,7 @@ Then update `config/package-releases.json`:
 4. Update `CHANGELOG.md` and create the GitHub release.
 
 Also commit the exact source used to create the package, create the matching semantic-version tag,
-and configure the public install redirect (`recordhealthcheck.com/install`) to the new stable `04t`.
+and configure both tracked public install redirects to the new stable `04t`.
 
 Current promoted subscriber package version ID: see `config/package-releases.json`.
 

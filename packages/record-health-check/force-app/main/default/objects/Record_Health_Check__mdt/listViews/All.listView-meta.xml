@@ -7,5 +7,10 @@
     <columns>EvaluationType__c</columns>
     <columns>IsActive__c</columns>
     <filterScope>Everything</filterScope>
-    <label>All</label>
+    <filters>
+        <field>DeveloperName</field>
+        <operation>notContain</operation>
+        <value>Example_</value>
+    </filters>
+    <label>All Except Examples</label>
 </ListView>

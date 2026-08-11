@@ -45,6 +45,19 @@ run("sf", [
 
 console.log("");
 console.log(`Promoted ${packageVersionId}.`);
+console.log("");
+console.log("Installation URLs:");
+console.log(
+  `  Production: https://login.salesforce.com/packaging/installPackage.apexp?p0=${packageVersionId}`
+);
+console.log(
+  `  Sandbox: https://test.salesforce.com/packaging/installPackage.apexp?p0=${packageVersionId}`
+);
+console.log(
+  "  Tracked Production: https://recordhealthcheck.com/install/production"
+);
+console.log("  Tracked Sandbox: https://recordhealthcheck.com/install/sandbox");
+console.log("");
 console.log("Update config/package-releases.json:");
 console.log("  1. Move the current stable 04t into previous.");
 console.log("  2. Set stable.subscriberPackageVersionId to the promoted 04t.");

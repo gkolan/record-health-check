@@ -15,11 +15,13 @@ changing versions and follow the full [upgrade and revalidation procedure](upgra
 
 ## Step 1: Choose a version
 
-Versions are listed newest first. This catalog begins with Record Health Check 2.0.2.1; earlier
-2.0.1 development and release-candidate versions are intentionally not listed.
+Versions are listed newest first. The catalog retains Record Health Check 2.0.2.1 as the previous
+production release; earlier 2.0.1 development and release-candidate versions are intentionally not
+listed.
 
 | Version | Release name | Package version ID | Sandbox | Production or Developer Edition |
 | --- | --- | --- | --- | --- |
+| **2.0.3.1** | Record Health Check - Version 2.0.3 | `04tak000000ajbJAAQ` | [Install 2.0.3.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) | [Install 2.0.3.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) |
 | **2.0.2.1** | August 2026 Release | `04tak000000aWZFAA2` | [Install 2.0.2.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) | [Install 2.0.2.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000aWZFAA2) |
 
 Choose **Install for Admins Only** on the Salesforce installation page, then assign **Record Health
@@ -32,7 +34,7 @@ Use the `04t` value from the table when an automated process must install a spec
 
 ```bash
 sf package install \
-  --package 04tak000000aWZFAA2 \
+  --package 04tak000000ajbJAAQ \
   --target-org <org-alias> \
   --security-type AdminsOnly \
   --upgrade-type DeprecateOnly \
