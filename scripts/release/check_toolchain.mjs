@@ -40,21 +40,6 @@ if (!releaseWorkflow.includes(`code-analyzer@${policy.codeAnalyzerPlugin}`)) {
   );
 }
 
-const agentChecks = readFileSync(resolve(root, "AGENTS.md"), "utf8");
-if (!agentChecks.includes(`Salesforce CLI ${policy.salesforceCli}`)) {
-  fail("AGENTS.md must name the pinned Salesforce CLI release.");
-}
-for (const instructions of [
-  "CLAUDE.md",
-  "GEMINI.md",
-  ".github/copilot-instructions.md"
-]) {
-  const source = readFileSync(resolve(root, instructions), "utf8");
-  if (!source.includes("AGENTS.md")) {
-    fail(`${instructions} must point to the authoritative AGENTS.md policy.`);
-  }
-}
-
 if (!policyOnly) {
   try {
     const output = execFileSync("sf", ["--version"], {

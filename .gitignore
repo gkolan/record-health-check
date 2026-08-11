@@ -61,6 +61,11 @@ $RECYCLE.BIN/
 !.env.example
 
 # Maintainer-only material — never committed or published with the project.
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+/.github/copilot-instructions.md
+/.github/SALESFORCE_OPERATIONS.md
 /internal/
 /spec/
 /specs/

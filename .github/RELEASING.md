@@ -13,9 +13,9 @@ The Framework follows Semantic Versioning. `package.json` carries the Framework 
 `packages/record-health-check/sfdx-project.json` carries the Salesforce package version as
 `MAJOR.MINOR.PATCH.NEXT`. Each package build uses `MAJOR.MINOR.PATCH.BUILD`; later build numbers are
 immutable candidates for the same semantic release. The package version name must be
-`Record Health Check - Version MAJOR.MINOR.PATCH` so Salesforce installation messages show the
-semantic version. Run `npm run check:version-sync`; CI and release preflight run the same gate and
-fail when the three values do not match.
+`Version MAJOR.MINOR.PATCH` so Salesforce installation messages show the semantic version without
+repeating the package name. Run `npm run check:version-sync`; CI and release preflight run the same
+gate and fail when the three values do not match.
 
 ## Single source of truth for subscriber installs
 
@@ -59,8 +59,8 @@ Before any Salesforce operation, run `npm run check:toolchain`. Before creating 
 package candidate, the repository scripts check the Dev Hub limits and stop rather
 than consume the last required capacity. Package verification deletes only the orgs it created; use
 `--keep-org` solely for an intentional, time-bounded investigation and delete that org afterward.
-See [Salesforce operations standard](SALESFORCE_OPERATIONS.md) for the mandatory lifecycle checks and
-the redacted migration record.
+See [source development](../docs/contributing/source-development.md) for the public contributor workflow and
+scratch-org lifecycle checks.
 
 ## Create a package candidate
 

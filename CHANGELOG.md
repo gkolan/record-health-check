@@ -71,7 +71,7 @@ For installation and verification, start with
 - Improved Run/Rerun configuration labels, descriptions, help text, defaults, and list views.
 - Removed Category values from packaged examples and clarified Category guidance.
 - Added subscriber demo list views and tracked Production and Sandbox installation URLs.
-- Updated the subscriber-facing package version name to `Record Health Check - Version 2.0.3`.
+- Updated the subscriber-facing package version name to `Version 2.0.3`.
 
 ## [2.0.2] - 2026-08-10
 
