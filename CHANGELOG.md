@@ -6,11 +6,11 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.2-1`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.3-1`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](config/package-releases.json).
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current released candidate: `Record Health Check@2.0.2-1`.
+- Current released candidate: `Record Health Check@2.0.3-1`.
 
 ### Evaluation and integration
 
@@ -61,6 +61,17 @@ For installation and verification, start with
 [Install and verify](docs/installation/install-and-verify.md). For the public contracts, use the
 [Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
 [Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
+
+## [2.0.3] - 2026-08-11
+
+### Changed
+
+- Prevented long Check Set titles and unbroken text from overlapping Run and Rerun controls across
+  label, icon, hidden, and combined display modes.
+- Improved Run/Rerun configuration labels, descriptions, help text, defaults, and list views.
+- Removed Category values from packaged examples and clarified Category guidance.
+- Added subscriber demo list views and tracked Production and Sandbox installation URLs.
+- Updated the subscriber-facing package version name to `Record Health Check - Version 2.0.3`.
 
 ## [2.0.2] - 2026-08-10
 

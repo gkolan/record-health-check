@@ -21,10 +21,6 @@
     >Tests qualified open pipeline against a dynamic target of 75% of this account's annual revenue, exposing renewal and growth risk before the forecast review.</value>
     </values>
     <values>
-        <field>Category__c</field>
-        <value xsi:type="xsd:string">RISK</value>
-    </values>
-    <values>
         <field>EvaluationType__c</field>
         <value xsi:type="xsd:string">QUERY</value>
     </values>

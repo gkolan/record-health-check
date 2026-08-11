@@ -15,9 +15,6 @@
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
     >Supports relevant benchmarks, segmentation, reporting, and industry-specific engagement.</value></values>
-    <values><field>Category__c</field><value
-      xsi:type="xsd:string"
-    >COMPLETENESS</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>

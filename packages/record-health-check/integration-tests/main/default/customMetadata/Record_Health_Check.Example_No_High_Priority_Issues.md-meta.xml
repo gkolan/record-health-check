@@ -21,10 +21,6 @@
     >Confirms that no unresolved high-priority support issues are putting the customer relationship at risk.</value>
     </values>
     <values>
-        <field>Category__c</field>
-        <value xsi:type="xsd:string">READINESS</value>
-    </values>
-    <values>
         <field>EvaluationType__c</field>
         <value xsi:type="xsd:string">QUERY</value>
     </values>

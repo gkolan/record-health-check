@@ -138,21 +138,17 @@ if (releases.candidate?.sandboxInstallUrl !== expectedCandidateSandboxUrl) {
   );
 }
 
-// Production links must always target the promoted stable release. A beta
-// candidate may appear only on the sandbox domain; a released candidate must
-// match stable and therefore appears on both domains.
+// Current-release buttons use stable, tracked redirects so package IDs can be
+// updated centrally without editing every public entry point. Immutable version
+// documentation and package-releases.json continue to record exact 04t IDs.
+const trackedProductionUrl = "https://recordhealthcheck.com/install/production";
+const trackedSandboxUrl = "https://recordhealthcheck.com/install/sandbox";
 for (const relativePath of [
   "README.md",
   "docs/installation/install-and-verify.md"
 ]) {
   const contents = read(path.join(paths.repoRoot, relativePath));
   const linked = new Set(contents.match(/04t[A-Za-z0-9]{12,15}/g) ?? []);
-  if (!linked.size) {
-    fail(
-      `${relativePath}: must publish an install link for ${stableVersionId}`
-    );
-    continue;
-  }
   for (const id of linked) {
     if (id !== stableVersionId && id !== candidateVersionId) {
       fail(
@@ -160,19 +156,11 @@ for (const relativePath of [
       );
     }
   }
-  if (
-    !contents.includes(
-      `https://login.salesforce.com/packaging/installPackage.apexp?p0=${stableVersionId}`
-    )
-  ) {
-    fail(
-      `${relativePath}: missing production install link for ${stableVersionId}`
-    );
+  if (!contents.includes(trackedProductionUrl)) {
+    fail(`${relativePath}: missing tracked production install link`);
   }
-  if (!contents.includes(expectedCandidateSandboxUrl)) {
-    fail(
-      `${relativePath}: missing sandbox candidate link for ${candidateVersionId}`
-    );
+  if (!contents.includes(trackedSandboxUrl)) {
+    fail(`${relativePath}: missing tracked sandbox install link`);
   }
   if (
     releases.candidate?.status === "beta" &&

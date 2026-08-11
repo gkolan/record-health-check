@@ -3,9 +3,9 @@
     <fullName>RunButtonIcon__c</fullName>
     <label>Run Button Icon</label>
     <description
-  >Optional SLDS icon name used by the Run and Rerun control, such as utility:play or utility:refresh. Blank uses the built-in CSS play glyph.</description>
+  >Icon shown on both the Run and Rerun buttons. Enter a Salesforce icon name, such as utility:play or utility:refresh. Leave blank to use the default play icon.</description>
     <inlineHelpText
-  >Enter an SLDS icon name such as utility:play or utility:refresh. Blank uses the built-in play glyph.</inlineHelpText>
+  >Enter a Salesforce utility icon in category:name format, such as utility:play or utility:refresh. Leave blank to show the default play icon.</inlineHelpText>
     <type>Text</type>
     <length>80</length>
     <required>false</required>

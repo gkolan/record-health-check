@@ -21,10 +21,6 @@
     >Confirms that the account is assigned to an active user who can own follow-up and customer commitments.</value>
     </values>
     <values>
-        <field>Category__c</field>
-        <value xsi:type="xsd:string">COMPLETENESS</value>
-    </values>
-    <values>
         <field>EvaluationType__c</field>
         <value xsi:type="xsd:string">FORMULA</value>
     </values>

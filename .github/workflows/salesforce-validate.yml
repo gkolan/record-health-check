@@ -57,6 +57,8 @@ jobs:
         run: npm run check:namespaced-tokens
       - name: Verify exact configuration identity contract
         run: npm run check:configuration-identity
+      - name: Verify package version synchronization
+        run: npm run check:version-sync
       - name: Verify field limits
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts

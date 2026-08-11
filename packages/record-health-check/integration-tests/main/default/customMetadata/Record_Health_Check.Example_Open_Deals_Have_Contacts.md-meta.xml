@@ -15,9 +15,6 @@
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
     >Confirms that every open opportunity identifies at least one customer contact involved in the deal.</value></values>
-    <values><field>Category__c</field><value
-      xsi:type="xsd:string"
-    >RELATIONSHIP_COVERAGE</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >COMPARE_TWO_QUERIES</value></values>

@@ -23,10 +23,6 @@
     >For channel customers, confirms that the account is connected to the appropriate partner hierarchy.</value>
     </values>
     <values>
-        <field>Category__c</field>
-        <value xsi:type="xsd:string">RELATIONSHIP_COVERAGE</value>
-    </values>
-    <values>
         <field>EvaluationType__c</field>
         <value xsi:type="xsd:string">FORMULA</value>
     </values>

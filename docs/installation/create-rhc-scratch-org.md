@@ -46,7 +46,8 @@ The command creates a separate scratch org and prepares the entire experience:
 2. Installs the same promoted Record Health Check package offered by the public install links.
 3. Gives the scratch-org user Record Health Check administrator access.
 4. Adds the prepared Lightning page and demo configuration.
-5. Creates the Acme records used by the Example Check Set.
+5. Creates the Acme records used by the Example Check Set and adds focused Account, Contact, and
+   Opportunity list views for those records.
 6. Runs the subscriber smoke test before reporting success.
 
 This uses the promoted installed package, the same way a sandbox or production org would. It does
@@ -117,12 +118,16 @@ Expected, then explains the revenue-protection gap.
 Open the prepared Account list:
 
 ```bash
-sf org open --target-org rhc-demo --path 'lightning/o/Account/list?filterName=AllAccounts'
+sf org open --target-org rhc-demo --path 'lightning/o/Account/list?filterName=RHC_Demo_Accounts'
 ```
 
 Open **Acme Corporation**. Its Account page already contains Record Health Check. Run the checks and
 confirm the summary is three passed, four failed, and one skipped. Expand the results and follow the
 guidance as someone preparing for the customer review would.
+
+The setup also deploys **RHC Demo Contacts** and **RHC Demo Opportunities** list views. These views
+show only the deterministic records created by the setup script, even though the scratch org also
+includes Salesforce-provided sample data.
 
 To verify the prepared data and outcomes from the command line, run:
 
