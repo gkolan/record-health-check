@@ -72,6 +72,14 @@ These checks apply to every AI coding agent and automated contributor working in
   final release-candidate step after the release branch is committed, source gates pass, and both
   org shapes are proven. Run the explicit release preflight, then create one candidate with
   `--release-ready`; verify that candidate before merge and promotion.
+- Immediately before promotion, run `npm run release:preflight` against the final committed release
+  source and confirm the pull request's complete GitHub Actions CI workflow is green. A production
+  release is not complete when local checks pass but hosted CI is missing, pending, cancelled, or
+  failing.
+- Every candidate-creation and production-release handoff must print the exact Salesforce Production
+  and Sandbox installation URLs for the new `04t`, plus the tracked public redirect URLs. This gives
+  the release owner the values needed to verify or update the public install links without deriving
+  them manually.
 - Retain redacted JSON evidence for create, install, upgrade, test, coverage, promote, and deployment
   operations. A successful command without retained evidence is not a completed release gate.
 - Validate the locally converted package artifact before candidate creation, then use installation

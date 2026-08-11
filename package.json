@@ -33,7 +33,7 @@
     "package:create": "node scripts/release/create-package-version.mjs",
     "prepackage:verify": "npm run check:toolchain",
     "package:verify": "node scripts/release/verify-package-version.mjs",
-    "prepackage:promote": "npm run check:toolchain",
+    "prepackage:promote": "npm run release:preflight",
     "package:promote": "node scripts/release/promote-package-version.mjs",
     "check:toolchain": "node scripts/release/check_toolchain.mjs",
     "check:toolchain-latest": "node scripts/release/check_toolchain.mjs --policy-only --latest",
