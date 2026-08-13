@@ -63,7 +63,7 @@ jobs:
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts
         run: npm run check:permission-sets
-      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm install --global @salesforce/cli@2.147.7
       - run: npm run check:toolchain
       - run: echo y | sf plugins install code-analyzer@5.14.0
       - name: Record analyzer toolchain versions

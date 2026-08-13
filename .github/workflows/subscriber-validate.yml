@@ -39,7 +39,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm install --global @salesforce/cli@2.147.7
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
@@ -63,7 +63,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm install --global @salesforce/cli@2.147.7
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
