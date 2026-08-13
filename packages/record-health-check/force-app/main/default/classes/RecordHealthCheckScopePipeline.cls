@@ -46,6 +46,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     response.runId = String.isBlank(request.options.runId)
       ? newRunId()
       : request.options.runId;
+    context.executionOrigin = String.valueOf(request.options.executionOrigin);
     response.recordIds.addAll(recordIds);
     for (Record_Health_Check__mdt check : context.checks) {
       response.checkQualifiedApiNames.add(check.QualifiedApiName);
@@ -196,6 +197,11 @@ public with sharing class RecordHealthCheckScopePipeline {
     String runId,
     Map<String, RecordHealthCheckResultItem> itemsByIdentity
   ) {
+    RecordHealthCheckRunContext runContext = new RecordHealthCheckRunContext(
+      runId,
+      context.executionOrigin
+    );
+    resultSupport.withRunContext(runContext);
     List<Id> applicableIds = new List<Id>();
     Map<Id, RecordHealthCheckInternalResult> internalByRecordId = new Map<Id, RecordHealthCheckInternalResult>();
     RecordHealthCheckInternalResult invalidConfiguration = configService.validateCheckForEvaluation(
@@ -369,6 +375,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     public Boolean checkSetActive;
     public String objectApiName;
     public Boolean showDiagnostics;
+    public String executionOrigin;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
   }
 

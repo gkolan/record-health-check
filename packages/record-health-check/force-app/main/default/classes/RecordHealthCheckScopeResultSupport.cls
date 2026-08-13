@@ -2,6 +2,13 @@
 public with sharing class RecordHealthCheckScopeResultSupport {
   private RecordHealthCheckFormulaEvaluator formulaEvaluator = new RecordHealthCheckFormulaEvaluator();
 
+  public RecordHealthCheckScopeResultSupport withRunContext(
+    RecordHealthCheckRunContext value
+  ) {
+    formulaEvaluator.withRunContext(value);
+    return this;
+  }
+
   public void finalizeDisplay(
     Record_Health_Check__mdt check,
     SObject record,

@@ -168,6 +168,37 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
   }
 
   @IsTest
+  static void displayFinalizationResolvesRunTokens() {
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.status = RecordHealthCheckStatus.FAIL;
+    result.message = 'Run {!rhcRun.runId} from {!rhcRun.source}';
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>()
+    );
+
+    Test.startTest();
+    new RecordHealthCheckScopeResultSupport()
+      .withRunContext(
+        new RecordHealthCheckRunContext('run-display-test', 'USER_INITIATED')
+      )
+      .finalizeDisplay(
+        check,
+        RecordHealthCheckTestDataFactory.account(
+          new Map<String, Object>{ 'Name' => 'Run context' }
+        ),
+        result,
+        false
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'Run run-display-test from USER_INITIATED',
+      result.message,
+      'Valid run tokens must resolve during final display rendering.'
+    );
+  }
+
+  @IsTest
   static void itemConversionHandlesMissingEvaluatorResult() {
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{ 'QualifiedApiName' => 'Example.Check' }
