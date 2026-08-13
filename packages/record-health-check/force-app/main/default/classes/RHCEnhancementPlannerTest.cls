@@ -69,6 +69,34 @@ private class RHCEnhancementPlannerTest {
   }
 
   @IsTest
+  static void calculatedFieldReachedByDistinctPathsExpandsTwiceRow08() {
+    RecordHealthCheckFieldPlanner planner = new RecordHealthCheckFieldPlanner();
+    planner.calculatedFormulaOverrideByField = new Map<String, String>{
+      'Parent.Name' => 'AnnualRevenue',
+      'Parent.Parent.Name' => 'AnnualRevenue'
+    };
+
+    Set<String> fields = planner.collectRecordFields(
+      RecordHealthCheckTestDataFactory.check(
+        new Map<String, Object>{
+          'EvaluationType__c' => 'FORMULA',
+          'PassConditionFormula__c' => 'Parent.Name <> Parent.Parent.Name'
+        }
+      ),
+      Account.SObjectType
+    );
+
+    Assert.isTrue(
+      fields.contains('Parent.AnnualRevenue'),
+      'The direct calculated-field path must expand its operand.'
+    );
+    Assert.isTrue(
+      fields.contains('Parent.Parent.AnnualRevenue'),
+      'The same calculated field reached through a second path must expand independently.'
+    );
+  }
+
+  @IsTest
   static void truncatedVerdictPlanStillLoadsUnableMessageFieldsRow08() {
     Opportunity opportunity = RecordHealthCheckTestDataFactory.createOpportunity(
       new Map<String, Object>{

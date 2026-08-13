@@ -150,8 +150,10 @@ public with sharing class RecordHealthCheckFieldPlanner {
       return;
     }
     // Walk the full dependency tree rooted at the record's own type. The visited
-    // set is shared across the whole walk so a formula field reached by two paths
-    // is only expanded once.
+    // set is shared across the whole walk. Its keys include the complete path
+    // from the root record, so repeated references to one calculated field are
+    // deduplicated without collapsing the same field reached through two
+    // different relationships.
     expandFormulaDependencies(
       fields,
       objectType,
@@ -185,8 +187,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
    * @param pathPrefix relationship path from baseType to resolveType, with a
    * trailing '.', or '' at the top level
    * @param depth current recursion depth (capped)
-   * @param visited owner-qualified names of calculated fields already
-   * expanded, to break cycles and re-convergent graphs
+   * @param visited root-path- and owner-qualified names of calculated fields
+   * already expanded, to break cycles and re-convergent graphs
    */
   private void expandFormulaDependencies(
     Set<String> fields,
@@ -218,12 +220,15 @@ public with sharing class RecordHealthCheckFieldPlanner {
       CalculatedDependency dependency = calculatedDependency(
         resolveType,
         token,
-        reference
+        reference,
+        pathPrefix
       );
       if (
         dependency != null &&
         depth < FORMULA_DEPENDENCY_DEPTH_CAP &&
-        visited.add(dependency.visitKey)
+        visited.add(
+          pathPrefix + dependency.relationshipPrefix + dependency.visitKey
+        )
       ) {
         expandFormulaDependencies(
           fields,
@@ -248,20 +253,27 @@ public with sharing class RecordHealthCheckFieldPlanner {
   private CalculatedDependency calculatedDependency(
     Schema.SObjectType resolveType,
     String token,
-    RecordHealthCheckFormulaFieldScanner.FieldReference reference
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference,
+    String pathPrefix
   ) {
+    FieldPathDescribe info = describeFieldPath(resolveType, token, reference);
     if (
       calculatedFormulaOverrideByField != null &&
-      calculatedFormulaOverrideByField.containsKey(token)
+      (calculatedFormulaOverrideByField.containsKey(pathPrefix + token) ||
+      calculatedFormulaOverrideByField.containsKey(token))
     ) {
+      String overrideFormula = calculatedFormulaOverrideByField.containsKey(
+          pathPrefix + token
+        )
+        ? calculatedFormulaOverrideByField.get(pathPrefix + token)
+        : calculatedFormulaOverrideByField.get(token);
       return buildCalculatedDependency(
-        calculatedFormulaOverrideByField.get(token),
-        resolveType,
-        token,
-        ''
+        overrideFormula,
+        info == null || info.describe == null ? resolveType : info.ownerType,
+        info == null || info.describe == null ? token : info.describe.getName(),
+        info == null || info.describe == null ? '' : info.relationshipPrefix
       );
     }
-    FieldPathDescribe info = describeFieldPath(resolveType, token, reference);
     // prettier-ignore
     if (info == null || info.describe == null || !info.describe.isCalculated() || String.isBlank(info.describe.getCalculatedFormula())) {
       return null;
