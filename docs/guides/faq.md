@@ -92,6 +92,39 @@ The running user's own Salesforce access. A user sees results based only on reco
 can read. Record Health Check does not give the user additional access. See
 [Security and data access](../reference/framework/security.md).
 
+## Why does the Check fail when the Lightning page shows my Owner-is-active formula field as true?
+
+Formula Pass Conditions are re-evaluated against the queried record, not read from the page's
+stored formula-field value. If your formula depends on a polymorphic relationship such as Owner
+(for example a custom field defined as `Owner:User.IsActive`, or a Pass Condition of
+`Owner.IsActive` directly), make sure the colon syntax matches what that object's schema requires:
+`Owner:User.IsActive` on objects where Owner can be more than one type (Lead), or plain
+`Owner.IsActive` on objects where Owner is only ever a User (Account in most orgs). See
+[polymorphic relationships](../reference/evaluation/formula.md#formula-context-and-syntax) in the
+Formula reference. If access is the problem instead, confirm the running user's field-level
+security includes both the custom field and the fields it depends on.
+
+## Why does a Queue-owned or partner/bot-owned record fail an "owner is active" Check differently than expected?
+
+Two supported patterns answer "is the owner an active User," and they fail differently for a
+non-User or otherwise-imperfect owner:
+
+- A **Formula** Pass Condition (`Owner:User.IsActive` or `Owner.IsActive`) reports
+  `UNABLE_TO_EVALUATE` for a Queue/Group owner or a missing User, because FormulaEval genuinely
+  cannot resolve a User-only path against a non-User owner, and a null result never becomes `FAIL`.
+- The **QUERY** pattern (`SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true`)
+  reports `FAIL` for the same cases, because a Queue/Group Id or a missing User row both produce a
+  query count of `0`, and the Check compares that count to `1`.
+
+Neither is wrong; they express different intents. See
+[Formula: Ownership checks](../reference/evaluation/formula.md#ownership-checks-active-user-queuegroup-and-query-vs-formula)
+for the full comparison, including why `IsActive = true` alone does not distinguish a real internal
+owner from an Experience Cloud/partner user, an integration/automation user, or a bot account left
+active in production.
+
+For optional relationship text in a Check message, include a fallback such as
+`{!record.Parent.Name fallback="no parent account"}`.
+
 ## What are the Example Check Sets, and should I use them in production?
 
 Record Health Check ships four example Check Sets (Developer Names prefixed `Example_`, card titles
@@ -125,6 +158,12 @@ Yes. Installation and day-to-day use work in both modes. Record Health Check:
   code** in a multi-currency org;
 - still compares raw numeric and API values for Pass / Fail, never the formatted display text.
 
+A Formula Pass Condition never converts currency: comparing amounts stored in different currencies
+compares the raw numbers, not converted ones, and `CURRENCYRATE()` is not usable as a workaround
+(FormulaEval rejects it because `CurrencyIsoCode` is a picklist field). If a Check must compare
+amounts across currencies, use a Query or Apex evaluator that performs the conversion. See
+[Compatibility: Multiple currencies](../reference/framework/compatibility.md#multiple-currencies).
+
 Subscriber sandboxes installing the unlocked package do not need a special currency-mode install
 step. They also do not run packaged RHC Apex tests during normal `RunLocalTests` deployments.
 Maintainers validate both currency modes with
@@ -134,6 +173,17 @@ default; set
 On Windows run that script from **Git Bash**. See
 [Localization](../reference/framework/localization.md) and
 [Create the demo scratch org](../installation/create-rhc-scratch-org.md#currency-mode).
+
+## Why does a Check work in my Person Accounts sandbox but show UNABLE_TO_EVALUATE or FAIL elsewhere?
+
+`IsPersonAccount`, `PersonContactId`, `PersonEmail`, `PersonMailing*`, and Account
+`FirstName`/`LastName` exist only when Person Accounts is enabled for that org. A Check authored
+against those fields describes and plans normally in a Person-Account org, but the same Check
+copied into a business-Account-only org can't describe the field at all. Record Health Check
+silently omits it from the record query the same way it omits any other unresolvable path, which
+can surface as `UNABLE_TO_EVALUATE` or an unexpected `FAIL`. Packaged example Checks never
+reference Person* fields for this reason. See
+[Compatibility: Person Accounts](../reference/framework/compatibility.md#person-accounts).
 
 ## Why did contributor source deploy fail Apex tests in a multi-currency org?
 

@@ -44,6 +44,26 @@ zero.
   every field used inside the referenced formula field.
 - A record formula cannot aggregate child collections. Use a Query Check or Apex when child records
   must be counted, summed, or grouped.
+- Polymorphic relationships (`Owner`, `CreatedBy`, `LastModifiedBy`, `What`, `Who`) can be
+  disambiguated with Salesforce's colon syntax, `Relationship:SObjectType.Field`, for example
+  `Owner:User.IsActive`. Record Health Check recognizes this syntax when preparing the record
+  query and validates the type segment against the object's schema, so a mistyped type (or one
+  that isn't a real candidate for that relationship) is treated the same as any other unresolvable
+  path rather than guessing.
+- Flat SOQL can hydrate only fields exposed by Salesforce's polymorphic `Name` pseudo-entity. For
+  example, `What:Account.Name` is supported, while an Account-only field such as
+  `What:Account.Industry` requires a Query or Apex Check; it is omitted from Formula record loading
+  so one unsupported field cannot invalidate the shared scope query.
+- Whether a polymorphic relationship needs the colon segment or rejects it is decided by the
+  relationship's own schema, not by Record Health Check: `Owner:User.IsActive` is required on
+  objects where Owner can be more than one type (for example Lead, where Owner can be a User or a
+  Queue); the same colon syntax is rejected on objects where Owner can only ever be a User (for
+  example Account in most orgs), which instead need the plain `Owner.IsActive`. If one form
+  returns `UNABLE_TO_EVALUATE` with a message about specifying (or not specifying) an object type,
+  try the other form for that object.
+- `$User`, `$Profile`, `$Setup`, `$Permission`, and other global merge references are never treated
+  as record fields; a formula that reads `$User.Id` never adds a bogus `User.Id` path to the record
+  query.
 
 The Pass Condition must return a Checkbox value (`true` or `false`). Display formulas can return
 Checkbox, Number, Date, Date/Time, or Text. **Auto** tries supported result types until one works.
@@ -59,6 +79,40 @@ Display formulas never change `PASS` or `FAIL`.
 - Keep both formulas aligned with the values compared in Pass Condition.
 - If Display: Expected Formula is blank, the card can show the default Passes when explanation.
 - If Display: Found Formula is blank, no custom Found value is produced.
+
+## Ownership checks: Active User, Queue/Group, and QUERY vs Formula
+
+"Owner is active" is a common Check, and it has two supported patterns with different behavior for
+non-User owners:
+
+| Pattern | Example | Queue/Group owner | Missing/inaccessible User |
+| --- | --- | --- | --- |
+| Formula `Owner:User.IsActive` (or `Owner.IsActive` where the object's Owner is never polymorphic) | `Example_Account_Owner_Active` | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason |
+| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
+
+Both patterns are fail-closed in the sense that neither produces a false `PASS` for a non-User or
+inactive owner. They differ in **how** they fail: the Formula path reports "I could not determine
+this" (`UNABLE_TO_EVALUATE`), while the QUERY `COUNT()` pattern reports "this predicate was not
+satisfied" (`FAIL`) without distinguishing *why* the count was zero. Choose QUERY when you want a
+uniform fail-closed outcome across Queue, inactive User, and missing User; choose Formula (once
+hydrated per the polymorphic guidance above) when you want a Queue/Group owner treated as
+"can't tell," not as "fails the check."
+
+Label Check titles, failure messages, and action copy **"active User"**, not "active owner," unless
+the Check is also designed to model Queue/Group ownership explicitly (for example with a dedicated
+Queue-ratio Query Check). A `COUNT() = 0` result alone does not distinguish an inactive User, a
+Queue/Group owner, a User the running user cannot see, or a stale/missing User row. Do not word a
+failure message as if it has proven one specific cause (for example "assigned to an inactive
+user") when the evaluator has only proven "no active, queryable User matched."
+
+`IsActive = true` is necessary but not sufficient for "healthy owner" in many orgs: Experience
+Cloud/partner users, integration/automated-process users, and bot or test accounts left active in
+production can all satisfy a naive active-User check while not being a real internal owner able to
+do follow-up work. If that distinction matters, filter further on `UserType`, `Profile`, or a
+dedicated approved-user or excluded-user criteria in the QUERY or an Apex Check.
+
+When an optional relationship is used in message text, provide a fallback, for example
+`{!record.Parent.Name fallback="no parent account"}`.
 
 ## Outcomes and Reason Codes
 

@@ -52,6 +52,21 @@ The focused two-mode display-format setup is a bash script. On Windows, run it f
 general `npm run dev:setup` contributor workflow works in PowerShell, cmd, macOS, and Linux, but it
 does not replace the focused single-currency and multi-currency comparison below.
 
+### Polymorphic Owner formula runtime gate
+
+FormulaEval can return a false result when a polymorphic Lead owner and the Lead are created inside
+the same Apex test transaction. Validate the real runtime contract with two committed transactions:
+
+```bash
+bash packages/record-health-check/integration-tests/scripts/validate-polymorphic-owner.sh \
+  <scratch-org-alias>
+```
+
+The gate deploys an integration-only Lead checkbox formula (`Owner:User.IsActive`), grants its
+least-privilege field access, creates an active-User-owned Lead, and evaluates the formula field in
+a second transaction. It fails unless the result is `PASS`, records JSON evidence under the ignored
+`reports/` directory, and removes the temporary Lead on exit.
+
 ```bash
 # Multi-currency (default): activates EUR and seeds EUR Account/Opportunity rows.
 # On Windows Git Bash:

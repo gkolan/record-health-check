@@ -222,6 +222,8 @@
         <members>RecordHealthCheckCompareQuerySupport</members>
         <members>RecordHealthCheckCompareQuerySupportTest</members>
         <members>RecordHealthCheckFieldPlanner</members>
+        <members>RecordHealthCheckFormulaFieldScanner</members>
+        <members>RHCPolymorphicQuerySafetyTest</members>
         <members>RecordHealthCheckEvaluatorException</members>
         <members>RecordHealthCheckEvaluatorRegistry</members>
         <members>RecordHealthCheckEvaluatorRegistryTest</members>
@@ -318,6 +320,8 @@
         <members>RecordHealthCheckApexResultFinalizerTest</members>
         <members>RecordHealthCheckDescribeCacheTest</members>
         <members>RecordHealthCheckFieldPlannerTest</members>
+        <members>RHCPolymorphicOwnerAcceptanceTest</members>
+        <members>RHCOwnershipHonestyTest</members>
         <members>RecordHealthCheckFormulaDisplayTest</members>
         <members>RecordHealthCheckFormulaSyntaxTest</members>
         <members>RecordHealthCheckEvaluationMutationCheck</members>

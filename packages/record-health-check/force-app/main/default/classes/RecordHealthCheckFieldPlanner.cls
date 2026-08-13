@@ -6,12 +6,6 @@
 public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Boolean multiCurrencyOrganizationOverride;
-  private static final Pattern PATTERN_DOT_PATH = Pattern.compile(
-    '\\b([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]+)+)\\b'
-  );
-  private static final Pattern PATTERN_WORD = Pattern.compile(
-    '\\b[A-Za-z_][A-Za-z0-9_]*\\b'
-  );
   // GROUP BY / aggregate detection lives in RecordHealthCheckSoqlTemplate,
   // the single SOQL-shape authority.
 
@@ -191,17 +185,24 @@ public with sharing class RecordHealthCheckFieldPlanner {
       return;
     }
 
-    for (String token : scanFormulaFieldTokens(formula)) {
+    for (
+      RecordHealthCheckFormulaFieldScanner.FieldReference reference : RecordHealthCheckFormulaFieldScanner.scan(
+        formula,
+        resolveType
+      )
+    ) {
+      String token = reference.path;
       // Add the operand to the SELECT, rooted at the record's own type so the
       // path is valid in the SOQL even when we are deep inside a cross-object
       // formula definition.
-      addReadableField(fields, baseType, pathPrefix + token);
+      addReadableField(fields, baseType, pathPrefix + token, reference);
 
       // If the operand is itself a calculated field, expand the fields ITS
       // definition references so the whole chain can be regenerated.
       CalculatedDependency dependency = calculatedDependency(
         resolveType,
-        token
+        token,
+        reference
       );
       if (dependency != null && visited.add(dependency.visitKey)) {
         expandFormulaDependencies(
@@ -219,7 +220,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
 
   private CalculatedDependency calculatedDependency(
     Schema.SObjectType resolveType,
-    String token
+    String token,
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference
   ) {
     if (
       calculatedFormulaOverrideByField != null &&
@@ -232,7 +234,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
         ''
       );
     }
-    FieldPathDescribe info = describeFieldPath(resolveType, token);
+    FieldPathDescribe info = describeFieldPath(resolveType, token, reference);
     // prettier-ignore
     if (info == null || info.describe == null || !info.describe.isCalculated() || String.isBlank(info.describe.getCalculatedFormula())) {
       return null;
@@ -255,61 +257,25 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return dependency;
   }
 
-  /**
-   * Scans a formula expression for the field references it contains, in document
-   * order and de-duplicated. Relationship paths (e.g. Parent.ShippingCity) are
-   * captured whole first so a word-only scan does not split them into bare names;
-   * single-segment field names follow. Formula function names and literals are
-   * excluded, and double-quoted string literals are masked so a value such as
-   * "example.com" is never mistaken for a relationship path.
-   */
-  private List<String> scanFormulaFieldTokens(String formula) {
-    List<String> tokens = new List<String>();
-    Set<String> seen = new Set<String>();
-    String scannable = maskFormulaStringLiterals(formula);
-
-    Matcher dotMatcher = PATTERN_DOT_PATH.matcher(scannable);
-    while (dotMatcher.find()) {
-      String path = dotMatcher.group(1);
-      if (seen.add(path)) {
-        tokens.add(path);
-      }
-    }
-
-    Matcher wordMatcher = PATTERN_WORD.matcher(scannable);
-    while (wordMatcher.find()) {
-      String word = wordMatcher.group(0);
-      if (RecordHealthCheckFormulaSyntax.isSyntaxWord(word)) {
-        continue;
-      }
-      if (seen.add(word)) {
-        tokens.add(word);
-      }
-    }
-    return tokens;
-  }
-
-  private String maskFormulaStringLiterals(String formula) {
-    List<String> masked = new List<String>();
-    Boolean inQuote = false;
-    for (Integer i = 0; i < formula.length(); i++) {
-      String ch = formula.substring(i, i + 1);
-      if (ch == '"' && (i == 0 || formula.substring(i - 1, i) != '\\')) {
-        inQuote = !inQuote;
-        masked.add('"');
-      } else {
-        masked.add(inQuote ? ' ' : ch);
-      }
-    }
-    return String.join(masked, '');
-  }
-
   private void addReadableField(
     Set<String> fields,
     Schema.SObjectType objectType,
     String fieldPath
   ) {
-    FieldPathDescribe info = describeFieldPath(objectType, fieldPath);
+    addReadableField(fields, objectType, fieldPath, null);
+  }
+
+  private void addReadableField(
+    Set<String> fields,
+    Schema.SObjectType objectType,
+    String fieldPath,
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference
+  ) {
+    FieldPathDescribe info = describeFieldPath(
+      objectType,
+      fieldPath,
+      reference
+    );
     if (info != null && info.describe != null && info.describe.isAccessible()) {
       fields.add(fieldPath);
     } else if (
@@ -332,7 +298,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
    */
   private FieldPathDescribe describeFieldPath(
     Schema.SObjectType objectType,
-    String fieldPath
+    String fieldPath,
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference
   ) {
     List<String> parts = fieldPath.split('\\.');
     Schema.SObjectType currentType = objectType;
@@ -357,7 +324,14 @@ public with sharing class RecordHealthCheckFieldPlanner {
         )
         .getReferenceTo();
       relationshipParts.add(parts[i]);
-      currentType = selectReferenceType(referenceTypes, parts[i + 1]);
+      currentType = reference != null &&
+        reference.relationshipType != null &&
+        parts[i].equalsIgnoreCase(reference.typedRelationship)
+        ? reference.relationshipType
+        : selectReferenceType(referenceTypes, parts[i + 1]);
+      if (currentType == null) {
+        return null;
+      }
     }
     Schema.SObjectField terminal = getFieldCaseInsensitive(
       RecordHealthCheckDescribeCache.fieldMap(currentType),
@@ -389,10 +363,30 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return fieldMap.get(name);
   }
 
+  /**
+   * Picks the polymorphic candidate type whose schema actually contains the
+   * next path segment. A single-candidate reference (the common, non-polymorphic
+   * case) always resolves to that candidate. When two or more candidates exist
+   * (genuine polymorphism, e.g. Owner: User or Group) and none of them exposes
+   * the next segment, this fails closed by returning null rather than guessing
+   * candidates[0] — a silent wrong-type guess can otherwise resolve to a
+   * same-named-but-unrelated field on the wrong object. The caller treats null
+   * exactly like any other unresolvable path: the field is skipped, which lets
+   * FormulaEval surface UNABLE_TO_EVALUATE instead of a silently wrong value.
+   */
   private Schema.SObjectType selectReferenceType(
     List<Schema.SObjectType> candidates,
     String nextPathPart
   ) {
+    if (candidates.size() == 1) {
+      return candidates[0];
+    }
+    // Flat SOQL exposes a polymorphic relationship through the Name entity.
+    // A field present on only one concrete candidate still requires TYPEOF;
+    // choosing that candidate here would emit an invalid flat SELECT.
+    if (!RecordHealthCheckFormulaFieldScanner.isNameEntityPath(nextPathPart)) {
+      return null;
+    }
     for (Schema.SObjectType candidate : candidates) {
       Map<String, Schema.SObjectField> fields = RecordHealthCheckDescribeCache.fieldMap(
         candidate
@@ -404,7 +398,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
         return candidate;
       }
     }
-    return candidates[0];
+    return null;
   }
 
   /**
