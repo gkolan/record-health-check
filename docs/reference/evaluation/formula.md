@@ -50,6 +50,10 @@ zero.
   query and validates the type segment against the object's schema, so a mistyped type (or one
   that isn't a real candidate for that relationship) is treated the same as any other unresolvable
   path rather than guessing.
+- Flat SOQL can hydrate only fields exposed by Salesforce's polymorphic `Name` pseudo-entity. For
+  example, `What:Account.Name` is supported, while an Account-only field such as
+  `What:Account.Industry` requires a Query or Apex Check; it is omitted from Formula record loading
+  so one unsupported field cannot invalidate the shared scope query.
 - Whether a polymorphic relationship needs the colon segment or rejects it is decided by the
   relationship's own schema, not by Record Health Check: `Owner:User.IsActive` is required on
   objects where Owner can be more than one type (for example Lead, where Owner can be a User or a

@@ -223,6 +223,7 @@
         <members>RecordHealthCheckCompareQuerySupportTest</members>
         <members>RecordHealthCheckFieldPlanner</members>
         <members>RecordHealthCheckFormulaFieldScanner</members>
+        <members>RHCPolymorphicQuerySafetyTest</members>
         <members>RecordHealthCheckEvaluatorException</members>
         <members>RecordHealthCheckEvaluatorRegistry</members>
         <members>RecordHealthCheckEvaluatorRegistryTest</members>

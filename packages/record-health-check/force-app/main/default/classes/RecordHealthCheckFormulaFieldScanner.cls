@@ -18,16 +18,16 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
   );
 
   /**
-   * Returns record field paths in document order with duplicates removed.
+   * Returns unique record field references needed by the formula.
    * @param formula Formula expression to scan.
    * @param resolveType SObject type against which relationship paths resolve.
-   * @return Selectable dot-separated record paths.
+   * @return Selectable paths and any explicit relationship types.
    */
-  public static List<String> scan(
+  public static List<FieldReference> scan(
     String formula,
     Schema.SObjectType resolveType
   ) {
-    List<String> tokens = new List<String>();
+    List<FieldReference> tokens = new List<FieldReference>();
     Set<String> seen = new Set<String>();
     String scannable = maskFormulaStringLiterals(formula);
     scannable = PATTERN_DOLLAR_GLOBAL.matcher(scannable).replaceAll(' ');
@@ -41,13 +41,13 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
         ''.rightPad(colonMatcher.end() - colonMatcher.start(), ' ')
       );
       lastEnd = colonMatcher.end();
-      String normalizedPath = resolveColonReference(
+      FieldReference normalizedPath = resolveColonReference(
         resolveType,
         colonMatcher.group(1),
         colonMatcher.group(2),
         colonMatcher.group(3)
       );
-      if (normalizedPath != null && seen.add(normalizedPath)) {
+      if (normalizedPath != null && seen.add(normalizedPath.path)) {
         tokens.add(normalizedPath);
       }
     }
@@ -57,7 +57,7 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
     Matcher dotMatcher = PATTERN_DOT_PATH.matcher(scannable);
     while (dotMatcher.find()) {
       if (seen.add(dotMatcher.group(1))) {
-        tokens.add(dotMatcher.group(1));
+        tokens.add(new FieldReference(dotMatcher.group(1), null, null));
       }
     }
     Matcher wordMatcher = PATTERN_WORD.matcher(scannable);
@@ -66,13 +66,13 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
       if (
         !RecordHealthCheckFormulaSyntax.isSyntaxWord(word) && seen.add(word)
       ) {
-        tokens.add(word);
+        tokens.add(new FieldReference(word, null, null));
       }
     }
     return tokens;
   }
 
-  private static String resolveColonReference(
+  private static FieldReference resolveColonReference(
     Schema.SObjectType resolveType,
     String relationshipSegment,
     String typeSegment,
@@ -89,17 +89,33 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
     ) {
       return null;
     }
-    for (
-      Schema.SObjectType candidate : RecordHealthCheckDescribeCache.describeField(
-          relationshipField
-        )
-        .getReferenceTo()
-    ) {
+    List<Schema.SObjectType> candidates = RecordHealthCheckDescribeCache.describeField(
+        relationshipField
+      )
+      .getReferenceTo();
+    for (Schema.SObjectType candidate : candidates) {
       if (String.valueOf(candidate).equalsIgnoreCase(typeSegment)) {
-        return relationshipSegment + fieldPathSegment;
+        String childPath = fieldPathSegment.substring(1);
+        if (candidates.size() > 1 && !isNameEntityPath(childPath)) {
+          return null;
+        }
+        return new FieldReference(
+          relationshipSegment + fieldPathSegment,
+          relationshipSegment,
+          candidate
+        );
       }
     }
     return null;
+  }
+
+  private static Boolean isNameEntityPath(String childPath) {
+    if (childPath.contains('.')) {
+      return false;
+    }
+    Schema.SObjectType nameType = Schema.getGlobalDescribe().get('Name');
+    return nameType != null &&
+      RecordHealthCheckDescribeCache.fieldMap(nameType).get(childPath) != null;
   }
 
   private static String maskFormulaStringLiterals(String formula) {
@@ -134,5 +150,22 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
       }
     }
     return null;
+  }
+
+  /** A selectable path plus an explicit type supplied by colon syntax. */
+  public class FieldReference {
+    public String path { get; private set; }
+    public String typedRelationship { get; private set; }
+    public Schema.SObjectType relationshipType { get; private set; }
+
+    private FieldReference(
+      String path,
+      String typedRelationship,
+      Schema.SObjectType relationshipType
+    ) {
+      this.path = path;
+      this.typedRelationship = typedRelationship;
+      this.relationshipType = relationshipType;
+    }
   }
 }

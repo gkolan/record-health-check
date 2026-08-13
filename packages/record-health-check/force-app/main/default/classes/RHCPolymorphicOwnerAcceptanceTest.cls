@@ -241,13 +241,16 @@ private class RHCPolymorphicOwnerAcceptanceTest {
     );
     // Deliberately incomplete: only Id is present, simulating a graph where the
     // Owner.IsActive dependency was never loaded (the pre-fix #10 symptom).
-    Account bareRecord = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Incomplete Hydration 04' }
+    Lead bareRecord = RecordHealthCheckTestDataFactory.lead(
+      new Map<String, Object>{
+        'LastName' => 'Incomplete Hydration 04',
+        'Company' => 'RHC Test'
+      }
     );
-    RecordHealthCheckTestDataFactory.createAccounts(
-      new List<Account>{ bareRecord }
+    RecordHealthCheckTestDataFactory.createRecords(
+      new List<SObject>{ bareRecord }
     );
-    Account queried = [SELECT Id FROM Account WHERE Id = :bareRecord.Id];
+    Lead queried = [SELECT Id FROM Lead WHERE Id = :bareRecord.Id];
 
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckFormulaEvaluator()
@@ -258,11 +261,6 @@ private class RHCPolymorphicOwnerAcceptanceTest {
       'UNABLE_TO_EVALUATE',
       result.status,
       'An unhydrated Owner dependency must never resolve to a silent false FAIL.'
-    );
-    Assert.areNotEqual(
-      'FAIL',
-      result.status,
-      'Incomplete hydration is not evidence of a legitimate FAIL.'
     );
   }
 }

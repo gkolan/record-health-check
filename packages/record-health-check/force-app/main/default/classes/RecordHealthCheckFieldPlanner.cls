@@ -186,21 +186,23 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
 
     for (
-      String token : RecordHealthCheckFormulaFieldScanner.scan(
+      RecordHealthCheckFormulaFieldScanner.FieldReference reference : RecordHealthCheckFormulaFieldScanner.scan(
         formula,
         resolveType
       )
     ) {
+      String token = reference.path;
       // Add the operand to the SELECT, rooted at the record's own type so the
       // path is valid in the SOQL even when we are deep inside a cross-object
       // formula definition.
-      addReadableField(fields, baseType, pathPrefix + token);
+      addReadableField(fields, baseType, pathPrefix + token, reference);
 
       // If the operand is itself a calculated field, expand the fields ITS
       // definition references so the whole chain can be regenerated.
       CalculatedDependency dependency = calculatedDependency(
         resolveType,
-        token
+        token,
+        reference
       );
       if (dependency != null && visited.add(dependency.visitKey)) {
         expandFormulaDependencies(
@@ -218,7 +220,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
 
   private CalculatedDependency calculatedDependency(
     Schema.SObjectType resolveType,
-    String token
+    String token,
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference
   ) {
     if (
       calculatedFormulaOverrideByField != null &&
@@ -231,7 +234,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
         ''
       );
     }
-    FieldPathDescribe info = describeFieldPath(resolveType, token);
+    FieldPathDescribe info = describeFieldPath(resolveType, token, reference);
     // prettier-ignore
     if (info == null || info.describe == null || !info.describe.isCalculated() || String.isBlank(info.describe.getCalculatedFormula())) {
       return null;
@@ -259,7 +262,20 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.SObjectType objectType,
     String fieldPath
   ) {
-    FieldPathDescribe info = describeFieldPath(objectType, fieldPath);
+    addReadableField(fields, objectType, fieldPath, null);
+  }
+
+  private void addReadableField(
+    Set<String> fields,
+    Schema.SObjectType objectType,
+    String fieldPath,
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference
+  ) {
+    FieldPathDescribe info = describeFieldPath(
+      objectType,
+      fieldPath,
+      reference
+    );
     if (info != null && info.describe != null && info.describe.isAccessible()) {
       fields.add(fieldPath);
     } else if (
@@ -284,6 +300,14 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.SObjectType objectType,
     String fieldPath
   ) {
+    return describeFieldPath(objectType, fieldPath, null);
+  }
+
+  private FieldPathDescribe describeFieldPath(
+    Schema.SObjectType objectType,
+    String fieldPath,
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference
+  ) {
     List<String> parts = fieldPath.split('\\.');
     Schema.SObjectType currentType = objectType;
     List<String> relationshipParts = new List<String>();
@@ -307,7 +331,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
         )
         .getReferenceTo();
       relationshipParts.add(parts[i]);
-      currentType = selectReferenceType(referenceTypes, parts[i + 1]);
+      currentType = reference != null &&
+        reference.relationshipType != null &&
+        parts[i].equalsIgnoreCase(reference.typedRelationship)
+        ? reference.relationshipType
+        : selectReferenceType(referenceTypes, parts[i + 1]);
       if (currentType == null) {
         return null;
       }

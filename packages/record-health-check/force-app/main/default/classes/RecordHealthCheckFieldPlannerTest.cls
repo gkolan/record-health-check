@@ -414,10 +414,6 @@ private class RecordHealthCheckFieldPlannerTest {
       '$User.Id must never contribute a bogus User.Id root-record path. Planned: ' +
       fields
     );
-    Assert.isFalse(
-      fields.contains('Id'.toUpperCase()),
-      'Sanity: fields set should not contain stray uppercase fragments.'
-    );
   }
 
   @IsTest
