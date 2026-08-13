@@ -18,7 +18,8 @@ private with sharing class RHCScopePipelineFailureTest {
     planningPipeline.loadRecordsForTest(
       'Account',
       new List<Id>{ account.Id },
-      new List<Record_Health_Check__mdt>{ check }
+      new List<Record_Health_Check__mdt>{ check },
+      new RecordHealthCheckFieldPlanner()
     );
 
     RecordHealthCheckScopePipeline evaluatorPipeline = new RecordHealthCheckScopePipeline();

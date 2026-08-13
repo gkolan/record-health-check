@@ -18,7 +18,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
   private Map<String, String> calculatedFormulaOverrideByField;
   private Set<String> inaccessibleFieldsBeingPlanned;
   private Boolean verdictDependenciesTruncatedBeingPlanned;
-  private Boolean displayDependenciesTruncatedBeingPlanned;
 
   public Set<String> collectRecordFields(
     Record_Health_Check__mdt check,
@@ -40,7 +39,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
   ) {
     inaccessibleFieldsBeingPlanned = new Set<String>();
     verdictDependenciesTruncatedBeingPlanned = false;
-    displayDependenciesTruncatedBeingPlanned = false;
     Set<String> fields = new Set<String>{ 'Id' };
 
     // Token syntax and registry membership were validated when the check loaded;
@@ -110,10 +108,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
     result.selectedFields.addAll(fields);
     result.inaccessibleFields.addAll(inaccessibleFieldsBeingPlanned);
     result.verdictDependenciesTruncated = verdictDependenciesTruncatedBeingPlanned;
-    result.displayDependenciesTruncated = displayDependenciesTruncatedBeingPlanned;
     inaccessibleFieldsBeingPlanned = null;
     verdictDependenciesTruncatedBeingPlanned = null;
-    displayDependenciesTruncatedBeingPlanned = null;
     return result;
   }
 
@@ -205,15 +201,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     if (String.isBlank(formula)) {
       return;
     }
-    if (depth > FORMULA_DEPENDENCY_DEPTH_CAP) {
-      if (verdictAffecting) {
-        verdictDependenciesTruncatedBeingPlanned = true;
-      } else {
-        displayDependenciesTruncatedBeingPlanned = true;
-      }
-      return;
-    }
-
     for (
       RecordHealthCheckFormulaFieldScanner.FieldReference reference : RecordHealthCheckFormulaFieldScanner.scan(
         formula,
@@ -251,8 +238,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
       } else if (dependency != null && depth >= FORMULA_DEPENDENCY_DEPTH_CAP) {
         if (verdictAffecting) {
           verdictDependenciesTruncatedBeingPlanned = true;
-        } else {
-          displayDependenciesTruncatedBeingPlanned = true;
         }
       }
     }
@@ -482,6 +467,5 @@ public with sharing class RecordHealthCheckFieldPlanner {
     public Set<String> selectedFields = new Set<String>();
     public Set<String> inaccessibleFields = new Set<String>();
     public Boolean verdictDependenciesTruncated = false;
-    public Boolean displayDependenciesTruncated = false;
   }
 }

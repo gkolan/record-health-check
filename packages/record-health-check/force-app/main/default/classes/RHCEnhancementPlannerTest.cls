@@ -66,9 +66,38 @@ private class RHCEnhancementPlannerTest {
       plan.verdictDependenciesTruncated,
       'An optional display formula must not suppress a valid verdict.'
     );
-    Assert.isTrue(
-      plan.displayDependenciesTruncated,
-      'Display truncation remains observable for diagnostics and tests.'
+  }
+
+  @IsTest
+  static void truncatedVerdictPlanStillLoadsUnableMessageFieldsRow08() {
+    Opportunity opportunity = RecordHealthCheckTestDataFactory.createOpportunity(
+      new Map<String, Object>{
+        'Name' => 'Truncated plan message context',
+        'StageName' => 'Prospecting',
+        'CloseDate' => Date.today().addDays(30)
+      }
+    );
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'QualifiedApiName' => 'Deep_Opportunity_Formula',
+        'EvaluationType__c' => 'FORMULA',
+        'PassConditionFormula__c' => 'ExpectedRevenue > 0',
+        'UnableToEvaluateMessage__c' => 'Unable to check {!record.Name}.'
+      }
+    );
+
+    Map<Id, SObject> loaded = new RecordHealthCheckScopePipeline()
+      .loadRecordsForTest(
+        'Opportunity',
+        new List<Id>{ opportunity.Id },
+        new List<Record_Health_Check__mdt>{ check },
+        deepOpportunityPlanner()
+      );
+
+    Assert.areEqual(
+      opportunity.Name,
+      loaded.get(opportunity.Id).get('Name'),
+      'A truncated verdict plan must still load fields required to render its UNABLE message.'
     );
   }
 

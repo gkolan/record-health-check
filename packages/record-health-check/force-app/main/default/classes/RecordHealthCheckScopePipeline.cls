@@ -115,9 +115,22 @@ public with sharing class RecordHealthCheckScopePipeline {
     List<Id> recordIds,
     List<Record_Health_Check__mdt> checks
   ) {
+    return loadRecords(
+      objectApiName,
+      recordIds,
+      checks,
+      new RecordHealthCheckFieldPlanner()
+    );
+  }
+
+  private RecordLoadPlan loadRecords(
+    String objectApiName,
+    List<Id> recordIds,
+    List<Record_Health_Check__mdt> checks,
+    RecordHealthCheckFieldPlanner fieldPlanner
+  ) {
     Set<String> fields = new Set<String>{ 'Id' };
     RecordLoadPlan result = new RecordLoadPlan();
-    RecordHealthCheckFieldPlanner fieldPlanner = new RecordHealthCheckFieldPlanner();
     Schema.SObjectType objectType = recordIds[0].getSObjectType();
     for (Record_Health_Check__mdt check : checks) {
       try {
@@ -135,9 +148,10 @@ public with sharing class RecordHealthCheckScopePipeline {
         }
         if (fieldPlan.verdictDependenciesTruncated) {
           result.incompletePlanningCheckNames.add(check.QualifiedApiName);
-        } else {
-          fields.addAll(fieldPlan.selectedFields);
         }
+        // Keep display and message fields even when verdict dependencies are
+        // incomplete so the aligned UNABLE result can still be rendered.
+        fields.addAll(fieldPlan.selectedFields);
       } catch (RecordHealthCheckTemplateService.TemplateException ex) {
         // Runtime validation turns this Check into INVALID_CONFIG. Planning must
         // skip its fields so one malformed admin template cannot abort the
@@ -160,12 +174,14 @@ public with sharing class RecordHealthCheckScopePipeline {
   }
 
   @TestVisible
-  private void loadRecordsForTest(
+  private Map<Id, SObject> loadRecordsForTest(
     String objectApiName,
     List<Id> recordIds,
-    List<Record_Health_Check__mdt> checks
+    List<Record_Health_Check__mdt> checks,
+    RecordHealthCheckFieldPlanner fieldPlanner
   ) {
-    loadRecords(objectApiName, recordIds, checks);
+    return loadRecords(objectApiName, recordIds, checks, fieldPlanner)
+      .recordsById;
   }
 
   @TestVisible
