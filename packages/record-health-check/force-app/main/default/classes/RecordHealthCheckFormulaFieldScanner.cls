@@ -16,6 +16,7 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
   private static final Pattern PATTERN_DOLLAR_GLOBAL = Pattern.compile(
     '\\$[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*'
   );
+  private static Map<String, Schema.SObjectField> nameEntityFields;
 
   /**
    * Returns unique record field references needed by the formula.
@@ -109,13 +110,20 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
     return null;
   }
 
-  private static Boolean isNameEntityPath(String childPath) {
-    if (childPath.contains('.')) {
-      return false;
+  /**
+   * Reports whether a flat child path is selectable from Salesforce's Name entity.
+   * @param childPath Path below a polymorphic relationship.
+   * @return True when the first segment is a field or relationship exposed by Name.
+   */
+  public static Boolean isNameEntityPath(String childPath) {
+    if (nameEntityFields == null) {
+      nameEntityFields = RecordHealthCheckDescribeCache.fieldMap(
+        Schema.getGlobalDescribe().get('Name')
+      );
     }
-    Schema.SObjectType nameType = Schema.getGlobalDescribe().get('Name');
-    return nameType != null &&
-      RecordHealthCheckDescribeCache.fieldMap(nameType).get(childPath) != null;
+    String firstPathPart = childPath.substringBefore('.');
+    return nameEntityFields.get(firstPathPart) != null ||
+      findRelationshipField(nameEntityFields, firstPathPart) != null;
   }
 
   private static String maskFormulaStringLiterals(String formula) {

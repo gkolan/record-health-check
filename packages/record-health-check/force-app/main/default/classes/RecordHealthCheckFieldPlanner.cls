@@ -298,13 +298,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
    */
   private FieldPathDescribe describeFieldPath(
     Schema.SObjectType objectType,
-    String fieldPath
-  ) {
-    return describeFieldPath(objectType, fieldPath, null);
-  }
-
-  private FieldPathDescribe describeFieldPath(
-    Schema.SObjectType objectType,
     String fieldPath,
     RecordHealthCheckFormulaFieldScanner.FieldReference reference
   ) {
@@ -387,6 +380,12 @@ public with sharing class RecordHealthCheckFieldPlanner {
   ) {
     if (candidates.size() == 1) {
       return candidates[0];
+    }
+    // Flat SOQL exposes a polymorphic relationship through the Name entity.
+    // A field present on only one concrete candidate still requires TYPEOF;
+    // choosing that candidate here would emit an invalid flat SELECT.
+    if (!RecordHealthCheckFormulaFieldScanner.isNameEntityPath(nextPathPart)) {
+      return null;
     }
     for (Schema.SObjectType candidate : candidates) {
       Map<String, Schema.SObjectField> fields = RecordHealthCheckDescribeCache.fieldMap(
