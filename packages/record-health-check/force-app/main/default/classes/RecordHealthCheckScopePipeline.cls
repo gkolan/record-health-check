@@ -10,7 +10,6 @@ public with sharing class RecordHealthCheckScopePipeline {
   private Boolean planningFailureOverride = false;
   @TestVisible
   private static String evaluatorFailureOverride;
-  @TestVisible
   private Set<String> incompletePlanningCheckNames = new Set<String>();
 
   /**
@@ -135,7 +134,6 @@ public with sharing class RecordHealthCheckScopePipeline {
           result.inaccessibleCheckNames.add(check.QualifiedApiName);
         }
         if (fieldPlan.formulaDependenciesTruncated) {
-          result.incompletePlanningCheckNames.add(check.QualifiedApiName);
           incompletePlanningCheckNames.add(check.QualifiedApiName);
         }
       } catch (RecordHealthCheckTemplateService.TemplateException ex) {
@@ -367,6 +365,5 @@ public with sharing class RecordHealthCheckScopePipeline {
   private class RecordLoadPlan {
     private Map<Id, SObject> recordsById = new Map<Id, SObject>();
     private Set<String> inaccessibleCheckNames = new Set<String>();
-    private Set<String> incompletePlanningCheckNames = new Set<String>();
   }
 }

@@ -218,6 +218,7 @@
         <members>RecordHealthCheckDiagnosticTraceTest</members>
         <members>RHCDisplayCurrencyResolutionTest</members>
         <members>RHCDisplayCurrencyComparisonTest</members>
+        <members>RHCEnhancementPlannerTest</members>
         <members>RecordHealthCheckCompareQueriesEvaluator</members>
         <members>RecordHealthCheckCompareQuerySupport</members>
         <members>RecordHealthCheckCompareQuerySupportTest</members>
