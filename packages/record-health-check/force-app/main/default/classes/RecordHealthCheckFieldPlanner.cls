@@ -307,7 +307,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
       fields.add(fieldPath);
     } else if (
       info != null &&
-      info.describe != null &&
+      (info.inaccessible || info.describe != null) &&
       inaccessibleFieldsBeingPlanned != null
     ) {
       inaccessibleFieldsBeingPlanned.add(fieldPath);
@@ -339,12 +339,16 @@ public with sharing class RecordHealthCheckFieldPlanner {
         currentFields,
         parts[i]
       );
+      if (relationshipField == null) {
+        return null;
+      }
       if (
-        relationshipField == null ||
         !RecordHealthCheckDescribeCache.describeField(relationshipField)
           .isAccessible()
       ) {
-        return null;
+        FieldPathDescribe inaccessible = new FieldPathDescribe();
+        inaccessible.inaccessible = true;
+        return inaccessible;
       }
       List<Schema.SObjectType> referenceTypes = RecordHealthCheckDescribeCache.describeField(
           relationshipField
@@ -455,6 +459,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.DescribeFieldResult describe;
     Schema.SObjectType ownerType;
     String relationshipPrefix;
+    Boolean inaccessible = false;
   }
 
   private class CalculatedDependency {
