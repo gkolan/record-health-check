@@ -109,6 +109,25 @@ const inventory = new Map([
 ]);
 
 const errors = [];
+const apexClasses = new Set(
+  files("classes", ".cls").map((file) => path.basename(file, ".cls"))
+);
+const apexClassMetadata = new Set(
+  files("classes", ".cls-meta.xml").map((file) =>
+    path.basename(file, ".cls-meta.xml")
+  )
+);
+for (const member of apexClasses) {
+  if (!apexClassMetadata.has(member)) {
+    errors.push(`Missing ApexClass metadata: ${member}.cls-meta.xml`);
+  }
+}
+for (const member of apexClassMetadata) {
+  if (!apexClasses.has(member)) {
+    errors.push(`Orphan ApexClass metadata: ${member}.cls-meta.xml`);
+  }
+}
+
 for (const [type, sourceMembers] of inventory) {
   const declared = manifestByType.get(type) ?? new Set();
   if (declared.has("*")) continue;
