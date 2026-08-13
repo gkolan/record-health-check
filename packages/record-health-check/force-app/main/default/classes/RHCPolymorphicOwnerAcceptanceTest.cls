@@ -102,22 +102,6 @@ private class RHCPolymorphicOwnerAcceptanceTest {
   // (planColonSyntaxOwnerReferenceOnLeadRow02): Owner:User.IsActive must
   // plan Owner.IsActive into the SOQL SELECT.
   //
-  // The end-to-end Boolean (PASS for an active-User-owned Lead, FAIL for an
-  // inactive one) is intentionally NOT asserted here. FormulaEval's
-  // polymorphic Owner resolution for Owner:User.IsActive returns null when
-  // the User/Lead involved were created or modified within the same
-  // uncommitted Apex transaction — true of every Apex test, @TestSetup
-  // included, since @TestSetup only takes a savepoint, never a real commit.
-  // This was confirmed empirically: the identical sequence run as three
-  // separate, individually-committed anonymous Apex executions against
-  // rhc-cmdt-nons-20260810 evaluates correctly (PASS for active, FAIL for
-  // inactive) every time. Per spec 02 Phase 2, this Boolean is an empirical,
-  // real-org gate by design ("successful field planning is NOT evidence of a
-  // fix") — not something Apex unit tests can independently prove for this
-  // specific polymorphic path, so the real-org run is the authoritative
-  // record for it. See the P0 real-org validation matrix in the enhancement
-  // notes for spec 02.
-
   @IsTest
   static void ownerDotSyntaxPassConditionMatchesActiveInactiveOwnerOnAccount() {
     Account activeOwnedAccount = activeOwnedAccount();

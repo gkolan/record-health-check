@@ -62,6 +62,26 @@ For installation and verification, start with
 [Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
 [Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
 
+## Unreleased
+
+### Fixed
+
+- Formula field planning now recognizes validated Salesforce polymorphic colon references such as
+  `Owner:User.IsActive` and retains the explicitly selected relationship type during dependency
+  expansion.
+- Formula planning rejects type-specific polymorphic fields that flat SOQL cannot select without
+  `TYPEOF`, preventing one invalid path from aborting the shared Check Set query.
+- Formula globals such as `$User`, `$Profile`, `$Setup`, and `$Permission` no longer contribute
+  bogus root-record fields to the generated query.
+
+### Verification
+
+- Added a repeatable, cross-transaction scratch-org gate for the reported active-User-owned Lead
+  checkbox formula configuration. The integration fixture is excluded from subscriber packaging.
+- Documented Person Account field portability and raw multi-currency comparison behavior. Person
+  Account coverage remains conditional on a PA-enabled org; currency behavior is documentation and
+  measurement guidance rather than a new conversion feature.
+
 ## [2.0.3] - 2026-08-11
 
 ### Changed

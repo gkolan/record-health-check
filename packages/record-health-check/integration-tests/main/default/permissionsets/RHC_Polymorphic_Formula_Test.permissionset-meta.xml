@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description
+  >Grants read access to the integration-only Lead formula fixture.</description>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Lead.RHC_Owner_Is_Active__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>RHC Polymorphic Formula Test</label>
+</PermissionSet>
