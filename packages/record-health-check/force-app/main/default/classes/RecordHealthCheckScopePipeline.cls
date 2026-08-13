@@ -10,12 +10,15 @@ public with sharing class RecordHealthCheckScopePipeline {
   private Boolean planningFailureOverride = false;
   @TestVisible
   private static String evaluatorFailureOverride;
+  @TestVisible
+  private Set<String> incompletePlanningCheckNames = new Set<String>();
 
   /**
    * @param request Immutable qualified selection, record IDs, and options.
    * @return Ordered response with one item per record and selected Check.
    */
   public RecordHealthCheckResponse evaluate(RecordHealthCheckRequest request) {
+    incompletePlanningCheckNames.clear();
     if (request == null) {
       throw new ScopePipelineException(
         'A Record Health Check request is required.'
@@ -131,6 +134,10 @@ public with sharing class RecordHealthCheckScopePipeline {
         if (!fieldPlan.inaccessibleFields.isEmpty()) {
           result.inaccessibleCheckNames.add(check.QualifiedApiName);
         }
+        if (fieldPlan.formulaDependenciesTruncated) {
+          result.incompletePlanningCheckNames.add(check.QualifiedApiName);
+          incompletePlanningCheckNames.add(check.QualifiedApiName);
+        }
       } catch (RecordHealthCheckTemplateService.TemplateException ex) {
         // Runtime validation turns this Check into INVALID_CONFIG. Planning must
         // skip its fields so one malformed admin template cannot abort the
@@ -188,7 +195,27 @@ public with sharing class RecordHealthCheckScopePipeline {
         );
       }
     }
-    if (invalidConfiguration == null && fieldAccessDenied) {
+    Boolean formulaPlanningIncomplete = incompletePlanningCheckNames.contains(
+      check.QualifiedApiName
+    );
+    if (invalidConfiguration == null && formulaPlanningIncomplete) {
+      for (Id recordId : recordIds) {
+        internalByRecordId.put(
+          recordId,
+          recordsById.containsKey(recordId)
+            ? resultSupport.unavailableResult(
+                check,
+                RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
+              )
+            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
+        );
+      }
+    }
+    if (
+      invalidConfiguration == null &&
+      !formulaPlanningIncomplete &&
+      fieldAccessDenied
+    ) {
       for (Id recordId : recordIds) {
         internalByRecordId.put(
           recordId,
@@ -202,11 +229,17 @@ public with sharing class RecordHealthCheckScopePipeline {
       }
     }
     Map<Id, RecordHealthCheckInternalResult> applicabilityByRecordId = invalidConfiguration ==
-      null && !fieldAccessDenied
+      null &&
+      !formulaPlanningIncomplete &&
+      !fieldAccessDenied
       ? resultSupport.applicabilityResults(check, recordIds, recordsById)
       : new Map<Id, RecordHealthCheckInternalResult>();
     for (Id recordId : recordIds) {
-      if (invalidConfiguration != null || fieldAccessDenied) {
+      if (
+        invalidConfiguration != null ||
+        formulaPlanningIncomplete ||
+        fieldAccessDenied
+      ) {
         continue;
       }
       SObject record = recordsById.get(recordId);
@@ -334,5 +367,6 @@ public with sharing class RecordHealthCheckScopePipeline {
   private class RecordLoadPlan {
     private Map<Id, SObject> recordsById = new Map<Id, SObject>();
     private Set<String> inaccessibleCheckNames = new Set<String>();
+    private Set<String> incompletePlanningCheckNames = new Set<String>();
   }
 }

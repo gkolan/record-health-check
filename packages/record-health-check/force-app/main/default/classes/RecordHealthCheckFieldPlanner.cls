@@ -17,6 +17,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Map<String, String> calculatedFormulaOverrideByField;
   private Set<String> inaccessibleFieldsBeingPlanned;
+  private Boolean formulaDependenciesTruncatedBeingPlanned;
 
   public Set<String> collectRecordFields(
     Record_Health_Check__mdt check,
@@ -37,6 +38,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.SObjectType objectType
   ) {
     inaccessibleFieldsBeingPlanned = new Set<String>();
+    formulaDependenciesTruncatedBeingPlanned = false;
     Set<String> fields = new Set<String>{ 'Id' };
 
     // Token syntax and registry membership were validated when the check loaded;
@@ -95,7 +97,9 @@ public with sharing class RecordHealthCheckFieldPlanner {
     FieldPlan result = new FieldPlan();
     result.selectedFields.addAll(fields);
     result.inaccessibleFields.addAll(inaccessibleFieldsBeingPlanned);
+    result.formulaDependenciesTruncated = formulaDependenciesTruncatedBeingPlanned;
     inaccessibleFieldsBeingPlanned = null;
+    formulaDependenciesTruncatedBeingPlanned = null;
     return result;
   }
 
@@ -181,7 +185,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Integer depth,
     Set<String> visited
   ) {
-    if (String.isBlank(formula) || depth > FORMULA_DEPENDENCY_DEPTH_CAP) {
+    if (String.isBlank(formula)) {
+      return;
+    }
+    if (depth > FORMULA_DEPENDENCY_DEPTH_CAP) {
+      formulaDependenciesTruncatedBeingPlanned = true;
       return;
     }
 
@@ -441,5 +449,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
   public class FieldPlan {
     public Set<String> selectedFields = new Set<String>();
     public Set<String> inaccessibleFields = new Set<String>();
+    public Boolean formulaDependenciesTruncated = false;
   }
 }

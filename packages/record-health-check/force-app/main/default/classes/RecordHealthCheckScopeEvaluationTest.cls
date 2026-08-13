@@ -295,6 +295,34 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
   }
 
   @IsTest
+  static void truncatedFormulaPlanReturnsExplicitUnableReasonRow08() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'Visible record with truncated formula plan'
+    );
+    Record_Health_Check__mdt check = queryCountCheck('Deep_Formula', 'Failed.');
+    RecordHealthCheckScopePipeline pipeline = new RecordHealthCheckScopePipeline();
+    pipeline.incompletePlanningCheckNames.add(check.QualifiedApiName);
+    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
+
+    pipeline.evaluateCheck(
+      check,
+      evaluationContext(),
+      new List<Id>{ account.Id },
+      new Map<Id, SObject>{ account.Id => account },
+      false,
+      RecordHealthCheckResultMode.EVALUATION,
+      'truncated-formula-plan',
+      items
+    );
+
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED,
+      items.values()[0].evaluation.reasonCode,
+      'A partial formula plan must never proceed to a believable PASS or FAIL.'
+    );
+  }
+
+  @IsTest
   static void inaccessibleFieldPreservesMissingRecordReason() {
     Account deletedAccount = RecordHealthCheckTestDataFactory.createDeletedAccount(
       'Missing record with inaccessible field'

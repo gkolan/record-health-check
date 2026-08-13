@@ -7,6 +7,7 @@
 public class RecordHealthCheckReasonCodes {
   public static final String CANNOT_EVALUATE = 'CANNOT_EVALUATE';
   public static final String FIELD_NOT_ACCESSIBLE = 'FIELD_NOT_ACCESSIBLE';
+  public static final String FORMULA_DEPENDENCY_DEPTH_EXCEEDED = 'FORMULA_DEPENDENCY_DEPTH_EXCEEDED';
   public static final String RECORD_NOT_ACCESSIBLE = 'RECORD_NOT_ACCESSIBLE';
   public static final String NOT_APPLICABLE_BY_FORMULA = 'NOT_APPLICABLE_BY_FORMULA';
   public static final String NOT_APPLICABLE_BY_COUNT = 'NOT_APPLICABLE_BY_COUNT';
