@@ -11,6 +11,10 @@ public class RecordHealthCheckTestDataFactory {
     return (Account) buildRecord(Account.SObjectType, fields);
   }
 
+  public static Lead lead(Map<String, Object> fields) {
+    return (Lead) buildRecord(Lead.SObjectType, fields);
+  }
+
   public static Contact contact(Map<String, Object> fields) {
     return (Contact) buildRecord(Contact.SObjectType, fields);
   }

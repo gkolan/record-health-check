@@ -67,6 +67,30 @@ Record Health Check does not convert money from one currency to another. If a Ch
 in different currencies, its Formula, Query, or Apex code must perform the required conversion. See
 [Display value format: Currency](../contracts/display-value-format.md#currency).
 
+A Formula Pass Condition compares the raw stored number regardless of currency: an Account with
+`AnnualRevenue = 1000` in EUR and one with `AnnualRevenue = 1000` in USD both satisfy
+`AnnualRevenue >= 1000`. Salesforce's `CURRENCYRATE()` formula function is not usable as a
+workaround. Measured directly against FormulaEval, it throws because `CurrencyIsoCode` is a
+picklist field and picklists are only supported in certain formula functions. Advanced Currency
+Management's dated conversion rates (`DatedConversionRate`) are not applied by any evaluator. A
+Check that must compare amounts across currencies needs a Query or Apex evaluator that performs the
+conversion itself; a Formula Check cannot.
+
+## Person Accounts
+
+Person Accounts are supported when your org has the feature enabled. `IsPersonAccount`,
+`PersonContactId`, `PersonEmail`, `PersonMailing*`, and Account `FirstName`/`LastName` describe and
+plan normally. A Formula Pass Condition or display formula referencing them behaves the same as
+any other field, including automatic field-level-security and dependency-expansion handling.
+
+These fields exist only when Person Accounts are enabled for the org. A Check authored (or copied
+from a Person-Account org) that references a Person* field will not describe that field in a
+business-Account-only org; FieldPlanner silently omits an unresolvable path from the SELECT the
+same way it omits any other unknown field, which can produce `UNABLE_TO_EVALUATE` or an unintended
+`FAIL` rather than a configuration error. Packaged example Checks never reference Person* fields for
+this reason. They must work in every subscriber org regardless of whether Person Accounts are
+enabled.
+
 ## Translated Salesforce labels
 
 Package labels such as Status text, comparison wording, and Yes/No can use Salesforce Translation

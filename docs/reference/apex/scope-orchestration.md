@@ -86,6 +86,23 @@ uses `RecordHealthCheck.evaluate(request)` and does not call this class directly
   that the field path exists and is readable. An invalid or inaccessible field is not added to the
   record query; the affected Check later returns the appropriate configuration or access result.
 
+### `RecordHealthCheckFormulaFieldScanner`
+
+**Role:** Extract selectable record paths from a Salesforce formula expression.
+
+**Type:** Formula parsing service · `public with sharing`
+
+Masks formula string literals and global references, preserves complete relationship paths, and
+normalizes validated polymorphic colon references such as `Owner:User.IsActive` into the dot path
+the record query can select. `RecordHealthCheckFieldPlanner` calls this class while expanding
+formula dependencies; custom Apex does not call it directly.
+
+**Key members:**
+
+| Member | Purpose |
+| --- | --- |
+| `scan(...)` | Return described record-field paths in document order with duplicates removed |
+
 ### `RecordHealthCheckBulkQuerySupport`
 
 **Role:** Run a supported Query Check SOQL template once for all requested records.

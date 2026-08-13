@@ -65,7 +65,7 @@ the same L5→L1 numbering so you can move between the two pages without re-deri
 | Level | Layer | Classes (summary) |
 | --- | --- | --- |
 | L5 | Entry points | `RecordHealthCheck`, Flow actions, `RecordHealthCheckController`, plus lifecycle publication and run context |
-| L4 | Scope orchestration | `RecordHealthCheckScopePipeline`, `RecordHealthCheckFieldPlanner` |
+| L4 | Scope orchestration | `RecordHealthCheckScopePipeline`, `RecordHealthCheckFieldPlanner`, `RecordHealthCheckFormulaFieldScanner` |
 | L3 | Evaluators | Formula, Query, Compare two queries, Apex evaluators + query support |
 | L2 | Shared services | Config, validation, SOQL templates, comparison, values, merge tokens, describe cache, logger, access, constants |
 | L1 | Results and definitions | Result data holders, definition responses, plugin interface and context |
@@ -100,6 +100,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L4 | [`RecordHealthCheckScopePipeline`](scope-orchestration.md#recordhealthcheckscopepipeline) | Resolves a selection and evaluates the complete ordered record scope |
 | L4 | [`RecordHealthCheckEvaluatorRegistry`](scope-orchestration.md#recordhealthcheckevaluatorregistry) | Maps Evaluation Type values to a common scope evaluator contract |
 | L4 | [`RecordHealthCheckFieldPlanner`](scope-orchestration.md#recordhealthcheckfieldplanner) | Safe record-field planning for scope evaluation |
+| L4 | [`RecordHealthCheckFormulaFieldScanner`](scope-orchestration.md#recordhealthcheckformulafieldscanner) | Extracts selectable record paths from formula expressions |
 | L4 | [`RecordHealthCheckBulkQuerySupport`](scope-orchestration.md#recordhealthcheckbulkquerysupport) | Executes supported query templates once for a complete scope |
 | L4 | [`RecordHealthCheckBulkQueryRewriter`](scope-orchestration.md#recordhealthcheckbulkqueryrewriter) | Rewrites validated query templates for scope-wide execution |
 | L4 | [`RecordHealthCheckScopePlanner`](scope-orchestration.md#recordhealthcheckscopeplanner) | Resolves selections, applicability, prerequisites, and request budgets |
