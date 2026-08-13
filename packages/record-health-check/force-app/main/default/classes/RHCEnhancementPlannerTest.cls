@@ -74,7 +74,8 @@ private class RHCEnhancementPlannerTest {
       new Map<String, Object>{
         'Name' => 'Truncated plan message context',
         'StageName' => 'Prospecting',
-        'CloseDate' => Date.today().addDays(30)
+        'CloseDate' => Date.today().addDays(30),
+        'LeadSource' => 'Web'
       }
     );
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
@@ -82,7 +83,7 @@ private class RHCEnhancementPlannerTest {
         'QualifiedApiName' => 'Deep_Opportunity_Formula',
         'EvaluationType__c' => 'FORMULA',
         'PassConditionFormula__c' => 'ExpectedRevenue > 0',
-        'UnableToEvaluateMessage__c' => 'Unable to check {!record.Name}.'
+        'UnableToEvaluateMessage__c' => 'Unable to check {!record.LeadSource}.'
       }
     );
 
@@ -95,8 +96,8 @@ private class RHCEnhancementPlannerTest {
       );
 
     Assert.areEqual(
-      opportunity.Name,
-      loaded.get(opportunity.Id).get('Name'),
+      opportunity.LeadSource,
+      loaded.get(opportunity.Id).get('LeadSource'),
       'A truncated verdict plan must still load fields required to render its UNABLE message.'
     );
   }

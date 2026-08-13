@@ -235,10 +235,12 @@ public with sharing class RecordHealthCheckFieldPlanner {
           visited,
           verdictAffecting
         );
-      } else if (dependency != null && depth >= FORMULA_DEPENDENCY_DEPTH_CAP) {
-        if (verdictAffecting) {
-          verdictDependenciesTruncatedBeingPlanned = true;
-        }
+      } else if (
+        dependency != null &&
+        depth >= FORMULA_DEPENDENCY_DEPTH_CAP &&
+        verdictAffecting
+      ) {
+        verdictDependenciesTruncatedBeingPlanned = true;
       }
     }
   }
