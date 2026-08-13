@@ -3690,6 +3690,24 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     expect(host.runComplete).toBe(true);
     expect(host._handleCompletionFailure).toHaveBeenCalled();
   });
+
+  it("ignores a lifecycle completion failure after the run becomes stale", async () => {
+    const host = makeRunnerHost([{ developerName: "A" }]);
+    const runner = makeRunner(host);
+    const completion = deferred();
+    runner._runToken = 4;
+    runner._source = "USER_INITIATED";
+    runner._runId = "stale-completion";
+    runner._resultBuffer = { A: PASS_RESULT("A") };
+    completeRun.mockReturnValueOnce(completion.promise);
+
+    runner._drain(4);
+    runner.invalidate();
+    completion.reject(new Error("late completion failure"));
+    await flushPromises();
+
+    expect(host._handleCompletionFailure).not.toHaveBeenCalled();
+  });
 });
 
 describe("coverage edge contracts", () => {
