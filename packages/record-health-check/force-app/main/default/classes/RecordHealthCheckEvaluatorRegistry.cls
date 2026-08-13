@@ -51,6 +51,7 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
       String runId
     ) {
       return new RecordHealthCheckSoqlEvaluator()
+        .withRunContext(runContext(runId, context))
         .evaluateScope(check, recordIds, recordsById);
     }
   }
@@ -64,6 +65,7 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
       String runId
     ) {
       return new RecordHealthCheckCompareQueriesEvaluator()
+        .withRunContext(runContext(runId, context))
         .evaluateScope(check, recordIds, recordsById);
     }
   }
@@ -77,7 +79,8 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
       String runId
     ) {
       Map<Id, RecordHealthCheckInternalResult> results = new Map<Id, RecordHealthCheckInternalResult>();
-      RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
+      RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator()
+        .withRunContext(runContext(runId, context));
       for (Id recordId : recordIds) {
         results.put(
           recordId,
@@ -97,6 +100,7 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
       String runId
     ) {
       return new RecordHealthCheckApexEvaluator()
+        .withRunContext(runContext(runId, context))
         .evaluateScope(
           check,
           recordIds,
@@ -106,5 +110,15 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
           runId
         );
     }
+  }
+
+  private static RecordHealthCheckRunContext runContext(
+    String runId,
+    RecordHealthCheckScopePipeline.SelectionContext context
+  ) {
+    return new RecordHealthCheckRunContext(
+      runId,
+      context == null ? null : context.executionOrigin
+    );
   }
 }

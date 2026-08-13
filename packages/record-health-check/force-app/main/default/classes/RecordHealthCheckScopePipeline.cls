@@ -46,6 +46,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     response.runId = String.isBlank(request.options.runId)
       ? newRunId()
       : request.options.runId;
+    context.executionOrigin = String.valueOf(request.options.executionOrigin);
     response.recordIds.addAll(recordIds);
     for (Record_Health_Check__mdt check : context.checks) {
       response.checkQualifiedApiNames.add(check.QualifiedApiName);
@@ -68,6 +69,9 @@ public with sharing class RecordHealthCheckScopePipeline {
         recordIds,
         recordsById,
         recordLoad.inaccessibleCheckNames.contains(check.QualifiedApiName),
+        recordLoad.incompletePlanningCheckNames.contains(
+          check.QualifiedApiName
+        ),
         request.options.resultMode,
         response.runId,
         itemsByIdentity
@@ -112,9 +116,22 @@ public with sharing class RecordHealthCheckScopePipeline {
     List<Id> recordIds,
     List<Record_Health_Check__mdt> checks
   ) {
+    return loadRecords(
+      objectApiName,
+      recordIds,
+      checks,
+      new RecordHealthCheckFieldPlanner()
+    );
+  }
+
+  private RecordLoadPlan loadRecords(
+    String objectApiName,
+    List<Id> recordIds,
+    List<Record_Health_Check__mdt> checks,
+    RecordHealthCheckFieldPlanner fieldPlanner
+  ) {
     Set<String> fields = new Set<String>{ 'Id' };
     RecordLoadPlan result = new RecordLoadPlan();
-    RecordHealthCheckFieldPlanner fieldPlanner = new RecordHealthCheckFieldPlanner();
     Schema.SObjectType objectType = recordIds[0].getSObjectType();
     for (Record_Health_Check__mdt check : checks) {
       try {
@@ -127,10 +144,15 @@ public with sharing class RecordHealthCheckScopePipeline {
           check,
           objectType
         );
-        fields.addAll(fieldPlan.selectedFields);
         if (!fieldPlan.inaccessibleFields.isEmpty()) {
           result.inaccessibleCheckNames.add(check.QualifiedApiName);
         }
+        if (fieldPlan.verdictDependenciesTruncated) {
+          result.incompletePlanningCheckNames.add(check.QualifiedApiName);
+        }
+        // Keep display and message fields even when verdict dependencies are
+        // incomplete so the aligned UNABLE result can still be rendered.
+        fields.addAll(fieldPlan.selectedFields);
       } catch (RecordHealthCheckTemplateService.TemplateException ex) {
         // Runtime validation turns this Check into INVALID_CONFIG. Planning must
         // skip its fields so one malformed admin template cannot abort the
@@ -153,12 +175,14 @@ public with sharing class RecordHealthCheckScopePipeline {
   }
 
   @TestVisible
-  private void loadRecordsForTest(
+  private Map<Id, SObject> loadRecordsForTest(
     String objectApiName,
     List<Id> recordIds,
-    List<Record_Health_Check__mdt> checks
+    List<Record_Health_Check__mdt> checks,
+    RecordHealthCheckFieldPlanner fieldPlanner
   ) {
-    loadRecords(objectApiName, recordIds, checks);
+    return loadRecords(objectApiName, recordIds, checks, fieldPlanner)
+      .recordsById;
   }
 
   @TestVisible
@@ -168,10 +192,16 @@ public with sharing class RecordHealthCheckScopePipeline {
     List<Id> recordIds,
     Map<Id, SObject> recordsById,
     Boolean fieldAccessDenied,
+    Boolean formulaPlanningIncomplete,
     RecordHealthCheckResultMode resultMode,
     String runId,
     Map<String, RecordHealthCheckResultItem> itemsByIdentity
   ) {
+    RecordHealthCheckRunContext runContext = new RecordHealthCheckRunContext(
+      runId,
+      context.executionOrigin
+    );
+    resultSupport.withRunContext(runContext);
     List<Id> applicableIds = new List<Id>();
     Map<Id, RecordHealthCheckInternalResult> internalByRecordId = new Map<Id, RecordHealthCheckInternalResult>();
     RecordHealthCheckInternalResult invalidConfiguration = configService.validateCheckForEvaluation(
@@ -188,7 +218,24 @@ public with sharing class RecordHealthCheckScopePipeline {
         );
       }
     }
-    if (invalidConfiguration == null && fieldAccessDenied) {
+    if (invalidConfiguration == null && formulaPlanningIncomplete) {
+      for (Id recordId : recordIds) {
+        internalByRecordId.put(
+          recordId,
+          recordsById.containsKey(recordId)
+            ? resultSupport.unavailableResult(
+                check,
+                RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
+              )
+            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
+        );
+      }
+    }
+    if (
+      invalidConfiguration == null &&
+      !formulaPlanningIncomplete &&
+      fieldAccessDenied
+    ) {
       for (Id recordId : recordIds) {
         internalByRecordId.put(
           recordId,
@@ -202,11 +249,17 @@ public with sharing class RecordHealthCheckScopePipeline {
       }
     }
     Map<Id, RecordHealthCheckInternalResult> applicabilityByRecordId = invalidConfiguration ==
-      null && !fieldAccessDenied
+      null &&
+      !formulaPlanningIncomplete &&
+      !fieldAccessDenied
       ? resultSupport.applicabilityResults(check, recordIds, recordsById)
       : new Map<Id, RecordHealthCheckInternalResult>();
     for (Id recordId : recordIds) {
-      if (invalidConfiguration != null || fieldAccessDenied) {
+      if (
+        invalidConfiguration != null ||
+        formulaPlanningIncomplete ||
+        fieldAccessDenied
+      ) {
         continue;
       }
       SObject record = recordsById.get(recordId);
@@ -322,6 +375,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     public Boolean checkSetActive;
     public String objectApiName;
     public Boolean showDiagnostics;
+    public String executionOrigin;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
   }
 
@@ -334,5 +388,6 @@ public with sharing class RecordHealthCheckScopePipeline {
   private class RecordLoadPlan {
     private Map<Id, SObject> recordsById = new Map<Id, SObject>();
     private Set<String> inaccessibleCheckNames = new Set<String>();
+    private Set<String> incompletePlanningCheckNames = new Set<String>();
   }
 }

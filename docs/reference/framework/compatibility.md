@@ -91,6 +91,9 @@ same way it omits any other unknown field, which can produce `UNABLE_TO_EVALUATE
 this reason. They must work in every subscriber org regardless of whether Person Accounts are
 enabled.
 
+See [Platform limitations and safe patterns](platform-limitations.md#person-accounts) for the
+business-to-person field map, vacuous Contact-count warning, and applicability recipes.
+
 ## Translated Salesforce labels
 
 Package labels such as Status text, comparison wording, and Yes/No can use Salesforce Translation

@@ -23,6 +23,9 @@
 Query and custom Apex fields are not used by a Formula Check. Applicability runs before the Pass
 Condition and can return `SKIPPED` without running that formula.
 
+For dependency-depth, numeric-null, timezone, currency, global-variable, and polymorphic boundaries,
+see [Platform limitations and safe patterns](../framework/platform-limitations.md#formula-planning-and-evaluation).
+
 For example:
 
 ```text

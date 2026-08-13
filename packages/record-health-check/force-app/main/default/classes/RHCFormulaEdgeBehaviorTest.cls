@@ -64,6 +64,31 @@ private class RHCFormulaEdgeBehaviorTest {
     }
   }
 
+  @IsTest
+  static void numericNullIsTreatedAsZeroRow26() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{
+        'Name' => 'Numeric null formula',
+        'NumberOfEmployees' => null
+      }
+    );
+    accountRecord.Id = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      26
+    );
+    Record_Health_Check__mdt check = baseCheck('Numeric_Null', 'FORMULA');
+    check.PassConditionFormula__c = 'NumberOfEmployees = 0';
+
+    RecordHealthCheckInternalResult result = new RecordHealthCheckFormulaEvaluator()
+      .evaluate(check, accountRecord.Id, accountRecord);
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.PASS,
+      result.status,
+      'FormulaEval numeric-null-as-zero is an intentional Formula Check contract.'
+    );
+  }
+
   private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType

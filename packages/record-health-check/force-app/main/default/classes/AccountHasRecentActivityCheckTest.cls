@@ -47,6 +47,41 @@ private class AccountHasRecentActivityCheckTest {
   }
 
   @IsTest
+  static void whoOnlyContactTaskIsExplicitlyOutsideWhatIdContractRow22() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'RHC Who-only activity'
+    );
+    Contact contact = RecordHealthCheckTestDataFactory.contact(
+      new Map<String, Object>{
+        'LastName' => 'Who only',
+        'AccountId' => account.Id
+      }
+    );
+    RecordHealthCheckTestDataFactory.createContacts(
+      new List<Contact>{ contact }
+    );
+    RecordHealthCheckTestDataFactory.createTask(
+      RecordHealthCheckTestDataFactory.task(
+        new Map<String, Object>{
+          'WhoId' => contact.Id,
+          'Subject' => 'Contact-only call',
+          'Status' => 'Completed',
+          'ActivityDate' => Date.today()
+        }
+      )
+    );
+
+    RecordHealthCheckInternalResult result = evaluate(account.Id, null);
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.FAIL,
+      result.status,
+      'The packaged example is intentionally WhatId-only; documentation supplies the WhoId recipe.'
+    );
+    Assert.areEqual('0', result.actualValue);
+  }
+
+  @IsTest
   static void activityOutsideWindowFails() {
     Account account = RecordHealthCheckTestDataFactory.createAccount(
       'RHC Recent Activity Stale'

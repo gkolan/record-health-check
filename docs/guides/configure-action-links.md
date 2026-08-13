@@ -97,6 +97,11 @@ For the full namespace list and fallback checks, see
 
 ## Common link patterns
 
+For Task creation, decide whether the activity is related through `WhatId` (for example an Account,
+Opportunity, or Case) or `WhoId` (a Contact, Lead, or Person Account contact identity). A link that
+defaults only `WhatId` does not create a Who relationship. See the
+[activity relationship matrix](../reference/framework/platform-limitations.md#activities-what-who-and-shared-relations).
+
 Copy a pattern below and replace placeholder IDs and API names with values from your org. See
 [Allowed URL formats](#allowed-url-formats) for the URLs Record Health Check accepts.
 

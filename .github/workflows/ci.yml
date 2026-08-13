@@ -27,6 +27,7 @@ jobs:
       - run: npm run check:test-data-factory
       - run: npm run check:apex-architecture
       - run: npm run check:apex-surface
+      - run: npm run check:code-analyzer-output-paths
       - run: npm run check:plugin-sharing
       - run: npm run check:version-sync
       - run: npm run check:product-version-language

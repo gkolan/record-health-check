@@ -232,6 +232,8 @@ entry carries the currency of the row it came from.
 
 - Pass and fail decisions still use the raw typed values and operators. No Display: Value Format
   choice can move a Check between pass and fail.
+- Date/Datetime chips use display locale and timezone rules; they do not prove that a Formula Pass
+  Condition used the same day boundary. See [timezone-safe patterns](../framework/platform-limitations.md#currency-dates-and-display).
 - Ordinary text, Salesforce IDs, postal codes, phone-style strings, and other values that do not match a format
   keep their exact characters.
 - **Display: Found Text** and **Display: Expected Text** written by an administrator are merge

@@ -17,6 +17,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Map<String, String> calculatedFormulaOverrideByField;
   private Set<String> inaccessibleFieldsBeingPlanned;
+  private Boolean verdictDependenciesTruncatedBeingPlanned;
 
   public Set<String> collectRecordFields(
     Record_Health_Check__mdt check,
@@ -37,6 +38,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.SObjectType objectType
   ) {
     inaccessibleFieldsBeingPlanned = new Set<String>();
+    verdictDependenciesTruncatedBeingPlanned = false;
     Set<String> fields = new Set<String>{ 'Id' };
 
     // Token syntax and registry membership were validated when the check loaded;
@@ -59,21 +61,31 @@ public with sharing class RecordHealthCheckFieldPlanner {
     addMergeFields(fields, objectType, check.DisplayExpectedText__c);
 
     if (check.EvaluationType__c == 'FORMULA') {
-      addFormulaFields(fields, objectType, check.PassConditionFormula__c);
+      addFormulaFields(fields, objectType, check.PassConditionFormula__c, true);
       // Optional Found / Expected single-value formulas get the SAME calculated-field
       // dependency expansion as the pass/fail formula, so a balance check whose
       // operands are formula fields can display resolved numbers instead of UNABLE.
-      addFormulaFields(fields, objectType, check.DisplayFoundFormula__c);
-      addFormulaFields(fields, objectType, check.DisplayExpectedFormula__c);
+      addFormulaFields(fields, objectType, check.DisplayFoundFormula__c, false);
+      addFormulaFields(
+        fields,
+        objectType,
+        check.DisplayExpectedFormula__c,
+        false
+      );
     }
     if (check.EvaluationType__c == 'QUERY') {
       // List checks read the single-value from FindInListFormula__c; RecordFormula compares to ExpectedRecordFormula__c.
-      addFormulaFields(fields, objectType, check.FindInListFormula__c);
-      addFormulaFields(fields, objectType, check.ExpectedRecordFormula__c);
+      addFormulaFields(fields, objectType, check.FindInListFormula__c, true);
+      addFormulaFields(
+        fields,
+        objectType,
+        check.ExpectedRecordFormula__c,
+        true
+      );
     }
     // CompareTwoQueries: both sides are SOQL — merge tokens already handled above
     if (check.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
-      addFormulaFields(fields, objectType, check.ApplicabilityFormula__c);
+      addFormulaFields(fields, objectType, check.ApplicabilityFormula__c, true);
     }
 
     // In an org with more than one currency, an amount is shown in the record's
@@ -95,7 +107,9 @@ public with sharing class RecordHealthCheckFieldPlanner {
     FieldPlan result = new FieldPlan();
     result.selectedFields.addAll(fields);
     result.inaccessibleFields.addAll(inaccessibleFieldsBeingPlanned);
+    result.verdictDependenciesTruncated = verdictDependenciesTruncatedBeingPlanned;
     inaccessibleFieldsBeingPlanned = null;
+    verdictDependenciesTruncatedBeingPlanned = null;
     return result;
   }
 
@@ -129,14 +143,17 @@ public with sharing class RecordHealthCheckFieldPlanner {
   private void addFormulaFields(
     Set<String> fields,
     Schema.SObjectType objectType,
-    String formula
+    String formula,
+    Boolean verdictAffecting
   ) {
     if (String.isBlank(formula)) {
       return;
     }
     // Walk the full dependency tree rooted at the record's own type. The visited
-    // set is shared across the whole walk so a formula field reached by two paths
-    // is only expanded once.
+    // set is shared across the whole walk. Its keys include the complete path
+    // from the root record, so repeated references to one calculated field are
+    // deduplicated without collapsing the same field reached through two
+    // different relationships.
     expandFormulaDependencies(
       fields,
       objectType,
@@ -144,7 +161,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
       formula,
       '',
       0,
-      new Set<String>()
+      new Set<String>(),
+      verdictAffecting
     );
   }
 
@@ -169,8 +187,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
    * @param pathPrefix relationship path from baseType to resolveType, with a
    * trailing '.', or '' at the top level
    * @param depth current recursion depth (capped)
-   * @param visited owner-qualified names of calculated fields already
-   * expanded, to break cycles and re-convergent graphs
+   * @param visited root-path- and owner-qualified names of calculated fields
+   * already expanded, to break cycles and re-convergent graphs
    */
   private void expandFormulaDependencies(
     Set<String> fields,
@@ -179,12 +197,12 @@ public with sharing class RecordHealthCheckFieldPlanner {
     String formula,
     String pathPrefix,
     Integer depth,
-    Set<String> visited
+    Set<String> visited,
+    Boolean verdictAffecting
   ) {
-    if (String.isBlank(formula) || depth > FORMULA_DEPENDENCY_DEPTH_CAP) {
+    if (String.isBlank(formula)) {
       return;
     }
-
     for (
       RecordHealthCheckFormulaFieldScanner.FieldReference reference : RecordHealthCheckFormulaFieldScanner.scan(
         formula,
@@ -202,9 +220,16 @@ public with sharing class RecordHealthCheckFieldPlanner {
       CalculatedDependency dependency = calculatedDependency(
         resolveType,
         token,
-        reference
+        reference,
+        pathPrefix
       );
-      if (dependency != null && visited.add(dependency.visitKey)) {
+      if (
+        dependency != null &&
+        depth < FORMULA_DEPENDENCY_DEPTH_CAP &&
+        visited.add(
+          pathPrefix + dependency.relationshipPrefix + dependency.visitKey
+        )
+      ) {
         expandFormulaDependencies(
           fields,
           baseType,
@@ -212,8 +237,15 @@ public with sharing class RecordHealthCheckFieldPlanner {
           dependency.formula,
           pathPrefix + dependency.relationshipPrefix,
           depth + 1,
-          visited
+          visited,
+          verdictAffecting
         );
+      } else if (
+        dependency != null &&
+        depth >= FORMULA_DEPENDENCY_DEPTH_CAP &&
+        verdictAffecting
+      ) {
+        verdictDependenciesTruncatedBeingPlanned = true;
       }
     }
   }
@@ -221,20 +253,27 @@ public with sharing class RecordHealthCheckFieldPlanner {
   private CalculatedDependency calculatedDependency(
     Schema.SObjectType resolveType,
     String token,
-    RecordHealthCheckFormulaFieldScanner.FieldReference reference
+    RecordHealthCheckFormulaFieldScanner.FieldReference reference,
+    String pathPrefix
   ) {
+    FieldPathDescribe info = describeFieldPath(resolveType, token, reference);
     if (
       calculatedFormulaOverrideByField != null &&
-      calculatedFormulaOverrideByField.containsKey(token)
+      (calculatedFormulaOverrideByField.containsKey(pathPrefix + token) ||
+      calculatedFormulaOverrideByField.containsKey(token))
     ) {
+      String overrideFormula = calculatedFormulaOverrideByField.containsKey(
+          pathPrefix + token
+        )
+        ? calculatedFormulaOverrideByField.get(pathPrefix + token)
+        : calculatedFormulaOverrideByField.get(token);
       return buildCalculatedDependency(
-        calculatedFormulaOverrideByField.get(token),
-        resolveType,
-        token,
-        ''
+        overrideFormula,
+        info == null || info.describe == null ? resolveType : info.ownerType,
+        info == null || info.describe == null ? token : info.describe.getName(),
+        info == null || info.describe == null ? '' : info.relationshipPrefix
       );
     }
-    FieldPathDescribe info = describeFieldPath(resolveType, token, reference);
     // prettier-ignore
     if (info == null || info.describe == null || !info.describe.isCalculated() || String.isBlank(info.describe.getCalculatedFormula())) {
       return null;
@@ -280,7 +319,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
       fields.add(fieldPath);
     } else if (
       info != null &&
-      info.describe != null &&
+      (info.inaccessible || info.describe != null) &&
       inaccessibleFieldsBeingPlanned != null
     ) {
       inaccessibleFieldsBeingPlanned.add(fieldPath);
@@ -312,12 +351,16 @@ public with sharing class RecordHealthCheckFieldPlanner {
         currentFields,
         parts[i]
       );
+      if (relationshipField == null) {
+        return null;
+      }
       if (
-        relationshipField == null ||
         !RecordHealthCheckDescribeCache.describeField(relationshipField)
           .isAccessible()
       ) {
-        return null;
+        FieldPathDescribe inaccessible = new FieldPathDescribe();
+        inaccessible.inaccessible = true;
+        return inaccessible;
       }
       List<Schema.SObjectType> referenceTypes = RecordHealthCheckDescribeCache.describeField(
           relationshipField
@@ -428,6 +471,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.DescribeFieldResult describe;
     Schema.SObjectType ownerType;
     String relationshipPrefix;
+    Boolean inaccessible = false;
   }
 
   private class CalculatedDependency {
@@ -441,5 +485,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
   public class FieldPlan {
     public Set<String> selectedFields = new Set<String>();
     public Set<String> inaccessibleFields = new Set<String>();
+    public Boolean verdictDependenciesTruncated = false;
   }
 }

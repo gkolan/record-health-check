@@ -115,6 +115,7 @@ a custom Apex Check.
 | `INVALID_FORMULA` | `UNABLE_TO_EVALUATE` | Formula failed to compile/evaluate or returned a non-boolean where required. |
 | `DISPLAY_FORMULA_INVALID` | `UNABLE_TO_EVALUATE` | A Display Found or Display Expected formula could not be evaluated. Correct the formula and confirm its Formula Result Type. |
 | `FORMULA_EVAL_LIMIT` | `UNABLE_TO_EVALUATE` | Record Health Check stopped before the transaction reached Salesforce's formula-evaluation limit. Reduce the number of records or Formula Checks evaluated together. |
+| `FORMULA_DEPENDENCY_DEPTH_EXCEEDED` | `UNABLE_TO_EVALUATE` | A calculated-field dependency chain exceeded the planner's depth ceiling. Simplify the chain or replace the Check with a Query or Apex Check; Record Health Check will not evaluate against partially hydrated inputs. |
 
 ---
 

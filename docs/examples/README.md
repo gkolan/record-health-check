@@ -113,7 +113,7 @@ coverage before deployment.
 
 | Example | What it checks | What you will learn |
 | --- | --- | --- |
-| [Recent Account activity](apex/recent-activity.md) | An Account has a recent completed Task or Event | Combine results from multiple Salesforce objects and accept a configurable date window |
+| [Recent Account activity](apex/recent-activity.md) | An Account has a recent completed Task or Event whose `WhatId` is the Account | Combine WhatId-scoped Task/Event results and accept a configurable date window |
 | [Open Opportunity health](apex/open-opportunity-health.md) | An open Opportunity does not have several warning signs at once | Apply several conditions to the same related record |
 | [Strategic Account readiness](apex/strategic-readiness.md) | A Strategic Account meets a weighted readiness score | Calculate and explain a configurable score |
 | [Inactive approval participants](apex/inactive-approver.md) | An approval assignment does not include an inactive user | Inspect approval data while accounting for licensed product objects |

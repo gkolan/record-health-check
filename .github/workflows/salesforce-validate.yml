@@ -63,7 +63,7 @@ jobs:
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts
         run: npm run check:permission-sets
-      - run: npm install --global @salesforce/cli@2.146.3
+      - run: npm install --global @salesforce/cli@2.147.7
       - run: npm run check:toolchain
       - run: echo y | sf plugins install code-analyzer@5.14.0
       - name: Record analyzer toolchain versions
@@ -77,15 +77,21 @@ jobs:
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
       - name: Check scratch-org capacity
         run: npm run check:scratch-capacity -- --dev-hub devhub
-      - run: sf org create scratch --definition-file packages/record-health-check/config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
+      - name: Create namespaced package-source scratch org
+        working-directory: packages/record-health-check
+        run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
       - name: Dry-run production package deployment
-        run: sf project deploy start --manifest packages/record-health-check/manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
+        working-directory: packages/record-health-check
+        run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy production package artifact
-        run: sf project deploy start --manifest packages/record-health-check/manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --wait 30
+        working-directory: packages/record-health-check
+        run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --wait 30
       - name: Dry-run integration harness deployment
-        run: sf project deploy start --source-dir packages/record-health-check/integration-tests --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir integration-tests --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy integration fixtures and fixture-dependent tests
-        run: sf project deploy start --source-dir packages/record-health-check/integration-tests --target-org rhc-ci --test-level RunLocalTests --wait 30
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir integration-tests --target-org rhc-ci --test-level RunLocalTests --wait 30
       - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
       - name: Enforce production Apex coverage class by class
         run: npm run check:apex-coverage -- rhc-ci --list
@@ -133,4 +139,46 @@ jobs:
             sf org delete scratch --target-org rhc-ci --no-prompt
           else
             echo "No rhc-ci scratch org authorization found; skipping cleanup"
+          fi
+
+  portable-source-tests:
+    needs: [check-dev-hub-secret, package-source-tests]
+    if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --global @salesforce/cli@2.147.7
+      - run: npm run check:toolchain
+      - name: Authenticate Dev Hub
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
+      - name: Check scratch-org capacity
+        run: npm run check:scratch-capacity -- --dev-hub devhub
+      - name: Create clean no-namespace scratch org
+        working-directory: packages/record-health-check
+        run: sf org create scratch --definition-file ../../config/subscriber-scratch-def.json --alias rhc-ci-portable --target-dev-hub devhub --duration-days 30 --no-namespace --wait 15
+      - name: Deploy portable package source and run Apex tests
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir force-app --target-org rhc-ci-portable --test-level RunLocalTests --wait 30
+      - name: Enforce portable-source Apex coverage class by class
+        run: npm run check:apex-coverage -- rhc-ci-portable --list
+      - name: Delete no-namespace scratch org
+        if: always()
+        continue-on-error: true
+        run: |
+          if ! command -v sf >/dev/null 2>&1; then
+            echo "sf CLI was never installed; skipping scratch org cleanup"
+            exit 0
+          fi
+          if sf org display --target-org rhc-ci-portable >/dev/null 2>&1; then
+            sf org delete scratch --target-org rhc-ci-portable --no-prompt
+          else
+            echo "No rhc-ci-portable scratch org authorization found; skipping cleanup"
           fi

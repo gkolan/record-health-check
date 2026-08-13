@@ -100,7 +100,11 @@ private class RecordHealthCheckConfigServiceTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('Account Data Quality', response.displayTitle);
+    Assert.areEqual(
+      'Automated Account Data Quality and Customer Readiness Review',
+      response.displayTitle,
+      'The integration fixture title must be returned for its overridden Check Set.'
+    );
     Assert.areEqual('Automatic', response.triggerMode);
     Assert.areEqual(
       'OnDemand',

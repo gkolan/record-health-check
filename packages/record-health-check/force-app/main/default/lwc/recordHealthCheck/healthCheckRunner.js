@@ -381,7 +381,9 @@ export class HealthCheckRunner {
           recordId: this.host.recordId,
           resultsJson: JSON.stringify(Object.values(this._resultBuffer))
         }).catch((error) => {
-          this.host._handleCompletionFailure?.(error);
+          if (token === this._runToken) {
+            this.host._handleCompletionFailure?.(error);
+          }
         });
       }
       if (this.host.showDiagnostics) {
