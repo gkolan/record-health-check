@@ -31,6 +31,7 @@ private with sharing class RHCScopePipelineFailureTest {
         new List<Id>{ account.Id },
         new Map<Id, SObject>{ account.Id => account },
         false,
+        false,
         RecordHealthCheckResultMode.EVALUATION,
         'unexpected-evaluator-failure',
         items

@@ -39,6 +39,8 @@ public class RecordHealthCheckReasonCodes {
   public static final String RECORD_NO_LONGER_AVAILABLE = 'RECORD_NO_LONGER_AVAILABLE';
 
   public static final Set<String> DIAGNOSTICS_ONLY = new Set<String>{
+    // Formula dependency depth is intentionally absent: it reveals configuration
+    // structure, not record/field access, and must remain actionable to callers.
     FIELD_NOT_ACCESSIBLE,
     RECORD_NOT_ACCESSIBLE
   };

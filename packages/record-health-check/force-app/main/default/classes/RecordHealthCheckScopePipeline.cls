@@ -10,14 +10,12 @@ public with sharing class RecordHealthCheckScopePipeline {
   private Boolean planningFailureOverride = false;
   @TestVisible
   private static String evaluatorFailureOverride;
-  private Set<String> incompletePlanningCheckNames = new Set<String>();
 
   /**
    * @param request Immutable qualified selection, record IDs, and options.
    * @return Ordered response with one item per record and selected Check.
    */
   public RecordHealthCheckResponse evaluate(RecordHealthCheckRequest request) {
-    incompletePlanningCheckNames.clear();
     if (request == null) {
       throw new ScopePipelineException(
         'A Record Health Check request is required.'
@@ -70,6 +68,9 @@ public with sharing class RecordHealthCheckScopePipeline {
         recordIds,
         recordsById,
         recordLoad.inaccessibleCheckNames.contains(check.QualifiedApiName),
+        recordLoad.incompletePlanningCheckNames.contains(
+          check.QualifiedApiName
+        ),
         request.options.resultMode,
         response.runId,
         itemsByIdentity
@@ -129,12 +130,13 @@ public with sharing class RecordHealthCheckScopePipeline {
           check,
           objectType
         );
-        fields.addAll(fieldPlan.selectedFields);
         if (!fieldPlan.inaccessibleFields.isEmpty()) {
           result.inaccessibleCheckNames.add(check.QualifiedApiName);
         }
-        if (fieldPlan.formulaDependenciesTruncated) {
-          incompletePlanningCheckNames.add(check.QualifiedApiName);
+        if (fieldPlan.verdictDependenciesTruncated) {
+          result.incompletePlanningCheckNames.add(check.QualifiedApiName);
+        } else {
+          fields.addAll(fieldPlan.selectedFields);
         }
       } catch (RecordHealthCheckTemplateService.TemplateException ex) {
         // Runtime validation turns this Check into INVALID_CONFIG. Planning must
@@ -173,6 +175,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     List<Id> recordIds,
     Map<Id, SObject> recordsById,
     Boolean fieldAccessDenied,
+    Boolean formulaPlanningIncomplete,
     RecordHealthCheckResultMode resultMode,
     String runId,
     Map<String, RecordHealthCheckResultItem> itemsByIdentity
@@ -193,9 +196,6 @@ public with sharing class RecordHealthCheckScopePipeline {
         );
       }
     }
-    Boolean formulaPlanningIncomplete = incompletePlanningCheckNames.contains(
-      check.QualifiedApiName
-    );
     if (invalidConfiguration == null && formulaPlanningIncomplete) {
       for (Id recordId : recordIds) {
         internalByRecordId.put(
@@ -365,5 +365,6 @@ public with sharing class RecordHealthCheckScopePipeline {
   private class RecordLoadPlan {
     private Map<Id, SObject> recordsById = new Map<Id, SObject>();
     private Set<String> inaccessibleCheckNames = new Set<String>();
+    private Set<String> incompletePlanningCheckNames = new Set<String>();
   }
 }

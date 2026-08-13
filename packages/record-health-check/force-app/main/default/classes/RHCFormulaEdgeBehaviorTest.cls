@@ -72,7 +72,10 @@ private class RHCFormulaEdgeBehaviorTest {
         'NumberOfEmployees' => null
       }
     );
-    accountRecord.Id = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;
+    accountRecord.Id = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      26
+    );
     Record_Health_Check__mdt check = baseCheck('Numeric_Null', 'FORMULA');
     check.PassConditionFormula__c = 'NumberOfEmployees = 0';
 

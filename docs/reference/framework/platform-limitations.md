@@ -111,10 +111,12 @@ document the timezone and test users on both sides of the boundary.
   administrative Apex when deleted records matter.
 - `WITH DATA CATEGORY` is rejected because it cannot be safely combined with framework-managed
   `WITH USER_MODE`. Use an Apex plugin designed for Knowledge categories.
-- Count Files with `SELECT COUNT() FROM ContentDocumentLink WHERE LinkedEntityId = {!record.Id}`.
-  A Knowledge action URL navigates only; it does not change evaluation semantics.
+- File-link queries require org validation because `ContentDocumentLink` applies additional
+  implementation restrictions under user-mode SOQL. Use a custom Apex Check unless the exact Query
+  template has passed in a representative org. A Knowledge action URL navigates only; it does not
+  change evaluation semantics.
 - For indirect Contacts, query `AccountContactRelation` by `AccountId`. A role-presence recipe is
-  `SELECT COUNT() total FROM AccountContactRelation WHERE AccountId = {!record.Id} AND IsActive = true AND Roles INCLUDES ('Decision Maker')`.
+  `SELECT COUNT() FROM AccountContactRelation WHERE AccountId = {!record.Id} AND IsActive = true AND Roles INCLUDES ('Decision Maker')`.
   Direct Contact (`Contact.AccountId`), ACR, and OpportunityContactRole are separate relationships;
   Formula cannot aggregate these child collections.
 - After duplicate merge, the losing ID no longer identifies the survivor. Rerun against the

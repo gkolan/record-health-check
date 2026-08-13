@@ -17,7 +17,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Map<String, String> calculatedFormulaOverrideByField;
   private Set<String> inaccessibleFieldsBeingPlanned;
-  private Boolean formulaDependenciesTruncatedBeingPlanned;
+  private Boolean verdictDependenciesTruncatedBeingPlanned;
+  private Boolean displayDependenciesTruncatedBeingPlanned;
 
   public Set<String> collectRecordFields(
     Record_Health_Check__mdt check,
@@ -38,7 +39,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.SObjectType objectType
   ) {
     inaccessibleFieldsBeingPlanned = new Set<String>();
-    formulaDependenciesTruncatedBeingPlanned = false;
+    verdictDependenciesTruncatedBeingPlanned = false;
+    displayDependenciesTruncatedBeingPlanned = false;
     Set<String> fields = new Set<String>{ 'Id' };
 
     // Token syntax and registry membership were validated when the check loaded;
@@ -61,21 +63,31 @@ public with sharing class RecordHealthCheckFieldPlanner {
     addMergeFields(fields, objectType, check.DisplayExpectedText__c);
 
     if (check.EvaluationType__c == 'FORMULA') {
-      addFormulaFields(fields, objectType, check.PassConditionFormula__c);
+      addFormulaFields(fields, objectType, check.PassConditionFormula__c, true);
       // Optional Found / Expected single-value formulas get the SAME calculated-field
       // dependency expansion as the pass/fail formula, so a balance check whose
       // operands are formula fields can display resolved numbers instead of UNABLE.
-      addFormulaFields(fields, objectType, check.DisplayFoundFormula__c);
-      addFormulaFields(fields, objectType, check.DisplayExpectedFormula__c);
+      addFormulaFields(fields, objectType, check.DisplayFoundFormula__c, false);
+      addFormulaFields(
+        fields,
+        objectType,
+        check.DisplayExpectedFormula__c,
+        false
+      );
     }
     if (check.EvaluationType__c == 'QUERY') {
       // List checks read the single-value from FindInListFormula__c; RecordFormula compares to ExpectedRecordFormula__c.
-      addFormulaFields(fields, objectType, check.FindInListFormula__c);
-      addFormulaFields(fields, objectType, check.ExpectedRecordFormula__c);
+      addFormulaFields(fields, objectType, check.FindInListFormula__c, true);
+      addFormulaFields(
+        fields,
+        objectType,
+        check.ExpectedRecordFormula__c,
+        true
+      );
     }
     // CompareTwoQueries: both sides are SOQL — merge tokens already handled above
     if (check.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
-      addFormulaFields(fields, objectType, check.ApplicabilityFormula__c);
+      addFormulaFields(fields, objectType, check.ApplicabilityFormula__c, true);
     }
 
     // In an org with more than one currency, an amount is shown in the record's
@@ -97,9 +109,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
     FieldPlan result = new FieldPlan();
     result.selectedFields.addAll(fields);
     result.inaccessibleFields.addAll(inaccessibleFieldsBeingPlanned);
-    result.formulaDependenciesTruncated = formulaDependenciesTruncatedBeingPlanned;
+    result.verdictDependenciesTruncated = verdictDependenciesTruncatedBeingPlanned;
+    result.displayDependenciesTruncated = displayDependenciesTruncatedBeingPlanned;
     inaccessibleFieldsBeingPlanned = null;
-    formulaDependenciesTruncatedBeingPlanned = null;
+    verdictDependenciesTruncatedBeingPlanned = null;
+    displayDependenciesTruncatedBeingPlanned = null;
     return result;
   }
 
@@ -133,7 +147,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
   private void addFormulaFields(
     Set<String> fields,
     Schema.SObjectType objectType,
-    String formula
+    String formula,
+    Boolean verdictAffecting
   ) {
     if (String.isBlank(formula)) {
       return;
@@ -148,7 +163,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
       formula,
       '',
       0,
-      new Set<String>()
+      new Set<String>(),
+      verdictAffecting
     );
   }
 
@@ -183,13 +199,18 @@ public with sharing class RecordHealthCheckFieldPlanner {
     String formula,
     String pathPrefix,
     Integer depth,
-    Set<String> visited
+    Set<String> visited,
+    Boolean verdictAffecting
   ) {
     if (String.isBlank(formula)) {
       return;
     }
     if (depth > FORMULA_DEPENDENCY_DEPTH_CAP) {
-      formulaDependenciesTruncatedBeingPlanned = true;
+      if (verdictAffecting) {
+        verdictDependenciesTruncatedBeingPlanned = true;
+      } else {
+        displayDependenciesTruncatedBeingPlanned = true;
+      }
       return;
     }
 
@@ -212,7 +233,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
         token,
         reference
       );
-      if (dependency != null && visited.add(dependency.visitKey)) {
+      if (
+        dependency != null &&
+        depth < FORMULA_DEPENDENCY_DEPTH_CAP &&
+        visited.add(dependency.visitKey)
+      ) {
         expandFormulaDependencies(
           fields,
           baseType,
@@ -220,8 +245,15 @@ public with sharing class RecordHealthCheckFieldPlanner {
           dependency.formula,
           pathPrefix + dependency.relationshipPrefix,
           depth + 1,
-          visited
+          visited,
+          verdictAffecting
         );
+      } else if (dependency != null && depth >= FORMULA_DEPENDENCY_DEPTH_CAP) {
+        if (verdictAffecting) {
+          verdictDependenciesTruncatedBeingPlanned = true;
+        } else {
+          displayDependenciesTruncatedBeingPlanned = true;
+        }
       }
     }
   }
@@ -449,6 +481,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
   public class FieldPlan {
     public Set<String> selectedFields = new Set<String>();
     public Set<String> inaccessibleFields = new Set<String>();
-    public Boolean formulaDependenciesTruncated = false;
+    public Boolean verdictDependenciesTruncated = false;
+    public Boolean displayDependenciesTruncated = false;
   }
 }

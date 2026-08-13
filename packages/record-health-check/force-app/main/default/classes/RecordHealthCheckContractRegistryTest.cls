@@ -15,6 +15,12 @@ private with sharing class RecordHealthCheckContractRegistryTest {
       ),
       'Ordinary Check outcomes must remain visible to normal callers.'
     );
+    Assert.isFalse(
+      RecordHealthCheckReasonCodes.isDiagnosticsOnly(
+        RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
+      ),
+      'A formula dependency-depth problem is visible configuration guidance, not restricted FLS diagnostics.'
+    );
   }
 
   @IsTest
