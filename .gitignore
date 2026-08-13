@@ -68,6 +68,7 @@ $RECYCLE.BIN/
 /.github/SALESFORCE_OPERATIONS.md
 /internal/
 /spec/
+# Local-only design and customer specs must never be published with the repository.
 /specs/
 /releases/
 packages/record-health-check/.package-artifacts/
