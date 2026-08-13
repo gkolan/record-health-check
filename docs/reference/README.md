@@ -36,6 +36,7 @@ the supported Apex APIs used by code in your org.
 | [Security and data access](framework/security.md) | USER_MODE, Permission Sets, diagnostics, plugins |
 | [Data model](framework/data-model.md) | ERD and relationship summary |
 | [Compatibility](framework/compatibility.md) | Editions, Lightning Experience, API version |
+| [Platform limitations and safe patterns](framework/platform-limitations.md) | Formula, activity, Person Account, query, currency, time, and data-model edge cases |
 | [Localization](framework/localization.md) | Translation Workbench, display formats |
 | [Configuration identity](framework/configuration-identity.md) | Qualified API Names, the `rhc` namespace, installed metadata, and metadata created in your org |
 | [Package testing and upgrades](framework/package-testing-and-upgrades.md) | Test ownership, `RunLocalTests`, package installation, and upgrade behavior |

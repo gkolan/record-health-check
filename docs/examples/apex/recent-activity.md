@@ -357,6 +357,11 @@ Copy this value into **Message When Failed**:
 
 Change `daysBack` to change the window without redeploying the class.
 
+This example is deliberately `WhatId`-only. A Task related only through a Contact `WhoId`, Shared
+Activities relations, or an Opportunity/Case `WhatId` is not counted for the Account. See
+[Platform limitations and safe patterns](../../reference/framework/platform-limitations.md#activities-what-who-and-shared-relations)
+for the exact matrix and a bulk-safe WhoId recipe.
+
 These values create a new Check owned by your org. They do not change the example Check included
 with the installed package.
 

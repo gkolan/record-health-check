@@ -196,6 +196,14 @@ expects only `{Id}` but the planner correctly returns `{CurrencyIsoCode, Id}`. T
 assertion issue, not a Record Health Check currency bug. Unlocked-package installs into subscriber orgs are
 unaffected. See [Source development](../contributing/source-development.md).
 
+## Why doesn't a Check see a record that is in the Recycle Bin?
+
+Record Health Check intentionally rejects `ALL ROWS`, so soft-deleted records are not part of Query
+Check results. Restore the record or use a purpose-built administrative Apex process. The same
+limitations reference covers Knowledge data categories, Files, indirect Contacts, activity
+relationships, duplicate-merge identity, formula globals, numeric blanks, currency, and timezones:
+[Platform limitations and safe patterns](../reference/framework/platform-limitations.md).
+
 ## Where do I go next?
 
 | Goal | Page |
