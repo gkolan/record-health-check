@@ -83,6 +83,11 @@ private class RHCQueryClassificationRedTest {
         validate('SELECT Id FROM ApexClass'),
         'An inaccessible root must remain distinct from absent schema.'
       );
+      Assert.areEqual(
+        'FIELD_NOT_ACCESSIBLE',
+        validate('SELECT SUM(AnnualRevenue) totalValue FROM Account'),
+        'Aggregate operands must be describe-classified before user-mode execution.'
+      );
     }
 
     try {

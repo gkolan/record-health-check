@@ -7,6 +7,7 @@
 private class RHCCurrencyAuthoringRedTest {
   @IsTest
   static void shouldRejectUngroupedCurrencyAggregate() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     Record_Health_Check__mdt check = baseQueryCheck();
     check.SourceQuery__c = 'SELECT MAX(NumberOfEmployees) largestSize, SUM(AnnualRevenue) totalValue FROM Account';
     check.SourceQueryField__c = 'totalValue';
@@ -24,6 +25,7 @@ private class RHCCurrencyAuthoringRedTest {
 
   @IsTest
   static void shouldRejectCurrencyAgainstUnitlessFixedThreshold() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     Record_Health_Check__mdt check = baseQueryCheck();
     check.SourceQuery__c = 'SELECT AnnualRevenue FROM Account';
     check.SourceQueryField__c = 'AnnualRevenue';
@@ -90,6 +92,50 @@ private class RHCCurrencyAuthoringRedTest {
         'What.Amount'
       ),
       'A polymorphic multi-target relationship cannot prove a currency field.'
+    );
+  }
+
+  @IsTest
+  static void shouldAllowSingleCurrencyAuthoringWithoutIsoMetadata() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = false;
+    Record_Health_Check__mdt aggregateCheck = baseQueryCheck();
+    aggregateCheck.SourceQuery__c = 'SELECT SUM(AnnualRevenue) totalValue FROM Account';
+    aggregateCheck.SourceQueryField__c = 'totalValue';
+    aggregateCheck.ExpectedValueSource__c = 'COMPARISON_QUERY';
+    aggregateCheck.ComparisonQuery__c = 'SELECT COUNT() FROM Contact';
+
+    Assert.isFalse(
+      findingNames(RecordHealthCheckValidator.queryFindings(aggregateCheck))
+        .contains('CURRENCY_AGGREGATE_NOT_GROUPED'),
+      'A single-currency org has only one possible aggregate unit.'
+    );
+
+    Record_Health_Check__mdt fixedCheck = baseQueryCheck();
+    fixedCheck.SourceQuery__c = 'SELECT AnnualRevenue FROM Account';
+    fixedCheck.SourceQueryField__c = 'AnnualRevenue';
+    fixedCheck.ExpectedValueSource__c = 'FIXED_VALUE';
+    fixedCheck.ExpectedFixedValue__c = '100';
+    Assert.isFalse(
+      findingNames(RecordHealthCheckValidator.queryFindings(fixedCheck))
+        .contains('FIXED_CURRENCY_BASIS_MISSING'),
+      'A fixed threshold is not unit-ambiguous in a single-currency org.'
+    );
+  }
+
+  @IsTest
+  static void shouldAcceptAFilteredIsoAndUseTheTopLevelQueryRoot() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(AnnualRevenue) totalValue FROM Account WHERE CurrencyIsoCode = \'USD\''
+      ),
+      'An exact ISO predicate supplies one unit without changing the aggregate result shape.'
+    );
+    Assert.isTrue(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT (SELECT Id FROM Contacts), SUM(AnnualRevenue) totalValue FROM Account'
+      ),
+      'A subquery FROM must not replace the outer Account root used by the currency guard.'
     );
   }
 
