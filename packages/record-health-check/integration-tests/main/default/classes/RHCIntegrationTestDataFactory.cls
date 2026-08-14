@@ -47,6 +47,15 @@ public class RHCIntegrationTestDataFactory {
     return result;
   }
 
+  /** Builds one neutral data-shape record without persisting it. */
+  public static RHC_Conformance_Record__c conformanceRecord(
+    Map<String, Object> fields
+  ) {
+    RHC_Conformance_Record__c result = new RHC_Conformance_Record__c();
+    applyFields(result, fields);
+    return result;
+  }
+
   private static void applyFields(SObject record, Map<String, Object> fields) {
     if (fields == null) {
       return;

@@ -121,10 +121,14 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
         'AccountId' => applicable.Id
       }
     );
-    insert new OpportunityContactRole(
-      OpportunityId = openOpportunity.Id,
-      ContactId = contactRecord.Id,
-      IsPrimary = true
+    RecordHealthCheckTestDataFactory.createRecords(
+      new List<SObject>{
+        new OpportunityContactRole(
+          OpportunityId = openOpportunity.Id,
+          ContactId = contactRecord.Id,
+          IsPrimary = true
+        )
+      }
     );
     RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckName(

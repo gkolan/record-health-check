@@ -19,38 +19,46 @@ private class RHCNeutralDataShapeConformanceTest {
   }
 
   private static void createShapeRecords() {
-    RHC_Conformance_Record__c parent = new RHC_Conformance_Record__c(
-      Name = 'Parent',
-      Quantity__c = 12.3456,
-      Amount__c = 25.50,
-      Snapshot_Value__c = 8.1250,
-      Current_Value__c = 8.1250,
-      Segment__c = 'A',
-      Snapshot_As_Of__c = System.now().addHours(-1),
-      Source_Changed_At__c = System.now().addHours(-2)
+    RHC_Conformance_Record__c parent = RHCIntegrationTestDataFactory.conformanceRecord(
+      new Map<String, Object>{
+        'Name' => 'Parent',
+        'Quantity__c' => 12.3456,
+        'Amount__c' => 25.50,
+        'Snapshot_Value__c' => 8.1250,
+        'Current_Value__c' => 8.1250,
+        'Segment__c' => 'A',
+        'Snapshot_As_Of__c' => System.now().addHours(-1),
+        'Source_Changed_At__c' => System.now().addHours(-2)
+      }
     );
-    insert parent;
-    insert new List<RHC_Conformance_Record__c>{
-      new RHC_Conformance_Record__c(
-        Name = 'Negative Child',
-        Parent__c = parent.Id,
-        Quantity__c = -3.1415,
-        Amount__c = -9.25,
-        Snapshot_Value__c = 4.5000,
-        Current_Value__c = 7.7500,
-        Snapshot_As_Of__c = System.now().addDays(-2),
-        Source_Changed_At__c = System.now().addDays(-1)
-      ),
-      new RHC_Conformance_Record__c(
-        Name = 'Null Shape',
-        Parent__c = parent.Id,
-        Quantity__c = 0,
-        Amount__c = 0,
-        Snapshot_Value__c = null,
-        Current_Value__c = null,
-        Segment__c = null
-      )
-    };
+    RHCIntegrationTestDataFactory.createRecord(parent);
+    RHCIntegrationTestDataFactory.createRecords(
+      new List<SObject>{
+        RHCIntegrationTestDataFactory.conformanceRecord(
+          new Map<String, Object>{
+            'Name' => 'Negative Child',
+            'Parent__c' => parent.Id,
+            'Quantity__c' => -3.1415,
+            'Amount__c' => -9.25,
+            'Snapshot_Value__c' => 4.5000,
+            'Current_Value__c' => 7.7500,
+            'Snapshot_As_Of__c' => System.now().addDays(-2),
+            'Source_Changed_At__c' => System.now().addDays(-1)
+          }
+        ),
+        RHCIntegrationTestDataFactory.conformanceRecord(
+          new Map<String, Object>{
+            'Name' => 'Null Shape',
+            'Parent__c' => parent.Id,
+            'Quantity__c' => 0,
+            'Amount__c' => 0,
+            'Snapshot_Value__c' => null,
+            'Current_Value__c' => null,
+            'Segment__c' => null
+          }
+        )
+      }
+    );
   }
 
   @IsTest
@@ -250,7 +258,9 @@ private class RHCNeutralDataShapeConformanceTest {
   }
 
   private static String objectApiName() {
-    return RHC_Conformance_Record__c.SObjectType.getDescribe().getName();
+    return RHC_Conformance_Record__c.SObjectType
+      .getDescribe(SObjectDescribeOptions.DEFERRED)
+      .getName();
   }
 
   private static String quantityField() {
