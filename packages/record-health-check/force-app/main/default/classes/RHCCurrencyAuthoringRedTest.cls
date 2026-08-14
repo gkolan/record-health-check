@@ -171,6 +171,31 @@ private class RHCCurrencyAuthoringRedTest {
     );
   }
 
+  @IsTest
+  static void shouldIgnoreNestedEqualityWhenProvingTheOuterCurrencyUnit() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Assert.isTrue(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(Amount) totalValue FROM Opportunity ' +
+        'WHERE AccountId IN (SELECT Id FROM Account WHERE CurrencyIsoCode = \'USD\')'
+      ),
+      'An equality inside a semi-join does not constrain the outer aggregate currency.'
+    );
+  }
+
+  @IsTest
+  static void shouldIgnoreNestedOrWhenOuterCurrencyUnitIsConstrained() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(Amount) totalValue FROM Opportunity ' +
+          'WHERE CurrencyIsoCode = \'USD\' AND AccountId IN ' +
+          '(SELECT Id FROM Account WHERE Name = \'First\' OR Name = \'Second\')'
+      ),
+      'A nested OR does not weaken the outer conjunctive ISO equality.'
+    );
+  }
+
   private static Record_Health_Check__mdt baseQueryCheck() {
     return new Record_Health_Check__mdt(
       DeveloperName = 'NeutralCurrencyShape',
