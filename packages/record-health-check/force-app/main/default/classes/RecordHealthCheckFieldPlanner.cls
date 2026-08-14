@@ -347,15 +347,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
   }
 
-  /**
-   * Resolves a (possibly relationship-qualified) field path against a starting
-   * type, returning the terminal field's describe plus the owning type and the
-   * relationship prefix needed to root nested dependencies back at the path.
-   * Lookups are case-insensitive (a token typed as `website` or
-   * `BILLINGCITY` still resolves against the lowercase Schema field map).
-   * Missing schema and inaccessible schema are returned explicitly so callers
-   * can keep them distinct while excluding both from the user-mode SELECT.
-   */
   private FieldPathDescribe describeFieldPath(
     Schema.SObjectType objectType,
     String fieldPath,

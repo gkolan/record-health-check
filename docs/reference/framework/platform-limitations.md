@@ -117,7 +117,7 @@ the Check when the data model exposes evidence for it:
   checked record does not expose.
 
 Snapshot-versus-current value comparison is an authoring decision: Compare Two Queries can report
-whether the values differ, but it cannot establish that either value is authoritative. A null
+whether the values differ, but it cannot establish which value should govern the decision. A null
 watermark cannot prove freshness. These cases are expressible without a core freshness field, and
 core does not inspect product jobs, trigger recalculation, or attach hidden semantics to copied
 values.
@@ -133,7 +133,7 @@ they return `INVALID_SOQL_TEMPLATE`; the framework does not build a second SOQL 
 more specific result from localized platform text. A resolved Base64/Blob selected field is a
 deliberately unsupported value boundary and returns `FIELD_TYPE_NOT_SUPPORTED` before query
 execution, comparison, serialization, or display. If binary inspection is essential, use reviewed
-user-mode Apex that returns only a redacted business outcome and never the binary payload.
+user-mode Apex that returns only a redacted business outcome and never the binary content.
 
 - `ALL ROWS` is rejected, so recycle-bin rows are invisible. Restore a row or use purpose-built
   administrative Apex when deleted records matter.
