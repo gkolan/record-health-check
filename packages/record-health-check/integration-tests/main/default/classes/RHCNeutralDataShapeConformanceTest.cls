@@ -93,6 +93,45 @@ private class RHCNeutralDataShapeConformanceTest {
   }
 
   @IsTest
+  static void existingChecksExpressSourceRelativeAndAgeBasedFreshness() {
+    RHC_Conformance_Record__c fresh = recordNamed('Parent');
+    RHC_Conformance_Record__c stale = recordNamed('Negative Child');
+
+    Record_Health_Check__mdt sourceRelative = dualCheck(
+      'Neutral_Source_Relative_Freshness'
+    );
+    sourceRelative.SourceQuery__c = 'SELECT Snapshot_As_Of__c FROM RHC_Conformance_Record__c WHERE Id = {!record.Id}';
+    sourceRelative.SourceQueryField__c = 'Snapshot_As_Of__c';
+    sourceRelative.ComparisonQuery__c = 'SELECT Source_Changed_At__c FROM RHC_Conformance_Record__c WHERE Id = {!record.Id}';
+    sourceRelative.ComparisonQueryField__c = 'Source_Changed_At__c';
+    sourceRelative.ComparisonOperator__c = 'GREATER_THAN_OR_EQUAL';
+    RecordHealthCheckCompareQueriesEvaluator compareEvaluator = new RecordHealthCheckCompareQueriesEvaluator();
+    Assert.areEqual(
+      'PASS',
+      compareEvaluator.evaluate(sourceRelative, fresh.Id, fresh).status
+    );
+    Assert.areEqual(
+      'FAIL',
+      compareEvaluator.evaluate(sourceRelative, stale.Id, stale).status
+    );
+
+    Record_Health_Check__mdt ageBased = baseCheck(
+      'Neutral_Age_Based_Freshness',
+      'FORMULA'
+    );
+    ageBased.PassConditionFormula__c = 'NOT(ISBLANK(Snapshot_As_Of__c)) && Snapshot_As_Of__c >= NOW() - 1';
+    RecordHealthCheckFormulaEvaluator formulaEvaluator = new RecordHealthCheckFormulaEvaluator();
+    Assert.areEqual(
+      'PASS',
+      formulaEvaluator.evaluate(ageBased, fresh.Id, fresh).status
+    );
+    Assert.areEqual(
+      'FAIL',
+      formulaEvaluator.evaluate(ageBased, stale.Id, stale).status
+    );
+  }
+
+  @IsTest
   static void nullPolicyAndMixedBulkResultsStayIsolatedByRoot() {
     List<RHC_Conformance_Record__c> rows = [
       SELECT Id, Name, Quantity__c, Segment__c

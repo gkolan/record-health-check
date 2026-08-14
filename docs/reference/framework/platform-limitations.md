@@ -105,6 +105,23 @@ context. A formatted chip follows display locale/timezone rules and does not pro
 Condition used the same boundary. Prefer Date fields for date-only SLAs; for datetime cutoffs,
 document the timezone and test users on both sides of the boundary.
 
+## Derived values, snapshots, and freshness
+
+Core does not infer when a stored or derived field was computed. Make freshness an explicit part of
+the Check when the data model exposes evidence for it:
+
+- compare a snapshot timestamp with a source-change timestamp using Formula or Compare Two Queries;
+- compare a watermark with `NOW()` or `TODAY()` when policy is based on maximum age;
+- use applicability or a prerequisite Check to handle a missing or unreadable watermark; and
+- use reviewed subscriber Apex when freshness depends on job history or another source that the
+  checked record does not expose.
+
+Snapshot-versus-current value comparison is an authoring decision: Compare Two Queries can report
+whether the values differ, but it cannot establish that either value is authoritative. A null
+watermark cannot prove freshness. These cases are expressible without a core freshness field, and
+core does not inspect product jobs, trigger recalculation, or attach hidden semantics to copied
+values.
+
 ## Query and data-model boundaries
 
 Record Health Check deterministically pre-validates the root object and comma-separated plain field
