@@ -77,6 +77,8 @@ Target package version: **2.0.4**.
   comes from `COMPARISON_QUERY`, preventing a late governor-limit failure after evaluation begins.
 - Explicit per-Check metadata loading now includes `Category__c`, keeping the advertised complete
   Check object safe for presentation-token consumers without an unqueried-field exception.
+- Finalized result merge tokens now preserve the literal text value `"null"`; only an actual Apex
+  null resolves blank or activates a configured fallback.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
