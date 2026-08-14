@@ -104,7 +104,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     RecordHealthCheckTestDataFactory.createAccounts(
       new List<Account>{ applicable, skipped }
     );
-    RecordHealthCheckTestDataFactory.createOpportunity(
+    Opportunity openOpportunity = RecordHealthCheckTestDataFactory.createOpportunity(
       RecordHealthCheckTestDataFactory.opportunity(
         new Map<String, Object>{
           'Name' => 'Open Pipeline',
@@ -115,9 +115,20 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
         }
       )
     );
+    Contact contactRecord = RecordHealthCheckTestDataFactory.createContact(
+      new Map<String, Object>{
+        'LastName' => 'Contacted',
+        'AccountId' => applicable.Id
+      }
+    );
+    insert new OpportunityContactRole(
+      OpportunityId = openOpportunity.Id,
+      ContactId = contactRecord.Id,
+      IsPrimary = true
+    );
     RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Pipeline_Protects_Revenue'
+        'Example_Open_Deals_Have_Contacts'
       ),
       new List<Id>{ skipped.Id, applicable.Id }
     );
@@ -130,9 +141,9 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.stopTest();
 
     Assert.areEqual(
-      2,
+      4,
       queryDelta,
-      'Custom Metadata reads do not consume SOQL limits; the request should use one record load and one planned evaluator query.'
+      'The request should use one record load, one applicability query, and two comparison queries.'
     );
     Assert.areEqual(
       RecordHealthCheckStatus.SKIPPED,

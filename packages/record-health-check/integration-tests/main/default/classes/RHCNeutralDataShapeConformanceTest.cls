@@ -62,17 +62,19 @@ private class RHCNeutralDataShapeConformanceTest {
         'Neutral_Negative_Formula',
         'FORMULA'
       );
-      formula.PassConditionFormula__c = 'Quantity__c = -3.1415';
+      formula.PassConditionFormula__c = quantityField() + ' = -3.1415';
       RecordHealthCheckInternalResult formulaResult = new RecordHealthCheckFormulaEvaluator()
         .evaluate(formula, row.Id, row);
       Assert.areEqual('PASS', formulaResult.status);
 
       Record_Health_Check__mdt query = queryCheck('Neutral_Negative_Query');
       query.SourceQuery__c =
-        'SELECT Quantity__c FROM ' +
+        'SELECT ' +
+        quantityField() +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      query.SourceQueryField__c = 'Quantity__c';
+      query.SourceQueryField__c = quantityField();
       query.ExpectedFixedValue__c = '-3.1415';
       RecordHealthCheckInternalResult queryResult = new RecordHealthCheckSoqlEvaluator()
         .evaluate(query, row.Id, row);
@@ -87,11 +89,14 @@ private class RHCNeutralDataShapeConformanceTest {
       RHC_Conformance_Record__c child = recordNamed('Negative Child');
 
       Record_Health_Check__mdt hierarchy = queryCheck('Neutral_Parent_Path');
+      String parentQuantity = parentRelationship() + '.' + quantityField();
       hierarchy.SourceQuery__c =
-        'SELECT Parent__r.Quantity__c FROM ' +
+        'SELECT ' +
+        parentQuantity +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      hierarchy.SourceQueryField__c = 'Parent__r.Quantity__c';
+      hierarchy.SourceQueryField__c = parentQuantity;
       hierarchy.ExpectedFixedValue__c = '12.3456';
       Assert.areEqual(
         'PASS',
@@ -102,15 +107,19 @@ private class RHCNeutralDataShapeConformanceTest {
 
       Record_Health_Check__mdt snapshot = dualCheck('Neutral_Snapshot_Compare');
       snapshot.SourceQuery__c =
-        'SELECT Snapshot_Value__c FROM ' +
+        'SELECT ' +
+        snapshotValueField() +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      snapshot.SourceQueryField__c = 'Snapshot_Value__c';
+      snapshot.SourceQueryField__c = snapshotValueField();
       snapshot.ComparisonQuery__c =
-        'SELECT Current_Value__c FROM ' +
+        'SELECT ' +
+        currentValueField() +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      snapshot.ComparisonQueryField__c = 'Current_Value__c';
+      snapshot.ComparisonQueryField__c = currentValueField();
       Assert.areEqual(
         'FAIL',
         new RecordHealthCheckCompareQueriesEvaluator()
@@ -131,15 +140,19 @@ private class RHCNeutralDataShapeConformanceTest {
         'Neutral_Source_Relative_Freshness'
       );
       sourceRelative.SourceQuery__c =
-        'SELECT Snapshot_As_Of__c FROM ' +
+        'SELECT ' +
+        snapshotAsOfField() +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      sourceRelative.SourceQueryField__c = 'Snapshot_As_Of__c';
+      sourceRelative.SourceQueryField__c = snapshotAsOfField();
       sourceRelative.ComparisonQuery__c =
-        'SELECT Source_Changed_At__c FROM ' +
+        'SELECT ' +
+        sourceChangedAtField() +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      sourceRelative.ComparisonQueryField__c = 'Source_Changed_At__c';
+      sourceRelative.ComparisonQueryField__c = sourceChangedAtField();
       sourceRelative.ComparisonOperator__c = 'GREATER_THAN_OR_EQUAL';
       RecordHealthCheckCompareQueriesEvaluator compareEvaluator = new RecordHealthCheckCompareQueriesEvaluator();
       Assert.areEqual(
@@ -155,7 +168,12 @@ private class RHCNeutralDataShapeConformanceTest {
         'Neutral_Age_Based_Freshness',
         'FORMULA'
       );
-      ageBased.PassConditionFormula__c = 'NOT(ISBLANK(Snapshot_As_Of__c)) && Snapshot_As_Of__c >= NOW() - 1';
+      ageBased.PassConditionFormula__c =
+        'NOT(ISBLANK(' +
+        snapshotAsOfField() +
+        ')) && ' +
+        snapshotAsOfField() +
+        ' >= NOW() - 1';
       RecordHealthCheckFormulaEvaluator formulaEvaluator = new RecordHealthCheckFormulaEvaluator();
       Assert.areEqual(
         'PASS',
@@ -185,10 +203,12 @@ private class RHCNeutralDataShapeConformanceTest {
 
       Record_Health_Check__mdt query = queryCheck('Neutral_Bulk_Isolation');
       query.SourceQuery__c =
-        'SELECT Quantity__c FROM ' +
+        'SELECT ' +
+        quantityField() +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      query.SourceQueryField__c = 'Quantity__c';
+      query.SourceQueryField__c = quantityField();
       query.ComparisonOperator__c = 'GREATER_THAN_OR_EQUAL';
       query.ExpectedFixedValue__c = '0';
       Map<Id, RecordHealthCheckInternalResult> outcomes = new RecordHealthCheckSoqlEvaluator()
@@ -208,10 +228,12 @@ private class RHCNeutralDataShapeConformanceTest {
         'Neutral_Legitimate_Null'
       );
       nullQuery.SourceQuery__c =
-        'SELECT Segment__c FROM ' +
+        'SELECT ' +
+        segmentField() +
+        ' FROM ' +
         objectApiName() +
         ' WHERE Id = {!record.Id}';
-      nullQuery.SourceQueryField__c = 'Segment__c';
+      nullQuery.SourceQueryField__c = segmentField();
       nullQuery.EmptyValueHandling__c = 'SKIP_RECORD';
       Assert.areEqual(
         'SKIPPED',
@@ -229,6 +251,36 @@ private class RHCNeutralDataShapeConformanceTest {
 
   private static String objectApiName() {
     return RHC_Conformance_Record__c.SObjectType.getDescribe().getName();
+  }
+
+  private static String quantityField() {
+    return RHC_Conformance_Record__c.Quantity__c.getDescribe().getName();
+  }
+
+  private static String snapshotValueField() {
+    return RHC_Conformance_Record__c.Snapshot_Value__c.getDescribe().getName();
+  }
+
+  private static String currentValueField() {
+    return RHC_Conformance_Record__c.Current_Value__c.getDescribe().getName();
+  }
+
+  private static String snapshotAsOfField() {
+    return RHC_Conformance_Record__c.Snapshot_As_Of__c.getDescribe().getName();
+  }
+
+  private static String sourceChangedAtField() {
+    return RHC_Conformance_Record__c.Source_Changed_At__c.getDescribe()
+      .getName();
+  }
+
+  private static String segmentField() {
+    return RHC_Conformance_Record__c.Segment__c.getDescribe().getName();
+  }
+
+  private static String parentRelationship() {
+    return RHC_Conformance_Record__c.Parent__c.getDescribe()
+      .getRelationshipName();
   }
 
   private static RHC_Conformance_Record__c recordNamed(String name) {
