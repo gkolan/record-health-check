@@ -386,7 +386,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return false;
   }
-
+  /** Requires exactly one SELECT at depth 0; nested SELECTs remain valid. */
   private static void assertSingleOuterSelect(String soql) {
     String masked = maskStringLiterals(soql);
     Integer count = 0;
@@ -409,7 +409,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       );
     }
   }
-
+  /** Rewrites only a depth-0 bare COUNT(), preserving masked-string indices. */
   private static String rewriteBareCount(String soql) {
     String masked = maskStringLiterals(soql);
     Matcher m = PATTERN_COUNT_EMPTY.matcher(masked);
@@ -423,7 +423,10 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return soql;
   }
-
+  /**
+   * Enforces the supplied outer cap. Execution callers pass configured cap + 1
+   * so the extra row proves ROW_LIMIT_EXCEEDED; diagnostic callers must match.
+   */
   private static String enforceRowCap(String soql, Integer cap) {
     String masked = maskStringLiterals(soql);
 
@@ -458,7 +461,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return soql.trim() + ' LIMIT ' + cap;
   }
-
+  /** Returns the first depth-0 pattern match index, or -1. */
   private static Integer firstDepth0Match(String masked, Pattern pattern) {
     Matcher m = pattern.matcher(masked);
     while (m.find()) {
@@ -468,7 +471,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return -1;
   }
-
+  /** Returns start/end indices for the first depth-0 match, or null. */
   private static List<Integer> firstDepth0MatchBounds(
     String masked,
     Pattern pattern
@@ -481,7 +484,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return null;
   }
-
+  /** Computes parenthesis depth at an index in a literal-masked query. */
   private static Integer depthAt(String masked, Integer index) {
     Integer depth = 0;
     for (Integer i = 0; i < index && i < masked.length(); i++) {

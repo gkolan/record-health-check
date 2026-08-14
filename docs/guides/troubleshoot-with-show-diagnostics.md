@@ -179,6 +179,10 @@ Developer Name to distinguish multiple Record Health Check cards on the same Lig
 | **Copy for support** | A smaller JSON report without the duplicated raw-result object. Review and redact it before sharing. |
 | **Advanced raw report** | The complete developer-oriented result. It may contain restricted data and is not the default support artifact. |
 
+For a bounded per-record query, **Full check details** shows the prepared query that execution used.
+Its `LIMIT` is **Max Query Rows + 1** because the framework probes for one extra row to distinguish
+an exact-cap result from `ROW_LIMIT_EXCEEDED`.
+
 Use the **Run ID** to match Apex log entries when Apex logging is enabled for your user.
 The console prints a redaction warning immediately before the support report. Record and User IDs,
 queries, source values, and customer data can still be present; “support report” does not mean “safe
