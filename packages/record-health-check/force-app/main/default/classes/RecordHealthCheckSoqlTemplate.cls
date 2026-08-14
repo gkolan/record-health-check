@@ -58,13 +58,12 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DATA_CATEGORY = Pattern.compile(
     '(?i)\\bWITH\\s+DATA\\s+CATEGORY\\b'
   );
-  // WITH SYSTEM_MODE runs the query without Salesforce sharing rules and FLS
-  // that WITH USER_MODE enforces. An admin-authored Check Set template must never
-  // be allowed to request it, so it is rejected outright rather than recognized.
+  // SYSTEM_MODE bypasses the sharing and FLS contract enforced by USER_MODE,
+  // so administrator-authored templates must never request it.
   private static final Pattern PATTERN_SYSTEM_MODE = Pattern.compile(
     '(?i)\\bWITH\\s+SYSTEM_MODE\\b'
   );
-  // Tail clauses, in the order they may legally appear, that WITH USER_MODE must precede.
+  // Tail clauses that WITH USER_MODE must precede, in their legal order.
   private static final List<Pattern> TAIL_CLAUSE_PATTERNS = new List<Pattern>{
     PATTERN_GROUP_BY,
     Pattern.compile('(?i)\\bORDER\\s+BY\\b'),
@@ -81,9 +80,8 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   }
 
   /**
-   * Full preparation for execution: validate shape, rewrite bare COUNT(), enforce
-   * the effective outer row cap, and inject WITH USER_MODE — all depth-0 aware.
-   * Returns the query string to hand to Database.query().
+   * Validates shape, rewrites bare COUNT(), enforces the outer row cap, and
+   * injects WITH USER_MODE using depth-aware clause positions.
    */
   public static String prepareForExecution(String soql, Integer maxRows) {
     if (String.isBlank(soql)) {
@@ -109,9 +107,8 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   }
 
   /**
-   * Rejects DML / dangerous keywords, matching whole words at any depth but
-   * IGNORING text inside string literals (so a literal 'Order by 5' or a value
-   * containing "update" is never a false positive).
+   * Rejects dangerous whole-word keywords while ignoring their appearance
+   * inside string literals.
    */
   public static void validateNoDisallowedKeywords(String soql) {
     if (String.isBlank(soql)) {
@@ -164,7 +161,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     String masked = maskStringLiterals(soql);
 
-    // Already has an outer WITH clause?
     if (firstDepth0Match(masked, PATTERN_WITH) >= 0) {
       return soql;
     }
@@ -366,17 +362,31 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     if (withAt > whereBounds[1] && withAt < predicateEnd) {
       predicateEnd = withAt;
     }
-    String predicate = masked.substring(whereBounds[1], predicateEnd);
-    if (PATTERN_BOOLEAN_DISJUNCTION.matcher(predicate).find()) {
-      return false;
-    }
     Pattern equality = Pattern.compile(
       '(?i)\\b' + fieldApiName.trim().replace('.', '\\.') + '\\s*=\\s*\'\\s*\''
     );
-    return equality.matcher(predicate).find();
+    for (
+      Pattern candidate : new List<Pattern>{
+        PATTERN_BOOLEAN_DISJUNCTION,
+        equality
+      }
+    ) {
+      Matcher matcher = candidate.matcher(masked);
+      matcher.region(whereBounds[1], predicateEnd);
+      Boolean found = false;
+      while (matcher.find()) {
+        if (depthAt(masked, matcher.start()) == 0) {
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        return candidate == equality;
+      }
+    }
+    return false;
   }
 
-  /** Exactly one SELECT must appear at depth 0 (subquery SELECTs live at depth > 0). */
   private static void assertSingleOuterSelect(String soql) {
     String masked = maskStringLiterals(soql);
     Integer count = 0;
@@ -400,7 +410,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
   }
 
-  /** Rewrites a depth-0 bare SELECT COUNT() to SELECT COUNT(Id) so Database.query returns an AggregateResult. */
   private static String rewriteBareCount(String soql) {
     String masked = maskStringLiterals(soql);
     Matcher m = PATTERN_COUNT_EMPTY.matcher(masked);
@@ -415,13 +424,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return soql;
   }
 
-  /**
-   * Enforces an effective outer LIMIT no greater than `cap`
-   * pure aggregates (depth-0 aggregate, no depth-0 GROUP BY) get no LIMIT (illegal);
-   * an existing depth-0 LIMIT greater than cap is lowered to cap;
-   * otherwise a LIMIT of cap is added (before a depth-0 OFFSET if present).
-   * Callers still try with cap+1 by passing maxRows+1 — see the evaluators.
-   */
   private static String enforceRowCap(String soql, Integer cap) {
     String masked = maskStringLiterals(soql);
 
@@ -433,7 +435,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       return soql;
     }
 
-    // Existing depth-0 LIMIT?
     Matcher limitMatcher = PATTERN_LIMIT.matcher(masked);
     while (limitMatcher.find()) {
       if (depthAt(masked, limitMatcher.start()) == 0) {
@@ -449,7 +450,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       }
     }
 
-    // No outer LIMIT — add one, before a depth-0 OFFSET if present.
     Integer offsetAt = firstDepth0Match(masked, PATTERN_OFFSET);
     if (offsetAt >= 0) {
       String before = soql.substring(0, offsetAt).trim();
@@ -459,7 +459,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return soql.trim() + ' LIMIT ' + cap;
   }
 
-  /** Index of the first match of `pattern` that sits at parenthesis depth 0, or -1. */
   private static Integer firstDepth0Match(String masked, Pattern pattern) {
     Matcher m = pattern.matcher(masked);
     while (m.find()) {
@@ -470,7 +469,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return -1;
   }
 
-  /** Start and end indices of the first depth-0 match, or null. */
   private static List<Integer> firstDepth0MatchBounds(
     String masked,
     Pattern pattern
@@ -484,7 +482,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return null;
   }
 
-  /** Parenthesis nesting depth at `index` in the (literal-masked) string. */
   private static Integer depthAt(String masked, Integer index) {
     Integer depth = 0;
     for (Integer i = 0; i < index && i < masked.length(); i++) {

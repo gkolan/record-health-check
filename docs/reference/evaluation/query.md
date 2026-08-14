@@ -127,8 +127,9 @@ Currency ISO Code**, and that declaration participates in the same guard.
 corporate-currency display label is not evidence that the inputs shared a unit. Metadata validation
 therefore rejects an aggregate over a Currency field unless the query groups by `CurrencyIsoCode`
 or a conjunctive outer predicate fixes `CurrencyIsoCode` to one literal ISO code. The bounded
-equality form preserves a one-row aggregate result; predicates containing `OR` or `NOT` fail closed
-because the equality may not constrain every contributing row. Grouping changes the result shape.
+equality form preserves a one-row aggregate result; outer-predicate `OR` or `NOT` operators fail
+closed because the equality may not constrain every contributing row. Operators and equalities
+inside semi-joins do not alter that outer proof. Grouping changes the result shape.
 
 An alternative is a custom Apex Check that explicitly owns and carries unit semantics. Formula
 Checks cannot reliably inspect `CurrencyIsoCode` and are not covered by this guard. Single-currency

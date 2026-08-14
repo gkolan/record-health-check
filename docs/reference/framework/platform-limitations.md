@@ -98,11 +98,14 @@ implementation deliberately resolves and authorizes `PersonContactId`.
 Multi-currency support preserves and displays a loaded row's `CurrencyIsoCode`; it does not perform
 corporate, dated, or Advanced Currency Management conversion. `CURRENCYRATE()` is not a supported
 FormulaEval workaround. Normalize in Query/Apex when cross-currency comparison is required. Display
-formatting adds a code/symbol but does not change comparison units. Currency authoring guards resolve
-both direct fields and relationship paths through describe metadata. They apply only in
+formatting adds a code/symbol but does not change comparison units.
+
+Currency authoring guards resolve both direct fields and relationship paths through describe
+metadata. They apply only in
 multi-currency orgs; an aggregate may retain one unit either by grouping on `CurrencyIsoCode` or by
 filtering it to one literal ISO code in a conjunctive outer predicate. Predicates containing `OR`
-or `NOT` do not prove that every contributing row has that unit and are refused.
+or `NOT` at outer depth do not prove that every contributing row has that unit and are refused;
+operators and equalities inside semi-joins do not alter the outer proof.
 
 `TODAY()`, `NOW()`, `DATEVALUE()`, and datetime comparisons follow FormulaEval and the running-user
 context. A formatted chip follows display locale/timezone rules and does not prove that the Pass
