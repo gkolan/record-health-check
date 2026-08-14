@@ -145,6 +145,15 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
       ? (Integer) check.MaxQueryRows__c
       : DEFAULT_MAX_ROWS;
 
+    RecordHealthCheckQuerySchemaValidator.validateConfiguredField(
+      check.SourceQuery__c,
+      check.SourceQueryField__c
+    );
+    RecordHealthCheckQuerySchemaValidator.validateConfiguredField(
+      check.ComparisonQuery__c,
+      check.ComparisonQueryField__c
+    );
+
     String primarySoql = soqlEvaluator.bindTokens(check.SourceQuery__c, record);
     String comparisonSoql = soqlEvaluator.bindTokens(
       check.ComparisonQuery__c,

@@ -127,7 +127,8 @@ values.
 Record Health Check deterministically pre-validates the root object and comma-separated plain field
 or relationship paths in a flat `SELECT`. Missing roots return `OBJECT_NOT_RESOLVED`; missing fields
 and relationships return `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED`; user-mode access
-remains distinct. Subqueries, `TYPEOF`, aggregate expressions and aliases, SOQL functions, date
+remains distinct. Compare Two Queries also validates its configured extraction fields against each
+query root before display or comparison. Subqueries, `TYPEOF`, aggregate expressions and aliases, SOQL functions, date
 literals, and bind/syntax errors are outside this schema subset. If those shapes fail at execution,
 they return `INVALID_SOQL_TEMPLATE`; the framework does not build a second SOQL parser or infer a
 more specific result from localized platform text.

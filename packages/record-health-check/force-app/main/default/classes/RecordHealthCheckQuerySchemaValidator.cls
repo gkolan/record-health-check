@@ -75,6 +75,38 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
     }
   }
 
+  /** Validates a configured extraction path against a simple query's root object. */
+  public static void validateConfiguredField(String soql, String fieldPath) {
+    if (
+      String.isBlank(soql) ||
+      String.isBlank(fieldPath) ||
+      RecordHealthCheckSoqlTemplate.isAggregateQuery(soql)
+    ) {
+      return;
+    }
+    Matcher query = SIMPLE_QUERY.matcher(
+      RecordHealthCheckSoqlTemplate.maskStringLiterals(soql)
+    );
+    if (!query.find()) {
+      return;
+    }
+    Schema.SObjectType objectType = RecordHealthCheckDescribeCache.resolveSObjectType(
+      query.group(2)
+    );
+    if (objectType == null) {
+      return;
+    }
+    String reasonCode = new RecordHealthCheckFieldPlanner()
+      .resolutionReasonCode(objectType, fieldPath);
+    if (reasonCode != null) {
+      throw failure(
+        reasonCode,
+        'Configured query field did not resolve or is not readable: ' +
+        fieldPath
+      );
+    }
+  }
+
   private static RecordHealthCheckEvaluatorException failure(
     String reasonCode,
     String message
