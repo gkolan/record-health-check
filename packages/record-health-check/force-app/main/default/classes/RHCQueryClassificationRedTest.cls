@@ -101,6 +101,17 @@ private class RHCQueryClassificationRedTest {
     }
   }
 
+  @IsTest
+  static void shouldFallThroughForAChildRelationshipSubquery() {
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
+      'SELECT Id, (SELECT Id FROM Contacts) FROM Account'
+    );
+    Assert.isTrue(
+      true,
+      'A supported child subquery must resolve its outer root and fall through complex select-list validation.'
+    );
+  }
+
   private static String classify(String message) {
     return RecordHealthCheckValueResolver.classifyQueryException(
       new SyntheticQueryException(message)

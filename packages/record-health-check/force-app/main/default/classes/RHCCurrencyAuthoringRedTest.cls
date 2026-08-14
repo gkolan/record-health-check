@@ -139,6 +139,38 @@ private class RHCCurrencyAuthoringRedTest {
     );
   }
 
+  @IsTest
+  static void shouldRejectIsoEqualityThatDoesNotConstrainEveryRow() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    for (
+      String query : new List<String>{
+        'SELECT SUM(AnnualRevenue) totalValue FROM Account WHERE CurrencyIsoCode = \'USD\' OR Name = \'Neutral\'',
+        'SELECT SUM(AnnualRevenue) totalValue FROM Account WHERE NOT CurrencyIsoCode = \'USD\'',
+        'SELECT SUM(AnnualRevenue) totalValue FROM Account WHERE (CurrencyIsoCode = \'USD\' OR Name = \'Neutral\')'
+      }
+    ) {
+      Assert.isTrue(
+        RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(query),
+        'An ISO equality does not prove one unit when its boolean context permits other rows: ' +
+        query
+      );
+    }
+  }
+
+  @IsTest
+  static void shouldIgnoreEscapedLiteralContentsDuringCurrencyShapeAnalysis() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    String query =
+      'SELECT SUM(AnnualRevenue) totalValue FROM Account ' +
+      'WHERE Name = \'value\\\' FROM Contact OR CurrencyIsoCode = \\\'CAD\\\'\' ' +
+      'AND CurrencyIsoCode = \'USD\'';
+
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(query),
+      'Escaped literal contents must not alter the outer root or predicate shape.'
+    );
+  }
+
   private static Record_Health_Check__mdt baseQueryCheck() {
     return new Record_Health_Check__mdt(
       DeveloperName = 'NeutralCurrencyShape',
