@@ -92,6 +92,66 @@ const projectMarkdownFiles = [
     .map((entry) => path.join(root, entry.name))
 ];
 
+// The README framework snapshot is intentionally concise, but its inventory
+// values must remain derived from the shipped source. Structural and link
+// checks cannot otherwise detect a plausible-looking stale count.
+const readme = fs.readFileSync(path.join(root, "README.md"), "utf8");
+const apexClassFiles = fs
+  .readdirSync(
+    path.join(
+      root,
+      "packages/record-health-check/force-app/main/default/classes"
+    )
+  )
+  .filter((name) => name.endsWith(".cls"));
+const apexTestClassCount = apexClassFiles.filter((name) => {
+  const source = fs.readFileSync(
+    path.join(
+      root,
+      "packages/record-health-check/force-app/main/default/classes",
+      name
+    ),
+    "utf8"
+  );
+  return name.endsWith("Test.cls") || /@IsTest\b/i.test(source);
+}).length;
+const customMetadataFieldCount = (objectName) =>
+  fs
+    .readdirSync(
+      path.join(
+        root,
+        "packages/record-health-check/force-app/main/default/objects",
+        objectName,
+        "fields"
+      )
+    )
+    .filter((name) => name.endsWith(".field-meta.xml")).length;
+const practicalExampleCount = [
+  "formula",
+  "query",
+  "compare-two-queries",
+  "apex"
+].reduce(
+  (count, folder) =>
+    count +
+    fs
+      .readdirSync(path.join(docsRoot, "examples", folder))
+      .filter((name) => name.endsWith(".md") && name !== "README.md").length,
+  0
+);
+const expectedSnapshotClaims = [
+  `${apexClassFiles.length} classes, including ${apexTestClassCount} test classes`,
+  `Record Health Check Set (${customMetadataFieldCount("Record_Health_Check_Set__mdt")} fields) and Record Health Check (${customMetadataFieldCount("Record_Health_Check__mdt")} fields)`,
+  `${markdownFiles.length} maintained pages, including ${practicalExampleCount} documented Check examples`
+];
+for (const claim of expectedSnapshotClaims) {
+  if (!readme.includes(claim)) {
+    failures.push(
+      `README.md: stale or missing framework snapshot claim: ${claim}`
+    );
+  }
+}
+
 for (const file of projectMarkdownFiles) {
   const markdown = fs.readFileSync(file, "utf8");
   const relativeFile = path.relative(root, file);
