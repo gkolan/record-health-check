@@ -89,6 +89,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         SourceQueryField__c,
         ExpectedValueSource__c,
         ExpectedFixedValue__c,
+        ExpectedCurrencyIsoCode__c,
         ExpectedRecordFormula__c,
         ComparisonQuery__c,
         ComparisonQueryField__c,
