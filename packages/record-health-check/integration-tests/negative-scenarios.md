@@ -58,12 +58,14 @@ Useful additions:
   with the combined-feature scratch definition below.
 - `--full` follows the focused war room with all local Apex tests and code coverage.
 
-The runner assigns `Record_Health_Check_Admin` only to the scratch org's default test user. Its
-restricted-persona tests create separate users and prove the real assigned and unassigned Custom
-Permission boundaries. It reads the committed suite membership and passes class names to Salesforce
-CLI, which works in both namespaced and no-namespace orgs. It never performs a system-mode comparison
-query. The `RHC_Negative_Conformance` ApexTestSuite metadata remains available for no-namespace org
-UI runs; Salesforce cannot deploy an unqualified source suite directly into a namespaced org.
+The runner assigns `Record_Health_Check_Admin` only to the scratch org's default test user. It reads
+the target org's namespace and the committed suite membership before passing class names to
+Salesforce CLI. In a namespaced org, restricted-persona tests create separate users and prove the
+real assigned and unassigned Custom Permission boundaries. In a no-namespace org, the runner skips
+only `RecordHealthCheckRestrictedPersonaTest`, whose fixture deliberately references namespaced
+schema, and runs the remaining negative suite. It never performs a system-mode comparison query.
+The `RHC_Negative_Conformance` ApexTestSuite metadata remains available for no-namespace org UI runs;
+Salesforce cannot deploy an unqualified source suite directly into a namespaced org.
 
 ## Combined Person Account and multi-currency gate
 

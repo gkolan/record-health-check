@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
-import { run, tryRun } from "../lib/run.mjs";
+import { run, runJson, tryRun } from "../lib/run.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -23,7 +23,7 @@ const suiteXml = fs.readFileSync(
   ),
   "utf8"
 );
-const negativeClasses = [
+const configuredNegativeClasses = [
   ...suiteXml.matchAll(/<testClassName>([^<]+)<\/testClassName>/g)
 ].map((match) => match[1]);
 const integrationMetadataDirectories = fs
@@ -34,6 +34,22 @@ const integrationMetadataDirectories = fs
   .map((entry) => `integration-tests/main/default/${entry.name}`);
 
 console.log(`Record Health Check war room: ${values.alias}`);
+
+const orgDisplay = runJson(
+  "sf",
+  ["org", "display", "--target-org", values.alias],
+  { cwd: paths.packageRoot }
+);
+const namespacePrefix = orgDisplay.result?.namespacePrefix ?? null;
+const negativeClasses = configuredNegativeClasses.filter(
+  (className) =>
+    namespacePrefix || className !== "RecordHealthCheckRestrictedPersonaTest"
+);
+if (!namespacePrefix) {
+  console.log(
+    "No namespace detected; the namespaced-only restricted-persona fixture is skipped."
+  );
+}
 
 if (values.deploy) {
   sf(
