@@ -66,6 +66,12 @@ private class RHCCurrencyAuthoringRedTest {
         'AnnualRevenue'
       )
     );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(
+        'SELECT RHC_Absent_Field__c FROM Account',
+        'RHC_Absent_Field__c'
+      )
+    );
     Assert.isTrue(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         'SELECT annualrevenue FROM Account',
