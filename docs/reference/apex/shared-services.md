@@ -152,7 +152,9 @@ evaluators.
 The root object is validated for every recognizable outer `SELECT ... FROM` query. A comma-separated
 list of plain fields and relationship paths is also resolved through the same FieldPlanner describe
 rules used for record loading. Aggregate functions, aliases, subqueries, `TYPEOF`, syntax, and bind
-validity remain outside this bounded validator and are never guessed from exception messages.
+validity remain outside this bounded validator and are never guessed from exception messages. A
+plain Base64/Blob field is resolved by describe and refused as `FIELD_TYPE_NOT_SUPPORTED` before
+query execution so binary data cannot enter comparison, serialization, display, or diagnostics.
 
 ### `RecordHealthCheckCurrencySupport`
 

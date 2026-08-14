@@ -8,6 +8,7 @@ public class RecordHealthCheckReasonCodes {
   public static final String CANNOT_EVALUATE = 'CANNOT_EVALUATE';
   public static final String FIELD_NOT_ACCESSIBLE = 'FIELD_NOT_ACCESSIBLE';
   public static final String FIELD_NOT_RESOLVED = 'FIELD_NOT_RESOLVED';
+  public static final String FIELD_TYPE_NOT_SUPPORTED = 'FIELD_TYPE_NOT_SUPPORTED';
   public static final String RELATIONSHIP_NOT_RESOLVED = 'RELATIONSHIP_NOT_RESOLVED';
   public static final String OBJECT_NOT_RESOLVED = 'OBJECT_NOT_RESOLVED';
   public static final String MIXED_CURRENCY = 'MIXED_CURRENCY';

@@ -98,6 +98,7 @@ a custom Apex Check.
 | --- | --- | --- |
 | `INVALID_SOQL_TEMPLATE` | `UNABLE_TO_EVALUATE` | SOQL template failed safety or parse checks. |
 | `FIELD_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured field does not exist on the resolved Salesforce object. Correct the API name or remove the Check from orgs where that schema is unavailable. |
+| `FIELD_TYPE_NOT_SUPPORTED` | `UNABLE_TO_EVALUATE` | A selected field resolves but its value type cannot safely enter the Query comparison or result contract. Base64/Blob fields are refused before query execution; use reviewed user-mode Apex that owns binary handling without returning the binary value. |
 | `RELATIONSHIP_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured relationship segment could not be resolved safely. Correct the relationship API name or traversal. |
 | `OBJECT_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | The root object in a supported Query shape does not exist in the org. Correct its API name or remove the Check from orgs where that schema is unavailable. |
 | `MIXED_CURRENCY` | `UNABLE_TO_EVALUATE` / validation | Reachable query values use more than one currency unit, a fixed Currency threshold has no declared ISO basis, or a Currency aggregate discards unit evidence. Group by `CurrencyIsoCode`, declare the fixed basis, or use Apex that explicitly owns unit handling. No conversion occurs. |

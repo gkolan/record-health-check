@@ -113,7 +113,10 @@ and relationships return `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED`; us
 remains distinct. Subqueries, `TYPEOF`, aggregate expressions and aliases, SOQL functions, date
 literals, and bind/syntax errors are outside this schema subset. If those shapes fail at execution,
 they return `INVALID_SOQL_TEMPLATE`; the framework does not build a second SOQL parser or infer a
-more specific result from localized platform text.
+more specific result from localized platform text. A resolved Base64/Blob selected field is a
+deliberately unsupported value boundary and returns `FIELD_TYPE_NOT_SUPPORTED` before query
+execution, comparison, serialization, or display. If binary inspection is essential, use reviewed
+user-mode Apex that returns only a redacted business outcome and never the binary payload.
 
 - `ALL ROWS` is rejected, so recycle-bin rows are invisible. Restore a row or use purpose-built
   administrative Apex when deleted records matter.

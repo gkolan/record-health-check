@@ -89,7 +89,7 @@ particular Salesforce feature is licensed in an org.
 | Standard/custom/namespaced objects and plain or relationship fields | Supported when global describe and user-mode SOQL expose them |
 | Number, Currency, Percent, ID, URL, Email, Phone, Date, Date/Time, and Time | Supported within the documented comparison/display boundaries |
 | Compound Address or Location | Select scalar components or use supported SOQL functions; no compound typed value is published |
-| Base64/Blob fields | Deliberately unsupported for Query comparison; binary values must not enter result or diagnostic contracts |
+| Base64/Blob fields | Deliberately unsupported for Query comparison; a plain selected Base64 field is refused before execution with `FIELD_TYPE_NOT_SUPPORTED`, and binary values must not enter result or diagnostic contracts |
 | History objects | Exact user-mode query must satisfy that object's platform restrictions |
 | Knowledge data categories | Deliberately unsupported in core Query templates; use reviewed user-mode Apex |
 | File links | Validate the exact user-mode query in a representative org; binary Version Data is unsupported |

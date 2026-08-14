@@ -63,6 +63,15 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
           fieldPath
         );
       }
+      if (
+        planner.resolvedDisplayType(objectType, fieldPath) ==
+        Schema.DisplayType.BASE64
+      ) {
+        throw failure(
+          RecordHealthCheckReasonCodes.FIELD_TYPE_NOT_SUPPORTED,
+          'Selected query field type is not supported: ' + fieldPath
+        );
+      }
     }
   }
 

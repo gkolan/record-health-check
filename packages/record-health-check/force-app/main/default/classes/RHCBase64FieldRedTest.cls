@@ -16,4 +16,11 @@ private class RHCBase64FieldRedTest {
       Assert.areEqual('FIELD_TYPE_NOT_SUPPORTED', ex.reasonCode);
     }
   }
+
+  @IsTest
+  static void shouldContinueToAcceptScalarSelectedField() {
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
+      'SELECT Title FROM ContentVersion'
+    );
+  }
 }

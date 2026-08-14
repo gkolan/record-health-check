@@ -66,6 +66,10 @@ For installation and verification, start with
 
 ### Fixed
 
+- Plain Base64/Blob fields selected by Query Checks are now refused during describe validation with
+  `FIELD_TYPE_NOT_SUPPORTED`, before binary data can reach query comparison, result serialization,
+  display, or diagnostics. Purpose-built Apex must retain user-mode visibility and return only a
+  redacted business outcome.
 - Checks whose required field or relationship path cannot be resolved now return
   `UNABLE_TO_EVALUATE` with `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED` instead of silently
   dropping the path from the record query. This is a visible reason-code behavior change for

@@ -141,6 +141,9 @@ orgs have no row ISO field and are unaffected.
 - Store reviewed SOQL in Check Custom Metadata. Do not build Check SOQL from text entered by an end
   user.
 - Keep the selected columns and row limit as small as the decision requires.
+- Base64/Blob selected fields are refused before execution with `FIELD_TYPE_NOT_SUPPORTED`. When a
+  business decision genuinely depends on binary content, use reviewed user-mode Apex and return
+  only the redacted business outcome, never the binary value.
 
 ## Outcomes and testing
 

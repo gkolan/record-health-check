@@ -47,6 +47,15 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return info.unresolvedReasonCode;
   }
 
+  /** Returns the terminal describe type for a resolved field path. */
+  public Schema.DisplayType resolvedDisplayType(
+    Schema.SObjectType objectType,
+    String fieldPath
+  ) {
+    FieldPathDescribe info = describeFieldPath(objectType, fieldPath, null);
+    return info.describe == null ? null : info.describe.getType();
+  }
+
   /**
    * Plans the selectable and inaccessible record fields for one Check.
    *
