@@ -192,6 +192,44 @@ private with sharing class RecordHealthCheckScopePlannerTest {
   }
 
   @IsTest
+  static void transactionBudgetReservesQueryExpectedValueSource() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'EvaluationType__c' => 'QUERY',
+        'ExpectedValueSource__c' => 'COMPARISON_QUERY',
+        'ComparisonQuery__c' => 'SELECT COUNT(Id) total FROM Contact',
+        'ComparisonQueryField__c' => 'total'
+      }
+    );
+
+    Test.startTest();
+    for (Integer index = 0; index < Limits.getLimitQueries() - 2; index++) {
+      List<User> ignored = [SELECT Id FROM User LIMIT 1];
+    }
+    try {
+      new RecordHealthCheckScopePlanner()
+        .enforceTransactionBudget(
+          new List<Record_Health_Check__mdt>{ check },
+          1,
+          RecordHealthCheckEventPublication.NONE
+        );
+      Assert.fail(
+        'A source query, expected-value query, and scope load need three query slots.'
+      );
+    } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
+      Assert.isTrue(
+        error.getMessage().contains('TRANSACTION_BUDGET_EXCEEDED'),
+        'Underreserved comparison-query work must fail before execution.'
+      );
+      Assert.isTrue(
+        error.getMessage().contains('queriesRequired=3'),
+        'The budget must report both Check queries plus the scope load.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
   static void transactionBudgetRejectsProjectedHeap() {
     Integer oversizedRecordCount = (Limits.getLimitHeapSize() / 768) + 1;
     List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>{
