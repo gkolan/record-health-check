@@ -62,7 +62,8 @@ rows, list membership, and operators such as **Is Empty** that do not need an Ex
   empty, `EmptyValueHandling__c` applies and an undecidable comparison returns `SKIPPED`.
 - **Merge tokens:** `{!record.FieldApiName}` can include a fallback, such as
   `{!record.Name fallback="(no name)"}`. A multi-select picklist token is formatted differently when
-  it appears inside quotes and when it is used unquoted in an `INCLUDES` condition.
+  it appears inside quotes and when it is used unquoted in an `INCLUDES` condition. Text values are
+  escaped as SOQL literals, including embedded quotes and trailing backslashes.
 
 **See also:** [Reference: Query](../evaluation/query.md)
 
