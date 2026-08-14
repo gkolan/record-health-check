@@ -810,6 +810,36 @@ describe("c-record-health-check — run orchestration", () => {
     );
   });
 
+  it("renders diagnostics from the nested public Apex display contract", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        showDiagnostics: true,
+        checks: [makeDefinitions().checks[0]]
+      })
+    );
+    evaluateCheck.mockResolvedValue({
+      evaluation: {
+        checkQualifiedApiName: "Check_A",
+        recordId: "001000000000001AAA",
+        status: "UNABLE_TO_EVALUATE",
+        reasonCode: "INVALID_FORMULA"
+      },
+      display: {
+        renderedMessage: "This check could not be evaluated.",
+        adminDetail: {
+          message: "Formula could not generate the requested field."
+        }
+      }
+    });
+    await appendAndLoad(element);
+
+    expect(element.shadowRoot.querySelector(".rhc-admin-detail")).not.toBeNull();
+    expect(element.shadowRoot.textContent).toContain(
+      "Formula could not generate the requested field."
+    );
+  });
+
   it("shows re-run button after run completes", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
