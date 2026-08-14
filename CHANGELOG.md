@@ -68,6 +68,8 @@ Target package version: **2.0.4**.
 
 ### Fixed
 
+- Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
+  display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
   so enabled Check Result and Check Set Run events contain the evaluated Checks and accurate counts.
 - Text values beginning with `(` or `[` are now rendered as text instead of being mistaken for an

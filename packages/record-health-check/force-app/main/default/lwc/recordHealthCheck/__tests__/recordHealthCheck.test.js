@@ -834,7 +834,9 @@ describe("c-record-health-check — run orchestration", () => {
     });
     await appendAndLoad(element);
 
-    expect(element.shadowRoot.querySelector(".rhc-admin-detail")).not.toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-debug-detail")
+    ).not.toBeNull();
     expect(element.shadowRoot.textContent).toContain(
       "Formula could not generate the requested field."
     );

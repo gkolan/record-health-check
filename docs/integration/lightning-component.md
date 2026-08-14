@@ -63,6 +63,8 @@ infer hidden records.
 For installation details, use [Create your first Check](../installation/create-your-first-check.md). Advanced
 diagnostic values additionally require **Show Diagnostics** and the
 **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission.
+When both are present, the card renders the server-provided admin-detail message; that detail remains
+absent for viewers without the permission and never changes record or field access.
 
 ## When the card publishes result events
 
