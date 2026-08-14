@@ -307,6 +307,10 @@ Run events enabled in Custom Metadata. Treat those events as notifications; auto
 security-sensitive or business-critical change should
 reevaluate through Apex or Flow.
 
+The card serializes each completion entry in the public `RecordHealthCheckResultItem` shape, with a
+nested `evaluation` object containing the qualified Check name, record ID, status, severity, and
+reason code. The server does not accept the card's flattened display view model as this contract.
+
 **Apex and Flow:** each direct request checks no more than 200 records in one transaction and
 publishes only according to its explicit `NONE`, `ACTIONABLE`, or `ALL` choice. It does not use the
 Lightning card's publication settings.

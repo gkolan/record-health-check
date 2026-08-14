@@ -6,6 +6,7 @@
 import {
   synthesizeResult,
   normalizeResult,
+  toCompletionResult,
   detectDependencyCycles,
   newRunId
 } from "./healthCheckModel";
@@ -379,7 +380,11 @@ export class HealthCheckRunner {
           runId: this._runId,
           source: this._source,
           recordId: this.host.recordId,
-          resultsJson: JSON.stringify(Object.values(this._resultBuffer))
+          resultsJson: JSON.stringify(
+            Object.values(this._resultBuffer).map((result) =>
+              toCompletionResult(result, this.host.recordId)
+            )
+          )
         }).catch((error) => {
           if (token === this._runToken) {
             this.host._handleCompletionFailure?.(error);

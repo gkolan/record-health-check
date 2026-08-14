@@ -68,6 +68,8 @@ Target package version: **2.0.4**.
 
 ### Fixed
 
+- User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
+  so enabled Check Result and Check Set Run events contain the evaluated Checks and accurate counts.
 - Text values beginning with `(` or `[` are now rendered as text instead of being mistaken for an
   Apex list and failing the Check during display formatting.
 - Plain Base64/Blob fields selected by Query Checks are now refused during describe validation with

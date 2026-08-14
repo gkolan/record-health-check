@@ -721,9 +721,7 @@ describe("c-record-health-check — run orchestration", () => {
 
     await clickRun(element);
 
-    const completed = JSON.parse(
-      completeRun.mock.calls[0][0].resultsJson
-    );
+    const completed = JSON.parse(completeRun.mock.calls[0][0].resultsJson);
     expect(completed).toHaveLength(2);
     expect(completed[0]).toEqual(
       expect.objectContaining({
