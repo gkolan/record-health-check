@@ -141,9 +141,9 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.stopTest();
 
     Assert.areEqual(
-      4,
+      5,
       queryDelta,
-      'The request should use one record load, one applicability query, and two comparison queries.'
+      'The request should use metadata, one record load, one applicability query, and two comparison queries.'
     );
     Assert.areEqual(
       RecordHealthCheckStatus.SKIPPED,
