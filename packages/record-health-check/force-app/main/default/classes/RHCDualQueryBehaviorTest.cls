@@ -338,7 +338,7 @@ private class RHCDualQueryBehaviorTest {
     badFieldName.SourceQueryField__c = 'Missing__c';
     assertReason(
       evaluator.evaluate(badFieldName, accountRecord.Id, accountRecord),
-      'INVALID_SOQL_TEMPLATE'
+      'FIELD_NOT_RESOLVED'
     );
 
     Record_Health_Check__mdt invalidMode = validDualCheck(
