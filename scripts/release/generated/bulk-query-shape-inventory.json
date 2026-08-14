@@ -1210,6 +1210,17 @@
     "strategy": "CHILD_DIRECT"
   },
   {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Negative_Row_Cap",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
     "aggregate": true,
     "bareCount": true,
     "check": "Example_Executive_Sponsorship",
@@ -1306,6 +1317,17 @@
     "note": "Same rows for every record; evaluate once and reuse",
     "package": "integration-tests",
     "soql": "SELECT Name FROM Restricted_Country__c WHERE Active__c = true",
+    "strategy": "SCOPE_INVARIANT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Negative_Missing_Object",
+    "correlation": "-",
+    "field": "SourceQuery__c",
+    "note": "Same rows for every record; evaluate once and reuse",
+    "package": "integration-tests",
+    "soql": "SELECT Id FROM RHC_Missing_Object__c",
     "strategy": "SCOPE_INVARIANT"
   },
   {
@@ -1603,6 +1625,39 @@
     "note": "Correlation column is Id; redundant LIMIT 1 dropped",
     "package": "integration-tests",
     "soql": "SELECT Website FROM Account WHERE Id = {!record.Id} LIMIT 1",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Negative_For_Update",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT Id FROM Account WHERE Id = {!record.Id} FOR UPDATE",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Negative_Missing_Field",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT RHC_Missing_Field__c FROM Account WHERE Id = {!record.Id}",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Negative_System_Mode",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT Id FROM Account WHERE Id = {!record.Id} WITH SYSTEM_MODE",
     "strategy": "SELF"
   },
   {
