@@ -75,7 +75,7 @@ private class RHCQueryClassificationRedTest {
     );
 
     User minimumAccess = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
-      'rhcqclass'
+      'rhcqcls'
     );
     System.runAs(minimumAccess) {
       Assert.areEqual(

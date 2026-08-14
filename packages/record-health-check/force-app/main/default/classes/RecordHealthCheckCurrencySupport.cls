@@ -126,8 +126,15 @@ public with sharing class RecordHealthCheckCurrencySupport {
       Schema.SObjectField field = fields.get(segment);
       if (field == null) {
         for (String candidate : fields.keySet()) {
-          if (candidate.equalsIgnoreCase(segment)) {
-            field = fields.get(candidate);
+          Schema.SObjectField candidateField = fields.get(candidate);
+          Schema.DescribeFieldResult candidateDescribe = candidateField.getDescribe();
+          if (
+            candidate.equalsIgnoreCase(segment) ||
+            (index < segments.size() - 1 &&
+            String.isNotBlank(candidateDescribe.getRelationshipName()) &&
+            candidateDescribe.getRelationshipName().equalsIgnoreCase(segment))
+          ) {
+            field = candidateField;
             break;
           }
         }
