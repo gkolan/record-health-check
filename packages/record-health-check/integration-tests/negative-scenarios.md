@@ -34,3 +34,30 @@ field permissions, or query shapes that cannot be made deterministic as persiste
 The namespaced `RHC_Persona_Access` fixture is intentionally not deployable to a no-namespace org.
 Run its Apex methods in the maintained namespaced scratch-org gate. Do not replace that test with a
 system-mode comparison query; restriction and scoping rules are valid visibility controls.
+
+## Repeatable row-cap data
+
+Run these scripts from `packages/record-health-check` after deploying the Framework and the negative
+fixtures:
+
+```bash
+sf apex run --file integration-tests/scripts/setup-negative-scenarios.apex --target-org <alias>
+sf apex run --file integration-tests/scripts/verify-negative-scenarios.apex --target-org <alias>
+```
+
+The setup creates three clearly named Accounts with zero, one, and two Contacts. Because the Check
+cap is one, the public facade's scope-wide query path returns `FAIL`, `PASS`, and
+`UNABLE_TO_EVALUATE / SCOPE_ROW_CAP_EXCEEDED`, respectively. The focused evaluator test suite also
+proves the per-record `ROW_LIMIT_EXCEEDED` contract. Setup is idempotent: it replaces only Accounts
+using those exact fixture names.
+
+Remove the data when finished:
+
+```bash
+sf apex run --file integration-tests/scripts/cleanup-negative-scenarios.apex --target-org <alias>
+```
+
+The missing-object, missing-field, `FOR UPDATE`, and `WITH SYSTEM_MODE` fixtures need no record data;
+their failure happens before a row can be read. Currency-mode, field-access, polymorphic, and hidden-
+scope cases remain deterministic Apex-suite fixtures because their required org configuration cannot
+be manufactured safely by an anonymous data script.

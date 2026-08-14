@@ -34,6 +34,8 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
   opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](negative-scenarios.md)
 - `RHC_Negative_Conformance`: an Apex test suite that gathers the deterministic schema, query,
   currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
+- `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
+  `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
