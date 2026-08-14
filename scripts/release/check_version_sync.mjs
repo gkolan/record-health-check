@@ -72,7 +72,7 @@ const releasedVersions = [
   releaseRegistry.previous?.version,
   releaseRegistry.candidate?.status === "released"
     ? releaseRegistry.candidate.version
-    : null,
+    : null
 ]
   .filter(Boolean)
   .map((version) => version.split(".").slice(0, 3).join("."));

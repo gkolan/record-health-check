@@ -23,9 +23,9 @@ const suiteXml = fs.readFileSync(
   ),
   "utf8"
 );
-const negativeClasses = [...suiteXml.matchAll(/<testClassName>([^<]+)<\/testClassName>/g)].map(
-  (match) => match[1]
-);
+const negativeClasses = [
+  ...suiteXml.matchAll(/<testClassName>([^<]+)<\/testClassName>/g)
+].map((match) => match[1]);
 const integrationMetadataDirectories = fs
   .readdirSync(path.join(paths.integrationTests, "main/default"), {
     withFileTypes: true
