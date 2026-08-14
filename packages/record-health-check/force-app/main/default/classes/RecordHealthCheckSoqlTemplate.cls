@@ -4,22 +4,12 @@
  */
 
 /**
- * Parenthesis-depth-aware SOQL template normalizer.
- * The single source of truth for turning an admin-authored SOQL template into a
- * query that is safe to execute: it masks string literals, recognizes clauses
- * ONLY at the outermost (depth-0) level, validates a single outer SELECT, injects
- * WITH USER_MODE in the correct place, and enforces an effective outer row cap.
- * Depth-aware parsing prevents:
- * - an ORDER BY / GROUP BY / LIMIT inside a child subquery becoming the
- * insertion point for the outer WITH USER_MODE (invalid SOQL);
- * - a subquery/literal containing LIMIT making the outer query look capped;
- * - a child aggregate making the outer query look like a pure aggregate and
- * suppressing the cap;
- * - an oversized outer LIMIT (e.g. 50000) consuming the governor limit before
- * the post-query size check;
- * - keyword rejection firing on words such as "update" inside a string literal.
- * Methods are static and do not change state. Callers map TemplateException.reasonCode
- * onto their own result/exception types.
+ * Parenthesis-depth-aware authority for administrator-authored SOQL shapes.
+ * It masks backslash-escaped string literals and recognizes only outer clauses,
+ * preventing nested clauses, aggregates, limits, or keywords from changing the
+ * root, security injection, row cap, or classification decision. It validates
+ * one outer SELECT, rejects unsafe access modes, injects WITH USER_MODE, and
+ * exposes the same structural analysis to other core query guards.
  */
 public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DML_KEYWORD = Pattern.compile(
@@ -27,6 +17,18 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   );
   private static final Pattern PATTERN_SELECT = Pattern.compile(
     '(?i)\\bSELECT\\b'
+  );
+  private static final Pattern PATTERN_FROM_OBJECT = Pattern.compile(
+    '(?i)\\bFROM\\s+([A-Za-z_][A-Za-z0-9_]*)\\b'
+  );
+  private static final Pattern PATTERN_WHERE = Pattern.compile(
+    '(?i)\\bWHERE\\b'
+  );
+  private static final Pattern PATTERN_BOOLEAN_DISJUNCTION = Pattern.compile(
+    '(?i)\\b(?:OR|NOT)\\b'
+  );
+  private static final Pattern PATTERN_FIELD_PATH = Pattern.compile(
+    '^[A-Za-z_][A-Za-z0-9_.]*$'
   );
   private static final Pattern PATTERN_GROUP_BY = Pattern.compile(
     '(?i)\\bGROUP\\s+BY\\b'
@@ -77,8 +79,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       this.reasonCode = reasonCode;
     }
   }
-
-  // ─── Public API ─────────────────────────────────────────────────────────────
 
   /**
    * Full preparation for execution: validate shape, rewrite bare COUNT(), enforce
@@ -299,7 +299,82 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return firstDepth0Match(masked, PATTERN_SINGLE_VALUE_COUNT) >= 0;
   }
 
-  // ─── Internal building blocks ───────────────────────────────────────────────
+  /** Returns the outer query's root object, ignoring literals and nested subqueries. */
+  public static String rootObject(String soql) {
+    if (String.isBlank(soql)) {
+      return null;
+    }
+    String masked = maskStringLiterals(soql);
+    Matcher fromMatcher = PATTERN_FROM_OBJECT.matcher(masked);
+    while (fromMatcher.find()) {
+      if (depthAt(masked, fromMatcher.start()) == 0) {
+        return fromMatcher.group(1);
+      }
+    }
+    return null;
+  }
+
+  /** Returns the outer SELECT list, preserving nested subqueries and literal text. */
+  public static String outerSelectList(String soql) {
+    if (String.isBlank(soql)) {
+      return null;
+    }
+    String masked = maskStringLiterals(soql);
+    List<Integer> selectBounds = firstDepth0MatchBounds(masked, PATTERN_SELECT);
+    List<Integer> fromBounds = firstDepth0MatchBounds(
+      masked,
+      PATTERN_FROM_OBJECT
+    );
+    if (
+      selectBounds == null ||
+      fromBounds == null ||
+      selectBounds[1] >= fromBounds[0]
+    ) {
+      return null;
+    }
+    return soql.substring(selectBounds[1], fromBounds[0]).trim();
+  }
+
+  /**
+   * True when an outer WHERE requires a field equality for every contributing row.
+   * This intentionally supports only conjunctive predicates; OR and NOT fail closed.
+   */
+  public static Boolean hasConjunctiveEqualityFilter(
+    String soql,
+    String fieldApiName
+  ) {
+    if (
+      String.isBlank(soql) ||
+      String.isBlank(fieldApiName) ||
+      !PATTERN_FIELD_PATH.matcher(fieldApiName.trim()).matches()
+    ) {
+      return false;
+    }
+    String masked = maskStringLiterals(soql);
+    List<Integer> whereBounds = firstDepth0MatchBounds(masked, PATTERN_WHERE);
+    if (whereBounds == null) {
+      return false;
+    }
+    Integer predicateEnd = masked.length();
+    for (Pattern tailPattern : TAIL_CLAUSE_PATTERNS) {
+      Integer tailAt = firstDepth0Match(masked, tailPattern);
+      if (tailAt > whereBounds[1] && tailAt < predicateEnd) {
+        predicateEnd = tailAt;
+      }
+    }
+    Integer withAt = firstDepth0Match(masked, PATTERN_WITH);
+    if (withAt > whereBounds[1] && withAt < predicateEnd) {
+      predicateEnd = withAt;
+    }
+    String predicate = masked.substring(whereBounds[1], predicateEnd);
+    if (PATTERN_BOOLEAN_DISJUNCTION.matcher(predicate).find()) {
+      return false;
+    }
+    Pattern equality = Pattern.compile(
+      '(?i)\\b' + fieldApiName.trim().replace('.', '\\.') + '\\s*=\\s*\'\\s*\''
+    );
+    return equality.matcher(predicate).find();
+  }
 
   /** Exactly one SELECT must appear at depth 0 (subquery SELECTs live at depth > 0). */
   private static void assertSingleOuterSelect(String soql) {
@@ -393,6 +468,20 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       }
     }
     return -1;
+  }
+
+  /** Start and end indices of the first depth-0 match, or null. */
+  private static List<Integer> firstDepth0MatchBounds(
+    String masked,
+    Pattern pattern
+  ) {
+    Matcher matcher = pattern.matcher(masked);
+    while (matcher.find()) {
+      if (depthAt(masked, matcher.start()) == 0) {
+        return new List<Integer>{ matcher.start(), matcher.end() };
+      }
+    }
+    return null;
   }
 
   /** Parenthesis nesting depth at `index` in the (literal-masked) string. */

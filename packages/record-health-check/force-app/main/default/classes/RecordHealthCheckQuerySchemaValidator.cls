@@ -1,8 +1,5 @@
 /** Deterministic describe validation for the documented simple-query subset. */
 public with sharing class RecordHealthCheckQuerySchemaValidator {
-  private static final Pattern SIMPLE_QUERY = Pattern.compile(
-    '(?is)^\\s*SELECT\\s+(.+?)\\s+FROM\\s+([A-Za-z_][A-Za-z0-9_]*)\\b'
-  );
   private static final Pattern SIMPLE_FIELD = Pattern.compile(
     '^[A-Za-z_][A-Za-z0-9_.]*$'
   );
@@ -19,13 +16,11 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
     if (String.isBlank(soql)) {
       return;
     }
-    Matcher query = SIMPLE_QUERY.matcher(
-      RecordHealthCheckSoqlTemplate.maskStringLiterals(soql)
-    );
-    if (!query.find()) {
+    String objectApiName = RecordHealthCheckSoqlTemplate.rootObject(soql);
+    String selectList = RecordHealthCheckSoqlTemplate.outerSelectList(soql);
+    if (objectApiName == null || selectList == null) {
       return;
     }
-    String objectApiName = query.group(2);
     Schema.SObjectType objectType = RecordHealthCheckDescribeCache.resolveSObjectType(
       objectApiName
     );
@@ -44,7 +39,6 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
       );
     }
 
-    String selectList = query.group(1).trim();
     if (selectList.containsIgnoreCase('TYPEOF')) {
       return;
     }
@@ -99,14 +93,12 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
     ) {
       return;
     }
-    Matcher query = SIMPLE_QUERY.matcher(
-      RecordHealthCheckSoqlTemplate.maskStringLiterals(soql)
-    );
-    if (!query.find()) {
+    String objectApiName = RecordHealthCheckSoqlTemplate.rootObject(soql);
+    if (objectApiName == null) {
       return;
     }
     Schema.SObjectType objectType = RecordHealthCheckDescribeCache.resolveSObjectType(
-      query.group(2)
+      objectApiName
     );
     if (objectType == null) {
       return;

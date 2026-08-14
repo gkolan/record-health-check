@@ -109,12 +109,16 @@ outer SOQL clause.
 | Member | Purpose |
 | --- | --- |
 | `prepareForExecution(soql, maxRows)` | Prepare and limit SOQL written by an administrator |
+| `rootObject(soql)` | Resolve the outer query root without mistaking a literal or child subquery `FROM` for the root |
+| `outerSelectList(soql)` | Return the outer select list while preserving nested query text |
+| `hasConjunctiveEqualityFilter(soql, fieldApiName)` | Prove a literal equality only for a conjunctive outer predicate; `OR` and `NOT` fail closed |
 | `TemplateException` (nested) | Exception carrying `reasonCode` |
 
 **Notable behavior:**
 
 - The class temporarily replaces characters inside quoted text with spaces while locating SOQL
-  clauses. Keeping the same character positions lets it safely edit the original query afterward.
+  clauses, including backslash-escaped quotes. Keeping the same character positions lets it safely
+  edit the original query afterward.
 - It inserts `WITH USER_MODE` before `GROUP BY`, `ORDER BY`, `LIMIT`, and other ending clauses where
   Salesforce requires it. `WITH SYSTEM_MODE` is rejected because it would bypass the running user's
   record, object, and field access.

@@ -101,7 +101,8 @@ FormulaEval workaround. Normalize in Query/Apex when cross-currency comparison i
 formatting adds a code/symbol but does not change comparison units. Currency authoring guards resolve
 both direct fields and relationship paths through describe metadata. They apply only in
 multi-currency orgs; an aggregate may retain one unit either by grouping on `CurrencyIsoCode` or by
-filtering it to one literal ISO code.
+filtering it to one literal ISO code in a conjunctive outer predicate. Predicates containing `OR`
+or `NOT` do not prove that every contributing row has that unit and are refused.
 
 `TODAY()`, `NOW()`, `DATEVALUE()`, and datetime comparisons follow FormulaEval and the running-user
 context. A formatted chip follows display locale/timezone rules and does not prove that the Pass
