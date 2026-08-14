@@ -714,6 +714,28 @@ describe("c-record-health-check — run orchestration", () => {
     );
   });
 
+  it("sends completion results in the nested Apex result-item contract", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+
+    await clickRun(element);
+
+    const completed = JSON.parse(
+      completeRun.mock.calls[0][0].resultsJson
+    );
+    expect(completed).toHaveLength(2);
+    expect(completed[0]).toEqual(
+      expect.objectContaining({
+        evaluation: expect.objectContaining({
+          checkQualifiedApiName: "Check_A",
+          recordId: "001000000000001AAA",
+          status: "PASS"
+        })
+      })
+    );
+  });
+
   it("threads a correlation runId into both Apex calls", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
