@@ -17,6 +17,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Map<String, String> calculatedFormulaOverrideByField;
   private Set<String> inaccessibleFieldsBeingPlanned;
+  private Map<String, String> unresolvedReasonCodesBeingPlanned;
   private Boolean verdictDependenciesTruncatedBeingPlanned;
 
   public Set<String> collectRecordFields(
@@ -38,6 +39,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.SObjectType objectType
   ) {
     inaccessibleFieldsBeingPlanned = new Set<String>();
+    unresolvedReasonCodesBeingPlanned = new Map<String, String>();
     verdictDependenciesTruncatedBeingPlanned = false;
     Set<String> fields = new Set<String>{ 'Id' };
 
@@ -107,8 +109,12 @@ public with sharing class RecordHealthCheckFieldPlanner {
     FieldPlan result = new FieldPlan();
     result.selectedFields.addAll(fields);
     result.inaccessibleFields.addAll(inaccessibleFieldsBeingPlanned);
+    result.unresolvedReasonCodesByField.putAll(
+      unresolvedReasonCodesBeingPlanned
+    );
     result.verdictDependenciesTruncated = verdictDependenciesTruncatedBeingPlanned;
     inaccessibleFieldsBeingPlanned = null;
+    unresolvedReasonCodesBeingPlanned = null;
     verdictDependenciesTruncatedBeingPlanned = null;
     return result;
   }
@@ -166,30 +172,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     );
   }
 
-  /**
-   * Adds every field a formula expression needs to the SELECT set — including the
-   * transitive dependencies of any calculated (formula / roll-up) operand.
-   * FormulaEval regenerates formula-field values from the in-memory SObject at
-   * evaluation time, so a check like `FieldA__c > 0` — where `FieldA__c` is a
-   * formula of `FieldX__c + FieldY__c` — needs FieldX__c and FieldY__c loaded
-   * not just FieldA__c. Loading only the top-level name makes FormulaEval throw
-   * "could not generate the requested field". This walks each referenced field's
-   * own `getCalculatedFormula()` definition recursively until it reaches plain
-   * source fields, for formulas of any return type (number, text, date, boolean
-   * picklist) and any function — the expansion is driven by Schema, not by the
-   * specific syntax used.
-   * @param fields accumulating SELECT set (rooted at baseType)
-   * @param baseType the record's SObjectType — the SELECT root; never changes
-   * @param resolveType the type the CURRENT formula's tokens resolve against
-   * (equals baseType at the top level, or a parent type when
-   * recursing into a cross-object formula definition)
-   * @param formula the formula text being scanned at this level
-   * @param pathPrefix relationship path from baseType to resolveType, with a
-   * trailing '.', or '' at the top level
-   * @param depth current recursion depth (capped)
-   * @param visited root-path- and owner-qualified names of calculated fields
-   * already expanded, to break cycles and re-convergent graphs
-   */
+  /** Recursively expands calculated-field operands into selectable source fields. */
   private void expandFormulaDependencies(
     Set<String> fields,
     Schema.SObjectType baseType,
@@ -323,6 +306,15 @@ public with sharing class RecordHealthCheckFieldPlanner {
       inaccessibleFieldsBeingPlanned != null
     ) {
       inaccessibleFieldsBeingPlanned.add(fieldPath);
+    } else if (
+      info != null &&
+      info.unresolvedReasonCode != null &&
+      unresolvedReasonCodesBeingPlanned != null
+    ) {
+      unresolvedReasonCodesBeingPlanned.put(
+        fieldPath,
+        info.unresolvedReasonCode
+      );
     }
   }
 
@@ -332,8 +324,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
    * relationship prefix needed to root nested dependencies back at the path.
    * Lookups are case-insensitive (a token typed as `website` or
    * `BILLINGCITY` still resolves against the lowercase Schema field map).
-   * Returns null if any segment is missing or an intermediate relationship field
-   * is inaccessible — the caller then simply skips the field.
+   * Missing schema and inaccessible schema are returned explicitly so callers
+   * can keep them distinct while excluding both from the user-mode SELECT.
    */
   private FieldPathDescribe describeFieldPath(
     Schema.SObjectType objectType,
@@ -352,7 +344,9 @@ public with sharing class RecordHealthCheckFieldPlanner {
         parts[i]
       );
       if (relationshipField == null) {
-        return null;
+        return unresolvedPath(
+          RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED
+        );
       }
       if (
         !RecordHealthCheckDescribeCache.describeField(relationshipField)
@@ -373,7 +367,9 @@ public with sharing class RecordHealthCheckFieldPlanner {
         ? reference.relationshipType
         : selectReferenceType(referenceTypes, parts[i + 1]);
       if (currentType == null) {
-        return null;
+        return unresolvedPath(
+          RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED
+        );
       }
     }
     Schema.SObjectField terminal = getFieldCaseInsensitive(
@@ -381,7 +377,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
       parts[parts.size() - 1]
     );
     if (terminal == null) {
-      return null;
+      return unresolvedPath(RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED);
     }
     FieldPathDescribe out = new FieldPathDescribe();
     out.describe = RecordHealthCheckDescribeCache.describeField(terminal);
@@ -390,6 +386,12 @@ public with sharing class RecordHealthCheckFieldPlanner {
       ? ''
       : String.join(relationshipParts, '.') + '.';
     return out;
+  }
+
+  private FieldPathDescribe unresolvedPath(String reasonCode) {
+    FieldPathDescribe unresolved = new FieldPathDescribe();
+    unresolved.unresolvedReasonCode = reasonCode;
+    return unresolved;
   }
 
   /**
@@ -406,17 +408,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return fieldMap.get(name);
   }
 
-  /**
-   * Picks the polymorphic candidate type whose schema actually contains the
-   * next path segment. A single-candidate reference (the common, non-polymorphic
-   * case) always resolves to that candidate. When two or more candidates exist
-   * (genuine polymorphism, e.g. Owner: User or Group) and none of them exposes
-   * the next segment, this fails closed by returning null rather than guessing
-   * candidates[0] — a silent wrong-type guess can otherwise resolve to a
-   * same-named-but-unrelated field on the wrong object. The caller treats null
-   * exactly like any other unresolvable path: the field is skipped, which lets
-   * FormulaEval surface UNABLE_TO_EVALUATE instead of a silently wrong value.
-   */
+  /** Selects a safe flat-SOQL target and fails closed for ambiguous polymorphism. */
   private Schema.SObjectType selectReferenceType(
     List<Schema.SObjectType> candidates,
     String nextPathPart
@@ -472,6 +464,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Schema.SObjectType ownerType;
     String relationshipPrefix;
     Boolean inaccessible = false;
+    String unresolvedReasonCode;
   }
 
   private class CalculatedDependency {
@@ -485,6 +478,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
   public class FieldPlan {
     public Set<String> selectedFields = new Set<String>();
     public Set<String> inaccessibleFields = new Set<String>();
+    public Map<String, String> unresolvedReasonCodesByField = new Map<String, String>();
     public Boolean verdictDependenciesTruncated = false;
   }
 }

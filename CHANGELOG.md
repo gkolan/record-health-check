@@ -66,6 +66,11 @@ For installation and verification, start with
 
 ### Fixed
 
+- Checks whose required field or relationship path cannot be resolved now return
+  `UNABLE_TO_EVALUATE` with `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED` instead of silently
+  dropping the path from the record query. This is a visible reason-code behavior change for
+  configurations that reference schema absent from the current org.
+
 - Formula field planning now recognizes validated Salesforce polymorphic colon references such as
   `Owner:User.IsActive` and retains the explicitly selected relationship type during dependency
   expansion.

@@ -97,6 +97,8 @@ a custom Apex Check.
 | Code | Typical status | Meaning |
 | --- | --- | --- |
 | `INVALID_SOQL_TEMPLATE` | `UNABLE_TO_EVALUATE` | SOQL template failed safety or parse checks. |
+| `FIELD_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured field does not exist on the resolved Salesforce object. Correct the API name or remove the Check from orgs where that schema is unavailable. |
+| `RELATIONSHIP_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured relationship segment could not be resolved safely. Correct the relationship API name or traversal. |
 | `INVALID_OPERATOR` | `UNABLE_TO_EVALUATE` | Comparison Operator is missing or cannot be used with the selected Evaluation Type and query-result setting. |
 | `INCOMPATIBLE_COMPARISON_TYPES` | `UNABLE_TO_EVALUATE` | Ordered comparison cannot convert the two sides safely. |
 | `MULTIPLE_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | `ONE_RESULT` expected one row/aggregate but got more. |

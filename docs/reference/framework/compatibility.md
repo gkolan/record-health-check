@@ -84,12 +84,12 @@ plan normally. A Formula Pass Condition or display formula referencing them beha
 any other field, including automatic field-level-security and dependency-expansion handling.
 
 These fields exist only when Person Accounts are enabled for the org. A Check authored (or copied
-from a Person-Account org) that references a Person* field will not describe that field in a
-business-Account-only org; FieldPlanner silently omits an unresolvable path from the SELECT the
-same way it omits any other unknown field, which can produce `UNABLE_TO_EVALUATE` or an unintended
-`FAIL` rather than a configuration error. Packaged example Checks never reference Person* fields for
-this reason. They must work in every subscriber org regardless of whether Person Accounts are
-enabled.
+from a Person-Account org) that references a Person* field in a business-Account-only org returns
+`UNABLE_TO_EVALUATE` / `FIELD_NOT_RESOLVED`; an unresolved relationship traversal returns
+`RELATIONSHIP_NOT_RESOLVED`. Record Health Check never guesses whether the cause is a disabled
+feature, an uninstalled package, or an incorrect API name. Packaged example Checks still avoid
+Person* fields because they must work in every subscriber org regardless of whether Person Accounts
+are enabled.
 
 See [Platform limitations and safe patterns](platform-limitations.md#person-accounts) for the
 business-to-person field map, vacuous Contact-count warning, and applicability recipes.
