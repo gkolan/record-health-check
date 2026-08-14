@@ -203,9 +203,15 @@ private with sharing class RecordHealthCheckScopePlannerTest {
     );
 
     Test.startTest();
+    Integer rowsObserved = 0;
     for (Integer index = 0; index < Limits.getLimitQueries() - 2; index++) {
-      List<User> ignored = [SELECT Id FROM User LIMIT 1];
+      // code-analyzer-suppress-next-line OperationWithLimitsInLoop: This boundary test deliberately consumes all but two query slots so the planner must reject three-slot comparison work before execution.
+      rowsObserved += [SELECT COUNT() FROM User LIMIT 1];
     }
+    Assert.isTrue(
+      rowsObserved > 0,
+      'The budget setup must execute its queries.'
+    );
     try {
       new RecordHealthCheckScopePlanner()
         .enforceTransactionBudget(
