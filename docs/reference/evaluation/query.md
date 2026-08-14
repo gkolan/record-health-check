@@ -137,6 +137,8 @@ orgs have no row ISO field and are unaffected.
   such as `{!record.AnnualRevenue fallback="0"}`.
 - Use field API names, not labels, in SOQL.
 - Queries run in user mode and enforce the running user's record, object, and field access.
+- A zero-row result means no rows were visible to that user-mode transaction. It does not establish
+  org-wide absence, and the framework never uses elevated queries to infer hidden rows.
 - A missing object, field, record, or relationship permission can return `UNABLE_TO_EVALUATE`.
 - Store reviewed SOQL in Check Custom Metadata. Do not build Check SOQL from text entered by an end
   user.

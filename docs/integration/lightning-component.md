@@ -55,6 +55,11 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 5. Confirm the card returns rows and summary counts. Click Run or Rerun only when an explicit run is
    intended.
 
+Every card query uses the viewing user's effective access. An empty Query result means no matching
+rows were visible to that transaction; it is not proof of org-wide absence. Sharing, restriction
+rules, and scoping rules are intentional visibility controls, and the card never bypasses them to
+infer hidden records.
+
 For installation details, use [Create your first Check](../installation/create-your-first-check.md). Advanced
 diagnostic values additionally require **Show Diagnostics** and the
 **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission.

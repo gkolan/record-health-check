@@ -49,7 +49,16 @@ The user who starts each Salesforce transaction supplies the access used in that
 | Scheduled Apex or Batch Apex | The user under whom Salesforce executes that scheduled or Batch transaction |
 
 Record Health Check queries business records with `WITH USER_MODE`. Salesforce therefore enforces
-object access, field access, record sharing, and restriction rules for that user.
+object access, field access, record sharing, restriction rules, scoping rules, and future user-mode
+visibility controls for that user.
+
+Query outcomes describe only the rows visible in that transaction. Zero returned rows do not prove
+that no matching rows exist elsewhere in the org; they prove that the configured user-mode query
+found no visible rows. Record Health Check never runs an elevated comparison query to distinguish a
+truly empty dataset from rows hidden by sharing, restriction rules, or scoping rules. Doing so would
+leak the existence of data the running user cannot access. Choose the Check's configured no-rows
+policy with that visible-scope meaning in mind. Org-wide completeness requires a separately
+authorized administrative design outside the ordinary evaluator.
 
 If the initial record query cannot return a requested record, its result uses
 `RECORD_NOT_VISIBLE`. A field-access problem is returned publicly as `CANNOT_EVALUATE`; an authorized

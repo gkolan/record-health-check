@@ -196,6 +196,10 @@ elevate record, object, field, or sharing access.
 A user-run screen Flow and system-context automation can produce different results for the same
 record. Always test in the Flow's actual run context.
 
+No-rows behavior is also context-relative: it means the Flow transaction's effective user-mode
+scope contained no matching visible rows. The action does not issue an elevated comparison query to
+discover rows hidden by sharing, restriction rules, or scoping rules.
+
 ## Limits and bulk use
 
 Flow sends a collection of requests to the packaged action. The public limits apply to each
