@@ -64,6 +64,8 @@ For installation and verification, start with
 
 ## Unreleased
 
+Target package version: **2.0.4**.
+
 ### Fixed
 
 - Plain Base64/Blob fields selected by Query Checks are now refused during describe validation with
