@@ -10,11 +10,18 @@
     <testClassName>RHCQueryClassificationRedTest</testClassName>
     <testClassName>RHCRowLimitOutcomeTest</testClassName>
     <testClassName>RecordHealthCheckAdversarialBoundaryTest</testClassName>
+    <testClassName>RecordHealthCheckBulkQueryDepthTest</testClassName>
     <testClassName>RecordHealthCheckConfigServiceTest</testClassName>
+    <testClassName>RecordHealthCheckControllerTest</testClassName>
     <testClassName>RecordHealthCheckContractHarnessTest</testClassName>
     <testClassName>RecordHealthCheckDiagnosticTraceTest</testClassName>
     <testClassName>RecordHealthCheckEvaluatorBehaviorTest</testClassName>
+    <testClassName>RecordHealthCheckLifecyclePublisherTest</testClassName>
     <testClassName>RecordHealthCheckMetadataValidatorTest</testClassName>
+    <testClassName>RecordHealthCheckRestrictedPersonaTest</testClassName>
+    <testClassName>RecordHealthCheckScopePlannerTest</testClassName>
+    <testClassName>RecordHealthCheckSoqlTokenBinderTest</testClassName>
     <testClassName>RecordHealthCheckSoqlTemplateTest</testClassName>
+    <testClassName>RecordHealthCheckTemplateServiceTest</testClassName>
     <testClassName>RecordHealthCheckValueResolverTest</testClassName>
 </ApexTestSuite>

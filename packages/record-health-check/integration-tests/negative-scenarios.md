@@ -7,33 +7,63 @@ a time, observe the expected fail-closed result, and deactivate it before contin
 `RHC_Negative_Conformance` Apex test suite supplies cases that require synthetic schema, currencies,
 field permissions, or query shapes that cannot be made deterministic as persistent Custom Metadata.
 
-| Scenario                                   | Reusable integration evidence                                                                         |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Missing object                             | `RHC_Negative_Missing_Object` Check and `RHCQueryClassificationRedTest`                               |
-| Missing field                              | `RHC_Negative_Missing_Field` Check and `RHCAbsentSchemaRedTest`                                       |
-| Field inaccessible in user mode            | `RecordHealthCheckEvaluatorBehaviorTest` and the existing `RHC_Persona_Access` harness                |
-| Invalid SOQL                               | `RHC_Negative_For_Update`, `RHC_Negative_System_Mode`, and `RHCConfigCheckValidationTest`             |
-| Row count above cap                        | `RHC_Negative_Row_Cap` and `RHCRowLimitOutcomeTest`                                                   |
-| Row count exactly at cap                   | `RHCRowLimitOutcomeTest`                                                                              |
-| Outer object with SELECT subquery          | `RecordHealthCheckSoqlTemplateTest`                                                                   |
-| Currency equality only in semi-join        | `RHCCurrencyAuthoringRedTest`                                                                         |
-| Outer OR or NOT currency predicate         | `RHCCurrencyAuthoringRedTest`                                                                         |
-| OR inside semi-join                        | `RHCCurrencyAuthoringRedTest`                                                                         |
-| Mixed-currency aggregate/list refusal      | `RHCMixedCurrencyRedTest` and `RHCCurrencyAuthoringRedTest`                                           |
-| Single-currency aggregate and fixed value  | `RHCCurrencyAuthoringRedTest`                                                                         |
-| Missing required expected ISO code         | `RHCCurrencyAuthoringRedTest`                                                                         |
-| Unsupported polymorphic path               | `RHCPolymorphicQuerySafetyTest`                                                                       |
-| Sharing/FLS visible-scope preservation     | `RecordHealthCheckContractHarnessTest` and `RHC_Persona_Access`                                       |
-| Invalid comparison/type/unit pairing       | `RHCConfigCheckValidationTest`                                                                        |
-| Null and no-row policies                   | Existing `Account_QC_ERB_*`, `Account_QC_NullBehavior_*`, and `RHCEvaluatorEdgeBehaviorTest` fixtures |
-| More than 25 active Checks                 | Existing `Example_Account_Over_25_Checks` Check Set                                                   |
-| Unsafe keywords and malformed merge tokens | `RecordHealthCheckSoqlTemplateTest` and `RecordHealthCheckAdversarialBoundaryTest`                    |
-| Diagnostics permission gating              | `RecordHealthCheckConfigServiceTest`                                                                  |
-| Diagnostic cap-plus-one query              | `RecordHealthCheckDiagnosticTraceTest`                                                                |
+| Scenario                                    | Reusable integration evidence                                                                         |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Missing object                              | `RHC_Negative_Missing_Object` Check and `RHCQueryClassificationRedTest`                               |
+| Missing field                               | `RHC_Negative_Missing_Field` Check and `RHCAbsentSchemaRedTest`                                       |
+| Field inaccessible in user mode             | `RecordHealthCheckEvaluatorBehaviorTest` and the existing `RHC_Persona_Access` harness                |
+| Invalid SOQL                                | `RHC_Negative_For_Update`, `RHC_Negative_System_Mode`, and `RHCConfigCheckValidationTest`             |
+| Row count above cap                         | `RHC_Negative_Row_Cap` and `RHCRowLimitOutcomeTest`                                                   |
+| Row count exactly at cap                    | `RHCRowLimitOutcomeTest`                                                                              |
+| Outer object with SELECT subquery           | `RecordHealthCheckSoqlTemplateTest`                                                                   |
+| Literal/nested bulk clauses and correlation | `RecordHealthCheckBulkQueryDepthTest`                                                                 |
+| Currency equality only in semi-join         | `RHCCurrencyAuthoringRedTest`                                                                         |
+| Outer OR or NOT currency predicate          | `RHCCurrencyAuthoringRedTest`                                                                         |
+| OR inside semi-join                         | `RHCCurrencyAuthoringRedTest`                                                                         |
+| Mixed-currency aggregate/list refusal       | `RHCMixedCurrencyRedTest` and `RHCCurrencyAuthoringRedTest`                                           |
+| Single-currency aggregate and fixed value   | `RHCCurrencyAuthoringRedTest`                                                                         |
+| Missing required expected ISO code          | `RHCCurrencyAuthoringRedTest`                                                                         |
+| Unsupported polymorphic path                | `RHCPolymorphicQuerySafetyTest`                                                                       |
+| Sharing/FLS visible-scope preservation      | `RecordHealthCheckContractHarnessTest` and `RHC_Persona_Access`                                       |
+| Invalid comparison/type/unit pairing        | `RHCConfigCheckValidationTest`                                                                        |
+| Null and no-row policies                    | Existing `Account_QC_ERB_*`, `Account_QC_NullBehavior_*`, and `RHCEvaluatorEdgeBehaviorTest` fixtures |
+| More than 25 active Checks                  | Existing `Example_Account_Over_25_Checks` Check Set                                                   |
+| Unsafe keywords and malformed merge tokens  | `RecordHealthCheckSoqlTemplateTest` and `RecordHealthCheckAdversarialBoundaryTest`                    |
+| Diagnostics permission gating               | `RecordHealthCheckConfigServiceTest`                                                                  |
+| Diagnostic cap-plus-one query               | `RecordHealthCheckDiagnosticTraceTest`                                                                |
+| Query plus expected-query budget exhaustion | `RecordHealthCheckScopePlannerTest`                                                                   |
+| Trailing backslash in a SOQL token value    | `RecordHealthCheckSoqlTokenBinderTest`                                                                |
+| Blank optional field in explicit Check load | `RecordHealthCheckConfigServiceTest`                                                                  |
+| Literal `"null"` versus actual null token   | `RecordHealthCheckTemplateServiceTest`                                                                |
+| Real missing Run Custom Permission          | `RecordHealthCheckRestrictedPersonaTest`                                                              |
+| Browser completion payload and status trust | `RecordHealthCheckControllerTest`; events are advisory and must be re-evaluated before action         |
 
 The namespaced `RHC_Persona_Access` fixture is intentionally not deployable to a no-namespace org.
 Run its Apex methods in the maintained namespaced scratch-org gate. Do not replace that test with a
 system-mode comparison query; restriction and scoping rules are valid visibility controls.
+
+## One-command war room
+
+From the repository root, run the committed negative suite plus persistent row-cap setup and
+verification against an already deployed contributor org:
+
+```bash
+npm run test:war-room -- --alias <alias>
+```
+
+Useful additions:
+
+- `--deploy` deploys `force-app` and `integration-tests` first.
+- `--combined-features` also seeds and tests Person Accounts with active USD and EUR. Use it only
+  with the combined-feature scratch definition below.
+- `--full` follows the focused war room with all local Apex tests and code coverage.
+
+The runner assigns `Record_Health_Check_Admin` only to the scratch org's default test user. Its
+restricted-persona tests create separate users and prove the real assigned and unassigned Custom
+Permission boundaries. It reads the committed suite membership and passes class names to Salesforce
+CLI, which works in both namespaced and no-namespace orgs. It never performs a system-mode comparison
+query. The `RHC_Negative_Conformance` ApexTestSuite metadata remains available for no-namespace org
+UI runs; Salesforce cannot deploy an unqualified source suite directly into a namespaced org.
 
 ## Combined Person Account and multi-currency gate
 
@@ -64,7 +94,8 @@ The setup creates three clearly named Accounts with zero, one, and two Contacts.
 cap is one, the public facade's scope-wide query path returns `FAIL`, `PASS`, and
 `UNABLE_TO_EVALUATE / SCOPE_ROW_CAP_EXCEEDED`, respectively. The focused evaluator test suite also
 proves the per-record `ROW_LIMIT_EXCEEDED` contract. Setup is idempotent: it replaces only Accounts
-using those exact fixture names.
+using those exact fixture names. Verification resolves the Check's `QualifiedApiName`, so the same
+script works in namespaced and no-namespace orgs.
 
 Remove the data when finished:
 

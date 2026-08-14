@@ -36,6 +36,8 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
   currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
   `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
+- `npm run test:war-room -- --alias <alias>`: cross-platform deploy-optional runner for the negative
+  suite, row-cap data lifecycle, combined Person Account/currency gate, and optional full Apex run
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests

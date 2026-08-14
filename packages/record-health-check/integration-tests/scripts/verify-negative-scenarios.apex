@@ -47,11 +47,17 @@ Map<String, Map<String, Object>> expectedByName = new Map<String, Map<String, Ob
   }
 };
 Map<String, Object> observedByName = new Map<String, Object>();
+String qualifiedCheckName = [
+  SELECT QualifiedApiName
+  FROM Record_Health_Check__mdt
+  WHERE DeveloperName = 'RHC_Negative_Row_Cap'
+  LIMIT 1
+].QualifiedApiName;
 
 for (String fixtureName : expectedByName.keySet()) {
   RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
     RecordHealthCheckRequest.forCheck(
-        'RHC_Negative_Row_Cap',
+        qualifiedCheckName,
         accountByName.get(fixtureName).Id
       )
       .withRunId(
