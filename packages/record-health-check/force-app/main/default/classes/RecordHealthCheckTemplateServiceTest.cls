@@ -115,6 +115,27 @@ private class RecordHealthCheckTemplateServiceTest {
   }
 
   @IsTest
+  static void preservesLiteralNullTextInFinalizedResultTokens() {
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.actualValue = 'null';
+    RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
+      .withResult(result, true);
+
+    Test.startTest();
+    String rendered = RecordHealthCheckTemplateService.resolveDisplay(
+      '{!rhcResult.foundValue fallback="Not measured"}',
+      context
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'null',
+      rendered,
+      'The text "null" is populated business data, not an Apex null value.'
+    );
+  }
+
+  @IsTest
   static void preservesExistingBlankBehaviorAndEncodesUrlFallbacks() {
     RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
       .withRecord(
