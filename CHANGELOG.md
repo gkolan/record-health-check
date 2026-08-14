@@ -73,6 +73,8 @@ Target package version: **2.0.4**.
 - Scope-wide Query Check classification now ignores `LIMIT`, `ORDER BY`, and correlation-like text
   inside string literals or nested subqueries. Nested-only record correlation fails closed instead
   of rewriting the outer query from the wrong parenthesis depth.
+- Transaction planning now reserves both SOQL executions for a Query Check whose expected value
+  comes from `COMPARISON_QUERY`, preventing a late governor-limit failure after evaluation begins.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,

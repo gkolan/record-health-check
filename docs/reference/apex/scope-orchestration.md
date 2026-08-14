@@ -52,6 +52,9 @@ applicable and whether a prerequisite result requires the Check to be skipped.
 **Notable behavior:**
 
 - **Important:** an applicability miss returns `SKIPPED` with a Reason Code; it is not a Fail.
+- Transaction planning reserves the scope record load, applicability queries, every evaluator
+  query, both sides of Compare Two Queries, and the second query used when a Query Check selects
+  `COMPARISON_QUERY` as its expected-value source.
 
 ### `RecordHealthCheckEvaluatorRegistry`
 
