@@ -122,7 +122,7 @@ for every requested record and did not perform a prohibited database write.
 
 **Type:** Shared helper · `public with sharing`
 
-`runQuery` safely adds a row limit, runs the query, and returns `GOVERNOR_LIMIT_RISK` when the query
+`runQuery` safely adds a row limit, runs the query, and returns `ROW_LIMIT_EXCEEDED` when the query
 finds more records than the Check permits. The other methods create consistent results when a query
 returns no records or an empty field value.
 

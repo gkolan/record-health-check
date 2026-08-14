@@ -4,14 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RecordHealthCheckCurrencySupport {
-  private static final Pattern FROM_PATTERN = Pattern.compile(
-    '(?is)\\bFROM\\s+([A-Za-z0-9_]+)'
+  private static final Pattern STRUCTURAL_TOKEN_PATTERN = Pattern.compile(
+    '(?is)\\x27(?:\\x27\\x27|[^\\x27])*\\x27|(\\()|(\\))|\\bFROM\\s+([A-Za-z0-9_]+)'
   );
   private static final Pattern CURRENCY_AGGREGATE_PATTERN = Pattern.compile(
     '(?is)\\b(?:SUM|AVG|MIN|MAX)\\s*\\(\\s*([A-Za-z0-9_.]+)\\s*\\)'
   );
   private static final Pattern ISO_GROUP_PATTERN = Pattern.compile(
     '(?is)\\bGROUP\\s+BY\\s+[^;]*\\bCurrencyIsoCode\\b'
+  );
+  private static final Pattern ISO_FILTER_TOKEN_PATTERN = Pattern.compile(
+    '(?is)\\x27(?:\\x27\\x27|[^\\x27])*\\x27|(\\()|(\\))|\\bCurrencyIsoCode\\s*=\\s*\\x27([A-Za-z]{3})\\x27'
   );
 
   /** Refuses a comparison only when reachable row evidence proves multiple units. */
@@ -45,11 +48,16 @@ public with sharing class RecordHealthCheckCurrencySupport {
 
   /** True when a query collapses a Currency field without retaining ISO grouping. */
   public static Boolean hasUngroupedCurrencyAggregate(String query) {
-    if (String.isBlank(query)) {
+    if (
+      String.isBlank(query) ||
+      !RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()
+    ) {
       return false;
     }
     Matcher aggregateMatcher = CURRENCY_AGGREGATE_PATTERN.matcher(query);
-    if (ISO_GROUP_PATTERN.matcher(query).find()) {
+    if (
+      ISO_GROUP_PATTERN.matcher(query).find() || hasTopLevelIsoFilter(query)
+    ) {
       return false;
     }
     while (aggregateMatcher.find()) {
@@ -96,17 +104,47 @@ public with sharing class RecordHealthCheckCurrencySupport {
     if (String.isBlank(query) || String.isBlank(fieldPath)) {
       return false;
     }
-    Matcher fromMatcher = FROM_PATTERN.matcher(query);
-    if (!fromMatcher.find()) {
+    String rootObject = topLevelFromObject(query);
+    if (rootObject == null) {
       return false;
     }
     Schema.SObjectType currentType = RecordHealthCheckDescribeCache.resolveSObjectType(
-      fromMatcher.group(1)
+      rootObject
     );
     if (currentType == null) {
       return false;
     }
     return isCurrencyField(currentType, fieldPath);
+  }
+
+  private static String topLevelFromObject(String query) {
+    Matcher tokens = STRUCTURAL_TOKEN_PATTERN.matcher(query);
+    Integer depth = 0;
+    while (tokens.find()) {
+      if (tokens.group(1) != null) {
+        depth++;
+      } else if (tokens.group(2) != null) {
+        depth = Math.max(0, depth - 1);
+      } else if (depth == 0 && tokens.group(3) != null) {
+        return tokens.group(3);
+      }
+    }
+    return null;
+  }
+
+  private static Boolean hasTopLevelIsoFilter(String query) {
+    Matcher tokens = ISO_FILTER_TOKEN_PATTERN.matcher(query);
+    Integer depth = 0;
+    while (tokens.find()) {
+      if (tokens.group(1) != null) {
+        depth++;
+      } else if (tokens.group(2) != null) {
+        depth = Math.max(0, depth - 1);
+      } else if (depth == 0 && tokens.group(3) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static Boolean isCurrencyField(

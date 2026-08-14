@@ -6,6 +6,9 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
   private static final Pattern SIMPLE_FIELD = Pattern.compile(
     '^[A-Za-z_][A-Za-z0-9_.]*$'
   );
+  private static final Pattern SIMPLE_AGGREGATE = Pattern.compile(
+    '(?is)^(?:COUNT|COUNT_DISTINCT|SUM|AVG|MIN|MAX)\\s*\\(\\s*([A-Za-z_][A-Za-z0-9_.]*|\\*)?\\s*\\)(?:\\s+[A-Za-z_][A-Za-z0-9_]*)?$'
+  );
 
   /**
    * Validates root schema for every query and selected paths for simple flat queries.
@@ -42,28 +45,25 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
     }
 
     String selectList = query.group(1).trim();
-    if (
-      selectList.contains('(') ||
-      selectList.contains(')') ||
-      selectList.containsIgnoreCase('TYPEOF')
-    ) {
+    if (selectList.containsIgnoreCase('TYPEOF')) {
       return;
     }
     RecordHealthCheckFieldPlanner planner = new RecordHealthCheckFieldPlanner();
     for (String selectedField : selectList.split(',')) {
       String fieldPath = selectedField.trim();
       if (!SIMPLE_FIELD.matcher(fieldPath).matches()) {
-        return;
+        Matcher aggregate = SIMPLE_AGGREGATE.matcher(fieldPath);
+        if (!aggregate.matches()) {
+          return;
+        }
+        fieldPath = aggregate.group(1);
+        if (String.isBlank(fieldPath) || fieldPath == '*') {
+          continue;
+        }
       }
-      String reasonCode = planner.resolutionReasonCode(objectType, fieldPath);
-      if (reasonCode != null) {
-        throw failure(
-          reasonCode,
-          'Selected query field did not resolve or is not readable: ' +
-          fieldPath
-        );
-      }
+      validateFieldPath(planner, objectType, fieldPath, 'Selected query field');
       if (
+        !RecordHealthCheckSoqlTemplate.isAggregateQuery(soql) &&
         planner.resolvedDisplayType(objectType, fieldPath) ==
         Schema.DisplayType.BASE64
       ) {
@@ -72,6 +72,21 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
           'Selected query field type is not supported: ' + fieldPath
         );
       }
+    }
+  }
+
+  private static void validateFieldPath(
+    RecordHealthCheckFieldPlanner planner,
+    Schema.SObjectType objectType,
+    String fieldPath,
+    String label
+  ) {
+    String reasonCode = planner.resolutionReasonCode(objectType, fieldPath);
+    if (reasonCode != null) {
+      throw failure(
+        reasonCode,
+        label + ' did not resolve or is not readable: ' + fieldPath
+      );
     }
   }
 

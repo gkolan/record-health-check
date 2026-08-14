@@ -409,6 +409,7 @@ public with sharing class RecordHealthCheckValidator {
     }
     if (
       check.ExpectedValueSource__c == 'FIXED_VALUE' &&
+      RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() &&
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         check.SourceQuery__c,
         check.SourceQueryField__c

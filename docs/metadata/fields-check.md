@@ -494,10 +494,11 @@ formula syntax or quotation marks: `Approved`, `5`, or `2025-01-31`.
 
 ### Expected Currency ISO Code (`ExpectedCurrencyIsoCode__c`)
 
-Optional Text(3), except that it is required when a Query Check compares a Currency field with a
-fixed value. Enter the fixed value's ISO unit, such as `USD` or `EUR`. This declaration lets Record
-Health Check refuse a cross-unit comparison; it never converts a value. Leave it blank for
-non-Currency fields and expected values that do not come from **Fixed value**.
+Optional Text(3), except that it is required in a multi-currency org when a Query Check compares a
+Currency field with a fixed value. Enter the fixed value's ISO unit, such as `USD` or `EUR`. This
+declaration lets Record Health Check refuse a cross-unit comparison; it never converts a value.
+Leave it blank in single-currency orgs, for non-Currency fields, and for expected values that do not
+come from **Fixed value**.
 
 ### Expected Value (Formula) (`ExpectedRecordFormula__c`)
 

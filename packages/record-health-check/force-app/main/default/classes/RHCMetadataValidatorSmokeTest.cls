@@ -27,8 +27,9 @@ private class RHCMetadataValidatorSmokeTest {
     );
   }
 
-  // Guards shipped examples against errors outside the new currency authoring findings.
-  // Updating legacy examples is deliberately outside this core-only correction scope.
+  // Guards shipped examples in the single-currency configuration they were authored for.
+  // Multi-currency orgs correctly receive currency-basis findings until optional examples declare
+  // an ISO basis or retain ISO identity; those recipe changes remain outside core.
   @IsTest
   static void packagedActiveMetadataHasNoValidationErrors() {
     Test.startTest();
@@ -38,7 +39,11 @@ private class RHCMetadataValidatorSmokeTest {
 
     List<String> errors = new List<String>();
     for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
-      if (issue.severity == 'ERROR' && issue.reasonCode != 'MIXED_CURRENCY') {
+      if (
+        issue.severity == 'ERROR' &&
+        !(RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() &&
+        issue.reasonCode == 'MIXED_CURRENCY')
+      ) {
         errors.add(
           issue.componentName +
             '.' +

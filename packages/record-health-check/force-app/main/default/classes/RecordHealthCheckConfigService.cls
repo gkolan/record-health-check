@@ -240,6 +240,7 @@ public with sharing class RecordHealthCheckConfigService {
         SourceQueryField__c,
         ExpectedValueSource__c,
         ExpectedFixedValue__c,
+        ExpectedCurrencyIsoCode__c,
         ExpectedRecordFormula__c,
         ComparisonQuery__c,
         ComparisonQueryField__c,

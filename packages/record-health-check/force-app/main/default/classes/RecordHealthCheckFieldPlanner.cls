@@ -2,31 +2,26 @@
  * @author Gautam Kolan (https://github.com/gkolan)
  * SPDX-License-Identifier: Apache-2.0
  */
-
 public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Boolean multiCurrencyOrganizationOverride;
   // GROUP BY / aggregate detection lives in RecordHealthCheckSoqlTemplate,
   // the single SOQL-shape authority.
-
   // Caps how deep a formula → formula → … chain is walked when expanding
   // calculated-field dependencies, so a misconfigured or cyclic graph can never
   // run away. The visited set already breaks true cycles; this is a hard ceiling.
   private static final Integer FORMULA_DEPENDENCY_DEPTH_CAP = 10;
-
   @TestVisible
   private Map<String, String> calculatedFormulaOverrideByField;
   private Set<String> inaccessibleFieldsBeingPlanned;
   private Map<String, String> unresolvedReasonCodesBeingPlanned;
   private Boolean verdictDependenciesTruncatedBeingPlanned;
-
   public Set<String> collectRecordFields(
     Record_Health_Check__mdt check,
     Schema.SObjectType objectType
   ) {
     return planRecordFields(check, objectType).selectedFields;
   }
-
   /**
    * Resolves one configured path using the same describe rules as record planning.
    * @param objectType Root Salesforce object type.
@@ -46,7 +41,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
     return info.unresolvedReasonCode;
   }
-
   /** Returns the terminal describe type for a resolved field path. */
   public Schema.DisplayType resolvedDisplayType(
     Schema.SObjectType objectType,
@@ -55,7 +49,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     FieldPathDescribe info = describeFieldPath(objectType, fieldPath, null);
     return info.describe == null ? null : info.describe.getType();
   }
-
   /**
    * Plans the selectable and inaccessible record fields for one Check.
    *
@@ -71,7 +64,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     unresolvedReasonCodesBeingPlanned = new Map<String, String>();
     verdictDependenciesTruncatedBeingPlanned = false;
     Set<String> fields = new Set<String>{ 'Id' };
-
     // Token syntax and registry membership were validated when the check loaded;
     // collect the referenced record fields needed for message rendering.
     addMergeFields(fields, objectType, check.FailureMessage__c);
@@ -90,7 +82,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     // Found / Expected values the Framework writes can carry it.
     addMergeFields(fields, objectType, check.DisplayFoundText__c);
     addMergeFields(fields, objectType, check.DisplayExpectedText__c);
-
     if (check.EvaluationType__c == 'FORMULA') {
       addFormulaFields(fields, objectType, check.PassConditionFormula__c, true);
       // Optional Found / Expected single-value formulas get the SAME calculated-field
@@ -118,7 +109,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     if (check.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
       addFormulaFields(fields, objectType, check.ApplicabilityFormula__c, true);
     }
-
     // In an org with more than one currency, an amount is shown in the record's
     // own currency, so the record has to carry it. Asked for whatever the Check's
     // Display: Value Format says, because Auto may still resolve to Currency
@@ -147,7 +137,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     verdictDependenciesTruncatedBeingPlanned = null;
     return result;
   }
-
   private Boolean shouldSelectCurrencyField(
     Boolean multiCurrencyOrganization,
     Set<String> availableFields
@@ -155,7 +144,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return multiCurrencyOrganization &&
       availableFields.contains('currencyisocode');
   }
-
   private void addMergeFields(
     Set<String> fields,
     Schema.SObjectType objectType,
@@ -164,7 +152,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     if (String.isBlank(template)) {
       return;
     }
-
     for (
       String fieldPath : RecordHealthCheckTemplateService.recordPaths(
         template,
@@ -174,7 +161,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
       addReadableField(fields, objectType, fieldPath);
     }
   }
-
   private void addFormulaFields(
     Set<String> fields,
     Schema.SObjectType objectType,
@@ -200,8 +186,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
       verdictAffecting
     );
   }
-
-  /** Recursively expands calculated-field operands into selectable source fields. */
+  /**
+   * Expands calculated operands because FormulaEval regenerates values from the hydrated SObject.
+   * Root-qualified visit keys break cycles without merging paths through different relationships;
+   * the depth cap records verdict truncation rather than evaluating a partial dependency graph.
+   */
   private void expandFormulaDependencies(
     Set<String> fields,
     Schema.SObjectType baseType,
@@ -261,7 +250,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
       }
     }
   }
-
   private CalculatedDependency calculatedDependency(
     Schema.SObjectType resolveType,
     String token,
@@ -347,6 +335,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
   }
 
+  /**
+   * Resolves a relationship path while distinguishing readable, inaccessible, and unresolved
+   * schema. Typed polymorphism uses its declared type; untyped ambiguity fails closed instead of
+   * choosing a same-named field on an arbitrary candidate.
+   */
   private FieldPathDescribe describeFieldPath(
     Schema.SObjectType objectType,
     String fieldPath,
@@ -414,7 +407,10 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return unresolved;
   }
 
-  /** Resolves admin-authored field names using the native case-insensitive map. */
+  /**
+   * Uses Salesforce's native case-insensitive describe map; copying it would require explicit key
+   * normalization and could make behavior depend on authored casing.
+   */
   private Schema.SObjectField getFieldCaseInsensitive(
     Map<String, Schema.SObjectField> fieldMap,
     String name
@@ -425,7 +421,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return fieldMap.get(name);
   }
 
-  /** Selects a safe flat-SOQL target and fails closed for ambiguous polymorphism. */
+  /**
+   * Selects only targets representable by flat SOQL. Genuine polymorphism permits Name-entity fields;
+   * type-specific fields require TYPEOF. Ambiguity returns null so FormulaEval is unable rather than
+   * silently hydrating an unrelated same-named field from a guessed type.
+   */
   private Schema.SObjectType selectReferenceType(
     List<Schema.SObjectType> candidates,
     String nextPathPart

@@ -89,7 +89,12 @@ public with sharing class RecordHealthCheckValueResolver {
     return current.get(parts[parts.size() - 1]);
   }
 
-  /** Maps typed access failures; remaining execution failures are invalid templates. */
+  /**
+   * Maps access exceptions that retain a distinct runtime type. Supported flat and aggregate query
+   * fields are describe-classified before execution, because Salesforce reports some USER_MODE FLS
+   * denials as QueryException and localized exception text is not a stable classification contract.
+   * Remaining execution failures are invalid templates.
+   */
   public static String classifyQueryException(Exception qex) {
     return qex instanceof System.NoAccessException
       ? RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE
