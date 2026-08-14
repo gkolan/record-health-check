@@ -22,6 +22,13 @@ const packagingProject = JSON.parse(
 const packageDirectory = packagingProject.packageDirectories.find(
   (entry) => entry.default === true
 );
+const lifecyclePublisher = readFileSync(
+  resolve(
+    root,
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckLifecyclePublisher.cls"
+  ),
+  "utf8"
+);
 
 if (!packageDirectory) {
   console.error(
@@ -87,6 +94,14 @@ if (packageDirectory.versionNumber !== expectedVersionNumber) {
 if (packageDirectory.versionName !== expectedVersionName) {
   failures.push(
     `versionName must be "${expectedVersionName}"; found "${packageDirectory.versionName}".`
+  );
+}
+const frameworkVersionMatch = lifecyclePublisher.match(
+  /FRAMEWORK_VERSION\s*=\s*'([^']+)'/
+);
+if (frameworkVersionMatch?.[1] !== productVersion) {
+  failures.push(
+    `RecordHealthCheckLifecyclePublisher.FRAMEWORK_VERSION must be "${productVersion}"; found "${frameworkVersionMatch?.[1] ?? "missing"}".`
   );
 }
 
