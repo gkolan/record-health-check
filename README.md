@@ -89,7 +89,7 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 2GP unlocked package  | `rhc` namespace                                                                                                          |
 | Apex                  | 192 classes, including 96 test classes · 99.60% namespaced package coverage · 99.53% subscriber-style floor              |
-| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 190 Jest tests · 98.99% line coverage · 94.68% branch coverage         |
+| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 190 Jest tests · 98.99% line coverage · 94.71% branch coverage         |
 | Packaged examples     | 4 packaged Example Check Sets containing 21 Checks                                                                       |
 | Permission sets       | Record Health Check User and Record Health Check Admin                                                                   |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                         |
