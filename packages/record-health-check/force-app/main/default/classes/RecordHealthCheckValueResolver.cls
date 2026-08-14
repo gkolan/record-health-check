@@ -89,18 +89,11 @@ public with sharing class RecordHealthCheckValueResolver {
     return current.get(parts[parts.size() - 1]);
   }
 
-  /**
-   * Maps a query failure to a reason code: access/permission issues vs bad SOQL.
-   * Accepts any Exception (System.QueryException is not constructible with a custom
-   * message, so the parameter is the base type) — only the message is inspected.
-   */
+  /** Maps typed access failures; remaining execution failures are invalid templates. */
   public static String classifyQueryException(Exception qex) {
-    String m = qex.getMessage() == null ? '' : qex.getMessage();
-    Boolean access =
-      m.containsIgnoreCase('access') ||
-      m.containsIgnoreCase('permission') ||
-      m.containsIgnoreCase('insufficient privileges');
-    return access ? 'FIELD_NOT_ACCESSIBLE' : 'INVALID_SOQL_TEMPLATE';
+    return qex instanceof System.NoAccessException
+      ? RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE
+      : 'INVALID_SOQL_TEMPLATE';
   }
 
   // ─── Equality ───────────────────────────────────────────────────────────────

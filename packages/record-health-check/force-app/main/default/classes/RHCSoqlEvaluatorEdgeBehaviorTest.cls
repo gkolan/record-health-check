@@ -168,9 +168,9 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
 
     Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
     Assert.areEqual(
-      'INVALID_SOQL_TEMPLATE',
+      'FIELD_NOT_RESOLVED',
       result.reasonCode,
-      'A platform QueryException must map to the stable template reason.'
+      'A supported flat selected field must be describe-validated before execution.'
     );
   }
 

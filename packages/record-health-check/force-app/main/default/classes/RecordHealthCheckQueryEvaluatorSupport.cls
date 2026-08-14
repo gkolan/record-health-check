@@ -10,6 +10,7 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
   );
 
   public static List<SObject> runQuery(String soql, Integer maxRows) {
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(soql);
     String queryToRun;
     try {
       queryToRun = RecordHealthCheckSoqlTemplate.prepareForExecution(

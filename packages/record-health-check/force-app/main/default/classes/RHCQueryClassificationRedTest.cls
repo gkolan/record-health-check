@@ -19,7 +19,7 @@ private class RHCQueryClassificationRedTest {
   static void shouldClassifyAbsentObjectAsSchemaAbsence() {
     Assert.areEqual(
       'OBJECT_NOT_RESOLVED',
-      classify('sObject type \'RHC_Absent_Object__c\' is not supported.'),
+      validate('SELECT Id FROM RHC_Absent_Object__c'),
       'An absent root object is a schema-resolution failure.'
     );
   }
@@ -28,9 +28,7 @@ private class RHCQueryClassificationRedTest {
   static void shouldClassifyAbsentColumnAsSchemaAbsence() {
     Assert.areEqual(
       'FIELD_NOT_RESOLVED',
-      classify(
-        'No such column \'RHC_Does_Not_Exist__c\' on entity \'Account\'.'
-      ),
+      validate('SELECT RHC_Does_Not_Exist__c FROM Account'),
       'An absent selected field is a schema-resolution failure.'
     );
   }
@@ -47,9 +45,9 @@ private class RHCQueryClassificationRedTest {
   @IsTest
   static void shouldPreserveKnownBaselineClassifications() {
     Assert.areEqual(
-      'FIELD_NOT_ACCESSIBLE',
+      'INVALID_SOQL_TEMPLATE',
       classify('insufficient privileges to read the selected field'),
-      'The existing English access case documents the baseline behavior.'
+      'Untyped execution failures must not be promoted from English message text.'
     );
     Assert.areEqual(
       'INVALID_SOQL_TEMPLATE',
@@ -62,6 +60,15 @@ private class RHCQueryClassificationRedTest {
     return RecordHealthCheckValueResolver.classifyQueryException(
       new SyntheticQueryException(message)
     );
+  }
+
+  private static String validate(String soql) {
+    try {
+      RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(soql);
+      return null;
+    } catch (RecordHealthCheckEvaluatorException ex) {
+      return ex.reasonCode;
+    }
   }
 
   private class SyntheticQueryException extends Exception {

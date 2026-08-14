@@ -107,6 +107,14 @@ document the timezone and test users on both sides of the boundary.
 
 ## Query and data-model boundaries
 
+Record Health Check deterministically pre-validates the root object and comma-separated plain field
+or relationship paths in a flat `SELECT`. Missing roots return `OBJECT_NOT_RESOLVED`; missing fields
+and relationships return `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED`; user-mode access
+remains distinct. Subqueries, `TYPEOF`, aggregate expressions and aliases, SOQL functions, date
+literals, and bind/syntax errors are outside this schema subset. If those shapes fail at execution,
+they return `INVALID_SOQL_TEMPLATE`; the framework does not build a second SOQL parser or infer a
+more specific result from localized platform text.
+
 - `ALL ROWS` is rejected, so recycle-bin rows are invisible. Restore a row or use purpose-built
   administrative Apex when deleted records matter.
 - `WITH DATA CATEGORY` is rejected because it cannot be safely combined with framework-managed

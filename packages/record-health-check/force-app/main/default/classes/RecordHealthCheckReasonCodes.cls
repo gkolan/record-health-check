@@ -9,6 +9,7 @@ public class RecordHealthCheckReasonCodes {
   public static final String FIELD_NOT_ACCESSIBLE = 'FIELD_NOT_ACCESSIBLE';
   public static final String FIELD_NOT_RESOLVED = 'FIELD_NOT_RESOLVED';
   public static final String RELATIONSHIP_NOT_RESOLVED = 'RELATIONSHIP_NOT_RESOLVED';
+  public static final String OBJECT_NOT_RESOLVED = 'OBJECT_NOT_RESOLVED';
   public static final String FORMULA_DEPENDENCY_DEPTH_EXCEEDED = 'FORMULA_DEPENDENCY_DEPTH_EXCEEDED';
   public static final String RECORD_NOT_ACCESSIBLE = 'RECORD_NOT_ACCESSIBLE';
   public static final String NOT_APPLICABLE_BY_FORMULA = 'NOT_APPLICABLE_BY_FORMULA';

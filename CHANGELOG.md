@@ -70,6 +70,9 @@ For installation and verification, start with
   `UNABLE_TO_EVALUATE` with `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED` instead of silently
   dropping the path from the record query. This is a visible reason-code behavior change for
   configurations that reference schema absent from the current org.
+- Query failures no longer depend on English exception-message matching. Root objects and plain
+  selected field paths in the documented flat-query subset are describe-validated before both
+  single and bulk execution; other execution failures fall back to `INVALID_SOQL_TEMPLATE`.
 
 - Formula field planning now recognizes validated Salesforce polymorphic colon references such as
   `Owner:User.IsActive` and retains the explicitly selected relationship type during dependency

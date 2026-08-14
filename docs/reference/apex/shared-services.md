@@ -125,24 +125,34 @@ outer SOQL clause.
 
 **Type:** Shared service · `public with sharing`
 
-Reads fields from rows and `AggregateResult`s (including relationship paths), classifies
-`QueryException` messages into access vs template reason codes, and compares numeric / datetime /
-string values consistently for both Query evaluators.
+Reads fields from rows and `AggregateResult`s (including relationship paths), classifies typed
+query failures, and compares numeric / datetime / string values consistently for both Query
+evaluators.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
 | `traverse(...)` | Read a (possibly relationship-dotted) field path off a row |
-| `classifyQueryException(...)` | Map a `QueryException` message to a reason code |
+| `classifyQueryException(...)` | Map a typed execution exception to a reason code without reading localized text |
 | `ResolverException` (nested) | Exception carrying `reasonCode` |
 
 **Notable behavior:**
 
 - When a related record in a field path such as `Account.Owner.Name` is missing, `traverse` returns
   `null` instead of throwing an exception.
-- `classifyQueryException` checks the exception message for access or permission wording. It returns
-  `FIELD_NOT_ACCESSIBLE` for an access problem and `INVALID_SOQL_TEMPLATE` for other query problems.
+- Supported flat query schema is describe-validated before execution. A typed
+  `System.NoAccessException` maps to `FIELD_NOT_ACCESSIBLE`; remaining execution exceptions map to
+  `INVALID_SOQL_TEMPLATE`. No reason code depends on localized exception text.
+
+### `RecordHealthCheckQuerySchemaValidator`
+
+**Role:** Deterministically validate the supported flat-query schema subset before execution.
+
+The root object is validated for every recognizable outer `SELECT ... FROM` query. A comma-separated
+list of plain fields and relationship paths is also resolved through the same FieldPlanner describe
+rules used for record loading. Aggregate functions, aliases, subqueries, `TYPEOF`, syntax, and bind
+validity remain outside this bounded validator and are never guessed from exception messages.
 
 ### `RecordHealthCheckDescribeCache`
 

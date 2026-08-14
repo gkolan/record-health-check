@@ -28,6 +28,26 @@ public with sharing class RecordHealthCheckFieldPlanner {
   }
 
   /**
+   * Resolves one configured path using the same describe rules as record planning.
+   * @param objectType Root Salesforce object type.
+   * @param fieldPath Field or relationship path to resolve.
+   * @return Null when readable, otherwise a stable access or resolution reason.
+   */
+  public String resolutionReasonCode(
+    Schema.SObjectType objectType,
+    String fieldPath
+  ) {
+    FieldPathDescribe info = describeFieldPath(objectType, fieldPath, null);
+    if (
+      info.inaccessible ||
+      (info.describe != null && !info.describe.isAccessible())
+    ) {
+      return RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE;
+    }
+    return info.unresolvedReasonCode;
+  }
+
+  /**
    * Plans the selectable and inaccessible record fields for one Check.
    *
    * @param check Check whose runtime surfaces may reference record fields.
@@ -394,10 +414,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return unresolved;
   }
 
-  /**
-   * Case-insensitive field lookup against a Schema field map (whose keys are
-   * lowercased), so admin-authored API names resolve regardless of typed case.
-   */
+  /** Resolves admin-authored field names using the native case-insensitive map. */
   private Schema.SObjectField getFieldCaseInsensitive(
     Map<String, Schema.SObjectField> fieldMap,
     String name
@@ -458,7 +475,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     return null;
   }
 
-  /** Terminal-field describe plus the context needed to root nested dependencies. */
   private class FieldPathDescribe {
     Schema.DescribeFieldResult describe;
     Schema.SObjectType ownerType;

@@ -51,6 +51,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     Map<Id, SObject> loadedRecords,
     Integer maxRows
   ) {
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(soqlTemplate);
     if (loadedRecords == null) {
       loadedRecords = new Map<Id, SObject>();
     }
