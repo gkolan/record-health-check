@@ -130,9 +130,9 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.stopTest();
 
     Assert.areEqual(
-      4,
+      2,
       queryDelta,
-      'The request should use metadata, record load, one applicability query, and one source query.'
+      'Custom Metadata reads do not consume SOQL limits; the request should use one record load and one planned evaluator query.'
     );
     Assert.areEqual(
       RecordHealthCheckStatus.SKIPPED,
