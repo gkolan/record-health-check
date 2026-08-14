@@ -375,7 +375,7 @@ private class RHCDualQueryBehaviorTest {
     maxRows.MaxQueryRows__c = 1;
     assertReason(
       evaluator.evaluate(maxRows, accountRecord.Id, accountRecord),
-      'GOVERNOR_LIMIT_RISK'
+      'ROW_LIMIT_EXCEEDED'
     );
   }
 

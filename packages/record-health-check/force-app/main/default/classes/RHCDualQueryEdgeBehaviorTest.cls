@@ -247,7 +247,7 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected compare-queries row cap exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('GOVERNOR_LIMIT_RISK', ex.reasonCode);
+      Assert.areEqual('ROW_LIMIT_EXCEEDED', ex.reasonCode);
     }
     try {
       RecordHealthCheckQueryEvaluatorSupport.runQuery(
