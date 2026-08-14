@@ -68,6 +68,8 @@ Target package version: **2.0.4**.
 
 ### Fixed
 
+- Text values beginning with `(` or `[` are now rendered as text instead of being mistaken for an
+  Apex list and failing the Check during display formatting.
 - Plain Base64/Blob fields selected by Query Checks are now refused during describe validation with
   `FIELD_TYPE_NOT_SUPPORTED`, before binary data can reach query comparison, result serialization,
   display, or diagnostics. Purpose-built Apex must retain user-mode visibility and return only a

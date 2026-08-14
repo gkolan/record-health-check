@@ -100,7 +100,10 @@ public with sharing class RecordHealthCheckDisplayFormat {
     // Object boundary. Confirm its Apex shape, then cast without a JSON
     // round-trip so typed Date, Datetime, and Time entries keep their types.
     String apexShape = String.valueOf(value);
-    if (apexShape.startsWith('[') || apexShape.startsWith('(')) {
+    if (
+      !(value instanceof String) &&
+      (apexShape.startsWith('[') || apexShape.startsWith('('))
+    ) {
       return RecordHealthCheckComparisonDisplay.formatList(
         (List<Object>) value,
         format,

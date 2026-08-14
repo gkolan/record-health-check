@@ -44,7 +44,9 @@ A Check that names Currency shows `$70,000.00` against `at least $50,000.00`, ne
 
 Text and Raw both return the value as written. They are separate choices so the Check records the
 reason for the decision: use Text for names and ordinary wording, and Raw for identifiers, external
-keys, and codes.
+keys, codes, or values whose punctuation must remain exact. Leading collection-like punctuation is still
+text: values such as `(555) 867-5309` and `[Legacy] Record` are rendered unchanged and are never
+interpreted as lists.
 
 `PERCENT` follows Salesforce Percent-field behavior and does not multiply. `RATIO_PERCENT` is the
 explicit fraction format; it does not restrict values to 100%, so `1.4` displays as `140%`. The format applies
