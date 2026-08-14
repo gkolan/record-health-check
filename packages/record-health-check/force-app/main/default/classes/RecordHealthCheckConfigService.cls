@@ -227,6 +227,7 @@ public with sharing class RecordHealthCheckConfigService {
         MasterLabel,
         CheckTitle__c,
         CheckDescription__c,
+        Category__c,
         EvaluationOrder__c,
         IsActive__c,
         EvaluationType__c,
