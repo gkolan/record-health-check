@@ -113,6 +113,9 @@ public with sharing class RecordHealthCheckCurrencySupport {
     Schema.SObjectType currentType,
     String fieldPath
   ) {
+    if (currentType == null || String.isBlank(fieldPath)) {
+      return false;
+    }
     List<String> segments = fieldPath.split('\\.');
     for (Integer index = 0; index < segments.size(); index++) {
       Schema.DescribeSObjectResult objectDescribe = RecordHealthCheckDescribeCache.describeSObject(
