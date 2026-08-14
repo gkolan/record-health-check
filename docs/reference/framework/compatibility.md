@@ -63,8 +63,10 @@ require an otherwise supported Salesforce edition and the package permissions de
 Multiple currencies are supported for display. Found and Expected can each show their own currency,
 and every row in a list can show its own currency.
 
-Record Health Check does not convert money from one currency to another. If a Check compares values
-in different currencies, its Formula, Query, or Apex code must perform the required conversion. See
+Record Health Check does not convert money from one currency to another. Query and Compare two
+queries Checks refuse reachable mixed ISO units with `MIXED_CURRENCY`; fixed thresholds against a
+Currency field require an explicit ISO basis. Currency aggregates must retain ISO grouping or use a
+custom Apex Check that explicitly owns its unit policy. See
 [Display value format: Currency](../contracts/display-value-format.md#currency).
 
 A Formula Pass Condition compares the raw stored number regardless of currency: an Account with
@@ -73,8 +75,32 @@ A Formula Pass Condition compares the raw stored number regardless of currency: 
 workaround. Measured directly against FormulaEval, it throws because `CurrencyIsoCode` is a
 picklist field and picklists are only supported in certain formula functions. Advanced Currency
 Management's dated conversion rates (`DatedConversionRate`) are not applied by any evaluator. A
-Check that must compare amounts across currencies needs a Query or Apex evaluator that performs the
-conversion itself; a Formula Check cannot.
+Check that requires conversion needs a reviewed custom Apex implementation with an explicit rate,
+date, rounding, access, and audit contract; core Query and Formula evaluation do not convert.
+
+## Audited platform data shapes
+
+Core is describe- and API-name-driven; it does not contain product object names or business
+semantics. The following classifications describe the supported framework surface, not whether a
+particular Salesforce feature is licensed in an org.
+
+| Shape | Compatibility status |
+| --- | --- |
+| Standard/custom/namespaced objects and plain or relationship fields | Supported when global describe and user-mode SOQL expose them |
+| Number, Currency, Percent, ID, URL, Email, Phone, Date, Date/Time, and Time | Supported within the documented comparison/display boundaries |
+| Compound Address or Location | Select scalar components or use supported SOQL functions; no compound typed value is published |
+| Base64/Blob fields | Deliberately unsupported for Query comparison; binary values must not enter result or diagnostic contracts |
+| History objects | Exact user-mode query must satisfy that object's platform restrictions |
+| Knowledge data categories | Deliberately unsupported in core Query templates; use reviewed user-mode Apex |
+| File links | Validate the exact user-mode query in a representative org; binary Version Data is unsupported |
+| External objects, Big Objects, Data 360 objects | Not tested because the project fixtures do not provision those licensed object families |
+| Shield-encrypted strings and Geolocation custom fields | Not tested; validate with a licensed neutral fixture before relying on them |
+
+Query templates support ordinary scalar, relationship, semi/anti-join, aggregate, and grouped
+aggregate shapes when Salesforce accepts them under user mode. `ALL ROWS`, system mode, and
+Knowledge `WITH DATA CATEGORY` are deliberately rejected. Polymorphic paths are limited to
+explicit or flat Name-entity-safe fields; paths that require `TYPEOF` use a purpose-built Query or
+Apex Check.
 
 ## Person Accounts
 
