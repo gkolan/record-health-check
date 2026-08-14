@@ -190,6 +190,7 @@
         <members>RHCFormulaEdgeBehaviorTest</members>
         <members>RHCSoqlEvaluatorEdgeBehaviorTest</members>
         <members>RecordHealthCheckAdminDetail</members>
+        <members>RecordHealthCheckBulkQueryDepthTest</members>
         <members>RecordHealthCheckBulkQuerySupport</members>
         <members>RecordHealthCheckBulkQueryRewriter</members>
         <members>RecordHealthCheckBulkQueryRewriteTest</members>

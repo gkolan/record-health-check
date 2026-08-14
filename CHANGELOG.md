@@ -79,6 +79,9 @@ Target package version: **2.0.4**.
   Check object safe for presentation-token consumers without an unqueried-field exception.
 - Finalized result merge tokens now preserve the literal text value `"null"`; only an actual Apex
   null resolves blank or activates a configured fallback.
+- Apex tests no longer receive an implicit run-permission grant. Namespaced restricted-persona
+  conformance now proves the actual Custom Permission boundary across Apex, Lightning, Flow, and
+  asynchronous entry points.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
