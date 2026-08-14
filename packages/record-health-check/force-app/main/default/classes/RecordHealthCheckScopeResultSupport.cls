@@ -176,7 +176,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       ? RecordHealthCheckStatus.SKIPPED
       : RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
     result.reasonCode = applies == false
-      ? 'APPLICABILITY_NOT_MET'
+      ? RecordHealthCheckReasonCodes.APPLICABILITY_NOT_MET
       : reasonCode[0];
     result.message = applies == false
       ? check.ApplicabilityNotMetMessage__c
@@ -212,7 +212,11 @@ public with sharing class RecordHealthCheckScopeResultSupport {
           check.ApplicabilityCountQuery__c
         ) || check.ApplicabilityCountThreshold__c == null
       ) {
-        return unavailableForScope(check, recordIds, 'INVALID_SOQL_TEMPLATE');
+        return unavailableForScope(
+          check,
+          recordIds,
+          RecordHealthCheckReasonCodes.INVALID_SOQL_TEMPLATE
+        );
       }
       RecordHealthCheckBulkQuerySupport.Result scopeCounts = RecordHealthCheckBulkQuerySupport.execute(
         check.ApplicabilityCountQuery__c,

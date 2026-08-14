@@ -106,6 +106,7 @@ a custom Apex Check.
 | `MULTIPLE_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | `ONE_RESULT` expected one row/aggregate but got more. |
 | `NO_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | Empty result handled as unable (`NoRowsResult__c = UNABLE_TO_EVALUATE`). |
 | `MISSING_BIND_VALUE` | `UNABLE_TO_EVALUATE` | Merge token required for SOQL bind could not be resolved. |
+| `ROW_LIMIT_EXCEEDED` | `UNABLE_TO_EVALUATE` | A query returned more rows than that Check's configured **Max Query Rows** cap. The result does not disclose the true row count. Narrow the query or raise the cap. |
 | `GOVERNOR_LIMIT_RISK` | `UNABLE_TO_EVALUATE` | Record Health Check stopped before the query could use too much of the transaction's remaining Salesforce limits. Reduce **Max Query Rows**, narrow the SOQL, or check fewer records per transaction. |
 | `UNSUPPORTED_BULK_QUERY_SHAPE` | `UNABLE_TO_EVALUATE` | The SOQL template cannot be converted to one query for all requested records. Rewrite it using a supported record-token pattern. |
 | `SCOPE_ROW_CAP_EXCEEDED` | `UNABLE_TO_EVALUATE` | The bulk query returned more rows for the transaction than Record Health Check can safely process. Narrow the SOQL or lower the number of records checked per transaction. |

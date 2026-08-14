@@ -73,6 +73,11 @@ result to use when either query finds no records.
 Both queries execute in the same evaluation transaction. Keep their selected fields and row counts
 as small as the comparison requires.
 
+Each side is capped independently. Record Health Check probes one row beyond **Max Query Rows** for
+the Source Query and again for the Comparison Query; either side exceeding the cap returns
+`UNABLE_TO_EVALUATE` / `ROW_LIMIT_EXCEEDED` before comparison. The detail names the configured cap,
+not the true row count.
+
 A bare `COUNT()` query always returns one aggregate row, even when the count is zero. **If Query
 Finds No Records** therefore applies to a query that returns zero rows, not to a `COUNT()` value of
 zero.

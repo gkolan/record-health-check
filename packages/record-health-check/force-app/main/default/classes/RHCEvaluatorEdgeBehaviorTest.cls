@@ -54,7 +54,7 @@ private class RHCEvaluatorEdgeBehaviorTest {
       soql.runQueryForEvaluation('SELECT NotAField__c FROM Account', 1);
       Assert.isTrue(false, 'Expected invalid query exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual('FIELD_NOT_RESOLVED', ex.reasonCode);
     }
 
     Assert.areEqual(

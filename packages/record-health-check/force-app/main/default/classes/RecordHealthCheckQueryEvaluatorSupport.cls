@@ -35,10 +35,10 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
     }
     if (rows.size() > maxRows) {
       throw new RecordHealthCheckEvaluatorException(
-        'GOVERNOR_LIMIT_RISK',
-        'Query returned more than ' +
+        RecordHealthCheckReasonCodes.ROW_LIMIT_EXCEEDED,
+        'The configured row cap of ' +
           maxRows +
-          ' rows. Reduce scope or lower Max Rows Override.'
+          ' was exceeded. Narrow the query or raise Max Query Rows.'
       );
     }
     return rows;
@@ -61,11 +61,11 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
         : 'No matching records found.';
     } else if (behavior == 'UNABLE_TO_EVALUATE') {
       result.status = 'UNABLE_TO_EVALUATE';
-      result.reasonCode = 'NO_ROWS_RETURNED';
+      result.reasonCode = RecordHealthCheckReasonCodes.NO_ROWS_RETURNED;
       result.message = safeCannotEvaluateMessage(check);
     } else {
       result.status = 'SKIPPED';
-      result.reasonCode = 'APPLICABILITY_NOT_MET';
+      result.reasonCode = RecordHealthCheckReasonCodes.APPLICABILITY_NOT_MET;
       result.message = 'Check skipped: no matching records.';
     }
     return result;
@@ -75,7 +75,7 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
     RecordHealthCheckInternalResult result
   ) {
     result.status = 'SKIPPED';
-    result.reasonCode = 'VALUE_IS_EMPTY';
+    result.reasonCode = RecordHealthCheckReasonCodes.VALUE_IS_EMPTY;
     result.message = 'Check skipped: the value under test was empty.';
     return result;
   }

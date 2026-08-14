@@ -98,6 +98,11 @@ and return the candidate list from Comparison Query. Source Query is blank in th
 No-row behavior is a business decision. Configure it explicitly where required; zero rows can mean
 pass, fail, skip, or unable depending on the Check.
 
+Record Health Check probes one row beyond **Max Query Rows** so it never turns a truncated
+collection into a collection-wide verdict. When the probe returns that extra row, the Check returns
+`UNABLE_TO_EVALUATE` / `ROW_LIMIT_EXCEEDED`. The administrator detail names the configured cap but
+does not disclose the true row count. Narrow the query or raise the configured cap.
+
 A bare `COUNT()` query always returns one aggregate row, even when the count is zero. **If Query
 Finds No Records** therefore does not replace a `COUNT()` value of zero. Compare that zero with the
 Expected Value normally.

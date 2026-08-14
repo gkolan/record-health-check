@@ -78,6 +78,12 @@ For installation and verification, start with
   Currency aggregates that discard unit evidence instead of claiming a runtime aggregate guard.
   The framework does not convert currencies; Formula and subscriber-plugin arithmetic remain
   explicitly outside this guard.
+- Query row-cap outcomes now use `ROW_LIMIT_EXCEEDED` instead of `GOVERNOR_LIMIT_RISK`. This is an
+  immediate public reason-code change: consumers matching the old literal must adopt the new code.
+  `GOVERNOR_LIMIT_RISK` remains reserved for invalid or unsafe configuration/transaction pressure;
+  no compatibility window emits both codes for one outcome.
+- `NO_ROWS_RETURNED`, `VALUE_IS_EMPTY`, `APPLICABILITY_NOT_MET`, and `INVALID_SOQL_TEMPLATE` remain
+  stable public literals and now have canonical declarations in `RecordHealthCheckReasonCodes`.
 
 - Formula field planning now recognizes validated Salesforce polymorphic colon references such as
   `Owner:User.IsActive` and retains the explicitly selected relationship type during dependency

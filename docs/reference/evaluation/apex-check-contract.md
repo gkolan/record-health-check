@@ -159,6 +159,12 @@ To test access behavior, create a user who genuinely cannot read a record or fie
 Check. Apex does not expose a counter that proves whether a query used user mode, so the test result
 and a review of the SOQL source remain separate requirements.
 
+The framework's configured Query row limit does not wrap SOQL issued inside a subscriber plugin. Plugin authors
+own their row limits: query no more than the plugin can evaluate completely, use an extra-row probe
+when a collection-wide result depends on completeness, and return a documented
+`UNABLE_TO_EVALUATE` outcome instead of deciding from a truncated collection. Do not disclose a
+true count that the running user may not be entitled to see.
+
 ## Supported classes
 
 The interface shown on this page is the supported custom Apex Check contract. Implement

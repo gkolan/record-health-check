@@ -204,7 +204,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     }
     if (rows.size() > rowBudget) {
       throw new RecordHealthCheckEvaluatorException(
-        'SCOPE_ROW_CAP_EXCEEDED',
+        RecordHealthCheckReasonCodes.SCOPE_ROW_CAP_EXCEEDED,
         'The scope-wide query returned more than ' + rowBudget + ' rows.'
       );
     }

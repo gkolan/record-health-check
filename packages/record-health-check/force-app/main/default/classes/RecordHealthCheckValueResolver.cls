@@ -93,7 +93,7 @@ public with sharing class RecordHealthCheckValueResolver {
   public static String classifyQueryException(Exception qex) {
     return qex instanceof System.NoAccessException
       ? RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE
-      : 'INVALID_SOQL_TEMPLATE';
+      : RecordHealthCheckReasonCodes.INVALID_SOQL_TEMPLATE;
   }
 
   // ─── Equality ───────────────────────────────────────────────────────────────
