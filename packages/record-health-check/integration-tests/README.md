@@ -33,6 +33,8 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
+- `RHC_Conformance_Record__c`, a product-neutral fixture for hierarchy, signed decimal, currency,
+  null, snapshot/current, timestamp, and mixed-bulk evaluator conformance
 - Platform-event triggers used only in CI orgs
 - Apex classes that exercise the Framework against those samples
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Quantity__c</fullName>
+    <description
+  >Stores signed, scaled numeric fixture values for extraction, comparison, and display tests.</description>
+    <inlineHelpText
+  >Enter a positive, zero, negative, or fractional test quantity.</inlineHelpText>
+    <label>Quantity</label>
+    <precision>18</precision>
+    <scale>4</scale>
+    <type>Number</type>
+</CustomField>

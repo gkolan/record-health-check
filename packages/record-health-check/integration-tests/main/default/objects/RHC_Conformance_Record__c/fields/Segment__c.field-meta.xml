@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Segment__c</fullName>
+    <description
+  >Stores an optional neutral grouping value so null applicability can be tested without business semantics.</description>
+    <inlineHelpText
+  >Leave blank when the fixture intentionally has no segment.</inlineHelpText>
+    <label>Segment</label>
+    <length>80</length>
+    <required>false</required>
+    <type>Text</type>
+</CustomField>

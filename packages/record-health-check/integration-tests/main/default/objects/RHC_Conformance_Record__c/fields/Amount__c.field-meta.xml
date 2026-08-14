@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Amount__c</fullName>
+    <description
+  >Stores a neutral monetary fixture value whose currency identity is supplied by Salesforce.</description>
+    <inlineHelpText
+  >Enter the signed amount used by a currency conformance case.</inlineHelpText>
+    <label>Amount</label>
+    <precision>18</precision>
+    <scale>2</scale>
+    <type>Currency</type>
+</CustomField>

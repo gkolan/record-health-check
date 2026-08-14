@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Snapshot_As_Of__c</fullName>
+    <description
+  >Records when the neutral snapshot fixture value was captured.</description>
+    <inlineHelpText
+  >Enter the timestamp represented by the snapshot value.</inlineHelpText>
+    <label>Snapshot As Of</label>
+    <type>DateTime</type>
+</CustomField>
