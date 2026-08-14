@@ -5,6 +5,13 @@
 // Run scripts/apex/setupDisplayFormatData.apex first.
 
 String setName = 'Account_Display_Formats';
+Record_Health_Check_Set__mdt displayFormatSet = [
+  SELECT QualifiedApiName
+  FROM Record_Health_Check_Set__mdt
+  WHERE DeveloperName = :setName
+  LIMIT 1
+];
+String setQualifiedApiName = displayFormatSet.QualifiedApiName;
 
 List<Account> targets = [
   SELECT Id, Name
@@ -23,16 +30,18 @@ if (targets.isEmpty()) {
 
 Account target = targets[0];
 Map<String, String> formatByCheck = new Map<String, String>();
+Map<String, String> qualifiedNameByCheck = new Map<String, String>();
 for (Record_Health_Check__mdt check : [
-  SELECT DeveloperName, DisplayValueFormat__c
+  SELECT DeveloperName, QualifiedApiName, DisplayValueFormat__c
   FROM Record_Health_Check__mdt
   WHERE Record_Health_Check_Set__r.DeveloperName = :setName
 ]) {
   formatByCheck.put(check.DeveloperName, check.DisplayValueFormat__c);
+  qualifiedNameByCheck.put(check.DeveloperName, check.QualifiedApiName);
 }
 
 RecordHealthCheckDefinitionResponse definition = RecordHealthCheckController.getCheckDefinitions(
-  setName,
+  setQualifiedApiName,
   target.Id,
   'display-format-verify'
 );
@@ -55,11 +64,11 @@ System.debug(
 Set<String> formatsSeen = new Set<String>();
 for (RecordHealthCheckDefinition check : definition.checks) {
   RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
-    setName,
-    check.developerName,
+    setQualifiedApiName,
+    qualifiedNameByCheck.get(check.developerName),
     target.Id,
     'display-format-verify',
-    'SCRIPT'
+    'USER_INITIATED'
   );
   String format = formatByCheck.get(check.developerName);
   formatsSeen.add(format);
@@ -70,9 +79,9 @@ for (RecordHealthCheckDefinition check : definition.checks) {
       ' | ' +
       result.evaluation.status.rightPad(6) +
       ' | Found: ' +
-      result.display.actualValue +
+      result.display.foundDisplayValue +
       ' | Expected: ' +
-      result.display.expectedValue +
+      result.display.expectedDisplayValue +
       ' | ' +
       check.label
   );

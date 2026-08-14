@@ -35,6 +35,21 @@ The namespaced `RHC_Persona_Access` fixture is intentionally not deployable to a
 Run its Apex methods in the maintained namespaced scratch-org gate. Do not replace that test with a
 system-mode comparison query; restriction and scoping rules are valid visibility controls.
 
+## Combined Person Account and multi-currency gate
+
+Create this namespaced gate from `packages/record-health-check`, activate EUR, deploy the framework
+and integration fixture source, and seed persistent manual-test records:
+
+```bash
+sf org create scratch --definition-file config/pa-multicurrency-scratch-def.json --alias <alias>
+sf data update record --sobject CurrencyType --record-id <eur-currency-type-id> --values "IsActive=true" --target-org <alias>
+sf apex run --file integration-tests/scripts/setup-pa-multicurrency-scenarios.apex --target-org <alias>
+```
+
+The script fails closed unless Person Accounts are enabled and both USD and EUR are active. It then
+replaces only its two exact-name fixtures and creates one EUR business Account and one EUR Person
+Account for repeatable manual verification.
+
 ## Repeatable row-cap data
 
 Run these scripts from `packages/record-health-check` after deploying the Framework and the negative
