@@ -70,6 +70,9 @@ Target package version: **2.0.4**.
 
 - Lifecycle events now report framework version `2.0.4`; the release gate also verifies that the
   Apex event publisher stays synchronized with the package version.
+- Scope-wide Query Check classification now ignores `LIMIT`, `ORDER BY`, and correlation-like text
+  inside string literals or nested subqueries. Nested-only record correlation fails closed instead
+  of rewriting the outer query from the wrong parenthesis depth.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,

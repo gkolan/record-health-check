@@ -46,7 +46,7 @@ private with sharing class RecordHealthCheckBulkQuerySupportTest {
     Map<String, String> cases = new Map<String, String>{
       'SELECT Id FROM Account WHERE Id = {!record.Id} AND Name = \'LIMIT 2\'' => RecordHealthCheckBulkQuerySupport.SELF,
       'SELECT Id FROM Account WHERE Id = {!record.Id} AND Name = \'ORDER BY Name, Industry\'' => RecordHealthCheckBulkQuerySupport.SELF,
-      'SELECT Id FROM Account WHERE Name = \'Id = {!record.Id}\'' => RecordHealthCheckBulkQuerySupport.SCOPE_INVARIANT
+      'SELECT Id FROM Account WHERE Name = \'Id = {!record.Id}\'' => RecordHealthCheckBulkQuerySupport.UNCLASSIFIED
     };
 
     Test.startTest();

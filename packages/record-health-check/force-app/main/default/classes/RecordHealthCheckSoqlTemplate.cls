@@ -485,7 +485,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return null;
   }
   /** Computes parenthesis depth at an index in a literal-masked query. */
-  private static Integer depthAt(String masked, Integer index) {
+  public static Integer depthAt(String masked, Integer index) {
     Integer depth = 0;
     for (Integer i = 0; i < index && i < masked.length(); i++) {
       String c = masked.substring(i, i + 1);
