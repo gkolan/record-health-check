@@ -68,6 +68,8 @@ Target package version: **2.0.4**.
 
 ### Fixed
 
+- Lifecycle events now report framework version `2.0.4`; the release gate also verifies that the
+  Apex event publisher stays synchronized with the package version.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
