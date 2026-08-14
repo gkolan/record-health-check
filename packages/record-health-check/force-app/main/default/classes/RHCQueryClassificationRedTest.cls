@@ -80,7 +80,7 @@ private class RHCQueryClassificationRedTest {
     System.runAs(minimumAccess) {
       Assert.areEqual(
         'RECORD_NOT_ACCESSIBLE',
-        validate('SELECT Id FROM Account'),
+        validate('SELECT Id FROM ApexClass'),
         'An inaccessible root must remain distinct from absent schema.'
       );
     }
