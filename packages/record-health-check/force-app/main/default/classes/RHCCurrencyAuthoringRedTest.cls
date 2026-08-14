@@ -38,6 +38,55 @@ private class RHCCurrencyAuthoringRedTest {
     );
   }
 
+  @IsTest
+  static void shouldCoverNeutralCurrencyShapeBoundaries() {
+    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+      null,
+      null,
+      new List<SObject>(),
+      null,
+      null,
+      new List<SObject>(),
+      ' usd '
+    );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(AnnualRevenue) totalValue FROM Account GROUP BY CurrencyIsoCode'
+      )
+    );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(
+        'not a query',
+        'AnnualRevenue'
+      )
+    );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(
+        'SELECT AnnualRevenue FROM RHC_Absent_Object__c',
+        'AnnualRevenue'
+      )
+    );
+    Assert.isTrue(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(
+        'SELECT annualrevenue FROM Account',
+        'annualrevenue'
+      )
+    );
+    Assert.isTrue(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(
+        'SELECT Account.AnnualRevenue FROM Opportunity',
+        'Account.AnnualRevenue'
+      )
+    );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(
+        'SELECT What.Name FROM Task',
+        'What.Amount'
+      ),
+      'A polymorphic multi-target relationship cannot prove a currency field.'
+    );
+  }
+
   private static Record_Health_Check__mdt baseQueryCheck() {
     return new Record_Health_Check__mdt(
       DeveloperName = 'NeutralCurrencyShape',

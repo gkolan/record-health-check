@@ -56,6 +56,46 @@ private class RHCQueryClassificationRedTest {
     );
   }
 
+  @IsTest
+  static void shouldCoverNeutralClassifierBoundaries() {
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(null);
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
+      'not a query'
+    );
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
+      'SELECT Id alias FROM Account'
+    );
+    RecordHealthCheckQuerySchemaValidator.validateConfiguredField(
+      'not a query',
+      'Id'
+    );
+    RecordHealthCheckQuerySchemaValidator.validateConfiguredField(
+      'SELECT Id FROM RHC_Absent_Object__c',
+      'Id'
+    );
+
+    User minimumAccess = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
+      'rhcqclass'
+    );
+    System.runAs(minimumAccess) {
+      Assert.areEqual(
+        'RECORD_NOT_ACCESSIBLE',
+        validate('SELECT Id FROM Account'),
+        'An inaccessible root must remain distinct from absent schema.'
+      );
+    }
+
+    try {
+      RecordHealthCheckQueryEvaluatorSupport.runQuery(
+        'SELECT COUNT() FROM Account WHERE Name =',
+        1
+      );
+      Assert.fail('Malformed runtime SOQL must be classified.');
+    } catch (RecordHealthCheckEvaluatorException ex) {
+      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+    }
+  }
+
   private static String classify(String message) {
     return RecordHealthCheckValueResolver.classifyQueryException(
       new SyntheticQueryException(message)
