@@ -205,6 +205,10 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
+                <field>ExpectedCurrencyIsoCode__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
                 <field>ExpectedRecordFormula__c</field>
             </layoutItems>
             <layoutItems>

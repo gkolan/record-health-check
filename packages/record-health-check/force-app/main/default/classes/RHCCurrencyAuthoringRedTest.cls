@@ -8,7 +8,7 @@ private class RHCCurrencyAuthoringRedTest {
   @IsTest
   static void shouldRejectUngroupedCurrencyAggregate() {
     Record_Health_Check__mdt check = baseQueryCheck();
-    check.SourceQuery__c = 'SELECT SUM(AnnualRevenue) totalValue FROM Account';
+    check.SourceQuery__c = 'SELECT MAX(NumberOfEmployees) largestSize, SUM(AnnualRevenue) totalValue FROM Account';
     check.SourceQueryField__c = 'totalValue';
     check.ExpectedValueSource__c = 'COMPARISON_QUERY';
     check.ComparisonQuery__c = 'SELECT COUNT() FROM Contact';

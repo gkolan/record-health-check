@@ -100,6 +100,7 @@ a custom Apex Check.
 | `FIELD_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured field does not exist on the resolved Salesforce object. Correct the API name or remove the Check from orgs where that schema is unavailable. |
 | `RELATIONSHIP_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured relationship segment could not be resolved safely. Correct the relationship API name or traversal. |
 | `OBJECT_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | The root object in a supported Query shape does not exist in the org. Correct its API name or remove the Check from orgs where that schema is unavailable. |
+| `MIXED_CURRENCY` | `UNABLE_TO_EVALUATE` / validation | Reachable query values use more than one currency unit, a fixed Currency threshold has no declared ISO basis, or a Currency aggregate discards unit evidence. Group by `CurrencyIsoCode`, declare the fixed basis, or use Apex that explicitly owns unit handling. No conversion occurs. |
 | `INVALID_OPERATOR` | `UNABLE_TO_EVALUATE` | Comparison Operator is missing or cannot be used with the selected Evaluation Type and query-result setting. |
 | `INCOMPATIBLE_COMPARISON_TYPES` | `UNABLE_TO_EVALUATE` | Ordered comparison cannot convert the two sides safely. |
 | `MULTIPLE_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | `ONE_RESULT` expected one row/aggregate but got more. |

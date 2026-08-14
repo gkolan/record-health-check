@@ -20,6 +20,7 @@
 | **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Converts returned rows into the value or row decision |
 | **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Required operator compatible with the selected mode |
 | **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Required when the operator needs a right-side value |
+| **Expected Currency ISO Code** | [`ExpectedCurrencyIsoCode__c`](../../metadata/fields-check.md#expected-currency-iso-code-expectedcurrencyisocode__c) | Required when a Currency field is compared with a fixed value |
 
 ## Result-handling modes
 
@@ -108,6 +109,21 @@ different from the query returning no rows:
 - **Treat as blank** compares the value as empty text.
 - **Treat as not matching** makes that value fail to match another value, including another empty
   value.
+
+## Currency-unit safety
+
+Record Health Check compares values; it does not convert currencies. In a multi-currency org,
+non-aggregate Query and Compare two queries checks retain each returned row's `CurrencyIsoCode`.
+When the reachable codes across both sides differ, evaluation returns `UNABLE_TO_EVALUATE` with
+`MIXED_CURRENCY`. A fixed value compared with a Currency field must declare its unit in **Expected
+Currency ISO Code**, and that declaration participates in the same guard.
+
+`SUM`, `AVG`, `MIN`, and `MAX` collapse the source rows before Apex receives the result, so a
+corporate-currency display label is not evidence that the inputs shared a unit. Metadata validation
+therefore rejects an aggregate over a Currency field unless the query groups by `CurrencyIsoCode`;
+an alternative is a custom Apex Check that explicitly owns and carries unit semantics. Formula
+Checks cannot reliably inspect `CurrencyIsoCode` and are not covered by this guard. Single-currency
+orgs have no row ISO field and are unaffected.
 
 ## SOQL templates and security
 

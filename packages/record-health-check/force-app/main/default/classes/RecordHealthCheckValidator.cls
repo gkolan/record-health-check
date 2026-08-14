@@ -71,6 +71,8 @@ public with sharing class RecordHealthCheckValidator {
     RECORD_FORMULA_MISSING,
     ANOTHER_QUERY_MISSING,
     ANOTHER_QUERY_FIELD_MISSING,
+    CURRENCY_AGGREGATE_NOT_GROUPED,
+    FIXED_CURRENCY_BASIS_MISSING,
     // Compare two queries
     DUAL_PRIMARY_QUERY_MISSING,
     DUAL_COMPARE_QUERY_MISSING,
@@ -305,6 +307,7 @@ public with sharing class RecordHealthCheckValidator {
     ) {
       out.add(f(FindingCode.ANOTHER_QUERY_FIELD_MISSING));
     }
+    addCurrencyFindings(out, check);
 
     return out;
   }
@@ -338,6 +341,7 @@ public with sharing class RecordHealthCheckValidator {
     ) {
       out.add(f(FindingCode.DUAL_COMPARE_FIELD_MISSING));
     }
+    addCurrencyFindings(out, check);
 
     // Operator — at most one finding.
     if (String.isBlank(check.ComparisonOperator__c)) {
@@ -387,6 +391,32 @@ public with sharing class RecordHealthCheckValidator {
       out.add(f(FindingCode.MAX_ROWS_INVALID));
     }
     return out;
+  }
+
+  private static void addCurrencyFindings(
+    List<Finding> out,
+    Record_Health_Check__mdt check
+  ) {
+    if (
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        check.SourceQuery__c
+      ) ||
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        check.ComparisonQuery__c
+      )
+    ) {
+      out.add(f(FindingCode.CURRENCY_AGGREGATE_NOT_GROUPED));
+    }
+    if (
+      check.ExpectedValueSource__c == 'FIXED_VALUE' &&
+      RecordHealthCheckCurrencySupport.isCurrencySelection(
+        check.SourceQuery__c,
+        check.SourceQueryField__c
+      ) &&
+      String.isBlank(check.ExpectedCurrencyIsoCode__c)
+    ) {
+      out.add(f(FindingCode.FIXED_CURRENCY_BASIS_MISSING));
+    }
   }
 
   public static List<Finding> nullEmptyFindings(

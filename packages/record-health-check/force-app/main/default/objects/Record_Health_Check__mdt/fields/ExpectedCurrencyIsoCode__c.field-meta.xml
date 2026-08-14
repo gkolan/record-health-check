@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+  <fullName>ExpectedCurrencyIsoCode__c</fullName>
+  <label>Expected Currency ISO Code</label>
+  <description
+  >Declares the three-letter currency unit of a fixed numeric expected value when the source query selects a Currency field.</description>
+  <inlineHelpText
+  >Required for a fixed numeric expected value compared with a Currency field, for example USD or EUR. This declares a unit; it does not convert values.</inlineHelpText>
+  <type>Text</type>
+  <length>3</length>
+  <required>false</required>
+  <unique>false</unique>
+  <externalId>false</externalId>
+</CustomField>

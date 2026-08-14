@@ -73,6 +73,11 @@ For installation and verification, start with
 - Query failures no longer depend on English exception-message matching. Root objects and plain
   selected field paths in the documented flat-query subset are describe-validated before both
   single and bulk execution; other execution failures fall back to `INVALID_SOQL_TEMPLATE`.
+- Query comparisons now refuse reachable mixed currency units with `MIXED_CURRENCY`. Fixed
+  thresholds against Currency fields require a declared ISO basis, and metadata validation rejects
+  Currency aggregates that discard unit evidence instead of claiming a runtime aggregate guard.
+  The framework does not convert currencies; Formula and subscriber-plugin arithmetic remain
+  explicitly outside this guard.
 
 - Formula field planning now recognizes validated Salesforce polymorphic colon references such as
   `Owner:User.IsActive` and retains the explicitly selected relationship type during dependency

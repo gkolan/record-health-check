@@ -114,7 +114,9 @@ private class RHCMixedCurrencyRedTest {
   ) {
     List<SObject> result = new List<SObject>();
     for (Integer index = 0; index < values.size(); index++) {
-      Account row = new Account(AnnualRevenue = values[index]);
+      Account row = RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{ 'AnnualRevenue' => values[index] }
+      );
       row.put('CurrencyIsoCode', isoCodes[index]);
       result.add(row);
     }

@@ -242,6 +242,15 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     Boolean primaryIsZeroCount,
     Boolean comparisonIsZeroCount
   ) {
+    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+      check.SourceQuery__c,
+      check.SourceQueryField__c,
+      primaryRows,
+      check.ComparisonQuery__c,
+      check.ComparisonQueryField__c,
+      comparisonRows,
+      null
+    );
     Object primaryValue = primaryIsZeroCount
       ? 0
       : resolveSingleValue(primaryRows, check.SourceQueryField__c, 'primary');
@@ -307,6 +316,15 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     List<SObject> primaryRows,
     List<SObject> comparisonRows
   ) {
+    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+      check.SourceQuery__c,
+      check.SourceQueryField__c,
+      primaryRows,
+      check.ComparisonQuery__c,
+      check.ComparisonQueryField__c,
+      comparisonRows,
+      null
+    );
     if (primaryRows.isEmpty() || comparisonRows.isEmpty()) {
       return RecordHealthCheckComparisonEngine.resolveEmptyBehavior(
         check.NoRowsResult__c

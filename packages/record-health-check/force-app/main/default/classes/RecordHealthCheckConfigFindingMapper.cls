@@ -198,6 +198,20 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
           'Comparison Query Field is required for non-aggregate comparison queries.'
         );
       }
+      when CURRENCY_AGGREGATE_NOT_GROUPED {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.MIXED_CURRENCY,
+          'A Currency aggregate must group by CurrencyIsoCode or use Apex that explicitly carries units.'
+        );
+      }
+      when FIXED_CURRENCY_BASIS_MISSING {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.MIXED_CURRENCY,
+          'Expected Currency ISO Code is required for a fixed value compared with a Currency field.'
+        );
+      }
       // ── Compare two queries ──
       when DUAL_PRIMARY_QUERY_MISSING {
         return buildUnableResult(

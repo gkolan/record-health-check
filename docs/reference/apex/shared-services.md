@@ -154,6 +154,16 @@ list of plain fields and relationship paths is also resolved through the same Fi
 rules used for record loading. Aggregate functions, aliases, subqueries, `TYPEOF`, syntax, and bind
 validity remain outside this bounded validator and are never guessed from exception messages.
 
+### `RecordHealthCheckCurrencySupport`
+
+**Role:** Preserve reachable query-row currency evidence and prevent cross-unit verdicts.
+
+Classifies selected fields through describe metadata, retains row ISO evidence for Query and
+Compare two queries comparisons, and refuses a verdict when that evidence contains multiple units.
+It also identifies ungrouped aggregates over Currency fields for shared metadata validation.
+Aggregate rows, Formula arithmetic, and subscriber-plugin internals do not expose unit evidence to
+this service; it never converts values.
+
 ### `RecordHealthCheckDescribeCache`
 
 **Role:** Reuse Salesforce object and field descriptions within one transaction.
