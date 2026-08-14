@@ -30,6 +30,10 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
   that also ship in `force-app`
 - `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for
   verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
+- `RHC_Negative_Runtime`: an integration-only Account card for row-cap testing plus inactive,
+  opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](negative-scenarios.md)
+- `RHC_Negative_Conformance`: an Apex test suite that gathers the deterministic schema, query,
+  currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
