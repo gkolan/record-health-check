@@ -70,6 +70,7 @@ $RECYCLE.BIN/
 /spec/
 # Local-only design and customer specs must never be published with the repository.
 /specs/
+/evidence/
 /releases/
 packages/record-health-check/.package-artifacts/
 packages/record-health-check/.package-evidence/
