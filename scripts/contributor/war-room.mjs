@@ -35,12 +35,21 @@ const integrationMetadataDirectories = fs
 
 console.log(`Record Health Check war room: ${values.alias}`);
 
-const orgDisplay = runJson(
+const deployedCoreClass = runJson(
   "sf",
-  ["org", "display", "--target-org", values.alias],
+  [
+    "data",
+    "query",
+    "--use-tooling-api",
+    "--query",
+    "SELECT NamespacePrefix FROM ApexClass WHERE Name = 'RecordHealthCheckAccess' LIMIT 1",
+    "--target-org",
+    values.alias
+  ],
   { cwd: paths.packageRoot }
 );
-const namespacePrefix = orgDisplay.result?.namespacePrefix ?? null;
+const namespacePrefix =
+  deployedCoreClass.result?.records?.[0]?.NamespacePrefix ?? null;
 const negativeClasses = configuredNegativeClasses.filter(
   (className) =>
     namespacePrefix || className !== "RecordHealthCheckRestrictedPersonaTest"
