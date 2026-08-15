@@ -57,6 +57,10 @@ private class RHCCurrencyAuthoringRedTest {
       )
     );
     Assert.isFalse(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(null, 'Amount'),
+      'A missing query cannot identify a currency selection.'
+    );
+    Assert.isFalse(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         'not a query',
         'AnnualRevenue'

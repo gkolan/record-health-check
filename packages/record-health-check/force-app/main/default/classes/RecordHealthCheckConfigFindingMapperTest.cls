@@ -75,4 +75,26 @@ private class RecordHealthCheckConfigFindingMapperTest {
     }
     Test.stopTest();
   }
+
+  @IsTest
+  static void rejectsMissingFindingCode() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'DeveloperName' => 'Missing_Code' }
+    );
+
+    try {
+      RecordHealthCheckConfigFindingMapper.firstResult(
+        new List<RecordHealthCheckValidator.Finding>{
+          new RecordHealthCheckValidator.Finding(null, null)
+        },
+        check
+      );
+      Assert.fail('A finding without a code must fail closed.');
+    } catch (RecordHealthCheckConfigService.ConfigException error) {
+      Assert.areEqual(
+        RecordHealthCheckConfigService.RC_INVALID_CONFIG,
+        error.reasonCode
+      );
+    }
+  }
 }

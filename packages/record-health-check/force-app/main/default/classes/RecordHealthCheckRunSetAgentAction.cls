@@ -107,11 +107,6 @@ public with sharing class RecordHealthCheckRunSetAgentAction {
       RecordHealthCheckResponse evaluation = RecordHealthCheck.evaluate(
         request
       );
-      if (evaluation == null || evaluation.summary == null) {
-        return new List<Response>{
-          errorResponse(correlationId, 'EXECUTION', EXECUTION_MESSAGE)
-        };
-      }
       Response output = baseResponse(evaluation.runId);
       output.success = true;
       output.operation = OPERATION;

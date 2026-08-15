@@ -133,8 +133,20 @@ global with sharing class RecordHealthCheckAgentRestResource {
       );
     }
 
+    Id recordId;
     try {
-      Id recordId = Id.valueOf(input.recordId);
+      recordId = Id.valueOf(input.recordId);
+    } catch (Exception error) {
+      return errorResponse(
+        response,
+        400,
+        correlationId,
+        'VALIDATION',
+        'Record ID is not valid for Salesforce.'
+      );
+    }
+
+    try {
       RecordHealthCheckRequest evaluationRequest = input.operation == RUN_CHECK
         ? RecordHealthCheckRequest.forCheck(
             input.qualifiedApiName.trim(),
@@ -160,38 +172,6 @@ global with sharing class RecordHealthCheckAgentRestResource {
         : checkSetResponse(evaluation);
       response.statusCode = 200;
       return output;
-    } catch (RecordHealthCheckAccess.AuthorizationException error) {
-      return errorResponse(
-        response,
-        403,
-        correlationId,
-        'AUTHORIZATION',
-        AUTHORIZATION_MESSAGE
-      );
-    } catch (RecordHealthCheckRequest.RecordHealthCheckRequestException error) {
-      return errorResponse(
-        response,
-        400,
-        correlationId,
-        'VALIDATION',
-        'The evaluation request is invalid.'
-      );
-    } catch (TypeException error) {
-      return errorResponse(
-        response,
-        400,
-        correlationId,
-        'VALIDATION',
-        'Record ID is not valid for Salesforce.'
-      );
-    } catch (StringException error) {
-      return errorResponse(
-        response,
-        400,
-        correlationId,
-        'VALIDATION',
-        'Record ID is not valid for Salesforce.'
-      );
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       return errorResponse(
         response,

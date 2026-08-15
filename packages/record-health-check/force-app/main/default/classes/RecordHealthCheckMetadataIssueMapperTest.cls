@@ -69,4 +69,22 @@ private class RecordHealthCheckMetadataIssueMapperTest {
       );
     }
   }
+
+  @IsTest
+  static void mapsMissingFindingCodeToGenericIssue() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'DeveloperName' => 'Missing_Code' }
+    );
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataIssueMapper.toIssues(
+      new List<RecordHealthCheckValidator.Finding>{
+        new RecordHealthCheckValidator.Finding(null, null)
+      },
+      check
+    );
+
+    Assert.areEqual(1, issues.size(), 'The corrupted finding remains visible.');
+    Assert.areEqual('INVALID_CONFIG', issues[0].reasonCode);
+    Assert.areEqual('This check could not be validated.', issues[0].message);
+  }
 }

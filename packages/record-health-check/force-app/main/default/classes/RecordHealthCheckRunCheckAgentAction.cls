@@ -99,18 +99,8 @@ public with sharing class RecordHealthCheckRunCheckAgentAction {
       RecordHealthCheckResponse evaluation = RecordHealthCheck.evaluate(
         request
       );
-      if (evaluation.results.size() != 1) {
-        return new List<Response>{
-          errorResponse(correlationId, 'EXECUTION', EXECUTION_MESSAGE)
-        };
-      }
       RecordHealthCheckEvaluationResult result = evaluation.results[0]
         ?.evaluation;
-      if (result == null || String.isBlank(result.status)) {
-        return new List<Response>{
-          errorResponse(correlationId, 'EXECUTION', EXECUTION_MESSAGE)
-        };
-      }
       Response output = baseResponse(evaluation.runId);
       output.success = true;
       output.operation = OPERATION;

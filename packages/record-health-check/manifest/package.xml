@@ -356,6 +356,7 @@
         <members>RHCScopePipelineFailureTest</members>
         <members>RecordHealthCheckSetPicklistTest</members>
         <members>RecordHealthCheckValueSourceTest</members>
+        <members>RecordHealthCheckSoqlBoundaryTest</members>
         <members>RecordHealthCheckSoqlTemplateTest</members>
         <members>RecordHealthCheckTemplateServiceTest</members>
         <members>RecordHealthCheckTemplateParserTest</members>
