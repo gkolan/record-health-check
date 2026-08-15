@@ -189,7 +189,6 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
   @IsTest
   static void shouldDenyEveryBoundaryWhenRunPermissionMissing() {
     PersonaFixture fixture = createFixture('rhcpno', false, false);
-    RecordHealthCheckAccess.setRunPermissionForTest(false);
 
     System.runAs(fixture.userRecord) {
       Test.startTest();
@@ -250,7 +249,6 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
         'Flow must classify authorization separately.'
       );
     }
-    RecordHealthCheckAccess.setRunPermissionForTest(null);
   }
 
   @IsTest

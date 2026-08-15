@@ -1,8 +1,22 @@
 /** Verifies planner expansion against deployed formula-field describe metadata. */
 @IsTest
 private class RHCFormulaMetadataPlannerIntegrationTest {
+  @TestSetup
+  static void grantFormulaFixtureAccess() {
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      RecordHealthCheckTestDataFactory.currentUser(),
+      'RHC_Polymorphic_Formula_Test'
+    );
+  }
+
   @IsTest
   static void plannerExpandsDeployedCalculatedFormulaMetadata() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      verifyPlannerExpansion();
+    }
+  }
+
+  private static void verifyPlannerExpansion() {
     String formulaFieldName;
     for (
       String fieldName : RecordHealthCheckDescribeCache.fieldMap(
@@ -35,7 +49,10 @@ private class RHCFormulaMetadataPlannerIntegrationTest {
 
     Assert.isTrue(
       fields.contains(formulaFieldName),
-      'The deployed calculated field must remain selected.'
+      'The deployed calculated field must remain selected. field=' +
+        formulaFieldName +
+        ' planned=' +
+        fields
     );
     Assert.isTrue(
       fields.contains('Owner.IsActive'),

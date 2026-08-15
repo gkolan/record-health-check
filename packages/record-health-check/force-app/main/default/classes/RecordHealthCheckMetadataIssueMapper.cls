@@ -238,6 +238,22 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
           'MISSING_REQUIRED_FIELD'
         );
       }
+      when CURRENCY_AGGREGATE_NOT_GROUPED {
+        return issue(
+          check,
+          'SourceQuery__c',
+          'A Currency aggregate must group by CurrencyIsoCode or use Apex that explicitly carries units.',
+          RecordHealthCheckReasonCodes.MIXED_CURRENCY
+        );
+      }
+      when FIXED_CURRENCY_BASIS_MISSING {
+        return issue(
+          check,
+          'ExpectedCurrencyIsoCode__c',
+          'Expected Currency ISO Code is required for a fixed value compared with a Currency field.',
+          RecordHealthCheckReasonCodes.MIXED_CURRENCY
+        );
+      }
       // ── Compare two queries ──
       when DUAL_PRIMARY_QUERY_MISSING {
         return issue(

@@ -20,6 +20,7 @@
 | **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Converts returned rows into the value or row decision |
 | **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Required operator compatible with the selected mode |
 | **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Required when the operator needs a right-side value |
+| **Expected Currency ISO Code** | [`ExpectedCurrencyIsoCode__c`](../../metadata/fields-check.md#expected-currency-iso-code-expectedcurrencyisocode__c) | Required in a multi-currency org when a Currency field is compared with a fixed value |
 
 ## Result-handling modes
 
@@ -97,6 +98,11 @@ and return the candidate list from Comparison Query. Source Query is blank in th
 No-row behavior is a business decision. Configure it explicitly where required; zero rows can mean
 pass, fail, skip, or unable depending on the Check.
 
+Record Health Check probes one row beyond **Max Query Rows** so it never turns a truncated
+collection into a collection-wide verdict. When the probe returns that extra row, the Check returns
+`UNABLE_TO_EVALUATE` / `ROW_LIMIT_EXCEEDED`. The administrator detail names the configured cap but
+does not disclose the true row count. Narrow the query or raise the configured cap.
+
 A bare `COUNT()` query always returns one aggregate row, even when the count is zero. **If Query
 Finds No Records** therefore does not replace a `COUNT()` value of zero. Compare that zero with the
 Expected Value normally.
@@ -109,6 +115,30 @@ different from the query returning no rows:
 - **Treat as not matching** makes that value fail to match another value, including another empty
   value.
 
+## Currency-unit safety
+
+Record Health Check compares values; it does not convert currencies. In a multi-currency org,
+non-aggregate Query and Compare two queries checks retain each returned row's `CurrencyIsoCode`.
+When the reachable codes across both sides differ, evaluation returns `UNABLE_TO_EVALUATE` with
+`MIXED_CURRENCY`. A fixed value compared with a Currency field must declare its unit in **Expected
+Currency ISO Code**, and that declaration participates in the same guard.
+
+`SUM`, `AVG`, `MIN`, and `MAX` collapse the source rows before Apex receives the result, so a
+corporate-currency display label is not evidence that the inputs shared a unit. Metadata validation
+therefore rejects an aggregate over a Currency field unless the query groups by `CurrencyIsoCode`
+or a conjunctive outer predicate fixes `CurrencyIsoCode` to one literal ISO code. The bounded
+equality form preserves a one-row aggregate result; outer-predicate `OR` or `NOT` operators fail
+closed because the equality may not constrain every contributing row. Operators and equalities
+inside semi-joins do not alter that outer proof. Grouping changes the result shape.
+
+An alternative is a custom Apex Check that explicitly owns and carries unit semantics. Formula
+Checks cannot reliably inspect `CurrencyIsoCode` and are not covered by this guard. Single-currency
+orgs have no row ISO field and are unaffected.
+
+For the supported flat and aggregate query subset, selected fields and aggregate operands are
+describe-validated before execution. This preserves locale-independent `FIELD_NOT_ACCESSIBLE`,
+`FIELD_NOT_RESOLVED`, and relationship classifications for aliased aggregate results.
+
 ## SOQL templates and security
 
 - Use `{!record.Id}` and supported `{!record.FieldName}` tokens for current-record values. Add a
@@ -116,10 +146,15 @@ different from the query returning no rows:
   such as `{!record.AnnualRevenue fallback="0"}`.
 - Use field API names, not labels, in SOQL.
 - Queries run in user mode and enforce the running user's record, object, and field access.
+- A zero-row result means no rows were visible to that user-mode transaction. It does not establish
+  org-wide absence, and the framework never uses elevated queries to infer hidden rows.
 - A missing object, field, record, or relationship permission can return `UNABLE_TO_EVALUATE`.
 - Store reviewed SOQL in Check Custom Metadata. Do not build Check SOQL from text entered by an end
   user.
 - Keep the selected columns and row limit as small as the decision requires.
+- Base64/Blob selected fields are refused before execution with `FIELD_TYPE_NOT_SUPPORTED`. When a
+  business decision genuinely depends on binary content, use reviewed user-mode Apex and return
+  only the redacted business outcome, never the binary value.
 
 ## Outcomes and testing
 

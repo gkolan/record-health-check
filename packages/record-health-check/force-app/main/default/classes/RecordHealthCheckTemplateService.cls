@@ -192,6 +192,6 @@ public class RecordHealthCheckTemplateService {
     if (raw instanceof Datetime) {
       return ((Datetime) raw).formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'');
     }
-    return String.valueOf(raw) == 'null' ? '' : String.valueOf(raw);
+    return String.valueOf(raw);
   }
 }

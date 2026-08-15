@@ -52,6 +52,9 @@ applicable and whether a prerequisite result requires the Check to be skipped.
 **Notable behavior:**
 
 - **Important:** an applicability miss returns `SKIPPED` with a Reason Code; it is not a Fail.
+- Transaction planning reserves the scope record load, applicability queries, every evaluator
+  query, both sides of Compare Two Queries, and the second query used when a Query Check selects
+  `COMPARISON_QUERY` as its expected-value source.
 
 ### `RecordHealthCheckEvaluatorRegistry`
 
@@ -111,6 +114,9 @@ formula dependencies; custom Apex does not call it directly.
 
 Replaces the record-specific condition with one query that covers all requested record IDs, then
 assigns the returned rows to the matching record. This prevents one SOQL query per record.
+Classification masks string literals and considers only depth-zero correlation, ordering, and limit
+clauses. A record token found only in a nested query or literal is rejected as
+`UNSUPPORTED_BULK_QUERY_SHAPE`; it is never used to rewrite the outer query accidentally.
 
 **See also:** [Query Evaluation Type](../evaluation/query.md)
 

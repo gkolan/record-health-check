@@ -1,7 +1,7 @@
 {
   "name": "record-health-check",
   "private": true,
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Metadata-driven, extensible record health checks for Salesforce",
   "license": "Apache-2.0",
   "author": "Gautam Kolan (https://github.com/gkolan)",
@@ -26,6 +26,7 @@
     "dev:setup": "node scripts/contributor/setup.mjs",
     "predev:test": "npm run check:toolchain",
     "dev:test": "node scripts/contributor/test.mjs",
+    "test:war-room": "node scripts/contributor/war-room.mjs",
     "predev:test-no-namespace": "npm run check:toolchain",
     "dev:test-no-namespace": "node scripts/contributor/test-no-namespace.mjs",
     "release:preflight": "node scripts/release/run_release_preflight.mjs",

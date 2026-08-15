@@ -68,6 +68,7 @@ that adapts to the record and result, use [Merge Syntax](../guides/configure-che
 | [Comparison Operator](#comparison-operator-comparisonoperator__c) | `ComparisonOperator__c` | Query comparison |
 | [Expected Value Comes From](#expected-value-comes-from-expectedvaluesource__c) | `ExpectedValueSource__c` | Query comparison |
 | [Expected Value (Fixed)](#expected-value-fixed-expectedfixedvalue__c) | `ExpectedFixedValue__c` | Query comparison |
+| [Expected Currency ISO Code](#expected-currency-iso-code-expectedcurrencyisocode__c) | `ExpectedCurrencyIsoCode__c` | Query comparison |
 | [Expected Value (Formula)](#expected-value-formula-expectedrecordformula__c) | `ExpectedRecordFormula__c` | Query comparison |
 | [How To Read Query Results](#how-to-read-query-results-queryresulthandling__c) | `QueryResultHandling__c` | Advanced query behavior |
 | [If Query Finds No Records](#if-query-finds-no-records-norowsresult__c) | `NoRowsResult__c` | Advanced query behavior |
@@ -490,6 +491,14 @@ Leave it blank for **Is empty**, **Is not empty**, and **Compare two queries**.
 
 Text(255), required when **Expected Value Comes From** is **Fixed value**. Enter a plain value with no
 formula syntax or quotation marks: `Approved`, `5`, or `2025-01-31`.
+
+### Expected Currency ISO Code (`ExpectedCurrencyIsoCode__c`)
+
+Optional Text(3), except that it is required in a multi-currency org when a Query Check compares a
+Currency field with a fixed value. Enter the fixed value's ISO unit, such as `USD` or `EUR`. This
+declaration lets Record Health Check refuse a cross-unit comparison; it never converts a value.
+Leave it blank in single-currency orgs, for non-Currency fields, and for expected values that do not
+come from **Fixed value**.
 
 ### Expected Value (Formula) (`ExpectedRecordFormula__c`)
 

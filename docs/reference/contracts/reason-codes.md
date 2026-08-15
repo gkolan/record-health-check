@@ -97,11 +97,17 @@ a custom Apex Check.
 | Code | Typical status | Meaning |
 | --- | --- | --- |
 | `INVALID_SOQL_TEMPLATE` | `UNABLE_TO_EVALUATE` | SOQL template failed safety or parse checks. |
+| `FIELD_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured field does not exist on the resolved Salesforce object. Correct the API name or remove the Check from orgs where that schema is unavailable. |
+| `FIELD_TYPE_NOT_SUPPORTED` | `UNABLE_TO_EVALUATE` | A selected field resolves but its value type cannot safely enter the Query comparison or result contract. Base64/Blob fields are refused before query execution; use reviewed user-mode Apex that owns binary handling without returning the binary value. |
+| `RELATIONSHIP_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured relationship segment could not be resolved safely. Correct the relationship API name or traversal. |
+| `OBJECT_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | The root object in a supported Query shape does not exist in the org. Correct its API name or remove the Check from orgs where that schema is unavailable. |
+| `MIXED_CURRENCY` | `UNABLE_TO_EVALUATE` / validation | In a multi-currency org, reachable query values use more than one unit, a fixed Currency threshold has no declared ISO basis, or a Currency aggregate discards unit evidence. Group by `CurrencyIsoCode`, constrain it to one literal ISO code with a conjunctive outer predicate, declare the fixed basis, or use Apex that explicitly owns unit handling. Outer-depth `OR` or `NOT` fails closed; nested semi-join predicates do not alter the outer proof. No conversion occurs. |
 | `INVALID_OPERATOR` | `UNABLE_TO_EVALUATE` | Comparison Operator is missing or cannot be used with the selected Evaluation Type and query-result setting. |
 | `INCOMPATIBLE_COMPARISON_TYPES` | `UNABLE_TO_EVALUATE` | Ordered comparison cannot convert the two sides safely. |
 | `MULTIPLE_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | `ONE_RESULT` expected one row/aggregate but got more. |
 | `NO_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | Empty result handled as unable (`NoRowsResult__c = UNABLE_TO_EVALUATE`). |
 | `MISSING_BIND_VALUE` | `UNABLE_TO_EVALUATE` | Merge token required for SOQL bind could not be resolved. |
+| `ROW_LIMIT_EXCEEDED` | `UNABLE_TO_EVALUATE` | A query returned more rows than that Check's configured **Max Query Rows** cap. The result does not disclose the true row count. Narrow the query or raise the cap. |
 | `GOVERNOR_LIMIT_RISK` | `UNABLE_TO_EVALUATE` | Record Health Check stopped before the query could use too much of the transaction's remaining Salesforce limits. Reduce **Max Query Rows**, narrow the SOQL, or check fewer records per transaction. |
 | `UNSUPPORTED_BULK_QUERY_SHAPE` | `UNABLE_TO_EVALUATE` | The SOQL template cannot be converted to one query for all requested records. Rewrite it using a supported record-token pattern. |
 | `SCOPE_ROW_CAP_EXCEEDED` | `UNABLE_TO_EVALUATE` | The bulk query returned more rows for the transaction than Record Health Check can safely process. Narrow the SOQL or lower the number of records checked per transaction. |

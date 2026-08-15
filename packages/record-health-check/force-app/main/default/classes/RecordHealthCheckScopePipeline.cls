@@ -69,6 +69,7 @@ public with sharing class RecordHealthCheckScopePipeline {
         recordIds,
         recordsById,
         recordLoad.inaccessibleCheckNames.contains(check.QualifiedApiName),
+        recordLoad.unresolvedReasonCodeByCheckName.get(check.QualifiedApiName),
         recordLoad.incompletePlanningCheckNames.contains(
           check.QualifiedApiName
         ),
@@ -147,6 +148,12 @@ public with sharing class RecordHealthCheckScopePipeline {
         if (!fieldPlan.inaccessibleFields.isEmpty()) {
           result.inaccessibleCheckNames.add(check.QualifiedApiName);
         }
+        if (!fieldPlan.unresolvedReasonCodesByField.isEmpty()) {
+          result.unresolvedReasonCodeByCheckName.put(
+            check.QualifiedApiName,
+            primaryUnresolvedReasonCode(fieldPlan.unresolvedReasonCodesByField)
+          );
+        }
         if (fieldPlan.verdictDependenciesTruncated) {
           result.incompletePlanningCheckNames.add(check.QualifiedApiName);
         }
@@ -197,6 +204,32 @@ public with sharing class RecordHealthCheckScopePipeline {
     String runId,
     Map<String, RecordHealthCheckResultItem> itemsByIdentity
   ) {
+    evaluateCheck(
+      check,
+      context,
+      recordIds,
+      recordsById,
+      fieldAccessDenied,
+      null,
+      formulaPlanningIncomplete,
+      resultMode,
+      runId,
+      itemsByIdentity
+    );
+  }
+
+  private void evaluateCheck(
+    Record_Health_Check__mdt check,
+    SelectionContext context,
+    List<Id> recordIds,
+    Map<Id, SObject> recordsById,
+    Boolean fieldAccessDenied,
+    String unresolvedReasonCode,
+    Boolean formulaPlanningIncomplete,
+    RecordHealthCheckResultMode resultMode,
+    String runId,
+    Map<String, RecordHealthCheckResultItem> itemsByIdentity
+  ) {
     RecordHealthCheckRunContext runContext = new RecordHealthCheckRunContext(
       runId,
       context.executionOrigin
@@ -234,6 +267,21 @@ public with sharing class RecordHealthCheckScopePipeline {
     if (
       invalidConfiguration == null &&
       !formulaPlanningIncomplete &&
+      unresolvedReasonCode != null
+    ) {
+      for (Id recordId : recordIds) {
+        internalByRecordId.put(
+          recordId,
+          recordsById.containsKey(recordId)
+            ? resultSupport.unavailableResult(check, unresolvedReasonCode)
+            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
+        );
+      }
+    }
+    if (
+      invalidConfiguration == null &&
+      !formulaPlanningIncomplete &&
+      unresolvedReasonCode == null &&
       fieldAccessDenied
     ) {
       for (Id recordId : recordIds) {
@@ -251,6 +299,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     Map<Id, RecordHealthCheckInternalResult> applicabilityByRecordId = invalidConfiguration ==
       null &&
       !formulaPlanningIncomplete &&
+      unresolvedReasonCode == null &&
       !fieldAccessDenied
       ? resultSupport.applicabilityResults(check, recordIds, recordsById)
       : new Map<Id, RecordHealthCheckInternalResult>();
@@ -258,6 +307,7 @@ public with sharing class RecordHealthCheckScopePipeline {
       if (
         invalidConfiguration != null ||
         formulaPlanningIncomplete ||
+        unresolvedReasonCode != null ||
         fieldAccessDenied
       ) {
         continue;
@@ -362,6 +412,14 @@ public with sharing class RecordHealthCheckScopePipeline {
     return String.valueOf(recordId) + '|' + checkQualifiedApiName;
   }
 
+  private String primaryUnresolvedReasonCode(
+    Map<String, String> reasonCodesByField
+  ) {
+    List<String> paths = new List<String>(reasonCodesByField.keySet());
+    paths.sort();
+    return reasonCodesByField.get(paths[0]);
+  }
+
   private String newRunId() {
     return 'rhc-api-' +
       String.valueOf(Datetime.now().getTime()) +
@@ -388,6 +446,7 @@ public with sharing class RecordHealthCheckScopePipeline {
   private class RecordLoadPlan {
     private Map<Id, SObject> recordsById = new Map<Id, SObject>();
     private Set<String> inaccessibleCheckNames = new Set<String>();
+    private Map<String, String> unresolvedReasonCodeByCheckName = new Map<String, String>();
     private Set<String> incompletePlanningCheckNames = new Set<String>();
   }
 }

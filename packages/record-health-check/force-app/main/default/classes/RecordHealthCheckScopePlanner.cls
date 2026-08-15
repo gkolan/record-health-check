@@ -277,6 +277,9 @@ public with sharing class RecordHealthCheckScopePlanner {
       }
       if (check.EvaluationType__c == 'QUERY') {
         requiredQueries++;
+        if (check.ExpectedValueSource__c == 'COMPARISON_QUERY') {
+          requiredQueries++;
+        }
       } else if (check.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
         requiredQueries += 2;
       } else if (check.EvaluationType__c == 'APEX') {

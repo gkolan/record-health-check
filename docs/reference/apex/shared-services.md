@@ -109,12 +109,16 @@ outer SOQL clause.
 | Member | Purpose |
 | --- | --- |
 | `prepareForExecution(soql, maxRows)` | Prepare and limit SOQL written by an administrator |
+| `rootObject(soql)` | Resolve the outer query root without mistaking a literal or child subquery `FROM` for the root |
+| `outerSelectList(soql)` | Return the outer select list while preserving nested query text |
+| `hasConjunctiveEqualityFilter(soql, fieldApiName)` | Prove a literal equality only for a conjunctive outer predicate; `OR` and `NOT` fail closed |
 | `TemplateException` (nested) | Exception carrying `reasonCode` |
 
 **Notable behavior:**
 
 - The class temporarily replaces characters inside quoted text with spaces while locating SOQL
-  clauses. Keeping the same character positions lets it safely edit the original query afterward.
+  clauses, including backslash-escaped quotes. Keeping the same character positions lets it safely
+  edit the original query afterward.
 - It inserts `WITH USER_MODE` before `GROUP BY`, `ORDER BY`, `LIMIT`, and other ending clauses where
   Salesforce requires it. `WITH SYSTEM_MODE` is rejected because it would bypass the running user's
   record, object, and field access.
@@ -125,24 +129,46 @@ outer SOQL clause.
 
 **Type:** Shared service · `public with sharing`
 
-Reads fields from rows and `AggregateResult`s (including relationship paths), classifies
-`QueryException` messages into access vs template reason codes, and compares numeric / datetime /
-string values consistently for both Query evaluators.
+Reads fields from rows and `AggregateResult`s (including relationship paths), classifies typed
+query failures, and compares numeric / datetime / string values consistently for both Query
+evaluators.
 
 **Key members:**
 
 | Member | Purpose |
 | --- | --- |
 | `traverse(...)` | Read a (possibly relationship-dotted) field path off a row |
-| `classifyQueryException(...)` | Map a `QueryException` message to a reason code |
+| `classifyQueryException(...)` | Map a typed execution exception to a reason code without reading localized text |
 | `ResolverException` (nested) | Exception carrying `reasonCode` |
 
 **Notable behavior:**
 
 - When a related record in a field path such as `Account.Owner.Name` is missing, `traverse` returns
   `null` instead of throwing an exception.
-- `classifyQueryException` checks the exception message for access or permission wording. It returns
-  `FIELD_NOT_ACCESSIBLE` for an access problem and `INVALID_SOQL_TEMPLATE` for other query problems.
+- Supported flat query schema is describe-validated before execution. A typed
+  `System.NoAccessException` maps to `FIELD_NOT_ACCESSIBLE`; remaining execution exceptions map to
+  `INVALID_SOQL_TEMPLATE`. No reason code depends on localized exception text.
+
+### `RecordHealthCheckQuerySchemaValidator`
+
+**Role:** Deterministically validate the supported flat-query schema subset before execution.
+
+The root object is validated for every recognizable outer `SELECT ... FROM` query. A comma-separated
+list of plain fields and relationship paths is also resolved through the same FieldPlanner describe
+rules used for record loading. Aggregate functions, aliases, subqueries, `TYPEOF`, syntax, and bind
+validity remain outside this bounded validator and are never guessed from exception messages. A
+plain Base64/Blob field is resolved by describe and refused as `FIELD_TYPE_NOT_SUPPORTED` before
+query execution so binary data cannot enter comparison, serialization, display, or diagnostics.
+
+### `RecordHealthCheckCurrencySupport`
+
+**Role:** Preserve reachable query-row currency evidence and prevent cross-unit verdicts.
+
+Classifies selected fields through describe metadata, retains row ISO evidence for Query and
+Compare two queries comparisons, and refuses a verdict when that evidence contains multiple units.
+It also identifies ungrouped aggregates over Currency fields for shared metadata validation.
+Aggregate rows, Formula arithmetic, and subscriber-plugin internals do not expose unit evidence to
+this service; it never converts values.
 
 ### `RecordHealthCheckDescribeCache`
 

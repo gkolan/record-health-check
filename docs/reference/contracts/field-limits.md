@@ -62,6 +62,7 @@ These Check fields can be affected by a saved-value or completed-text character 
 | [`DisplayExpectedText__c`](../../metadata/fields-check.md#display-expected-text-displayexpectedtext__c) | Text | 255 | 20,000 | Record Health Check returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG`; it does not shorten the text |
 | [`DisplayFoundFormula__c`](../../metadata/fields-check.md#display-found-formula-displayfoundformula__c) | LongTextArea | 32768 | Not applicable | Record Health Check uses the saved value as-is |
 | [`DisplayFoundText__c`](../../metadata/fields-check.md#display-found-text-displayfoundtext__c) | Text | 255 | 20,000 | Record Health Check returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG`; it does not shorten the text |
+| [`ExpectedCurrencyIsoCode__c`](../../metadata/fields-check.md#expected-currency-iso-code-expectedcurrencyisocode__c) | Text | 3 | Not applicable | Record Health Check uses the saved value as-is |
 | [`ExpectedFixedValue__c`](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) | Text | 255 | Not applicable | Record Health Check uses the saved value as-is |
 | [`ExpectedRecordFormula__c`](../../metadata/fields-check.md#expected-value-formula-expectedrecordformula__c) | LongTextArea | 32768 | Not applicable | Record Health Check uses the saved value as-is |
 | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | LongTextArea | 32768 | 20,000 | Record Health Check returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG`; it does not shorten the text |
@@ -86,7 +87,7 @@ These fields are still constrained, but making their text shorter will not solve
 | Check | Checkbox | true/false | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c), [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) |
 | Check | Metadata relationship | Must name a Check Set | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) |
 
-This page covers all **17 Check Set fields** and **43 Check fields** in the shipped Custom Metadata definitions.
+This page covers all **17 Check Set fields** and **44 Check fields** in the shipped Custom Metadata definitions.
 
 ## If the limit is exceeded
 

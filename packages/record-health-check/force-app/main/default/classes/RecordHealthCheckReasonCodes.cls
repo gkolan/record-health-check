@@ -7,6 +7,17 @@
 public class RecordHealthCheckReasonCodes {
   public static final String CANNOT_EVALUATE = 'CANNOT_EVALUATE';
   public static final String FIELD_NOT_ACCESSIBLE = 'FIELD_NOT_ACCESSIBLE';
+  public static final String FIELD_NOT_RESOLVED = 'FIELD_NOT_RESOLVED';
+  public static final String FIELD_TYPE_NOT_SUPPORTED = 'FIELD_TYPE_NOT_SUPPORTED';
+  public static final String RELATIONSHIP_NOT_RESOLVED = 'RELATIONSHIP_NOT_RESOLVED';
+  public static final String OBJECT_NOT_RESOLVED = 'OBJECT_NOT_RESOLVED';
+  public static final String MIXED_CURRENCY = 'MIXED_CURRENCY';
+  public static final String ROW_LIMIT_EXCEEDED = 'ROW_LIMIT_EXCEEDED';
+  public static final String SCOPE_ROW_CAP_EXCEEDED = 'SCOPE_ROW_CAP_EXCEEDED';
+  public static final String NO_ROWS_RETURNED = 'NO_ROWS_RETURNED';
+  public static final String VALUE_IS_EMPTY = 'VALUE_IS_EMPTY';
+  public static final String APPLICABILITY_NOT_MET = 'APPLICABILITY_NOT_MET';
+  public static final String INVALID_SOQL_TEMPLATE = 'INVALID_SOQL_TEMPLATE';
   public static final String FORMULA_DEPENDENCY_DEPTH_EXCEEDED = 'FORMULA_DEPENDENCY_DEPTH_EXCEEDED';
   public static final String RECORD_NOT_ACCESSIBLE = 'RECORD_NOT_ACCESSIBLE';
   public static final String NOT_APPLICABLE_BY_FORMULA = 'NOT_APPLICABLE_BY_FORMULA';

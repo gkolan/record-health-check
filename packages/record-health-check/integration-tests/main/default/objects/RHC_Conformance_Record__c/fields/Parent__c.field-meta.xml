@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Parent__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description
+  >Links a fixture record to another fixture record for neutral hierarchy and missing-parent tests.</description>
+    <inlineHelpText
+  >Select the optional parent used by a hierarchy conformance case.</inlineHelpText>
+    <label>Parent</label>
+    <referenceTo>RHC_Conformance_Record__c</referenceTo>
+    <relationshipLabel>Child Conformance Records</relationshipLabel>
+    <relationshipName>Child_Conformance_Records</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>

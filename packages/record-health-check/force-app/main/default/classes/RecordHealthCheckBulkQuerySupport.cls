@@ -51,6 +51,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     Map<Id, SObject> loadedRecords,
     Integer maxRows
   ) {
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(soqlTemplate);
     if (loadedRecords == null) {
       loadedRecords = new Map<Id, SObject>();
     }
@@ -169,7 +170,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       }
     }
 
-    if (TOKEN.matcher(scopeSoql).find()) {
+    if (hasDepthZeroMatch(scopeSoql, TOKEN)) {
       throw unsupportedShape(
         'The scope-wide rewrite left an unresolved record token.'
       );
@@ -203,7 +204,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     }
     if (rows.size() > rowBudget) {
       throw new RecordHealthCheckEvaluatorException(
-        'SCOPE_ROW_CAP_EXCEEDED',
+        RecordHealthCheckReasonCodes.SCOPE_ROW_CAP_EXCEEDED,
         'The scope-wide query returned more than ' + rowBudget + ' rows.'
       );
     }
@@ -255,29 +256,28 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     if (negated != null) {
       return UNCLASSIFIED;
     }
-    if (!TOKEN.matcher(soql).find()) {
-      return SCOPE_INVARIANT;
+    if (!hasDepthZeroMatch(soql, TOKEN)) {
+      return TOKEN.matcher(soql).find() ? UNCLASSIFIED : SCOPE_INVARIANT;
     }
     Correlation correlation = matchCorrelation(soql, EQUALITY);
     if (correlation == null) {
       return UNCLASSIFIED;
     }
-    Matcher limitMatcher = LIMIT_PATTERN.matcher(soql);
-    Matcher order = ORDER_BY.matcher(soql);
-    Boolean hasLimit = limitMatcher.find();
-    Boolean hasOrder = order.find();
+    String limitValue = firstGroup(soql, LIMIT_PATTERN, 1);
+    String orderField = firstGroup(soql, ORDER_BY, 1);
+    Boolean hasLimit = limitValue != null;
+    Boolean hasOrder = orderField != null;
     if (hasLimit && hasOrder) {
-      if (MULTI_FIELD_ORDER_BY.matcher(soql).find()) {
+      if (hasDepthZeroMatch(soql, MULTI_FIELD_ORDER_BY)) {
         return UNCLASSIFIED;
       }
-      if (Integer.valueOf(limitMatcher.group(1)) != 1) {
+      if (Integer.valueOf(limitValue) != 1) {
         return UNCLASSIFIED;
       }
       List<String> selected = RecordHealthCheckBulkQueryRewriter.selectedFields(
         soql
       );
-      return selected.size() == 1 &&
-        selected[0].equalsIgnoreCase(order.group(1))
+      return selected.size() == 1 && selected[0].equalsIgnoreCase(orderField)
         ? ORDERED_PICK_AGGREGATE
         : ORDERED_PICK_IN_MEMORY;
     }
@@ -285,14 +285,14 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       correlation.tokenPath == 'Id' &&
       correlation.fieldPath.equalsIgnoreCase('Id')
     ) {
-      return !hasLimit || Integer.valueOf(limitMatcher.group(1)) == 1
+      return !hasLimit || Integer.valueOf(limitValue) == 1
         ? SELF
         : UNCLASSIFIED;
     }
     // LIMIT 1 is removed from the rewritten scope query and applied while rows
     // are attributed to each record. Larger bare limits have no supported
     // per-record reduction contract and must remain rejected.
-    if (hasLimit && Integer.valueOf(limitMatcher.group(1)) != 1) {
+    if (hasLimit && Integer.valueOf(limitValue) != 1) {
       return UNCLASSIFIED;
     }
     if (correlation.tokenPath != 'Id') {
@@ -332,9 +332,13 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   }
 
   private static Correlation matchCorrelation(String soql, Pattern pattern) {
-    Matcher matcher = pattern.matcher(soql);
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
+    Matcher matcher = pattern.matcher(masked);
     Correlation firstMatch;
     while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0) {
+        continue;
+      }
       Correlation current = new Correlation();
       current.fieldPath = matcher.group(1);
       current.tokenPath = matcher.group(2);
@@ -362,12 +366,20 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   }
 
   private static String removeLimitOne(String soql) {
-    return soql.replaceFirst('(?i)\\s+LIMIT\\s+1\\b', '');
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
+    Matcher matcher = Pattern.compile('(?i)\\s+LIMIT\\s+1\\b').matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
+        return soql.substring(0, matcher.start()) +
+          soql.substring(matcher.end());
+      }
+    }
+    return soql;
   }
 
   private static Boolean hasLimitOne(String soql) {
-    Matcher matcher = LIMIT_PATTERN.matcher(soql);
-    return matcher.find() && Integer.valueOf(matcher.group(1)) == 1;
+    String limitValue = firstGroup(soql, LIMIT_PATTERN, 1);
+    return limitValue != null && Integer.valueOf(limitValue) == 1;
   }
 
   private static String firstGroup(
@@ -375,8 +387,25 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     Pattern pattern,
     Integer groupNumber
   ) {
-    Matcher matcher = pattern.matcher(value);
-    return matcher.find() ? matcher.group(groupNumber) : null;
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(value);
+    Matcher matcher = pattern.matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
+        return matcher.group(groupNumber);
+      }
+    }
+    return null;
+  }
+
+  private static Boolean hasDepthZeroMatch(String soql, Pattern pattern) {
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
+    Matcher matcher = pattern.matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static Object readPath(SObject row, String fieldPath) {

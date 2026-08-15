@@ -251,7 +251,7 @@ private class RecordHealthCheckLifecyclePublisherTest {
       Status__c = 'PASS',
       OccurredAt__c = System.now(),
       Source__c = 'APEX_API',
-      FrameworkVersion__c = '2.0.1'
+      FrameworkVersion__c = RecordHealthCheckLifecyclePublisher.FRAMEWORK_VERSION
     );
   }
 }

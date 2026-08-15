@@ -20,6 +20,14 @@ private class RecordHealthCheckConfigServiceTest {
       'Example_Profile_Phone_Available',
       'Example_Account_Profile_Readiness'
     );
+    Assert.isNull(
+      activeCheck.ExpectedCurrencyIsoCode__c,
+      'The loader must select the currency-basis field even when this Check leaves it blank.'
+    );
+    Assert.isNull(
+      activeCheck.Category__c,
+      'The loader must select optional presentation fields even when they are blank.'
+    );
     Record_Health_Check__mdt missingCheck = service.loadCheck(
       'Definitely_Missing',
       'Example_Account_Relationship_Risk',

@@ -268,10 +268,11 @@ private class RecordHealthCheckValueResolverTest {
       )
     );
     Assert.areEqual(
-      'FIELD_NOT_ACCESSIBLE',
+      'INVALID_SOQL_TEMPLATE',
       RecordHealthCheckValueResolver.classifyQueryException(
         new TestQueryException('insufficient access rights on field')
-      )
+      ),
+      'English message text must not determine access classification.'
     );
   }
 

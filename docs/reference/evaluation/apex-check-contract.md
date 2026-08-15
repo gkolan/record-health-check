@@ -66,6 +66,13 @@ Available Status factories are `pass`, `fail`, `unableToEvaluate`, and `skipped`
 `rhc.RecordHealthCheckValue` factories for String, Boolean, Number, Date, DateTime, ID, Count,
 and List values.
 
+`RecordHealthCheckValue` carries a typed value, not a currency unit. The package cannot inspect or
+repair arithmetic already performed inside a subscriber plugin, so custom Apex owns its currency
+correctness. If a plugin compares monetary values, query and retain their ISO units explicitly and
+refuse or deliberately normalize them according to the plugin's documented contract. The core
+framework performs no currency conversion and does not infer plugin-internal units from display
+labels.
+
 The custom class does not set record identity, Check identity, Severity, display text, links, or
 diagnostics. Record Health Check gets those values from the returned map key and Check Custom
 Metadata.
@@ -151,6 +158,12 @@ test. The contract test measures scopes of 1, 10, 50, and 200 records.
 To test access behavior, create a user who genuinely cannot read a record or field used by the
 Check. Apex does not expose a counter that proves whether a query used user mode, so the test result
 and a review of the SOQL source remain separate requirements.
+
+The framework's configured Query row limit does not wrap SOQL issued inside a subscriber plugin. Plugin authors
+own their row limits: query no more than the plugin can evaluate completely, use an extra-row probe
+when a collection-wide result depends on completeness, and return a documented
+`UNABLE_TO_EVALUATE` outcome instead of deciding from a truncated collection. Do not disclose a
+true count that the running user may not be entitled to see.
 
 ## Supported classes
 

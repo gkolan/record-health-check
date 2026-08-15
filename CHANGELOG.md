@@ -64,7 +64,52 @@ For installation and verification, start with
 
 ## Unreleased
 
+Target package version: **2.0.4**.
+
 ### Fixed
+
+- Lifecycle events now report framework version `2.0.4`; the release gate also verifies that the
+  Apex event publisher stays synchronized with the package version.
+- Scope-wide Query Check classification now ignores `LIMIT`, `ORDER BY`, and correlation-like text
+  inside string literals or nested subqueries. Nested-only record correlation fails closed instead
+  of rewriting the outer query from the wrong parenthesis depth.
+- Transaction planning now reserves both SOQL executions for a Query Check whose expected value
+  comes from `COMPARISON_QUERY`, preventing a late governor-limit failure after evaluation begins.
+- Explicit per-Check metadata loading now includes `Category__c`, keeping the advertised complete
+  Check object safe for presentation-token consumers without an unqueried-field exception.
+- Finalized result merge tokens now preserve the literal text value `"null"`; only an actual Apex
+  null resolves blank or activates a configured fallback.
+- Apex tests no longer receive an implicit run-permission grant. Namespaced restricted-persona
+  conformance now proves the actual Custom Permission boundary across Apex, Lightning, Flow, and
+  asynchronous entry points.
+- Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
+  display contract instead of leaving the troubleshooting panel empty.
+- User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
+  so enabled Check Result and Check Set Run events contain the evaluated Checks and accurate counts.
+- Text values beginning with `(` or `[` are now rendered as text instead of being mistaken for an
+  Apex list and failing the Check during display formatting.
+- Plain Base64/Blob fields selected by Query Checks are now refused during describe validation with
+  `FIELD_TYPE_NOT_SUPPORTED`, before binary data can reach query comparison, result serialization,
+  display, or diagnostics. Purpose-built Apex must retain user-mode visibility and return only a
+  redacted business outcome.
+- Checks whose required field or relationship path cannot be resolved now return
+  `UNABLE_TO_EVALUATE` with `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED` instead of silently
+  dropping the path from the record query. This is a visible reason-code behavior change for
+  configurations that reference schema absent from the current org.
+- Query failures no longer depend on English exception-message matching. Root objects and plain
+  selected field paths in the documented flat-query subset are describe-validated before both
+  single and bulk execution; other execution failures fall back to `INVALID_SOQL_TEMPLATE`.
+- Query comparisons now refuse reachable mixed currency units with `MIXED_CURRENCY`. Fixed
+  thresholds against Currency fields require a declared ISO basis, and metadata validation rejects
+  Currency aggregates that discard unit evidence instead of claiming a runtime aggregate guard.
+  The framework does not convert currencies; Formula and subscriber-plugin arithmetic remain
+  explicitly outside this guard.
+- Query row-cap outcomes now use `ROW_LIMIT_EXCEEDED` instead of `GOVERNOR_LIMIT_RISK`. This is an
+  immediate public reason-code change: consumers matching the old literal must adopt the new code.
+  `GOVERNOR_LIMIT_RISK` remains reserved for invalid or unsafe configuration/transaction pressure;
+  no compatibility window emits both codes for one outcome.
+- `NO_ROWS_RETURNED`, `VALUE_IS_EMPTY`, `APPLICABILITY_NOT_MET`, and `INVALID_SOQL_TEMPLATE` remain
+  stable public literals and now have canonical declarations in `RecordHealthCheckReasonCodes`.
 
 - Formula field planning now recognizes validated Salesforce polymorphic colon references such as
   `Owner:User.IsActive` and retains the explicitly selected relationship type during dependency

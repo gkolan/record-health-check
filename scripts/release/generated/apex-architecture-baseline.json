@@ -116,9 +116,7 @@
       "category": "scratch-org test-only access"
     }
   },
-  "testRuntimeBranches": {
-    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAccess.cls": 1
-  },
+  "testRuntimeBranches": {},
   "systemDebug": {
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckLogger.cls": 6,
     "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckExhaustiveSmoke.cls": 3

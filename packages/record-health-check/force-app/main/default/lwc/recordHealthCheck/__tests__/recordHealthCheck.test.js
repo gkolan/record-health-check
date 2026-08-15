@@ -714,6 +714,26 @@ describe("c-record-health-check — run orchestration", () => {
     );
   });
 
+  it("sends completion results in the nested Apex result-item contract", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+
+    await clickRun(element);
+
+    const completed = JSON.parse(completeRun.mock.calls[0][0].resultsJson);
+    expect(completed).toHaveLength(2);
+    expect(completed[0]).toEqual(
+      expect.objectContaining({
+        evaluation: expect.objectContaining({
+          checkQualifiedApiName: "Check_A",
+          recordId: "001000000000001AAA",
+          status: "PASS"
+        })
+      })
+    );
+  });
+
   it("threads a correlation runId into both Apex calls", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
@@ -787,6 +807,38 @@ describe("c-record-health-check — run orchestration", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(toggle.getAttribute("aria-label")).toBe(
       "Collapse troubleshooting detail"
+    );
+  });
+
+  it("renders diagnostics from the nested public Apex display contract", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        showDiagnostics: true,
+        checks: [makeDefinitions().checks[0]]
+      })
+    );
+    evaluateCheck.mockResolvedValue({
+      evaluation: {
+        checkQualifiedApiName: "Check_A",
+        recordId: "001000000000001AAA",
+        status: "UNABLE_TO_EVALUATE",
+        reasonCode: "INVALID_FORMULA"
+      },
+      display: {
+        renderedMessage: "This check could not be evaluated.",
+        adminDetail: {
+          message: "Formula could not generate the requested field."
+        }
+      }
+    });
+    await appendAndLoad(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-debug-detail")
+    ).not.toBeNull();
+    expect(element.shadowRoot.textContent).toContain(
+      "Formula could not generate the requested field."
     );
   });
 

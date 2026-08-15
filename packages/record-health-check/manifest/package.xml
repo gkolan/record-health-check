@@ -97,6 +97,7 @@
         <members>Record_Health_Check__mdt.ComparisonQueryField__c</members>
         <members>Record_Health_Check__mdt.ComparisonOperator__c</members>
         <members>Record_Health_Check__mdt.ExpectedFixedValue__c</members>
+        <members>Record_Health_Check__mdt.ExpectedCurrencyIsoCode__c</members>
         <members>Record_Health_Check__mdt.ExpectedValueSource__c</members>
         <members>Record_Health_Check__mdt.ExpectedRecordFormula__c</members>
         <members>Record_Health_Check__mdt.EmptyValueHandling__c</members>
@@ -166,6 +167,13 @@
     <types>
         <members>AccountHasRecentActivityCheck</members>
         <members>AccountHasRecentActivityCheckTest</members>
+        <members>RHCAbsentSchemaRedTest</members>
+        <members>RHCBase64FieldRedTest</members>
+        <members>RHCCurrencyAuthoringRedTest</members>
+        <members>RHCMixedCurrencyRedTest</members>
+        <members>RHCQueryClassificationRedTest</members>
+        <members>RHCRowLimitOutcomeTest</members>
+        <members>RHCRowLimitTestDataFactory</members>
         <members>RecordHealthCheck</members>
         <members>RecordHealthCheckAccess</members>
         <members>RecordHealthCheckAsyncTest</members>
@@ -182,6 +190,7 @@
         <members>RHCFormulaEdgeBehaviorTest</members>
         <members>RHCSoqlEvaluatorEdgeBehaviorTest</members>
         <members>RecordHealthCheckAdminDetail</members>
+        <members>RecordHealthCheckBulkQueryDepthTest</members>
         <members>RecordHealthCheckBulkQuerySupport</members>
         <members>RecordHealthCheckBulkQueryRewriter</members>
         <members>RecordHealthCheckBulkQueryRewriteTest</members>
@@ -224,6 +233,7 @@
         <members>RecordHealthCheckCompareQueriesEvaluator</members>
         <members>RecordHealthCheckCompareQuerySupport</members>
         <members>RecordHealthCheckCompareQuerySupportTest</members>
+        <members>RecordHealthCheckCurrencySupport</members>
         <members>RecordHealthCheckFieldPlanner</members>
         <members>RecordHealthCheckFormulaFieldScanner</members>
         <members>RHCPolymorphicQuerySafetyTest</members>
@@ -247,6 +257,7 @@
         <members>RHCMetadataSetValidatorTest</members>
         <members>RHCMetadataValidatorWarningTest</members>
         <members>RecordHealthCheckQueryEvaluatorSupport</members>
+        <members>RecordHealthCheckQuerySchemaValidator</members>
         <members>RecordHealthCheckQueueable</members>
         <members>RecordHealthCheckValueSource</members>
         <members>RecordHealthCheckInternalResult</members>

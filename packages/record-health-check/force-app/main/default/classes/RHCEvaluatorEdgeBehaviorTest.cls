@@ -48,13 +48,13 @@ private class RHCEvaluatorEdgeBehaviorTest {
       soql.runQueryForEvaluation('SELECT Id FROM Account', 0);
       Assert.isTrue(false, 'Expected row cap exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('GOVERNOR_LIMIT_RISK', ex.reasonCode);
+      Assert.areEqual('ROW_LIMIT_EXCEEDED', ex.reasonCode);
     }
     try {
       soql.runQueryForEvaluation('SELECT NotAField__c FROM Account', 1);
       Assert.isTrue(false, 'Expected invalid query exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual('FIELD_NOT_RESOLVED', ex.reasonCode);
     }
 
     Assert.areEqual(

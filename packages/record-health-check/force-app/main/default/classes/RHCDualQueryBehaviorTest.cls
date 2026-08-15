@@ -338,7 +338,7 @@ private class RHCDualQueryBehaviorTest {
     badFieldName.SourceQueryField__c = 'Missing__c';
     assertReason(
       evaluator.evaluate(badFieldName, accountRecord.Id, accountRecord),
-      'INVALID_SOQL_TEMPLATE'
+      'FIELD_NOT_RESOLVED'
     );
 
     Record_Health_Check__mdt invalidMode = validDualCheck(
@@ -375,7 +375,7 @@ private class RHCDualQueryBehaviorTest {
     maxRows.MaxQueryRows__c = 1;
     assertReason(
       evaluator.evaluate(maxRows, accountRecord.Id, accountRecord),
-      'GOVERNOR_LIMIT_RISK'
+      'ROW_LIMIT_EXCEEDED'
     );
   }
 

@@ -36,7 +36,8 @@ replacing the template.
 - **URLs:** when a token used in a URL is empty, the token must have a `fallback` value. Otherwise,
   the class returns `MISSING_TOKEN_VALUE` instead of creating a broken or unintended link.
 - **Result values:** `rhcResult.*` tokens become available only after the Check has produced its final
-  result. Found and Expected values are not reliable before that point.
+  result. Found and Expected values are not reliable before that point. A true Apex `null` resolves
+  blank and may activate a fallback; the populated text value `"null"` remains literal text.
 
 **See also:** [Merge tokens](../contracts/merge-tokens.md)
 

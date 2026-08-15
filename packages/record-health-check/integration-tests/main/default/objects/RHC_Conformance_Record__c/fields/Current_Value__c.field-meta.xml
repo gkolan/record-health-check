@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Current_Value__c</fullName>
+    <description
+  >Stores the current source number paired with the neutral snapshot fixture value.</description>
+    <inlineHelpText
+  >Enter the current source value used for comparison with the snapshot.</inlineHelpText>
+    <label>Current Value</label>
+    <precision>18</precision>
+    <scale>4</scale>
+    <type>Number</type>
+</CustomField>

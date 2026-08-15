@@ -6,7 +6,7 @@
 /** Best-effort, optional lifecycle publication for deliberately initiated runs. */
 public with sharing class RecordHealthCheckLifecyclePublisher {
   public static final String CONTRACT_VERSION = '1.0';
-  public static final String FRAMEWORK_VERSION = '2.0.1';
+  public static final String FRAMEWORK_VERSION = '2.0.4';
   public static final String SOURCE_APEX_API = 'APEX_API';
   public static final String SOURCE_FLOW = 'FLOW';
   public static final String SOURCE_USER_INITIATED = 'USER_INITIATED';

@@ -4,22 +4,12 @@
  */
 
 /**
- * Parenthesis-depth-aware SOQL template normalizer.
- * The single source of truth for turning an admin-authored SOQL template into a
- * query that is safe to execute: it masks string literals, recognizes clauses
- * ONLY at the outermost (depth-0) level, validates a single outer SELECT, injects
- * WITH USER_MODE in the correct place, and enforces an effective outer row cap.
- * Depth-aware parsing prevents:
- * - an ORDER BY / GROUP BY / LIMIT inside a child subquery becoming the
- * insertion point for the outer WITH USER_MODE (invalid SOQL);
- * - a subquery/literal containing LIMIT making the outer query look capped;
- * - a child aggregate making the outer query look like a pure aggregate and
- * suppressing the cap;
- * - an oversized outer LIMIT (e.g. 50000) consuming the governor limit before
- * the post-query size check;
- * - keyword rejection firing on words such as "update" inside a string literal.
- * Methods are static and do not change state. Callers map TemplateException.reasonCode
- * onto their own result/exception types.
+ * Parenthesis-depth-aware authority for administrator-authored SOQL shapes.
+ * It masks backslash-escaped string literals and recognizes only outer clauses,
+ * preventing nested clauses, aggregates, limits, or keywords from changing the
+ * root, security injection, row cap, or classification decision. It validates
+ * one outer SELECT, rejects unsafe access modes, injects WITH USER_MODE, and
+ * exposes the same structural analysis to other core query guards.
  */
 public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DML_KEYWORD = Pattern.compile(
@@ -27,6 +17,18 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   );
   private static final Pattern PATTERN_SELECT = Pattern.compile(
     '(?i)\\bSELECT\\b'
+  );
+  private static final Pattern PATTERN_FROM_OBJECT = Pattern.compile(
+    '(?i)\\bFROM\\s+([A-Za-z_][A-Za-z0-9_]*)\\b'
+  );
+  private static final Pattern PATTERN_WHERE = Pattern.compile(
+    '(?i)\\bWHERE\\b'
+  );
+  private static final Pattern PATTERN_BOOLEAN_DISJUNCTION = Pattern.compile(
+    '(?i)\\b(?:OR|NOT)\\b'
+  );
+  private static final Pattern PATTERN_FIELD_PATH = Pattern.compile(
+    '^[A-Za-z_][A-Za-z0-9_.]*$'
   );
   private static final Pattern PATTERN_GROUP_BY = Pattern.compile(
     '(?i)\\bGROUP\\s+BY\\b'
@@ -56,13 +58,12 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DATA_CATEGORY = Pattern.compile(
     '(?i)\\bWITH\\s+DATA\\s+CATEGORY\\b'
   );
-  // WITH SYSTEM_MODE runs the query without Salesforce sharing rules and FLS
-  // that WITH USER_MODE enforces. An admin-authored Check Set template must never
-  // be allowed to request it, so it is rejected outright rather than recognized.
+  // SYSTEM_MODE bypasses the sharing and FLS contract enforced by USER_MODE,
+  // so administrator-authored templates must never request it.
   private static final Pattern PATTERN_SYSTEM_MODE = Pattern.compile(
     '(?i)\\bWITH\\s+SYSTEM_MODE\\b'
   );
-  // Tail clauses, in the order they may legally appear, that WITH USER_MODE must precede.
+  // Tail clauses that WITH USER_MODE must precede, in their legal order.
   private static final List<Pattern> TAIL_CLAUSE_PATTERNS = new List<Pattern>{
     PATTERN_GROUP_BY,
     Pattern.compile('(?i)\\bORDER\\s+BY\\b'),
@@ -78,12 +79,9 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
   }
 
-  // ─── Public API ─────────────────────────────────────────────────────────────
-
   /**
-   * Full preparation for execution: validate shape, rewrite bare COUNT(), enforce
-   * the effective outer row cap, and inject WITH USER_MODE — all depth-0 aware.
-   * Returns the query string to hand to Database.query().
+   * Validates shape, rewrites bare COUNT(), enforces the outer row cap, and
+   * injects WITH USER_MODE using depth-aware clause positions.
    */
   public static String prepareForExecution(String soql, Integer maxRows) {
     if (String.isBlank(soql)) {
@@ -109,9 +107,8 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   }
 
   /**
-   * Rejects DML / dangerous keywords, matching whole words at any depth but
-   * IGNORING text inside string literals (so a literal 'Order by 5' or a value
-   * containing "update" is never a false positive).
+   * Rejects dangerous whole-word keywords while ignoring their appearance
+   * inside string literals.
    */
   public static void validateNoDisallowedKeywords(String soql) {
     if (String.isBlank(soql)) {
@@ -164,7 +161,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     String masked = maskStringLiterals(soql);
 
-    // Already has an outer WITH clause?
     if (firstDepth0Match(masked, PATTERN_WITH) >= 0) {
       return soql;
     }
@@ -299,9 +295,98 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return firstDepth0Match(masked, PATTERN_SINGLE_VALUE_COUNT) >= 0;
   }
 
-  // ─── Internal building blocks ───────────────────────────────────────────────
+  /** Returns the outer query's root object, ignoring literals and nested subqueries. */
+  public static String rootObject(String soql) {
+    if (String.isBlank(soql)) {
+      return null;
+    }
+    String masked = maskStringLiterals(soql);
+    Matcher fromMatcher = PATTERN_FROM_OBJECT.matcher(masked);
+    while (fromMatcher.find()) {
+      if (depthAt(masked, fromMatcher.start()) == 0) {
+        return fromMatcher.group(1);
+      }
+    }
+    return null;
+  }
 
-  /** Exactly one SELECT must appear at depth 0 (subquery SELECTs live at depth > 0). */
+  /** Returns the outer SELECT list, preserving nested subqueries and literal text. */
+  public static String outerSelectList(String soql) {
+    if (String.isBlank(soql)) {
+      return null;
+    }
+    String masked = maskStringLiterals(soql);
+    List<Integer> selectBounds = firstDepth0MatchBounds(masked, PATTERN_SELECT);
+    List<Integer> fromBounds = firstDepth0MatchBounds(
+      masked,
+      PATTERN_FROM_OBJECT
+    );
+    if (
+      selectBounds == null ||
+      fromBounds == null ||
+      selectBounds[1] >= fromBounds[0]
+    ) {
+      return null;
+    }
+    return soql.substring(selectBounds[1], fromBounds[0]).trim();
+  }
+
+  /**
+   * True when an outer WHERE requires a field equality for every contributing row.
+   * This intentionally supports only conjunctive predicates; OR and NOT fail closed.
+   */
+  public static Boolean hasConjunctiveEqualityFilter(
+    String soql,
+    String fieldApiName
+  ) {
+    if (
+      String.isBlank(soql) ||
+      String.isBlank(fieldApiName) ||
+      !PATTERN_FIELD_PATH.matcher(fieldApiName.trim()).matches()
+    ) {
+      return false;
+    }
+    String masked = maskStringLiterals(soql);
+    List<Integer> whereBounds = firstDepth0MatchBounds(masked, PATTERN_WHERE);
+    if (whereBounds == null) {
+      return false;
+    }
+    Integer predicateEnd = masked.length();
+    for (Pattern tailPattern : TAIL_CLAUSE_PATTERNS) {
+      Integer tailAt = firstDepth0Match(masked, tailPattern);
+      if (tailAt > whereBounds[1] && tailAt < predicateEnd) {
+        predicateEnd = tailAt;
+      }
+    }
+    Integer withAt = firstDepth0Match(masked, PATTERN_WITH);
+    if (withAt > whereBounds[1] && withAt < predicateEnd) {
+      predicateEnd = withAt;
+    }
+    Pattern equality = Pattern.compile(
+      '(?i)\\b' + fieldApiName.trim().replace('.', '\\.') + '\\s*=\\s*\'\\s*\''
+    );
+    for (
+      Pattern candidate : new List<Pattern>{
+        PATTERN_BOOLEAN_DISJUNCTION,
+        equality
+      }
+    ) {
+      Matcher matcher = candidate.matcher(masked);
+      matcher.region(whereBounds[1], predicateEnd);
+      Boolean found = false;
+      while (matcher.find()) {
+        if (depthAt(masked, matcher.start()) == 0) {
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        return candidate == equality;
+      }
+    }
+    return false;
+  }
+  /** Requires exactly one SELECT at depth 0; nested SELECTs remain valid. */
   private static void assertSingleOuterSelect(String soql) {
     String masked = maskStringLiterals(soql);
     Integer count = 0;
@@ -324,8 +409,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       );
     }
   }
-
-  /** Rewrites a depth-0 bare SELECT COUNT() to SELECT COUNT(Id) so Database.query returns an AggregateResult. */
+  /** Rewrites only a depth-0 bare COUNT(), preserving masked-string indices. */
   private static String rewriteBareCount(String soql) {
     String masked = maskStringLiterals(soql);
     Matcher m = PATTERN_COUNT_EMPTY.matcher(masked);
@@ -339,13 +423,9 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return soql;
   }
-
   /**
-   * Enforces an effective outer LIMIT no greater than `cap`
-   * pure aggregates (depth-0 aggregate, no depth-0 GROUP BY) get no LIMIT (illegal);
-   * an existing depth-0 LIMIT greater than cap is lowered to cap;
-   * otherwise a LIMIT of cap is added (before a depth-0 OFFSET if present).
-   * Callers still try with cap+1 by passing maxRows+1 — see the evaluators.
+   * Enforces the supplied outer cap. Execution callers pass configured cap + 1
+   * so the extra row proves ROW_LIMIT_EXCEEDED; diagnostic callers must match.
    */
   private static String enforceRowCap(String soql, Integer cap) {
     String masked = maskStringLiterals(soql);
@@ -358,7 +438,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       return soql;
     }
 
-    // Existing depth-0 LIMIT?
     Matcher limitMatcher = PATTERN_LIMIT.matcher(masked);
     while (limitMatcher.find()) {
       if (depthAt(masked, limitMatcher.start()) == 0) {
@@ -374,7 +453,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       }
     }
 
-    // No outer LIMIT — add one, before a depth-0 OFFSET if present.
     Integer offsetAt = firstDepth0Match(masked, PATTERN_OFFSET);
     if (offsetAt >= 0) {
       String before = soql.substring(0, offsetAt).trim();
@@ -383,8 +461,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return soql.trim() + ' LIMIT ' + cap;
   }
-
-  /** Index of the first match of `pattern` that sits at parenthesis depth 0, or -1. */
+  /** Returns the first depth-0 pattern match index, or -1. */
   private static Integer firstDepth0Match(String masked, Pattern pattern) {
     Matcher m = pattern.matcher(masked);
     while (m.find()) {
@@ -394,9 +471,21 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return -1;
   }
-
-  /** Parenthesis nesting depth at `index` in the (literal-masked) string. */
-  private static Integer depthAt(String masked, Integer index) {
+  /** Returns start/end indices for the first depth-0 match, or null. */
+  private static List<Integer> firstDepth0MatchBounds(
+    String masked,
+    Pattern pattern
+  ) {
+    Matcher matcher = pattern.matcher(masked);
+    while (matcher.find()) {
+      if (depthAt(masked, matcher.start()) == 0) {
+        return new List<Integer>{ matcher.start(), matcher.end() };
+      }
+    }
+    return null;
+  }
+  /** Computes parenthesis depth at an index in a literal-masked query. */
+  public static Integer depthAt(String masked, Integer index) {
     Integer depth = 0;
     for (Integer i = 0; i < index && i < masked.length(); i++) {
       String c = masked.substring(i, i + 1);

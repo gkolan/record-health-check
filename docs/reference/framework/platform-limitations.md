@@ -100,12 +100,50 @@ corporate, dated, or Advanced Currency Management conversion. `CURRENCYRATE()` i
 FormulaEval workaround. Normalize in Query/Apex when cross-currency comparison is required. Display
 formatting adds a code/symbol but does not change comparison units.
 
+Currency authoring guards resolve both direct fields and relationship paths through describe
+metadata. They apply only in
+multi-currency orgs; an aggregate may retain one unit either by grouping on `CurrencyIsoCode` or by
+filtering it to one literal ISO code in a conjunctive outer predicate. Predicates containing `OR`
+or `NOT` at outer depth do not prove that every contributing row has that unit and are refused;
+operators and equalities inside semi-joins do not alter the outer proof.
+
 `TODAY()`, `NOW()`, `DATEVALUE()`, and datetime comparisons follow FormulaEval and the running-user
 context. A formatted chip follows display locale/timezone rules and does not prove that the Pass
 Condition used the same boundary. Prefer Date fields for date-only SLAs; for datetime cutoffs,
 document the timezone and test users on both sides of the boundary.
 
+## Derived values, snapshots, and freshness
+
+Core does not infer when a stored or derived field was computed. Make freshness an explicit part of
+the Check when the data model exposes evidence for it:
+
+- compare a snapshot timestamp with a source-change timestamp using Formula or Compare Two Queries;
+- compare a watermark with `NOW()` or `TODAY()` when policy is based on maximum age;
+- use applicability or a prerequisite Check to handle a missing or unreadable watermark; and
+- use reviewed subscriber Apex when freshness depends on job history or another source that the
+  checked record does not expose.
+
+Snapshot-versus-current value comparison is an authoring decision: Compare Two Queries can report
+whether the values differ, but it cannot establish which value should govern the decision. A null
+watermark cannot prove freshness. These cases are expressible without a core freshness field, and
+core does not inspect product jobs, trigger recalculation, or attach hidden semantics to copied
+values.
+
 ## Query and data-model boundaries
+
+Record Health Check deterministically pre-validates the root object and comma-separated plain field
+or relationship paths in a flat `SELECT`. Missing roots return `OBJECT_NOT_RESOLVED`; missing fields
+and relationships return `FIELD_NOT_RESOLVED` or `RELATIONSHIP_NOT_RESOLVED`; user-mode access
+remains distinct. Compare Two Queries also validates its configured extraction fields against each
+query root before display or comparison. Subqueries, `TYPEOF`, aggregate expressions and aliases, SOQL functions, date
+literals, and bind/syntax errors are outside this schema subset. If those shapes fail at execution,
+they return `INVALID_SOQL_TEMPLATE`; the framework does not build a second SOQL parser or infer a
+more specific result from localized platform text.
+
+A resolved Base64/Blob selected field is a deliberately unsupported value boundary and returns
+`FIELD_TYPE_NOT_SUPPORTED` before query execution, comparison, serialization, or display. If binary
+inspection is essential, use reviewed user-mode Apex that returns only a redacted business outcome
+and never the binary content.
 
 - `ALL ROWS` is rejected, so recycle-bin rows are invisible. Restore a row or use purpose-built
   administrative Apex when deleted records matter.

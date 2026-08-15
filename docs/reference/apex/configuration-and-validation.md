@@ -38,6 +38,9 @@ resolves a Check's parent Check Set, loads Checks for evaluation, and maps the f
   substitute Label or Developer Name for the card title an administrator must provide. When a
   Check Set has more than 25 active Checks, the class records a `WARN` entry and tells the Lightning
   card to show **First 25 of N shown**. Only the first 25 Checks run.
+- `loadCheck` selects the complete evaluation contract plus presentation fields such as Category,
+  including optional fields that are blank, so downstream consumers do not encounter an
+  unqueried-field exception.
 
 ### `RecordHealthCheckValidator`
 

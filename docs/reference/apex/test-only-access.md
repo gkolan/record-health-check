@@ -39,14 +39,15 @@ The command scans Apex in `force-app` and `integration-tests`. It fails when a c
 When you remove an approved annotation, reduce its baseline count in the same change. Moving an
 annotation to a different file counts as new test-only access and fails the check.
 
-## Current approved `Test.isRunningTest()` branch
+## `Test.isRunningTest()` branches
 
-Only `RecordHealthCheckAccess` has an approved branch. In tests, `canRunChecks()` can use the value
-set through its private `@TestVisible` override instead of a real Custom Permission assignment.
+Production authorization no longer changes when Apex tests run. Restricted-persona integration
+tests exercise the real Custom Permission assignment or absence. Focused unit tests may still use
+the private `@TestVisible` override to force an authorization branch that is unrelated to the test's
+metadata setup.
 
-No other production method may branch on `Test.isRunningTest()`. Replace this remaining branch with
-a permission provider that a test can supply when that supporting class is introduced. Do not add a
-branch to preserve behavior from an older org or API.
+No production method may branch on `Test.isRunningTest()`. Do not add a branch to preserve behavior
+from an older org or API.
 
 ## Review evidence
 

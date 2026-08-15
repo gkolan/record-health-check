@@ -208,6 +208,31 @@ private class RecordHealthCheckDisplayCurrencyTest {
   }
 
   @IsTest
+  static void textStartingWithCollectionPunctuationRemainsText() {
+    Test.startTest();
+    String parenthesized = RecordHealthCheckDisplayFormat.render(
+      '(555) 867-5309',
+      'TEXT'
+    );
+    String bracketed = RecordHealthCheckDisplayFormat.render(
+      '[Legacy] Record',
+      'AUTO'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      '(555) 867-5309',
+      parenthesized,
+      'A parenthesized Phone or Text value must not be cast to a List.'
+    );
+    Assert.areEqual(
+      '[Legacy] Record',
+      bracketed,
+      'A bracket-prefixed Text value must not be cast to a List.'
+    );
+  }
+
+  @IsTest
   static void aggregateAmountsAreLabelledWithTheCorporateCurrency() {
     List<AggregateResult> totals = [
       SELECT SUM(Amount) total

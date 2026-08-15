@@ -138,7 +138,7 @@ public with sharing class RecordHealthCheckDiagnosticTrace {
       resolution.put(key + 'AfterMerge', bound);
       resolution.put(
         key + 'PreparedPerRecordQuery',
-        RecordHealthCheckSoqlTemplate.prepareForExecution(bound, maxRows)
+        RecordHealthCheckSoqlTemplate.prepareForExecution(bound, maxRows + 1)
       );
     } catch (Exception error) {
       resolution.put(key + 'ResolutionError', error.getMessage());

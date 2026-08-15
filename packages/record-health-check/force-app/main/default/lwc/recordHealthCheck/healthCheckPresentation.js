@@ -293,7 +293,10 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     .join(". ");
 
   const adminDetailMessage =
-    (isResolved && c.result && c.result.adminDetailMessage) || null;
+    (isResolved &&
+      c.result &&
+      (c.result.adminDetail?.message || c.result.adminDetailMessage)) ||
+    null;
   const showAdminDetail = showDiagnostics && !!adminDetailMessage;
 
   const diagnosticsMeta =
