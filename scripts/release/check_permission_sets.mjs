@@ -16,10 +16,13 @@ const expected = {
   Record_Health_Check_Admin: {
     classes: [
       "RecordHealthCheck",
+      "RecordHealthCheckAgentRestResource",
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
       "RecordHealthCheckMetadataValidator",
+      "RecordHealthCheckRunCheckAgentAction",
       "RecordHealthCheckRunCheckFlowAction",
+      "RecordHealthCheckRunSetAgentAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
       "RecordHealthCheckScheduled",
@@ -41,9 +44,12 @@ const expected = {
   Record_Health_Check_User: {
     classes: [
       "RecordHealthCheck",
+      "RecordHealthCheckAgentRestResource",
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
+      "RecordHealthCheckRunCheckAgentAction",
       "RecordHealthCheckRunCheckFlowAction",
+      "RecordHealthCheckRunSetAgentAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
       "RecordHealthCheckScheduled"

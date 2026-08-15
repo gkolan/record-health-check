@@ -1,0 +1,61 @@
+name: MCP artifact
+
+on:
+  pull_request:
+    paths:
+      - "packages/record-health-check-mcp/**"
+      - ".github/workflows/mcp-artifact.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/record-health-check-mcp/**"
+      - ".github/workflows/mcp-artifact.yml"
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  verify-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v4
+      - name: Build immutable test image
+        uses: docker/build-push-action@v7
+        with:
+          context: packages/record-health-check-mcp
+          load: true
+          push: false
+          tags: record-health-check-mcp:${{ github.sha }}
+      - name: Scan container for high-severity vulnerabilities
+        uses: anchore/scan-action@v7
+        with:
+          image: record-health-check-mcp:${{ github.sha }}
+          fail-build: true
+          severity-cutoff: high
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: record-health-check-mcp:${{ github.sha }}
+          format: spdx-json
+          output-file: record-health-check-mcp.spdx.json
+      - name: Export tested image
+        run: docker save --output record-health-check-mcp.tar record-health-check-mcp:${{ github.sha }}
+      - name: Record artifact digests
+        run: sha256sum record-health-check-mcp.tar record-health-check-mcp.spdx.json > artifact-digests.txt
+      - name: Attest image archive
+        if: github.event_name == 'push'
+        uses: actions/attest@v4
+        with:
+          subject-path: record-health-check-mcp.tar
+      - name: Upload verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: record-health-check-mcp-${{ github.sha }}
+          path: |
+            artifact-digests.txt
+            record-health-check-mcp.spdx.json
+          if-no-files-found: error
+          retention-days: 30

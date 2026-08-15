@@ -83,6 +83,9 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L5 | [`RecordHealthCheckController`](entry-points.md#recordhealthcheckcontroller) | Aura-enabled API for the Lightning card |
 | L5 | [`RecordHealthCheckRunCheckFlowAction`](entry-points.md#recordhealthcheckruncheckflowaction) | Packaged Flow action "Run Record Health Check" |
 | L5 | [`RecordHealthCheckRunSetFlowAction`](entry-points.md#recordhealthcheckrunsetflowaction) | Packaged Flow action "Run Record Health Check Set" |
+| L5 | [`RecordHealthCheckRunCheckAgentAction`](entry-points.md#recordhealthcheckruncheckagentaction) | Native Agentforce action for one exact Check and record |
+| L5 | [`RecordHealthCheckRunSetAgentAction`](entry-points.md#recordhealthcheckrunsetagentaction) | Native Agentforce action for one exact Check Set and record |
+| L5 | [`RecordHealthCheckAgentRestResource`](entry-points.md#recordhealthcheckagentrestresource) | Versioned read-only REST boundary for approved agent tools |
 | L5 | `RecordHealthCheckQueueable` | Runs one bounded Check Set group in the background; results are not saved unless the caller publishes events or custom code saves them |
 | L5 | `RecordHealthCheckBatch` | Splits an explicit list of 1–2,000 IDs into scopes of 1–200 records that share the Batch job Run ID; defaults to 100 |
 | L5 | `RecordHealthCheckScheduled` | Runs the same saved list of IDs daily by launching `RecordHealthCheckBatch` |

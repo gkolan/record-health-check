@@ -486,8 +486,9 @@ custom Apex Check. See [Display value format](../contracts/display-value-format.
   an explicit list of record IDs.
 - Large lists of record IDs use `RecordHealthCheckBatch`; each Batch transaction checks the selected
   number of records and has its own Salesforce limits.
-- No REST API. Apex, Flow, the Lightning card, and Platform Events are the supported integration
-  choices.
+- No general-purpose REST API, arbitrary query endpoint, or record-mutation endpoint. The versioned
+  agent tool REST resource exposes only one-record Check and Check Set evaluation for approved
+  service identities.
 
 ## 17. Class ownership map
 
@@ -500,6 +501,8 @@ For longer per-class descriptions, see [Reference: Apex classes](../apex/README.
 | --- | --- |
 | `RecordHealthCheck` | Public `evaluate(request)` entry point |
 | `RecordHealthCheckRunCheckFlowAction` and `RecordHealthCheckRunSetFlowAction` | Packaged Flow actions |
+| `RecordHealthCheckRunCheckAgentAction` and `RecordHealthCheckRunSetAgentAction` | Native one-record Agentforce actions |
+| `RecordHealthCheckAgentRestResource` | Versioned one-record REST boundary for approved agent tools |
 | `RecordHealthCheckQueueable`, `RecordHealthCheckBatch`, and `RecordHealthCheckScheduled` | Installed Queueable, Batch, and Scheduled Apex options |
 | `RecordHealthCheckAsyncSupport` | Shared record-ID and request preparation for those three Apex options |
 | `RecordHealthCheckFlowSupport` | Shared Flow input checking, result lookup, response-size limit, and summary Status |

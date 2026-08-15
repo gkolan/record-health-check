@@ -21,6 +21,7 @@ deploy-options.json
 
 # LWC Jest coverage reports
 coverage/
+dist/
 
 # Logs
 logs

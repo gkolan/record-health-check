@@ -40,6 +40,7 @@ the supported Apex APIs used by code in your org.
 | [Localization](framework/localization.md) | Translation Workbench, display formats |
 | [Configuration identity](framework/configuration-identity.md) | Qualified API Names, the `rhc` namespace, installed metadata, and metadata created in your org |
 | [Package testing and upgrades](framework/package-testing-and-upgrades.md) | Test ownership, `RunLocalTests`, package installation, and upgrade behavior |
+| [Agentforce and MCP threat model](framework/agent-mcp-threat-model.md) | Integration identities, trust boundaries, threats, and controls |
 
 Terms: [Glossary](glossary.md).
 
@@ -51,6 +52,7 @@ Terms: [Glossary](glossary.md).
 | [Merge tokens](contracts/merge-tokens.md) | Syntax, availability, fallback, limits |
 | [Display value format](contracts/display-value-format.md) | Found / Expected formatting |
 | [Field limits](contracts/field-limits.md) | Storage and resolved-text limits |
+| [Agent tool contract](contracts/agent-tool-contract.md) | Versioned Agentforce, REST, and MCP boundary |
 
 ## Evaluation Types
 

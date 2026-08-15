@@ -300,7 +300,12 @@
         <members>RecordHealthCheckValue</members>
         <members>RecordHealthCheckReasonCodes</members>
         <members>RecordHealthCheckRunContext</members>
+        <members>RecordHealthCheckAgentRestResource</members>
+        <members>RecordHealthCheckAgentRestResourceTest</members>
+        <members>RecordHealthCheckRunCheckAgentAction</members>
+        <members>RecordHealthCheckAgentActionTest</members>
         <members>RecordHealthCheckRunCheckFlowAction</members>
+        <members>RecordHealthCheckRunSetAgentAction</members>
         <members>RecordHealthCheckRunSetFlowAction</members>
         <members>RecordHealthCheck</members>
         <members>RecordHealthCheckValidator</members>

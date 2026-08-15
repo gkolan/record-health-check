@@ -99,6 +99,58 @@ and the complete response as JSON.
 
 **See also:** [Flow actions](../../integration/flow-actions.md)
 
+### `RecordHealthCheckRunCheckAgentAction`
+
+**Role:** Run one exact Check for one record as a native Agentforce action.
+
+**Type:** Invocable Agentforce action · `public with sharing`
+
+This class provides **Run Record Health Check for Agentforce**. It accepts exactly one record ID,
+one exact Check Qualified API Name, and an optional safe correlation ID. It fixes event publication
+to `NONE`, attributes execution to `AGENT`, and returns versioned structured fields without display
+or diagnostic data.
+
+**Notable behavior:**
+
+- **Important:** `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` remain completed health
+  results. Authorization, request, limit, and execution problems use a separate safe error channel.
+
+### `RecordHealthCheckRunSetAgentAction`
+
+**Role:** Run one exact Check Set for one record as a native Agentforce action.
+
+**Type:** Invocable Agentforce action · `public with sharing`
+
+This class provides **Run Record Health Check Set for Agentforce**. It returns the strongest Set
+status and explicit PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR counts under agent tool
+contract version `1.0`.
+
+**Notable behavior:**
+
+- **Important:** the action accepts one input only. It never exposes event-publication choice, raw
+  serialized results, display values, or administrator diagnostics to the model.
+
+**See also:** [Agentforce actions](../../integration/agentforce-actions.md)
+
+### `RecordHealthCheckAgentRestResource`
+
+**Role:** Expose the two approved agent tool operations to a separately authenticated service.
+
+**Type:** Apex REST resource · `global with sharing`
+
+This class accepts one strict JSON request at the versioned agent tool route. It fixes publication to
+`NONE`, attributes execution to `AGENT`, and returns contract version `1.0`. Completed health results
+use HTTP `200`; adapter authorization, validation, limit, and execution failures use separate safe
+HTTP and JSON responses.
+
+**Notable behavior:**
+
+- **Important:** unknown JSON fields, generic operations, multi-record input, unsafe correlation IDs,
+  and alternate configuration identities are rejected before evaluation. Response objects exclude
+  display data and diagnostics.
+
+**See also:** [Agent tool REST API](../../integration/agent-tool-rest-api.md)
+
 ### `RecordHealthCheckLifecyclePublisher`
 
 **Role:** Publish optional Check Result and Check Set Run Platform Events.

@@ -135,9 +135,11 @@ The project has not completed compatibility testing for:
 - running the component in Experience Cloud, which is not currently exposed as an Experience
   Builder component.
 
-Record Health Check does not include a REST API, Named Credential, External Service, cross-org
-connection, or Omni-Channel routing feature. Those items do not need a compatibility check for a
-standard installation. See [Architecture: Out of scope](architecture.md#16-out-of-scope).
+Record Health Check includes one versioned, read-only agent tool REST API for approved Agentforce and
+MCP integrations. It does not include a Named Credential, External Service, general cross-org
+connection, or Omni-Channel routing feature. See
+[Agent tool REST API](../../integration/agent-tool-rest-api.md) and
+[Architecture: Out of scope](architecture.md#16-out-of-scope).
 
 ## Related
 

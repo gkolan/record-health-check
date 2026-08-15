@@ -23,7 +23,9 @@ does not create a second configuration model.
 | ---: | --- | --- |
 | 1 | [Lightning component](lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
 | 2 | [Flow actions](flow-actions.md) | Branch in automation without custom Apex |
-| 3 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
+| 3 | [Agentforce actions](agentforce-actions.md) | Read-only native tools for agent record-health questions |
+| 4 | [Agent tool REST API](agent-tool-rest-api.md) | Service-identity boundary for an approved MCP server |
+| 5 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
 
 For immediate and background Apex patterns, use [API examples](../api/README.md). For receiving
 Flow, Apex, or external-integration examples, use
@@ -36,6 +38,8 @@ Flow, Apex, or external-integration examples, use
 | Show health to a user on a record page | [Lightning component](lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
 | Make an immediate or background decision in code | [API examples](../api/README.md) | Choose the direct Apex API, Queueable, Batch, or Scheduled Apex |
 | Branch in automation without custom Apex | [Flow actions](../integration/flow-actions.md) | Configure an Action and Decision element with explicit status paths |
+| Answer record-health questions with a native agent action | [Agentforce actions](agentforce-actions.md) | Configure exact Check or Check Set tools and preserve five-state results |
+| Call approved agent tools from a hosted MCP service | [Agent tool REST API](agent-tool-rest-api.md) | Authenticate a service identity and preserve the versioned tool contract |
 | Notify a separate process after the health-check transaction completes | [Platform Event subscriptions](../platform-events/README.md) | Build a receiving Flow, Apex trigger, or external integration and handle repeated delivery |
 | Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/recent-activity.md) | Write the class used by a Verify with Apex Check |
 
@@ -121,6 +125,8 @@ check rather than the complete configured health assessment.
 | Show health on a record page | [Lightning component](lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
 | Make a code-level decision | [Apex API](../api/apex-api.md) | Typed Check or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
 | Branch in automation without code | [Flow actions](flow-actions.md) | Flow output variables and JSON | `FLOW` |
+| Answer through native Agentforce actions | [Agentforce actions](agentforce-actions.md) | Versioned structured Check or Check Set fields | `AGENT` |
+| Call through an approved MCP service identity | [Agent tool REST API](agent-tool-rest-api.md) | Versioned JSON Check or Check Set fields | `AGENT` |
 | Notify a separate process or export results | [Platform events](lifecycle-events.md) | Platform Event fields | Depends on what started the run |
 | Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/recent-activity.md) | Normal Check result | Inherits the calling run |
 

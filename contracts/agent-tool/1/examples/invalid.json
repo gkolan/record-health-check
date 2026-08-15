@@ -1,0 +1,33 @@
+[
+  {
+    "schema": "request",
+    "reason": "Unknown fields are rejected.",
+    "value": {
+      "operation": "RUN_CHECK",
+      "recordId": "001000000000001AAA",
+      "qualifiedApiName": "Account_Name_Required",
+      "soql": "SELECT Id FROM Account"
+    }
+  },
+  {
+    "schema": "request",
+    "reason": "Invalid identifiers are rejected.",
+    "value": {
+      "operation": "RUN_CHECK_SET",
+      "recordId": "not-an-id",
+      "qualifiedApiName": "rhc__"
+    }
+  },
+  {
+    "schema": "response",
+    "reason": "Adapter failures cannot carry a health status.",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-4",
+      "success": false,
+      "errorType": "EXECUTION",
+      "errorMessage": "The evaluation could not be completed.",
+      "status": "PASS"
+    }
+  }
+]

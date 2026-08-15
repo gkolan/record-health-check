@@ -1,0 +1,18 @@
+FROM node:22.22.0-bookworm-slim AS build
+WORKDIR /service
+COPY package.json package-lock.json NOTICE ./
+RUN npm ci
+COPY tsconfig.json tsconfig.build.json ./
+COPY src ./src
+RUN npm run build && npm prune --omit=dev
+
+FROM node:22.22.0-bookworm-slim AS runtime
+ENV NODE_ENV=production
+WORKDIR /service
+USER node
+COPY --chown=node:node --from=build /service/package.json /service/package-lock.json ./
+COPY --chown=node:node --from=build /service/NOTICE ./NOTICE
+COPY --chown=node:node --from=build /service/node_modules ./node_modules
+COPY --chown=node:node --from=build /service/dist ./dist
+EXPOSE 3000
+CMD ["node", "dist/main.js"]

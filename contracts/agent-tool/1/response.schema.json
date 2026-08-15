@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gkolan.github.io/record-health-check/contracts/agent-tool/1/response.schema.json",
+  "title": "Record Health Check agent tool response contract 1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "correlationId",
+        "success",
+        "operation",
+        "status"
+      ],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "correlationId": { "$ref": "#/$defs/correlationId" },
+        "success": { "const": true },
+        "operation": { "const": "RUN_CHECK" },
+        "status": { "$ref": "#/$defs/status" },
+        "reasonCode": { "type": "string", "minLength": 1, "maxLength": 80 }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "correlationId",
+        "success",
+        "operation",
+        "status",
+        "passed",
+        "failed",
+        "skipped",
+        "unable",
+        "systemError"
+      ],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "correlationId": { "$ref": "#/$defs/correlationId" },
+        "success": { "const": true },
+        "operation": { "const": "RUN_CHECK_SET" },
+        "status": { "$ref": "#/$defs/status" },
+        "passed": { "$ref": "#/$defs/count" },
+        "failed": { "$ref": "#/$defs/count" },
+        "skipped": { "$ref": "#/$defs/count" },
+        "unable": { "$ref": "#/$defs/count" },
+        "systemError": { "$ref": "#/$defs/count" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "correlationId",
+        "success",
+        "errorType",
+        "errorMessage"
+      ],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "correlationId": { "$ref": "#/$defs/correlationId" },
+        "success": { "const": false },
+        "errorType": {
+          "enum": ["AUTHORIZATION", "VALIDATION", "LIMIT", "EXECUTION"]
+        },
+        "errorMessage": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    }
+  ],
+  "$defs": {
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[a-zA-Z0-9._:-]+$"
+    },
+    "status": {
+      "enum": ["PASS", "FAIL", "SKIPPED", "UNABLE_TO_EVALUATE", "ERROR"]
+    },
+    "count": { "type": "integer", "minimum": 0, "maximum": 25 }
+  }
+}

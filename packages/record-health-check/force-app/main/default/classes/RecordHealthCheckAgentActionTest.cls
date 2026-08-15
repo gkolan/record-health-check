@@ -1,0 +1,298 @@
+@IsTest
+private with sharing class RecordHealthCheckAgentActionTest {
+  @TestSetup
+  static void setup() {
+    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+    RecordHealthCheckTestDataFactory.createTestRecords();
+  }
+
+  @IsTest
+  static void checkActionReturnsStructuredResultForExactIdentity() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
+    input.recordId = accountRecord.Id;
+    input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
+      'Example_Profile_Phone_Available'
+    );
+    input.correlationId = 'agent-check-1';
+
+    Test.startTest();
+    List<RecordHealthCheckRunCheckAgentAction.Response> outputs = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{ input }
+    );
+    Test.stopTest();
+
+    Assert.areEqual(1, outputs.size(), 'One request must return one response.');
+    Assert.isTrue(outputs[0].success, 'A completed Check must succeed.');
+    Assert.areEqual(
+      '1.0',
+      outputs[0].contractVersion,
+      'Contract version must be stable.'
+    );
+    Assert.areEqual(
+      'agent-check-1',
+      outputs[0].correlationId,
+      'The safe correlation ID must survive.'
+    );
+    Assert.areEqual(
+      'RUN_CHECK',
+      outputs[0].operation,
+      'The response must identify the operation.'
+    );
+    Assert.areNotEqual(
+      null,
+      outputs[0].status,
+      'A completed Check must return a status.'
+    );
+    Assert.areEqual(
+      null,
+      outputs[0].errorType,
+      'A health result must not be an adapter error.'
+    );
+  }
+
+  @IsTest
+  static void setActionReturnsCountsForExactIdentity() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    RecordHealthCheckRunSetAgentAction.Request input = new RecordHealthCheckRunSetAgentAction.Request();
+    input.recordId = accountRecord.Id;
+    input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
+    input.correlationId = 'agent-set-1';
+
+    Test.startTest();
+    List<RecordHealthCheckRunSetAgentAction.Response> outputs = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ input }
+    );
+    Test.stopTest();
+
+    RecordHealthCheckRunSetAgentAction.Response output = outputs[0];
+    Assert.isTrue(output.success, 'A completed Check Set must succeed.');
+    Assert.areEqual(
+      'RUN_CHECK_SET',
+      output.operation,
+      'The response must identify the operation.'
+    );
+    Assert.areNotEqual(
+      null,
+      output.status,
+      'A completed Check Set must return a status.'
+    );
+    Assert.isTrue(
+      output.passed + output.failed + output.skipped + output.unable +
+      output.systemError > 0,
+      'The response counts must cover the selected active Checks.'
+    );
+  }
+
+  @IsTest
+  static void actionsRejectMissingRunPermissionBeforeEvaluation() {
+    RecordHealthCheckRunCheckAgentAction.Request checkInput = validCheckInput();
+    RecordHealthCheckRunSetAgentAction.Request setInput = validSetInput();
+
+    RecordHealthCheckAccess.setRunPermissionForTest(false);
+    try {
+      Test.startTest();
+      RecordHealthCheckRunCheckAgentAction.Response checkOutput = RecordHealthCheckRunCheckAgentAction.runCheck(
+        new List<RecordHealthCheckRunCheckAgentAction.Request>{ checkInput }
+      )[0];
+      RecordHealthCheckRunSetAgentAction.Response setOutput = RecordHealthCheckRunSetAgentAction.runSet(
+        new List<RecordHealthCheckRunSetAgentAction.Request>{ setInput }
+      )[0];
+      Test.stopTest();
+
+      assertCheckError(checkOutput, 'AUTHORIZATION');
+      assertSetError(setOutput, 'AUTHORIZATION');
+      Assert.areEqual(
+        null,
+        checkOutput.status,
+        'Authorization failure must have no health status.'
+      );
+      Assert.areEqual(
+        null,
+        setOutput.status,
+        'Authorization failure must have no health status.'
+      );
+    } finally {
+      RecordHealthCheckAccess.setRunPermissionForTest(null);
+    }
+  }
+
+  @IsTest
+  static void actionsRejectInvalidInputsWithoutGuessingIdentity() {
+    RecordHealthCheckRunCheckAgentAction.Request checkInput = validCheckInput();
+    checkInput.qualifiedApiName = ' invalid.identity ';
+    checkInput.correlationId = 'contains spaces';
+    RecordHealthCheckRunSetAgentAction.Request setInput = validSetInput();
+    setInput.qualifiedApiName = overlongIdentity();
+
+    Test.startTest();
+    RecordHealthCheckRunCheckAgentAction.Response checkOutput = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{ checkInput }
+    )[0];
+    RecordHealthCheckRunSetAgentAction.Response setOutput = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ setInput }
+    )[0];
+    Test.stopTest();
+
+    assertCheckError(checkOutput, 'VALIDATION');
+    assertSetError(setOutput, 'VALIDATION');
+    Assert.isTrue(
+      checkOutput.correlationId.startsWith('agent-'),
+      'An unsafe correlation value must never be reflected.'
+    );
+    Assert.isTrue(
+      setOutput.errorMessage.contains('255'),
+      'The Check Set validation must identify its documented identity limit.'
+    );
+  }
+
+  @IsTest
+  static void actionsMapUnknownConfigurationToSafeExecutionErrors() {
+    RecordHealthCheckRunCheckAgentAction.Request checkInput = validCheckInput();
+    checkInput.qualifiedApiName = 'Missing_Check';
+    RecordHealthCheckRunSetAgentAction.Request setInput = validSetInput();
+    setInput.qualifiedApiName = 'Missing_Set';
+
+    Test.startTest();
+    RecordHealthCheckRunCheckAgentAction.Response checkOutput = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{ checkInput }
+    )[0];
+    RecordHealthCheckRunSetAgentAction.Response setOutput = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ setInput }
+    )[0];
+    Test.stopTest();
+
+    assertCheckError(checkOutput, 'EXECUTION');
+    assertSetError(setOutput, 'EXECUTION');
+    Assert.isFalse(
+      checkOutput.errorMessage.contains('Missing_Check'),
+      'The Check error must not disclose configuration details.'
+    );
+    Assert.isFalse(
+      setOutput.errorMessage.contains('Missing_Set'),
+      'The Check Set error must not disclose configuration details.'
+    );
+  }
+
+  @IsTest
+  static void actionsRejectMoreThanOneRequestWithAlignedLimitErrors() {
+    RecordHealthCheckRunCheckAgentAction.Request checkInput = validCheckInput();
+    RecordHealthCheckRunSetAgentAction.Request setInput = validSetInput();
+
+    Test.startTest();
+    List<RecordHealthCheckRunCheckAgentAction.Response> checkOutputs = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{
+        checkInput,
+        checkInput
+      }
+    );
+    List<RecordHealthCheckRunSetAgentAction.Response> setOutputs = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ setInput, setInput }
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      2,
+      checkOutputs.size(),
+      'Check errors must remain aligned.'
+    );
+    Assert.areEqual(
+      2,
+      setOutputs.size(),
+      'Check Set errors must remain aligned.'
+    );
+    for (RecordHealthCheckRunCheckAgentAction.Response output : checkOutputs) {
+      assertCheckError(output, 'LIMIT');
+    }
+    for (RecordHealthCheckRunSetAgentAction.Response output : setOutputs) {
+      assertSetError(output, 'LIMIT');
+    }
+  }
+
+  @IsTest
+  static void actionsReturnEmptyListsForMissingInvocationLists() {
+    Test.startTest();
+    List<RecordHealthCheckRunCheckAgentAction.Response> checkOutputs = RecordHealthCheckRunCheckAgentAction.runCheck(
+      null
+    );
+    List<RecordHealthCheckRunSetAgentAction.Response> setOutputs = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>()
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      0,
+      checkOutputs.size(),
+      'A missing invocation list has no aligned output.'
+    );
+    Assert.areEqual(
+      0,
+      setOutputs.size(),
+      'An empty invocation list has no aligned output.'
+    );
+  }
+
+  private static RecordHealthCheckRunCheckAgentAction.Request validCheckInput() {
+    RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
+    input.recordId = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;
+    input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
+      'Example_Profile_Phone_Available'
+    );
+    input.correlationId = 'agent-check-valid';
+    return input;
+  }
+
+  private static RecordHealthCheckRunSetAgentAction.Request validSetInput() {
+    RecordHealthCheckRunSetAgentAction.Request input = new RecordHealthCheckRunSetAgentAction.Request();
+    input.recordId = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;
+    input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
+    input.correlationId = 'agent-set-valid';
+    return input;
+  }
+
+  private static String overlongIdentity() {
+    return ''
+      .leftPad(
+        RecordHealthCheckConstants.MAX_QUALIFIED_API_NAME_LENGTH + 1,
+        'x'
+      );
+  }
+
+  private static void assertCheckError(
+    RecordHealthCheckRunCheckAgentAction.Response output,
+    String expectedType
+  ) {
+    Assert.isFalse(output.success, 'An adapter error must set success false.');
+    Assert.areEqual(
+      expectedType,
+      output.errorType,
+      'The Check error type must be stable.'
+    );
+    Assert.areNotEqual(
+      null,
+      output.errorMessage,
+      'The Check error must contain a safe message.'
+    );
+  }
+
+  private static void assertSetError(
+    RecordHealthCheckRunSetAgentAction.Response output,
+    String expectedType
+  ) {
+    Assert.isFalse(output.success, 'An adapter error must set success false.');
+    Assert.areEqual(
+      expectedType,
+      output.errorType,
+      'The Check Set error type must be stable.'
+    );
+    Assert.areNotEqual(
+      null,
+      output.errorMessage,
+      'The Check Set error must contain a safe message.'
+    );
+  }
+}

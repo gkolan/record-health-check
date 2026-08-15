@@ -2,7 +2,7 @@
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Record Health Check User</label>
     <description
-  >Run Record Health Checks from Lightning, Apex, or Flow. Includes the required entry-point classes and Set Run and Check Result event access. Excludes diagnostic details.</description>
+  >Run Record Health Checks from Lightning, Apex, Flow, or Agentforce. Includes the required entry-point classes and Set Run and Check Result event access. Excludes diagnostic details.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <customPermissions>
         <enabled>true</enabled>
@@ -22,6 +22,18 @@
     </classAccesses>
     <classAccesses>
         <apexClass>RecordHealthCheckRunSetFlowAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>RecordHealthCheckRunCheckAgentAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>RecordHealthCheckRunSetAgentAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>RecordHealthCheckAgentRestResource</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
