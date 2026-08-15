@@ -26,6 +26,12 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
 
 ## Contents (high level)
 
+- `agentforce/war-room-test-plan.md`: cross-layer MCP and Agentforce release, adversarial, failure,
+  observability, and rollback matrix with P0/P1/P2 exit criteria
+- `agentforce/Record_Health_Assistant-testing-center.yaml`: executable Agentforce Testing Center
+  behavior suite; replace its synthetic record IDs with per-run fixtures before execution
+- `agentforce/record-health-agent-spec.md`: reviewable Agent Spec source draft; it is not generated
+  or deployed without the explicit approval required by the Agentforce generation workflow
 - Sample Check Sets and Checks, including a retained copy of the four `Example_` Check Sets
   that also ship in `force-app`
 - `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for

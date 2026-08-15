@@ -82,16 +82,29 @@ jobs:
         run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
       - name: Dry-run production package deployment
         working-directory: packages/record-health-check
-        run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
+        # Check-only tests run before a newly validated Custom Permission is
+        # committed. Validate metadata here, then run every local test in the
+        # real isolated-scratch deployment immediately below.
+        run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level NoTestRun --dry-run --wait 30
       - name: Deploy production package artifact
         working-directory: packages/record-health-check
         run: sf project deploy start --manifest manifest/package.xml --target-org rhc-ci --test-level RunLocalTests --wait 30
       - name: Dry-run integration harness deployment
         working-directory: packages/record-health-check
-        run: sf project deploy start --source-dir integration-tests --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
+        run: |
+          source_args=()
+          while IFS= read -r -d '' directory; do
+            source_args+=(--source-dir "$directory")
+          done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
+          sf project deploy start "${source_args[@]}" --target-org rhc-ci --test-level RunLocalTests --dry-run --wait 30
       - name: Deploy integration fixtures and fixture-dependent tests
         working-directory: packages/record-health-check
-        run: sf project deploy start --source-dir integration-tests --target-org rhc-ci --test-level RunLocalTests --wait 30
+        run: |
+          source_args=()
+          while IFS= read -r -d '' directory; do
+            source_args+=(--source-dir "$directory")
+          done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
+          sf project deploy start "${source_args[@]}" --target-org rhc-ci --test-level RunLocalTests --wait 30
       - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
       - name: Enforce production Apex coverage class by class
         run: npm run check:apex-coverage -- rhc-ci --list
