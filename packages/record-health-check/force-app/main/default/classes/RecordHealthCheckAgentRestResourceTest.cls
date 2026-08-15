@@ -171,6 +171,21 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   }
 
   @IsTest
+  static void postRejectsJsonNullBody() {
+    Test.startTest();
+    RecordHealthCheckAgentRestResource.AgentToolResponse output = postJson(
+      'null'
+    );
+    Test.stopTest();
+
+    assertError(output, 400, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('body'),
+      'A JSON null request must be identified as a missing body.'
+    );
+  }
+
+  @IsTest
   static void postRejectsUnknownJsonFields() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     String body = JSON.serialize(
@@ -249,6 +264,48 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     Test.stopTest();
 
     assertError(output, 400, 'VALIDATION');
+  }
+
+  @IsTest
+  static void postRejectsBlankQualifiedIdentity() {
+    Map<String, Object> body = baseBody(
+      'RUN_CHECK',
+      RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
+      ' '
+    );
+
+    Test.startTest();
+    RecordHealthCheckAgentRestResource.AgentToolResponse output = postJson(
+      JSON.serialize(body)
+    );
+    Test.stopTest();
+
+    assertError(output, 400, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('Qualified API Name'),
+      'A blank configuration identity must be rejected explicitly.'
+    );
+  }
+
+  @IsTest
+  static void postRejectsSyntacticallyPlausibleInvalidSalesforceId() {
+    Map<String, Object> body = baseBody(
+      'RUN_CHECK',
+      ''.leftPad(15, '0'),
+      'Example_Profile_Phone_Available'
+    );
+
+    Test.startTest();
+    RecordHealthCheckAgentRestResource.AgentToolResponse output = postJson(
+      JSON.serialize(body)
+    );
+    Test.stopTest();
+
+    assertError(output, 400, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('Salesforce'),
+      'A value that passes the shape gate but is not a Salesforce ID must fail safely.'
+    );
   }
 
   @IsTest

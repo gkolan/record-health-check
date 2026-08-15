@@ -234,6 +234,150 @@ private with sharing class RecordHealthCheckAgentActionTest {
     );
   }
 
+  @IsTest
+  static void checkActionRejectsNullRecordId() {
+    RecordHealthCheckRunCheckAgentAction.Request input = validCheckInput();
+    input.recordId = null;
+
+    Test.startTest();
+    RecordHealthCheckRunCheckAgentAction.Response output = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertCheckError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('Record ID'),
+      'The error must identify the missing Record ID.'
+    );
+  }
+
+  @IsTest
+  static void checkActionRejectsBlankQualifiedApiName() {
+    RecordHealthCheckRunCheckAgentAction.Request input = validCheckInput();
+    input.qualifiedApiName = ' ';
+
+    Test.startTest();
+    RecordHealthCheckRunCheckAgentAction.Response output = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertCheckError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('Qualified API Name'),
+      'The error must identify the missing Check identity.'
+    );
+  }
+
+  @IsTest
+  static void checkActionRejectsOverlongQualifiedApiName() {
+    RecordHealthCheckRunCheckAgentAction.Request input = validCheckInput();
+    input.qualifiedApiName = overlongIdentity();
+
+    Test.startTest();
+    RecordHealthCheckRunCheckAgentAction.Response output = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertCheckError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('255'),
+      'The error must identify the documented identity length limit.'
+    );
+  }
+
+  @IsTest
+  static void checkActionRejectsUnsafeCorrelationId() {
+    RecordHealthCheckRunCheckAgentAction.Request input = validCheckInput();
+    input.correlationId = 'unsafe correlation';
+
+    Test.startTest();
+    RecordHealthCheckRunCheckAgentAction.Response output = RecordHealthCheckRunCheckAgentAction.runCheck(
+      new List<RecordHealthCheckRunCheckAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertCheckError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.correlationId.startsWith('agent-'),
+      'The rejected correlation ID must not be reflected.'
+    );
+  }
+
+  @IsTest
+  static void setActionRejectsNullRecordId() {
+    RecordHealthCheckRunSetAgentAction.Request input = validSetInput();
+    input.recordId = null;
+
+    Test.startTest();
+    RecordHealthCheckRunSetAgentAction.Response output = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertSetError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('Record ID'),
+      'The error must identify the missing Record ID.'
+    );
+  }
+
+  @IsTest
+  static void setActionRejectsBlankQualifiedApiName() {
+    RecordHealthCheckRunSetAgentAction.Request input = validSetInput();
+    input.qualifiedApiName = ' ';
+
+    Test.startTest();
+    RecordHealthCheckRunSetAgentAction.Response output = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertSetError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('Qualified API Name'),
+      'The error must identify the missing Check Set identity.'
+    );
+  }
+
+  @IsTest
+  static void setActionRejectsMalformedQualifiedApiName() {
+    RecordHealthCheckRunSetAgentAction.Request input = validSetInput();
+    input.qualifiedApiName = 'invalid.identity';
+
+    Test.startTest();
+    RecordHealthCheckRunSetAgentAction.Response output = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertSetError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.errorMessage.contains('invalid format'),
+      'The error must identify the malformed Check Set identity.'
+    );
+  }
+
+  @IsTest
+  static void setActionRejectsUnsafeCorrelationId() {
+    RecordHealthCheckRunSetAgentAction.Request input = validSetInput();
+    input.correlationId = 'unsafe correlation';
+
+    Test.startTest();
+    RecordHealthCheckRunSetAgentAction.Response output = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    assertSetError(output, 'VALIDATION');
+    Assert.isTrue(
+      output.correlationId.startsWith('agent-'),
+      'The rejected correlation ID must not be reflected.'
+    );
+  }
+
   private static RecordHealthCheckRunCheckAgentAction.Request validCheckInput() {
     RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
     input.recordId = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;

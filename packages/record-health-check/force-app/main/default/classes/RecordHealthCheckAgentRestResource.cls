@@ -184,6 +184,14 @@ global with sharing class RecordHealthCheckAgentRestResource {
         'VALIDATION',
         'Record ID is not valid for Salesforce.'
       );
+    } catch (StringException error) {
+      return errorResponse(
+        response,
+        400,
+        correlationId,
+        'VALIDATION',
+        'Record ID is not valid for Salesforce.'
+      );
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       return errorResponse(
         response,
