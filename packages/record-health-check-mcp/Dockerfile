@@ -10,7 +10,9 @@ RUN npm run build && npm prune --omit=dev
 FROM node:22.23.2-bookworm-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /service
-RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+       /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 USER node
 COPY --chown=node:node --from=build /service/package.json /service/package-lock.json ./
 COPY --chown=node:node --from=build /service/NOTICE ./NOTICE

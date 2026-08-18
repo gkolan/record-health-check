@@ -34,6 +34,7 @@ the supported Apex APIs used by code in your org.
 | --- | --- |
 | [Architecture](framework/architecture.md) | Principles, layers, Check path, entry points, limits |
 | [Security and data access](framework/security.md) | USER_MODE, Permission Sets, diagnostics, plugins |
+| [Code Analyzer suppressions](framework/code-analyzer-suppressions.md) | Every static-analysis suppression, its exact location, and why it is safe |
 | [Data model](framework/data-model.md) | ERD and relationship summary |
 | [Compatibility](framework/compatibility.md) | Editions, Lightning Experience, API version |
 | [Platform limitations and safe patterns](framework/platform-limitations.md) | Formula, activity, Person Account, query, currency, time, and data-model edge cases |

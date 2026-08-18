@@ -197,6 +197,7 @@ user edit and save data according to that user's Salesforce access. See
 ## Related
 
 - [Architecture: Security model](architecture.md#9-security-model)
+- [Code Analyzer suppressions](code-analyzer-suppressions.md)
 - [Reason Codes](../contracts/reason-codes.md)
 - [Lifecycle events](../../integration/lifecycle-events.md)
 - [Verify a custom Apex Check](../apex/plugin-verification.md)
