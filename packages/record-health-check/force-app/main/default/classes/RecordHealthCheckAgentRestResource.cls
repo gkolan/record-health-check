@@ -7,7 +7,7 @@ global with sharing class RecordHealthCheckAgentRestResource {
   private static final String RUN_CHECK = 'RUN_CHECK';
   private static final String RUN_CHECK_SET = 'RUN_CHECK_SET';
   private static final Integer MAX_REQUEST_BYTES = 16384;
-  private static final String AUTHORIZATION_MESSAGE = 'You do not have permission to run Record Health Checks.';
+  private static final String PERMISSION_DENIED_MESSAGE = 'You do not have permission to run Record Health Checks.';
   private static final String EXECUTION_MESSAGE = 'The evaluation could not be completed.';
 
   /** Version 1 JSON request. */
@@ -78,7 +78,7 @@ global with sharing class RecordHealthCheckAgentRestResource {
         403,
         correlationId,
         'AUTHORIZATION',
-        AUTHORIZATION_MESSAGE
+        PERMISSION_DENIED_MESSAGE
       );
     }
     if (request == null || request.requestBody == null) {

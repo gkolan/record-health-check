@@ -4,7 +4,7 @@
 public with sharing class RecordHealthCheckRunSetAgentAction {
   private static final String CONTRACT_VERSION = '1.0';
   private static final String OPERATION = 'RUN_CHECK_SET';
-  private static final String AUTHORIZATION_MESSAGE = 'You do not have permission to run Record Health Checks.';
+  private static final String PERMISSION_DENIED_MESSAGE = 'You do not have permission to run Record Health Checks.';
   private static final String EXECUTION_MESSAGE = 'The Check Set request could not be evaluated.';
 
   /** One native Agentforce Check Set request. */
@@ -92,7 +92,7 @@ public with sharing class RecordHealthCheckRunSetAgentAction {
     String correlationId = safeCorrelationId(input?.correlationId);
     if (!RecordHealthCheckAccess.canRunChecks()) {
       return new List<Response>{
-        errorResponse(correlationId, 'AUTHORIZATION', AUTHORIZATION_MESSAGE)
+        errorResponse(correlationId, 'AUTHORIZATION', PERMISSION_DENIED_MESSAGE)
       };
     }
     String validationError = validate(input);
