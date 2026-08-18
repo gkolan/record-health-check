@@ -1,4 +1,4 @@
-FROM node:22.23.2-bookworm-slim AS build
+FROM node:22.23.2-trixie-slim AS build
 WORKDIR /service
 RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json NOTICE ./
@@ -7,7 +7,7 @@ COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 RUN npm run build && npm prune --omit=dev
 
-FROM node:22.23.2-bookworm-slim AS runtime
+FROM node:22.23.2-trixie-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /service
 RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/* \
