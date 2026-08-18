@@ -38,6 +38,12 @@ public class RecordHealthCheckReasonCodes {
 
   /** The Check threw and did not handle it. The engine cannot attribute it to one record. */
   public static final String PLUGIN_THREW = 'PLUGIN_THREW';
+  public static final String PLUGIN_CONSTRUCTOR_FAILED = 'PLUGIN_CONSTRUCTOR_FAILED';
+  public static final String PLUGIN_INTERFACE_INVALID = 'PLUGIN_INTERFACE_INVALID';
+  public static final String PLUGIN_STATUS_INVALID = 'PLUGIN_STATUS_INVALID';
+  public static final String PLUGIN_VALUES_MISSING = 'PLUGIN_VALUES_MISSING';
+  public static final String PLUGIN_DISPLAY_INVALID = 'PLUGIN_DISPLAY_INVALID';
+  public static final String FRAMEWORK_UNEXPECTED = 'FRAMEWORK_UNEXPECTED';
 
   /**
    * The Check changed something. Outranks every other outcome, including an

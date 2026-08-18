@@ -15,6 +15,42 @@ testCases:
       - run_record_health_check
     expectedOutcome: "The agent invokes the single Check action exactly once and does not invoke the Check Set action."
 
+  - utterance: "Run Check RHC_Diag_Formula_Syntax for Account 001000000000001AAA."
+    expectedTopic: record_health
+    expectedActions:
+      - run_record_health_check
+    expectedOutcome: "The agent reports UNABLE_TO_EVALUATE, explains the formula configuration diagnosis and recommended correction, includes the Diagnostic ID, and never reports PASS."
+
+  - utterance: "Run Check RHC_Diag_Query_Missing_Field for Account 001000000000001AAA."
+    expectedTopic: record_health
+    expectedActions:
+      - run_record_health_check
+    expectedOutcome: "The agent reports UNABLE_TO_EVALUATE, explains the query or field configuration diagnosis and recommended correction, includes the Diagnostic ID, and never reports PASS."
+
+  - utterance: "Run Check RHC_Diag_Apex_Throws for Account 001000000000001AAA."
+    expectedTopic: record_health
+    expectedActions:
+      - run_record_health_check
+    expectedOutcome: "The agent reports ERROR, explains that the configured Apex evaluator failed and what to correct, includes the Diagnostic ID, and does not expose a stack trace or report PASS."
+
+  - utterance: "Evaluate Account 001000000000001AAA with Check Set RHC_Diagnostic_Bad_Formula."
+    expectedTopic: record_health
+    expectedActions:
+      - run_record_health_check_set
+    expectedOutcome: "The agent reports the Check Set as UNABLE_TO_EVALUATE with nonzero unable count, a formula diagnosis, a recommended correction, and a Diagnostic ID; it never reports the Set as healthy."
+
+  - utterance: "Evaluate Account 001000000000001AAA with Check Set RHC_Diagnostic_Bad_Query."
+    expectedTopic: record_health
+    expectedActions:
+      - run_record_health_check_set
+    expectedOutcome: "The agent reports the Check Set as UNABLE_TO_EVALUATE with nonzero unable count, a query diagnosis, a recommended correction, and a Diagnostic ID; it never reports the Set as healthy."
+
+  - utterance: "Evaluate Account 001000000000001AAA with Check Set RHC_Diagnostic_Bad_Apex."
+    expectedTopic: record_health
+    expectedActions:
+      - run_record_health_check_set
+    expectedOutcome: "The agent reports ERROR as the strongest Check Set status, includes the unable and system-error counts plus the first safe Apex diagnosis, recommended correction, and Diagnostic ID, and never reports the Set as healthy."
+
   - utterance: "Is Account 001000000000001AAA healthy under rhc__Example_Account_Profile_Readiness?"
     expectedTopic: record_health
     expectedActions:

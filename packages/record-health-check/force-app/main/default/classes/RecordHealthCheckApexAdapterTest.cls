@@ -44,7 +44,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       );
     Test.stopTest();
 
-    assertReason(result, 'APEX_CLASS_NOT_FOUND');
+    assertReason(result, RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID);
   }
 
   @IsTest
@@ -142,10 +142,13 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual('APEX_CLASS_NOT_FOUND', result.reasonCode);
+    Assert.areEqual(RecordHealthCheckStatus.ERROR, result.status);
     Assert.areEqual(
-      'This check could not be evaluated. Contact your administrator.',
+      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
+      result.reasonCode
+    );
+    Assert.areEqual(
+      'A system error prevented this check from completing. An authorized administrator can open the diagnosis.',
       result.message,
       'A constructor failure must use the safe fallback when no Check message is configured.'
     );
@@ -206,7 +209,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
         accountRecord.Id,
         accountRecord
       ),
-      'APEX_CLASS_NOT_FOUND'
+      RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID
     );
     Record_Health_Check__mdt finalizeCheck = apexCheck(
       'A_Finalize',
@@ -218,7 +221,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     invalidStatus.status = 'NOT_REAL';
     assertReason(
       finalizeResult(finalizeCheck, accountRecord, fallback, invalidStatus),
-      'APEX_EVALUATOR_ERROR'
+      RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID
     );
 
     RecordHealthCheckInternalResult skippedStatus = new RecordHealthCheckInternalResult();
@@ -241,7 +244,10 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       new RecordHealthCheckInternalResult(),
       missingActual
     );
-    assertReason(missingActualResult, 'APEX_EVALUATOR_ERROR');
+    assertReason(
+      missingActualResult,
+      RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING
+    );
     Assert.isTrue(
       missingActualResult.detailMessage.contains('result.actualValue'),
       missingActualResult.detailMessage
@@ -256,7 +262,10 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       new RecordHealthCheckInternalResult(),
       missingExpected
     );
-    assertReason(missingExpectedResult, 'APEX_EVALUATOR_ERROR');
+    assertReason(
+      missingExpectedResult,
+      RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING
+    );
     Assert.isTrue(
       missingExpectedResult.detailMessage.contains('result.expectedValue'),
       missingExpectedResult.detailMessage
@@ -303,7 +312,10 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       new RecordHealthCheckInternalResult(),
       invalidTypedFormat
     );
-    assertReason(invalidTypedResult, 'APEX_EVALUATOR_ERROR');
+    assertReason(
+      invalidTypedResult,
+      RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID
+    );
     Assert.isTrue(
       invalidTypedResult.detailMessage.contains('canonical uppercase'),
       invalidTypedResult.detailMessage

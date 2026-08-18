@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-08-13",
+  "verifiedAt": "2026-08-18",
   "apex": {
     "coveragePercent": 99.53,
     "namespacedCoveragePercent": 99.6,
@@ -16,10 +16,10 @@
     "testRunId": "707Ru000024mxiP"
   },
   "lwc": {
-    "testCount": 190,
-    "linesPercent": 98.99,
-    "statementsPercent": 98.63,
-    "functionsPercent": 98.28,
-    "branchesPercent": 94.71
+    "testCount": 198,
+    "linesPercent": 99.04,
+    "statementsPercent": 98.5,
+    "functionsPercent": 99.45,
+    "branchesPercent": 92.58
   }
 }

@@ -56,6 +56,14 @@ public with sharing class RecordHealthCheckRunSetAgentAction {
     public String errorType;
     @InvocableVariable(label='Error Message')
     public String errorMessage;
+    @InvocableVariable(label='Diagnostic ID')
+    public String diagnosticId;
+    @InvocableVariable(label='Diagnostic Category')
+    public String diagnosticCategory;
+    @InvocableVariable(label='Diagnostic Summary')
+    public String diagnosticSummary;
+    @InvocableVariable(label='Recommended Action')
+    public String recommendedAction;
   }
 
   /**
@@ -108,7 +116,9 @@ public with sharing class RecordHealthCheckRunSetAgentAction {
         request
       );
       Response output = baseResponse(evaluation.runId);
-      output.success = true;
+      output.success =
+        evaluation.summary.systemError == 0 &&
+        evaluation.summary.unable == 0;
       output.operation = OPERATION;
       output.status = RecordHealthCheckFlowSupport.overallStatus(
         evaluation.summary
@@ -118,11 +128,40 @@ public with sharing class RecordHealthCheckRunSetAgentAction {
       output.skipped = evaluation.summary.skipped;
       output.unable = evaluation.summary.unable;
       output.systemError = evaluation.summary.systemError;
+      populateFirstDiagnosis(output, evaluation.results);
       return new List<Response>{ output };
     } catch (Exception error) {
+      RecordHealthCheckLogger.log(
+        RecordHealthCheckLogger.Level.ERROR,
+        correlationId,
+        input?.qualifiedApiName,
+        input?.recordId,
+        null,
+        'AGENT_SET_EXECUTION_FAILED',
+        new Map<String, Object>{ 'surface' => 'AGENTFORCE' },
+        error
+      );
+      RecordHealthCheckLogger.flush();
       return new List<Response>{
         errorResponse(correlationId, 'EXECUTION', EXECUTION_MESSAGE)
       };
+    }
+  }
+
+  private static void populateFirstDiagnosis(
+    Response output,
+    List<RecordHealthCheckResultItem> results
+  ) {
+    for (RecordHealthCheckResultItem item : results) {
+      RecordHealthCheckEvaluationResult result = item?.evaluation;
+      if (String.isBlank(result?.diagnosticId)) {
+        continue;
+      }
+      output.diagnosticId = result.diagnosticId;
+      output.diagnosticCategory = result.diagnosticCategory;
+      output.diagnosticSummary = result.diagnosticSummary;
+      output.recommendedAction = result.recommendedAction;
+      return;
     }
   }
 

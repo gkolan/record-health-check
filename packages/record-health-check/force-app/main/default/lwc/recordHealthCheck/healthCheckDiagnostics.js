@@ -94,7 +94,7 @@ export function diagnosticNextSteps(checks) {
   const steps = [];
   if (statuses.has("ERROR")) {
     steps.push(
-      "Open each System Error below. Capture its Reason Code and this Run ID, then match the time in Salesforce Debug Logs."
+      "Open each Diagnosis below. Follow its specific fix and verification steps; use the Diagnostic ID if escalation is still required."
     );
   }
   if (statuses.has("UNABLE_TO_EVALUATE")) {
@@ -120,6 +120,42 @@ export function diagnosticNextSteps(checks) {
   return steps;
 }
 
+/** Build the copy-safe support report for one authorized incident. */
+export function safeIncidentReport(incident) {
+  if (!incident) return null;
+  return {
+    contractVersion: incident.contractVersion,
+    diagnosticId: incident.diagnosticId,
+    runId: incident.runId,
+    occurredAt: incident.occurredAt,
+    status: incident.status,
+    severity: incident.severity,
+    category: incident.category,
+    reasonCode: incident.reasonCode,
+    summary: incident.summary,
+    likelyCause: incident.likelyCause,
+    owner: incident.owner,
+    retryable: incident.retryable,
+    phase: incident.phase,
+    component: incident.component,
+    evaluatorType: incident.evaluatorType,
+    checkSetQualifiedApiName: incident.checkSetQualifiedApiName,
+    checkQualifiedApiName: incident.checkQualifiedApiName,
+    configurationField: incident.configurationField,
+    querySide: incident.querySide,
+    exceptionType: incident.exceptionType,
+    topFrameClass: incident.topFrameClass,
+    topFrameMethod: incident.topFrameMethod,
+    topFrameLine: incident.topFrameLine,
+    affectedRecordCount: incident.affectedRecordCount,
+    scopeImpact: incident.scopeImpact,
+    fingerprint: incident.fingerprint,
+    containsRestrictedDetail: incident.containsRestrictedDetail === true,
+    remediationActions: incident.remediationActions || [],
+    verificationSteps: incident.verificationSteps || []
+  };
+}
+
 /** Remove duplicated implementation detail from the report intended for support. */
 export function supportDiagnosticsReport(diagnostics) {
   return {
@@ -133,6 +169,20 @@ export function supportDiagnosticsReport(diagnostics) {
       delete supportCheck.rawResult;
       return supportCheck;
     })
+  };
+}
+
+/** Build a standalone, copyable support report for one Check. */
+export function supportCheckDiagnosticsReport(diagnostics, check) {
+  const supportCheck = { ...check };
+  delete supportCheck.rawResult;
+  return {
+    runId: diagnostics.runId,
+    userId: diagnostics.userId,
+    recordId: diagnostics.recordId,
+    checkSetQualifiedApiName: diagnostics.checkSetQualifiedApiName,
+    generatedAt: diagnostics.generatedAt,
+    check: supportCheck
   };
 }
 

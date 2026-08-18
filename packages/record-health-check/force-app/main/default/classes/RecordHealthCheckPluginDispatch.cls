@@ -40,6 +40,10 @@ public with sharing class RecordHealthCheckPluginDispatch {
 
   public class ContractException extends Exception {
     public String reasonCode;
+    public String originalExceptionType;
+    public String originalExceptionMessage;
+    public String originalStackTrace;
+    public Integer originalLineNumber;
   }
 
   /**
@@ -162,10 +166,15 @@ public with sharing class RecordHealthCheckPluginDispatch {
       // No prohibited effect, so the throw is attributable to the check and can
       // safely become results. The engine cannot tell WHICH record caused it,
       // so the whole scope is affected; only the plugin can isolate per record.
-      throw newContractException(
+      ContractException contractFailure = newContractException(
         RecordHealthCheckReasonCodes.PLUGIN_THREW,
         'The check threw an unhandled exception: ' + pluginFailure.getMessage()
       );
+      contractFailure.originalExceptionType = pluginFailure.getTypeName();
+      contractFailure.originalExceptionMessage = pluginFailure.getMessage();
+      contractFailure.originalStackTrace = pluginFailure.getStackTraceString();
+      contractFailure.originalLineNumber = pluginFailure.getLineNumber();
+      throw contractFailure;
     }
 
     return validate(returned, scope);

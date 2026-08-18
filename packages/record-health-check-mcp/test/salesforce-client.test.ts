@@ -114,6 +114,40 @@ describe("Salesforce client", () => {
     ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
   });
 
+  it("accepts diagnostic failures returned by the Salesforce boundary", async () => {
+    const diagnostic = {
+      contractVersion: "1.0",
+      correlationId: "mcp-bad-apex",
+      success: false,
+      operation: "RUN_CHECK",
+      status: "ERROR",
+      reasonCode: "PLUGIN_THREW",
+      diagnosticId: "diag-bad-apex",
+      diagnosticCategory: "APEX_EXCEPTION",
+      diagnosticSummary: "The configured Apex evaluator threw an exception.",
+      recommendedAction: "Correct the evaluator and rerun the Check."
+    };
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        json({
+          access_token: "token",
+          instance_url: "https://instance.salesforce.test"
+        })
+      )
+      .mockResolvedValueOnce(json(diagnostic));
+    const client = new SalesforceClient(testConfig(), logger, fetcher);
+
+    await expect(
+      client.evaluate({
+        operation: "RUN_CHECK",
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "RHC_Diag_Apex_Throws",
+        correlationId: "mcp-bad-apex"
+      })
+    ).resolves.toEqual(diagnostic);
+  });
+
   it("retries only a transient Salesforce response", async () => {
     const fetcher = vi
       .fn<typeof fetch>()

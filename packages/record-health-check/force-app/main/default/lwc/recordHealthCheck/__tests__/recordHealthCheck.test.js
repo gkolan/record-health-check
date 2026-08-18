@@ -26,7 +26,9 @@ import {
   diagnosticNextSteps,
   formatRunSummary,
   parseDiagnosticJson,
+  safeIncidentReport,
   setupErrorHint,
+  supportCheckDiagnosticsReport,
   supportDiagnosticsReport
 } from "../healthCheckDiagnostics";
 import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.getCheckDefinitions";
@@ -391,6 +393,49 @@ describe("c-record-health-check — load and error states", () => {
     expect(banner.textContent).toContain("Please try again");
   });
 
+  it("shows a friendly access state for a structured authorization denial", async () => {
+    getCheckDefinitions.mockRejectedValue({
+      body: {
+        message: JSON.stringify({
+          reasonCode: "NOT_AUTHORIZED",
+          message: "You do not have permission to run Record Health Checks."
+        })
+      }
+    });
+    await appendAndLoad(element);
+
+    const banner = element.shadowRoot.querySelector(".rhc-error-banner");
+    expect(banner.classList).toContain("rhc-error-banner--access");
+    expect(banner.textContent).toContain("Record Health Check Access Required");
+    expect(banner.textContent).toContain(
+      "You don't have access to Record Health Check. Ask your Salesforce administrator for access."
+    );
+    const icon = banner.querySelector("lightning-icon");
+    expect(icon.iconName).toBe("utility:deny_access_object");
+    expect(icon.alternativeText).toBe("Access required");
+    expect(element.shadowRoot.querySelector(".rhc-card")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-debug-console-hint")
+    ).toBeNull();
+  });
+
+  it("normalizes missing Apex class access to the same friendly state", async () => {
+    getCheckDefinitions.mockRejectedValue({
+      status: 403,
+      body: {
+        message:
+          "You do not have access to the Apex class named RecordHealthCheckController"
+      }
+    });
+    await appendAndLoad(element);
+
+    const banner = element.shadowRoot.querySelector(".rhc-error-banner");
+    expect(banner.classList).toContain("rhc-error-banner--access");
+    expect(banner.textContent).toContain("Record Health Check Access Required");
+    expect(banner.textContent).not.toContain("RecordHealthCheckController");
+    expect(banner.textContent).not.toContain("Please try again");
+  });
+
   it("auto-runs checks when triggerMode is Automatic", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ triggerMode: "Automatic" })
@@ -575,6 +620,25 @@ describe("c-record-health-check — load and error states", () => {
     expect(getCheckSetAvailabilityForRecord).toHaveBeenCalledWith({
       recordId: element.recordId
     });
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+  });
+
+  it("preserves access denial during Check Set availability lookup", async () => {
+    element.checkSetName = "";
+    getCheckSetAvailabilityForRecord.mockRejectedValue({
+      body: {
+        message: JSON.stringify({
+          reasonCode: "NOT_AUTHORIZED",
+          message: "You do not have permission to run Record Health Checks."
+        })
+      }
+    });
+    await appendAndLoad(element);
+
+    const banner = element.shadowRoot.querySelector(".rhc-error-banner");
+    expect(banner.classList).toContain("rhc-error-banner--access");
+    expect(banner.textContent).toContain("Record Health Check Access Required");
+    expect(banner.textContent).not.toContain("verify its setup");
     expect(getCheckDefinitions).not.toHaveBeenCalled();
   });
 
@@ -766,11 +830,11 @@ describe("c-record-health-check — run orchestration", () => {
 
     expect(element.shadowRoot.querySelector(".rhc-debug-meta")).not.toBeNull();
     expect(element.shadowRoot.textContent).toContain(
-      "Open the browser console (F12), then find the [RHC] Start here section."
+      "For details about all issues, open Developer Tools (F12) and select Console."
     );
   });
 
-  it("clamps and expands troubleshooting detail with the shared control", async () => {
+  it("keeps troubleshooting detail in the browser console", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         triggerMode: "Automatic",
@@ -790,24 +854,16 @@ describe("c-record-health-check — run orchestration", () => {
     });
     await appendAndLoad(element);
 
-    // The detail stays inline rather than moving into a separate disclosure.
     expect(element.shadowRoot.querySelector("details")).toBeNull();
     const body = element.shadowRoot.querySelector(".rhc-debug-detail__body");
-    expect(body).not.toBeNull();
-    expect(body.textContent).toContain(
+    expect(body).toBeNull();
+    expect(element.shadowRoot.textContent).not.toContain(
       "Formula could not generate the requested field."
     );
     const toggle = element.shadowRoot.querySelector(
       '[aria-label="Expand troubleshooting detail"]'
     );
-    expect(toggle).not.toBeNull();
-    toggle.click();
-    expect(body.classList).toContain("rhc-expandable__content--expanded");
-    expect(toggle.dataset.symbol).toBe("−");
-    expect(toggle.getAttribute("aria-expanded")).toBe("true");
-    expect(toggle.getAttribute("aria-label")).toBe(
-      "Collapse troubleshooting detail"
-    );
+    expect(toggle).toBeNull();
   });
 
   it("renders diagnostics from the nested public Apex display contract", async () => {
@@ -834,11 +890,104 @@ describe("c-record-health-check — run orchestration", () => {
     });
     await appendAndLoad(element);
 
-    expect(
-      element.shadowRoot.querySelector(".rhc-debug-detail")
-    ).not.toBeNull();
-    expect(element.shadowRoot.textContent).toContain(
+    expect(element.shadowRoot.querySelector(".rhc-debug-detail")).toBeNull();
+    expect(element.shadowRoot.textContent).not.toContain(
       "Formula could not generate the requested field."
+    );
+  });
+
+  it("renders an actionable diagnosis without requiring the browser console", async () => {
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText }
+    });
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        showDiagnostics: true,
+        checks: [makeDefinitions().checks[0]]
+      })
+    );
+    evaluateCheck.mockResolvedValue({
+      evaluation: {
+        checkQualifiedApiName: "Check_A",
+        recordId: "001000000000001AAA",
+        status: "ERROR",
+        reasonCode: "PLUGIN_THREW"
+      },
+      display: {
+        renderedMessage: "A system error prevented this check from completing.",
+        adminDetail: {
+          configurationJson: JSON.stringify({
+            evaluationType: "QUERY",
+            sourceQueryTemplate:
+              "SELECT Id FROM Contact WHERE AccountId = '{{Record.Id}}'"
+          }),
+          resolutionJson: JSON.stringify({
+            sourceQueryAfterMerge:
+              "SELECT Id FROM Contact WHERE AccountId = '001000000000001AAA'",
+            sourceQueryPreparedPerRecordQuery:
+              "SELECT Id FROM Contact WHERE AccountId = '001000000000001AAA' LIMIT 101",
+            renderedMessage: "The query failed."
+          }),
+          incident: {
+            contractVersion: "1.0",
+            diagnosticId: "RHC-123",
+            runId: "run-123",
+            status: "ERROR",
+            severity: "CRITICAL",
+            category: "APEX_EXCEPTION",
+            reasonCode: "PLUGIN_THREW",
+            summary:
+              "The custom Apex Check stopped with an unhandled exception.",
+            likelyCause: "No such column Renewal_Date__c on Contact.",
+            owner: "DEVELOPER",
+            phase: "PLUGIN_EXECUTE",
+            component: "AccountHealthPlugin",
+            topFrameClass: "AccountHealthPlugin",
+            topFrameMethod: "evaluate",
+            topFrameLine: 42,
+            remediationActions: [
+              {
+                kind: "REVIEW_APEX",
+                label: "Correct the Apex Check",
+                instruction: "Correct the invalid field reference."
+              }
+            ],
+            verificationSteps: [
+              "Rerun with the same record and production principal."
+            ]
+          }
+        }
+      }
+    });
+    await appendAndLoad(element);
+
+    const diagnosis = element.shadowRoot.querySelector(".rhc-diagnosis");
+    expect(diagnosis).not.toBeNull();
+    expect(diagnosis.classList).toContain("rhc-diagnosis--system-error");
+    expect(diagnosis.textContent).toContain("Issue");
+    expect(diagnosis.textContent).toContain("PLUGIN_EXECUTE");
+    expect(diagnosis.textContent).toContain(
+      "AccountHealthPlugin.evaluate, line 42"
+    );
+    expect(diagnosis.textContent).toContain("No such column Renewal_Date__c");
+    expect(diagnosis.textContent).not.toContain(
+      "Correct the invalid field reference"
+    );
+    expect(diagnosis.textContent).not.toContain("RHC-123");
+    expect(diagnosis.textContent).not.toContain("DEVELOPER");
+    const advancedEvidence = diagnosis.querySelector(".rhc-evidence");
+    expect(advancedEvidence).toBeNull();
+    const copyButton = diagnosis.querySelector(
+      "lightning-button[data-check='Check_A']"
+    );
+    expect(copyButton).toBeNull();
+    expect(writeText).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("Review and redact customer data")
     );
   });
 
@@ -2187,7 +2336,11 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
 
   it("logs a console summary and diagnostics group when showDiagnostics completes a run", async () => {
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
+    const groupCollapsed = jest
+      .spyOn(console, "groupCollapsed")
+      .mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const info = jest.spyOn(console, "info").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
     const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
@@ -2218,56 +2371,40 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     await flushPromises();
     await flushPromises();
 
-    expect(group).toHaveBeenCalledWith(
-      expect.stringContaining("Account_Data_Quality")
+    expect(group).toHaveBeenCalledWith("[RHC] Account_Data_Quality · 1 Passed");
+    expect(info).toHaveBeenCalledWith(expect.stringMatching(/^Run ID: rhc-/));
+    expect(info).toHaveBeenCalledWith(
+      expect.stringContaining("Next: Every Check passed")
     );
-    expect(log).toHaveBeenCalledWith("1 Passed");
+    expect(table).not.toHaveBeenCalled();
+    expect(group).toHaveBeenCalledWith("[RHC] Checks (1)");
+    expect(groupCollapsed).toHaveBeenCalledWith("1. Check A · PASS");
+    expect(groupCollapsed).toHaveBeenCalledWith("Advanced diagnostics");
+    expect(groupCollapsed).toHaveBeenCalledWith(
+      "Support report for this check"
+    );
     expect(log).toHaveBeenCalledWith(
-      "Start here",
       expect.objectContaining({
-        summary: "1 Passed",
-        nextSteps: expect.arrayContaining([
-          expect.stringContaining("Every Check passed")
-        ]),
-        runId: expect.any(String),
-        checkSet: "Account_Data_Quality",
-        recordId: expect.any(String),
-        userId: expect.any(String),
-        generatedAt: expect.any(String)
-      })
-    );
-    expect(table).toHaveBeenCalledWith(expect.any(Array), [
-      "check",
-      "status",
-      "severity",
-      "reasonCode",
-      "actualValue",
-      "expectedValue",
-      "durationMs",
-      "evaluatorType"
-    ]);
-    expect(group).toHaveBeenCalledWith("[RHC] Full check details (1)");
-    expect(log).toHaveBeenCalledWith(
-      "Check configuration",
-      expect.objectContaining({ evaluationType: "QUERY" })
-    );
-    expect(log).toHaveBeenCalledWith(
-      "Resolved evaluation",
-      expect.objectContaining({
-        sourceQueryAfterMerge:
-          "SELECT Id FROM Account WHERE Id = 001000000000001AAA"
+        configuration: expect.objectContaining({ evaluationType: "QUERY" }),
+        resolution: expect.objectContaining({
+          sourceQueryAfterMerge: expect.any(String)
+        })
       })
     );
     expect(log).toHaveBeenCalledWith(
-      "Copy for support (review and redact before sharing)",
-      expect.stringContaining("sourceQueryTemplate")
+      expect.objectContaining({
+        runId: expect.stringMatching(/^rhc-/),
+        check: expect.objectContaining({ check: "Check_A", status: "PASS" })
+      })
     );
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("remove customer data")
+      expect.stringContaining("Review and redact customer data")
     );
     expect(groupEnd).toHaveBeenCalled();
     group.mockRestore();
+    groupCollapsed.mockRestore();
     log.mockRestore();
+    info.mockRestore();
     table.mockRestore();
     warn.mockRestore();
     debug.mockRestore();
@@ -2276,7 +2413,11 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
 
   it("logs every check even when optional diagnostic fields are absent", async () => {
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
+    const groupCollapsed = jest
+      .spyOn(console, "groupCollapsed")
+      .mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const info = jest.spyOn(console, "info").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
     const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
@@ -2295,9 +2436,12 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     await flushPromises();
     await flushPromises();
 
-    expect(group).toHaveBeenCalledWith("[RHC] Full check details (1)");
+    expect(group).toHaveBeenCalledWith("[RHC] Checks (1)");
+    expect(groupCollapsed).toHaveBeenCalledWith("1. Check A · PASS");
     group.mockRestore();
+    groupCollapsed.mockRestore();
     log.mockRestore();
+    info.mockRestore();
     table.mockRestore();
     warn.mockRestore();
     debug.mockRestore();
@@ -2334,12 +2478,12 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     await flushPromises();
     await flushPromises();
 
-    expect(warn).toHaveBeenCalledWith(
-      "Server diagnostic",
-      "Formula timed out on the server"
+    expect(log).toHaveBeenCalledWith("Why: Formula timed out on the server");
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({ containsRestrictedDetail: true })
     );
     expect(warn).toHaveBeenCalledWith(
-      "This check contains restricted diagnostic detail."
+      expect.stringContaining("Review and redact customer data")
     );
     group.mockRestore();
     groupCollapsed.mockRestore();
@@ -2353,6 +2497,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
   it("includes system errors and elapsed time in the diagnostics summary", async () => {
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const info = jest.spyOn(console, "info").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
     const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
@@ -2372,9 +2517,12 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     await appendAndLoad(element);
     await clickRun(element);
 
-    expect(log).toHaveBeenCalledWith("1 Error · 17ms total");
+    expect(group).toHaveBeenCalledWith(
+      "[RHC] Account_Data_Quality · 1 Error · 17ms total"
+    );
     group.mockRestore();
     log.mockRestore();
+    info.mockRestore();
     table.mockRestore();
     warn.mockRestore();
     debug.mockRestore();
@@ -3955,7 +4103,7 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
       { status: "UNABLE_TO_EVALUATE" },
       { status: "SKIPPED" }
     ]);
-    expect(steps[0]).toContain("System Error");
+    expect(steps[0]).toContain("Diagnosis");
     expect(steps[1]).toContain("Unable");
     expect(steps[2]).toContain("business outcome");
     expect(steps[3]).toContain("applicability");
@@ -3975,6 +4123,59 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
       status: "ERROR"
     });
     expect(report.checks[0].rawResult).toBeUndefined();
+  });
+
+  it("builds a standalone support report for one check", () => {
+    const report = supportCheckDiagnosticsReport(
+      {
+        runId: "run-1",
+        userId: "user-1",
+        recordId: "record-1",
+        checkSetQualifiedApiName: "Example_Set",
+        generatedAt: "2026-08-09T00:00:00.000Z"
+      },
+      { check: "Example_Check", status: "ERROR", rawResult: {} }
+    );
+    expect(report).toEqual({
+      runId: "run-1",
+      userId: "user-1",
+      recordId: "record-1",
+      checkSetQualifiedApiName: "Example_Set",
+      generatedAt: "2026-08-09T00:00:00.000Z",
+      check: { check: "Example_Check", status: "ERROR" }
+    });
+  });
+
+  it("copies a redacted incident report without restricted exception evidence", () => {
+    const report = safeIncidentReport({
+      contractVersion: "1.0",
+      diagnosticId: "RHC-DIAG-123",
+      runId: "run-1",
+      category: "PLUGIN",
+      phase: "PLUGIN_EXECUTE",
+      reasonCode: "PLUGIN_THREW",
+      title: "Custom Apex check failed",
+      summary: "The configured check threw an exception.",
+      likelyCause: "A field referenced by the check is unavailable.",
+      exceptionMessage: "restricted customer value",
+      evidence: ["restricted query"],
+      remediationActions: [
+        { label: "Fix", instruction: "Correct the Apex check." }
+      ],
+      verificationSteps: ["Run the check again."],
+      containsRestrictedDetail: true
+    });
+
+    expect(report).toEqual(
+      expect.objectContaining({
+        diagnosticId: "RHC-DIAG-123",
+        category: "PLUGIN",
+        containsRestrictedDetail: true
+      })
+    );
+    expect(report.exceptionMessage).toBeUndefined();
+    expect(report.evidence).toBeUndefined();
+    expect(JSON.stringify(report)).not.toContain("restricted customer value");
   });
 });
 

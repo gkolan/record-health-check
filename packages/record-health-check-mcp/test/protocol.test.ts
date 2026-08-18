@@ -107,4 +107,85 @@ describe("MCP Streamable HTTP", () => {
       buildId: "test"
     });
   });
+
+  it.each([
+    ["run_record_health_check", "RUN_CHECK", "UNABLE_TO_EVALUATE", "FORMULA"],
+    ["run_record_health_check", "RUN_CHECK", "ERROR", "APEX_EXCEPTION"],
+    [
+      "run_record_health_check_set",
+      "RUN_CHECK_SET",
+      "UNABLE_TO_EVALUATE",
+      "QUERY"
+    ],
+    ["run_record_health_check_set", "RUN_CHECK_SET", "ERROR", "APEX_CONTRACT"]
+  ] as const)(
+    "preserves diagnosis fields for %s %s",
+    async (toolName, operation, status, category) => {
+      const resultBody = {
+        contractVersion: "1.0",
+        correlationId: `mcp-${category.toLowerCase()}`,
+        success: false,
+        operation,
+        status,
+        ...(operation === "RUN_CHECK"
+          ? {
+              reasonCode:
+                status === "ERROR" ? "PLUGIN_THREW" : "INVALID_FORMULA"
+            }
+          : {
+              passed: 0,
+              failed: 0,
+              skipped: 0,
+              unable: status === "UNABLE_TO_EVALUATE" ? 1 : 0,
+              systemError: status === "ERROR" ? 1 : 0
+            }),
+        diagnosticId: `diag-${category.toLowerCase()}`,
+        diagnosticCategory: category,
+        diagnosticSummary: "The seeded bad configuration was diagnosed.",
+        recommendedAction: "Correct the named configuration and rerun."
+      };
+      const evaluate = vi.fn().mockResolvedValue(resultBody);
+      const app = createApp(
+        testConfig(),
+        { evaluate } as unknown as SalesforceClient,
+        { log: vi.fn() }
+      );
+      const httpServer = createServer(app);
+      servers.push(httpServer);
+      await new Promise<void>((resolve) =>
+        httpServer.listen(0, "127.0.0.1", resolve)
+      );
+      const address = httpServer.address();
+      if (!address || typeof address === "string")
+        throw new Error("Test server did not bind.");
+      const client = new Client({
+        name: "diagnostic-matrix",
+        version: "1.0.0"
+      });
+      await client.connect(
+        new StreamableHTTPClientTransport(
+          new URL(`http://127.0.0.1:${address.port}/mcp`)
+        )
+      );
+
+      const result = await client.callTool({
+        name: toolName,
+        arguments: {
+          recordId: "001000000000001AAA",
+          qualifiedApiName: "RHC_Diagnostic_Bad_Fixture",
+          correlationId: resultBody.correlationId
+        }
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.structuredContent).toEqual(resultBody);
+      expect(result.content).toEqual([
+        {
+          type: "text",
+          text: `${operation} completed with status ${status}. Correlation ID: ${resultBody.correlationId}.`
+        }
+      ]);
+      await client.close();
+    }
+  );
 });

@@ -56,14 +56,17 @@ public with sharing class RecordHealthCheckApexPluginResolver {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {
-      throw configurationError('APEX_CLASS_NOT_FOUND', ex.getMessage());
+      throw configurationError(
+        RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
+        ex.getMessage()
+      );
     }
   }
 
   private static RecordHealthCheckPlugin requireCheck(Object instance) {
     if (!(instance instanceof RecordHealthCheckPlugin)) {
       throw configurationError(
-        'APEX_CLASS_NOT_FOUND',
+        RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID,
         'The configured class does not implement RecordHealthCheckPlugin.'
       );
     }

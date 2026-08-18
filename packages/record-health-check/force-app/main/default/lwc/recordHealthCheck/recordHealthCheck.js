@@ -18,22 +18,10 @@ import {
   diagnosticNextSteps,
   formatRunSummary,
   parseDiagnosticJson,
+  safeIncidentReport,
   setupErrorHint,
-  supportDiagnosticsReport
+  supportCheckDiagnosticsReport
 } from "./healthCheckDiagnostics";
-
-// Columns shown in the run-diagnostics table. Value-source detail stays in the nested
-// group below — those strings are long and read better one check at a time.
-const RHC_DIAG_TABLE_COLUMNS = [
-  "check",
-  "status",
-  "severity",
-  "reasonCode",
-  "actualValue",
-  "expectedValue",
-  "durationMs",
-  "evaluatorType"
-];
 
 // Pointer hover waits before the tooltip fades in so quick row scans do not flash
 // popovers. Keyboard focus keeps a shorter CSS dwell (see recordHealthCheck.css).
@@ -584,6 +572,12 @@ export default class RecordHealthCheck extends LightningElement {
         if (loadToken !== this._loadToken || !this._connected) return;
         const parsed = parseAuraError(error);
         this.isLoading = false;
+        if (parsed.reasonCode === "NOT_AUTHORIZED") {
+          this.componentError = parsed.message;
+          this.componentErrorCode = parsed.reasonCode;
+          this.componentErrorDiagnosticCode = parsed.diagnosticCode;
+          return;
+        }
         this.componentError =
           "Record Health Check could not verify its setup. Please try again.";
         this.componentErrorCode = "AVAILABILITY_LOOKUP_FAILED";
@@ -635,15 +629,32 @@ export default class RecordHealthCheck extends LightningElement {
     return SETUP_ERROR_CODES.has(this.componentErrorCode);
   }
 
+  get isAccessError() {
+    return this.componentErrorCode === "NOT_AUTHORIZED";
+  }
+
+  get errorBannerClass() {
+    return this.isAccessError
+      ? "rhc-error-banner rhc-error-banner--access"
+      : "rhc-error-banner";
+  }
+
   get errorBannerIcon() {
+    if (this.isAccessError) return "utility:deny_access_object";
     return this.isSetupError ? "utility:setup" : "utility:error";
   }
 
+  get errorBannerIconVariant() {
+    return this.isAccessError ? null : "error";
+  }
+
   get errorBannerIconAltText() {
+    if (this.isAccessError) return "Access required";
     return this.isSetupError ? "Setup required" : "Error";
   }
 
   get errorBannerTitle() {
+    if (this.isAccessError) return "Record Health Check Access Required";
     return this.isSetupError
       ? "Health Check Needs Setup"
       : "Health Check Unavailable";
@@ -1043,10 +1054,6 @@ export default class RecordHealthCheck extends LightningElement {
     return this._summaryStatsCache;
   }
 
-  get summaryStats() {
-    return this.summaryGroups.flatMap((group) => group.stats);
-  }
-
   /**
    * Inactive checks are configuration housekeeping a regular user cannot act on,
    * so the count no longer sits in the card header. Under diagnostics it leads
@@ -1138,6 +1145,7 @@ export default class RecordHealthCheck extends LightningElement {
           actionLabel: r.actionLabel ?? null,
           actionUrl: r.actionUrl ?? null,
           adminMessage: r.adminDetail?.message ?? null,
+          incident: r.adminDetail?.incident ?? null,
           containsRestrictedDetail:
             r.adminDetail?.containsRestrictedDetail === true,
           configuration: parseDiagnosticJson(r.adminDetail?.configurationJson),
@@ -1153,80 +1161,100 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   _logRunDiagnostics() {
-    const diag = this._buildRunDiagnostics();
+    // Snapshot reactive LWC values before logging so DevTools shows stable,
+    // readable objects instead of Proxy wrappers that change after expansion.
+    const diag = JSON.parse(JSON.stringify(this._buildRunDiagnostics()));
     const summary = this._formatRunSummary(diag.checks);
     const nextSteps = diagnosticNextSteps(diag.checks);
-    const supportReport = supportDiagnosticsReport(diag);
     const configLabel =
       diag.checkSetQualifiedApiName || "(unset checkSetQualifiedApiName)";
-    console.group(
-      `[RHC] Health Check run ${diag.runId} | ${configLabel} | record ${diag.recordId}`
-    );
-    console.log(summary);
-    console.log("Start here", {
-      summary,
-      nextSteps,
-      runId: diag.runId,
-      checkSet: diag.checkSetQualifiedApiName,
-      recordId: diag.recordId,
-      userId: diag.userId,
-      generatedAt: diag.generatedAt
-    });
-    console.table(diag.checks, RHC_DIAG_TABLE_COLUMNS);
-    this._logCheckDiagnostics(diag.checks);
-    console.warn(
-      "Before sharing diagnostics, remove customer data, record and user IDs, queries, and authentication information."
-    );
-    console.log(
-      "Copy for support (review and redact before sharing)",
-      JSON.stringify(supportReport, null, 2)
-    );
-    console.debug("Advanced raw report (may contain restricted data)", diag);
+    console.group(`[RHC] ${configLabel} · ${summary}`);
+    console.info(`Run ID: ${diag.runId}`);
+    for (const step of nextSteps) {
+      console.info(`Next: ${step}`);
+    }
+    this._logCheckDiagnostics(diag);
     console.groupEnd();
   }
 
-  _logCheckDiagnostics(checks) {
-    console.group(`[RHC] Full check details (${checks.length})`);
-    const orderedChecks = [...checks].sort((left, right) => {
+  _logCheckDiagnostics(diag) {
+    const orderedChecks = [...diag.checks].sort((left, right) => {
       const rank = { ERROR: 0, UNABLE_TO_EVALUATE: 1, FAIL: 2, SKIPPED: 3 };
       return (rank[left.status] ?? 4) - (rank[right.status] ?? 4);
     });
+    console.group(`[RHC] Checks (${orderedChecks.length})`);
     for (const [index, c] of orderedChecks.entries()) {
-      const heading = `${index + 1}. ${c.label} (${c.check}) · ${c.status}`;
+      const reason = c.reasonCode ? ` · ${c.reasonCode}` : "";
+      const heading = `${index + 1}. ${c.label} · ${c.status}${reason}`;
       console.groupCollapsed(heading);
-      console.log("Identity and outcome", {
-        qualifiedApiName: c.rawResult?.checkDeveloperName || c.check,
-        evaluatorType: c.evaluatorType,
-        status: c.status,
-        severity: c.severity,
-        reasonCode: c.reasonCode,
-        durationMs: c.durationMs
-      });
-      console.log("Check configuration", c.configuration);
-      console.log("Resolved evaluation", c.resolution);
-      console.log("Rendered output", {
-        message: c.message,
-        found: c.actualValue,
-        expected: c.expectedValue,
-        foundSource: c.actualValueDetail,
-        expectedSource: c.expectedValueDetail,
-        fixInstructions: c.fixInstructions,
-        actionLabel: c.actionLabel,
-        actionUrl: c.actionUrl
-      });
-      if (c.adminMessage != null) {
-        console.warn("Server diagnostic", c.adminMessage);
+      console.log(`Status: ${c.status}`);
+      if (c.severity) console.log(`Severity: ${c.severity}`);
+      if (c.reasonCode) console.log(`Reason code: ${c.reasonCode}`);
+      if (c.evaluatorType) console.log(`Evaluator: ${c.evaluatorType}`);
+      if (c.durationMs != null) console.log(`Duration: ${c.durationMs}ms`);
+      if (c.incident != null) {
+        const incident = safeIncidentReport(c.incident);
+        if (incident.summary) console.log(`Issue: ${incident.summary}`);
+        const location = [
+          incident.phase,
+          incident.topFrameClass
+            ? `${incident.topFrameClass}${incident.topFrameMethod ? `.${incident.topFrameMethod}` : ""}${incident.topFrameLine != null ? `, line ${incident.topFrameLine}` : ""}`
+            : incident.component
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        if (location) console.log(`Where: ${location}`);
+        if (incident.likelyCause) console.log(`Why: ${incident.likelyCause}`);
+        for (const action of incident.remediationActions || []) {
+          console.log(
+            `Fix: ${[action.label, action.instruction].filter(Boolean).join(" — ")}`
+          );
+        }
+        for (const verification of incident.verificationSteps || []) {
+          console.log(`Verify: ${verification}`);
+        }
+      } else {
+        if (c.message) console.log(`Issue: ${c.message}`);
+        if (c.adminMessage) console.log(`Why: ${c.adminMessage}`);
+        if (c.fixInstructions) console.log(`Fix: ${c.fixInstructions}`);
       }
-      if (c.containsRestrictedDetail) {
-        console.warn("This check contains restricted diagnostic detail.");
-      }
-      console.log("Raw normalized result", c.rawResult);
-      if (c.actualValueDetail != null) {
-        console.log("Found", c.actualValueDetail);
-      }
-      if (c.expectedValueDetail != null) {
-        console.log("Expected", c.expectedValueDetail);
-      }
+
+      const advanced = {
+        identity: {
+          qualifiedApiName: c.rawResult?.checkDeveloperName || c.check,
+          evaluatorType: c.evaluatorType,
+          status: c.status,
+          severity: c.severity,
+          reasonCode: c.reasonCode,
+          durationMs: c.durationMs
+        },
+        configuration: c.configuration,
+        resolution: c.resolution,
+        renderedOutput: {
+          message: c.message,
+          found: c.actualValue,
+          expected: c.expectedValue,
+          foundSource: c.actualValueDetail,
+          expectedSource: c.expectedValueDetail,
+          fixInstructions: c.fixInstructions,
+          actionLabel: c.actionLabel,
+          actionUrl: c.actionUrl
+        },
+        serverDiagnostic: c.adminMessage,
+        incident: c.incident,
+        containsRestrictedDetail: c.containsRestrictedDetail,
+        rawNormalizedResult: c.rawResult
+      };
+      console.groupCollapsed("Advanced diagnostics");
+      console.log(advanced);
+      console.groupEnd();
+
+      console.groupCollapsed("Support report for this check");
+      console.warn(
+        "Review and redact customer data, record and user IDs, queries, and authentication information before sharing."
+      );
+      console.log(supportCheckDiagnosticsReport(diag, c));
+      console.groupEnd();
       console.groupEnd();
     }
     console.groupEnd();

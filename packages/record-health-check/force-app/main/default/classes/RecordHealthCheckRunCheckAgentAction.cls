@@ -48,6 +48,14 @@ public with sharing class RecordHealthCheckRunCheckAgentAction {
     public String errorType;
     @InvocableVariable(label='Error Message')
     public String errorMessage;
+    @InvocableVariable(label='Diagnostic ID')
+    public String diagnosticId;
+    @InvocableVariable(label='Diagnostic Category')
+    public String diagnosticCategory;
+    @InvocableVariable(label='Diagnostic Summary')
+    public String diagnosticSummary;
+    @InvocableVariable(label='Recommended Action')
+    public String recommendedAction;
   }
 
   /**
@@ -102,12 +110,29 @@ public with sharing class RecordHealthCheckRunCheckAgentAction {
       RecordHealthCheckEvaluationResult result = evaluation.results[0]
         ?.evaluation;
       Response output = baseResponse(evaluation.runId);
-      output.success = true;
+      output.success =
+        result.status != RecordHealthCheckStatus.ERROR &&
+        result.status != RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
       output.operation = OPERATION;
       output.status = result.status;
       output.reasonCode = result.reasonCode;
+      output.diagnosticId = result.diagnosticId;
+      output.diagnosticCategory = result.diagnosticCategory;
+      output.diagnosticSummary = result.diagnosticSummary;
+      output.recommendedAction = result.recommendedAction;
       return new List<Response>{ output };
     } catch (Exception error) {
+      RecordHealthCheckLogger.log(
+        RecordHealthCheckLogger.Level.ERROR,
+        correlationId,
+        null,
+        input?.recordId,
+        input?.qualifiedApiName,
+        'AGENT_CHECK_EXECUTION_FAILED',
+        new Map<String, Object>{ 'surface' => 'AGENTFORCE' },
+        error
+      );
+      RecordHealthCheckLogger.flush();
       return new List<Response>{
         errorResponse(correlationId, 'EXECUTION', EXECUTION_MESSAGE)
       };

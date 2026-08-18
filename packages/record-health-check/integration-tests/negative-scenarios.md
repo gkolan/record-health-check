@@ -1,6 +1,8 @@
 # Negative conformance scenarios
 
 This matrix keeps negative, boundary, and security verification in the integration-only source tree.
+The diagnosis-first persistent catalog and its per-fixture verification steps are documented in
+[bad-configuration-diagnostic-fixtures.md](bad-configuration-diagnostic-fixtures.md).
 The `RHC_Negative_Runtime` Check Set supplies manual record-page cases. Its valid row-cap Check is
 active. Its intentionally malformed authoring Checks are inactive by default; activate only one at
 a time, observe the expected fail-closed result, and deactivate it before continuing. The

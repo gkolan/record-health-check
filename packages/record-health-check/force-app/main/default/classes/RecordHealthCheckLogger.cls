@@ -189,6 +189,7 @@ public with sharing class RecordHealthCheckLogger {
         RecordId__c = recordId,
         ExceptionType__c = ex == null ? null : sanitize(ex.getTypeName(), 120),
         Message__c = buildMessage(fields, ex),
+        DetailsJson__c = buildDetailsJson(fields, ex),
         StackTrace__c = ex == null
           ? null
           : sanitize(ex.getStackTraceString(), STACK_MAX),
@@ -208,23 +209,39 @@ public with sharing class RecordHealthCheckLogger {
     );
   }
 
-  /** Prefers the exception message; otherwise a compact, sorted field summary. */
+  /** Combines the exception message with a compact, sorted field summary. */
   private String buildMessage(Map<String, Object> fields, Exception ex) {
-    if (ex != null) {
-      return sanitize(ex.getMessage(), MESSAGE_MAX);
-    }
-    if (fields == null || fields.isEmpty()) {
-      return null;
-    }
-    List<String> keys = new List<String>(fields.keySet());
-    keys.sort();
     List<String> parts = new List<String>();
-    for (String k : keys) {
-      parts.add(
-        sanitize(k, 80) + '=' + sanitize(String.valueOf(fields.get(k)), 500)
-      );
+    if (ex != null && String.isNotBlank(ex.getMessage())) {
+      parts.add('exception=' + sanitize(ex.getMessage(), 1000));
     }
-    return sanitize(String.join(parts, ' '), MESSAGE_MAX);
+    if (fields != null && !fields.isEmpty()) {
+      List<String> keys = new List<String>(fields.keySet());
+      keys.sort();
+      for (String k : keys) {
+        parts.add(
+          sanitize(k, 80) + '=' + sanitize(String.valueOf(fields.get(k)), 500)
+        );
+      }
+    }
+    return parts.isEmpty()
+      ? null
+      : sanitize(String.join(parts, ' '), MESSAGE_MAX);
+  }
+
+  /** Preserves machine-readable context independently from the human message. */
+  private String buildDetailsJson(Map<String, Object> fields, Exception ex) {
+    Map<String, Object> details = fields == null
+      ? new Map<String, Object>()
+      : new Map<String, Object>(fields);
+    if (ex != null) {
+      details.put('exceptionType', ex.getTypeName());
+      details.put('exceptionMessage', sanitize(ex.getMessage(), 1000));
+      details.put('exceptionLine', ex.getLineNumber());
+    }
+    return details.isEmpty()
+      ? null
+      : sanitize(JSON.serialize(details), MESSAGE_MAX);
   }
 
   private String newEventId(String code) {

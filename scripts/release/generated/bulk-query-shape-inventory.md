@@ -7,18 +7,18 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `specs/framework-contracts/04a-bulk-query-grammar.md`.
 
-**163 templates · 7 strategies · 0 unclassified**
+**169 templates · 7 strategies · 0 unclassified**
 
 ## Strategy totals
 
 | Strategy | Templates | How one scope-wide query is built |
 | --- | --- | --- |
-| `CHILD_DIRECT` | 111 | Group child rows by the lookup field that carried the token |
-| `SELF` | 30 | Query the evaluated records themselves; correlation column is Id |
+| `CHILD_DIRECT` | 113 | Group child rows by the lookup field that carried the token |
+| `SELF` | 32 | Query the evaluated records themselves; correlation column is Id |
 | `TOKEN_INDIRECT` | 12 | Collect distinct token values across the scope, query them once, map back |
 | `CHILD_PATH` | 4 | Group child rows by the relationship path that carried the token |
+| `SCOPE_INVARIANT` | 4 | No record token; one query serves every record in the scope |
 | `ORDERED_PICK_IN_MEMORY` | 3 | ORDER BY + LIMIT 1 on another field; rank per record in Apex |
-| `SCOPE_INVARIANT` | 2 | No record token; one query serves every record in the scope |
 | `ORDERED_PICK_AGGREGATE` | 1 | ORDER BY + LIMIT 1 on the selected field becomes MIN/MAX with GROUP BY |
 
 3 template(s) resolve rows in Apex rather than in SOQL. Those are the
@@ -139,6 +139,8 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `Example_Pipeline_Protects_Revenue` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Q_AllOppsPositiveAmt` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Q_ContactStateVsBilling` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Diag_Compare_Missing` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Diag_Query_Max_Rows` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Negative_Row_Cap` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_PATH` | force-app | `Example_Executive_Sponsorship` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
@@ -149,6 +151,8 @@ predicate to issue a single query.
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Account_DVF_Percent` | `SourceQuery__c` | `AccountId = record.Id` | Selects Probability but orders by CloseDate |
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Example_Oldest_City_Matches_Billing` | `SourceQuery__c` | `AccountId = record.Id` | Selects MailingCity but orders by CreatedDate |
 | `SCOPE_INVARIANT` | integration-tests | `Account_Country_Not_Restricted` | `ComparisonQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
+| `SCOPE_INVARIANT` | integration-tests | `RHC_Diag_Query_Bad_Token` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
+| `SCOPE_INVARIANT` | integration-tests | `RHC_Diag_Query_Missing_Object` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Negative_Missing_Object` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SELF` | integration-tests | `Account_CTQ_SumVsAnnualRevenue` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Account_CTQ_T7_ContactCityMatchesBilling` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
@@ -177,6 +181,8 @@ predicate to issue a single query.
 | `SELF` | integration-tests | `Example_Rating_Is_Set` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Website_Does_Not_Use_Plain_HTTP` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Website_Uses_HTTPS` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | integration-tests | `RHC_Diag_Query_Missing_Field` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | integration-tests | `RHC_Diag_Query_System_Mode` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_For_Update` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_Missing_Field` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_System_Mode` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |

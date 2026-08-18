@@ -118,6 +118,7 @@
         <members>Record_Health_Check_Log__e.CheckSetDeveloperName__c</members>
         <members>Record_Health_Check_Log__e.Code__c</members>
         <members>Record_Health_Check_Log__e.ContractVersion__c</members>
+        <members>Record_Health_Check_Log__e.DetailsJson__c</members>
         <members>Record_Health_Check_Log__e.FrameworkVersion__c</members>
         <members>Record_Health_Check_Log__e.EventId__c</members>
         <members>Record_Health_Check_Log__e.ExceptionType__c</members>
@@ -223,6 +224,13 @@
         <members>RecordHealthCheckDisplayNumberTest</members>
         <members>RecordHealthCheckDisplayTemporalTest</members>
         <members>RecordHealthCheckDisplayCurrencyTest</members>
+        <members>RecordHealthCheckDiagContextBuilder</members>
+        <members>RecordHealthCheckDiagnosticAction</members>
+        <members>RecordHealthCheckDiagnosticContext</members>
+        <members>RecordHealthCheckDiagnosticFactory</members>
+        <members>RecordHealthCheckDiagnosticFactoryTest</members>
+        <members>RecordHealthCheckDiagnosticGuidance</members>
+        <members>RecordHealthCheckDiagnosticIncident</members>
         <members>RecordHealthCheckDiagnosticTrace</members>
         <members>RecordHealthCheckDiagnosticTraceTest</members>
         <members>RHCDisplayCurrencyResolutionTest</members>
@@ -261,6 +269,7 @@
         <members>RecordHealthCheckQueueable</members>
         <members>RecordHealthCheckValueSource</members>
         <members>RecordHealthCheckInternalResult</members>
+        <members>RecordHealthCheckIncidentRecorder</members>
         <members>RecordHealthCheckEventPublication</members>
         <members>RecordHealthCheckEvaluationResult</members>
         <members>RecordHealthCheckExecutionOrigin</members>

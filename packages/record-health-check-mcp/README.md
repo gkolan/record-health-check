@@ -9,6 +9,9 @@ Each tool accepts one Salesforce record ID, one exact Custom Metadata `Qualified
 optional safe correlation ID. The service does not expose generic SOQL, generic Apex, MCP resources,
 MCP prompts, record mutation, or event-publication controls.
 
+For an administrator-friendly deployment walkthrough with a successful and rejection test for every
+security gate, use [Deploy the MCP service one security gate at a time](../../docs/integration/deploy-mcp-service.md).
+
 ## Security model
 
 Inbound clients use JWT bearer authentication in production. The verifier checks the signature,

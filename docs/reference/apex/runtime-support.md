@@ -152,6 +152,42 @@ Builds readable operator labels and Found and Expected text for single-value and
 Adds troubleshooting details when the running user is allowed to view diagnostics. It does not
 change the health result.
 
+### `RecordHealthCheckDiagContextBuilder`
+
+Builds consistent run, Check, evaluator, component, query-side, and lifecycle-phase context at
+scope evaluator boundaries before an incident is classified.
+
+### `RecordHealthCheckDiagnosticAction`
+
+Represents one typed corrective action in a diagnosis, including its stable action kind, label,
+instruction, and optional Setup target.
+
+### `RecordHealthCheckDiagnosticContext`
+
+Carries server-only failure context into the classifier. It is not returned to users and keeps raw
+exception handling separate from the public diagnostic contract.
+
+### `RecordHealthCheckDiagnosticFactory`
+
+Creates a versioned diagnostic incident from either a caught exception or a stable reason code. It
+classifies ownership, category, phase, retryability, top Apex frame, and a value-free fingerprint.
+
+### `RecordHealthCheckDiagnosticGuidance`
+
+Maps diagnostic families to plain-language summaries, likely causes, corrective actions, and
+verification steps for configuration, access, Formula, Query, Apex, limit, and framework failures.
+
+### `RecordHealthCheckDiagnosticIncident`
+
+Defines the common diagnosis shared by the Lightning card, browser console, Apex API,
+Agentforce actions, and structured error telemetry. Restricted evidence is separated from safe
+summary and remediation fields.
+
+### `RecordHealthCheckIncidentRecorder`
+
+Atomically creates technical results and their diagnostic incident, records structured telemetry,
+and attaches diagnoses to reason-only `ERROR` and `UNABLE_TO_EVALUATE` outcomes.
+
 ### `RecordHealthCheckDisplayCurrencyRenderer`
 
 Formats a currency value using the requested Value Format, decimal places, and ISO currency code.

@@ -81,6 +81,7 @@ The API names below are the field names used by Flow, Apex, and integrations.
 | Level | `Level__c` | Text(10), required | Always `ERROR` for events published by Record Health Check. |
 | Code | `Code__c` | Text(120) | Technical error code, such as `APEX_EVALUATOR_ERROR` or `UNHANDLED_EXCEPTION`. These codes can change as the package implementation changes. |
 | Message | `Message__c` | Long Text Area(32,768) | Cleaned exception message or a short summary of the error details available to Record Health Check. |
+| Structured Diagnostic Details | `DetailsJson__c` | Long Text Area(32,768) | JSON object containing machine-readable Diagnostic ID, category, phase, reason, fingerprint, owner, retryability, scope impact, top frame, and exception context when available. |
 | Exception Type | `ExceptionType__c` | Text(120) | Apex exception type, when an exception caused the error. |
 | Stack Trace | `StackTrace__c` | Long Text Area(32,768) | Cleaned Apex stack trace, when one is available. |
 | Record ID | `RecordId__c` | Text(18) | Salesforce record that was being checked, when known. |
@@ -112,6 +113,7 @@ This example shows the shape of a Log event. The IDs and error details are illus
   "UserId__c": "005000000000001AAA",
   "ExceptionType__c": "System.QueryException",
   "Message__c": "Illustrative cleaned exception message",
+  "DetailsJson__c": "{\"diagnosticId\":\"RHC-1787000000000-12345678\",\"category\":\"APEX_EXCEPTION\",\"phase\":\"PLUGIN_EXECUTE\",\"reasonCode\":\"PLUGIN_THREW\",\"owner\":\"DEVELOPER\",\"retryable\":false}",
   "StackTrace__c": "Illustrative cleaned stack trace"
 }
 ```

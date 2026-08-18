@@ -20,4 +20,7 @@ global class RecordHealthCheckAdminDetail {
   @AuraEnabled
   /** Sanitized resolution guidance when relevant. */
   global String resolutionJson;
+  @AuraEnabled
+  /** Actionable structured diagnosis for this result, when one was recorded. */
+  global RecordHealthCheckDiagnosticIncident incident;
 }

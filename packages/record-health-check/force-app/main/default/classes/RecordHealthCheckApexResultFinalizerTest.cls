@@ -27,7 +27,7 @@ private class RecordHealthCheckApexResultFinalizerTest {
       'An unsupported plugin status must become a contained framework error.'
     );
     Assert.areEqual(
-      'APEX_EVALUATOR_ERROR',
+      RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID,
       result.reasonCode,
       'The stable plugin contract reason code must be retained.'
     );

@@ -43,7 +43,7 @@ private with sharing class RHCScopePipelineFailureTest {
 
     Assert.areEqual(1, items.size(), 'The result must remain aligned.');
     Assert.areEqual(
-      'APEX_EVALUATOR_ERROR',
+      RecordHealthCheckReasonCodes.FRAMEWORK_UNEXPECTED,
       items.values()[0].evaluation.reasonCode,
       'Unexpected evaluator failures must map to the stable framework reason.'
     );

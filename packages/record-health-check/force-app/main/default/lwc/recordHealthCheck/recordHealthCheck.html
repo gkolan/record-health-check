@@ -5,15 +5,17 @@
 <template>
   <div class={themeClass}>
     <template if:true={hasComponentError}>
-      <div class="rhc-error-banner" role="alert" aria-live="assertive">
+      <div class={errorBannerClass} role="alert" aria-live="assertive">
         <lightning-icon
           icon-name={errorBannerIcon}
           size="x-small"
-          variant="error"
+          variant={errorBannerIconVariant}
           alternative-text={errorBannerIconAltText}
         ></lightning-icon>
         <div class="rhc-error-banner__body">
-          <span class="rhc-error-banner__title">{errorBannerTitle}</span>
+          <span class="rhc-error-banner__title" role="heading" aria-level="2"
+            >{errorBannerTitle}</span
+          >
           <span class="rhc-error-banner__msg">{componentError}</span>
           <template if:true={isSetupError}>
             <span class="rhc-error-banner__hint"> {setupErrorHint} </span>
@@ -120,7 +122,7 @@
                   </template>
                   <template if:true={check.isLoading}>
                     <lightning-spinner
-                      alternative-text=""
+                      alternative-text={check.loadingAlternativeText}
                       size="x-small"
                     ></lightning-spinner>
                   </template>
@@ -287,32 +289,27 @@
                   <template if:true={check.showDiagnosticsMeta}>
                     <span class="rhc-debug-meta">{check.diagnosticsMeta}</span>
                   </template>
-                  <template if:true={check.showAdminDetail}>
-                    <div class="rhc-debug-detail">
-                      <span class="rhc-debug-detail__label"
-                        >Troubleshooting detail</span
-                      >
-                      <!-- Keep the value flush-left: whitespace inside pre is rendered. -->
-                      <span class="rhc-expandable" data-expandable>
-                        <pre
-                          class="rhc-debug-detail__body rhc-expandable__content rhc-expandable__content--diagnostic"
-                          data-clampcontent
-                        >
-{check.adminDetailMessage}</pre
-                        >
-                        <button
-                          class="rhc-cmp__toggle"
-                          type="button"
-                          data-clamptoggle
-                          data-expand-label="troubleshooting detail"
-                          data-symbol="+"
-                          hidden
-                          aria-expanded="false"
-                          aria-label="Expand troubleshooting detail"
-                          onclick={handleToggleContent}
-                        ></button>
-                      </span>
-                    </div>
+                  <template if:true={check.showDiagnosis}>
+                    <section
+                      class={check.diagnosisClass}
+                      aria-label="Check failure details"
+                    >
+                      <hr class="rhc-row__divider" aria-hidden="true" />
+                      <div class="rhc-diagnosis__item">
+                        <span class="rhc-diagnosis__label">Issue</span>
+                        <p class="rhc-diagnosis__title">
+                          {check.diagnosis.summary}
+                        </p>
+                      </div>
+                      <div class="rhc-diagnosis__item">
+                        <span class="rhc-diagnosis__label">Where</span>
+                        <p>{check.diagnosis.location}</p>
+                      </div>
+                      <div class="rhc-diagnosis__item">
+                        <span class="rhc-diagnosis__label">Why</span>
+                        <p>{check.diagnosis.likelyCause}</p>
+                      </div>
+                    </section>
                   </template>
                 </div>
               </li>
@@ -364,8 +361,8 @@
 
           <template if:true={showDiagnosticsConsoleHint}>
             <p class="rhc-debug-console-hint" role="status">
-              Open the browser console (F12), then find the [RHC] Start here
-              section.
+              For details about all issues, open Developer Tools (F12) and
+              select Console.
             </p>
           </template>
         </div>

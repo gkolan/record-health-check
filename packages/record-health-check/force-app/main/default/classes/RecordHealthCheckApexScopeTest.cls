@@ -33,6 +33,24 @@ private with sharing class RecordHealthCheckApexScopeTest {
     }
   }
 
+  private class FixedOutcomeCheck implements RecordHealthCheckPlugin {
+    private RecordHealthCheckOutcome outcome;
+
+    private FixedOutcomeCheck(RecordHealthCheckOutcome outcome) {
+      this.outcome = outcome;
+    }
+
+    public Map<Id, RecordHealthCheckOutcome> evaluate(
+      RecordHealthCheckScope scope
+    ) {
+      Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
+      for (Id recordId : scope.recordIds) {
+        results.put(recordId, outcome);
+      }
+      return results;
+    }
+  }
+
   @IsTest
   static void evaluateScopeRejectsInvalidClassConfigurations() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
@@ -64,13 +82,22 @@ private with sharing class RecordHealthCheckApexScopeTest {
           'run-invalid-class'
         )
         .get(accountRecord.Id);
+      Boolean constructorFailure = className == 'String';
+      String expectedStatus = constructorFailure
+        ? RecordHealthCheckStatus.ERROR
+        : RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+      String expectedReason = constructorFailure
+        ? RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
+        : className == 'RecordHealthCheckConstants'
+            ? RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID
+            : 'APEX_CLASS_NOT_FOUND';
       Assert.areEqual(
-        RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+        expectedStatus,
         result.status,
         'An invalid class configuration must fail safely: ' + className
       );
       Assert.areEqual(
-        'APEX_CLASS_NOT_FOUND',
+        expectedReason,
         result.reasonCode,
         'An invalid class configuration must use the stable reason code.'
       );
@@ -293,6 +320,58 @@ private with sharing class RecordHealthCheckApexScopeTest {
       missing.reasonCode,
       'An omitted scope result must map to the stable missing-result outcome.'
     );
+  }
+
+  @IsTest
+  static void everyInvalidPluginOutcomeReceivesAClassifiedIncident() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Invalid plugin outcomes'
+    );
+    Record_Health_Check__mdt check = checkFor(
+      'AccountHasRecentActivityCheck',
+      null
+    );
+    List<RecordHealthCheckOutcome> invalidOutcomes = new List<RecordHealthCheckOutcome>();
+    invalidOutcomes.add(
+      (RecordHealthCheckOutcome) JSON.deserialize(
+        '{"status":"NOT_A_STATUS","reasonCode":"INVALID_STATUS"}',
+        RecordHealthCheckOutcome.class
+      )
+    );
+    invalidOutcomes.add(RecordHealthCheckOutcome.pass('MISSING_VALUES'));
+
+    Test.startTest();
+    for (RecordHealthCheckOutcome outcome : invalidOutcomes) {
+      RecordHealthCheckConfigValidator.cachePluginForTest(
+        check.ApexClass__c,
+        new FixedOutcomeCheck(outcome)
+      );
+      RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
+        .evaluateScope(
+          check,
+          new List<Id>{ accountRecord.Id },
+          new Map<Id, SObject>{ accountRecord.Id => accountRecord },
+          'Account',
+          'Set_A',
+          'invalid-outcome-run'
+        )
+        .get(accountRecord.Id);
+      Assert.areEqual(
+        RecordHealthCheckStatus.ERROR,
+        result.status,
+        'Invalid plugin output must be ERROR.'
+      );
+      Assert.isNotNull(
+        result.diagnosticIncident,
+        'Invalid plugin output needs an incident.'
+      );
+      Assert.areEqual(
+        'APEX_CONTRACT',
+        result.diagnosticIncident.category,
+        'The incident must identify a contract violation.'
+      );
+    }
+    Test.stopTest();
   }
 
   private static void assertParameterFailure(

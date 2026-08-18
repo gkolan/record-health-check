@@ -3,7 +3,7 @@
 [![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
 [![Namespaced Apex coverage: 99.60%](https://img.shields.io/badge/Namespaced_Apex_coverage-99.60%25-brightgreen)](config/quality-metrics.json)
-[![LWC line coverage: 98.99%](https://img.shields.io/badge/LWC_lines-98.99%25-brightgreen)](config/quality-metrics.json)
+[![LWC line coverage: 99.04%](https://img.shields.io/badge/LWC_lines-99.04%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
 [![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://recordhealthcheck.com/install/sandbox)
@@ -88,14 +88,14 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 | Measure               | Details                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 2GP unlocked package  | `rhc` namespace                                                                                                          |
-| Apex                  | 198 classes, including 99 test classes · 99.60% namespaced package coverage · 99.53% subscriber-style floor              |
-| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 190 Jest tests · 98.99% line coverage · 94.71% branch coverage         |
+| Apex                  | 206 classes, including 100 test classes · 99.60% namespaced package coverage · 99.53% subscriber-style floor             |
+| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 198 Jest tests · 99.04% line coverage · 92.58% branch coverage         |
 | Packaged examples     | 4 packaged Example Check Sets containing 21 Checks                                                                       |
 | Permission sets       | Record Health Check User and Record Health Check Admin                                                                   |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                         |
 | Custom Metadata Types | Record Health Check Set (17 fields) and Record Health Check (44 fields)                                                  |
 | Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (16 fields) |
-| Documentation         | 99 maintained pages, including 19 documented Check examples                                                              |
+| Documentation         | 100 maintained pages, including 19 documented Check examples                                                             |
 
 ## Contributing
 

@@ -72,6 +72,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       result.adminDetail.containsRestrictedDetail = restricted;
       result.adminDetail.reasonCode = result.reasonCode;
       result.adminDetail.message = result.detailMessage;
+      result.adminDetail.incident = result.diagnosticIncident;
       RecordHealthCheckDiagnosticTrace.populate(
         check,
         record,
@@ -356,6 +357,15 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       ? internalResult.severity
       : RecordHealthCheckConstants.toLwcSeverity(internalResult.severity);
     evaluation.reasonCode = internalResult.reasonCode;
+    if (internalResult.diagnosticIncident != null) {
+      evaluation.diagnosticId = internalResult.diagnosticIncident.diagnosticId;
+      evaluation.diagnosticCategory = internalResult.diagnosticIncident.category;
+      evaluation.diagnosticSummary = internalResult.diagnosticIncident.summary;
+      if (!internalResult.diagnosticIncident.remediationActions.isEmpty()) {
+        evaluation.recommendedAction = internalResult.diagnosticIncident.remediationActions[0]
+          .instruction;
+      }
+    }
     evaluation.found = internalResult.evaluationFound != null
       ? internalResult.evaluationFound
       : internalResult.actualValue == null

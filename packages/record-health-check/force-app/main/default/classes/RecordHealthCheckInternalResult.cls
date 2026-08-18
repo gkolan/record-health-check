@@ -57,6 +57,9 @@ public class RecordHealthCheckInternalResult {
   public String adminDetailMessage; // set from detailMessage when ShowDiagnostics__c is on
   @AuraEnabled
   public RecordHealthCheckAdminDetail adminDetail; // null unless authorized diagnostics is active
+  // Server-only canonical incident. The authorized display adapter exposes it
+  // through adminDetail; public evaluation responses never serialize it.
+  public RecordHealthCheckDiagnosticIncident diagnosticIncident;
   @AuraEnabled
   public String actionLabel; // label for the read-only remediation link — from ActionLabel__c, shown only on FAIL
   @AuraEnabled

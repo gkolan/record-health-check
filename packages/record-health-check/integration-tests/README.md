@@ -38,6 +38,10 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
   verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
 - `RHC_Negative_Runtime`: an integration-only Account card for row-cap testing plus inactive,
   opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](negative-scenarios.md)
+- `RHC_Diagnostic_Bad_Formula`, `RHC_Diagnostic_Bad_Query`, and `RHC_Diagnostic_Bad_Apex`:
+  persistent diagnosis-first negative catalogs with 15 direct fixtures plus 36 paired Agentforce
+  and MCP Check/Check Set evaluations; see
+  [bad-configuration-diagnostic-fixtures.md](bad-configuration-diagnostic-fixtures.md)
 - `RHC_Negative_Conformance`: an Apex test suite that gathers the deterministic schema, query,
   currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and

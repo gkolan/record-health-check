@@ -28,7 +28,7 @@ on [Install and verify](../installation/install-and-verify.md).
 | --- | --- |
 | Why does checking Show Diagnostics appear to do nothing? | The viewer also needs **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) through the Admin Permission Set |
 | What changes on the card? | Authorized troubleshooting lines and details appear after a run |
-| What appears in the browser console? | One `[RHC]` group containing run identity, results, timing, and available source details |
+| What appears in the browser console? | One `[RHC]` summary with a collapsed group for each Check and its complete diagnostics |
 | How do I return to normal operation? | Uncheck Show Diagnostics and remove temporary administrator access when appropriate |
 
 ## Start with the symptom users see
@@ -43,7 +43,7 @@ user, Salesforce record, Check Set Qualified API Name, and Run ID. Then choose t
 | One user succeeds and another does not | Permission Sets, record sharing, object access, and field access | Salesforce authorization | [Access differences](#access-differences-between-users) |
 | Check is Skipped | Reason Code and prerequisite/applicability diagnostics | Applicability or dependency | [Read the result first](#read-the-result-first) |
 | Check is Unable to Check | Reason Code, troubleshooting detail, and source details | Data, access, query, formula, or limit | [Show Diagnostics](#both-steps-are-required) |
-| Check shows System Error | Run ID, Salesforce debug log, and Log event | Configuration, custom Apex, or Record Health Check | [Developer and integration evidence](#developer-and-integration-evidence) |
+| Check shows System Error | Expanded **Diagnosis** and Diagnostic ID | Configuration, custom Apex, or Record Health Check | [Read the diagnosis](#read-the-diagnosis) |
 | Flow action faults or returns an aligned error | Flow interview details and returned category/message | Flow input, grouping, size, or evaluation | [Non-card entry points](#non-card-entry-points) |
 | Apex call throws | Exception type/message and calling request | Invalid request, missing authorization, or prohibited custom Apex behavior | [Non-card entry points](#non-card-entry-points) |
 | Queueable, Batch, or Scheduled job fails | Async job status plus the submitting/running user's debug log | Submission, scope, or finalization | [Non-card entry points](#non-card-entry-points) |
@@ -59,12 +59,35 @@ Status and Reason Code are the fastest route to the correct layer:
 | Fail | The Check ran and its condition was not met | Inspect Found, Expected, operator, and Check configuration; this is normally not a system defect |
 | Skipped | The Check did not apply | Inspect applicability, prerequisite, and no-row behavior |
 | Unable to Check | Record Health Check could not reach a reliable result | Inspect access, missing data, query or formula validity, and limits |
-| System Error | Configuration or execution is broken | Capture the Run ID and use server-side evidence |
+| System Error | Configuration or execution is broken | Open **Diagnosis**, follow its fix and verification steps, and retain the Diagnostic ID |
 
 Look up the exact machine value in [Reason Codes](../reference/contracts/reason-codes.md). Do not
 reinterpret Unable or Skipped as Fail; each means a different remediation and automation outcome.
 
-## Review configuration before collecting developer logs
+## Read the diagnosis
+
+For every catchable System Error or Unable result, an authorized administrator receives a
+structured **Diagnosis** on the card. The card answers the first three questions; the matching
+browser-console group completes the sequence:
+
+1. **What failed?** A plain-language headline and safe summary.
+2. **Where?** The lifecycle phase, component, Check, and, when Salesforce supplies it, Apex method
+   and line.
+3. **Why?** The classified likely cause, not merely `APEX_EVALUATOR_ERROR`.
+4. **How do I fix it?** One or more actions tailored to configuration, access, query, formula,
+   plugin contract, limits, or framework failure.
+5. **How do I verify it?** A concrete rerun or configuration validation step.
+6. **How do I correlate it?** A Diagnostic ID and Run ID that are safe to copy into a support case.
+
+In the browser console, expand **Support report for this check** and copy the structured report when
+you need to escalate. Review it before sharing: it can contain record and user IDs, queries, source
+values, and customer data. The card itself intentionally shows only the concise diagnosis.
+
+Debug logs are last-resort escalation evidence for an uncatchable platform limit, a Salesforce
+internal error, or a novel framework defect whose diagnosis explicitly says telemetry is
+incomplete. They are not the normal troubleshooting workflow.
+
+## Review configuration before collecting developer evidence
 
 When several records fail the same way, compare the Check Set and Check with
 [Configure Check Sets and Checks](configure-check-sets-and-checks.md) and the appropriate Evaluation
@@ -82,8 +105,8 @@ testing as the intended user because administrators can see records and fields o
    **Run Button Display** on the selected Check Set. Hidden and icon-only controls intentionally
    release their unused header space to the title.
 4. Refresh the record page after metadata, permission, or Lightning-page changes.
-5. If definition loading still fails, capture the browser console error and a Salesforce debug log
-   for the affected user at the same timestamp.
+5. If definition loading still fails, capture the card's Diagnostic ID and copied diagnostic
+   report. Use a debug log only if the diagnosis reports incomplete telemetry.
 
 ## Access differences between users
 
@@ -134,10 +157,10 @@ troubleshooting information. The Record Health Check Admin Permission Set includ
 | --- | --- | --- | --- |
 | Formula **Passes when** | Yes | No | The Formula Check's pass condition when the row uses the default Formula comparison display. Users without View Diagnostics see the business message instead of the formula expression. |
 | Result troubleshooting line | Yes | Yes | Status, Reason Code, duration, and Evaluation Type beneath each result. |
-| **Troubleshooting detail** | Yes | Yes | Technical context for a Check that returned `UNABLE_TO_EVALUATE` or `ERROR`, when detail is available. |
-| Browser-console prompt | Yes | Yes | The **Check console (F12) for diagnostics** message on the card. |
-| `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, and a table of Check results in the browser console. |
-| Found and Expected source detail | Yes | Yes | `actualValueDetail` and `expectedValueDetail` notes inside the console's `[RHC] Source detail` group. These explain where displayed values came from and never appear on the card. |
+| **Diagnosis** | Yes | Yes | A concise Issue, Where, and Why explanation for `UNABLE_TO_EVALUATE` or `ERROR`. |
+| Browser-console prompt | Yes | Yes | A reminder that full technical evidence and next steps are available in the browser console. |
+| `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, next steps, and one collapsed diagnostic group per Check. |
+| Found and Expected source detail | Yes | Yes | `actualValueDetail` and `expectedValueDetail` notes inside each Check's collapsed **Advanced diagnostics** group. These explain where displayed values came from and never appear on the card. |
 
 The Custom Permission does not grant record or field access. Record Health Check still uses the
 running user's Salesforce access, and diagnostic output can describe only information the user was
@@ -152,39 +175,45 @@ After you **run** the checks (automatic or manual), and only when both steps abo
 | What | Description |
 | ---- | ----------- |
 | **Gray line under each result** | Compact summary, for example `FAIL · FORMULA_FALSE · 38ms · Formula`: Status, Reason Code, duration, and Evaluation Type (API value). |
-| **Troubleshooting detail** | On checks that errored or did not run, a **Troubleshooting detail** block showing the technical message inline (SOQL problems, missing field access, and similar) |
+| **Diagnosis** | An automatically expanded explanation limited to Issue, Where, and Why. Remediation, verification, IDs, and evidence stay in the browser console. |
 | **Found / Expected** | On failing checks, labelled chips when the engine captured values. Found / Expected visibility is controlled by **Found/Expected Display** on the Check Set. |
 | **Found and Expected source details** | When the viewer has **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`), source details are included in the browser-console diagnostics, not on the card. |
-| **Console hint** | Small footnote at the bottom of the card: **Check console (F12) for diagnostics.** |
+| **Console hint** | Small footnote directing technical users to the browser console (F12) for evidence and next steps. |
 
-Users **without** **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) never see the gray lines, Troubleshooting detail blocks, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
+Users **without** **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) never see the gray lines, Diagnosis panels, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
 
 ## What you see in the browser console
 
 1. Open a record page that has the **Record Health Check** card.
 2. Press **F12** (Windows/Linux) or open **Developer Tools** (Mac) and select the **Console** tab.
 3. Run the Check Set from the card.
-4. When the run finishes, find a group titled `[RHC] Health Check run <runId> | <CheckSetDeveloperName> | record <recordId>`.
+4. When the run finishes, find a group titled `[RHC] <CheckSetDeveloperName> · <outcome summary>`.
 
-The title contains the Run ID, selected Check Set Developer Name, and Record ID. Use the Check Set
-Developer Name to distinguish multiple Record Health Check cards on the same Lightning record page.
+The group shows the Run ID and ordered next steps. Use the Check Set Developer Name in its title to
+distinguish multiple Record Health Check cards on the same Lightning record page.
 
 | Console entry | What it contains |
 | --- | --- |
 | **Outcome summary** | A count such as `3 Passed, 2 Failed · 847ms total`. |
-| **Start here** | The outcome summary, run identity, and ordered plain-language next steps. System Error guidance appears before Unable, Fail, or Skipped guidance. |
-| **Run metadata** | Run ID, Check Set Developer Name, Record ID, User ID, and timestamp for matching Apex logs. |
-| **Results table** | Every Check with its Status, Failure Severity, Reason Code, Found / Expected values, duration, and Evaluation Type. |
-| **Full check details** | Every Check, ordered with System Error, Unable, Fail, and Skipped before Pass. Each collapsed group separates identity, configuration, resolved evaluation, rendered output, and server diagnostics. |
-| **Copy for support** | A smaller JSON report without the duplicated raw-result object. Review and redact it before sharing. |
-| **Advanced raw report** | The complete developer-oriented result. It may contain restricted data and is not the default support artifact. |
+| **Next steps** | Ordered plain-language guidance. System Error guidance appears before Unable, Fail, or Skipped guidance. |
+| **Checks** | Every Check, ordered with System Error, Unable, Fail, and Skipped before Pass. Each Check is collapsed by default. |
+| **Check summary** | Readable Status, Severity, Reason Code, Evaluation Type, duration, Issue, Where, Why, Fix, and Verify lines when available. |
+| **Advanced diagnostics** | A collapsed JSON snapshot with identity, configuration, resolution, rendered values and sources, server diagnosis, and the complete normalized result for that Check. |
+| **Support report for this check** | A collapsed, standalone JSON report for only that Check plus the run context needed to identify it. Review and redact it before sharing. |
 
-For a bounded per-record query, **Full check details** shows the prepared query that execution used.
+Expand only the Check you need. Its summary separates Issue, Where, Why, Fix, and Verify. Expand
+**Advanced diagnostics** when the summary is not enough. It can contain query templates, merged
+record identifiers, prepared execution queries, source values, customer data, and the Diagnostic
+ID, and must be reviewed before it is shared.
+
+For a bounded per-record query, **Advanced diagnostics** shows the prepared query that execution used.
 Its `LIMIT` is **Max Query Rows + 1** because the framework probes for one extra row to distinguish
 an exact-cap result from `ROW_LIMIT_EXCEEDED`.
 
-Use the **Run ID** to match Apex log entries when Apex logging is enabled for your user.
-The console prints a redaction warning immediately before the support report. Record and User IDs,
+Use the **Diagnostic ID** and **Run ID** to correlate the card, console, Agentforce or API response,
+and structured Log event. Open a Salesforce debug log only when the diagnosis explicitly lacks
+enough evidence for resolution.
+The console prints a redaction warning inside every per-Check support-report group. Record and User IDs,
 queries, source values, and customer data can still be present; “support report” does not mean “safe
 to publish without review.”
 
@@ -192,8 +221,9 @@ to publish without review.”
 
 ### Salesforce debug logs
 
-Use a debug log for System Error, thrown Apex exceptions, Flow faults, failed async work, or a card
-request that never returns enough detail to the browser.
+Use a debug log only after the Diagnosis, reviewed support report, and structured Log event cannot
+identify the failed phase and first corrective action. This should be limited to uncatchable
+governor limits, Salesforce internal failures, and novel framework defects.
 
 1. In Setup, open **Debug Logs** and add a trace flag for the user who actually performs the run.
    Scheduled and asynchronous work can execute as a different user, so trace that user as well.
@@ -207,8 +237,8 @@ request that never returns enough detail to the browser.
 5. Disable the temporary trace flag and redact record data, user IDs, org IDs, queries, and tokens
    before sharing the log.
 
-Debug output is evidence, not durable monitoring. Log availability is time-limited and an
-an uncatchable Salesforce limit may prevent Record Health Check from writing its final diagnostic
+Debug output is evidence, not durable monitoring. Log availability is time-limited, and an
+uncatchable Salesforce limit may prevent Record Health Check from writing its final diagnostic
 line.
 
 ### Log platform event
@@ -217,10 +247,11 @@ line.
 monitoring. Its Check Set control is **Publish Error Log Event** (`PublishErrorLogEvent__c`), which
 is enabled by default. This event is separate from Check Result and Set Run lifecycle events.
 
-Use it when a Flow, Apex trigger, or integration needs ongoing error notification. Do not treat it
-as a replacement for debug logs: publication can fail, a transaction-ending limit can prevent the
-event, and receiving automation requires explicit event access. See the complete field, security,
-and loop-prevention details in [Log Platform Event](../metadata/event-log.md).
+Use it when a Flow, Apex trigger, or integration needs ongoing error notification. Its structured
+details JSON retains category, phase, Diagnostic ID, fingerprint, ownership, retryability, scope
+impact, and safe exception context independently from the human message. Publication can still
+fail, and an uncatchable transaction-ending limit can prevent the event. See the complete field,
+security, and loop-prevention details in [Log Platform Event](../metadata/event-log.md).
 
 ## Non-card entry points
 

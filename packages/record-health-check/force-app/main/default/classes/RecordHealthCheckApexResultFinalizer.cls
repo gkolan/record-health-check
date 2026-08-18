@@ -61,6 +61,7 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
       return contractError(
         check,
         fallbackResult,
+        RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID,
         '"' +
           check.ApexClass__c +
           '" returned an unsupported status: "' +
@@ -73,6 +74,7 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
       return contractError(
         check,
         fallbackResult,
+        RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID,
         '"' + check.ApexClass__c + '" ' + displayContractError
       );
     }
@@ -84,6 +86,7 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
       return contractError(
         check,
         fallbackResult,
+        RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING,
         '"' +
           check.ApexClass__c +
           '" returned ' +
@@ -116,10 +119,11 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
   private static RecordHealthCheckInternalResult contractError(
     Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult fallbackResult,
+    String reasonCode,
     String detailMessage
   ) {
     fallbackResult.status = 'ERROR';
-    fallbackResult.reasonCode = 'APEX_EVALUATOR_ERROR';
+    fallbackResult.reasonCode = reasonCode;
     fallbackResult.message = safeCannotEvaluateMessage(check);
     fallbackResult.detailMessage = detailMessage;
     return fallbackResult;

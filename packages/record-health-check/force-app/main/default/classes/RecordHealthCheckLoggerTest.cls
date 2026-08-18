@@ -219,6 +219,14 @@ private class RecordHealthCheckLoggerTest {
       pending[0].Message__c.contains('reasonCode=APEX_EVALUATOR_ERROR'),
       'Message falls back to a compact field summary.'
     );
+    Map<String, Object> details = (Map<String, Object>) JSON.deserializeUntyped(
+      pending[0].DetailsJson__c
+    );
+    Assert.areEqual(
+      'APEX_EVALUATOR_ERROR',
+      details.get('reasonCode'),
+      'Structured fields must remain independently queryable.'
+    );
   }
 
   @IsTest

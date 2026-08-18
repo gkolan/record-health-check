@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>Diagnostic - Apex Wrong Interface</label><protected>false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_Diagnostic_Bad_Apex</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Apex Class Has Wrong Interface</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Class exists but does not implement RecordHealthCheckPlugin.</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >APEX</value></values>
+  <values><field>ApexClass__c</field><value
+      xsi:type="xsd:string"
+    >RHCDiagnosticWrongInterface</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >This fixture must not produce a business verdict.</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >20</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

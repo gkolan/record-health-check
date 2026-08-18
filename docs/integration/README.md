@@ -24,8 +24,9 @@ does not create a second configuration model.
 | 1 | [Lightning component](lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
 | 2 | [Flow actions](flow-actions.md) | Branch in automation without custom Apex |
 | 3 | [Agentforce actions](agentforce-actions.md) | Read-only native tools for agent record-health questions |
-| 4 | [Agent tool REST API](agent-tool-rest-api.md) | Service-identity boundary for an approved MCP server |
-| 5 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
+| 4 | [Deploy the MCP service](deploy-mcp-service.md) | Configure and prove every security gate for an approved MCP client |
+| 5 | [Agent tool REST API](agent-tool-rest-api.md) | Understand the service-identity API contract behind the MCP server |
+| 6 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
 
 For immediate and background Apex patterns, use [API examples](../api/README.md). For receiving
 Flow, Apex, or external-integration examples, use
@@ -39,6 +40,7 @@ Flow, Apex, or external-integration examples, use
 | Make an immediate or background decision in code | [API examples](../api/README.md) | Choose the direct Apex API, Queueable, Batch, or Scheduled Apex |
 | Branch in automation without custom Apex | [Flow actions](../integration/flow-actions.md) | Configure an Action and Decision element with explicit status paths |
 | Answer record-health questions with a native agent action | [Agentforce actions](agentforce-actions.md) | Configure exact Check or Check Set tools and preserve five-state results |
+| Deploy the separately hosted MCP service | [Deploy the MCP service](deploy-mcp-service.md) | Follow and test all 11 HTTP, identity, tool, operational, and Salesforce security gates |
 | Call approved agent tools from a hosted MCP service | [Agent tool REST API](agent-tool-rest-api.md) | Authenticate a service identity and preserve the versioned tool contract |
 | Notify a separate process after the health-check transaction completes | [Platform Event subscriptions](../platform-events/README.md) | Build a receiving Flow, Apex trigger, or external integration and handle repeated delivery |
 | Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/recent-activity.md) | Write the class used by a Verify with Apex Check |

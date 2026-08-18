@@ -50,6 +50,14 @@ global with sharing class RecordHealthCheckAgentRestResource {
     global String errorType;
     /** Safe adapter error explanation. */
     global String errorMessage;
+    /** Stable identifier for a completed inconclusive/error diagnosis. */
+    global String diagnosticId;
+    /** Broad, stable category for a completed diagnosis. */
+    global String diagnosticCategory;
+    /** Safe plain-language explanation of what failed. */
+    global String diagnosticSummary;
+    /** Safe first remediation step. */
+    global String recommendedAction;
   }
 
   @HttpPost
@@ -240,10 +248,13 @@ global with sharing class RecordHealthCheckAgentRestResource {
     }
     RecordHealthCheckEvaluationResult result = evaluation.results[0].evaluation;
     AgentToolResponse output = baseResponse(evaluation.runId);
-    output.success = true;
+    output.success =
+      result.status != RecordHealthCheckStatus.ERROR &&
+      result.status != RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
     output.operation = RUN_CHECK;
     output.status = result.status;
     output.reasonCode = result.reasonCode;
+    populateDiagnosis(output, result);
     return output;
   }
 
@@ -254,7 +265,9 @@ global with sharing class RecordHealthCheckAgentRestResource {
       throw new AgentRestException(EXECUTION_MESSAGE);
     }
     AgentToolResponse output = baseResponse(evaluation.runId);
-    output.success = true;
+    output.success =
+      evaluation.summary.systemError == 0 &&
+      evaluation.summary.unable == 0;
     output.operation = RUN_CHECK_SET;
     output.status = RecordHealthCheckFlowSupport.overallStatus(
       evaluation.summary
@@ -264,7 +277,23 @@ global with sharing class RecordHealthCheckAgentRestResource {
     output.skipped = evaluation.summary.skipped;
     output.unable = evaluation.summary.unable;
     output.systemError = evaluation.summary.systemError;
+    for (RecordHealthCheckResultItem item : evaluation.results) {
+      if (!String.isBlank(item?.evaluation?.diagnosticId)) {
+        populateDiagnosis(output, item.evaluation);
+        break;
+      }
+    }
     return output;
+  }
+
+  private static void populateDiagnosis(
+    AgentToolResponse output,
+    RecordHealthCheckEvaluationResult result
+  ) {
+    output.diagnosticId = result.diagnosticId;
+    output.diagnosticCategory = result.diagnosticCategory;
+    output.diagnosticSummary = result.diagnosticSummary;
+    output.recommendedAction = result.recommendedAction;
   }
 
   private static AgentToolResponse errorResponse(

@@ -48,25 +48,47 @@ const responseBase = z.object({
   correlationId: correlationIdSchema
 });
 
+const diagnosisFields = {
+  diagnosticId: z.string().min(1).max(255).optional(),
+  diagnosticCategory: z.string().min(1).max(80).optional(),
+  diagnosticSummary: z.string().min(1).max(1000).optional(),
+  recommendedAction: z.string().min(1).max(1000).optional()
+};
+
 export const checkSuccessSchema = responseBase
   .extend({
-    success: z.literal(true),
+    success: z.boolean(),
     operation: z.literal(OPERATION_CHECK),
     status: statusSchema,
-    reasonCode: z.string().min(1).max(80).optional()
+    reasonCode: z.string().min(1).max(80).optional(),
+    ...diagnosisFields
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    const shouldSucceed = !["UNABLE_TO_EVALUATE", "ERROR"].includes(
+      value.status
+    );
+    if (value.success !== shouldSucceed) {
+      context.addIssue({
+        code: "custom",
+        message: `Success ${value.success} does not match status ${value.status}`,
+        path: ["success"]
+      });
+    }
+    if (!shouldSucceed) requireDiagnosis(value, context);
+  });
 
 export const checkSetSuccessSchema = responseBase
   .extend({
-    success: z.literal(true),
+    success: z.boolean(),
     operation: z.literal(OPERATION_CHECK_SET),
     status: statusSchema,
     passed: z.number().int().min(0).max(25),
     failed: z.number().int().min(0).max(25),
     skipped: z.number().int().min(0).max(25),
     unable: z.number().int().min(0).max(25),
-    systemError: z.number().int().min(0).max(25)
+    systemError: z.number().int().min(0).max(25),
+    ...diagnosisFields
   })
   .strict()
   .superRefine((value, context) => {
@@ -78,6 +100,15 @@ export const checkSetSuccessSchema = responseBase
         path: ["status"]
       });
     }
+    const shouldSucceed = value.systemError === 0 && value.unable === 0;
+    if (value.success !== shouldSucceed) {
+      context.addIssue({
+        code: "custom",
+        message: `Success ${value.success} does not match diagnostic counts`,
+        path: ["success"]
+      });
+    }
+    if (!shouldSucceed) requireDiagnosis(value, context);
   });
 
 export const failureSchema = responseBase
@@ -110,4 +141,24 @@ function strongestStatus(value: {
   if (value.failed > 0) return "FAIL";
   if (value.passed > 0) return "PASS";
   return "SKIPPED";
+}
+
+function requireDiagnosis(
+  value: Record<string, unknown>,
+  context: z.RefinementCtx
+): void {
+  for (const field of [
+    "diagnosticId",
+    "diagnosticCategory",
+    "diagnosticSummary",
+    "recommendedAction"
+  ]) {
+    if (!value[field]) {
+      context.addIssue({
+        code: "custom",
+        message: `${field} is required for an inconclusive result`,
+        path: [field]
+      });
+    }
+  }
 }

@@ -91,9 +91,10 @@ function register(
 }
 
 function toolResult(result: AgentToolResponse) {
-  const summary = result.success
-    ? `${result.operation} completed with status ${result.status}. Correlation ID: ${result.correlationId}.`
-    : `${result.errorType}: ${result.errorMessage} Correlation ID: ${result.correlationId}.`;
+  const summary =
+    "operation" in result
+      ? `${result.operation} completed with status ${result.status}. Correlation ID: ${result.correlationId}.`
+      : `${result.errorType}: ${result.errorMessage} Correlation ID: ${result.correlationId}.`;
   return {
     isError: !result.success,
     content: [{ type: "text" as const, text: summary }],

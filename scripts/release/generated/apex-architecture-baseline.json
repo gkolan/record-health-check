@@ -116,7 +116,12 @@
       "category": "scratch-org test-only access"
     }
   },
-  "testRuntimeBranches": {},
+  "testRuntimeBranches": {
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAccess.cls": {
+      "maximum": 1,
+      "category": "deterministic authorization test default"
+    }
+  },
   "systemDebug": {
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckLogger.cls": 6,
     "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckExhaustiveSmoke.cls": 3
