@@ -38,6 +38,12 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 - Checks per run, records per request, query rows, FormulaEval work, token count, and completed text
   all have documented limits.
 
+### Lightning performance
+
+- Record-page placements declare **When Checks Run** in App Builder. Manual cards perform no
+  Salesforce server work until Run; Automatic cards defer definition loading and evaluation until
+  browser idle. The component fails closed if the App Builder mode and Check Set mode differ.
+
 ### Administrator experience
 
 - Lightning App Builder provides a Check Set picker filtered to the record-page object.

@@ -72,6 +72,7 @@ export default class RecordHealthCheck extends LightningElement {
   static stylesheets = [themeStyles];
 
   _checkSetName;
+  _whenChecksRun;
   @track _isSlds2 = false;
 
   get themeClass() {
@@ -86,7 +87,20 @@ export default class RecordHealthCheck extends LightningElement {
     const changed = value !== this._checkSetName;
     this._checkSetName = value;
     if (this._connected && changed) {
-      this._loadDefinitions();
+      this._restartConfiguredLifecycle();
+    }
+  }
+
+  @api
+  get whenChecksRun() {
+    return this._whenChecksRun;
+  }
+  set whenChecksRun(value) {
+    const normalized = ["Manual", "Automatic"].includes(value) ? value : null;
+    const changed = normalized !== this._whenChecksRun;
+    this._whenChecksRun = normalized;
+    if (this._connected && changed) {
+      this._restartConfiguredLifecycle();
     }
   }
 
@@ -107,7 +121,7 @@ export default class RecordHealthCheck extends LightningElement {
     // Only reload on a genuine change after the initial connectedCallback load;
     // the first load is owned by connectedCallback so it can defer one macrotask.
     if (this._connected && changed) {
-      this._loadDefinitions();
+      this._restartConfiguredLifecycle();
     }
   }
 
@@ -167,18 +181,80 @@ export default class RecordHealthCheck extends LightningElement {
   _visibleChecksCache = [];
   _resizeFrame;
   _cancelAutomaticRun = null;
+  _definitionLoadInProgress = false;
 
   connectedCallback() {
     this._connected = true;
     window.addEventListener("resize", this._handleViewportResize);
-    // Yield the first frame to the Lightning page before loading definitions.
-    // Automatic evaluation therefore cannot compete with the page's initial
-    // component mount and first meaningful paint.
+    this._restartConfiguredLifecycle(true);
+  }
+
+  _restartConfiguredLifecycle(deferLegacyInitialLoad = false) {
+    this._loadToken++;
+    if (this._initialLoadFrame) {
+      cancelAnimationFrame(this._initialLoadFrame);
+      this._initialLoadFrame = null;
+    }
+    this._cancelScheduledAutomaticRun();
+    this._runner.invalidate();
+    this._definitionLoadInProgress = false;
+
+    if (this._whenChecksRun === "Manual") {
+      this._prepareQuietManualShell();
+      return;
+    }
+    if (this._whenChecksRun === "Automatic") {
+      this._prepareDeferredAutomaticShell();
+      this._scheduleAutomaticLoad();
+      return;
+    }
+
+    // Compatibility for programmatic consumers created before the App Builder
+    // property existed. Packaged record-page placements always receive the
+    // required design property and use one of the zero-initial-server-work paths.
+    if (!deferLegacyInitialLoad) {
+      this._loadDefinitions();
+      return;
+    }
     // eslint-disable-next-line @lwc/lwc/no-async-operation
     this._initialLoadFrame = requestAnimationFrame(() => {
       this._initialLoadFrame = null;
       this._loadDefinitions();
     });
+  }
+
+  _prepareQuietManualShell() {
+    this.triggerMode = "Manual";
+    this.displayTitle = "Record Health Check";
+    this.displayDescription = null;
+    this.checkSetRunButtonDisplay = DEFAULT_RUN_BUTTON_DISPLAY;
+    this.runButtonLabel = null;
+    this.rerunButtonLabel = null;
+    this.runButtonIcon = null;
+    this.isLoading = false;
+    this.componentError = null;
+    this.componentErrorCode = null;
+    this.checks = [];
+    this.totalCheckCount = 0;
+    this.runComplete = false;
+    this.hasCompletedRunOnce = false;
+  }
+
+  _prepareDeferredAutomaticShell() {
+    this.triggerMode = "Automatic";
+    this.displayTitle = "Record Health Check";
+    this.displayDescription = null;
+    this.checkSetRunButtonDisplay = DEFAULT_RUN_BUTTON_DISPLAY;
+    this.runButtonLabel = null;
+    this.rerunButtonLabel = null;
+    this.runButtonIcon = null;
+    this.isLoading = false;
+    this.componentError = null;
+    this.componentErrorCode = null;
+    this.checks = [];
+    this.totalCheckCount = 0;
+    this.runComplete = false;
+    this.hasCompletedRunOnce = false;
   }
 
   disconnectedCallback() {
@@ -374,7 +450,7 @@ export default class RecordHealthCheck extends LightningElement {
     this._clearTooltipDwell(anchor);
   };
 
-  async _loadDefinitions() {
+  async _loadDefinitions(runSource = null) {
     const loadToken = ++this._loadToken;
     const requestedCheckSetName = this.checkSetName;
     const requestedRecordId = this.recordId;
@@ -451,6 +527,13 @@ export default class RecordHealthCheck extends LightningElement {
         ["Automatic", "Manual"],
         "When Checks Run"
       );
+      if (this._whenChecksRun && response.triggerMode !== this._whenChecksRun) {
+        const configurationError = new Error(
+          `App Builder When Checks Run is ${this._whenChecksRun}, but the selected Check Set is ${response.triggerMode}. Update the component property or Check Set so they match.`
+        );
+        configurationError.reasonCode = "INVALID_CONFIG";
+        throw configurationError;
+      }
       this._requireMode(
         response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY,
         RUN_BUTTON_DISPLAYS,
@@ -536,7 +619,9 @@ export default class RecordHealthCheck extends LightningElement {
       this.componentError = null;
       this.componentErrorCode = null;
 
-      if (this.triggerMode === "Automatic") {
+      if (runSource) {
+        this._runner.run(runSource === "RUN_ON_LOAD", runSource);
+      } else if (this.triggerMode === "Automatic") {
         this._scheduleAutomaticRun(
           loadToken,
           requestedCheckSetName,
@@ -551,6 +636,25 @@ export default class RecordHealthCheck extends LightningElement {
       this.componentErrorCode = parsed.reasonCode;
       this.componentErrorDiagnosticCode = parsed.diagnosticCode;
     }
+  }
+
+  _scheduleAutomaticLoad() {
+    this._cancelScheduledAutomaticRun();
+    const checkSetName = this.checkSetName;
+    const recordId = this.recordId;
+    const runWhenIdle = () => {
+      this._cancelAutomaticRun = null;
+      if (
+        !this._connected ||
+        this._whenChecksRun !== "Automatic" ||
+        checkSetName !== this.checkSetName ||
+        recordId !== this.recordId
+      ) {
+        return;
+      }
+      this._loadDefinitions("RUN_ON_LOAD");
+    };
+    this._scheduleIdleWork(runWhenIdle);
   }
 
   _cancelScheduledAutomaticRun() {
@@ -576,6 +680,10 @@ export default class RecordHealthCheck extends LightningElement {
       this._runner.run(true, "RUN_ON_LOAD");
     };
 
+    this._scheduleIdleWork(runWhenIdle);
+  }
+
+  _scheduleIdleWork(runWhenIdle) {
     if (typeof window.requestIdleCallback === "function") {
       const idleId = window.requestIdleCallback(runWhenIdle);
       this._cancelAutomaticRun = () => window.cancelIdleCallback(idleId);
@@ -1047,20 +1155,32 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get actionButtonBusy() {
-    return this._runner.isRunning;
+    return this._definitionLoadInProgress || this._runner.isRunning;
   }
 
   // While a run is in flight the button stays put but is disabled, so it reads
   // as busy instead of vanishing.
   get actionButtonDisabled() {
-    return this._runner.isRunning;
+    return this._definitionLoadInProgress || this._runner.isRunning;
   }
 
-  handleAction() {
+  async handleAction() {
+    if (this._definitionLoadInProgress || this._runner.isRunning) {
+      return;
+    }
     // A Rerun starts a fresh evaluation, so per-row carets the user opened on the
     // previous run should collapse back to the placement default rather than
     // linger open over rows whose values are being recomputed.
     this._expandedNames = {};
+    if (this.checks.length === 0 && this._whenChecksRun === "Manual") {
+      this._definitionLoadInProgress = true;
+      try {
+        await this._loadDefinitions("USER_INITIATED");
+      } finally {
+        this._definitionLoadInProgress = false;
+      }
+      return;
+    }
     this._runner.run(false, "USER_INITIATED");
   }
 

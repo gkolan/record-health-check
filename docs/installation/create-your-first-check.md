@@ -121,9 +121,12 @@ reusable validation tool after future Custom Metadata edits.
 2. Select **Setup → Edit Page**.
 3. Drag **Record Health Check** onto the Lightning record page.
 4. In the component properties, select the `Account_Readiness` Check Set.
-5. Confirm the component is using the intended **Check Set**; its Run/Rerun presentation comes from that Check Set.
-6. Save and activate the page.
-7. Return to the Account and refresh the page.
+5. Set the component's **When Checks Run** property to **Manual**, matching the Check Set's **When
+   the user clicks Run** setting. Manual cards make no Salesforce server request until Run.
+6. Confirm the component is using the intended **Check Set**; its Run/Rerun presentation comes from
+   that Check Set after the first explicit run.
+7. Save and activate the page.
+8. Return to the Account and refresh the page.
 
 If the Check Set picker is empty, confirm the Check Set is active and its **Object** value is
 `Account`.

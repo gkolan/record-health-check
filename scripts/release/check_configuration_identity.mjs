@@ -78,12 +78,24 @@ const appBuilderProperties = [
     /<property\s+[\s\S]*?name="([^"]+)"[\s\S]*?\/>/g
   )
 ].map((match) => match[1]);
+const requiredAppBuilderProperties = ["checkSetName", "whenChecksRun"];
 if (
-  appBuilderProperties.length !== 1 ||
-  appBuilderProperties[0] !== "checkSetName"
+  appBuilderProperties.length !== requiredAppBuilderProperties.length ||
+  requiredAppBuilderProperties.some(
+    (property, index) => appBuilderProperties[index] !== property
+  )
 ) {
   failures.push(
-    `Lightning App Builder must expose only checkSetName; found: ${appBuilderProperties.join(", ") || "none"}`
+    `Lightning App Builder must expose checkSetName and whenChecksRun; found: ${appBuilderProperties.join(", ") || "none"}`
+  );
+}
+if (
+  !componentMetadata.includes('name="whenChecksRun"') ||
+  !componentMetadata.includes('default="Manual"') ||
+  !componentMetadata.includes('required="true"')
+) {
+  failures.push(
+    "Lightning App Builder whenChecksRun must be required and default to Manual"
   );
 }
 
@@ -171,5 +183,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Verified exact QualifiedApiName identity, Check Set-only App Builder configuration, and strict configuration contracts."
+  "Verified exact QualifiedApiName identity, explicit App Builder run scheduling, and strict configuration contracts."
 );

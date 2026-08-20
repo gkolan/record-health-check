@@ -476,6 +476,83 @@ describe("c-record-health-check — load and error states", () => {
     expect(completeRun).not.toHaveBeenCalled();
   });
 
+  it("does no Salesforce server work in configured Manual mode until Run", async () => {
+    element.whenChecksRun = "Manual";
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(getCheckSetAvailabilityForRecord).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).not.toHaveBeenCalled();
+
+    await clickRun(element);
+
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+    expect(evaluateCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "USER_INITIATED" })
+    );
+  });
+
+  it("fails closed when the App Builder and Check Set run modes differ", async () => {
+    element.whenChecksRun = "Manual";
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+
+    await appendAndLoad(element);
+    await clickRun(element);
+
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).not.toHaveBeenCalled();
+    const banner = element.shadowRoot.querySelector(".rhc-error-banner");
+    expect(banner.textContent).toContain(
+      "App Builder When Checks Run is Manual"
+    );
+    expect(banner.textContent).toContain("selected Check Set is Automatic");
+  });
+
+  it("defers all Salesforce server work in configured Automatic mode until idle", async () => {
+    let idleCallback;
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: jest.fn((callback) => {
+        idleCallback = callback;
+        return 40;
+      })
+    });
+    Object.defineProperty(window, "cancelIdleCallback", {
+      configurable: true,
+      value: jest.fn()
+    });
+    element.whenChecksRun = "Automatic";
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(getCheckSetAvailabilityForRecord).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).not.toHaveBeenCalled();
+
+    idleCallback({ didTimeout: false, timeRemaining: () => 10 });
+    await flushPromises();
+    await flushPromises();
+
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+    expect(evaluateCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "RUN_ON_LOAD" })
+    );
+
+    delete window.requestIdleCallback;
+    delete window.cancelIdleCallback;
+  });
+
   it("waits for browser idle before an Automatic run", async () => {
     let idleCallback;
     Object.defineProperty(window, "requestIdleCallback", {
@@ -524,6 +601,7 @@ describe("c-record-health-check — load and error states", () => {
       configurable: true,
       value: cancelIdleCallback
     });
+    element.whenChecksRun = "Automatic";
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ triggerMode: "Automatic" })
     );
@@ -533,8 +611,10 @@ describe("c-record-health-check — load and error states", () => {
     element.remove();
 
     expect(cancelIdleCallback).toHaveBeenCalledWith(42);
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
     idleCallback({ didTimeout: false, timeRemaining: () => 10 });
     await flushPromises();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
     expect(evaluateCheck).not.toHaveBeenCalled();
     expect(completeRun).not.toHaveBeenCalled();
 

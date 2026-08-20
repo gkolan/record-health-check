@@ -22,6 +22,15 @@
         datasource="apex://RecordHealthCheckSetPicklist"
         description="Choose the Check Set to run on this record page. The list shows active Check Sets whose Record Object API Name matches this page's object. If the list is empty, create and activate a Check Set for this object under Setup - Custom Metadata Types - Record Health Check Set."
       />
+            <property
+        name="whenChecksRun"
+        type="String"
+        label="When Checks Run"
+        datasource="Manual,Automatic"
+        default="Manual"
+        required="true"
+        description="Choose Manual for no Salesforce server work until the user selects Run, or Automatic to defer definition loading and evaluation until browser idle. This value must match the selected Check Set's Card Run Mode."
+      />
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

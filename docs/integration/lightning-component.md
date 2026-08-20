@@ -47,12 +47,14 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
    (`rhc__Record_Health_Check_Card_User`) Permission Set to a card-only viewer and grant access to
    the record and fields used by the selected Checks. Use **Record Health Check User** only when the
    same person or automation also needs Flow, Agent, REST, or Apex entry points.
-2. In Lightning App Builder, open a **record page** and add **Record Health Check**, then select an
-   active Check Set for that object. The component is listed only while you are editing a record
-   page; it is not offered on App Pages or Home Pages because it has no record to evaluate there.
-3. On the Check Set Custom Metadata record, set **When Checks Run** to **When the page opens** or
-   **When the user clicks Run**, then choose the Run button display, labels, and icon. **Hide** is
-   valid only for an automatic page-load Check Set.
+2. In Lightning App Builder, open a **record page** and add **Record Health Check**, select an active
+   Check Set for that object, and set the component's **When Checks Run** property. The component is
+   listed only while you are editing a record page; it is not offered on App Pages or Home Pages
+   because it has no record to evaluate there.
+3. Set **When Checks Run** on the Check Set Custom Metadata record to the same mode as the App
+   Builder property. A mismatch fails closed with a setup error on the first click or deferred load.
+   Then choose the Run button display, labels, and icon. **Hide** is valid only for an automatic
+   page-load Check Set.
 4. Save and activate the Lightning page as **Org Default**, **App Default**, or for the intended
    app, record type, and profiles. Then open a matching record as an assigned user.
 5. Confirm the card returns rows and summary counts. Click Run or Rerun only when an explicit run is
@@ -115,9 +117,10 @@ Rerun provide the deliberate boundary required before publication is eligible.
 | Input/context | Meaning |
 | --- | --- |
 | Check Set selected in App Builder | One active Check Set whose Object matches the record page. The dropdown shows its Label and stores its exact Qualified API Name. |
+| App Builder **When Checks Run** | Controls client scheduling without an Apex lookup. It must match the selected Check Set's mode. |
 | Current record ID | Record evaluated |
-| Check Set **When Checks Run** = **When the page opens** (`RUN_ON_LOAD`) | Load the card definition, then wait for browser idle before evaluation; publication blocked |
-| Check Set **When Checks Run** = **When the user clicks Run** (`RUN_ON_REQUEST`) | Load presentation metadata only; perform no Check evaluation until an explicit Run; publication can be enabled |
+| **When the page opens** (`RUN_ON_LOAD`) | Perform no Salesforce server work during initial rendering. At browser idle, load definitions and evaluate; publication remains blocked. |
+| **When the user clicks Run** (`RUN_ON_REQUEST`) | Render a local card shell and perform no Salesforce server work until the user selects Run. Then load definitions, verify the configured mode, evaluate, and complete the run. |
 | Check Set **Run Button Display** | Show label and icon, label only, a compact icon, or hide the action on automatic Check Sets only |
 | Run or Rerun button | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank. |
 
@@ -126,9 +129,9 @@ can use that space. **Icon only** uses a compact square button and retains an ac
 Rerun name for assistive technology. An invalid custom icon name falls back to the built-in play
 icon. A limit notice still reserves the space it needs in the header.
 
-The App Builder override controls only presentation. It does not change when checks run. A manual
-Check Set combined with an effective **Hide** value is invalid and the card explains the
-configuration error instead of leaving users with no way to start the run.
+The App Builder mode is a scheduling contract, not an override of Check Set metadata. The two values
+must match. A manual Check Set combined with an effective **Hide** value is invalid and the card
+explains the configuration error instead of leaving users with no way to start the run.
 
 An automatic Check Set continues to show **Rerun** after it finishes unless its action is hidden.
 This default preserves existing card behavior after an upgrade. A Check Set with no active Checks
