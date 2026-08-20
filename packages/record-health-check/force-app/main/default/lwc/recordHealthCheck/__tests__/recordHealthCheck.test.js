@@ -510,6 +510,38 @@ describe("c-record-health-check — load and error states", () => {
     delete window.cancelIdleCallback;
   });
 
+  it("cancels a pending Automatic idle run when disconnected", async () => {
+    let idleCallback;
+    const cancelIdleCallback = jest.fn();
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: jest.fn((callback) => {
+        idleCallback = callback;
+        return 42;
+      })
+    });
+    Object.defineProperty(window, "cancelIdleCallback", {
+      configurable: true,
+      value: cancelIdleCallback
+    });
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+    element.remove();
+
+    expect(cancelIdleCallback).toHaveBeenCalledWith(42);
+    idleCallback({ didTimeout: false, timeRemaining: () => 10 });
+    await flushPromises();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).not.toHaveBeenCalled();
+
+    delete window.requestIdleCallback;
+    delete window.cancelIdleCallback;
+  });
+
   it("describes an in-progress capped run when the automatic action is hidden", async () => {
     const pending = deferred();
     getCheckDefinitions.mockResolvedValue(
