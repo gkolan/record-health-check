@@ -246,7 +246,12 @@ public with sharing class RecordHealthCheckValidator {
       if (
         String.isNotBlank(check.SourceQuery__c) &&
         String.isBlank(check.SourceQueryField__c) &&
-        !RecordHealthCheckSoqlTemplate.isAggregateQuery(check.SourceQuery__c)
+        (!RecordHealthCheckSoqlTemplate.isAggregateQuery(
+          check.SourceQuery__c
+        ) ||
+        RecordHealthCheckSoqlTemplate.hasMultipleOuterAggregateValues(
+          check.SourceQuery__c
+        ))
       ) {
         out.add(f(FindingCode.PRIMARY_QUERY_FIELD_MISSING));
       }
@@ -315,7 +320,12 @@ public with sharing class RecordHealthCheckValidator {
       check.ExpectedValueSource__c == 'COMPARISON_QUERY' &&
       String.isNotBlank(check.ComparisonQuery__c) &&
       String.isBlank(check.ComparisonQueryField__c) &&
-      !RecordHealthCheckSoqlTemplate.isAggregateQuery(check.ComparisonQuery__c)
+      (!RecordHealthCheckSoqlTemplate.isAggregateQuery(
+        check.ComparisonQuery__c
+      ) ||
+      RecordHealthCheckSoqlTemplate.hasMultipleOuterAggregateValues(
+        check.ComparisonQuery__c
+      ))
     ) {
       out.add(f(FindingCode.ANOTHER_QUERY_FIELD_MISSING));
     }
@@ -346,14 +356,22 @@ public with sharing class RecordHealthCheckValidator {
     if (
       String.isNotBlank(check.SourceQuery__c) &&
       String.isBlank(check.SourceQueryField__c) &&
-      !RecordHealthCheckSoqlTemplate.isAggregateQuery(check.SourceQuery__c)
+      (!RecordHealthCheckSoqlTemplate.isAggregateQuery(check.SourceQuery__c) ||
+      RecordHealthCheckSoqlTemplate.hasMultipleOuterAggregateValues(
+        check.SourceQuery__c
+      ))
     ) {
       out.add(f(FindingCode.DUAL_PRIMARY_FIELD_MISSING));
     }
     if (
       String.isNotBlank(check.ComparisonQuery__c) &&
       String.isBlank(check.ComparisonQueryField__c) &&
-      !RecordHealthCheckSoqlTemplate.isAggregateQuery(check.ComparisonQuery__c)
+      (!RecordHealthCheckSoqlTemplate.isAggregateQuery(
+        check.ComparisonQuery__c
+      ) ||
+      RecordHealthCheckSoqlTemplate.hasMultipleOuterAggregateValues(
+        check.ComparisonQuery__c
+      ))
     ) {
       out.add(f(FindingCode.DUAL_COMPARE_FIELD_MISSING));
     }
@@ -430,10 +448,13 @@ public with sharing class RecordHealthCheckValidator {
     if (
       check.ExpectedValueSource__c == 'FIXED_VALUE' &&
       RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() &&
-      RecordHealthCheckCurrencySupport.isCurrencySelection(
+      (RecordHealthCheckCurrencySupport.isCurrencySelection(
         check.SourceQuery__c,
         check.SourceQueryField__c
-      ) &&
+      ) ||
+      RecordHealthCheckCurrencySupport.isCurrencyAggregateSelection(
+        check.SourceQuery__c
+      )) &&
       String.isBlank(check.ExpectedCurrencyIsoCode__c)
     ) {
       out.add(f(FindingCode.FIXED_CURRENCY_BASIS_MISSING));

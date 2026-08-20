@@ -253,9 +253,9 @@ them.
 
 Every package log line starts with `[RHC]` and includes the run ID and running user. Supported levels
 are `ERROR`, `WARN`, `INFO`, and `DEBUG`. The class also holds ERROR entries until `flush()` publishes
-them as `Record_Health_Check_Log__e` Platform Events. Error-event publication is on unless the
-selected Check Set turns off **Publish Error Log Event**. Package entry points call `flush()` before
-their transaction ends.
+them as `Record_Health_Check_Log__e` Platform Events. Error-event publication is off by default and
+requires both **Publish Error Log Event** on the selected Check Set and the publisher permission.
+Package entry points call `flush()` before their transaction ends.
 
 **Key members:**
 

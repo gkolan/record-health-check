@@ -253,7 +253,8 @@ Turn diagnostics off again after the investigation.
 ## Step 10: Review limits
 
 - One direct Apex or Flow request accepts at most 200 record IDs.
-- One Check Set run evaluates at most the first 25 active Checks in Evaluation Order.
+- The Lightning card evaluates the first 25 active Checks in Evaluation Order. Direct Apex and
+  Flow reject the entire Check Set when it has more than 25 active Checks.
 - A Query Check can return at most the configured **Max Query Rows**, from 1 through 2,000.
 - Formula Checks share Salesforce transaction limits. A large number of records and formulas can
   require a smaller Batch Apex size.

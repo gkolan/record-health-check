@@ -1,6 +1,3 @@
-/**
- * Verifies qualified selection, scope validation, ordering, and response modes.
- */
 @IsTest
 private with sharing class RecordHealthCheckScopePlannerTest {
   private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
@@ -51,6 +48,20 @@ private with sharing class RecordHealthCheckScopePlannerTest {
       );
     }
     Test.stopTest();
+  }
+
+  @IsTest
+  static void inactiveSingleCheckIsRejected() {
+    Assert.areEqual(
+      0,
+      new RecordHealthCheckScopePlanner()
+        .queryChecks(
+          'DeveloperName = :qualifiedApiName AND IsActive__c = TRUE',
+          'Example_Industry_Aligns_With_Parent'
+        )
+        .size(),
+      'An inactive Check must not resolve through a single-Check API.'
+    );
   }
 
   @IsTest

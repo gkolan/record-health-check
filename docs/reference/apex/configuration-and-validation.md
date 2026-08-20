@@ -89,8 +89,9 @@ in an org that installs Record Health Check cannot call it through the `rhc` nam
 
 - `validateRecords` treats a Check Set with more active Checks than
  `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as `WARNING`/`CHECK_LIMIT_EXCEEDED`, not
- `ERROR`. Salesforce can save the additional Checks, but only the first 25 run. It then checks
- whether any of those first 25 Checks depends on a Check outside the first 25. For each affected
+ `ERROR`. Salesforce can save the additional Checks. The Lightning card runs only the first 25;
+ direct Apex and Flow reject the entire oversized Check Set. Validation then checks whether any of
+ those first 25 Checks depends on a Check outside the first 25. For each affected
  Check, it adds `WARNING`/`DEPENDENCY_NOT_IN_RUN`. During a health check, Apex and the Lightning card
  skip a Check when its prerequisite was not included.
 - When an automatic card hides Run and Rerun, users cannot publish lifecycle events from the card.

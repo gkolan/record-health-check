@@ -41,6 +41,32 @@ private class RHCCurrencyAuthoringRedTest {
   }
 
   @IsTest
+  static void shouldRejectGroupedCurrencyAggregateAgainstUnitlessFixedThreshold() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.SourceQuery__c = 'SELECT CurrencyIsoCode, SUM(AnnualRevenue) totalValue FROM Account GROUP BY CurrencyIsoCode';
+    check.SourceQueryField__c = 'totalValue';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = '100';
+
+    Assert.isTrue(
+      findingNames(RecordHealthCheckValidator.queryFindings(check))
+        .contains('FIXED_CURRENCY_BASIS_MISSING'),
+      'A grouped Currency aggregate still needs an explicit fixed-threshold ISO basis.'
+    );
+
+    try {
+      RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
+      Assert.fail('Runtime must reject the same unitless aggregate threshold.');
+    } catch (RecordHealthCheckEvaluatorException expected) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.FIXED_CURRENCY_BASIS_MISSING,
+        expected.reasonCode
+      );
+    }
+  }
+
+  @IsTest
   static void shouldCoverNeutralCurrencyShapeBoundaries() {
     RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(

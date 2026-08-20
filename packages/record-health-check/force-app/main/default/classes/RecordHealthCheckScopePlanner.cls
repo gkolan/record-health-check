@@ -20,7 +20,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     String qualifiedApiName
   ) {
     List<Record_Health_Check__mdt> checks = queryChecks(
-      'QualifiedApiName = :qualifiedApiName',
+      'QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
       qualifiedApiName
     );
     if (checks.isEmpty()) {

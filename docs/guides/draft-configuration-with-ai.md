@@ -98,7 +98,8 @@ Configuration rules:
 - Ask whether zero query rows should Pass, Fail, Skip, or be Unable to Evaluate. Do not decide for
   the administrator.
 - Queries run with the running user's Salesforce sharing and object and field access.
-- A Check Set runs at most the first 25 active Checks in Evaluation Order.
+- The Lightning card runs the first 25 active Checks in Evaluation Order. Direct Apex and Flow
+  reject the entire Check Set when it has more than 25 active Checks.
 - MaxQueryRows__c must be a whole number from 1 through 2000.
 - A prerequisite must be active, belong to the same Check Set, and have a lower Evaluation Order.
 - Record Health Check does not update the record being checked.

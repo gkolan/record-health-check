@@ -31,7 +31,8 @@ public with sharing class RecordHealthCheckCurrencySupport {
     if (
       check?.ExpectedValueSource__c == 'FIXED_VALUE' &&
       RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() &&
-      isCurrencySelection(check.SourceQuery__c, check.SourceQueryField__c) &&
+      (isCurrencySelection(check.SourceQuery__c, check.SourceQueryField__c) ||
+      isCurrencyAggregateSelection(check.SourceQuery__c)) &&
       String.isBlank(check.ExpectedCurrencyIsoCode__c)
     ) {
       throw new RecordHealthCheckEvaluatorException(
@@ -116,6 +117,20 @@ public with sharing class RecordHealthCheckCurrencySupport {
       isCurrencyField(query, fieldPath);
   }
 
+  /** True when the outer query selects an aggregate over a Currency field. */
+  public static Boolean isCurrencyAggregateSelection(String query) {
+    if (String.isBlank(query)) {
+      return false;
+    }
+    Matcher matcher = CURRENCY_AGGREGATE_PATTERN.matcher(query);
+    while (matcher.find()) {
+      if (isCurrencyField(query, matcher.group(1))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** Returns the ISO field corresponding to a scalar Currency field path. */
   public static String currencyIsoFieldPath(String query, String fieldPath) {
     if (
@@ -144,13 +159,15 @@ public with sharing class RecordHealthCheckCurrencySupport {
       !RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() ||
       rows == null ||
       rows.isEmpty() ||
-      RecordHealthCheckSoqlTemplate.isAggregateQuery(query) ||
-      !isCurrencyField(rows[0].getSObjectType(), fieldPath)
+      (!isCurrencyAggregateSelection(query) &&
+      !isCurrencyField(rows[0].getSObjectType(), fieldPath))
     ) {
       return isoCodes;
     }
     for (SObject row : rows) {
-      Object unit = readPath(row, isoFieldPath(fieldPath));
+      Object unit = RecordHealthCheckSoqlTemplate.isAggregateQuery(query)
+        ? row.get('CurrencyIsoCode')
+        : readPath(row, isoFieldPath(fieldPath));
       String isoCode = unit == null ? null : String.valueOf(unit);
       if (String.isNotBlank(isoCode)) {
         isoCodes.add(isoCode.trim().toUpperCase());
@@ -168,14 +185,21 @@ public with sharing class RecordHealthCheckCurrencySupport {
       !RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() ||
       rows == null ||
       rows.isEmpty() ||
-      RecordHealthCheckSoqlTemplate.isAggregateQuery(query) ||
-      !isCurrencyField(rows[0].getSObjectType(), fieldPath)
+      (!isCurrencyAggregateSelection(query) &&
+      !isCurrencyField(rows[0].getSObjectType(), fieldPath))
     ) {
       return false;
     }
-    String unitFieldPath = isoFieldPath(fieldPath);
+    Boolean aggregateQuery = RecordHealthCheckSoqlTemplate.isAggregateQuery(
+      query
+    );
+    String unitFieldPath = aggregateQuery ? null : isoFieldPath(fieldPath);
     for (SObject row : rows) {
-      if (readPath(row, unitFieldPath) == null) {
+      if (
+        (aggregateQuery
+          ? row.get('CurrencyIsoCode')
+          : readPath(row, unitFieldPath)) == null
+      ) {
         return true;
       }
     }
