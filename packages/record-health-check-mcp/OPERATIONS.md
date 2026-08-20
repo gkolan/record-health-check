@@ -104,3 +104,24 @@ Perform a staging rollback by calling both tools before rollback, restoring the 
 then calling both tools again. Separately prove that operators can enable the kill switch, revoke the
 inbound credential, revoke the Salesforce credential, and remove the Agentforce tool assignment
 without uninstalling or destructively deleting Salesforce metadata.
+
+## Container vulnerability dispositions
+
+The artifact workflow retains its High/Critical failure threshold. Its Grype configuration contains
+only exact package-and-CVE reachability exceptions; it does not ignore severity classes or findings that
+have a fix available. Review and remove each disposition when the base image supplies a correction,
+and repeat this reachability review if the server, protocol, native dependencies, or runtime changes.
+
+The current distroless Debian 13 runtime reports the following findings. They are excluded from the
+gate because the vulnerable code is not in this service's execution path:
+
+| Finding          | Runtime package | Reachability decision                                                                                                                    |
+| ---------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `CVE-2026-5450`  | `libc6`         | The Node/Express service does not call the glibc `scanf` `%mc` conversion.                                                               |
+| `CVE-2026-5928`  | `libc6`         | The service does not call `ungetwc` on attacker-selected exotic-encoding streams.                                                        |
+| `CVE-2026-5435`  | `libc6`         | The service does not call glibc's deprecated resolver packet-printing functions.                                                         |
+| `CVE-2026-14456` | `libssl3t64`    | Express serves HTTP/1 and does not create an OpenSSL QUIC server/listener or process QUIC Initial packets. OpenSSL rates this issue Low. |
+
+The production npm dependency audit is separate and must remain clear. A new or unmatched
+High/Critical OS or application finding still fails the artifact workflow. Preserve the scan,
+configuration, SBOM, image digest, and this review together as release evidence.

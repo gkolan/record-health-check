@@ -33,6 +33,7 @@ jobs:
         uses: anchore/scan-action@v7
         with:
           image: record-health-check-mcp:${{ github.sha }}
+          config: packages/record-health-check-mcp/grype.yaml
           fail-build: true
           severity-cutoff: high
       - name: Generate SPDX SBOM

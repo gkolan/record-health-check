@@ -89,6 +89,20 @@ Target package version: **2.0.4**.
   guidance instead of an unclassified tool error.
 - Lifecycle guidance now identifies `USER_INITIATED` card completion events as client-attested
   advisory notifications and requires server re-evaluation for compliance-sensitive actions.
+- The packaged Account-owner example now uses a correlated Query Check against `User` instead of
+  asking Formula evaluation to resolve User-only fields through polymorphic `Owner`; inactive,
+  missing, and Queue owners fail closed.
+- The packaged Channel Partner Governance example now uses a correlated parent-count Query and a
+  static display label, so non-applicable Accounts skip cleanly instead of becoming inconclusive
+  while hydrating `ParentId` or `Parent.Name`.
+- The Agent REST wire handler now sends its explicitly null-suppressed contract body instead of
+  allowing Salesforce to auto-serialize unused Apex fields as `null`. The strict MCP adapter maps
+  exhausted Salesforce authorization, request-limit, contract, and availability failures to safe
+  structured outcomes.
+- The MCP runtime now uses a digest-pinned, non-root distroless Node 22 image without package-manager
+  layers. Its High/Critical artifact gate retains exact, documented reachability exceptions for four
+  unreachable glibc/OpenSSL code paths; unmatched findings still fail the build. The production npm
+  dependency audit is clear, and the exact built-image result remains a hosted gate after push.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
@@ -130,9 +144,10 @@ Target package version: **2.0.4**.
 
 - Added a repeatable, cross-transaction scratch-org gate for the reported active-User-owned Lead
   checkbox formula configuration. The integration fixture is excluded from subscriber packaging.
-- Documented Person Account field portability and raw multi-currency comparison behavior. Person
-  Account coverage remains conditional on a PA-enabled org; currency behavior is documentation and
-  measurement guidance rather than a new conversion feature.
+- Focused namespaced tests in a Person Account and multi-currency scratch org prove that reachable
+  mixed units, unsafe aggregates, semi-join-only ISO filters, and fixed thresholds without an ISO
+  basis fail closed. The framework still does not convert currencies. The complete packaged
+  Person-versus-Business Account example matrix remains a separate live verification item.
 
 ## [2.0.3] - 2026-08-11
 
