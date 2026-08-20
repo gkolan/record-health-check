@@ -23,8 +23,9 @@ and handle them directly. Use this event only when separate automation needs the
 Publication depends on how the health check starts:
 
 - Flow, Apex, Batch, Queueable, Future, and Scheduled Apex publish a Set Run event with `ALL`.
-- `ACTIONABLE` publishes it only when at least one result is `FAIL`, `UNABLE_TO_EVALUATE`, or
-  `ERROR`.
+- `ACTIONABLE` publishes a completed Set Run heartbeat for every scanned record, including
+  all-pass and all-skipped runs. It limits individual Check Result events to `FAIL`,
+  `UNABLE_TO_EVALUATE`, and `ERROR`.
 - `NONE` publishes no result Platform Events.
 - When a person clicks Run or Rerun on the Lightning card, select **Publish User Run Event** on the
   Check Set. Automatic page-load checks do not publish it.
@@ -82,7 +83,8 @@ This order prevents one passed Check from hiding a failure or technical problem 
 4. End successfully when a record already exists.
 5. Use a Decision to derive Overall Status in the order above.
 6. Create the history record before sending a notification or creating follow-up work.
-7. Connect fault paths to monitoring administrators use.
+7. Connect fault paths to a named destination such as a restricted Flow error record, monitored
+   queue, or your organization's Flow error notification process.
 8. Test in a sandbox, then activate the Flow.
 
 The Flow runs separately from the health check. Its failure does not change the result already
@@ -183,8 +185,19 @@ Production code must inspect every failed `Database.SaveResult` and send it to m
 The installed **Record Health Check User** and **Record Health Check Admin** Permission Sets include
 access to this event. Give the Flow or Apex code separate access to the history object and fields.
 
+For an org-owned receiver Permission Set, open **Object Settings**, grant Read access to **Record
+Health Check Set Run**, then grant Create and the approved field permissions on the history object.
+The event has no Overall Status field; derive it from counts as shown above. `ACTIONABLE` still
+publishes a heartbeat when every result passes or skips, so a missing history row indicates
+publication or receiver failure rather than an expected clean-run omission.
+
 The event contains a Salesforce Record ID. Protect saved history according to the referenced
 record's sensitivity. Receiving automation cannot change the completed health-check result.
+
+A `USER_INITIATED` Set Run summary is client-attested advisory data; the completion endpoint does
+not re-evaluate browser-submitted statuses. Re-evaluate through Apex or Flow before using it for a
+compliance-sensitive decision. For Batch, earlier per-record events can remain committed when a
+later scope fails, so wait for the terminal job envelope before declaring the complete job outcome.
 
 Process the entire Apex trigger group. Keep queries and record saves outside loops, as shown above.
 

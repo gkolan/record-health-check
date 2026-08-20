@@ -154,6 +154,9 @@ scripts/apex/*
 # Internal bug write-ups — kept local, not published with the project.
 bugs/
 
+# Internal documentation-gap audits — kept local after the public docs are updated.
+doc-gaps/
+
 # Python Salesforce Functions
 **/__pycache__/
 **/.venv/

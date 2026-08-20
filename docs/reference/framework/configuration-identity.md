@@ -4,6 +4,9 @@
 > Apex, Flow, Lightning App Builder, and Platform Events identify a Check Set or Check by its exact
 > **Qualified API Name**. Copy that value from Salesforce. Do not type or remove `rhc__` yourself.
 
+Lightning App Builder stores this value when you select a Check Set from the component list. You
+normally copy it yourself only for a Flow or Apex request, an integration, or troubleshooting.
+
 ## Which name should I use?
 
 A Custom Metadata record has several names. Only one belongs in Record Health Check requests.
@@ -82,6 +85,11 @@ API Name is missing or unknown.
 This prevents a request from silently running a different Check Set that happens to have the same
 Developer Name.
 
+The Lightning card reports that its configuration could not be found. Flow and Apex return the
+corresponding configuration error, including `CONFIG_NOT_FOUND` where a per-result contract
+applies. Return to Setup, copy **Qualified API Name**, and replace the value without editing its
+namespace prefix.
+
 ## Keep Example starter configuration explicit
 
 The package installs four example Check Sets whose Developer Names begin with `Example_` and whose
@@ -97,6 +105,9 @@ package upgrade can update its installed examples; it must not overwrite Custom 
 created by your team.
 
 ## Repository checks for contributors
+
+> [!NOTE]
+> This section is only for package contributors. Administrators do not run repository commands.
 
 Package contributors must keep the same Qualified API Name behavior in Apex, Flow, Lightning, tests,
 and documentation. After changing selection logic or installed examples, run:

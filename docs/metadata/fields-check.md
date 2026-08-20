@@ -13,6 +13,11 @@ Use this page while creating or reviewing a Check in **Setup → Custom Metadata
 Health Check → Manage Records**. Start with the decision tables below. Open an individual field
 only when that field applies to the Evaluation Type you chose.
 
+For a Formula-only Check, use the identity and message fields plus **Pass Condition** and ignore the
+SOQL, Compare Two Queries, and Apex sections. Query configuration requires someone who can review
+SOQL safely. **Verify with Apex**, **Apex Class**, and **Apex Parameters (JSON)** require a developer
+to own the class, tests, and deployment.
+
 ## Build a Check in the order it runs
 
 | Stage | Decision | Start with |
@@ -33,8 +38,13 @@ only when that field applies to the Evaluation Type you chose.
 | Logic implemented in a package or org Apex class | **Verify with Apex** (`APEX`) | [Apex Class](#apex-class-apexclass__c) |
 
 For complete configurations, choose an [example by Evaluation Type](../examples/README.md). For text
-that adapts to the record and result, use [Merge Syntax](../guides/configure-check-sets-and-checks.md#11-merge-tokens):
+that adapts to the record and result, use [Merge Syntax](../guides/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options):
 `record.*`, `rhcResult.*`, `rhcRun.*`, `rhcCheck.*`, and `rhcSet.*`.
+
+**Prerequisite Check** stores the prerequisite's Developer Name within the same Check Set, not its
+card title. Card **Publish User Result Event** controls explicit Run/Rerun only; Flow and Apex
+publication values control programmatic runs. Action links render only for `FAIL`, not System Error
+or Unable to Check rows.
 
 ## Field index
 
@@ -175,7 +185,7 @@ is a separate result that means Record Health Check encountered a technical prob
 Optional Long Text Area(32,768), shown for `FAIL`. Explain what requirement was not met in language
 the card user understands. Do not include SOQL, formulas, or exception details.
 
-This field supports [merge tokens](../guides/configure-check-sets-and-checks.md#11-merge-tokens).
+This field supports [merge tokens](../guides/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options).
 Press Enter for a new line on the card.
 
 Choose the shortest useful example for the Check:
@@ -620,7 +630,7 @@ its pass/fail logic. When the condition is not met, the result is `SKIPPED`, not
 ### Message When Not Applicable (`ApplicabilityNotMetMessage__c`)
 
 Optional Long Text Area(32,768). Explain why a conditional Check was skipped. It supports
-[merge tokens](../guides/configure-check-sets-and-checks.md#11-merge-tokens).
+[merge tokens](../guides/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options).
 
 Examples:
 

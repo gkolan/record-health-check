@@ -19,6 +19,24 @@ Start with the **Check Set Run** event when the receiving process needs one summ
 **Check Result** events only when it needs the status, Reason Code, and severity for individual
 Checks.
 
+## Card-only setup sequence
+
+If only a person on the card should publish events:
+
+1. In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, open the Set and
+   enable **Publish User Run Event**.
+2. In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, enable **Publish
+   User Result Event** only on Checks whose individual results a receiver needs.
+3. Keep **When Checks Run** as **When the user clicks Run** and keep Run or Rerun visible. Page-load
+   evaluation never publishes result events.
+4. Build and test the receiver before enabling publication in production.
+5. Assign event object access to the receiving Flow user, Apex context, or integration. The packaged
+   User and Admin Permission Sets include Set Run and Check Result access, but not the restricted
+   Log event.
+
+Flow, Apex, Queueable, Batch, and Scheduled callers ignore those two card checkboxes and use their
+own `NONE`, `ACTIONABLE`, or `ALL` request value.
+
 ## Choose the event detail
 
 | Another process needs… | Event | Use |
@@ -166,7 +184,7 @@ checkboxes above are not consulted.
 | Event Publication | What is published |
 | --- | --- |
 | `NONE` | No Check Set Run or Check Result events. Use this when the caller handles or saves the response itself. |
-| `ACTIONABLE` | Check Result events for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`. A Check Set Run event is also published when at least one such result exists. If every result is `PASS` or `SKIPPED`, no result event is published. |
+| `ACTIONABLE` | Check Result events for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus a completed Check Set Run heartbeat for every scanned record. All-pass and all-skipped runs therefore publish the Set Run heartbeat but no Check Result events. |
 | `ALL` | A Check Result event for every result, including `PASS` and `SKIPPED`, plus the Check Set Run event. |
 
 ### Error Log events
@@ -178,10 +196,13 @@ Check Set, Log publication remains enabled.
 
 For a user-initiated Lightning run, the completion call publishes the outcomes returned by the
 progressive browser evaluation after filtering them to the requested record and the Checks in the
-resolved Check Set. It does not run the Checks again while publishing. Treat these Lightning events
-as advisory monitoring data. A receiving process that makes a security-sensitive or
-business-critical change must run the Check again through Apex or Flow before acting. Apex- and
-Flow-originated events come directly from their server-side evaluations.
+resolved Check Set. It does not run the Checks again while publishing. These `USER_INITIATED`
+events are **client-attested advisory notifications**, not server-attested compliance evidence. A
+user with Run permission controls the browser request that supplies the completion statuses.
+
+A receiving process that makes a security-sensitive, compliance, or business-critical change must
+run the Check again through Apex or Flow before acting. Apex- and Flow-originated events come
+directly from their server-side evaluations.
 
 ## Contract versions on events
 
@@ -240,6 +261,8 @@ Salesforce data using their own Salesforce access, the Record ID, metadata Quali
 | No event after selecting Run or Rerun on the card | The Check Set or Check publication field is off, the transaction rolled back, or publication failed | Check the relevant metadata field, source, logs, and commit outcome. |
 | No event after Flow or Apex | Event Publication is `NONE`, `ACTIONABLE` found no actionable result, the transaction rolled back, or publication failed | Check the caller's Event Publication choice, returned statuses, logs, and commit outcome. |
 | Repeated processing | Replay or a receiving-process retry delivered the event again | Keep unique by `EventId__c`; make follow-up work safe to repeat |
+| Two valid events describe near-simultaneous card runs | Separate tabs or intentional reruns completed independently | Treat delivery as at least once. Keep each `EventId__c`; apply a reviewed business-window key only if the process must collapse equivalent runs. |
+| Health result succeeded but no requested event arrived | Publication can fail independently and is warning-only to the health caller | Monitor Record Health Check logs and receiver health; never treat a successful health response as proof of event delivery. |
 | Missing record context | The run had no single record, or a record ID was not available at publish | Correlate with `RunId__c` and metadata names; `RecordId__c` is set only when available |
 | Receiving process failed | Its Salesforce limits, access, or business logic failed after publication | Monitor and retry that process separately; the health result is already final. |
 

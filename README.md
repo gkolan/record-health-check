@@ -95,7 +95,7 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                         |
 | Custom Metadata Types | Record Health Check Set (17 fields) and Record Health Check (44 fields)                                                  |
 | Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields) |
-| Documentation         | 101 maintained pages, including 19 documented Check examples                                                             |
+| Documentation         | 106 maintained pages, including 19 documented Check examples                                                             |
 
 ## Contributing
 

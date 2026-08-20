@@ -30,6 +30,11 @@ Then choose what to publish:
 | `ACTIONABLE` | Publishes only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`. |
 | `NONE` | Publishes no result Platform Events. |
 
+Volume is approximately eligible Checks multiplied by evaluated records when using `ALL`. Use Set
+Run summaries when counts are enough. Card publication uses each Check's **Publish User Result
+Event** checkbox; programmatic `ALL` or `ACTIONABLE` controls publication directly and does not
+consult that checkbox.
+
 When a person clicks Run or Rerun on the Lightning card, select **Publish User Result Event** only
 on the individual Checks that receiving automation needs. Automatic page-load checks do not
 publish result events.
@@ -83,6 +88,12 @@ Name. Do not compare against the translated text shown on the Lightning card.
 `ContainsRestrictedDetail__c` is always `false` in the current event contract. The field is reserved
 for compatibility; it does not mean that another API can retrieve omitted Found, Expected, or
 diagnostic details.
+
+The event intentionally contains no Found, Expected, Pass Message, or Fix Message. Route `FAIL`,
+`UNABLE_TO_EVALUATE`, and `ERROR` separately under `ACTIONABLE`; they all need attention but not the
+same response. A `USER_INITIATED` event is client-attested: the completion endpoint does not
+re-evaluate its browser-submitted status. Rerun the Check through Apex or Flow before an
+irreversible, security-sensitive, or compliance action.
 
 ## Alternative: Receive results with Apex
 
@@ -163,6 +174,11 @@ public without sharing class RecordHealthCheckResultHandler {
   }
 }
 ```
+
+`without sharing` makes this sample service handler responsible for its own destination access and
+data policy; it does not grant users access to saved records. A production team can choose a
+different sharing declaration, but must test event-context behavior and enforce object and field
+permissions for every queried or written destination field.
 
 `rhc__` appears on the Platform Event because it comes from the installed Record Health Check
 package. `Health_Check_Result_History__c` has no `rhc__` prefix because it is an example custom

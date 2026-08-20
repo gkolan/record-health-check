@@ -1,5 +1,8 @@
 # Agentforce and MCP threat model
 
+Audience: security architects and Agentforce or MCP implementers. If you only need to let an agent
+run a Check, use [Agentforce actions](../../integration/agentforce-actions.md).
+
 > [!NOTE]
 > Use this page to review identities, trust boundaries, and controls before enabling a Record Health
 > Check Agentforce action or MCP server.

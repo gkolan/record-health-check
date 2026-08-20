@@ -1,5 +1,10 @@
 # Apex classes that resolve merge tokens (L2)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page to understand the internal classes that read, validate, and replace merge tokens.
 > For the token names and syntax an administrator can use, see

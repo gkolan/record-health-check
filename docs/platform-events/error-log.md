@@ -28,6 +28,12 @@ assignee as authorized for restricted error data. Grant subscriber automation ac
 only where needed. Without publisher access, Salesforce rejects the publish operation and no Log
 event is emitted.
 
+To grant receiver access, open **Setup → Permission Sets → [restricted support permission set] →
+Object Settings → Record Health Check Log**, enable the minimum event access, and assign the
+Permission Set only to approved support identities. Grant the protected destination object and its
+Message and Stack Trace field permissions separately. To opt a Set out, open **Custom Metadata
+Types → Record Health Check Set → Manage Records**, edit it, and clear **Publish Error Log Event**.
+
 Define all of these controls before creating automation:
 
 - who can receive and read the event;
@@ -81,6 +87,9 @@ read them.
 
 Do not call Record Health Check or publish another Log event from this Flow. Keep it focused on
 saving the error and notifying approved support staff.
+
+`Code__c` is diagnostic classification that can evolve. Do not use it as a public business Reason
+Code or a permanent Flow Decision contract; route unknown codes to restricted review.
 
 ## Alternative: Save restricted errors with Apex
 

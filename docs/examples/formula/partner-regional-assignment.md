@@ -50,6 +50,21 @@ A channel manager is preparing a Partner Account for regional assignment.
   is the exact picklist API value used for Partner Accounts in your org.
 - Confirm that intended users can read Account Type and Billing Country.
 
+## Confirm the example fits your org
+
+In `ISPICKVAL(Type, "Partner")`, `Type` is the Account Type field, not Record Type, and `Partner`
+must match the stored picklist API value. Confirm it under **Setup → Object Manager → Account →
+Fields & Relationships → Type → Values**. If your org identifies partners by Record Type, replace
+the applicability rule with the approved Record Type logic.
+
+In State and Country/Territory Picklists orgs, decide whether the Check should use
+`BillingCountryCode`. Test one Partner Account and one non-Partner Account. The non-Partner row is
+Skipped, not a warning. Because **Passed Checks** is **Show count only**, passing Partner Checks add
+to the summary but do not show an individual green row.
+
+Add the card to the Account Lightning page, activate the intended assignment, and test as a user
+with **Record Health Check User**. Adapt separately for Person Account policies.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -62,7 +77,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm Partner Accounts have a Billing Country. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show count only |
 | **Skipped Checks** | Show each check |

@@ -10,6 +10,9 @@
 > install or upgrade Record Health Check in a subscriber sandbox or production org. Subscribers
 > install the promoted unlocked package (`04t`) from [Install and verify](../installation/install-and-verify.md).
 
+`npm run setup` creates an installed-package demo. `npm run dev:setup` deploys unpackaged contributor
+source. They are different workflows; do not substitute one command for the other.
+
 Use this guide only when contributing changes to this repository. The package project is in
 `packages/record-health-check/`. If the goal is to evaluate the installed package as an
 administrator or user, follow [Create a demo scratch org](../installation/create-rhc-scratch-org.md)
@@ -61,6 +64,10 @@ What success looks like:
 | Local tests ran | Package `RunLocalTests` completed during the package-source deploy |
 
 This command does **not** install the public `04t` subscriber package.
+
+Rollback for this workflow means deleting the exact disposable scratch org alias after preserving
+any needed test evidence. It never means deleting source or packages from a sandbox or production
+org.
 
 ## Step 2: Rerun package tests
 

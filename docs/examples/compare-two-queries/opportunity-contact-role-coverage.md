@@ -55,6 +55,22 @@ A seller opens an Account before forecast review.
   fields used in both queries.
 - Test the example in a sandbox with the same sharing access intended users have.
 
+## Read the aggregates and prepare test data
+
+`COUNT_DISTINCT(OpportunityId) coveredCount` counts distinct Opportunities with at least one
+Contact Role and names the aggregate `coveredCount`; enter that alias in **Source Query Field**.
+Bare `COUNT()` on the Comparison side needs no Comparison Query Field. **Equals** passes when Found,
+the covered count, equals Expected, the total open-Opportunity count.
+
+From an Opportunity, add a Contact Role in the **Contact Roles** related list. Test one Account with
+two open Opportunities where only one has a role, then add the missing role and rerun. Do not use
+this unchanged if Contact Roles are not part of the process or required roles vary by stage.
+
+Review `OpportunityContactRole` under **Setup → Object Manager**, configure **Max Query Rows** and
+the intended no-row behavior, add the card to the Account Lightning page, and activate the correct
+assignment. Test sharing with a representative restricted user holding **Record Health Check
+User**; do not broaden production sharing for the test.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -67,7 +83,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Record Alignment |
 | **Card Subtitle** | Confirm open Opportunities have Contact Roles. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

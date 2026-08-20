@@ -12,6 +12,10 @@ Use **Fix Message**, **Action Label**, and **Action URL** to turn a failed Check
 step. The Check can guide a user to a Salesforce record, related list, report, Knowledge article,
 external site, or prefilled create page instead of requiring the user to search for the destination.
 
+A Fix Message is often enough. Add a URL only when one safe destination materially shortens the
+user's next step. Do not add a generic home page, a link that changes data immediately, or a link
+whose access behavior you have not tested.
+
 ## What you will learn
 
 | Goal | Record Health Check setting |
@@ -22,6 +26,10 @@ external site, or prefilled create page instead of requiring the user to search 
 | Reuse the current record or parent values in guidance | Merge tokens for record and parent fields, each with an optional fallback value |
 
 These settings are configured on the Check:
+
+1. In Setup, open **Custom Metadata Types**.
+2. Next to **Record Health Check**, select **Manage Records**.
+3. Open the Check, select **Edit**, and find **Fix Message**, **Action Label**, and **Action URL**.
 
 - [**Action Label** (`ActionLabel__c`)](../metadata/fields-check.md#action-label-actionlabel__c)
 - [**Action URL** (`ActionUrl__c`)](../metadata/fields-check.md#action-url-actionurl__c)
@@ -63,6 +71,10 @@ URL-encoded, against these checks.
 | URLs that resolve to more than 2,000 characters | No |
 
 Unsafe URLs are dropped. **Fix Message** (`FixMessage__c`) can still render.
+If a saved link does not appear on a failed row, first confirm the URL is allowed and under 2,000
+characters after token resolution. An authorized administrator can temporarily use **Show
+Diagnostics** to inspect a rejected or unresolved link; the normal card does not expose the unsafe
+URL.
 
 ## Merge tokens
 
@@ -136,7 +148,12 @@ The two patterns that use a fallback value are written out here so you can copy 
 
 Replace the placeholder `00O...`, `ka0...`, object, relationship, field, and page API names with
 values that exist in your org. A default-field-values URL prefills the create form; the user
-still reviews and saves the record.
+still reviews and saves the record. Salesforce can still require other Case fields or reject an
+invalid default; test the link as the intended user and complete any required fields on the form.
+
+To get a Knowledge article ID, open the published article in Lightning and copy the `ka0...` value
+from `/lightning/r/Knowledge__kav/ka0.../view` in the browser URL. Article IDs and visibility can
+differ between orgs, languages, channels, and users.
 
 ## Report links
 

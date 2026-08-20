@@ -1,9 +1,14 @@
 # Documentation quality and accuracy standard
 
-Use this standard for every page in `docs`. The [Batch Apex guide](../api/batch.md) is the reference
-for clear explanations, complete examples, and explicit decisions. Match its level of clarity, but
-use the page structure that fits the reader's task. An installation guide, worked example, metadata
-reference, and Apex guide should not have identical sections.
+Use this standard for every page in `docs`. [Create your first Check](../installation/create-your-first-check.md)
+is the administrator-task reference for Setup labels, ordered steps, expected results, and recovery.
+The [Batch Apex guide](../api/batch.md) is the developer-task reference for complete code and
+explicit decisions. Match their clarity, but use the page structure that fits the reader's task. An
+installation guide, worked example, metadata reference, and Apex guide should not have identical
+sections.
+
+This page is for documentation contributors and should appear only in contributor navigation, not
+as a normal administrator next step.
 
 ## Prerequisites
 
@@ -14,7 +19,7 @@ Before editing one page:
    page instead of behind a link.
 3. Verify technical claims against the current package source, configuration, release file, or
    script that owns the behavior. Do not use another documentation page as the only proof.
-4. Read the Batch Apex reference for the expected level of explanation.
+4. Read the administrator or developer reference page that matches the intended audience.
 5. Edit and validate this page before starting another page.
 
 Confirm exact Setup labels, API names, defaults, supported values, limits, permissions, method
@@ -22,6 +27,10 @@ signatures, returned IDs, and result behavior. If the repository does not prove 
 guess.
 
 ## Step 1: Write for a Salesforce administrator first
+
+Place an audience statement near the top when a page is for a Flow administrator, Agentforce
+administrator, developer, integration engineer, package maintainer, or restricted support owner.
+Give administrators an explicit off-ramp before code or infrastructure prerequisites.
 
 - Start with the Salesforce task the reader wants to complete.
 - Use familiar Salesforce terms such as record, Flow, Apex job, Permission Set, Custom Permission,

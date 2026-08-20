@@ -1,5 +1,10 @@
 # Record Health Check Log Platform Event
 
+> [!IMPORTANT]
+> **Audience: restricted support automation owners.** For step-by-step Flow setup, use
+> [Save or route restricted errors](../platform-events/error-log.md). Do not branch permanent
+> business automation on diagnostic `Code__c`; use public result Status and Reason Code instead.
+
 | Setup value | Name |
 | --- | --- |
 | Label | Record Health Check Log |
@@ -38,6 +43,10 @@ access to this event. That is intentional because it can contain restricted trou
 Give access to `Record_Health_Check_Log__e` separately and only to the users or integration that
 must receive these errors. Also restrict access to any custom object, external system, email, or
 collaboration channel where the receiving automation sends the details.
+
+In an org-owned Permission Set, open **Object Settings → Record Health Check Log** and grant only
+the event access required by the receiver. Grant saved Message, Stack Trace, User ID, and Record ID
+field access separately on the protected destination object.
 
 For step-by-step Flow and Apex examples, see
 [Save or route Record Health Check errors](../platform-events/error-log.md).

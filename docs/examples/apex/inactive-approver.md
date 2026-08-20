@@ -73,6 +73,26 @@ List<Id> targetRecordIds = scope.recordIds;
 This example uses dynamic SOQL because the Advanced Approvals package is optional. It still binds
 the supplied record Id instead of joining it into the query text.
 
+## Confirm the product and developer ownership
+
+This example targets optional Advanced Approvals objects whose API names commonly begin `sbaa__`.
+It is not a guide for standard Salesforce Approval Processes and does not apply when those product
+objects are absent. The class lives in integration-test source and is not installed; a developer
+must adapt, test, and deploy it. Creating a pending approval assignment and an inactive test user
+must follow the installed product's sandbox procedures.
+
+The JSON contains object and field API names used by dynamic SOQL. An administrator should supply
+verified names; a developer owns query safety and deployment. A contract or system error can stop
+later Checks when the Check Set is configured to stop after error, while an
+`UNABLE_TO_EVALUATE` result follows the normal status ordering. The Opportunity Check Set means all
+messages and tests must refer to Opportunities, not Accounts.
+
+Review access to the optional approval objects and User Name for the intended user. Add the card to
+the Opportunity Lightning page in App Builder, activate the intended assignment, and test as a
+user with **Record Health Check User**. If your team does not use Salesforce CLI, the developer can
+move the reviewed class and tests through an approved change set or the organization's release
+tool; do not author untested production Apex from this page.
+
 ## Step 1: Verify the approval object and fields
 
 This Check uses one JSON object with the package-specific object and field names:
@@ -423,7 +443,7 @@ Custom Metadata Types → Record Health Check Set → Manage Records**, select *
 | **Object** | `Opportunity` |
 | **Card Title** | Opportunity Approval Readiness |
 | **Card Subtitle** | Confirm pending approval assignees are active users. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |
@@ -487,7 +507,7 @@ The Apex class result produces these health results and card values:
 | --- | --- |
 | **`PASS`** | No inactive assignees are assigned to pending approval steps. |
 | **`FAIL`** | One or more inactive assignees shows Needs attention with Critical severity and names the affected users. |
-| **`SKIPPED`** | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`. |
+| **`SKIPPED`** | This configuration applies to every Opportunity and has no prerequisite, so it does not produce `SKIPPED`. |
 | **Found** | Found names the inactive assignees discovered on pending steps or confirms that none were found. |
 | **Expected** | Expected states that every pending approval assignee must be active. |
 | **`UNABLE_TO_EVALUATE`** | Missing Advanced Approvals metadata or incorrect API names prevents a reliable result instead of creating a false `PASS`. |

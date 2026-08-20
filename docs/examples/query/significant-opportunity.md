@@ -51,6 +51,21 @@ A strategic-account seller is preparing for a pipeline review and needs to know 
 - Confirm that intended users can read Annual Revenue, Opportunity Amount, and the Opportunity
   fields used by the query.
 
+## Read the comparison and prepare test data
+
+**Any record passes** means one returned open Opportunity at or above the threshold is enough;
+**Every record passes** would require all of them. The expected record formula
+`AnnualRevenue * 0.1` sets a threshold at 10 percent. For Annual Revenue 1,000,000, an Opportunity
+Amount of 100,000 or more satisfies it. `Amount != null` keeps blank Amount rows out of the query.
+
+When several Opportunities qualify, Found is a representative successful query value, not total
+pipeline. Use an aggregate Query if total pipeline is the requirement. Adapt the revenue field and
+severity to the approved policy; Info is a lower-emphasis card presentation but still status
+`FAIL` when unmet. Consider an Account Opportunities related-list action link.
+
+Add the card to the Account Lightning page, activate the intended assignment, and test as a user
+with **Record Health Check User**.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -63,7 +78,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm an open Opportunity is significant for this Account. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

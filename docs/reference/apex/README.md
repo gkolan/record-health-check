@@ -1,5 +1,10 @@
 # Internal Apex class reference
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > On this page, find the production Apex class responsible for an internal Record Health Check
 > behavior. Use this while reading or changing the package source. Writing a custom Apex Check? Start with

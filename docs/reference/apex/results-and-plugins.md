@@ -1,5 +1,10 @@
 # Apex result, Lightning, and plugin types (L1)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page to understand the objects returned by the Apex API, the data sent to the Lightning
 > card, the interface implemented by a custom Apex Check, and the examples included in the

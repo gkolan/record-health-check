@@ -10,6 +10,10 @@
 >   path.
 > - For every field's size, default, help text, and example, use the [Check field reference](../../metadata/fields-check.md).
 
+For a common owner check, use `Owner.IsActive` on Account. On Lead, where Owner is polymorphic, use
+`Owner:User.IsActive` when the rule applies to user-owned Leads and handle queue ownership through
+applicability or a Query Check.
+
 ## Required Formula settings
 
 | Setup field | API name | Requirement |

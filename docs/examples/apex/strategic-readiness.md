@@ -116,6 +116,23 @@ List<Id> accountIds = scope.recordIds;
 The complete class below queries Accounts, Contacts, Opportunities, Tasks, and Events once per
 scope and then assembles one score for every requested Account.
 
+## Confirm the score and developer ownership
+
+This class lives in integration-test source and is not installed in a subscriber org. A developer
+must review, test, and deploy it before configuration. If no developer owns it, four focused Formula
+or Query Checks are clearer and show which criterion failed.
+
+`minScore: 80` is the passing threshold; it does not require a perfect score of 100. Build tests at
+75, 80, and 100 so the boundary is visible. This example falls back to defaults for missing or
+invalid JSON; approve that behavior rather than assuming it returns `INVALID_CONFIG` like every
+plugin. The card shows the total score, not which individual criteria were missed.
+
+`ISPICKVAL(Type, "Strategic")` uses the stored Account Type picklist API value, not Record Type.
+Confirm it in Object Manager. Review user-mode access across Account, Contact, Opportunity, and
+activity fields. Add the card to the Account Lightning page, activate the intended assignment, and
+test as a user with **Record Health Check User**. Repository tests and Execute Anonymous are
+developer steps.
+
 ## Step 1: Choose the score and activity window
 
 Use Check parameters to change the passing score and activity window without editing the class:
@@ -401,7 +418,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Readiness |
 | **Card Subtitle** | Confirm the Account meets the strategic readiness score. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

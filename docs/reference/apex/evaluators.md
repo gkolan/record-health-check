@@ -1,5 +1,10 @@
 # Apex classes that run each Evaluation Type (L3)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page to understand what the package does when a Check uses Formula, Query, Compare two
 > queries, or Apex. These are internal package classes, not the Apex API used to start a health

@@ -58,6 +58,10 @@ Set uses `Account` and belongs on an Account record page.
 
 If the objects do not match, the component does not show the Check Set.
 
+When the App Builder dropdown is empty, confirm **Active**, compare this Object API name with the
+record page object, assign **Record Health Check Admin** to the page builder, and refresh Lightning
+App Builder after the permission or metadata change.
+
 ### Active (`IsActive__c`)
 
 | Attribute | Value |
@@ -68,6 +72,10 @@ If the objects do not match, the component does not show the Check Set.
 Leave **Active** selected to allow the Check Set to load and run. Clear it to temporarily disable
 the entire Check Set without deleting it. The Lightning component then shows **Health Check
 Unavailable** instead of running its Checks.
+
+Clear Active for a reversible stop. **Hide** changes only the card's Run/Rerun control and does not
+disable evaluation. Deleting the Set can break page selection and dependent Checks, so back up and
+remove dependencies before deletion.
 
 ## Card text and display
 

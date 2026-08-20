@@ -13,8 +13,9 @@ the example values, and replace its fields, limits, and messages with values app
 
 > [!IMPORTANT]
 > The pages in this library are instructions, not metadata installed in your org. The installed
-> package includes four Check Sets whose names begin with `rhc__Example_`. Other examples exist only
-> in these documentation pages unless an administrator creates them.
+> package includes [four Check Sets and 21 Checks](../installation/installed-examples.md) whose names
+> begin with `rhc__Example_`. Other examples exist only in these documentation pages unless an
+> administrator creates them.
 
 Unless a page states otherwise, its Check Set shows a **Run** button with the `utility:play` icon
 and changes the button label to **Rerun** after the first run. The configuration tables give the
@@ -51,9 +52,16 @@ Start with where Salesforce stores the information needed to decide whether the 
    Records** and copy the values from **Configure the Check**.
 5. Replace the sample fields, limits, and messages with values that match your org's requirement.
 6. Add the Record Health Check component to the correct Lightning record page if it is not already
-   present.
-7. Follow **Test the Check** and confirm the documented passing, failing, skipped, or error results
+   present. Select the Check Set, save, and activate the page as **Org Default**, **App Default**,
+   or for the intended app, record type, and profiles.
+7. Assign **Record Health Check User** to the test user and confirm that the Check Set **Object**
+   matches the Lightning record page object.
+8. Follow **Test the Check** and confirm the documented passing, failing, skipped, or error results
    that apply before making the Check available to users.
+
+`utility:play` is a standard Lightning icon name that you paste into **Run Button Icon**; it is not
+a file upload. Tables can show API values such as `ALL_ROWS_PASS` beside their Setup labels so
+developers can identify metadata, but administrators should select the visible Setup label.
 
 The [technical reference](../reference/README.md) lists every setting, operator, limit, and result
 rule. Use an example when creating a Check. Use the reference when the example does not cover a
@@ -111,6 +119,10 @@ Choose **Verify with Apex** when the Check needs calculations, several steps, or
 that the other Evaluation Types cannot express clearly. Apex examples require development and test
 coverage before deployment.
 
+`AccountHasRecentActivityCheck` is included in the managed package. The strategic-readiness and
+inactive-approver classes are integration-test examples and are not installed in a subscriber org.
+The open-opportunity example is also a source-development recipe unless your team deploys it.
+
 | Example | What it checks | What you will learn |
 | --- | --- | --- |
 | [Recent Account activity](apex/recent-activity.md) | An Account has a recent completed Task or Event whose `WhatId` is the Account | Combine WhatId-scoped Task/Event results and accept a configurable date window |
@@ -150,6 +162,7 @@ The reference pages document additional operators and limits that do not need se
 ## Related documentation
 
 - [Create your first Check](../installation/create-your-first-check.md)
+- [Installed example Check Sets](../installation/installed-examples.md)
 - [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md)
 - [Check fields](../metadata/fields-check.md)
 - [Check Set fields](../metadata/fields-check-set.md)

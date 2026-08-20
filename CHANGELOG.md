@@ -82,6 +82,13 @@ Target package version: **2.0.4**.
 - Apex tests no longer receive an implicit run-permission grant. Namespaced restricted-persona
   conformance now proves the actual Custom Permission boundary across Apex, Lightning, Flow, and
   asynchronous entry points.
+- Query runtime now repeats multi-currency authoring safeguards before SOQL executes. Legacy or
+  bypassed metadata cannot run an ungrouped Currency aggregate, rely on a semi-join-only ISO filter,
+  or compare a Currency field with a fixed threshold that has no declared ISO basis.
+- MCP concurrency exhaustion now returns the versioned structured `LIMIT` contract with safe retry
+  guidance instead of an unclassified tool error.
+- Lifecycle guidance now identifies `USER_INITIATED` card completion events as client-attested
+  advisory notifications and requires server re-evaluation for compliance-sensitive actions.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,

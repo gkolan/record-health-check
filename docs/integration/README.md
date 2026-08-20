@@ -23,14 +23,25 @@ does not create a second configuration model.
 | ---: | --- | --- |
 | 1 | [Lightning component](lightning-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
 | 2 | [Flow actions](flow-actions.md) | Branch in automation without custom Apex |
-| 3 | [Agentforce actions](agentforce-actions.md) | Read-only native tools for agent record-health questions |
-| 4 | [Deploy the MCP service](deploy-mcp-service.md) | Configure and prove every security gate for an approved MCP client |
-| 5 | [Agent tool REST API](agent-tool-rest-api.md) | Understand the service-identity API contract behind the MCP server |
-| 6 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
+| 3 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
+
+Stop after the row that meets your requirement. Agentforce is an optional administrator track when
+the org has Agentforce enabled. MCP and REST are platform-engineering tracks and are not part of a
+normal card or Flow rollout.
+
+| Optional advanced track | Guide | Audience |
+| --- | --- | --- |
+| Native agent tools | [Agentforce actions](agentforce-actions.md) | Agentforce administrator |
+| Hosted MCP service | [Deploy the MCP service](deploy-mcp-service.md) | Platform and security engineer |
+| Service-identity API | [Agent tool REST API](agent-tool-rest-api.md) | Salesforce and integration developer |
 
 For immediate and background Apex patterns, use [API examples](../api/README.md). For receiving
 Flow, Apex, or external-integration examples, use
 [Platform Event subscriptions](../platform-events/README.md).
+
+All callers use **Record Health Check User** or equivalent least-privilege package access plus the
+running principal's normal record and field access. Use [Read results](../guides/read-results.md) to
+translate card labels and API statuses.
 
 ## Choose an integration
 

@@ -22,9 +22,14 @@ The package protects four separate areas:
 
 ## Choose the correct Permission Set
 
-The package installs two Permission Sets. **Record Health Check Run**
+The package installs four Permission Sets. **Record Health Check Run**
 (`rhc__Record_Health_Check_Run`) is a Custom Permission included in both; it is not a Permission Set
 by itself.
+
+To assign one, go to **Setup → Permission Sets**, open the installed Permission Set, select
+**Manage Assignments**, and then select **Add Assignments**. Do not search for a Permission Set named
+**Record Health Check Run**; that name belongs to the Custom Permission contained in the installed
+Permission Sets.
 
 | Installed Permission Set | What it provides | Assign it to |
 | --- | --- | --- |
@@ -54,6 +59,14 @@ The user who starts each Salesforce transaction supplies the access used in that
 Record Health Check queries business records with `WITH USER_MODE`. Salesforce therefore enforces
 object access, field access, record sharing, restriction rules, scoping rules, and future user-mode
 visibility controls for that user.
+
+The Admin Permission Set grants Record Health Check administration capabilities. It does not grant
+access to Account, Opportunity, Case, or any other business object or field. Grant those permissions
+through your organization's normal profiles and permission sets.
+
+The Flow action still checks the **Record Health Check Run** Custom Permission. Confirm that the
+user who causes or executes the Flow has an installed runner Permission Set, and test the Flow in
+its actual execution context rather than assuming a system-context Flow bypasses the package check.
 
 Query outcomes describe only the rows visible in that transaction. Zero returned rows do not prove
 that no matching rows exist elsewhere in the org; they prove that the configured user-mode query
@@ -111,7 +124,8 @@ at run time that custom code did not publish a Platform Event or start Batch or 
 Code review, static analysis, and the supplied contract tests must enforce those restrictions. The
 package also cannot correct an unsafe query written inside the custom class.
 
-See [Verify a custom Apex Check](../apex/plugin-verification.md) for the required review and tests.
+See [Create a custom Apex Check](../evaluation/apex-check-contract.md) for the required review and
+tests. Administrators only paste the reviewed class API name into the Check record in Setup.
 
 ## The diagnostics Custom Permission
 
@@ -199,11 +213,11 @@ user edit and save data according to that user's Salesforce access. See
 
 ## Related
 
-- [Architecture: Security model](architecture.md#9-security-model)
-- [Code Analyzer suppressions](code-analyzer-suppressions.md)
+- [Install and verify](../../installation/install-and-verify.md)
+- [Operate in production](../../guides/operate-in-production.md)
 - [Reason Codes](../contracts/reason-codes.md)
 - [Lifecycle events](../../integration/lifecycle-events.md)
-- [Verify a custom Apex Check](../apex/plugin-verification.md)
+- [Create a custom Apex Check](../evaluation/apex-check-contract.md)
 - [Configure action links](../../guides/configure-action-links.md)
 - [Troubleshoot Record Health Check](../../guides/troubleshoot-with-show-diagnostics.md)
 - [Security policy](../../../.github/SECURITY.md)

@@ -1,5 +1,8 @@
 # Platform limitations and safe patterns
 
+Audience: Check authors and developers diagnosing a platform edge case. For ordinary configuration,
+start with the [Formula](../evaluation/formula.md) or [Query](../evaluation/query.md) reference.
+
 Record Health Check runs inside Salesforce security, query, and FormulaEval contracts. Use this
 page to identify boundaries where a syntactically valid Check can otherwise look more capable than
 it is and choose a safe alternative.

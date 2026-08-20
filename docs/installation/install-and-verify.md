@@ -22,7 +22,7 @@ checks make sense before you introduce the experience in production.
 
 You need:
 
-- permission to install a Salesforce package;
+- the **Download AppExchange Packages** permission, which System Administrators commonly have;
 - permission to edit Lightning record pages; and
 - at least one Account, Contact, or Opportunity you can use for verification.
 
@@ -53,7 +53,8 @@ Choose the destination that matches the org where you are signed in:
 Both links route to the latest Record Health Check package version. The different login domains
 send the same package version to the appropriate Salesforce environment.
 
-On the Salesforce installation page, choose **Install for Admins Only**. This installs the complete
+Salesforce first shows package details and the access choices **Install for Admins Only**, **Install
+for All Users**, and **Install for Specific Profiles**. Choose **Install for Admins Only**. This installs the complete
 package, but it does not automatically grant its packaged permissions to every user profile. You
 will give non-admin users access with permission sets in the next step.
 
@@ -62,8 +63,10 @@ itself. The concern is access: Salesforce grants the package's profile-level per
 including to people who may not need the card. That is harder to review and remove later. **Install
 for Admins Only** followed by permission-set assignments keeps access visible and intentional.
 
-After installation, open **Setup → Installed Packages** and confirm that **Record Health Check** is
-listed.
+The installation can remain in progress while Salesforce verifies components. Keep the browser
+open until Salesforce reports completion; a longer installation can finish in the background and
+send email. Afterward, open **Setup → Installed Packages** and confirm that **Record Health Check**
+is listed.
 
 ## Step 2: Choose who can use it
 
@@ -100,11 +103,21 @@ evidence, remediation guidance, and checks that apply only in certain situations
 2. Select **Setup → Edit Page**.
 3. Drag **Record Health Check** from the **Custom** components into a useful position on the page.
 4. In the component properties, select **Example: Account Relationship & Risk Health Check**.
-5. Save and activate the page.
+5. Save the page, then select **Activate**. Choose the assignment that matches the users you are
+   testing: **Org Default**, **App Default**, or an app, record type, and profile assignment. An App
+   Default affects only that Lightning app. Record the assignment you chose.
 6. Return to the Account and refresh the page.
 
 The component appears under **Custom** because Record Health Check is an unlocked package. Nothing
 is wrong if you do not see it under **Custom - Managed**.
+
+**Setup → Edit Page** opens the active Lightning page for the current record context. If your org
+uses several apps or profile assignments, confirm the page name and activation assignment before
+saving so you do not update a page that the test user never receives.
+
+The packaged component is supported on Lightning record pages in Lightning Experience. Do not
+treat this guide as verification for Salesforce Classic, an App or Home page, Experience Cloud, or
+Salesforce mobile; validate any additional surface separately before promising support.
 
 ![Demo Account Relationship and Risk health check card on an Account record page](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
 
@@ -145,6 +158,8 @@ around a decision your users actually make.
 | What you see | What to check first |
 | --- | --- |
 | Installation cannot continue | Confirm that you are signed in to the intended org and can install packages |
+| Installation remains pending | Wait for the Salesforce completion email, then refresh **Setup → Installed Packages**. If it remains pending, give Salesforce Support the package version and target Org ID. |
+| Salesforce reports an `rhc` namespace conflict | Use an org that does not already contain the package or another package with the same namespace; do not rename packaged components. |
 | Record Health Check is missing in Lightning App Builder | Confirm the package appears in **Setup → Installed Packages**, then look under **Custom** components |
 | No Check Set is available | Use an Example Check Set for the same object as the record page, such as an Account Example Check Set on an Account page |
 | A user cannot see or run the card | Confirm that the user has **Record Health Check User** and can read the record and fields being checked |
@@ -177,6 +192,7 @@ to the installed package's permission-set API name. Do not remove it from this c
 | --- | --- |
 | Prove the complete prepared experience in a separate org | [Deploy to a demo scratch org](create-rhc-scratch-org.md) |
 | Build a small check that belongs to your organization | [Create your first Check](create-your-first-check.md) |
+| Inspect every packaged example | [Installed example Check Sets](installed-examples.md) |
 | Adapt a tested pattern | [Examples library](../examples/README.md) |
 | Review security before production | [Security and data access](../reference/framework/security.md) |
 | Revalidate after an upgrade | [Upgrade and revalidate](upgrading.md) |

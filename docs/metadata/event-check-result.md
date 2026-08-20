@@ -5,6 +5,10 @@
 > understand what a receiving Flow, Apex trigger, or integration must do with one finalized Check
 > outcome.
 
+> [!NOTE]
+> **Audience: Flow builders and integration developers looking up `$Record` fields.** For ordered
+> Flow Builder steps, use [Save or route individual Check results](../platform-events/check-result.md).
+
 > [!TIP]
 > **Event navigation:** [Publication behavior](../integration/lifecycle-events.md) ·
 > [Build Check Result receiving automation](../platform-events/check-result.md) ·
@@ -49,14 +53,25 @@ For Flow, Apex, Queueable, Batch, or Scheduled Apex, the caller controls publica
 Programmatic callers do not use **Publish User Result Event**. In every case, Salesforce delivers
 the event only after the transaction completes successfully.
 
-Automatic Lightning record-page evaluation, a receiving-event transaction, blank sources, and unknown sources
-do not publish.
+Automatic Lightning record-page evaluation does not publish. A receiving-event transaction, blank
+source, or unknown source also does not publish.
 
 `USER_INITIATED` events contain the outcomes returned by the progressive Lightning browser run.
-They are filtered to the requested record and the Checks in the resolved Check Set, but the
-publication step does not run those Checks again. Treat them as advisory monitoring data. Automation
-that makes a security-sensitive or business-critical change must run the Check again through Apex
-or Flow before acting. Other supported sources publish directly from their Apex evaluations.
+They are client-attested advisory notifications: the completion endpoint filters Check identity but
+does not re-evaluate the submitted status.
+
+Reason Code can be blank for an ordinary business `FAIL`; it is not required on every event. Source
+values are API contract values written by the framework, not choices an administrator makes on the
+Platform Event record.
+
+Assign receiver event access and destination permissions through an approved Permission Set. To
+prove Publish After Commit, publish from a sandbox Flow transaction that deliberately rolls back
+and confirm no event-driven destination record appears.
+
+Events are filtered to the requested record and the Checks in the resolved Check Set. Publication
+does not run those Checks again. Treat events as advisory monitoring data. Automation that makes a
+security-sensitive or business-critical change must run the Check again through Apex or Flow before
+acting. Other supported sources publish directly from their Apex evaluations.
 
 ## Event definition
 
@@ -128,7 +143,7 @@ Reason Code, and Developer Name; display messages are intentionally absent from 
 
 | Concern | What the Flow, Apex trigger, or integration must do |
 | --- | --- |
-| Duplicate delivery | Keep unique with `EventId__c` and make follow-on work safe to repeat. |
+| Duplicate delivery | Keep unique with `EventId__c` and make follow-on work safe to repeat. Separate tabs and intentional reruns can also produce distinct valid events. |
 | Routing | Use API values, not translated labels or administrator-authored text. |
 | Future values | Send unknown additive Reason Codes and statuses to a safe review path. |
 | Run correlation | Use `RunId__c` to group Check Result events with their Set Run summary. |
@@ -144,7 +159,8 @@ Salesforce record, so access to receiving automation and saved result records mu
 sensitivity.
 
 Publication can fail and is sent in groups of 100. A publication or receiving-process failure does
-not change the finalized Check status.
+not change the finalized Check status. The caller's successful health response is therefore not
+proof of event delivery.
 
 ## Related
 

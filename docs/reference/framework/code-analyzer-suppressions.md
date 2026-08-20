@@ -1,8 +1,25 @@
 # Code Analyzer suppressions
 
+Audience: package contributors reviewing pull-request security evidence. This page is never needed
+to configure or run a Check. Administrators should use [Security and data access](security.md).
+
 > [!NOTE]
 > On this page, find every inline Salesforce Code Analyzer suppression in the Record Health Check
 > package, exactly where each one is, and why it is safe to leave in place.
+
+## AppExchange security-review readiness
+
+Record Health Check is **engineered for AppExchange security-review readiness**. Its release process
+keeps Salesforce Code Analyzer rules enabled by default, fails on new unsanctioned findings, and
+requires every narrow suppression to be documented and reviewable on this page. Those controls are
+supplemented by clean-source CI, authorization-persona tests, adversarial tests, package-boundary
+checks, and Salesforce runtime validation.
+
+This readiness statement describes the repository's engineering controls. It is not a claim that a
+specific package version has passed Salesforce AppExchange Security Review, and it does not replace
+Salesforce's submission, automated scanning, manual review, clean-install, or integration-review
+requirements. State that a release is AppExchange approved only after Salesforce has approved that
+exact submitted solution and version.
 
 Use this table to look up a suppression by file, rule, or category. Every suppression is a comment
 placed directly above the line it covers:

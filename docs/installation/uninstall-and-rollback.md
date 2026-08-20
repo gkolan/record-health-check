@@ -13,7 +13,8 @@ Check, and then uninstall it without leaving broken pages or processes behind.
 Uninstalling removes the card, Check Set and Check configuration types, permission sets, and
 automation entry points. Before making that change, identify where Record Health Check is used:
 
-1. List every Lightning record page that contains the **Record Health Check** card.
+1. In **Setup → Lightning App Builder**, open each record page for the supported objects and list
+   every page that contains the **Record Health Check** card. Include its activation assignment.
 2. Ask the owners of Salesforce automation whether a Flow, Apex class, scheduled job, or integration
    uses Record Health Check or receives its Platform Events.
 3. List the people assigned **Record Health Check User** or **Record Health Check Admin**.
@@ -22,7 +23,8 @@ automation entry points. Before making that change, identify where Record Health
 ## Preserve the configuration first
 
 Check Sets and Checks contain the questions, messages, and guidance your organization authored.
-Export them before removing anything:
+Back them up before removing anything by following
+[Back up and restore configuration](../guides/back-up-configuration.md):
 
 1. Export every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) record.
 2. Export every **Record Health Check** (`Record_Health_Check__mdt`) record.
@@ -62,6 +64,10 @@ before uninstalling:
    to removed package classes or interfaces can block uninstall or fail a later deployment.
 4. Remove scheduled jobs created from `rhc.RecordHealthCheckScheduled`.
 
+In Setup, the corresponding Platform Event labels are **Record Health Check Set Run**, **Record
+Health Check Result**, and **Record Health Check Log**. The API names above are for Flow, Apex, and
+integration searches.
+
 ## Step 3: Remove user access
 
 In **Setup → Permission Sets**, open **Record Health Check User** and **Record Health Check Admin**,
@@ -90,6 +96,10 @@ org alias and username placeholders; do not remove the namespace prefix.
 Open **Setup → Installed Packages**, find **Record Health Check**, and select **Uninstall**. Review
 Salesforce's list of components and dependencies before confirming. Uninstalling removes package
 components and cannot be undone without installing the package again.
+
+If Salesforce shows **Cannot Uninstall**, use the dependency list to return to Steps 1 and 2; do
+not delete unrelated metadata to force removal. After confirmation, Salesforce can finish in the
+background and send an email with the result.
 
 Teams that manage packages with the Salesforce CLI should first find the exact installed package
 version ID:
@@ -142,7 +152,7 @@ installer should follow [Step 4](#step-4-uninstall-the-package).
 | Check | Expected result |
 | --- | --- |
 | Open a record page that previously had the card | No Record Health Check component appears, and Lightning App Builder no longer offers it |
-| Search Setup for `Record Health Check` object and Apex references | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check** (`Record_Health_Check__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
+| Search Custom Metadata Types and **Setup → Apex Classes** | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check** (`Record_Health_Check__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
 | Review Permission Sets | **Record Health Check User** (`rhc__Record_Health_Check_User`) and **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) no longer exist or have no assignees |
 | Review scheduled jobs | No job references `RecordHealthCheckScheduled` |
 | Review Flow, Apex, and integrations | No automation still references the removed Platform Events or Apex classes |
@@ -169,3 +179,4 @@ backup:
 - [Operate in production](../guides/operate-in-production.md)
 - [Configuration identity](../reference/framework/configuration-identity.md)
 - [Security and data access](../reference/framework/security.md)
+- [Back up and restore configuration](../guides/back-up-configuration.md)

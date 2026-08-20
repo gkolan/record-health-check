@@ -1,5 +1,10 @@
 # Verify a custom Apex Check
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page after creating a class that implements `rhc.RecordHealthCheckPlugin`. The checks
 > described here help prove that the class handles 1 to 200 records safely before an administrator

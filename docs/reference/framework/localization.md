@@ -23,6 +23,11 @@ The package includes Salesforce Custom Labels for:
 An administrator can translate these package Custom Labels with Salesforce Translation Workbench.
 The package currently supplies the `en_US` values; your org must supply any additional translations.
 
+In Setup, enter `Translation Language Settings` in Quick Find and enable the required language.
+Then open **Translate**, select the language and the **Custom Labels** setup component, and search
+the installed Record Health Check labels. Translate the Yes, No, and comparison labels used by the
+card; do not change their API names.
+
 Status API values such as `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` do not change
 by language. Automation must use these stable API values, not wording shown to a user.
 
@@ -72,6 +77,8 @@ Choose an approach before rollout:
 
 Test the chosen record-page assignments and visibility rules with a user from every intended
 language group. Record Health Check does not choose a Check Set automatically from `User.LanguageLocaleKey`.
+In Lightning App Builder, place the language-specific component on the relevant app or record-page
+activation and use component visibility where your design can identify the intended audience.
 
 ## Comparisons do not use translated display text
 
@@ -82,6 +89,13 @@ picklist label can change what the user reads, but it does not change `PASS` or 
 This also means a translation must not be placed in **Expected Fixed Value** when the Check needs a
 picklist API value. Use the stored value required by the field and let Salesforce translate the
 display label.
+
+For example, if Account **Industry** shows a translated label for the stored `Technology` value,
+enter `Technology` in **Expected Fixed Value**, not the translated screen text.
+
+Before rollout, go to **Setup → Users → Users**, open representative users, and confirm their
+Language, Locale, and Time Zone. Log in as or use a sandbox test user for each supported combination
+and verify the card on its activated record page.
 
 ## Merge tokens do not translate a sentence
 

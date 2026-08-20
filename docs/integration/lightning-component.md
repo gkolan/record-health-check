@@ -51,7 +51,8 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 3. On the Check Set Custom Metadata record, set **When Checks Run** to **When the page opens** or
    **When the user clicks Run**, then choose the Run button display, labels, and icon. **Hide** is
    valid only for an automatic page-load Check Set.
-4. Save and activate the Lightning page, then open a matching record.
+4. Save and activate the Lightning page as **Org Default**, **App Default**, or for the intended
+   app, record type, and profiles. Then open a matching record as an assigned user.
 5. Confirm the card returns rows and summary counts. Click Run or Rerun only when an explicit run is
    intended.
 
@@ -65,6 +66,18 @@ diagnostic values additionally require **Show Diagnostics** and the
 **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission.
 When both are present, the card renders the server-provided admin-detail message; that detail remains
 absent for viewers without the permission and never changes record or field access.
+
+If the Check Set dropdown is empty, first confirm that the Check Set is active and its **Object**
+exactly matches the record-page object. Then confirm the page builder has **Record Health Check
+Admin**, refresh App Builder after permission changes, and verify the package installation.
+
+| Card label | Programmatic status | Meaning |
+| --- | --- | --- |
+| Pass | `PASS` | Requirement met |
+| Failed, Warning, or Info | `FAIL` | Requirement not met; severity changes presentation |
+| Skipped | `SKIPPED` | Check did not apply |
+| Unable to Check | `UNABLE_TO_EVALUATE` | No reliable answer because of data, access, configuration, or limits |
+| System Error | `ERROR` | Framework or custom Apex problem |
 
 ## When the card publishes result events
 
@@ -84,6 +97,10 @@ Record Health Check `ERROR` details from automatic and deliberate runs; uncheck 
 out. This does not disable Salesforce debug-log output.
 
 An automatic run never publishes lifecycle events even when both lifecycle switches are enabled.
+
+If no event follows Run or Rerun, confirm the visible action was used, the Check Set and relevant
+Check checkboxes are enabled, the transaction committed, the receiver has event access, and the
+receiver itself did not fail. Refresh is a page-load run and never publishes result events.
 It can still publish an Error Log event when the default-on error setting permits it.
 
 The block is intentional. Opening or refreshing a record page is passive navigation, not a request
@@ -126,6 +143,12 @@ Results remain in component state; the component does not create a history recor
 
 ## Event outputs for Run and Rerun
 
+> [!WARNING]
+> `USER_INITIATED` completion events are client-attested advisory notifications. The server confirms
+> that submitted Check names belong to the selected Check Set, but it does not re-evaluate their
+> submitted statuses during completion. Use Apex or Flow to re-evaluate before a
+> compliance-sensitive or irreversible action.
+
 ### Check Set Run event
 
 After every row resolves, a Set with publication enabled can produce `Record_Health_Check_Set_Run__e` with
@@ -150,6 +173,10 @@ time so the card can finish promptly without flooding the browser or Salesforce 
 Check all at once. When it is checked, evaluation becomes sequential; the component must know whether
 the current Check returned `ERROR` before deciding whether the next Check is allowed to start.
 
+With **Reveal Mode = One by one**, the card can show work in groups of up to five evaluations while
+it advances through the ordered Checks. That staged appearance is not a failure; wait for the run
+summary before troubleshooting missing rows.
+
 For an explicit run:
 
 1. Each server-finalized Check result can publish its own Check Result event after that Apex request commits.
@@ -167,6 +194,9 @@ A later Run or Rerun starts again from the current saved record data.
 Event publication never changes the card result. If the completion call or event publication fails,
 the user still sees the completed health-check results. The receiving Flow, Apex trigger, or
 integration needs its own monitoring; the card is not event-delivery confirmation.
+
+A successful card result is not proof that requested events were published. Monitor publication
+warnings and receiving automation separately.
 
 Use the [lifecycle-events overview](lifecycle-events.md) for cross-event behavior and
 the linked metadata references for exact field types, replay, retention, and receiving-process design.

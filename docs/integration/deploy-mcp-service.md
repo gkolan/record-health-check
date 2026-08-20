@@ -1,5 +1,10 @@
 # Deploy the MCP Service One Security Gate at a Time
 
+> [!IMPORTANT]
+> **Audience: platform, identity, security, and Salesforce integration engineers.** This is not a
+> Lightning or Flow administrator task. If you cannot run Node.js and container security checks,
+> hand this page to the team that operates hosted services.
+
 Use this guide to deploy the separately hosted Record Health Check MCP service and prove that every
 security gate works. The service gives an approved AI client two read-only tools:
 
@@ -61,6 +66,10 @@ You need:
 7. A hosting platform that terminates HTTPS and can set environment variables and secrets.
 8. An OAuth 2.0 identity provider that issues JWT access tokens and publishes a JWKS endpoint.
 9. An MCP client that supports Streamable HTTP and bearer authentication.
+
+The inbound JWT scope `rhc.run` belongs to the MCP service's identity provider. Salesforce's
+**Record Health Check Run** Custom Permission is a separate authorization gate on the Salesforce
+integration user. A request must pass both.
 
 Record these non-secret values before proceeding:
 

@@ -1,5 +1,10 @@
 # Internal configuration and validation classes (L2)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > On this page, find the internal classes that load Check Sets and Checks, identify invalid
 > configuration, and define the allowed values and limits used by the package.

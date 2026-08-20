@@ -1,5 +1,9 @@
 # How Record Health Check works
 
+Audience: package maintainers and technical reviewers. Administrators should start with
+[How it works](../../installation/how-it-works.md) and
+[Configure Check Sets and Checks](../../guides/configure-check-sets-and-checks.md).
+
 > [!NOTE]
 > This page explains how Record Health Check differs from save-time automation, how a Check runs,
 > where access and limits are enforced, how results can be saved or published, and which Apex class

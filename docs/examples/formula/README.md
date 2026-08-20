@@ -8,6 +8,10 @@ Use **Verify with a formula** when a Salesforce formula can return `TRUE` for a 
 `FALSE` for a record that needs attention. For example, require several Account fields, allow Phone
 or Website, compare Number of Employees with a limit, or read a field from the parent Account.
 
+If you have never created a Salesforce formula, begin with [Create your first Check](../../installation/create-your-first-check.md).
+In formula syntax, functions such as `ISBLANK()` inspect values, `NOT()` reverses true and false,
+and `AND()` or `OR()` combine conditions. The Formula reference covers the supported subset.
+
 These pages are instructions; the installed package does not create these Checks. Follow an
 example to create a Check in **Setup → Custom Metadata Types → Record Health Check → Manage
 Records**.
@@ -41,6 +45,15 @@ Every Formula Check needs:
 **Display: Found Formula** and **Display: Expected Formula** are optional. They explain the result
 on the card but do not decide whether the record passes. Leave **Formula Result Type** as **Auto**
 unless the example explains why another type is useful.
+
+**Auto** lets Record Health Check infer Text, Number, Boolean, Date, or another supported value type
+from the formula result. Use an explicit type when the example requires predictable formatting.
+The display formulas affect Found and Expected on the card, not PASS or FAIL.
+
+**Applies To** is on the Record Health Check Custom Metadata form. A false applicability formula
+produces `SKIPPED`. A formula that Salesforce accepts in metadata can still become Unable to Check
+at runtime if a field is unavailable to the running user or the expression cannot be evaluated in
+that org, so test with intended field permissions.
 
 Formula evaluation uses the running user's access to the record and fields. Test the passing and
 failing cases with the access assigned to intended users, not only with administrator access.

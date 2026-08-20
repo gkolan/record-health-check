@@ -20,6 +20,10 @@ its answer as a draft, not as configuration that is ready to activate.
 
 Follow your organization's AI, privacy, security, and change-management policies.
 
+Use only an AI product approved by your organization. Start a new text conversation in that product
+and paste the prompt from Step 2, followed by the business requirement from Step 3. This guide does
+not require or endorse a particular vendor.
+
 ## Before you ask an AI assistant
 
 Collect these answers from the business owner and Salesforce Setup:
@@ -35,7 +39,8 @@ Collect these answers from the business owner and Salesforce Setup:
 | Should it block a save? | No. It is guidance during an Account handoff. |
 | Which users will run it? | Account managers with access to the Contacts they manage. |
 
-Copy API names from **Setup → Object Manager**. Do not provide a label such as “Customer Tier” and
+Copy API names from **Setup → Object Manager → [Object] → Fields & Relationships**. Open the field
+and copy **Field Name**. Do not provide a label such as “Customer Tier” and
 expect the assistant to guess whether the API name is `Customer_Tier__c`.
 
 ## Step 1: Choose the likely Evaluation Type
@@ -135,7 +140,7 @@ The AI draft should use Setup labels and API names together. A typical proposal 
 | **Record Health Check Set Name** | `DeveloperName` | `Account_Handoff_Review` |
 | **Object** | `ObjectApiName__c` | `Account` |
 | **Card Title** | `CardTitle__c` | Account Handoff Review |
-| **When Checks Run** | `CardRunMode__c` | Run on request (`RUN_ON_REQUEST`) |
+| **When Checks Run** | `CardRunMode__c` | When the user clicks Run (`RUN_ON_REQUEST`) |
 | **Show Diagnostics** | `ShowDiagnostics__c` | Unchecked (`false`) |
 | **Publish User Run Event** | `PublishUserRunEvent__c` | Unchecked (`false`) |
 | **Active** | `IsActive__c` | Unchecked until testing is ready |
@@ -213,17 +218,20 @@ See the [Apex Check contract](../reference/evaluation/apex-check-contract.md) be
 
 ## Step 8: Test the human-approved draft
 
-1. Enter the approved Check Set and Check in a sandbox with **Active** unchecked.
-2. Review the saved values in Setup; do not rely on the AI response as the source of truth.
-3. Activate the Check and Check Set only for testing.
-4. Test a record that should pass.
-5. Test a record that should fail.
-6. Test every intended skip condition, including prerequisites and zero-row choices.
-7. Test as a user with restricted sharing.
-8. In a sandbox-only test, remove access to a required field and confirm
+1. In sandbox Setup, open **Custom Metadata Types → Record Health Check Set → Manage Records →
+   New**, then enter the approved Check Set with **Active** unchecked.
+2. Open **Custom Metadata Types → Record Health Check → Manage Records → New**, then enter the
+   approved Check with **Active** unchecked.
+3. Review the saved values in Setup; do not rely on the AI response as the source of truth.
+4. Activate the Check and Check Set only for testing.
+5. Test a record that should pass.
+6. Test a record that should fail.
+7. Test every intended skip condition, including prerequisites and zero-row choices.
+8. Test as a user with restricted sharing.
+9. In a sandbox-only test, remove access to a required field and confirm
    `UNABLE_TO_EVALUATE`. Restore access afterward.
-9. Confirm messages and action links remain useful without diagnostics.
-10. Obtain the business owner's approval before moving the configuration to production.
+10. Confirm messages and action links remain useful without diagnostics.
+11. Obtain the business owner's approval before moving the configuration to production.
 
 ## Review checklist
 
@@ -244,6 +252,7 @@ See the [Apex Check contract](../reference/evaluation/apex-check-contract.md) be
 | Problem | Correct response |
 | --- | --- |
 | It invents an API name | Stop and copy the exact API name from Salesforce Setup. |
+| It prefixes a new Check Set or Check with `rhc__` | Remove the invented namespace. Administrator-owned metadata normally has no managed-package prefix. |
 | It chooses a Check included with the package when you need your own rule | Create an administrator-owned Check with a name that normally has no `rhc__` prefix. |
 | It assumes zero query rows should pass or fail | Ask the business owner; then configure **If Query Finds No Records** where the Evaluation Type uses it. |
 | It recommends Record Health Check to prevent a save | Use a Validation Rule, Flow custom error, or Apex trigger. |

@@ -1,5 +1,9 @@
 # Agent tool contract
 
+Audience: Agentforce, REST, and MCP integrators. If you are not connecting an agent or MCP client,
+you can ignore this contract. Administrators enabling native actions should use
+[Agentforce actions](../../integration/agentforce-actions.md).
+
 > [!NOTE]
 > Use this contract when a native Agentforce action, Apex REST adapter, or MCP tool evaluates one
 > Record Health Check or Check Set for one Salesforce record.

@@ -23,14 +23,20 @@ access.
 
 ## Before configuration
 
-1. Install a package version that contains the Agentforce actions.
-2. Assign the Agentforce principal **Record Health Check User**
+1. Confirm the org has Agentforce enabled, the required Salesforce licenses are assigned, and the
+   intended agent opens in Agentforce Builder. Builder labels can change by Salesforce release, so
+   use the current action-search UI rather than relying on one screenshot.
+2. Install a package version that contains the Agentforce actions and confirm Record Health Check
+   appears in **Setup → Installed Packages**.
+3. Identify the agent's running principal from the agent configuration, then assign that principal
+   **Record Health Check User**
    (`rhc__Record_Health_Check_User`) or equivalent least-privilege access.
-3. Grant that principal read access to every target object and field required by the selected Checks.
-4. Confirm that record sharing lets the principal read the intended records.
-5. Copy each Check or Check Set exact `QualifiedApiName` from Salesforce. Do not add or remove
+4. If the agent has no existing data Permission Set, create an org-owned Permission Set that grants
+   only the approved objects and fields, then assign it to the same principal.
+5. Confirm that record sharing lets the principal read the intended records.
+6. Copy each Check or Check Set exact `QualifiedApiName` from Salesforce. Do not add or remove
    `rhc__`.
-6. Test the configuration with the same principal used by the active agent.
+7. Test the configuration with the same principal used by the active agent.
 
 The User Permission Set grants run access but not the diagnostics Custom Permission. Do not assign
 the Admin Permission Set only to make an agent action run.
@@ -67,6 +73,11 @@ This walkthrough uses these example choices:
 
 Replace `My_Account_Checks` with the exact **Check Set Qualified API Name** from your org. It is an
 example name, not metadata installed by Record Health Check.
+
+Native agent actions never publish Record Health Check result Platform Events. `success = false`
+means the tool request failed and the agent must not claim a health conclusion. `success = true`
+with `FAIL` means evaluation completed and found an unmet requirement. `ERROR` means evaluation
+returned a system problem, not a passing or business-failure answer.
 
 ### Step 1: Prepare two test Accounts
 

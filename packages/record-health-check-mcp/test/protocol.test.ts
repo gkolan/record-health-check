@@ -7,6 +7,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../src/app.js";
+import { ConcurrencyLimitError } from "../src/limiter.js";
 import type { SalesforceClient } from "../src/salesforce-client.js";
 import { testConfig } from "./helpers.js";
 
@@ -23,6 +24,49 @@ afterEach(async () => {
 });
 
 describe("MCP Streamable HTTP", () => {
+  it("returns a structured LIMIT response for local concurrency exhaustion", async () => {
+    const evaluate = vi.fn().mockRejectedValue(new ConcurrencyLimitError());
+    const app = createApp(
+      testConfig(),
+      { evaluate } as unknown as SalesforceClient,
+      { log: vi.fn() }
+    );
+    const httpServer = createServer(app);
+    servers.push(httpServer);
+    await new Promise<void>((resolve) =>
+      httpServer.listen(0, "127.0.0.1", resolve)
+    );
+    const address = httpServer.address();
+    if (!address || typeof address === "string")
+      throw new Error("Test server did not bind.");
+
+    const client = new Client({ name: "limit-test", version: "1.0.0" });
+    await client.connect(
+      new StreamableHTTPClientTransport(
+        new URL(`http://127.0.0.1:${address.port}/mcp`)
+      )
+    );
+    const result = await client.callTool({
+      name: "run_record_health_check",
+      arguments: {
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "Check_One",
+        correlationId: "corr-limit"
+      }
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent).toEqual({
+      contractVersion: "1.0",
+      correlationId: "corr-limit",
+      success: false,
+      errorType: "LIMIT",
+      errorMessage:
+        "The service is at its concurrency limit. Retry the request later."
+    });
+    await client.close();
+  });
+
   it("lists exactly two tools and returns structured Salesforce results", async () => {
     const evaluate = vi.fn().mockResolvedValue({
       contractVersion: "1.0",

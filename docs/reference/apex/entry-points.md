@@ -1,5 +1,10 @@
 # Apex entry points (L5)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page to identify the package class behind each supported way to start a health check or
 > publish its results. Follow the linked task guide when you need working setup steps and examples.

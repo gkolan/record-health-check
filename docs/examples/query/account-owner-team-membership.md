@@ -60,6 +60,21 @@ Teams and requires the owner to appear in the team list.
 - Confirm that intended users can read Account `OwnerId`, Account Team Member, and its `UserId`
   field and can see the Account Team Members included in the ownership review.
 
+## Prepare Account Teams and read the comparison
+
+Confirm Account Teams are enabled from **Setup → Account Settings** before using this pattern. On a
+test Account, open the **Account Team** related list and select **Add Team Members**. Intended users
+also need access to Account Team Member data.
+
+This list-membership mode intentionally leaves Source Query blank. The record formula supplies the
+Account Owner ID as Text, Comparison Query returns Account Team User IDs, and **List contains any**
+passes when the owner ID appears in that list. Found and Expected therefore display IDs, not names;
+use reviewed Apex or a separate user-facing message if names are required.
+
+Do not use this example when Account Teams are disabled or the policy must handle Queue owners as
+users. Add the card to the Account Lightning page, activate the intended assignment, and test as a
+user with **Record Health Check User**.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -72,7 +87,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm the Account Owner appears on the Account Team. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

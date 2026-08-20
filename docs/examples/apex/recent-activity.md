@@ -73,6 +73,26 @@ List<Id> accountIds = scope.recordIds;
 The complete class below seeds every requested Account, runs one grouped Task query and one grouped
 Event query, and then returns one outcome for every map key.
 
+## Administrator setup notes
+
+This class is included with the package. On a **Verify with Apex** Check, select the packaged
+`AccountHasRecentActivityCheck` entry shown by Salesforce and paste the documented JSON exactly
+into **Apex Parameters (JSON)**. In a subscriber org the underlying Apex type is namespaced, but do
+not invent or remove `rhc__` from a Custom Metadata Qualified API Name.
+
+`{"daysBack":30}` means 30 days. Invalid JSON produces `INVALID_CONFIG`. The class considers Tasks
+and Events whose **Related To** (`WhatId`) is the Account; a Contact-only **Name** (`WhoId`)
+relationship is not enough. For a test Task, set Related To to the Account, mark it Completed, and
+use a current due date.
+
+The create-Task action URL uses `defaultFieldValues=WhatId=...` to prefill Related To; the user must
+still review required fields and save. If the standard `LastActivityDate` behavior fully answers the
+business question, prefer a Formula Check.
+
+Add the card to the Account Lightning page, activate the intended assignment, and test as a user
+with **Record Health Check User**. Developer Console and Execute Anonymous sections are optional
+developer verification, not administrator setup.
+
 ## Step 1: Choose the activity window
 
 Use Check parameters to change the activity window without editing the Apex class. This Check uses:
@@ -305,7 +325,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | `Account Readiness` |
 | **Card Subtitle** | Confirm recent Tasks or Events within the configured window. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

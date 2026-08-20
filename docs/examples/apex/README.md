@@ -4,6 +4,11 @@
 > On this page, choose an Apex example when a Formula or Query Check cannot express the Salesforce
 > requirement clearly.
 
+> [!IMPORTANT]
+> Administrators can use the installed Recent Account activity class by selecting it in Setup.
+> Writing or deploying any other Apex class is a developer task. If you do not have a reviewed,
+> deployed class, choose Formula, Query, or Compare Two Queries instead.
+
 Use this page to select an example before creating a **Verify with Apex** Check. Record Health Check
 calls an Apex class written for the requirement. The
 class receives the record IDs being checked and any values entered in **Apex Parameters (JSON)**.
@@ -22,6 +27,11 @@ Only **Recent Account activity** is ready to use after package installation. The
 under `packages/record-health-check/integration-tests` and are not installed. Their pages explain
 how to build a subscriber-owned class from the pattern by using the public `rhc.*` Apex types. Do
 not copy an integration-test class unchanged into an org with the installed package.
+
+On a Check record, select **Evaluation Type → Verify with Apex**. Salesforce then shows **Apex Class
+Name** and **Apex Parameters (JSON)**. Select or enter only a class that exists in the org, and paste
+the exact JSON documented by that class. A missing class normally produces Unable to Check; a class
+that violates the plugin contract can produce System Error and a plugin Reason Code.
 
 ## What Record Health Check passes to Apex
 
@@ -68,5 +78,4 @@ shows the class, its test behavior, every Check field, and what an administrator
 
 - [All practical examples](../README.md)
 - [Reference: Apex](../../reference/evaluation/apex-check-contract.md)
-- [Apex API](../../api/apex-api.md)
 - [Check fields](../../metadata/fields-check.md)

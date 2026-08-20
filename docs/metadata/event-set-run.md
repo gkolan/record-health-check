@@ -1,5 +1,9 @@
 # Record Health Check Set Run Platform Event
 
+> [!NOTE]
+> **Audience: Flow builders and integration developers looking up summary fields.** For the full
+> history-object and Flow recipe, use [Save Check Set run summaries](../platform-events/check-set-run.md).
+
 | Setup value | Name |
 | --- | --- |
 | Label | Record Health Check Set Run |
@@ -47,11 +51,16 @@ checkbox does not control these runs.
 | Publication value | Is a Set Run event published? |
 | --- | --- |
 | `ALL` | Yes. Record Health Check also publishes every individual Check Result, including `PASS` and `SKIPPED`. |
-| `ACTIONABLE` | Yes, but only when at least one result is `FAIL`, `UNABLE_TO_EVALUATE`, or `ERROR`. If every result is `PASS` or `SKIPPED`, no result event or Set Run event is published. |
+| `ACTIONABLE` | Yes. It publishes a completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs. Individual Check Result events remain limited to `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`. |
 | `NONE` | No Platform Events are published. The Flow or Apex code can use or save the returned results directly. |
 
 See [Choose whether to publish result events](../integration/lifecycle-events.md) for examples from
 every supported way to start a run.
+
+The event has no Overall Status field. Derive it from counts using System Error, Unable, Failed,
+Passed, then Skipped priority. `Phase__c` is currently `COMPLETED`; do not wait for another phase.
+Eligible Count includes Checks considered for the run, while Evaluated Count excludes Checks that
+never evaluated because applicability, prerequisites, or stop behavior prevented execution.
 
 ## When Salesforce delivers it
 

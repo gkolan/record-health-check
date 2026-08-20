@@ -21,7 +21,7 @@ The administrator completing this guide needs:
   and
 - Read access to Account and `BillingCity`.
 
-People who only run the completed card need **Record Health Check Card User** plus access to the Account
+People who only run the completed card need **Record Health Check User** plus access to the Account
 records and fields being checked.
 
 **You do not need:** Apex or command-line tools. The validation step uses the packaged Flow action
@@ -42,7 +42,7 @@ result without blocking record save or changing Account data.
 
 ## Step 1: Create the Check Set
 
-1. In Salesforce Setup, open **Custom Metadata Types**.
+1. In Salesforce Setup, enter **Custom Metadata Types** in Quick Find and open it.
 2. Next to **Record Health Check Set**, select **Manage Records**.
 3. Select **New**.
 4. Enter these values:
@@ -64,6 +64,10 @@ result without blocking record save or changing Account data.
 
 Manual execution makes the first test easier to follow because the card waits for you to select
 **Run**.
+
+`utility:play` is the name of a standard Salesforce Lightning icon. Paste the name as written; it
+is not a file to upload. **Developer Name** is the stable API identity that other configuration
+references. Some Salesforce screens describe the same identity as a record name.
 
 ## Step 2: Create the Check
 
@@ -91,6 +95,11 @@ Manual execution makes the first test easier to follow because the card waits fo
 5. Select **Save**.
 
 The Formula Check reads only the current Account, so it does not need SOQL or Apex.
+
+To confirm `BillingCity`, open **Setup → Object Manager → Account → Fields & Relationships →
+Billing City** and read **Field Name**. The merge token `{!record.Name fallback="This Account"}`
+uses the Account Name when it is readable and substitutes “This Account” when the value is blank or
+unavailable.
 
 ## Step 3: Validate the configuration
 
@@ -137,6 +146,10 @@ The card does not rerun automatically after a record edit. This manual example s
 **Rerun**. For an automatic Check Set whose action is hidden, refresh reevaluates the saved data,
 but that refresh does not publish user-run lifecycle events.
 
+User-run lifecycle events are optional Platform Events emitted only after a person selects Run or
+Rerun and the Check Set or Check publication settings are enabled. Page-load evaluation never
+publishes those result events.
+
 Open **Edit account** during the failing test and confirm it opens the same Account. The link does
 not save anything automatically; close the edit page without saving or restore the test value when
 you finish.
@@ -161,5 +174,6 @@ For authorized troubleshooting details, use [Troubleshoot Record Health Check](.
 | Check Contacts, Opportunities, Cases, or other related records | [Query examples](../examples/README.md#query-examples) |
 | Understand every available field | [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md) |
 | Add a link or instruction to a failed Check | [Configure action links](../guides/configure-action-links.md) |
-| Prepare the Check Set for release | [Configuration review checklist](../guides/configure-check-sets-and-checks.md#14-review-checklist) |
+| Prepare the Check Set for release | [Configuration review checklist](../guides/configure-check-sets-and-checks.md#step-12-review-checklist) |
 | Look up exact Setup fields | [Check Set fields](../metadata/fields-check-set.md) and [Check fields](../metadata/fields-check.md) |
+| Translate card labels and statuses | [Read Record Health Check results](../guides/read-results.md) |

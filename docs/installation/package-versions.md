@@ -4,14 +4,24 @@
 > On this page, choose an immutable Record Health Check package version, install it in the intended
 > Salesforce environment, and understand the safe recovery path if a release must be reversed.
 
+Use this page only when a release owner must pin an exact version, verify the installed version, or
+plan recovery. For a normal first installation, follow [Install and verify](install-and-verify.md).
+
 Each Salesforce package version has a unique `04t` ID. The sandbox and production buttons for a row
 install the same immutable package; only the Salesforce login destination differs.
+
+In Salesforce packaging terms, **second-generation managed packaging (2GP)** creates released
+versions with fixed contents. **Immutable** means Salesforce does not edit a released version in
+place. **Ancestry** is the upgrade relationship Salesforce records between package versions.
 
 ## Before you start
 
 Confirm whether the destination is a sandbox, production org, Developer Edition, or clean org. If
 Record Health Check is already installed, preserve organization-owned Check Sets and Checks before
 changing versions and follow the full [upgrade and revalidation procedure](upgrading.md).
+
+To see the current version, open **Setup → Installed Packages**, select **Record Health Check**, and
+read **Version Number**.
 
 ## Step 1: Choose a version
 
@@ -27,6 +37,10 @@ listed.
 Choose **Install for Admins Only** on the Salesforce installation page, then assign **Record Health
 Check User** or **Record Health Check Admin** as described in [Install and verify in your
 org](install-and-verify.md).
+
+The installation page shows the package name, publisher, target version, component access choices,
+and whether the org already has a related version. Confirm the target org and version before
+selecting **Install**.
 
 ## Step 2: Install an exact version with Salesforce CLI
 
@@ -63,12 +77,14 @@ Use the recovery path that matches the situation:
 | The package must be removed | Follow [Uninstall and rollback](uninstall-and-rollback.md), including configuration backup and dependency removal. Reinstall the desired listed version only after confirming that a clean reinstall is acceptable. |
 
 Package rollback and configuration rollback are separate concerns. Before any upgrade or uninstall,
-export organization-owned `Record_Health_Check_Set__mdt` and `Record_Health_Check__mdt` records and
+back up organization-owned `Record_Health_Check_Set__mdt` and `Record_Health_Check__mdt` records and
 record the Lightning page placements that use them. See [Upgrade and
-revalidate](upgrading.md) for the complete safety and verification procedure.
+revalidate](upgrading.md) and [Back up and restore configuration](../guides/back-up-configuration.md)
+for the complete safety and verification procedure.
 
 ## Next steps
 
-- [Install and verify in your org](install-and-verify.md)
+- Continue with [Install and verify in your org](install-and-verify.md) to assign permission sets,
+  place the card, and test as a regular user.
 - [Upgrade and revalidate](upgrading.md)
 - [Uninstall and rollback](uninstall-and-rollback.md)

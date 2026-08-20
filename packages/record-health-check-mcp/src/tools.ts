@@ -1,12 +1,17 @@
+import { randomUUID } from "node:crypto";
+
 import { McpServer } from "@modelcontextprotocol/server";
 
 import {
+  CONTRACT_VERSION,
   OPERATION_CHECK,
   OPERATION_CHECK_SET,
   toolInputSchema,
+  type AgentToolFailure,
   type AgentToolResponse
 } from "./contract.js";
 import { ServiceError } from "./errors.js";
+import { ConcurrencyLimitError } from "./limiter.js";
 import type { OperationalLogger } from "./logger.js";
 import type { SalesforceClient } from "./salesforce-client.js";
 
@@ -67,6 +72,23 @@ function register(
         });
         return toolResult(result);
       } catch (error) {
+        if (error instanceof ConcurrencyLimitError) {
+          const failure: AgentToolFailure = {
+            contractVersion: CONTRACT_VERSION,
+            correlationId: input.correlationId ?? `mcp-${randomUUID()}`,
+            success: false,
+            errorType: "LIMIT",
+            errorMessage:
+              "The service is at its concurrency limit. Retry the request later."
+          };
+          logger.log("warn", "MCP tool call reached the concurrency limit.", {
+            event: "tool_limited",
+            operation,
+            correlationId: failure.correlationId,
+            durationMs: Date.now() - started
+          });
+          return toolResult(failure);
+        }
         const serviceError = error instanceof ServiceError ? error : undefined;
         logger.log("error", "MCP tool call failed.", {
           event: "tool_failed",

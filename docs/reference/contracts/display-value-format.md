@@ -7,13 +7,9 @@
 > **Reference**
 >
 > - These rules apply to Found and Expected values on the Lightning card and in display content
->   returned by Apex or Flow.
-> - Formatting is implemented by
->   [`RecordHealthCheckDisplayFormat`](../apex/shared-services.md#recordhealthcheckdisplayformat),
->   reached through
->   [`RecordHealthCheckComparisonEngine.formatValue`](../apex/shared-services.md#recordhealthcheckcomparisonengine).
->   Merge-token substitution uses a different path; see
->   [Reference: Merge tokens](merge-tokens.md).
+>   returned by Apex or Flow. On a failed card result, they appear in the **Found** and **Expected**
+>   comparison chips when the Check supplies both values.
+> - Merge-token substitution uses a different path; see [Merge tokens](merge-tokens.md).
 
 After an Evaluation Type finishes, Record Health Check turns Found and Expected values into short,
 readable text for the Lightning card. This formatting cannot change PASS or FAIL. A custom Apex

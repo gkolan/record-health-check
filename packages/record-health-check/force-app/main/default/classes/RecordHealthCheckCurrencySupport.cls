@@ -11,6 +11,36 @@ public with sharing class RecordHealthCheckCurrencySupport {
     '(?is)\\bGROUP\\s+BY\\s+[^;]*\\bCurrencyIsoCode\\b'
   );
 
+  /**
+   * Refuses query configuration that can blend currency units at runtime.
+   * Authoring validation uses the same predicates, but runtime enforcement is
+   * required for legacy, upgraded, or API-created Custom Metadata.
+   */
+  public static void requireRuntimeSafeConfiguration(
+    Record_Health_Check__mdt check
+  ) {
+    if (
+      hasUngroupedCurrencyAggregate(check?.SourceQuery__c) ||
+      hasUngroupedCurrencyAggregate(check?.ComparisonQuery__c)
+    ) {
+      throw new RecordHealthCheckEvaluatorException(
+        RecordHealthCheckReasonCodes.CURRENCY_AGGREGATE_NOT_GROUPED,
+        'A Currency aggregate must group by CurrencyIsoCode or constrain the outer query to one ISO currency.'
+      );
+    }
+    if (
+      check?.ExpectedValueSource__c == 'FIXED_VALUE' &&
+      RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() &&
+      isCurrencySelection(check.SourceQuery__c, check.SourceQueryField__c) &&
+      String.isBlank(check.ExpectedCurrencyIsoCode__c)
+    ) {
+      throw new RecordHealthCheckEvaluatorException(
+        RecordHealthCheckReasonCodes.FIXED_CURRENCY_BASIS_MISSING,
+        'A fixed threshold for a Currency field must declare Expected Currency ISO Code.'
+      );
+    }
+  }
+
   /** Refuses comparison when units differ or currency rows lack unit evidence. */
   public static void requireCompatibleQueryUnits(
     String primaryQuery,

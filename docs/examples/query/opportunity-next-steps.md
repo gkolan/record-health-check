@@ -53,6 +53,22 @@ An account executive opens an Account before a pipeline discussion.
 - Confirm that intended users can read Opportunity, `AccountId`, `IsClosed`, and `NextStep` and can
   see all Opportunities that should be included in pipeline review.
 
+## Read the query and prepare test data
+
+**Every record passes** evaluates each returned open Opportunity. **Is not empty** requires each
+Next Step value to contain something. If the query finds no open Opportunities, this example
+returns Skipped. If a returned Opportunity has a blank Next Step, **Treat as not matching** makes
+that row fail.
+
+Confirm Next Step under **Setup → Object Manager → Opportunity → Fields & Relationships**. Create
+an Account and two open Opportunities, one with Next Step and one without, then test the Account
+card. If your process requires Next Step only at later stages or uses a custom Next Action field,
+adapt the query and applicability rule.
+
+Add the card to the Account Lightning page, activate the intended assignment, and test as a user
+with **Record Health Check User**. Use a representative restricted-access user to prove sharing;
+do not change production sharing merely to create a test.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -65,7 +81,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm every open Opportunity has a Next Step. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

@@ -5,6 +5,11 @@
 > privilege, resumes safely after disconnects, and separates replay position from duplicate
 > processing.
 
+> [!IMPORTANT]
+> **Audience: external integration engineers.** Pub/Sub API, gRPC, Avro, Replay IDs, and
+> ManagedSubscribe are not Salesforce Setup features. Use a Platform Event-triggered Flow instead
+> when the work can stay inside Salesforce.
+
 Use Salesforce Pub/Sub API when middleware, a data warehouse, or a monitoring service must receive
 Record Health Check Platform Events outside Salesforce. Pub/Sub API uses gRPC over HTTP/2 and sends
 event data in Apache Avro format. Start with an official Salesforce sample client instead of
@@ -38,6 +43,11 @@ event API name in the Salesforce org the integration connects to; do not add or 
 3. Store credentials in the integration platform's secret manager. Never place access tokens,
    refresh tokens, client secrets, or Salesforce auth URLs in source control or logs.
 4. Confirm the org's event delivery allocation and define alerts before enabling publication.
+
+Create the External Client App or supported Connected App through the organization's Salesforce
+identity standard. Use a dedicated integration user, an approved OAuth flow, API access, and Read
+access only to the required event objects. This page does not prescribe a universal client-secret
+or certificate policy; follow the security owner's rotation and revocation requirements.
 
 The external system's destination permissions are independent of Salesforce event access. Apply the
 destination's own encryption, retention, deletion, and record-ID handling requirements.

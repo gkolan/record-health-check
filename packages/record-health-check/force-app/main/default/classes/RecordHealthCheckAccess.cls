@@ -17,12 +17,6 @@ public with sharing class RecordHealthCheckAccess {
     if (runPermissionOverride != null) {
       return runPermissionOverride;
     }
-    // A 2GP build cannot grant its not-yet-created permission set to the
-    // package test user. Authorization denial remains explicitly testable via
-    // runPermissionOverride, while production always uses Feature Management.
-    if (Test.isRunningTest()) {
-      return true;
-    }
     return FeatureManagement.checkPermission('Record_Health_Check_Run');
   }
 

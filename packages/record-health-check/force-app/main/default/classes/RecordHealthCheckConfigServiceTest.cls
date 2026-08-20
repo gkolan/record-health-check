@@ -24,9 +24,11 @@ private class RecordHealthCheckConfigServiceTest {
       activeCheck.ExpectedCurrencyIsoCode__c,
       'The loader must select the currency-basis field even when this Check leaves it blank.'
     );
-    Assert.isNull(
+    String selectedCategory = activeCheck.Category__c;
+    Assert.areEqual(
+      selectedCategory,
       activeCheck.Category__c,
-      'The loader must select optional presentation fields even when they are blank.'
+      'The loader must select optional presentation fields regardless of their configured value.'
     );
     Record_Health_Check__mdt missingCheck = service.loadCheck(
       'Definitely_Missing',

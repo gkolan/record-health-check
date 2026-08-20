@@ -4,6 +4,12 @@
 > Use Scheduled Apex when Record Health Check should run automatically at a recurring time. The
 > scheduled class should start Queueable or Batch Apex instead of checking all records itself.
 
+> [!IMPORTANT]
+> **Audience: Salesforce developers and scheduling administrators.** The packaged `scheduleDaily`
+> helper is Apex-only and does not appear as a class an administrator can select directly in
+> **Schedule Apex**. A developer can provide a custom `Schedulable` wrapper. For a no-code schedule,
+> use a Scheduled-Triggered Flow with the packaged Flow action when its record selection fits.
+
 ## Choose the scheduling pattern
 
 | Example | Use | Why |
@@ -39,6 +45,9 @@ Also decide where results go:
 
 The scheduling user's time zone controls the start time. Verify that user's Salesforce time zone
 before enabling a production schedule.
+
+The default packaged Batch scope is 100 and is not a Setup setting. Ask a developer for a custom
+Batch when a smaller tested scope is required.
 
 ## Example: Schedule the same record IDs every day
 
@@ -126,6 +135,9 @@ The value `'0 0 2 * * ?'` is Salesforce's scheduling expression for every day at
 scheduling user's time zone.
 
 ## Monitor the complete chain
+
+To remove a schedule, open **Setup → Scheduled Jobs**, find the exact job name, and select **Del**.
+Confirm the job owner and next run before deleting it.
 
 A scheduled run has three different IDs:
 

@@ -58,6 +58,23 @@ source for purchased Products.
 - Confirm which Salesforce object is the approved source of purchased-product history in your org.
 - Confirm that intended users can read Account, Opportunity, Opportunity Product, and Product.
 
+## Translate the product model and prepare test data
+
+Salesforce labels `OpportunityLineItem` as **Opportunity Product**. `Product2Id` is the Product
+record ID, not its visible Product Name. `Opportunity.AccountId` follows the Opportunity lookup
+from each line item, and `Opportunity.IsWon = true` includes any Stage configured as won, not only a
+label literally named Closed Won.
+
+**Lists overlap** passes when at least one Product ID occurs in both the open-pipeline and won-
+history lists. Confirm Products and Price Books are enabled, add products to one won and one open
+Opportunity, and test an overlapping and non-overlapping case. Do not use this unchanged if the
+business history lives in Orders or Assets.
+
+No purchase history and no open pipeline can both lead to Skipped through different query sides;
+use the Reason Code and configured messages to distinguish them. Add **Max Query Rows**, add the
+card to the Account Lightning page, activate the intended assignment, and test as a user with
+**Record Health Check User**.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -70,7 +87,7 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Record Alignment |
 | **Card Subtitle** | Compare open-pipeline and previously purchased Products. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

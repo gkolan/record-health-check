@@ -4,6 +4,9 @@
 > Use this page when a term in Setup, Apex, Flow, a result, or a Platform Event needs a plain-language
 > definition. Each entry links to the page with the complete behavior.
 
+To find Check definitions, go to **Setup → Custom Metadata Types**, then select **Manage Records**
+beside **Record Health Check Set** or **Record Health Check**.
+
 ## Check Set
 
 A group of Checks for one Salesforce object. A Check Set also controls how its Lightning record-page
@@ -47,12 +50,12 @@ Do not add or remove `rhc__`. See
 
 The method a Check uses to answer its question.
 
-| Setup value | What it does | Reference |
+| Setup label (API value) | What it does | Reference |
 | --- | --- | --- |
-| `FORMULA` | Evaluates a Salesforce formula against the checked record | [Formula](evaluation/formula.md) |
-| `QUERY` | Runs one SOQL query and compares its result with an expected value | [Query](evaluation/query.md) |
-| `COMPARE_TWO_QUERIES` | Runs two SOQL queries and compares their results | [Compare two queries](evaluation/compare-two-queries.md) |
-| `APEX` | Calls a class that implements `rhc.RecordHealthCheckPlugin` | [Custom Apex Check](evaluation/apex-check-contract.md) |
+| Verify with a formula (`FORMULA`) | Evaluates a Salesforce formula against the checked record | [Formula](evaluation/formula.md) |
+| Verify with a query (`QUERY`) | Runs one SOQL query and compares its result with an expected value | [Query](evaluation/query.md) |
+| Compare two queries (`COMPARE_TWO_QUERIES`) | Runs two SOQL queries and compares their results | [Compare two queries](evaluation/compare-two-queries.md) |
+| Verify with Apex (`APEX`) | Calls a developer-owned class that implements `rhc.RecordHealthCheckPlugin` | [Custom Apex Check](evaluation/apex-check-contract.md) |
 
 ## Found and Expected
 
@@ -96,13 +99,16 @@ encountered an error. Examples include `PREREQUISITE_NOT_MET`, `RECORD_NOT_VISIB
 `INVALID_SOQL_TEMPLATE`.
 
 Use Status and Reason Code in Flow, Apex, or integration decisions. Do not make automation depend on
-a message an administrator can edit. See [Reason Codes](contracts/reason-codes.md).
+a message an administrator can edit. Normal card results emphasize the user-facing message; an
+administrator can temporarily enable **Show Diagnostics** on the Check Set to see authorized detail.
+Flow and Apex responses expose Reason Code directly. See [Reason Codes](contracts/reason-codes.md).
 
 ## Prerequisite Check
 
 An earlier Check that must return `PASS` before another Check runs. **Prerequisite Check** in Setup
 stores the earlier Check's Developer Name, not its Check Title or Qualified API Name. Both Checks
-must belong to the same Check Set, and the prerequisite needs a lower Evaluation Order.
+must belong to the same Check Set, and the prerequisite needs a smaller Evaluation Order number so
+it runs earlier and appears earlier on the card.
 
 ## Applicability
 
@@ -148,6 +154,9 @@ that permission; the User Permission Set does not. See
 
 The choice that controls whether a programmatic run publishes health-result Platform Events:
 
+On the Lightning card, administrators use the **Publish User Run Event** setting on the Check Set
+and **Publish User Result Event** on each Check. Apex and Flow instead choose one of these API values:
+
 | Value | Events published |
 | --- | --- |
 | `NONE` | No health-result events |
@@ -168,7 +177,7 @@ See
 
 ## Related
 
-- [Architecture](framework/architecture.md)
+- [How Record Health Check works](../installation/how-it-works.md)
+- [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md)
 - [Reason Codes](contracts/reason-codes.md)
 - [Metadata reference](../metadata/README.md)
-- [How Record Health Check works](../installation/how-it-works.md)

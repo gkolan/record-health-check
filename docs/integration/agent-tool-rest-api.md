@@ -4,6 +4,10 @@
 > Use this API only as the Salesforce boundary for an approved Agentforce or MCP service identity.
 > Native in-org Agentforce actions remain the preferred user-context integration.
 
+> [!IMPORTANT]
+> **Audience: Salesforce and integration developers.** This is not an Agentforce Builder Setup
+> guide. Card and Flow administrators should use the Lightning or Flow pages instead.
+
 ## Choose this integration
 
 The version 1 REST API exposes two read-only operations over one `POST` endpoint. It exists so a
@@ -49,6 +53,15 @@ Do not grant the diagnostics Custom Permission to the integration principal.
 
 Use a Salesforce External Client App or supported connected app with a dedicated integration user,
 client-credentials policy, narrow OAuth scopes, managed secret storage, rotation, and revocation.
+
+In Setup, create an organization-owned Permission Set for the integration principal. Under **Custom
+Permissions**, enable **Record Health Check Run**; under **Apex Class Access**, add the REST resource
+and public framework entry point; under **Custom Metadata Types**, grant read access to both Record
+Health Check types; and under **Object Settings**, grant only the target objects and fields required
+by approved Checks. Assign it only to the dedicated integration user.
+
+The endpoint is read-only with respect to business data. It always forces result-event publication
+to `NONE`, so an MCP or REST caller cannot produce Check Set Run or Check Result Platform Events.
 
 ## Basic request pattern
 

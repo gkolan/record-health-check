@@ -109,6 +109,10 @@ Person Accounts are supported when your org has the feature enabled. `IsPersonAc
 plan normally. A Formula Pass Condition or display formula referencing them behaves the same as
 any other field, including automatic field-level-security and dependency-expansion handling.
 
+To confirm the feature, go to **Setup → Account Settings** and look for the Person Accounts
+settings available to your org. Do not copy a Check that uses Person Account fields into an org
+where the feature is not enabled.
+
 These fields exist only when Person Accounts are enabled for the org. A Check authored (or copied
 from a Person-Account org) that references a Person* field in a business-Account-only org returns
 `UNABLE_TO_EVALUATE` / `FIELD_NOT_RESOLVED`; an unresolved relationship traversal returns
@@ -143,7 +147,6 @@ connection, or Omni-Channel routing feature. See
 
 ## Related
 
-- [Architecture](architecture.md)
 - [Install and verify](../../installation/install-and-verify.md)
 - [FAQ](../../guides/faq.md)
 - [Security and data access](security.md)

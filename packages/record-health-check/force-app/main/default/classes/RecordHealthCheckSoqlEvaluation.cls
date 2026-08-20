@@ -14,6 +14,7 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
     RecordHealthCheckInternalResult result,
     RecordHealthCheckSoqlEvaluator evaluator
   ) {
+    RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
     Boolean isListOperator =
       check.ComparisonOperator__c == 'LIST_CONTAINS_ANY' ||
       check.ComparisonOperator__c == 'LIST_CONTAINS_NONE';
@@ -27,7 +28,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
     // ── Resolve primary value / list ──────────────────────────────────────
     Object primaryValue = null;
     List<Object> primaryList = null;
-    // Kept for display field definition and currency resolution.
     SObject primaryRow = null;
     List<SObject> primaryRows = null;
 

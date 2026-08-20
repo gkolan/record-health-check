@@ -1,5 +1,10 @@
 # Supporting Apex classes (L2-L5)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page to identify supporting package classes referenced in an error, debug log, or code
 > review. To call Record Health Check from custom Apex, use a documented `global` class instead of

@@ -8,7 +8,7 @@
 > **Reference**
 >
 > - This page is the primary troubleshooting runbook for Record Health Check.
-> - For every other Check Set field, use the [Configure Check Sets and Checks](configure-check-sets-and-checks.md#3-check-set-fields).
+> - For every other Check Set field, use the [Configure Check Sets and Checks](configure-check-sets-and-checks.md#step-3-configure-the-check-set).
 
 Use this guide whenever Record Health Check does not load, run, evaluate, publish, or behave the
 same way for two users. Start with the decision table below. Enable **Show Diagnostics** only when
@@ -17,6 +17,11 @@ the card and current user's access are part of the investigation.
 Show Diagnostics adds on-screen and browser-console evidence for the current run. It does not save
 history, change Salesforce data, or grant access by itself. Leave it off on production Check Sets
 when the investigation is complete.
+
+Salesforce administrators can normally stop after the card, configuration, access, and browser
+console sections. Continue into debug logs, background jobs, and integration evidence only when a
+developer or automation owner needs that surface. If you use only the Lightning card, skip the
+non-card and Platform Event sections.
 
 For what a normal (non-diagnostics) card looks like with Pass, Fail, and Skipped outcomes, see the
 [Demo Account Relationship and Risk screenshot](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
@@ -35,6 +40,9 @@ on [Install and verify](../installation/install-and-verify.md).
 
 Do not begin by changing the Check. Reproduce the problem once and record the exact time, running
 user, Salesforce record, Check Set Qualified API Name, and Run ID. Then choose the matching row.
+
+Copy the Check Set Qualified API Name from its Custom Metadata record in Setup. Copy the Run ID
+from the authorized Diagnosis or `[RHC]` browser-console summary after the run finishes.
 
 | Symptom | Check first | Likely cause area | Go to |
 | --- | --- | --- | --- |
@@ -134,6 +142,10 @@ the intended user has the required access.
 
 Step 2 grants the **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission, which unlocks advanced detail. The Check Set's **Show Diagnostics** flag then decides when that detail appears on the card and in the console.
 
+Salesforce does not assign a Custom Permission directly to a user. Assign the packaged **Record
+Health Check Admin** Permission Set, or an organization-owned Permission Set explicitly approved to
+contain that Custom Permission.
+
 The two controls answer different questions. **Show Diagnostics** lets an administrator choose
 which Check Sets may produce troubleshooting output. The Custom Permission decides which users may
 see it. Requiring both prevents a configuration change from exposing record identifiers, timing,
@@ -185,7 +197,7 @@ Users **without** **Record Health Check View Diagnostics** (`rhc__Record_Health_
 ## What you see in the browser console
 
 1. Open a record page that has the **Record Health Check** card.
-2. Press **F12** (Windows/Linux) or open **Developer Tools** (Mac) and select the **Console** tab.
+2. Press **F12** (Windows/Linux) or **Command-Option-I** (macOS), then select the **Console** tab.
 3. Run the Check Set from the card.
 4. When the run finishes, find a group titled `[RHC] <CheckSetDeveloperName> · <outcome summary>`.
 
@@ -333,5 +345,5 @@ through the [Security policy](../../.github/SECURITY.md), not through a public i
 ## Related
 
 - [Install and verify](../installation/install-and-verify.md): first install and permission assignment
-- [Configuration guide: Check Set fields](configure-check-sets-and-checks.md#3-check-set-fields): every Check Set field
-- [Configuration guide: Troubleshooting](configure-check-sets-and-checks.md#13-troubleshooting): when a check fails or cannot run
+- [Configuration guide: Check Set fields](configure-check-sets-and-checks.md#step-3-configure-the-check-set): every Check Set field
+- [Configuration guide: Troubleshooting](configure-check-sets-and-checks.md#step-11-troubleshoot-the-configuration): when a check fails or cannot run

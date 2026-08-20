@@ -12,6 +12,8 @@ public class RecordHealthCheckReasonCodes {
   public static final String RELATIONSHIP_NOT_RESOLVED = 'RELATIONSHIP_NOT_RESOLVED';
   public static final String OBJECT_NOT_RESOLVED = 'OBJECT_NOT_RESOLVED';
   public static final String MIXED_CURRENCY = 'MIXED_CURRENCY';
+  public static final String CURRENCY_AGGREGATE_NOT_GROUPED = 'CURRENCY_AGGREGATE_NOT_GROUPED';
+  public static final String FIXED_CURRENCY_BASIS_MISSING = 'FIXED_CURRENCY_BASIS_MISSING';
   public static final String ROW_LIMIT_EXCEEDED = 'ROW_LIMIT_EXCEEDED';
   public static final String SCOPE_ROW_CAP_EXCEEDED = 'SCOPE_ROW_CAP_EXCEEDED';
   public static final String NO_ROWS_RETURNED = 'NO_ROWS_RETURNED';

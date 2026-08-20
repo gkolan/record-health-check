@@ -6,6 +6,10 @@
 
 ## What the package stores
 
+Custom Metadata is deployable configuration, not business data. You manage these definitions from
+**Setup → Custom Metadata Types → Manage Records**; they do not appear as Account-style tabs or
+create a result-history table.
+
 Record Health Check stores its configuration in two Custom Metadata Types:
 
 | Custom Metadata Type | What one record represents |
@@ -75,6 +79,11 @@ If users need reports, trends, or a permanent audit history, your team must firs
 object for that purpose. For example, create **Health Check Result** with API name
 `Health_Check_Result__c`, then add the fields your process needs, such as:
 
+Create the object from **Setup → Object Manager → Create → Custom Object**. Add only the fields
+your reporting requirement needs, configure field-level security, create a tab or report type when
+users require one, and use the [Flow action](../../api/flow.md) to map returned result fields into a
+Create Records element. These are customer-owned components and are not installed by the package.
+
 | Example custom field | Suggested API name | Value to save |
 | --- | --- | --- |
 | Checked Record ID | `Checked_Record_Id__c` | `result.evaluation.recordId` |
@@ -121,4 +130,4 @@ setting. See [Lifecycle events](../../integration/lifecycle-events.md) before cr
 - [Check fields](../../metadata/fields-check.md)
 - [Lifecycle events](../../integration/lifecycle-events.md)
 - [Platform Event receivers](../../platform-events/README.md)
-- [Architecture](architecture.md)
+- [Where results go](../../guides/where-results-go.md)
