@@ -62,6 +62,47 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   }
 
   @IsTest
+  static void postWireHandlerUsesExplicitNullFreeJson() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    initializeRequest(
+      'application/json;charset=UTF-8',
+      Blob.valueOf(
+        JSON.serialize(
+          baseBody(
+            'RUN_CHECK',
+            accountRecord.Id,
+            RecordHealthCheckTestDataFactory.qualifiedCheckName(
+              'Example_Profile_Phone_Available'
+            )
+          )
+        )
+      )
+    );
+
+    Test.startTest();
+    RecordHealthCheckAgentRestResource.doPost();
+    Test.stopTest();
+
+    Map<String, Object> wireBody = (Map<String, Object>) JSON.deserializeUntyped(
+      RestContext.response.responseBody.toString()
+    );
+    Assert.areEqual(
+      true,
+      wireBody.get('success'),
+      'The wire result must succeed.'
+    );
+    Assert.areEqual(
+      'RUN_CHECK',
+      wireBody.get('operation'),
+      'The wire operation must be stable.'
+    );
+    Assert.isFalse(
+      wireBody.containsKey('errorType'),
+      'The explicit wire serializer must omit unused null fields.'
+    );
+  }
+
+  @IsTest
   static void postRunsOneExactCheckSetWithCounts() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     Map<String, Object> body = baseBody(
@@ -110,7 +151,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     RecordHealthCheckAccess.setRunPermissionForTest(false);
     try {
       Test.startTest();
-      RecordHealthCheckAgentRestResource.AgentToolResponse output = RecordHealthCheckAgentRestResource.doPost();
+      RecordHealthCheckAgentRestResource.AgentToolResponse output = invokePost();
       Test.stopTest();
 
       assertError(output, 403, 'AUTHORIZATION');
@@ -129,7 +170,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     initializeRequest('application/json', null);
 
     Test.startTest();
-    RecordHealthCheckAgentRestResource.AgentToolResponse output = RecordHealthCheckAgentRestResource.doPost();
+    RecordHealthCheckAgentRestResource.AgentToolResponse output = invokePost();
     Test.stopTest();
 
     assertError(output, 400, 'VALIDATION');
@@ -140,7 +181,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     initializeRequest('text/plain', Blob.valueOf('{}'));
 
     Test.startTest();
-    RecordHealthCheckAgentRestResource.AgentToolResponse output = RecordHealthCheckAgentRestResource.doPost();
+    RecordHealthCheckAgentRestResource.AgentToolResponse output = invokePost();
     Test.stopTest();
 
     assertError(output, 415, 'VALIDATION');
@@ -151,7 +192,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     initializeRequest('application/json', Blob.valueOf(''.leftPad(16385, 'x')));
 
     Test.startTest();
-    RecordHealthCheckAgentRestResource.AgentToolResponse output = RecordHealthCheckAgentRestResource.doPost();
+    RecordHealthCheckAgentRestResource.AgentToolResponse output = invokePost();
     Test.stopTest();
 
     assertError(output, 413, 'LIMIT');
@@ -399,7 +440,15 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     String body
   ) {
     initializeRequest('application/json;charset=UTF-8', Blob.valueOf(body));
-    return RecordHealthCheckAgentRestResource.doPost();
+    return invokePost();
+  }
+
+  private static RecordHealthCheckAgentRestResource.AgentToolResponse invokePost() {
+    RecordHealthCheckAgentRestResource.doPost();
+    return (RecordHealthCheckAgentRestResource.AgentToolResponse) JSON.deserialize(
+      RestContext.response.responseBody.toString(),
+      RecordHealthCheckAgentRestResource.AgentToolResponse.class
+    );
   }
 
   private static void initializeRequest(String contentType, Blob body) {

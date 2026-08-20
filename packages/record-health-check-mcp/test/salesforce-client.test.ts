@@ -75,6 +75,36 @@ describe("Salesforce client", () => {
     expect(fetcher).toHaveBeenCalledTimes(4);
   });
 
+  it("maps an exhausted 401 refresh and request limit safely", async () => {
+    const input = {
+      operation: "RUN_CHECK" as const,
+      recordId: "001000000000001AAA",
+      qualifiedApiName: "Check_One"
+    };
+    const token = {
+      access_token: "token",
+      instance_url: "https://instance.salesforce.test"
+    };
+    const authFetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(token))
+      .mockResolvedValueOnce(json({ error: "expired" }, 401))
+      .mockResolvedValueOnce(json(token))
+      .mockResolvedValueOnce(json({ error: "revoked" }, 401));
+    await expect(
+      new SalesforceClient(testConfig(), logger, authFetcher).evaluate(input)
+    ).rejects.toMatchObject({ code: "SALESFORCE_AUTH" });
+
+    const limitFetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(token))
+      .mockResolvedValueOnce(json({ error: "busy" }, 429))
+      .mockResolvedValueOnce(json({ error: "still-busy" }, 429));
+    await expect(
+      new SalesforceClient(testConfig(), logger, limitFetcher).evaluate(input)
+    ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
+  });
+
   it("rejects an unapproved Salesforce instance host", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       json({

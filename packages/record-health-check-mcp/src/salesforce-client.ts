@@ -102,6 +102,27 @@ export class SalesforceClient {
       const body = await this.readBoundedJson(response);
       const parsed = agentToolResponseSchema.safeParse(body);
       if (!parsed.success) {
+        if ([401, 403].includes(response.status)) {
+          throw new ServiceError(
+            "SALESFORCE_AUTH",
+            "Salesforce authorization failed.",
+            502
+          );
+        }
+        if (response.status === 429) {
+          throw new ServiceError(
+            "UPSTREAM_LIMIT",
+            "Salesforce is at its request limit.",
+            503
+          );
+        }
+        if (response.status >= 500) {
+          throw new ServiceError(
+            "UPSTREAM_UNAVAILABLE",
+            "Salesforce is temporarily unavailable.",
+            503
+          );
+        }
         throw new ServiceError(
           "UPSTREAM_CONTRACT",
           "Salesforce returned an invalid response.",

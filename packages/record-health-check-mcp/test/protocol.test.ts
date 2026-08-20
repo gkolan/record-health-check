@@ -7,6 +7,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../src/app.js";
+import { ServiceError } from "../src/errors.js";
 import { ConcurrencyLimitError } from "../src/limiter.js";
 import type { SalesforceClient } from "../src/salesforce-client.js";
 import { testConfig } from "./helpers.js";
@@ -63,6 +64,56 @@ describe("MCP Streamable HTTP", () => {
       errorType: "LIMIT",
       errorMessage:
         "The service is at its concurrency limit. Retry the request later."
+    });
+    await client.close();
+  });
+
+  it("returns a structured failure for a bounded Salesforce adapter error", async () => {
+    const evaluate = vi
+      .fn()
+      .mockRejectedValue(
+        new ServiceError(
+          "UPSTREAM_CONTRACT",
+          "Salesforce returned an invalid response.",
+          502
+        )
+      );
+    const app = createApp(
+      testConfig(),
+      { evaluate } as unknown as SalesforceClient,
+      { log: vi.fn() }
+    );
+    const httpServer = createServer(app);
+    servers.push(httpServer);
+    await new Promise<void>((resolve) =>
+      httpServer.listen(0, "127.0.0.1", resolve)
+    );
+    const address = httpServer.address();
+    if (!address || typeof address === "string")
+      throw new Error("Test server did not bind.");
+
+    const client = new Client({ name: "adapter-error-test", version: "1.0.0" });
+    await client.connect(
+      new StreamableHTTPClientTransport(
+        new URL(`http://127.0.0.1:${address.port}/mcp`)
+      )
+    );
+    const result = await client.callTool({
+      name: "run_record_health_check",
+      arguments: {
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "Check_One",
+        correlationId: "corr-adapter-error"
+      }
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent).toEqual({
+      contractVersion: "1.0",
+      correlationId: "corr-adapter-error",
+      success: false,
+      errorType: "EXECUTION",
+      errorMessage: "Salesforce returned an invalid response."
     });
     await client.close();
   });

@@ -64,9 +64,13 @@ global with sharing class RecordHealthCheckAgentRestResource {
   /**
    * Evaluates one exact Check or Check Set for one record.
    *
-   * @return A versioned evaluation or safe adapter-error response.
+   * Writes a versioned evaluation or safe adapter-error response.
    */
-  global static AgentToolResponse doPost() {
+  global static void doPost() {
+    handlePost();
+  }
+
+  private static AgentToolResponse handlePost() {
     RestRequest request = RestContext.request;
     RestResponse response = RestContext.response;
     response.addHeader('Content-Type', 'application/json;charset=UTF-8');

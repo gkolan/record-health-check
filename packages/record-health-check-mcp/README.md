@@ -83,9 +83,10 @@ does not test Salesforce, return configuration, or expose credentials.
 docker build -t record-health-check-mcp:local .
 ```
 
-The final image runs as the unprivileged Node user. Pin the image by digest in the hosting platform,
-generate an SBOM, scan both dependencies and the built image, and retain the build identifier and
-digest as release evidence.
+The final image uses an immutable distroless Node 22 runtime and runs as its unprivileged `nonroot`
+user. It contains no shell or package-manager layer. Pin the built image by digest in the hosting
+platform, generate an SBOM, scan both dependencies and the built image, and retain the build
+identifier, runtime-base digest, and artifact digest as release evidence.
 
 ## Shutdown and rollback
 

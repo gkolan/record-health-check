@@ -90,20 +90,41 @@ function register(
           return toolResult(failure);
         }
         const serviceError = error instanceof ServiceError ? error : undefined;
+        if (serviceError) {
+          const failure: AgentToolFailure = {
+            contractVersion: CONTRACT_VERSION,
+            correlationId: input.correlationId ?? `mcp-${randomUUID()}`,
+            success: false,
+            errorType:
+              serviceError.code === "SALESFORCE_AUTH" ||
+              serviceError.code === "DESTINATION_REJECTED"
+                ? "AUTHORIZATION"
+                : serviceError.code === "UPSTREAM_LIMIT"
+                  ? "LIMIT"
+                  : "EXECUTION",
+            errorMessage: serviceError.safeMessage
+          };
+          logger.log("error", "MCP tool call failed.", {
+            event: "tool_failed",
+            operation,
+            correlationId: failure.correlationId,
+            durationMs: Date.now() - started,
+            errorType: serviceError.code
+          });
+          return toolResult(failure);
+        }
         logger.log("error", "MCP tool call failed.", {
           event: "tool_failed",
           operation,
           durationMs: Date.now() - started,
-          errorType: serviceError?.code ?? "INTERNAL"
+          errorType: "INTERNAL"
         });
         return {
           isError: true,
           content: [
             {
               type: "text",
-              text:
-                serviceError?.safeMessage ??
-                "The tool could not complete the request."
+              text: "The tool could not complete the request."
             }
           ]
         };

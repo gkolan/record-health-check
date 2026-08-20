@@ -238,7 +238,11 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
     );
     RestContext.request = request;
     RestContext.response = new RestResponse();
-    return RecordHealthCheckAgentRestResource.doPost();
+    RecordHealthCheckAgentRestResource.doPost();
+    return (RecordHealthCheckAgentRestResource.AgentToolResponse) JSON.deserialize(
+      RestContext.response.responseBody.toString(),
+      RecordHealthCheckAgentRestResource.AgentToolResponse.class
+    );
   }
 
   private static Map<String, String> checkIdentities(
