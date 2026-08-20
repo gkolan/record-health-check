@@ -8,6 +8,8 @@ global with sharing class RHCSubscriberPlugin implements rhc.RecordHealthCheckPl
       outcomes.put(
         recordId,
         rhc.RecordHealthCheckOutcome.pass('SUBSCRIBER_PLUGIN_PASS')
+          .withFound(rhc.RecordHealthCheckValue.ofCount(1))
+          .withComparison('EQUALS', rhc.RecordHealthCheckValue.ofCount(1))
       );
     }
     return outcomes;

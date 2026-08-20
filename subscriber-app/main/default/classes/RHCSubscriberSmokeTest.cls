@@ -72,7 +72,12 @@ private class RHCSubscriberSmokeTest {
     );
 
     System.assertEquals(1, response.results.size());
-    System.assertEquals('PASS', response.results[0].evaluation.status);
+    System.assertEquals(
+      'PASS',
+      response.results[0].evaluation.status,
+      'Unexpected subscriber plugin outcome: ' +
+      response.results[0].evaluation.reasonCode
+    );
     System.assertEquals(
       'SUBSCRIBER_PLUGIN_PASS',
       response.results[0].evaluation.reasonCode
