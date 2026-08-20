@@ -78,6 +78,10 @@ async function appendAndLoad(element) {
   jest.runOnlyPendingTimers();
   await flushPromises();
   await flushPromises();
+  jest.runOnlyPendingTimers();
+  await flushPromises();
+  jest.runOnlyPendingTimers();
+  await flushPromises();
 }
 
 async function clickRun(element) {
@@ -88,6 +92,13 @@ async function clickRun(element) {
   action.click();
   await flushPromises();
   await flushPromises();
+  await flushPromises();
+}
+
+async function runScheduledAutomaticRun() {
+  jest.runOnlyPendingTimers();
+  await flushPromises();
+  jest.runOnlyPendingTimers();
   await flushPromises();
 }
 
@@ -298,6 +309,19 @@ describe("c-record-health-check — load and error states", () => {
     expect(btn).not.toBeNull();
   });
 
+  it("does not evaluate a Manual Check Set until the user clicks Run", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).not.toHaveBeenCalled();
+
+    await clickRun(element);
+    expect(evaluateCheck).toHaveBeenCalled();
+  });
+
   it("shows pre-run guidance for Manual + OneAtATime before the first run", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ revealMode: "OneAtATime" })
@@ -450,6 +474,40 @@ describe("c-record-health-check — load and error states", () => {
       expect.objectContaining({ source: "RUN_ON_LOAD" })
     );
     expect(completeRun).not.toHaveBeenCalled();
+  });
+
+  it("waits for browser idle before an Automatic run", async () => {
+    let idleCallback;
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: jest.fn((callback) => {
+        idleCallback = callback;
+        return 41;
+      })
+    });
+    Object.defineProperty(window, "cancelIdleCallback", {
+      configurable: true,
+      value: jest.fn()
+    });
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    expect(getCheckDefinitions).toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(idleCallback).toEqual(expect.any(Function));
+
+    idleCallback({ didTimeout: false, timeRemaining: () => 10 });
+    await flushPromises();
+    expect(evaluateCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "RUN_ON_LOAD" })
+    );
+
+    delete window.requestIdleCallback;
+    delete window.cancelIdleCallback;
   });
 
   it("describes an in-progress capped run when the automatic action is hidden", async () => {
@@ -1958,7 +2016,7 @@ describe("c-record-health-check — reactive recordId reload", () => {
     element.recordId = RECORD_B;
     await flushPromises();
     await flushPromises();
-    await flushPromises();
+    await runScheduledAutomaticRun();
 
     // The new record's run must NOT be suppressed by a leftover _runInProgress flag.
     expect(
@@ -2013,6 +2071,7 @@ describe("c-record-health-check — reactive recordId reload", () => {
     element.recordId = RECORD_B;
     await flushPromises();
     await flushPromises();
+    await runScheduledAutomaticRun();
 
     // No B evaluation may start while A still holds all five slots.
     expect(

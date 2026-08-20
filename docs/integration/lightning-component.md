@@ -114,8 +114,8 @@ Rerun provide the deliberate boundary required before publication is eligible.
 | --- | --- |
 | Check Set selected in App Builder | One active Check Set whose Object matches the record page. The dropdown shows its Label and stores its exact Qualified API Name. |
 | Current record ID | Record evaluated |
-| Check Set **When Checks Run** = **When the page opens** (`RUN_ON_LOAD`) | Run after definitions load; publication blocked |
-| Check Set **When Checks Run** = **When the user clicks Run** (`RUN_ON_REQUEST`) | Wait for an explicit Run; publication can be enabled |
+| Check Set **When Checks Run** = **When the page opens** (`RUN_ON_LOAD`) | Load the card definition, then wait for browser idle before evaluation; publication blocked |
+| Check Set **When Checks Run** = **When the user clicks Run** (`RUN_ON_REQUEST`) | Load presentation metadata only; perform no Check evaluation until an explicit Run; publication can be enabled |
 | Check Set **Run Button Display** | Show label and icon, label only, a compact icon, or hide the action on automatic Check Sets only |
 | Run or Rerun button | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank. |
 

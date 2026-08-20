@@ -166,6 +166,7 @@ export default class RecordHealthCheck extends LightningElement {
   _visibleChecksSignature = "";
   _visibleChecksCache = [];
   _resizeFrame;
+  _cancelAutomaticRun = null;
 
   connectedCallback() {
     this._connected = true;
@@ -192,6 +193,7 @@ export default class RecordHealthCheck extends LightningElement {
       cancelAnimationFrame(this._initialLoadFrame);
       this._initialLoadFrame = null;
     }
+    this._cancelScheduledAutomaticRun();
     // Bump the run token and clear the concurrency pool so any in-flight
     // evaluation resolves to a discarded result instead of changing a dead component.
     this._runner.invalidate();
@@ -380,6 +382,7 @@ export default class RecordHealthCheck extends LightningElement {
       cancelAnimationFrame(this._initialLoadFrame);
       this._initialLoadFrame = null;
     }
+    this._cancelScheduledAutomaticRun();
     // Invalidate any run still in flight from a previously-viewed record. This
     // method is the entry point for both the first load AND the in-place record
     // swap (console navigation / dynamic record pages), so without this reset a
@@ -534,7 +537,11 @@ export default class RecordHealthCheck extends LightningElement {
       this.componentErrorCode = null;
 
       if (this.triggerMode === "Automatic") {
-        this._runner.run(true, "RUN_ON_LOAD");
+        this._scheduleAutomaticRun(
+          loadToken,
+          requestedCheckSetName,
+          requestedRecordId
+        );
       }
     } catch (err) {
       if (loadToken !== this._loadToken || !this._connected) return;
@@ -544,6 +551,46 @@ export default class RecordHealthCheck extends LightningElement {
       this.componentErrorCode = parsed.reasonCode;
       this.componentErrorDiagnosticCode = parsed.diagnosticCode;
     }
+  }
+
+  _cancelScheduledAutomaticRun() {
+    if (this._cancelAutomaticRun) {
+      this._cancelAutomaticRun();
+      this._cancelAutomaticRun = null;
+    }
+  }
+
+  _scheduleAutomaticRun(loadToken, checkSetName, recordId) {
+    this._cancelScheduledAutomaticRun();
+    const runWhenIdle = () => {
+      this._cancelAutomaticRun = null;
+      if (
+        !this._connected ||
+        loadToken !== this._loadToken ||
+        checkSetName !== this.checkSetName ||
+        recordId !== this.recordId ||
+        this.triggerMode !== "Automatic"
+      ) {
+        return;
+      }
+      this._runner.run(true, "RUN_ON_LOAD");
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      const idleId = window.requestIdleCallback(runWhenIdle);
+      this._cancelAutomaticRun = () => window.cancelIdleCallback(idleId);
+      return;
+    }
+
+    // Older browsers do not expose requestIdleCallback. Yield another paint and
+    // a macrotask so record-page components finish rendering before evaluation.
+    // eslint-disable-next-line @lwc/lwc/no-async-operation
+    const frameId = requestAnimationFrame(() => {
+      // eslint-disable-next-line @lwc/lwc/no-async-operation
+      const timerId = setTimeout(runWhenIdle, 0);
+      this._cancelAutomaticRun = () => clearTimeout(timerId);
+    });
+    this._cancelAutomaticRun = () => cancelAnimationFrame(frameId);
   }
 
   get hasComponentError() {

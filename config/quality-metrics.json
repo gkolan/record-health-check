@@ -16,10 +16,10 @@
     "testRunId": "707Ru000024mxiP"
   },
   "lwc": {
-    "testCount": 202,
-    "linesPercent": 99.04,
-    "statementsPercent": 98.51,
-    "functionsPercent": 99.45,
-    "branchesPercent": 92.58
+    "testCount": 204,
+    "linesPercent": 98.95,
+    "statementsPercent": 98.25,
+    "functionsPercent": 98.41,
+    "branchesPercent": 92.94
   }
 }
