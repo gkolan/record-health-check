@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { agentToolResponseSchema, toolInputSchema } from "../src/contract.js";
+import { errorTypeForServiceError } from "../src/tools.js";
 
 describe("public contract", () => {
+  it("distinguishes destination policy from Salesforce authorization", () => {
+    expect(errorTypeForServiceError("DESTINATION_REJECTED")).toBe("VALIDATION");
+    expect(errorTypeForServiceError("SALESFORCE_AUTH")).toBe("AUTHORIZATION");
+    expect(errorTypeForServiceError("UPSTREAM_LIMIT")).toBe("LIMIT");
+    expect(errorTypeForServiceError("UPSTREAM_UNAVAILABLE")).toBe("EXECUTION");
+  });
   it("rejects unknown input fields and invalid identifiers", () => {
     expect(
       toolInputSchema.safeParse({

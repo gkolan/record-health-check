@@ -3,10 +3,10 @@
     <fullName>PrerequisiteCheck__c</fullName>
     <label>Prerequisite Check</label>
     <description
-  >Optional. Enter the Record Name (API Name / DeveloperName, shown in the Name column in Setup - NOT the "Check Title" users see) of another active check in the same Check Set that must PASS before this check runs. The prerequisite must have a lower "Evaluation Order". If the prerequisite does not pass, this check is Skipped. A value that does not match a check in the same Check Set also Skips this check silently at runtime; the mismatch is reported only when the Check Set configuration is validated, not when you save this record.</description>
+  >Optional. Enter the Record Name (API Name / DeveloperName, shown in the Name column in Setup - NOT the "Check Title" users see) of another active check in the same Check Set that must PASS before this check runs. The prerequisite must have a lower "Evaluation Order". Complete Check Set runs skip this check when the prerequisite does not pass or cannot be resolved. Single-Check API, Flow, Agent, and Lightning requests evaluate the selected Check without loading this dependency. Validate the Check Set to find a missing, inactive, later-ordered, or circular prerequisite.</description>
     <type>Text</type>
     <length>255</length>
     <inlineHelpText
-  >Optional. The Record Name (API Name in Setup, not the "Check Title") of an earlier check (lower "Evaluation Order") in the same Check Set that must pass first. If it fails or the name doesn't match, this check is Skipped.</inlineHelpText>
+  >For Check Set runs, the Record Name of an earlier Check that must pass first. Single-Check requests do not enforce prerequisites. Validate the Check Set to find missing, inactive, later-ordered, or circular dependencies.</inlineHelpText>
     <required>false</required>
 </CustomField>

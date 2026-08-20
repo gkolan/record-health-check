@@ -28,7 +28,9 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 
 - Business-record SOQL runs in user mode. Administrator-authored templates reject unsafe query
   shapes and system-mode execution.
-- Plugin dispatch rejects DML, callouts, email, event publication, and asynchronous work.
+- Plugin dispatch detects and rejects DML, callouts, email, Queueable, and Future work. Apex exposes
+  no reliable counter for Platform Event publication, Batch, or Scheduled work, so those plugin
+  prohibitions rely on contract tests, static analysis, and human review.
 - Public results protect access details; authorized Show Diagnostics viewers can investigate the
   specific restricted reason.
 - Merge tokens use explicit namespaces, typed fallbacks, bounded resolution, and safe Action URL

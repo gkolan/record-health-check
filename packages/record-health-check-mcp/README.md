@@ -21,8 +21,9 @@ production. Host and Origin checks protect the HTTP boundary.
 Salesforce calls use OAuth client credentials and a dedicated integration principal. The service
 permits only HTTPS login and instance hosts listed in `SALESFORCE_ALLOWED_HOSTS`. Redirects fail,
 responses are size limited, calls time out, transient retries are capped, and a 401 causes at most
-one token refresh. This identity is a service identity and does not reproduce the conversational
-user's Salesforce permissions.
+one token refresh. A returned instance host outside that allowlist is a `VALIDATION` destination
+policy failure, not a Salesforce `AUTHORIZATION` failure. This identity is a service identity and
+does not reproduce the conversational user's Salesforce permissions.
 
 ### Permission gates
 

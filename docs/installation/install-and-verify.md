@@ -70,23 +70,24 @@ is listed.
 
 ## Step 2: Choose who can use it
 
-The package includes two permission sets so people receive only the access their work requires.
+The package includes permission sets so people receive only the access their work requires.
 
 | Permission set | Assign it to | What it allows |
 | --- | --- | --- |
-| **Record Health Check User** | People who should run health checks | Package access needed to run from the card, Apex, Flow, Queueable, Batch Apex, or a schedule |
+| **Record Health Check Card User** | People who use only the Lightning record-page card | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
+| **Record Health Check User** | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | The broader packaged runtime surface; do not assign it merely to display the card |
 | **Record Health Check Admin** | People who configure Check Sets or investigate unexpected results | User access plus package configuration and diagnostic access |
 
 To give a non-admin access after choosing **Install for Admins Only**:
 
 1. In **Setup**, open **Permission Sets**.
-2. Open **Record Health Check User**.
+2. Open **Record Health Check Card User**.
 3. Select **Manage Assignments**, then **Add Assignments**.
 4. Select the users who should run the card and complete the assignment.
 
 Repeat those steps with **Record Health Check Admin** only for administrators and troubleshooters.
 A person can be a Salesforce non-admin and still run Record Health Check; the **Record Health Check
-User** permission set provides Record Health Check access, while the person's existing Salesforce access
+Card User** permission set provides card access, while the person's existing Salesforce access
 still controls which records and fields the checks can read.
 
 The Admin permission set does not by itself make someone a Salesforce Setup administrator. A person
@@ -123,7 +124,7 @@ Salesforce mobile; validate any additional surface separately before promising s
 
 ## Step 4: Verify the experience as a user
 
-Open the Account as the person who received **Record Health Check User**. This matters: a successful
+Open the Account as the person who received **Record Health Check Card User**. This matters: a successful
 administrator test does not prove that an everyday user has the right access.
 
 Select **Run** if the card is waiting. Then review the result as a user would:
@@ -162,7 +163,7 @@ around a decision your users actually make.
 | Salesforce reports an `rhc` namespace conflict | Use an org that does not already contain the package or another package with the same namespace; do not rename packaged components. |
 | Record Health Check is missing in Lightning App Builder | Confirm the package appears in **Setup → Installed Packages**, then look under **Custom** components |
 | No Check Set is available | Use an Example Check Set for the same object as the record page, such as an Account Example Check Set on an Account page |
-| A user cannot see or run the card | Confirm that the user has **Record Health Check User** and can read the record and fields being checked |
+| A user cannot see or run the card | Confirm that the user has **Record Health Check Card User** and can read the record and fields being checked |
 | A Check shows **Unable to Check** | Read the explanation on the card, then check the user's access and the Check configuration |
 | A Check shows **System Error** | Ask a Record Health Check administrator to enable Show Diagnostics temporarily and capture the diagnostic details |
 | Salesforce reports a conflict with `RecordHealthCheckController` | The org already contains an unpackaged copy of Record Health Check; install into an org that has not received that source deployment |
@@ -179,7 +180,7 @@ macOS, and Linux after the Salesforce CLI is installed.
 sf org login web --instance-url https://test.salesforce.com --alias rhc-sandbox
 sf org display --target-org rhc-sandbox
 sf package install --package 04tak000000ajbJAAQ --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
-sf org assign permset --name rhc__Record_Health_Check_User --target-org rhc-sandbox
+sf org assign permset --name rhc__Record_Health_Check_Card_User --target-org rhc-sandbox
 ```
 
 The `sf org display` step helps prevent installing into the wrong org. After the command succeeds,

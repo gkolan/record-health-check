@@ -9,8 +9,9 @@
  * Every guarantee the extension boundary makes is enforced here, in one place,
  * so there is no second path a caller could use to reach a plugin without them.
  * Consumers must never instantiate a plugin directly: doing so would bypass
- * scope construction, the write check that blocks DML, callouts, email, events,
- * and async work, completeness validation, and identity stamping all at once.
+ * scope construction, the runtime write checks, completeness validation, and
+ * identity stamping all at once. Platform Event, Batch, and Scheduled work have
+ * no reliable Apex counter and remain contract/static-review prohibitions.
  *
  * Two behaviors are worth reading closely, because both are easy to get subtly
  * wrong and neither is recoverable afterwards.

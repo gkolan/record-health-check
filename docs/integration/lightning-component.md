@@ -43,8 +43,10 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 
 ## Prerequisites and quick start
 
-1. Assign the **Record Health Check User** (`rhc__Record_Health_Check_User`) Permission Set to the viewer
-   and grant access to the record and fields used by the selected Checks.
+1. Assign the least-privilege **Record Health Check Card User**
+   (`rhc__Record_Health_Check_Card_User`) Permission Set to a card-only viewer and grant access to
+   the record and fields used by the selected Checks. Use **Record Health Check User** only when the
+   same person or automation also needs Flow, Agent, REST, or Apex entry points.
 2. In Lightning App Builder, open a **record page** and add **Record Health Check**, then select an
    active Check Set for that object. The component is listed only while you are editing a record
    page; it is not offered on App Pages or Home Pages because it has no record to evaluate there.

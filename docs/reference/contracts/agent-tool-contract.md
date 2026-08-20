@@ -58,7 +58,7 @@ An adapter failure returns `success=false`, a safe message of at most 1,000 char
 | Error type | Meaning |
 | --- | --- |
 | `AUTHORIZATION` | The Salesforce principal cannot start the evaluation |
-| `VALIDATION` | The request is malformed, incomplete, or names invalid configuration |
+| `VALIDATION` | The request is malformed, incomplete, names invalid configuration, or targets a Salesforce instance host outside the approved MCP destinations |
 | `LIMIT` | The request or response exceeds an enforced boundary |
 | `EXECUTION` | An unexpected adapter or platform problem prevented completion |
 

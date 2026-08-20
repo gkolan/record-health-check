@@ -685,9 +685,14 @@ Optional Text(255). Enter the **Developer Name** shown in Setup, not the Check T
 active Check in the same Check Set. That Check must have a lower Evaluation Order and must return
 `PASS` before this Check can run.
 
-If the prerequisite returns any other result, this Check is `SKIPPED`. A misspelled or unmatched
-name also produces `SKIPPED`; run Check Set validation to find the configuration error. Example:
-`Account_Phone_Is_Present`.
+During a complete Check Set run, any prerequisite result other than `PASS` makes this Check
+`SKIPPED`. A missing, inactive, misspelled, later-ordered, or omitted prerequisite is also skipped
+with the Check Set dependency result; run Check Set validation to find the configuration error.
+
+A single-Check request evaluates only the selected Check. Lightning single-Check, Flow **Run Record
+Health Check**, Agent, and Apex `RecordHealthCheckRequest.forCheck(...)` calls therefore do not load
+or enforce this dependency. Use a Check Set request whenever prerequisite ordering is required.
+Example: `Account_Phone_Is_Present`.
 
 
 ## 10. Custom Apex (`APEX`)

@@ -10,7 +10,7 @@ import {
   type AgentToolFailure,
   type AgentToolResponse
 } from "./contract.js";
-import { ServiceError } from "./errors.js";
+import { ServiceError, type ServiceErrorType } from "./errors.js";
 import { ConcurrencyLimitError } from "./limiter.js";
 import type { OperationalLogger } from "./logger.js";
 import type { SalesforceClient } from "./salesforce-client.js";
@@ -32,6 +32,15 @@ export function createToolServer(
     OPERATION_CHECK_SET
   );
   return server;
+}
+
+export function errorTypeForServiceError(
+  code: ServiceErrorType
+): AgentToolFailure["errorType"] {
+  if (code === "SALESFORCE_AUTH") return "AUTHORIZATION";
+  if (code === "DESTINATION_REJECTED") return "VALIDATION";
+  if (code === "UPSTREAM_LIMIT") return "LIMIT";
+  return "EXECUTION";
 }
 
 function register(
@@ -95,13 +104,7 @@ function register(
             contractVersion: CONTRACT_VERSION,
             correlationId: input.correlationId ?? `mcp-${randomUUID()}`,
             success: false,
-            errorType:
-              serviceError.code === "SALESFORCE_AUTH" ||
-              serviceError.code === "DESTINATION_REJECTED"
-                ? "AUTHORIZATION"
-                : serviceError.code === "UPSTREAM_LIMIT"
-                  ? "LIMIT"
-                  : "EXECUTION",
+            errorType: errorTypeForServiceError(serviceError.code),
             errorMessage: serviceError.safeMessage
           };
           logger.log("error", "MCP tool call failed.", {

@@ -65,12 +65,14 @@ promoting a new `04t`. See
 
 ## Which installed permission set should I assign?
 
-Assign **Record Health Check User** to people who run health checks. Assign **Record Health Check
-Admin** to administrators who configure the package or need authorized diagnostics.
+Assign **Record Health Check Card User** to people who use only the Lightning record-page card.
+Assign **Record Health Check User** only when a person or automation also needs Flow, Agent, REST,
+or Apex entry points. Assign **Record Health Check Admin** to administrators who configure the
+package or need authorized diagnostics.
 
-Both permission sets include the **Record Health Check Run** Custom Permission and the Apex class
-access needed to run a health check. **Record Health Check Admin** also includes the permissions used
-to manage configuration and view diagnostics.
+All three permission sets include the **Record Health Check Run** Custom Permission and the Apex
+class access required for their documented surface. **Record Health Check Admin** also includes the
+permissions used to manage configuration and view diagnostics.
 
 These permission sets do not grant access to your Account, Contact, Opportunity, Case, or custom
 object data. Users still need the appropriate access from your org's profiles or permission sets.
