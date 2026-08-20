@@ -16,9 +16,9 @@ business automation needs.
 
 ## Before you receive this event
 
-The **Publish Error Log Event** checkbox on each Check Set is selected by default. Clear it when your
-org must not publish these technical details for that Check Set. Clearing it does not turn off
-Salesforce debug logs.
+The **Publish Error Log Event** checkbox on each Check Set is cleared by default. Select it only
+after approving restricted technical-detail publication for that Set. Leaving it cleared does not
+turn off Salesforce debug logs.
 
 The installed **Record Health Check User** and **Record Health Check Admin** Permission Sets do not
 provide access to this event. Assign the packaged **Record Health Check Error Log Publisher**

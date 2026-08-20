@@ -3863,6 +3863,37 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     expect(runner.isRunning).toBe(false);
   });
 
+  it("keeps a concurrent run locked until every check resolves", async () => {
+    const first = { developerName: "A", dependsOnCheckDeveloperName: null };
+    const second = { developerName: "B", dependsOnCheckDeveloperName: null };
+    const host = makeRunnerHost([first, second]);
+    const runner = makeRunner(host);
+    const secondGate = deferred();
+    runner._runOneCheck = jest.fn(
+      (check, taskMap, checkMap, runCheck, token) => {
+        if (check.developerName === "A") {
+          return Promise.reject(new Error("unexpected check failure"));
+        }
+        return secondGate.promise.then(() => {
+          runner._resultBuffer.B = PASS_RESULT("B");
+          runner._drain(token);
+        });
+      }
+    );
+
+    runner.run();
+    await flushPromises();
+
+    expect(runner.isRunning).toBe(true);
+    expect(host.completedCheckCount).toBe(1);
+
+    secondGate.resolve();
+    await flushPromises();
+
+    expect(runner.isRunning).toBe(false);
+    expect(host.runComplete).toBe(true);
+  });
+
   it("returns immediately for stopped and stale checks", async () => {
     evaluateCheck.mockClear();
     const check = { developerName: "A" };

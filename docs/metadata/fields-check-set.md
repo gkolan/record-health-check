@@ -235,14 +235,14 @@ allocation. See [Record Health Check Set Run Platform Event](event-set-run.md).
 | Attribute | Value |
 | --- | --- |
 | Type | Checkbox |
-| Default | Selected (`true`) |
+| Default | Cleared (`false`) |
 
-Leave this field selected when restricted administrator or support automation needs technical
-Record Health Check errors for this Check Set. Clear it when your org must not publish those error
-details. Clearing it does not turn off Salesforce debug logs.
+Select this field only when restricted administrator or support automation needs technical Record
+Health Check errors for this Check Set. Assign **Record Health Check Error Log Publisher** to each
+running identity first. Leaving it cleared does not turn off Salesforce debug logs.
 
-If Record Health Check cannot find the Check Set, it leaves error-event publication enabled so that
-the configuration error can still be reported. See
+If Record Health Check cannot find the Check Set, it fails closed and does not publish restricted
+error details without an explicit setting. See
 [Record Health Check Log Platform Event](event-log.md) before granting access or saving these
 restricted details.
 
@@ -268,7 +268,7 @@ publish a Set Run Platform Event unless Flow or Apex separately requests publica
 | Stop after a system error | Cleared |
 | Show Diagnostics | Cleared |
 | Publish User Run Event | Cleared |
-| Publish Error Log Event | Selected |
+| Publish Error Log Event | Cleared |
 
 After saving, copy the **Qualified API Name** shown by Setup when Flow or Apex needs to identify this
 Check Set.

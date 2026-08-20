@@ -169,8 +169,15 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       List<RecordHealthCheckRunSetFlowAction.Response> emptySet = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.isTrue(emptySet[0].isSuccess);
-      Assert.areEqual('SKIPPED', emptySet[0].status);
+      Assert.isFalse(
+        emptySet[0].isSuccess,
+        'Missing aligned Set results must fail closed.'
+      );
+      Assert.areEqual('EXECUTION', emptySet[0].errorType);
+      Assert.areEqual(
+        'No aligned Check Set result was returned.',
+        emptySet[0].errorMessage
+      );
 
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = false;
       RecordHealthCheckFlowSupport.itemsByRecordOverride = new Map<Id, List<RecordHealthCheckResultItem>>{

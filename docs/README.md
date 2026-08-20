@@ -60,9 +60,9 @@ Salesforce developers who want a separate test org with prepared examples can
   mapping.
 - Formula and Query Checks can use only the records and fields the person running the Check can
   access.
-- Check Set Run and Check Result Platform Events are off by default. Error Log Platform Events are
-  on by default. Enable result events only after the receiving Flow, Apex trigger, or integration
-  is ready.
+- Check Set Run, Check Result, and restricted Error Log Platform Events are off by default. Enable
+  them only after the receiving Flow, Apex trigger, or integration is ready; Error Log publication
+  also requires the narrowly assigned publisher permission.
 - The installed package includes [four example Check Sets and 21 Checks](installation/installed-examples.md).
   Their Qualified API Names begin with `rhc__Example_`, and their card titles begin with
   `Example:`. Use them for learning; create Check Sets with names and requirements that belong to

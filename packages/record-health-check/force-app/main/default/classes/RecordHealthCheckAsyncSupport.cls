@@ -73,7 +73,7 @@ public with sharing class RecordHealthCheckAsyncSupport {
     if (
       checkSets.size() != 1 || String.isBlank(checkSets[0].ObjectApiName__c)
     ) {
-      return normalizedIds;
+      return new List<Id>();
     }
     String expectedObject = checkSets[0].ObjectApiName__c;
     List<Id> matchingIds = new List<Id>();

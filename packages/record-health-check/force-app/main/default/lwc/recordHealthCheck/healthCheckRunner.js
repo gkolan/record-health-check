@@ -181,8 +181,17 @@ export class HealthCheckRunner {
 
     for (const check of this.host.checks) {
       runCheck(check).catch(() => {
-        if (token === this._runToken) {
-          this._runInProgress = false;
+        if (
+          token === this._runToken &&
+          this._resultBuffer[check.developerName] === undefined
+        ) {
+          this._resultBuffer[check.developerName] = synthesizeResult(
+            check,
+            "ERROR",
+            "CLIENT_CALL_FAILED",
+            "The check could not be reached. Please try again."
+          );
+          this._drain(token);
         }
       });
     }

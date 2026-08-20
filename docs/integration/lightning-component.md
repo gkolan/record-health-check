@@ -92,7 +92,7 @@ Leave these settings off when users only need results on the card:
 - `PublishUserRunEvent__c` enables one Set Run completion event for the Check Set.
 - `PublishUserResultEvent__c` enables a Check Result event for that Check.
 
-Error Log events use a separate default-on Check Set setting. `PublishErrorLogEvent__c` publishes
+Error Log events use a separate default-off Check Set setting. `PublishErrorLogEvent__c` publishes
 Record Health Check `ERROR` details from automatic and deliberate runs; uncheck it to opt that Check Set
 out. This does not disable Salesforce debug-log output.
 
@@ -101,7 +101,7 @@ An automatic run never publishes lifecycle events even when both lifecycle switc
 If no event follows Run or Rerun, confirm the visible action was used, the Check Set and relevant
 Check checkboxes are enabled, the transaction committed, the receiver has event access, and the
 receiver itself did not fail. Refresh is a page-load run and never publishes result events.
-It can still publish an Error Log event when the default-on error setting permits it.
+It can still publish an Error Log event when the Set explicitly opts in and the user has publisher permission.
 
 The block is intentional. Opening or refreshing a record page is passive navigation, not a request
 to notify another process. If automatic runs published, ordinary browsing could consume Platform

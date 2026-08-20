@@ -108,7 +108,8 @@ Test at least one path for each status the selected Checks can return. Confirm t
 - `FAIL` follows a Decision path instead of the fault connector;
 - an invalid input follows the **Success is false** path;
 - a Salesforce transaction failure follows the fault connector;
-- the running user sees only authorized display data;
+- `resultJson` contains evaluation data only; Flow does not request display fields,
+  even when the running user can view diagnostics;
 - Platform Events appear only when `ACTIONABLE` or `ALL` was selected and a Flow, Apex trigger, or
   external integration is configured to receive them.
 

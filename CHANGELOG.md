@@ -68,6 +68,18 @@ Target package version: **2.0.4**.
 
 ### Fixed
 
+- Flow Check Set actions now fail closed when an aligned result is missing and preserve stable
+  authorization, validation, and limit categories instead of flattening engine failures into a
+  generic execution response.
+- Compare Two Queries now applies the same pre-execution multi-currency safety checks as Query
+  Checks, and aggregate queries that return multiple values require an explicit source-field alias.
+- Error Log publication is now an explicit, default-off Check Set choice. Missing configuration
+  fails closed, and publishers still require the separate Error Log Publisher Permission Set.
+- Async adapters reject missing or object-less Check Set configuration, App Builder returns no
+  unrelated Check Sets without a record-object context, and one rejected Lightning Check can no
+  longer unlock a concurrent run while other evaluations remain active.
+- Flow documentation now describes whole-request rejection above 25 active Checks and identifies
+  Flow result JSON as evaluation-only rather than authorized display data.
 - Lifecycle events now report framework version `2.0.4`; the release gate also verifies that the
   Apex event publisher stays synchronized with the package version.
 - Scope-wide Query Check classification now ignores `LIMIT`, `ORDER BY`, and correlation-like text

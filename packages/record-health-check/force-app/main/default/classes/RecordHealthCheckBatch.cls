@@ -176,8 +176,8 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     Integer scopeSize
   ) {
     RecordHealthCheckAccess.requireCanRunChecks();
-    validatePopulation(checkSetQualifiedApiName, recordIds);
     validateScopeSize(scopeSize);
+    validatePopulation(checkSetQualifiedApiName, recordIds);
     return Database.executeBatch(
       new RecordHealthCheckBatch(
         checkSetQualifiedApiName,

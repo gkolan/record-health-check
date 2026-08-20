@@ -60,7 +60,9 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     Test.startTest();
     try {
       RecordHealthCheckBatch.run(
-        'Qualified_Set',
+        RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+          'Example_Account_Profile_Readiness'
+        ),
         new List<Id>{ recordId },
         RecordHealthCheckEventPublication.NONE,
         scopeSize

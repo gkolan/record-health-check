@@ -117,6 +117,7 @@ private class RecordHealthCheckLoggerTest {
 
   @IsTest
   static void errorBuffersEventWithReproContext() {
+    RecordHealthCheckLogger.settingsProvider = new FixedSettingsProvider(true);
     Id recordId = UserInfo.getUserId();
     RecordHealthCheckLogger logger = new RecordHealthCheckLogger(
       'run-err-1',
@@ -197,6 +198,7 @@ private class RecordHealthCheckLoggerTest {
 
   @IsTest
   static void messageFallsBackToFieldsWhenNoException() {
+    RecordHealthCheckLogger.settingsProvider = new FixedSettingsProvider(true);
     RecordHealthCheckLogger.log(
       RecordHealthCheckLogger.Level.ERROR,
       'run-nofields',
@@ -253,7 +255,7 @@ private class RecordHealthCheckLoggerTest {
   }
 
   @IsTest
-  static void missingCheckSetDefaultsToPublishing() {
+  static void missingCheckSetFailsClosedWithoutPublishing() {
     RecordHealthCheckLogger logger = new RecordHealthCheckLogger(
       'run-missing-config',
       'Check_Set_That_Does_Not_Exist',
@@ -268,14 +270,14 @@ private class RecordHealthCheckLoggerTest {
     );
 
     Assert.areEqual(
-      1,
+      0,
       RecordHealthCheckLogger.pendingEventCount(),
-      'A missing Check Set must preserve default-on error publication.'
+      'A missing Check Set must not opt itself into restricted event publication.'
     );
   }
 
   @IsTest
-  static void configuredCheckSetPublishesWhenDefaultOn() {
+  static void configuredExampleDoesNotPublishWithoutExplicitOptIn() {
     RecordHealthCheckLogger logger = new RecordHealthCheckLogger(
       'run-configured',
       'Example_Account_Relationship_Risk',
@@ -290,9 +292,9 @@ private class RecordHealthCheckLoggerTest {
     );
 
     Assert.areEqual(
-      1,
+      0,
       RecordHealthCheckLogger.pendingEventCount(),
-      'A configured Check Set with the default-on field must publish.'
+      'Packaged examples must not require the separate publisher permission by default.'
     );
   }
 
@@ -346,13 +348,9 @@ private class RecordHealthCheckLoggerTest {
 
     List<Record_Health_Check_Log__e> pending = RecordHealthCheckLogger.pendingEventsForTest();
     Assert.areEqual(
-      1,
+      0,
       pending.size(),
-      'A missing Check Set must retain default-on ERROR publication.'
-    );
-    Assert.isNull(
-      pending[0].Message__c,
-      'Empty fields without an exception must not invent a message.'
+      'Blank Check Set context must fail closed for restricted event publication.'
     );
   }
 

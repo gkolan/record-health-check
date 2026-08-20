@@ -239,6 +239,35 @@ private class RHCCurrencyAuthoringRedTest {
   }
 
   @IsTest
+  static void compareQueriesRejectsUngroupedCurrencyBeforeExecution() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.EvaluationType__c = 'COMPARE_TWO_QUERIES';
+    check.SourceQuery__c = 'SELECT SUM(AnnualRevenue) totalValue FROM Account';
+    check.SourceQueryField__c = 'totalValue';
+    check.ComparisonQuery__c = 'SELECT SUM(AnnualRevenue) totalValue FROM Account';
+    check.ComparisonQueryField__c = 'totalValue';
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckCompareQueriesEvaluator()
+      .evaluate(
+        check,
+        RecordHealthCheckTestDataFactory.syntheticId(Account.SObjectType, 1),
+        RecordHealthCheckTestDataFactory.account(
+          new Map<String, Object>{ 'Name' => 'Currency safety fixture' }
+        )
+      );
+    Test.stopTest();
+
+    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.CURRENCY_AGGREGATE_NOT_GROUPED,
+      result.reasonCode,
+      'Compare Two Queries must enforce the same runtime aggregate guard as Query.'
+    );
+  }
+
+  @IsTest
   static void shouldRejectNestedOnlyIsoFilterAtRuntime() {
     RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     Record_Health_Check__mdt check = baseQueryCheck();

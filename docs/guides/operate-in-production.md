@@ -31,7 +31,7 @@ external integration that listens for a Record Health Check event.
 | --- | --- |
 | Enable **Publish User Run Event** and **Publish User Result Event** for one Check Set or Check at a time | Makes it clear which configuration caused an unexpected increase in event volume. |
 | Review Platform Event usage regularly instead of waiting for a limit error | The allocation is shared by every Platform Event publisher in your org, not reserved for Record Health Check. |
-| Keep **Publish Error Log Event** on unless a specific Check Set's errors are already monitored another way | It defaults on so unexpected Record Health Check errors can be monitored. Turning it off removes that event for the Check Set. |
+| Keep **Publish Error Log Event** off until restricted error monitoring is ready | It defaults off. Enable it only after assigning **Record Health Check Error Log Publisher** narrowly and securing the receiver. |
 | Review which Check Sets and Checks have publication enabled at least quarterly | A copied or retired Check can continue publishing events that no process uses. |
 | Confirm receiving automation handles `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` as intended | A completed Batch or Check Set can still contain business failures or results that could not be evaluated. |
 

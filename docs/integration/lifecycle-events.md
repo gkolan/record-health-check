@@ -43,7 +43,7 @@ own `NONE`, `ACTIONABLE`, or `ALL` request value.
 | --- | --- | --- |
 | One summary for a completed Check Set | [`Record_Health_Check_Set_Run__e`](../metadata/event-set-run.md) | For the card, **Publish User Run Event**. For Apex or Flow, choose `ACTIONABLE` or `ALL`. |
 | One result for selected Checks | [`Record_Health_Check_Result__e`](../metadata/event-check-result.md) | For the card, each Check's **Publish User Result Event**. For Apex or Flow, choose `ACTIONABLE` or `ALL`. |
-| Restricted Record Health Check error details | [`Record_Health_Check_Log__e`](../metadata/event-log.md) | Check Set **Publish Error Log Event** (on by default; uncheck to opt out) |
+| Restricted Record Health Check error details | [`Record_Health_Check_Log__e`](../metadata/event-log.md) | Check Set **Publish Error Log Event** (off by default; enable after assigning the publisher permission) |
 | The immediate decision in the current transaction | Neither lifecycle event | Use the Lightning, Apex, or Flow response instead |
 
 The Set Run and Check Result events are **high-volume Platform Events** configured as **Publish
@@ -190,9 +190,10 @@ checkboxes above are not consulted.
 ### Error Log events
 
 Check Set **Publish Error Log Event** (`PublishErrorLogEvent__c`) is separate from result
-publication. It is on by default and publishes `Record_Health_Check_Log__e` when Record Health Check
-captures an `ERROR`. Uncheck it to opt that Check Set out. If Record Health Check cannot resolve a
-Check Set, Log publication remains enabled.
+publication. It is off by default and publishes `Record_Health_Check_Log__e` when Record Health
+Check captures an `ERROR` only after a Set explicitly opts in. Assign the packaged publisher
+permission to every running identity first. Missing Check Set configuration fails closed without
+publishing restricted details.
 
 For a user-initiated Lightning run, the completion call publishes the outcomes returned by the
 progressive browser evaluation after filtering them to the requested record and the Checks in the
@@ -274,14 +275,14 @@ restricted Record Health Check `ERROR` details and uses **Publish Immediately**.
 | Property | Lifecycle events (Set / Check) | Diagnostics event (Log) |
 | --- | --- | --- |
 | Purpose | Completion facts | Errors that need reproducing |
-| Default | Optional per Set/Check (off) | **On by default**; opt out per Check Set with `PublishErrorLogEvent__c` |
+| Default | Optional per Set/Check (off) | **Off by default**; enable per Check Set with `PublishErrorLogEvent__c` and the publisher permission |
 | Publish behavior | Publish After Commit | **Publish Immediately**: survives the rollback a failing check triggers |
 | Carries error detail | No: record ID + counts/status only | Yes: record ID plus message, exception type, stack trace |
 | Results included | Only the results selected by the card metadata or caller's Event Publication choice | `ERROR` only |
 | Access | Users and integrations assigned event access | **Restricted**: grant access only to the error-monitoring users or integration. |
 
 The Log event is independent of **Publish User Run Event** and **Publish User Result Event**. It is controlled
-by the Check Set's default-on **Publish Error Log Event** field. Its complete event body, security
+by the Check Set's default-off **Publish Error Log Event** field. Its complete event body, security
 requirements, repeated-call guard, possibilities, and known limitations are in the [Log Platform
 Event reference](../metadata/event-log.md).
 

@@ -55,7 +55,7 @@ future save. Administrators should still test Checks in a sandbox before activat
 
 | Surface | Role |
 | --- | --- |
-| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) | Check definitions, result and Run/Rerun display settings, optional health-result Platform Events, and default-on Error Log events |
+| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) | Check definitions, result and Run/Rerun display settings, optional health-result Platform Events, and explicitly enabled Error Log events |
 | Apex classes for four Evaluation Types | Formula, Query, Compare two queries, and Apex evaluation |
 | Lightning Web Component | Record-page card, one Apex call per Check, progressive reveal |
 | Public Apex API, Batch, Queueable, Scheduled Apex, and two Flow actions | The same evaluation code for automation and integrations |
@@ -78,7 +78,7 @@ Record_Health_Check_Set__mdt          one card on one object
   IsActive__c, CardRunMode__c         whether it runs, and on load or on request
   ShowDiagnostics__c                  whether troubleshooting detail may be shown
   PublishUserRunEvent__c              card Run/Rerun can publish Record_Health_Check_Set_Run__e
-  PublishErrorLogEvent__c             publishes Record_Health_Check_Log__e (default on)
+  PublishErrorLogEvent__c             publishes Record_Health_Check_Log__e (default off)
       |
       | one Check Set has many Checks (metadata relationship)
       v
@@ -107,7 +107,7 @@ parent Check Set. An inactive Check Set or one for a different object cannot run
 | --- | --- | --- | --- |
 | Check Set | **Publish User Run Event** (`PublishUserRunEvent__c`) | Off | When a person clicks Run or Rerun, publish one `Record_Health_Check_Set_Run__e` summary per checked record |
 | Check | **Publish User Result Event** (`PublishUserResultEvent__c`) | Off | When a person clicks Run or Rerun, publish `Record_Health_Check_Result__e` for this Check |
-| Check Set | **Publish Error Log Event** (`PublishErrorLogEvent__c`) | On | Publish restricted `Record_Health_Check_Log__e` details for package `ERROR` logs |
+| Check Set | **Publish Error Log Event** (`PublishErrorLogEvent__c`) | Off | Publish restricted `Record_Health_Check_Log__e` details for package `ERROR` logs after explicit enablement and publisher permission assignment |
 
 Automatic record-page evaluation never publishes Check Set Run or Check Result events. Apex, Flow,
 Batch, Queueable, and Scheduled requests use their explicit `NONE`, `ACTIONABLE`, or `ALL` choice;

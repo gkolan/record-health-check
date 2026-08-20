@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>PublishErrorLogEvent__c</fullName>
-    <defaultValue>true</defaultValue>
+    <defaultValue>false</defaultValue>
     <description
-  >Publishes a Log event when the Framework records an ERROR for this Check Set. Enabled by default so operational failures remain observable.</description>
+  >Publishes a Log event when the Framework records an ERROR for this Check Set. Disabled by default because publication requires a separately assigned publisher permission.</description>
     <inlineHelpText
-  >Publish Framework ERROR logs as platform events. Uncheck to disable error-log events for this Check Set.</inlineHelpText>
+  >Publish Framework ERROR logs as platform events. Requires the Error Log Publisher permission set.</inlineHelpText>
     <label>Publish Error Log Event</label>
     <type>Checkbox</type>
 </CustomField>

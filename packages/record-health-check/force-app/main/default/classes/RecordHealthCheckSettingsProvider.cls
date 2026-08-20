@@ -5,12 +5,12 @@ public virtual with sharing class RecordHealthCheckSettingsProvider {
     String checkSetDeveloperName
   ) {
     if (String.isBlank(checkSetDeveloperName)) {
-      return true;
+      return false;
     }
     Record_Health_Check_Set__mdt checkSet = Record_Health_Check_Set__mdt.getInstance(
       checkSetDeveloperName
     );
-    return checkSet == null || checkSet.PublishErrorLogEvent__c != false;
+    return checkSet != null && checkSet.PublishErrorLogEvent__c == true;
   }
 
   /** Returns whether an interactive Check Set run event is enabled. */

@@ -81,8 +81,8 @@ See [Install and verify](../installation/install-and-verify.md).
 No, not the two result events. **Publish User Run Event** (Check Set) and **Publish User Result
 Event** (Check) both default to off, because publication consumes the org's Platform Event allocation
 and can start your org's Flow, Apex, or integration automation. **Publish Error Log Event** (Check
-Set) defaults to **on**, so unexpected errors can be monitored unless an administrator turns it off
-for that Check Set. Automatic
+Set) also defaults to **off** because it carries restricted diagnostics and requires the separately
+assigned publisher permission. Automatic
 page-load runs never publish, regardless of these settings. See
 [Lifecycle events](../integration/lifecycle-events.md).
 

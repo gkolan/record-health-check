@@ -217,12 +217,12 @@ For every input and output, use the [Flow actions reference](flow-actions.md).
 Enabling events does not change the result returned to the caller. A successful run does not prove
 that the receiving Flow, Apex trigger, or integration completed.
 
-Lifecycle publication is off by default; error-log publication is on by default:
+Lifecycle and restricted error-log publication are off by default:
 
 - Check Set **Publish User Run Event** enables one completed Set event.
 - Check **Publish User Result Event** enables one event for that server-finalized Check.
-- Check Set **Publish Error Log Event** publishes Record Health Check `ERROR` diagnostics; uncheck it to opt
-  that Check Set out without changing Salesforce debug logs.
+- Check Set **Publish Error Log Event** publishes Record Health Check `ERROR` diagnostics only after
+  explicit enablement and assignment of **Record Health Check Error Log Publisher** to the running identity.
 - Automatic Lightning page-load runs and page refreshes never publish. If an automatic card hides
   Run and Rerun, show the action or call the Check Set from Apex or Flow when another process needs an
   event.

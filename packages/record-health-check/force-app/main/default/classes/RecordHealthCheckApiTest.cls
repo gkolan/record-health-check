@@ -5,6 +5,14 @@
 
 @IsTest
 private class RecordHealthCheckApiTest {
+  private class EnabledLogSettingsProvider extends RecordHealthCheckSettingsProvider {
+    public override Boolean isErrorEventPublicationEnabled(
+      String checkSetQualifiedApiName
+    ) {
+      return true;
+    }
+  }
+
   @TestSetup
   static void setup() {
     RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
@@ -49,6 +57,7 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void publicFacadeFlushesHeldDiagnosticsOnFailure() {
+    RecordHealthCheckLogger.settingsProvider = new EnabledLogSettingsProvider();
     RecordHealthCheckLogger.log(
       RecordHealthCheckLogger.Level.ERROR,
       'facade-flush-run',

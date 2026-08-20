@@ -48,6 +48,9 @@ public with sharing class RecordHealthCheckSetPicklist extends VisualEditor.Dyna
   private List<Record_Health_Check_Set__mdt> scopedCheckSets() {
     String entityName = context == null ? null : context.entityName;
     List<Record_Health_Check_Set__mdt> checkSets = new List<Record_Health_Check_Set__mdt>();
+    if (String.isBlank(entityName)) {
+      return checkSets;
+    }
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is setup data for App Builder design-time choices; runtime access is enforced by RecordHealthCheckAccess before definitions are exposed.
     for (Record_Health_Check_Set__mdt checkSet : [
       SELECT QualifiedApiName, DeveloperName, MasterLabel, ObjectApiName__c
@@ -55,12 +58,7 @@ public with sharing class RecordHealthCheckSetPicklist extends VisualEditor.Dyna
       WHERE IsActive__c = TRUE
       ORDER BY MasterLabel ASC, DeveloperName ASC
     ]) {
-      // Scope to the record page's object when App Builder names one; a page
-      // without an entity (e.g. a template being edited) shows every active set.
-      if (
-        String.isBlank(entityName) ||
-        entityName.equalsIgnoreCase(checkSet.ObjectApiName__c)
-      ) {
+      if (entityName.equalsIgnoreCase(checkSet.ObjectApiName__c)) {
         checkSets.add(checkSet);
       }
     }

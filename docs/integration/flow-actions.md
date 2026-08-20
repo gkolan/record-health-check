@@ -15,7 +15,9 @@ limits reference after that first build.
 
 Salesforce can send a collection of Flow inputs to one action call. Each packaged action accepts at
 most 200 inputs, using no more than ten distinct Check-or-Check-Set and Event Publication
-combinations. A Check Set evaluates at most the first 25 active Checks in Evaluation Order.
+combinations. If a Check Set contains more than 25 active Checks, Flow rejects the
+entire request with `LIMIT` and `FRAMEWORK_MAX_CHECKS_EXCEEDED`; it does not run a
+partial first page.
 
 ## Choose the right Flow action
 
@@ -141,6 +143,11 @@ This action runs every active Check in one Check Set. Its Apex implementation is
 | **Result JSON** | Complete serialized `RecordHealthCheckResponse` for the input record | Use only when later Flow elements or another integration need Check-level fields not exposed separately |
 | **Contract Version** | Version carried by the returned response | Preserve and inspect it when a long-lived integration stores or forwards the response |
 
+Flow actions always request the evaluation-only result mode. `Result JSON` therefore omits display
+messages, formatted values, and actions, regardless of the running user's diagnostics permission.
+An Apex caller that is building a user interface can explicitly request
+`EVALUATION_WITH_DISPLAY`; Flow automation should branch on the stable evaluation fields above.
+
 The overall Set status reflects the most serious contained result:
 
 ```text
@@ -261,8 +268,9 @@ returned to Flow. A successful Flow action does not prove that the receiving Flo
 integration completed.
 
 Record Health Check `ERROR` diagnostics are separate from these result events. The Check Set's
-default-on `PublishErrorLogEvent__c` controls `Record_Health_Check_Log__e`; uncheck it to opt out
-without disabling Salesforce debug logs.
+default-off `PublishErrorLogEvent__c` controls `Record_Health_Check_Log__e`; enable it only after
+assigning **Record Health Check Error Log Publisher** to the running identity. Leaving it off does
+not disable Salesforce debug logs.
 
 Receiving automation must tolerate repeated or replayed delivery. Use `EventId__c` so the same event
 does not create the same follow-up work twice. For the complete event fields and receiving-process

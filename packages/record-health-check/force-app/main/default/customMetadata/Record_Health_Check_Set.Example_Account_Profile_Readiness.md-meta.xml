@@ -26,7 +26,7 @@
     >SHOW_EACH_CHECK</value></values>
     <values><field>PublishErrorLogEvent__c</field><value
       xsi:type="xsd:boolean"
-    >true</value></values>
+    >false</value></values>
     <values><field>SkippedChecksDisplay__c</field><value
       xsi:type="xsd:string"
     >SHOW_EACH_CHECK</value></values>

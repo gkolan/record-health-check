@@ -11,6 +11,33 @@ private class RecordHealthCheckIntegrationCoverageTest {
   }
 
   @IsTest
+  static void oversizedCheckSetRetainsStableFlowLimitContract() {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Flow Check Set limit fixture'
+    );
+    RecordHealthCheckRunSetFlowAction.Request request = new RecordHealthCheckRunSetFlowAction.Request();
+    request.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Over_25_Checks'
+    );
+    request.recordId = accountRecord.Id;
+    request.eventPublication = 'NONE';
+
+    Test.startTest();
+    List<RecordHealthCheckRunSetFlowAction.Response> outputs = RecordHealthCheckRunSetFlowAction.runSet(
+      new List<RecordHealthCheckRunSetFlowAction.Request>{ request }
+    );
+    Test.stopTest();
+
+    Assert.isFalse(outputs[0].isSuccess, 'The oversized Set must be rejected.');
+    Assert.areEqual('LIMIT', outputs[0].errorType);
+    Assert.isTrue(
+      outputs[0].errorMessage.startsWith('FRAMEWORK_MAX_CHECKS_EXCEEDED:'),
+      'Flow must retain the stable framework limit code.'
+    );
+  }
+
+  @IsTest
   static void seederPhasesPersistExactTelemetry() {
     RHC_Benchmark_Result__c telemetry = RHCIntegrationTestDataFactory.benchmarkResult(
       new Map<String, Object>{
