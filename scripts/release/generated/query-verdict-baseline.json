@@ -1,820 +1,922 @@
 {
-  "inventorySha256": "b9497a0f8ff4ae09e0a5c1e9d8cbed1a17c415ef22b3042e6bde83591edef320",
+  "checkCount": 114,
+  "inventorySha256": "14b299e41b517ce2444138014b0932085e162e2b1d671322b3f4585411747f8d",
   "results": [
     {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
       "check": "Account_Active_Signed_Contract",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_Adv_AllOppsHaveAmount",
       "status": "SKIPPED"
     },
     {
+      "check": "Account_Adv_AllOppsHaveAmount",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_Adv_AnyOppAbove50k",
       "queryFields": [
         "ApplicabilityCountQuery__c",
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_Adv_AnyOppAbove50k",
       "status": "SKIPPED"
     },
     {
+      "check": "Account_Adv_BillingStateInContacts",
       "queryFields": [
         "ApplicabilityCountQuery__c",
         "ComparisonQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_Adv_BillingStateInContacts",
       "status": "SKIPPED"
     },
     {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
       "check": "Account_Adv_ContactHasEmail",
-      "status": "FAIL"
-    },
-    {
       "queryFields": [
         "SourceQuery__c"
       ],
+      "status": "FAIL"
+    },
+    {
       "check": "Account_Adv_HasContact",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
       "status": "FAIL"
     },
     {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
       "check": "Account_Adv_OppAboveRevenue",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c",
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_Agg_Avg",
       "status": "SKIPPED"
     },
     {
+      "check": "Account_Agg_Avg",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_Agg_Count",
       "queryFields": [
         "SourceQuery__c"
       ],
-      "check": "Account_Agg_Count",
       "status": "FAIL"
     },
     {
+      "check": "Account_Agg_CountDistinct",
       "queryFields": [
         "SourceQuery__c"
       ],
       "reasonCode": "INVALID_SOQL_TEMPLATE",
-      "check": "Account_Agg_CountDistinct",
       "status": "UNABLE_TO_EVALUATE"
     },
     {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
       "check": "Account_Agg_Max",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c",
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
       "check": "Account_Agg_Min",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c",
         "SourceQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
       "check": "Account_Agg_Sum",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
       "status": "SKIPPED"
     },
     {
-      "queryFields": [
-        "ApplicabilityCountQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
       "check": "Account_AppComp_Equals",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
       "check": "Account_AppComp_GreaterThan",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
       "check": "Account_AppComp_GreaterThanOrEqual",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
       "check": "Account_AppComp_LessThan",
-      "status": "FAIL"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
+      "status": "FAIL"
+    },
+    {
       "check": "Account_AppComp_LessThanOrEqual",
-      "status": "FAIL"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "FAIL"
+    },
+    {
       "check": "Account_AppComp_NotEquals",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_AvgVsMax",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_CountDistinctVsCount",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NO_ROWS_RETURNED",
-      "check": "Account_CTQ_ERB_UnableToEvaluate",
-      "status": "UNABLE_TO_EVALUATE"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_MinVsMaxCloseDate",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_SumVsAnnualRevenue",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_T7_ContactCityMatchesBilling",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "check": "Account_CTQ_T7_ContactVsOppCount",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_T9_ExactListMatch",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_T9_ListContainsAll",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_CTQ_T9_ListsOverlap",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_Consented_Reachable_Contact",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_Contacts_Have_Individual",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ComparisonQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_Country_Not_Restricted",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_DVF_Auto",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_DVF_Auto_Currency",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_DVF_CTQ_Currency",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "VALUE_IS_EMPTY",
-      "check": "Account_DVF_Currency",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_DVF_Date",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_DVF_Datetime",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "VALUE_IS_EMPTY",
-      "check": "Account_DVF_Number",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_DVF_Percent",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_DVF_Raw",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_DVF_Text",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_EU_AllContactsHaveEmail",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_EU_AllContactsHavePhone",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_EU_AllContactsHaveTitle",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_EU_AtLeastOneContactHasEmail",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_EU_HasAtLeastOneContact",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_EU_NoOpenCases",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_EU_NoOverdueOpenTasks",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_EU_NoPastDueOpenOpps",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_EU_NoUnreachableContacts",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Account_EU_OpenOppsFutureClose",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_EU_OwnerIsActive",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_No_Expired_Active_Contracts",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_QC_Contains",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_QC_DoesNotContain",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_ERB_Fail",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_ERB_Pass_NullNoMatch",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NO_ROWS_RETURNED",
-      "check": "Account_QC_ERB_UnableToEvaluate",
-      "status": "UNABLE_TO_EVALUATE"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_QC_Equals",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_GreaterThan",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_GreaterThanOrEqual",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_IsBlank",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_IsNotBlank",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_LessThan",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_LessThanOrEqual",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ComparisonQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_QC_ListContainsAny",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Account_QC_NotEquals",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_NullBehavior_TreatAsBlank",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "check": "Account_QC_QueryResult",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_Rel_HasContact",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Account_Rel_HasOpenOpp",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Account_Source_Not_Manually_Set",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Example_BillState_In_Contact_States",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "check": "Example_Contacts_Cover_Open_Cases",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Long_Found_Expected",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "check": "Example_CTQ_ContactVsOppCount",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_CTQ_ExactListMatch",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_CTQ_ListContainsAll",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_CTQ_ListsOverlap",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Q_AllOppsPositiveAmt",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Q_ContactStateVsBilling",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Contacts_Have_Email",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Executive_Sponsorship",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_No_High_Priority_Issues",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Open_Deals_Have_Contacts",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Example_Pipeline_Protects_Revenue",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Fewer_Than_Ten_Open_Cases",
-      "status": "PASS"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Has_At_Least_One_Contact",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Has_At_Least_Two_Contacts",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "check": "Example_Has_Closed_Won_Opportunity",
-      "status": "FAIL"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Has_High_Value_Open_Opportunity",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Has_Significant_Open_Opportunity",
-      "status": "SKIPPED"
-    },
-    {
-      "queryFields": [
-        "ApplicabilityCountQuery__c",
-        "ComparisonQuery__c",
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Oldest_City_Matches_Billing",
-      "status": "SKIPPED"
-    },
-    {
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
       "reasonCode": "NOT_APPLICABLE_BY_COUNT",
-      "check": "Example_Open_Opportunities_Are_Healthy",
       "status": "SKIPPED"
     },
     {
-      "queryFields": [
-        "SourceQuery__c"
-      ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Open_Opportunities_Have_Amount",
-      "status": "SKIPPED"
-    },
-    {
+      "check": "Account_CTQ_AvgVsMax",
       "queryFields": [
         "ApplicabilityCountQuery__c",
         "ComparisonQuery__c",
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Pipeline_Covers_Revenue",
       "status": "SKIPPED"
     },
     {
+      "check": "Account_CTQ_CountDistinctVsCount",
       "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Rating_Is_Not_Cold",
       "status": "SKIPPED"
     },
     {
+      "check": "Account_CTQ_ERB_UnableToEvaluate",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NO_ROWS_RETURNED",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_CTQ_MinVsMaxCloseDate",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_CTQ_SumVsAnnualRevenue",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_CTQ_T7_ContactCityMatchesBilling",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_CTQ_T7_ContactVsOppCount",
+      "queryFields": [
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_CTQ_T9_ExactListMatch",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_CTQ_T9_ListContainsAll",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_CTQ_T9_ListsOverlap",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_Consented_Reachable_Contact",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_Contacts_Have_Individual",
       "queryFields": [
         "SourceQuery__c"
       ],
-      "check": "Example_Rating_Is_Set",
+      "status": "PASS"
+    },
+    {
+      "check": "Account_Country_Not_Restricted",
+      "queryFields": [
+        "ComparisonQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_DVF_Auto",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
       "status": "FAIL"
     },
     {
+      "check": "Account_DVF_Auto_Currency",
       "queryFields": [
         "SourceQuery__c"
       ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_DVF_CTQ_Currency",
+      "queryFields": [
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Website_Does_Not_Use_Plain_HTTP",
       "status": "SKIPPED"
     },
     {
+      "check": "Account_DVF_Currency",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "VALUE_IS_EMPTY",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_DVF_Date",
       "queryFields": [
         "SourceQuery__c"
       ],
       "reasonCode": "APPLICABILITY_NOT_MET",
-      "check": "Example_Website_Uses_HTTPS",
       "status": "SKIPPED"
+    },
+    {
+      "check": "Account_DVF_Datetime",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_DVF_Number",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "VALUE_IS_EMPTY",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_DVF_Percent",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_DVF_Raw",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_DVF_Text",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_EU_AllContactsHaveEmail",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_EU_AllContactsHavePhone",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_EU_AllContactsHaveTitle",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_EU_AtLeastOneContactHasEmail",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_EU_HasAtLeastOneContact",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_EU_NoOpenCases",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_EU_NoOverdueOpenTasks",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_EU_NoPastDueOpenOpps",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_EU_NoUnreachableContacts",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_EU_OpenOppsFutureClose",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_EU_OwnerIsActive",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_No_Expired_Active_Contracts",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_QC_Contains",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_QC_DoesNotContain",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_QC_ERB_Fail",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_QC_ERB_Pass_NullNoMatch",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_QC_ERB_UnableToEvaluate",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NO_ROWS_RETURNED",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_QC_Equals",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_QC_GreaterThan",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_QC_GreaterThanOrEqual",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_QC_IsBlank",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_QC_IsNotBlank",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_QC_LessThan",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_QC_LessThanOrEqual",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_QC_ListContainsAny",
+      "queryFields": [
+        "ComparisonQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_QC_NotEquals",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Account_QC_NullBehavior_TreatAsBlank",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_QC_QueryResult",
+      "queryFields": [
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_Rel_HasContact",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_Rel_HasOpenOpp",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Example_Account_Owner_Active",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_Account_Source_Not_Manually_Set",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_BillState_In_Contact_States",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_CTQ_ContactVsOppCount",
+      "queryFields": [
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_CTQ_ExactListMatch",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_CTQ_ListContainsAll",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_CTQ_ListsOverlap",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Channel_Partner_Governance",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Contacts_Cover_Open_Cases",
+      "queryFields": [
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_Contacts_Have_Email",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_Executive_Sponsorship",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Example_Fewer_Than_Ten_Open_Cases",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_Has_At_Least_One_Contact",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Example_Has_At_Least_Two_Contacts",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Example_Has_Closed_Won_Opportunity",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Example_Has_High_Value_Open_Opportunity",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Has_Significant_Open_Opportunity",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Long_Found_Expected",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Example_No_High_Priority_Issues",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_Oldest_City_Matches_Billing",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Open_Deals_Have_Contacts",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Open_Opportunities_Are_Healthy",
+      "queryFields": [
+        "ApplicabilityCountQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Open_Opportunities_Have_Amount",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Pipeline_Covers_Revenue",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Pipeline_Protects_Revenue",
+      "queryFields": [
+        "ApplicabilityCountQuery__c",
+        "SourceQuery__c"
+      ],
+      "reasonCode": "NOT_APPLICABLE_BY_COUNT",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Q_AllOppsPositiveAmt",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Q_ContactStateVsBilling",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Example_Rating_Is_Not_Cold",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Rating_Is_Set",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Example_Website_Does_Not_Use_Plain_HTTP",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "Example_Website_Uses_HTTPS",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "RHC_Diag_Compare_Missing",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_SOQL_TEMPLATE",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Diag_Query_Bad_Token",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Diag_Query_Max_Rows",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "GOVERNOR_LIMIT_RISK",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Diag_Query_Missing_Field",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "FIELD_NOT_RESOLVED",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Diag_Query_Missing_Object",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "OBJECT_NOT_RESOLVED",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Diag_Query_System_Mode",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_SOQL_TEMPLATE",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Negative_For_Update",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_SOQL_TEMPLATE",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Negative_Missing_Field",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "FIELD_NOT_RESOLVED",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Negative_Missing_Object",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "OBJECT_NOT_RESOLVED",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Negative_Row_Cap",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "RHC_Negative_System_Mode",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_SOQL_TEMPLATE",
+      "status": "UNABLE_TO_EVALUATE"
     }
   ],
-  "checkCount": 101,
   "schemaVersion": 1,
-  "templateCount": 150
+  "templateCount": 173
 }

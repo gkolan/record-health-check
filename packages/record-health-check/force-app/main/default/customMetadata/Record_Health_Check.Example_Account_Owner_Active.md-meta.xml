@@ -74,17 +74,20 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This account"} is assigned to {!record.Owner.Name fallback="an inactive user"}, so customer commitments no longer have an active owner.</value>
+    >{!record.Name fallback="This account"} is not assigned to an active User owner, so customer commitments no longer have an accountable owner.</value>
     </values>
     <values>
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact {!record.Owner.Manager.Name fallback="your Salesforce administrator"} to confirm the replacement owner, preserve open commitments, and reassign {!record.Name fallback="the account"}.</value>
+    >Ask your Salesforce administrator to confirm the replacement owner, preserve open commitments, and reassign {!record.Name fallback="the account"}.</value>
     </values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
-    >Open {!record.Owner.Name fallback="inactive owner"}</value></values>
+    >Review account ownership</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >{!rhcCheck.checkTitle} could not evaluate the owner of {!record.Name fallback="this account"}. Verify access to the Account owner and User status, then retry.</value></values>

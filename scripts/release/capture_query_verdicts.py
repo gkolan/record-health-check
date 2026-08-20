@@ -25,7 +25,7 @@ DEFAULT_OUTPUT = ROOT / "scripts/release/generated/query-verdict-baseline.json"
 FIXTURE_SCRIPT = ROOT / "packages/record-health-check/integration-tests/scripts/query_verdict_fixture.apex"
 CHECK_LAUNCHERS = tuple(
     ROOT / f"packages/record-health-check/integration-tests/scripts/exhaustive_smoke_checks_{offset}.apex"
-    for offset in (0, 50, 100, 150)
+    for offset in (0, 50, 100, 150, 200)
 )
 
 
@@ -160,9 +160,9 @@ def main() -> int:
     inventory_bytes = INVENTORY.read_bytes()
     inventory = json.loads(inventory_bytes)
 
-    fields_by_check: dict[str, list[str]] = {}
+    fields_by_check: dict[str, set[str]] = {}
     for item in inventory:
-        fields_by_check.setdefault(item["check"], []).append(item["field"])
+        fields_by_check.setdefault(item["check"], set()).add(item["field"])
 
     smoke_by_check: dict[str, dict[str, object]] = {}
     prefix = f"{args.namespace}__" if args.namespace else ""

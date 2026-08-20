@@ -91,7 +91,8 @@ Target package version: **2.0.4**.
   advisory notifications and requires server re-evaluation for compliance-sensitive actions.
 - The packaged Account-owner example now uses a correlated Query Check against `User` instead of
   asking Formula evaluation to resolve User-only fields through polymorphic `Owner`; inactive,
-  missing, and Queue owners fail closed.
+  missing, and Queue owners fail closed. Its display guidance no longer reintroduces unsupported
+  polymorphic `Owner.Name` or `Owner.Manager.Name` paths.
 - The packaged Channel Partner Governance example now uses a correlated parent-count Query and a
   static display label, so non-applicable Accounts skip cleanly instead of becoming inconclusive
   while hydrating `ParentId` or `Parent.Name`.
@@ -148,6 +149,9 @@ Target package version: **2.0.4**.
   mixed units, unsafe aggregates, semi-join-only ISO filters, and fixed thresholds without an ISO
   basis fail closed. The framework still does not convert currencies. The complete packaged
   Person-versus-Business Account example matrix remains a separate live verification item.
+- The exhaustive query-verdict gate now launches its fifth 50-Check page. Its reviewed namespaced
+  baseline covers 114 query-bearing Checks and 173 query templates, including fail-closed diagnostic
+  fixtures and the corrected owner and channel-partner examples.
 
 ## [2.0.3] - 2026-08-11
 

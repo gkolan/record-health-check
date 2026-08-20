@@ -1,0 +1,13 @@
+List<Account> targets = [
+  SELECT Id
+  FROM Account
+  WHERE Name = 'RHC Query Verdict Fixture'
+];
+if (targets.size() != 1) {
+  throw new IllegalArgumentException(
+    'Run integration-tests/scripts/query_verdict_fixture.apex before the exhaustive smoke launchers.'
+  );
+}
+Account target = targets[0];
+List<Id> jobs = RecordHealthCheckExhaustiveSmoke.startChecks(target.Id, 200);
+System.debug(LoggingLevel.INFO, 'RHC_EXHAUSTIVE_CHECK_JOBS_200=' + jobs.size());
