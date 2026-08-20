@@ -63,6 +63,30 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
   }
 
   @IsTest
+  static void missingPrerequisiteBlocksFullCheckSetSelection() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'Missing prerequisite in full set'
+    );
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckScopeResultSupport()
+      .findPrerequisiteBlock(
+        buildCheckWithPrerequisite('Typo_Check'),
+        account.Id,
+        new Map<String, RecordHealthCheckResultItem>(),
+        true
+      );
+    Test.stopTest();
+
+    Assert.areEqual(RecordHealthCheckStatus.SKIPPED, result.status);
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.DEPENDENCY_NOT_IN_RUN,
+      result.reasonCode,
+      'A typo must fail closed during a full Check Set run.'
+    );
+  }
+
+  @IsTest
   static void everyNonPassingPrerequisiteStatusSkipsDependentCheck() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Non-Passing Prerequisite' }

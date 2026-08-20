@@ -19,7 +19,9 @@ import {
 import {
   detectDependencyCycles,
   normalizeResult,
-  parseAuraError
+  parseAuraError,
+  synthesizeResult,
+  toCompletionResult
 } from "../healthCheckModel";
 import {
   buildInactiveCheckStat,
@@ -752,6 +754,25 @@ describe("c-record-health-check — run orchestration", () => {
     expect(banner.textContent).toContain("run could not be completed");
   });
 
+  it("surfaces a per-check authorization failure without suggesting a retry", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ checks: [makeDefinitions().checks[0]] })
+    );
+    evaluateCheck.mockRejectedValueOnce({
+      status: 403,
+      body: { message: "You do not have access to the Apex class." }
+    });
+
+    await appendAndLoad(element);
+    await clickRun(element);
+
+    const row = element.shadowRoot.querySelector("li[aria-label]");
+    expect(row.textContent).toContain("don't have access");
+    expect(row.textContent).not.toContain("Please try again");
+    const completed = JSON.parse(completeRun.mock.calls[0][0].resultsJson);
+    expect(completed[0].evaluation.reasonCode).toBe("NOT_AUTHORIZED");
+  });
+
   afterEach(() => {
     if (element.isConnected) {
       document.body.removeChild(element);
@@ -796,6 +817,50 @@ describe("c-record-health-check — run orchestration", () => {
         })
       })
     );
+  });
+
+  it("keeps qualified names for synthesized completion results", () => {
+    const check = {
+      developerName: "Check_A",
+      qualifiedApiName: "rhc__Check_A",
+      label: "Check A",
+      priority: 10
+    };
+
+    const completed = toCompletionResult(
+      synthesizeResult(
+        check,
+        "ERROR",
+        "CLIENT_CALL_FAILED",
+        "The request failed."
+      ),
+      "001000000000001AAA"
+    );
+
+    expect(completed.evaluation.checkQualifiedApiName).toBe("rhc__Check_A");
+  });
+
+  it("maps the nested Apex expected-value label", () => {
+    const normalized = normalizeResult(
+      {
+        evaluation: {
+          checkQualifiedApiName: "rhc__Formula_Check",
+          recordId: "001000000000001AAA",
+          status: "FAIL",
+          expected: { storedValue: "Owner:User.IsActive" }
+        },
+        display: {
+          expectedDisplayValue: "Owner:User.IsActive",
+          expectedValueLabel: "Passes when"
+        }
+      },
+      {
+        developerName: "Formula_Check",
+        qualifiedApiName: "rhc__Formula_Check"
+      }
+    );
+
+    expect(normalized.expectedValueLabel).toBe("Passes when");
   });
 
   it("threads a correlation runId into both Apex calls", async () => {

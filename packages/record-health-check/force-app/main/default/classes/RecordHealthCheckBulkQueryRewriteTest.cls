@@ -51,6 +51,10 @@ private with sharing class RecordHealthCheckBulkQueryRewriteTest {
       'SELECT COUNT(Id) FROM Contact ORDER BY CreatedDate',
       'AccountId'
     );
+    String extendedGroup = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
+      'SELECT CurrencyIsoCode, SUM(Amount) total FROM Opportunity WHERE AccountId = {!record.Id} GROUP BY CurrencyIsoCode HAVING SUM(Amount) > 0 ORDER BY CurrencyIsoCode',
+      'AccountId'
+    );
     List<String> missingFields = RecordHealthCheckBulkQueryRewriter.selectedFields(
       'FROM Account'
     );
@@ -83,6 +87,68 @@ private with sharing class RecordHealthCheckBulkQueryRewriteTest {
       grouped.contains('GROUP BY AccountId ORDER BY'),
       'GROUP BY must be inserted before the existing outer tail clause.'
     );
+    Assert.isTrue(
+      extendedGroup.contains(
+        'GROUP BY CurrencyIsoCode, AccountId HAVING SUM(Amount) > 0 ORDER BY'
+      ),
+      'An existing GROUP BY must be extended before HAVING instead of duplicated.'
+    );
+    Assert.areEqual(
+      1,
+      extendedGroup.split('(?i)GROUP BY').size() - 1,
+      'The scope rewrite must emit exactly one GROUP BY clause.'
+    );
     Assert.areEqual(0, missingFields.size());
+  }
+
+  @IsTest
+  static void groupedRollupFailsClosed() {
+    try {
+      RecordHealthCheckBulkQueryRewriter.appendGroupBy(
+        'SELECT CurrencyIsoCode, SUM(Amount) FROM Opportunity GROUP BY ROLLUP(CurrencyIsoCode)',
+        'AccountId'
+      );
+      Assert.fail('ROLLUP cannot be safely extended for scope correlation.');
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual('UNSUPPORTED_BULK_QUERY_SHAPE', error.reasonCode);
+    }
+  }
+
+  @IsTest
+  static void scalarCurrencyQueryCarriesIsoEvidence() {
+    if (!UserInfo.isMultiCurrencyOrganization()) {
+      return;
+    }
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Currency evidence account'
+    );
+    RecordHealthCheckTestDataFactory.createOpportunity(
+      new Map<String, Object>{
+        'Name' => 'Currency evidence opportunity',
+        'AccountId' => accountRecord.Id,
+        'StageName' => 'Prospecting',
+        'CloseDate' => Date.today().addDays(30),
+        'Amount' => 100,
+        'CurrencyIsoCode' => UserInfo.getDefaultCurrency()
+      }
+    );
+
+    Test.startTest();
+    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id}',
+      new Map<Id, SObject>{ accountRecord.Id => accountRecord },
+      10
+    );
+    Test.stopTest();
+
+    Assert.isTrue(
+      result.executedSoql.contains('CurrencyIsoCode'),
+      'A scalar Currency query must inject ISO evidence into executed SOQL.'
+    );
+    Assert.areEqual(
+      UserInfo.getDefaultCurrency(),
+      result.rowsByRecordId.get(accountRecord.Id)[0].get('CurrencyIsoCode'),
+      'The returned row must retain the unit needed for a safe comparison.'
+    );
   }
 }

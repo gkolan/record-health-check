@@ -77,7 +77,7 @@ surfaces:
 
 It also executes all three bad Check Sets through the native Set action and the MCP REST adapter.
 That is 36 cross-surface fixture evaluations: 15 Check × 2 surfaces plus 3 Check Set × 2 surfaces.
-Every response must remain ERROR or UNABLE_TO_EVALUATE, set `success = false`, and include a
+Every response must remain ERROR or UNABLE_TO_EVALUATE, set `success = true`, and include a
 Diagnostic ID, category, summary, and recommended action. The Set cases additionally require a
 nonzero unable/system-error count. Run it with:
 
@@ -101,13 +101,14 @@ diagnostic fields. It also asserts that an inconclusive configured evaluation is
 from an adapter error: it retains `operation` and `status`, while authorization, validation, limit,
 and transport/execution failures use `errorType` and `errorMessage`.
 
-For the agent planner layer, replace the synthetic record IDs in
-`agentforce/Record_Health_Assistant-testing-center.yaml` with the Account created for the org, then
+For the agent planner layer, generate a runnable suite from
+`agentforce/Record_Health_Assistant-testing-center.yaml.template` with the Accounts created for the org; do
+not import the tracked synthetic-ID template directly. Then
 create and run the Testing Center suite:
 
 ```bash
 sf agent test create \
-  --spec integration-tests/agentforce/Record_Health_Assistant-testing-center.yaml \
+  --spec /tmp/record-health-testing-center.yaml \
   --api-name Record_Health_Assistant_War_Room \
   --target-org <alias> \
   --force-overwrite

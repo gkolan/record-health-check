@@ -81,7 +81,9 @@ The API names below are the field names used by Flow, Apex, and integrations.
 | --- | --- | --- | --- |
 | Event ID | `EventId__c` | Text(80), required | Unique ID generated for this event. Save it in a unique field to prevent duplicate follow-up work. |
 | Run ID | `RunId__c` | Text(120), required | ID shared by the Set Run event, its Check Result events, and the direct Flow or Apex response. |
-| Phase | `Phase__c` | Text(30), required | Always `COMPLETED` in the current contract. |
+| Phase | `Phase__c` | Text(30), required | Per-record events use `COMPLETED`; async job envelopes use `COMPLETED` or `FAILED`. |
+| Submitted Record Count | `SubmittedRecordCount__c` | Number(7,0) | Async job population; blank for per-record events. |
+| Processed Record Count | `ProcessedRecordCount__c` | Number(7,0) | Records completed before the async terminal envelope; blank for per-record events. |
 | Check Set Qualified API Name | `CheckSetQualifiedApiName__c` | Text(80), required | Exact Qualified API Name of the Check Set that ran, such as `My_Account_Checks` or an installed-package name such as `rhc__Account_Data_Quality`. |
 | Record ID | `RecordId__c` | Text(18) | Salesforce record summarized by this event. Record Health Check supplies it for current runs. |
 | Occurred At | `OccurredAt__c` | Date/Time, required | Date and time when Record Health Check created the event. |

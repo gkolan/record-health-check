@@ -73,7 +73,7 @@ or Flow before acting. Other supported sources publish directly from their Apex 
 
 | Setup label | API name | Type | Required/default | Meaning |
 | --- | --- | --- | --- | --- |
-| Event ID | `EventId__c` | Text(80) | Required; generated | Deterministic application-level key derived from Run ID, Check identity, and Record ID. |
+| Event ID | `EventId__c` | Text(80) | Required; generated | Unique application-level key for this publication. It retains a Run ID prefix but includes an internal nonce. |
 | Run ID | `RunId__c` | Text(120) | Required; supplied or generated | Correlates this result with its Check Set run, response, and Record Health Check logs. |
 | Check Set Qualified API Name | `CheckSetQualifiedApiName__c` | Text(80) | Required | Parent Check Set `QualifiedApiName`. |
 | Check Qualified API Name | `CheckQualifiedApiName__c` | Text(80) | Required | Finalized Check `QualifiedApiName`. |

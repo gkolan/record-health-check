@@ -322,7 +322,8 @@ public with sharing class RecordHealthCheckScopePipeline {
         RecordHealthCheckInternalResult prerequisiteBlock = resultSupport.findPrerequisiteBlock(
           check,
           recordId,
-          itemsByIdentity
+          itemsByIdentity,
+          context.fullCheckSetSelection
         );
         if (prerequisiteBlock != null) {
           internalByRecordId.put(recordId, prerequisiteBlock);
@@ -479,6 +480,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     public Boolean checkSetActive;
     public String objectApiName;
     public Boolean showDiagnostics;
+    public Boolean fullCheckSetSelection = false;
     public String executionOrigin;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
   }

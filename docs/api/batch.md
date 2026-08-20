@@ -124,7 +124,7 @@ Id jobId = rhc.RecordHealthCheckBatch.run(
 | --- | --- |
 | `checkSetApiName` | The Check Set Salesforce runs |
 | `accountIdsToCheck` | The exact Accounts Salesforce checks |
-| `ACTIONABLE` | Publish only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` |
+| `ACTIONABLE` | Publish only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` Check Results, plus a completed Check Set Run heartbeat for every scanned record |
 | `25` | Check no more than 25 Accounts in one Salesforce transaction |
 | `jobId` | The ID used to find this Batch job in **Setup → Apex Jobs** |
 

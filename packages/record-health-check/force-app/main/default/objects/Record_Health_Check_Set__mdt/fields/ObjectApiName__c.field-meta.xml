@@ -3,11 +3,11 @@
     <fullName>ObjectApiName__c</fullName>
     <label>Object</label>
     <description
-  >The API name of the object this Check Set runs on. Required. It must exactly match the object of the record page where you place the component, or the component shows nothing. Example: Account, Opportunity, or a custom object like SBQQ__Quote__c.</description>
+  >The API name of the object this Check Set runs on. Required. It must exactly match the object of the record page where you place the component, or the component shows an Object Mismatch setup error. Example: Account, Opportunity, or a custom object like SBQQ__Quote__c.</description>
     <type>Text</type>
     <length>80</length>
         <inlineHelpText
-  >Required. The object's API name, e.g. Account or Opportunity. Must match the record page exactly, or the component shows nothing.</inlineHelpText>
+  >Required. The object's API name, e.g. Account or Opportunity. Must match the record page exactly, or the card shows an Object Mismatch setup error.</inlineHelpText>
     <required>true</required>
     <unique>false</unique>
     <externalId>false</externalId>

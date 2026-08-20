@@ -48,6 +48,10 @@
         <apexClass>RecordHealthCheckScheduled</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <classAccesses>
+        <apexClass>RecordHealthCheckSetPicklist</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
     <customMetadataTypeAccesses>
         <enabled>true</enabled>
         <name>Record_Health_Check__mdt</name>

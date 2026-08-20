@@ -105,25 +105,31 @@ public with sharing class RecordHealthCheckFieldPlanner {
         true
       );
     }
-    // CompareTwoQueries: both sides are SOQL — merge tokens already handled above
     if (check.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
-      addFormulaFields(fields, objectType, check.ApplicabilityFormula__c, true);
-    }
-    // In an org with more than one currency, an amount is shown in the record's
-    // own currency, so the record has to carry it. Asked for whatever the Check's
-    // Display: Value Format says, because Auto may still resolve to Currency
-    // from the field's own definition. One standard field on a query that
-    // already selects the Check's fields.
-    fields.addAll(
-      shouldSelectCurrencyField(
-          multiCurrencyOrganizationOverride == null
-            ? UserInfo.isMultiCurrencyOrganization()
-            : multiCurrencyOrganizationOverride,
-          RecordHealthCheckDescribeCache.fieldMap(objectType).keySet()
+      if (
+        !RecordHealthCheckScopeResultSupport.isPersonAccountExclusionAutomaticallyMet(
+          objectType,
+          check.ApplicabilityFormula__c
         )
-        ? new Set<String>{ 'CurrencyIsoCode' }
-        : new Set<String>()
-    );
+      ) {
+        addFormulaFields(
+          fields,
+          objectType,
+          check.ApplicabilityFormula__c,
+          true
+        );
+      }
+    }
+    Boolean multiCurrency = multiCurrencyOrganizationOverride == null
+      ? UserInfo.isMultiCurrencyOrganization()
+      : multiCurrencyOrganizationOverride;
+    if (
+      multiCurrency &&
+      RecordHealthCheckDescribeCache.fieldMap(objectType)
+        .containsKey('CurrencyIsoCode')
+    ) {
+      fields.add('CurrencyIsoCode');
+    }
 
     FieldPlan result = new FieldPlan();
     result.selectedFields.addAll(fields);
@@ -137,13 +143,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
     verdictDependenciesTruncatedBeingPlanned = null;
     return result;
   }
-  private Boolean shouldSelectCurrencyField(
-    Boolean multiCurrencyOrganization,
-    Set<String> availableFields
-  ) {
-    return multiCurrencyOrganization &&
-      availableFields.contains('currencyisocode');
-  }
+
   private void addMergeFields(
     Set<String> fields,
     Schema.SObjectType objectType,

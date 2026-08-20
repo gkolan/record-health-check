@@ -9,9 +9,9 @@
  * of a blank card — with a dropdown of the active Check Sets that apply to the
  * record page's object.
  *
- * Each option displays the Check Set Master Label while storing its
- * QualifiedApiName. This keeps packaged and subscriber-owned records
- * unambiguous without exposing namespace prefixes in App Builder. App Builder
+ * Each option displays the Check Set Master Label and QualifiedApiName while
+ * storing its QualifiedApiName. This keeps packaged and subscriber-owned records
+ * unambiguous when labels are duplicated. App Builder
  * supplies the page's object through DesignTimePageContext.entityName, so the
  * list is scoped to Check Sets whose ObjectApiName__c matches. Runs at design
  * time as the admin building the page; custom-metadata SOQL is not
@@ -67,10 +67,10 @@ public with sharing class RecordHealthCheckSetPicklist extends VisualEditor.Dyna
     return checkSets;
   }
 
-  /** Displays Master Label while retaining QualifiedApiName as the stored value. */
+  /** Displays label and identity while retaining QualifiedApiName as the value. */
   private VisualEditor.DataRow row(Record_Health_Check_Set__mdt checkSet) {
     return new VisualEditor.DataRow(
-      checkSet.MasterLabel,
+      checkSet.MasterLabel + ' (' + checkSet.QualifiedApiName + ')',
       checkSet.QualifiedApiName
     );
   }

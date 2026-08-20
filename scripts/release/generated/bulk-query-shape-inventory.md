@@ -7,15 +7,15 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `specs/framework-contracts/04a-bulk-query-grammar.md`.
 
-**169 templates · 7 strategies · 0 unclassified**
+**173 templates · 7 strategies · 0 unclassified**
 
 ## Strategy totals
 
 | Strategy | Templates | How one scope-wide query is built |
 | --- | --- | --- |
 | `CHILD_DIRECT` | 113 | Group child rows by the lookup field that carried the token |
-| `SELF` | 32 | Query the evaluated records themselves; correlation column is Id |
-| `TOKEN_INDIRECT` | 12 | Collect distinct token values across the scope, query them once, map back |
+| `SELF` | 34 | Query the evaluated records themselves; correlation column is Id |
+| `TOKEN_INDIRECT` | 14 | Collect distinct token values across the scope, query them once, map back |
 | `CHILD_PATH` | 4 | Group child rows by the relationship path that carried the token |
 | `SCOPE_INVARIANT` | 4 | No record token; one query serves every record in the scope |
 | `ORDERED_PICK_IN_MEMORY` | 3 | ORDER BY + LIMIT 1 on another field; rank per record in Apex |
@@ -154,6 +154,7 @@ predicate to issue a single query.
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Diag_Query_Bad_Token` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Diag_Query_Missing_Object` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Negative_Missing_Object` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
+| `SELF` | force-app | `Example_Channel_Partner_Governance` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Account_CTQ_SumVsAnnualRevenue` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Account_CTQ_T7_ContactCityMatchesBilling` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Account_DVF_Auto` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
@@ -174,6 +175,7 @@ predicate to issue a single query.
 | `SELF` | integration-tests | `Example_CTQ_ExactListMatch` | `ApplicabilityCountQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_CTQ_ListContainsAll` | `ApplicabilityCountQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_CTQ_ListsOverlap` | `ApplicabilityCountQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | integration-tests | `Example_Channel_Partner_Governance` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Long_Found_Expected` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Oldest_City_Matches_Billing` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Pipeline_Covers_Revenue` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
@@ -186,6 +188,7 @@ predicate to issue a single query.
 | `SELF` | integration-tests | `RHC_Negative_For_Update` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_Missing_Field` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_System_Mode` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `TOKEN_INDIRECT` | force-app | `Example_Account_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_ERB_UnableToEvaluate` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_ERB_UnableToEvaluate` | `SourceQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_T9_ExactListMatch` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
@@ -195,6 +198,7 @@ predicate to issue a single query.
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_T9_ListsOverlap` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_T9_ListsOverlap` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_EU_OwnerIsActive` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
+| `TOKEN_INDIRECT` | integration-tests | `Example_Account_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ExactListMatch` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ListContainsAll` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ListsOverlap` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |

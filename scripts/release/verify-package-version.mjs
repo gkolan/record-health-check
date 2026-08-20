@@ -302,14 +302,20 @@ function runUpgradeGate(candidateId, alias, devHub, releases) {
   deploySubscriberHarness(alias);
 
   if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
-    run("sf", [
-      "apex",
-      "run",
-      "--target-org",
-      alias,
-      "--file",
-      `${paths.subscriberData}/setupDemoData.apex`
-    ]);
+    for (const script of [
+      "setupDemoUser.apex",
+      "setupDemoData.apex",
+      "deactivateDemoUser.apex"
+    ]) {
+      run("sf", [
+        "apex",
+        "run",
+        "--target-org",
+        alias,
+        "--file",
+        `${paths.subscriberData}/${script}`
+      ]);
+    }
   }
 
   console.log(`Upgrading ${alias} to candidate ${candidateId}...`);

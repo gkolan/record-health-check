@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Record Health Check Error Log Publisher</label>
+    <description
+  >Publish restricted Record Health Check Log Platform Events. Assign narrowly: Salesforce requires Read together with Create for Platform Event publishers.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Record_Health_Check_Log__e</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+</PermissionSet>

@@ -114,11 +114,11 @@ describe("Salesforce client", () => {
     ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
   });
 
-  it("accepts diagnostic failures returned by the Salesforce boundary", async () => {
+  it("accepts completed diagnostic results returned by the Salesforce boundary", async () => {
     const diagnostic = {
       contractVersion: "1.0",
       correlationId: "mcp-bad-apex",
-      success: false,
+      success: true,
       operation: "RUN_CHECK",
       status: "ERROR",
       reasonCode: "PLUGIN_THREW",

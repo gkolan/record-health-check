@@ -156,9 +156,9 @@ private with sharing class RecordHealthCheckScopePipelineTest {
         .withEventPublication(RecordHealthCheckEventPublication.ACTIONABLE)
     );
     Assert.areEqual(
-      0,
+      1,
       Limits.getDmlStatements() - beforeActionable,
-      'ACTIONABLE should publish nothing for an all-pass response.'
+      'A synchronous ACTIONABLE request should publish its Set Run heartbeat.'
     );
 
     Integer beforeAll = Limits.getDmlStatements();

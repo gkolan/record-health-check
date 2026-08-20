@@ -16,6 +16,7 @@ The package protects four separate areas:
 | --- | --- |
 | Starting a run | Requires the **Record Health Check Run** Custom Permission and access to the appropriate Apex entry point |
 | Reading Salesforce data | Package queries use `WITH USER_MODE` and package classes use `with sharing` |
+| Reading Check definitions | After Run authorization succeeds, packaged Custom Metadata definitions load in system mode; this does not grant access to business records or configuration editing |
 | Viewing troubleshooting detail | Requires both the Check Set setting and the diagnostics Custom Permission |
 | Publishing or receiving events | Requires Platform Event permissions and an explicit publication choice or setting |
 
@@ -27,8 +28,10 @@ by itself.
 
 | Installed Permission Set | What it provides | Assign it to |
 | --- | --- | --- |
-| **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to the Lightning, Apex, Flow, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for the Set Run and Check Result Platform Events | People and automation that run health checks but do not maintain configuration or view troubleshooting detail |
-| **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Everything required to run Checks, plus the diagnostics Custom Permission, Custom Metadata setup access, and access to `RecordHealthCheckMetadataValidator` | Administrators who create Checks, validate metadata, or investigate problems |
+| **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`) | Run Custom Permission and Lightning controller class only | People who only run the record-page card; this is the least-privilege default for interactive users |
+| **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to Lightning, Apex, Flow, Agentforce, REST, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for Set Run and Check Result events | Automation principals that use those broader entry points; not the default card-only assignment |
+| **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Runner access plus diagnostics, Custom Metadata type visibility, validation, and App Builder picklist access | Administrators who maintain or troubleshoot Checks; creating Custom Metadata also requires Salesforce Customize Application or equivalent access |
+| **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create) | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data |
 
 Do not assign the Admin Permission Set merely because a person needs to run a Check. Diagnostic
 detail can include formula text, SOQL text, and specific access problems.

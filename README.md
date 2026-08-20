@@ -88,13 +88,13 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 | Measure               | Details                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 2GP unlocked package  | `rhc` namespace                                                                                                          |
-| Apex                  | 206 classes, including 100 test classes · 99.60% namespaced package coverage · 99.53% subscriber-style floor             |
-| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 198 Jest tests · 99.04% line coverage · 92.58% branch coverage         |
+| Apex                  | 211 classes, including 103 test classes · 99.60% namespaced package coverage · 99.53% subscriber-style floor             |
+| LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 201 Jest tests · 99.04% line coverage · 92.56% branch coverage         |
 | Packaged examples     | 4 packaged Example Check Sets containing 21 Checks                                                                       |
-| Permission sets       | Record Health Check User and Record Health Check Admin                                                                   |
+| Permission sets       | Card User, User, Admin, and Error Log Publisher                                                                          |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                         |
 | Custom Metadata Types | Record Health Check Set (17 fields) and Record Health Check (44 fields)                                                  |
-| Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (16 fields) |
+| Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields) |
 | Documentation         | 101 maintained pages, including 19 documented Check examples                                                             |
 
 ## Contributing

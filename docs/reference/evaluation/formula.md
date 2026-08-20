@@ -57,13 +57,10 @@ zero.
   example, `What:Account.Name` is supported, while an Account-only field such as
   `What:Account.Industry` requires a Query or Apex Check; it is omitted from Formula record loading
   so one unsupported field cannot invalidate the shared scope query.
-- Whether a polymorphic relationship needs the colon segment or rejects it is decided by the
-  relationship's own schema, not by Record Health Check: `Owner:User.IsActive` is required on
-  objects where Owner can be more than one type (for example Lead, where Owner can be a User or a
-  Queue); the same colon syntax is rejected on objects where Owner can only ever be a User (for
-  example Account in most orgs), which instead need the plain `Owner.IsActive`. If one form
-  returns `UNABLE_TO_EVALUATE` with a message about specifying (or not specifying) an object type,
-  try the other form for that object.
+- Whether a polymorphic relationship needs the colon segment is decided by the relationship's
+  schema. For User-only fields on `Owner`, including Account ownership checks, use the explicit
+  `Owner:User.Field` form. Bare paths such as `Owner.IsActive`, `Owner.FirstName`, and
+  `Owner.LastName` are not portable and can return `FIELD_NOT_RESOLVED`.
 - `$User`, `$Profile`, `$Setup`, `$Permission`, and other global merge references are never treated
   as record fields; a formula that reads `$User.Id` never adds a bogus `User.Id` path to the record
   query.
@@ -90,8 +87,8 @@ non-User owners:
 
 | Pattern | Example | Queue/Group owner | Missing/inaccessible User |
 | --- | --- | --- | --- |
-| Formula `Owner:User.IsActive` (or `Owner.IsActive` where the object's Owner is never polymorphic) | `Example_Account_Owner_Active` | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason |
-| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
+| Formula `Owner:User.IsActive` | Custom Formula Check | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason |
+| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Example_Account_Owner_Active`, `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
 
 Both patterns are fail-closed in the sense that neither produces a false `PASS` for a non-User or
 inactive owner. They differ in **how** they fail: the Formula path reports "I could not determine

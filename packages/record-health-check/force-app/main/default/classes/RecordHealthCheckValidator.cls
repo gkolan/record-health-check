@@ -48,6 +48,7 @@ public with sharing class RecordHealthCheckValidator {
     APPLICABILITY_FORMULA_MISSING,
     APPLICABILITY_SOQL_MISSING,
     APPLICABILITY_SOQL_NOT_SINGLE_VALUE,
+    APPLICABILITY_SOQL_UNSUPPORTED_BULK_SHAPE,
     APPLICABILITY_OPERATOR_MISSING,
     APPLICABILITY_OPERATOR_INVALID,
     APPLICABILITY_THRESHOLD_MISSING,
@@ -59,6 +60,7 @@ public with sharing class RecordHealthCheckValidator {
     LIST_COMPARE_FIELD_MISSING,
     PRIMARY_QUERY_MISSING,
     PRIMARY_QUERY_FIELD_MISSING,
+    PRIMARY_QUERY_UNSUPPORTED_BULK_SHAPE,
     DUAL_OPERATOR_ON_SINGLE,
     OPERATOR_INVALID,
     OPERATOR_MISSING,
@@ -71,6 +73,7 @@ public with sharing class RecordHealthCheckValidator {
     RECORD_FORMULA_MISSING,
     ANOTHER_QUERY_MISSING,
     ANOTHER_QUERY_FIELD_MISSING,
+    COMPARISON_QUERY_UNSUPPORTED_BULK_SHAPE,
     CURRENCY_AGGREGATE_NOT_GROUPED,
     FIXED_CURRENCY_BASIS_MISSING,
     // Compare two queries
@@ -158,6 +161,8 @@ public with sharing class RecordHealthCheckValidator {
         )
       ) {
         out.add(f(FindingCode.APPLICABILITY_SOQL_NOT_SINGLE_VALUE));
+      } else if (!isSupportedBulkShape(check.ApplicabilityCountQuery__c)) {
+        out.add(f(FindingCode.APPLICABILITY_SOQL_UNSUPPORTED_BULK_SHAPE));
       }
       if (String.isBlank(check.ApplicabilityCountOperator__c)) {
         out.add(f(FindingCode.APPLICABILITY_OPERATOR_MISSING));
@@ -235,6 +240,8 @@ public with sharing class RecordHealthCheckValidator {
     } else {
       if (String.isBlank(check.SourceQuery__c)) {
         out.add(f(FindingCode.PRIMARY_QUERY_MISSING));
+      } else if (!isSupportedBulkShape(check.SourceQuery__c)) {
+        out.add(f(FindingCode.PRIMARY_QUERY_UNSUPPORTED_BULK_SHAPE));
       }
       if (
         String.isNotBlank(check.SourceQuery__c) &&
@@ -298,6 +305,11 @@ public with sharing class RecordHealthCheckValidator {
       String.isBlank(check.ComparisonQuery__c)
     ) {
       out.add(f(FindingCode.ANOTHER_QUERY_MISSING));
+    } else if (
+      check.ExpectedValueSource__c == 'COMPARISON_QUERY' &&
+      !isSupportedBulkShape(check.ComparisonQuery__c)
+    ) {
+      out.add(f(FindingCode.COMPARISON_QUERY_UNSUPPORTED_BULK_SHAPE));
     }
     if (
       check.ExpectedValueSource__c == 'COMPARISON_QUERY' &&
@@ -323,9 +335,13 @@ public with sharing class RecordHealthCheckValidator {
 
     if (String.isBlank(check.SourceQuery__c)) {
       out.add(f(FindingCode.DUAL_PRIMARY_QUERY_MISSING));
+    } else if (!isSupportedBulkShape(check.SourceQuery__c)) {
+      out.add(f(FindingCode.PRIMARY_QUERY_UNSUPPORTED_BULK_SHAPE));
     }
     if (String.isBlank(check.ComparisonQuery__c)) {
       out.add(f(FindingCode.DUAL_COMPARE_QUERY_MISSING));
+    } else if (!isSupportedBulkShape(check.ComparisonQuery__c)) {
+      out.add(f(FindingCode.COMPARISON_QUERY_UNSUPPORTED_BULK_SHAPE));
     }
     if (
       String.isNotBlank(check.SourceQuery__c) &&
@@ -384,6 +400,10 @@ public with sharing class RecordHealthCheckValidator {
   }
 
   // ─── Cross-type producers ─────────────────────────────────────────────────
+
+  private static Boolean isSupportedBulkShape(String soql) {
+    return RecordHealthCheckBulkQuerySupport.isSupportedShape(soql);
+  }
 
   public static List<Finding> maxRowsFindings(Record_Health_Check__mdt check) {
     List<Finding> out = new List<Finding>();

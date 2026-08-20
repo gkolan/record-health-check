@@ -80,10 +80,9 @@ public with sharing class RecordHealthCheckConfigValidator {
       return false;
     }
     try {
-      Type pluginType = Type.forName(className);
-      if (pluginType == null) {
-        return false;
-      }
+      Type pluginType = RecordHealthCheckApexPluginResolver.configuredType(
+        className
+      );
       RecordHealthCheckPlugin instance = RecordHealthCheckPluginDispatch.instantiate(
         pluginType
       );

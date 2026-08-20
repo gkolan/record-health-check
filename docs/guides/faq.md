@@ -96,10 +96,9 @@ can read. Record Health Check does not give the user additional access. See
 
 Formula Pass Conditions are re-evaluated against the queried record, not read from the page's
 stored formula-field value. If your formula depends on a polymorphic relationship such as Owner
-(for example a custom field defined as `Owner:User.IsActive`, or a Pass Condition of
-`Owner.IsActive` directly), make sure the colon syntax matches what that object's schema requires:
-`Owner:User.IsActive` on objects where Owner can be more than one type (Lead), or plain
-`Owner.IsActive` on objects where Owner is only ever a User (Account in most orgs). See
+(for example a custom field defined as `Owner:User.IsActive`), use the explicit polymorphic type
+for User-only fields: `Owner:User.IsActive`. Bare `Owner.IsActive` is not portable and can be
+reported as `FIELD_NOT_RESOLVED`. See
 [polymorphic relationships](../reference/evaluation/formula.md#formula-context-and-syntax) in the
 Formula reference. If access is the problem instead, confirm the running user's field-level
 security includes both the custom field and the fields it depends on.
@@ -109,7 +108,7 @@ security includes both the custom field and the fields it depends on.
 Two supported patterns answer "is the owner an active User," and they fail differently for a
 non-User or otherwise-imperfect owner:
 
-- A **Formula** Pass Condition (`Owner:User.IsActive` or `Owner.IsActive`) reports
+- A **Formula** Pass Condition (`Owner:User.IsActive`) reports
   `UNABLE_TO_EVALUATE` for a Queue/Group owner or a missing User, because FormulaEval genuinely
   cannot resolve a User-only path against a non-User owner, and a null result never becomes `FAIL`.
 - The **QUERY** pattern (`SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true`)

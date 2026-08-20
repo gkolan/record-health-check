@@ -27,6 +27,15 @@ public with sharing class RecordHealthCheckComparisonEngine {
     if (operator == 'NOT_EQUALS') {
       return !valuesEqual(primary, comparison);
     }
+    if (
+      (operator == 'CONTAINS' || operator == 'DOES_NOT_CONTAIN') &&
+      (!(primary instanceof String) || !(comparison instanceof String))
+    ) {
+      throw new RecordHealthCheckEvaluatorException(
+        'INCOMPATIBLE_COMPARISON_TYPES',
+        'Contains text operators require text values on both sides.'
+      );
+    }
     if (operator == 'CONTAINS') {
       return pStr.contains(cStr);
     }

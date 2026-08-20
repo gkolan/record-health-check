@@ -116,9 +116,7 @@ public with sharing class RecordHealthCheckRunSetAgentAction {
         request
       );
       Response output = baseResponse(evaluation.runId);
-      output.success =
-        evaluation.summary.systemError == 0 &&
-        evaluation.summary.unable == 0;
+      output.success = true;
       output.operation = OPERATION;
       output.status = RecordHealthCheckFlowSupport.overallStatus(
         evaluation.summary

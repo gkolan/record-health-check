@@ -54,7 +54,7 @@ String checkSetApiName = 'My_Account_Checks';
 rhc.RecordHealthCheckRequest request = rhc.RecordHealthCheckRequest.forCheckSet(
   checkSetApiName,
   accountIds
-).withRunId('nightly-' + Date.today());
+).withRunId('nightly-' + System.now().formatGMT('yyyyMMdd-HHmmss-SSS'));
 
 rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(request);
 Set<Id> recordsNeedingAttention = new Set<Id>();

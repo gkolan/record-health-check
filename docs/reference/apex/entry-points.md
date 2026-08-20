@@ -99,6 +99,21 @@ and the complete response as JSON.
 
 **See also:** [Flow actions](../../integration/flow-actions.md)
 
+### `RecordHealthCheckValidateMetadataAction`
+
+**Role:** Validate Record Health Check configuration from an administrator Flow.
+
+**Type:** Invocable Flow action · `global with sharing`
+
+The installed **Validate Record Health Check Configuration** action audits every Check Set and
+Check, including inactive drafts. It returns whether the configuration is valid, error and warning
+counts, and a JSON report that identifies each component, field, reason code, and message.
+
+**Notable behavior:**
+
+- The action uses the same query-shape, required-field, and dependency validators as runtime.
+- Add it to an administrator-only Flow and correct every error before activation.
+
 ### `RecordHealthCheckRunCheckAgentAction`
 
 **Role:** Run one exact Check for one record as a native Agentforce action.
@@ -184,6 +199,25 @@ each EventBus call and logs a publication failure without failing the health che
   a loop.
 
 **See also:** [Lifecycle events](../../integration/lifecycle-events.md)
+
+### `RecordHealthCheckEventId`
+
+**Role:** Generate unique, bounded application identifiers for lifecycle-event publications.
+
+**Type:** Utility class · `public with sharing`
+
+`newId(runId, eventIdentity)` preserves up to 50 characters of the caller-owned Run ID as an
+operational prefix and hashes the run, event identity, current time, a cryptographic random value,
+and a transaction-local sequence into a 16-character suffix. Separate publications therefore have
+different `EventId__c` values even when a caller deliberately reuses the same Run ID. A replay of
+the same Platform Event retains its original ID, so subscriber deduplication remains safe.
+
+**Notable behavior:**
+
+- **Important:** `RunId__c` remains the correlation key; it is not an event-uniqueness key.
+- Generated IDs are at most 67 characters and fit the event contract's Text(80) field.
+
+**See also:** [Check Result events](../../platform-events/check-result.md)
 
 ### `RecordHealthCheckRunContext`
 

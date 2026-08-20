@@ -107,7 +107,8 @@ coverage. Each scenario must record actual result, evidence path or job ID, and 
 | AF-08 | P0  | Compare Testing Center result with direct native action for same fixture                     | Topic/action and final semantic status agree; planner prose does not contradict structured output. |
 
 The executable planner suite is
-`agentforce/Record_Health_Assistant-testing-center.yaml`. It covers happy paths, clarification,
+the runnable file generated from `agentforce/Record_Health_Assistant-testing-center.yaml.template`.
+It covers happy paths, clarification,
 namespace discipline, least privilege, status meaning, prompt injection, secret requests, repeated
 invocation, changed context, and explicit adapter-error interpretation.
 

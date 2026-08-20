@@ -40,9 +40,9 @@ private class RecordHealthCheckSetPicklistTest {
         LIMIT 1
       ];
       Assert.areEqual(
-        expectedSet.MasterLabel,
+        expectedSet.MasterLabel + ' (' + expectedSet.QualifiedApiName + ')',
         defaultValue.getLabel(),
-        'App Builder should display the Check Set Master Label'
+        'App Builder should distinguish duplicate labels with qualified identity'
       );
       Assert.areEqual(
         expectedSet.QualifiedApiName,

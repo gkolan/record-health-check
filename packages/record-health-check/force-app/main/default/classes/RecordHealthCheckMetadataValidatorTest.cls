@@ -6,6 +6,40 @@
 @IsTest
 private class RecordHealthCheckMetadataValidatorTest {
   @IsTest
+  static void metadataValidatorRejectsUnsupportedBulkShape() {
+    Id checkSetId = Id.valueOf('m00' + '000000000099');
+    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+      new Map<String, Object>{
+        'DeveloperName' => String.valueOf(checkSetId),
+        'ObjectApiName__c' => 'Account',
+        'CardTitle__c' => 'Bulk validation'
+      }
+    );
+    Record_Health_Check__mdt check = queryCheck('Unsupported_Bulk_Shape');
+    check.Record_Health_Check_Set__c = checkSetId;
+    check.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId != {!record.Id}';
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new RecordHealthCheckMetadataValidator()
+      .validateRecords(
+        new List<Record_Health_Check_Set__mdt>{ checkSet },
+        new List<Record_Health_Check__mdt>{ check }
+      );
+
+    Boolean found = false;
+    for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
+      found =
+        found ||
+        (issue.componentName == 'Unsupported_Bulk_Shape' &&
+        issue.fieldName == 'SourceQuery__c' &&
+        issue.reasonCode == 'UNSUPPORTED_BULK_QUERY_SHAPE');
+    }
+    Assert.isTrue(
+      found,
+      'The metadata audit must use the runtime bulk grammar.'
+    );
+  }
+
+  @IsTest
   static void validateRejectsUnrecognizedComparisonDisplay() {
     Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
       new Map<String, Object>{

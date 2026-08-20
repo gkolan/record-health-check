@@ -58,21 +58,26 @@ private class RHCSubscriberSmokeTest {
     );
   }
 
-  /*
-   * Deliberately not asserted here: the runner entitlement cannot be exercised
-   * from a subscriber Apex test.
-   *
-   * rhc.RecordHealthCheckAccess.canRunChecks() short-circuits to true whenever
-   * Test.isRunningTest() is true, so System.runAs(userWithoutPermission) never
-   * reaches the NOT_AUTHORIZED path — evaluate() proceeds and fails later on a
-   * Custom Metadata read the user cannot perform, which reports as a
-   * QueryException rather than an authorization error.
-   *
-   * The package exposes a runPermissionOverride hook for this, but it is
-   * @TestVisible private, so only tests inside the package can set it.
-   * Verify the entitlement through a real (non-test) session instead: assign
-   * or remove rhc__Record_Health_Check_User and load the record page.
-   */
+  @IsTest
+  static void unmanagedSubscriberPluginResolvesAcrossNamespaceBoundary() {
+    String checkSetName = RHCSubscriberTestDataFactory.qualifiedCheckSetName(
+      'Subscriber_Smoke_Extension'
+    );
+    Account accountRecord = RHCSubscriberTestDataFactory.createAccount(
+      'Subscriber Plugin Smoke Account'
+    );
+
+    rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
+      rhc.RecordHealthCheckRequest.forCheckSet(checkSetName, accountRecord.Id)
+    );
+
+    System.assertEquals(1, response.results.size());
+    System.assertEquals('PASS', response.results[0].evaluation.status);
+    System.assertEquals(
+      'SUBSCRIBER_PLUGIN_PASS',
+      response.results[0].evaluation.reasonCode
+    );
+  }
 
   @IsTest
   static void subscriberOwnedConfigurationCoexistsWithPackagedSets() {

@@ -179,6 +179,7 @@ global with sharing class RecordHealthCheckAgentRestResource {
         ? checkResponse(evaluation)
         : checkSetResponse(evaluation);
       response.statusCode = 200;
+      writeResponseBody(response, output);
       return output;
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       return errorResponse(
@@ -248,9 +249,7 @@ global with sharing class RecordHealthCheckAgentRestResource {
     }
     RecordHealthCheckEvaluationResult result = evaluation.results[0].evaluation;
     AgentToolResponse output = baseResponse(evaluation.runId);
-    output.success =
-      result.status != RecordHealthCheckStatus.ERROR &&
-      result.status != RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+    output.success = true;
     output.operation = RUN_CHECK;
     output.status = result.status;
     output.reasonCode = result.reasonCode;
@@ -265,9 +264,7 @@ global with sharing class RecordHealthCheckAgentRestResource {
       throw new AgentRestException(EXECUTION_MESSAGE);
     }
     AgentToolResponse output = baseResponse(evaluation.runId);
-    output.success =
-      evaluation.summary.systemError == 0 &&
-      evaluation.summary.unable == 0;
+    output.success = true;
     output.operation = RUN_CHECK_SET;
     output.status = RecordHealthCheckFlowSupport.overallStatus(
       evaluation.summary
@@ -308,7 +305,15 @@ global with sharing class RecordHealthCheckAgentRestResource {
     output.success = false;
     output.errorType = errorType;
     output.errorMessage = errorMessage;
+    writeResponseBody(response, output);
     return output;
+  }
+
+  private static void writeResponseBody(
+    RestResponse response,
+    AgentToolResponse output
+  ) {
+    response.responseBody = Blob.valueOf(JSON.serialize(output, true));
   }
 
   private static AgentToolResponse baseResponse(String correlationId) {

@@ -28,8 +28,9 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
 
 - `agentforce/war-room-test-plan.md`: cross-layer MCP and Agentforce release, adversarial, failure,
   observability, and rollback matrix with P0/P1/P2 exit criteria
-- `agentforce/Record_Health_Assistant-testing-center.yaml`: executable Agentforce Testing Center
-  behavior suite; replace its synthetic record IDs with per-run fixtures before execution
+- `agentforce/Record_Health_Assistant-testing-center.yaml.template`: non-importable source template for the
+  Agentforce Testing Center behavior suite. Generate a runnable copy with
+  `npm run generate:agentforce-testing-center -- --record-id <real-account-id> --second-record-id <real-account-id> --output /tmp/record-health-testing-center.yaml`; the generator rejects synthetic IDs and existing output files.
 - `agentforce/record-health-agent-spec.md`: reviewable Agent Spec source draft; it is not generated
   or deployed without the explicit approval required by the Agentforce generation workflow
 - Sample Check Sets and Checks, including a retained copy of the four `Example_` Check Sets

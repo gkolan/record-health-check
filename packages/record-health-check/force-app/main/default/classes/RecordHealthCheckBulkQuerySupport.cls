@@ -176,6 +176,25 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       );
     }
 
+    if (RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()) {
+      for (
+        String selectedField : RecordHealthCheckBulkQueryRewriter.selectedFields(
+          scopeSoql
+        )
+      ) {
+        String isoField = RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
+          scopeSoql,
+          selectedField
+        );
+        if (String.isNotBlank(isoField)) {
+          scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
+            scopeSoql,
+            isoField
+          );
+        }
+      }
+    }
+
     String prepared;
     try {
       prepared = RecordHealthCheckSoqlTemplate.prepareForExecution(
@@ -299,6 +318,13 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       return INDIRECT_REFERENCE;
     }
     return correlation.fieldPath.contains('.') ? CHILD_PATH : CHILD_DIRECT;
+  }
+
+  /** Returns whether the runtime can safely rewrite the template once for a record scope. */
+  public static Boolean isSupportedShape(String soql) {
+    return String.isNotBlank(soql) &&
+      countTokens(soql) <= 1 &&
+      classify(soql) != UNCLASSIFIED;
   }
 
   private static Integer countTokens(String soql) {

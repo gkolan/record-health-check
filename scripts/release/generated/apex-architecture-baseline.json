@@ -117,10 +117,7 @@
     }
   },
   "testRuntimeBranches": {
-    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAccess.cls": {
-      "maximum": 1,
-      "category": "deterministic authorization test default"
-    }
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAccess.cls": 1
   },
   "systemDebug": {
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckLogger.cls": 6,

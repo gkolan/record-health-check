@@ -110,9 +110,7 @@ public with sharing class RecordHealthCheckRunCheckAgentAction {
       RecordHealthCheckEvaluationResult result = evaluation.results[0]
         ?.evaluation;
       Response output = baseResponse(evaluation.runId);
-      output.success =
-        result.status != RecordHealthCheckStatus.ERROR &&
-        result.status != RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+      output.success = true;
       output.operation = OPERATION;
       output.status = result.status;
       output.reasonCode = result.reasonCode;

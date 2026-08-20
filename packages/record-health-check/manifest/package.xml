@@ -157,10 +157,14 @@
         <members>Record_Health_Check_Set_Run__e.OccurredAt__c</members>
         <members>Record_Health_Check_Set_Run__e.PassedCount__c</members>
         <members>Record_Health_Check_Set_Run__e.Phase__c</members>
+        <members
+    >Record_Health_Check_Set_Run__e.ProcessedRecordCount__c</members>
         <members>Record_Health_Check_Set_Run__e.RecordId__c</members>
         <members>Record_Health_Check_Set_Run__e.RunId__c</members>
         <members>Record_Health_Check_Set_Run__e.SkippedCount__c</members>
         <members>Record_Health_Check_Set_Run__e.Source__c</members>
+        <members
+    >Record_Health_Check_Set_Run__e.SubmittedRecordCount__c</members>
         <members>Record_Health_Check_Set_Run__e.SystemErrorCount__c</members>
         <members>Record_Health_Check_Set_Run__e.UnableCount__c</members>
         <name>CustomField</name>
@@ -176,7 +180,9 @@
         <members>RHCRowLimitOutcomeTest</members>
         <members>RHCRowLimitTestDataFactory</members>
         <members>RecordHealthCheck</members>
+        <members>RHCValidateMetadataActionTest</members>
         <members>RecordHealthCheckAccess</members>
+        <members>RecordHealthCheckAccessTest</members>
         <members>RecordHealthCheckAsyncTest</members>
         <members>RecordHealthCheckApexAdapterTest</members>
         <members>RecordHealthCheckConstructorFailureCheck</members>
@@ -270,6 +276,8 @@
         <members>RecordHealthCheckValueSource</members>
         <members>RecordHealthCheckInternalResult</members>
         <members>RecordHealthCheckIncidentRecorder</members>
+        <members>RecordHealthCheckEventId</members>
+        <members>RecordHealthCheckEventIdTest</members>
         <members>RecordHealthCheckEventPublication</members>
         <members>RecordHealthCheckEvaluationResult</members>
         <members>RecordHealthCheckExecutionOrigin</members>
@@ -318,6 +326,7 @@
         <members>RecordHealthCheckRunSetFlowAction</members>
         <members>RecordHealthCheck</members>
         <members>RecordHealthCheckValidator</members>
+        <members>RecordHealthCheckValidateMetadataAction</members>
         <members>RecordHealthCheckSetAvailability</members>
         <members>RecordHealthCheckSetPicklist</members>
         <members>RecordHealthCheckSoqlEvaluator</members>
@@ -386,6 +395,8 @@
     </types>
     <types>
         <members>Record_Health_Check_Admin</members>
+        <members>Record_Health_Check_Card_User</members>
+        <members>Record_Health_Check_Error_Log_Publisher</members>
         <members>Record_Health_Check_User</members>
         <name>PermissionSet</name>
     </types>

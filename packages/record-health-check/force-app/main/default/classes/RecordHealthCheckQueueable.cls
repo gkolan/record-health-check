@@ -56,6 +56,16 @@ global with sharing class RecordHealthCheckQueueable implements Queueable, Final
     Id asyncApexJobId,
     Exception exceptionValue
   ) {
+    Boolean succeeded = result == ParentJobResult.SUCCESS;
+    RecordHealthCheckLifecyclePublisher.publishAsyncJobTerminal(
+      'queue-' + asyncApexJobId,
+      checkSetQualifiedApiName,
+      RecordHealthCheckLifecyclePublisher.SOURCE_QUEUEABLE,
+      publication,
+      succeeded,
+      recordIds.size(),
+      succeeded ? recordIds.size() : 0
+    );
     if (result == ParentJobResult.UNHANDLED_EXCEPTION) {
       RecordHealthCheckLogger.log(
         RecordHealthCheckLogger.Level.ERROR,
@@ -130,6 +140,8 @@ global with sharing class RecordHealthCheckQueueable implements Queueable, Final
     );
     normalizedIds.sort();
     String canonicalRequest =
+      String.valueOf(UserInfo.getUserId()) +
+      '|' +
       String.valueOf(checkSetQualifiedApiName).trim().toLowerCase() +
       '|' +
       publicationToken(publication) +

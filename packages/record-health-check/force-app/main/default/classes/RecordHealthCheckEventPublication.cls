@@ -15,9 +15,9 @@ global enum RecordHealthCheckEventPublication {
   /** Publish nothing, whatever the metadata says. The default. */
   NONE,
   /**
-   * Publish only outcomes that need attention: FAIL, UNABLE_TO_EVALUATE, ERROR.
-   * Filtering happens before the configuration lookup, so an all-pass scan
-   * costs no extra queries.
+   * Publish only Check outcomes that need attention: FAIL,
+   * UNABLE_TO_EVALUATE, ERROR. A completed Check Set Run heartbeat is still
+   * published for every record so an all-pass or all-skipped scan is visible.
    */
   ACTIONABLE,
   /** Publish every result. */

@@ -21,8 +21,12 @@ org must not publish these technical details for that Check Set. Clearing it doe
 Salesforce debug logs.
 
 The installed **Record Health Check User** and **Record Health Check Admin** Permission Sets do not
-provide access to this event. Grant access separately and only to the users or integration that must
-receive restricted errors.
+provide access to this event. Assign the packaged **Record Health Check Error Log Publisher**
+Permission Set narrowly to each running user whose Check Sets keep this setting enabled. It grants
+Create and the Read permission Salesforce requires with Platform Event Create, so treat every
+assignee as authorized for restricted error data. Grant subscriber automation access separately and
+only where needed. Without publisher access, Salesforce rejects the publish operation and no Log
+event is emitted.
 
 Define all of these controls before creating automation:
 

@@ -11,12 +11,13 @@
  *   25
  * );
  */
-global with sharing class RecordHealthCheckBatch implements Database.Batchable<Id> {
+global with sharing class RecordHealthCheckBatch implements Database.Batchable<Id>, Database.Stateful {
   /** Packaged execute-scope size, below the engine's 200-record public ceiling. */
   global static final Integer DEFAULT_SCOPE_SIZE = 100;
   private String checkSetQualifiedApiName;
   private List<Id> recordIds;
   private RecordHealthCheckEventPublication publication;
+  private Integer processedRecordCount = 0;
 
   /**
    * Creates a batch over an explicit, defensively copied record population.
@@ -79,6 +80,7 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
           .withEventPublication(publication)
           .withRunId('batch-' + context.getJobId())
       );
+      processedRecordCount += scope.size();
     } catch (Exception error) {
       RecordHealthCheckLogger.log(
         RecordHealthCheckLogger.Level.ERROR,
@@ -96,13 +98,34 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
   }
 
   /**
-   * Completes without a second evaluation, result aggregation, or chained transaction.
-   * Results must be consumed during execute or through explicitly requested lifecycle events.
+   * Publishes one requested job-level terminal envelope without re-evaluating records.
    *
    * @param context Platform context for the completed Batch job.
    */
   global void finish(Database.BatchableContext context) {
-    return;
+    Id jobId = context == null ? null : context.getJobId();
+    Integer numberOfErrors = 0;
+    if (jobId != null) {
+      List<AsyncApexJob> jobs = [
+        SELECT NumberOfErrors
+        FROM AsyncApexJob
+        WHERE Id = :jobId
+        LIMIT 1
+      ];
+      numberOfErrors = jobs.isEmpty() ? 0 : jobs[0].NumberOfErrors;
+    }
+    Boolean succeeded =
+      numberOfErrors == 0 &&
+      processedRecordCount == recordIds.size();
+    RecordHealthCheckLifecyclePublisher.publishAsyncJobTerminal(
+      jobId == null ? 'batch-test' : 'batch-' + jobId,
+      checkSetQualifiedApiName,
+      RecordHealthCheckLifecyclePublisher.SOURCE_BATCH,
+      publication,
+      succeeded,
+      recordIds.size(),
+      processedRecordCount
+    );
   }
 
   /**

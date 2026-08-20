@@ -57,6 +57,36 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
   }
 
   @IsTest
+  static void asyncRequestsDropIdsForOtherObjects() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+    Id contactId = RecordHealthCheckTestDataFactory.syntheticId(
+      Contact.SObjectType,
+      1
+    );
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
+
+    Test.startTest();
+    RecordHealthCheckAsyncSupport.RequestState state = RecordHealthCheckAsyncSupport.requestState(
+      checkSetName,
+      new List<Id>{ accountId, contactId },
+      RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE,
+      'Test population'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      new List<Id>{ accountId },
+      state.recordIds,
+      'A wrong-object ID must not abort the valid part of an async scope.'
+    );
+  }
+
+  @IsTest
   static void duplicateQueueableIsRejectedButDifferentPublicationIsAccepted() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Duplicate Queueable defense'
@@ -117,6 +147,47 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
     Assert.isNotNull(
       jobId,
       'ALL publication must produce a valid queued request.'
+    );
+  }
+
+  @IsTest
+  static void equivalentQueueableRequestsAreScopedPerSubmittingUser() {
+    User otherUser = RecordHealthCheckPersonaTestDataFactory.createUserWithLocale(
+      'en_US',
+      'rhcqdif'
+    );
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      otherUser,
+      RecordHealthCheckSchemaTestDataFactory.runnerPermissionSetName()
+    );
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      42
+    );
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
+
+    Test.startTest();
+    Id firstJob = RecordHealthCheckQueueable.enqueue(
+      checkSetName,
+      new List<Id>{ accountId },
+      RecordHealthCheckEventPublication.NONE
+    );
+    Id secondJob;
+    System.runAs(otherUser) {
+      secondJob = RecordHealthCheckQueueable.enqueue(
+        checkSetName,
+        new List<Id>{ accountId },
+        RecordHealthCheckEventPublication.NONE
+      );
+    }
+    Test.stopTest();
+
+    Assert.areNotEqual(
+      firstJob,
+      secondJob,
+      'Equivalent requests from different submitting users must not share an org-wide duplicate signature.'
     );
   }
 

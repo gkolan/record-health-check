@@ -17,11 +17,13 @@ public with sharing class RecordHealthCheckAccess {
     if (runPermissionOverride != null) {
       return runPermissionOverride;
     }
-    // FeatureManagement does not reliably observe a Custom Permission assigned
-    // by test DML in the same transaction. Default tests to the authorized path;
-    // denial tests use the explicit override above.
-    return FeatureManagement.checkPermission('Record_Health_Check_Run') ||
-      Test.isRunningTest();
+    // A 2GP build cannot grant its not-yet-created permission set to the
+    // package test user. Authorization denial remains explicitly testable via
+    // runPermissionOverride, while production always uses Feature Management.
+    if (Test.isRunningTest()) {
+      return true;
+    }
+    return FeatureManagement.checkPermission('Record_Health_Check_Run');
   }
 
   /** Overrides runner authorization only within an Apex test transaction. */

@@ -42,6 +42,7 @@ private class RHCCurrencyAuthoringRedTest {
 
   @IsTest
   static void shouldCoverNeutralCurrencyShapeBoundaries() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
       null,
       null,
@@ -89,6 +90,22 @@ private class RHCCurrencyAuthoringRedTest {
         'SELECT Account.AnnualRevenue FROM Opportunity',
         'Account.AnnualRevenue'
       )
+    );
+    Assert.areEqual(
+      'CurrencyIsoCode',
+      RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
+        'SELECT AnnualRevenue FROM Account',
+        'AnnualRevenue'
+      ),
+      'A root Currency selection must request the root ISO field.'
+    );
+    Assert.areEqual(
+      'Account.CurrencyIsoCode',
+      RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
+        'SELECT Account.AnnualRevenue FROM Opportunity',
+        'Account.AnnualRevenue'
+      ),
+      'A relationship Currency selection must request relationship-scoped ISO evidence.'
     );
     Assert.isFalse(
       RecordHealthCheckCurrencySupport.isCurrencySelection(

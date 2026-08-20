@@ -4,5 +4,9 @@
         <members>Account_Record_Page</members>
         <name>FlexiPage</name>
     </types>
+    <types>
+        <members>Account</members>
+        <name>CustomObject</name>
+    </types>
     <version>66.0</version>
 </Package>

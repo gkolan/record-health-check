@@ -23,8 +23,13 @@ rule with values approved for your org.
 ## Before you start
 
 - Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator who creates Check Sets and Checks.
-- Assign **Record Health Check User** to people who run the card.
+- Confirm the author has Salesforce **Customize Application** (or equivalent Custom Metadata
+  management access), then assign **Record Health Check Admin**. The packaged Admin permission set
+  does not itself grant the Salesforce system permission needed to create Custom Metadata records.
+- Give Lightning page builders **Record Health Check Admin** so App Builder can load its Check Set
+  picklist. If the list is empty, verify this class access before creating another Check Set.
+- Assign **Record Health Check Card User** to people who only run the card. Reserve **Record Health
+  Check User** for Flow, Apex, Agentforce, REST, or asynchronous automation.
 - Confirm the object, fields, and related records those users are allowed to read.
 - Write down the business question in ordinary language, including what passes, what fails, and when
   the Check should not apply.

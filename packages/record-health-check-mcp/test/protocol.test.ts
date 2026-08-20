@@ -124,7 +124,7 @@ describe("MCP Streamable HTTP", () => {
       const resultBody = {
         contractVersion: "1.0",
         correlationId: `mcp-${category.toLowerCase()}`,
-        success: false,
+        success: true,
         operation,
         status,
         ...(operation === "RUN_CHECK"
@@ -177,7 +177,7 @@ describe("MCP Streamable HTTP", () => {
         }
       });
 
-      expect(result.isError).toBe(true);
+      expect(result.isError).toBe(false);
       expect(result.structuredContent).toEqual(resultBody);
       expect(result.content).toEqual([
         {

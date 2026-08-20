@@ -1,3 +1,6 @@
+# TEMPLATE ONLY: this .template file cannot be imported directly. Generate a runnable copy with
+# `npm run generate:agentforce-testing-center -- --record-id 001... --second-record-id 001... --output /tmp/record-health-testing-center.yaml`.
+# The generator rejects these synthetic sentinel IDs and refuses to overwrite files.
 name: Record Health Assistant War Room
 subjectType: AGENT
 subjectName: Record_Health_Assistant

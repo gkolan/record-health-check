@@ -187,8 +187,10 @@ Health Check caught that problem and returned it as a health result.
 
 ## Understand duplicate submissions
 
-The packaged Queueable class creates a platform `QueueableDuplicateSignature` from the Check Set,
-publication mode, and record IDs after it removes nulls, repeated IDs, and record-order differences.
+The packaged Queueable class creates a platform `QueueableDuplicateSignature` from the submitting
+user, Check Set, publication mode, and record IDs after it removes nulls, repeated IDs, and
+record-order differences. Equivalent work submitted by a different user receives a separate job;
+deduplication prevents accidental retries by the same submitting principal.
 
 If an equivalent job is already pending, Salesforce throws `DuplicateMessageException` instead of
 using another Queueable slot. This means an equivalent job is already waiting to run. Use the saved

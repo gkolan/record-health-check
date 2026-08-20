@@ -50,6 +50,25 @@ private class RHCMixedCurrencyRedTest {
   }
 
   @IsTest
+  static void shouldRefuseCurrencyVerdictWithoutUnitEvidence() {
+    if (!UserInfo.isMultiCurrencyOrganization()) {
+      return;
+    }
+    try {
+      RecordHealthCheckCompareQuerySupport.evaluateSingleVsSingle(
+        scalarCheck(),
+        rows(new List<Decimal>{ 100 }, new List<String>{ null }),
+        rows(new List<Decimal>{ 100 }, new List<String>{ 'USD' })
+      );
+      Assert.fail(
+        'Missing unit evidence must never produce a currency verdict.'
+      );
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual('CURRENCY_UNIT_UNKNOWN', error.reasonCode);
+    }
+  }
+
+  @IsTest
   static void aggregateHasNoRuntimeUnitEvidence() {
     AggregateResult total = [SELECT SUM(AnnualRevenue) total FROM Account];
     Assert.areEqual(
@@ -117,7 +136,9 @@ private class RHCMixedCurrencyRedTest {
       Account row = RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'AnnualRevenue' => values[index] }
       );
-      row.put('CurrencyIsoCode', isoCodes[index]);
+      if (isoCodes[index] != null) {
+        row.put('CurrencyIsoCode', isoCodes[index]);
+      }
       result.add(row);
     }
     return result;

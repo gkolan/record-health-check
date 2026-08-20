@@ -93,6 +93,8 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L5 | `RecordHealthCheckFlowSupport` | Shared Flow input normalization, result alignment, and summary status logic |
 | L5 | `RecordHealthCheckFlowGroupExecutor` | Shared normalized grouping and engine execution for both Flow actions |
 | L5 | [`RecordHealthCheckLifecyclePublisher`](entry-points.md#recordhealthchecklifecyclepublisher) | Optional Set Run and Check Result platform events |
+| L5 | [`RecordHealthCheckEventId`](entry-points.md#recordhealthcheckeventid) | Unique, bounded lifecycle-event identifier generation |
+| L5 | [`RecordHealthCheckValidateMetadataAction`](entry-points.md#recordhealthcheckvalidatemetadataaction) | Administrator Flow action for configuration validation |
 | L5 | [`RecordHealthCheckRunContext`](entry-points.md#recordhealthcheckruncontext) | Run id, source, and timing for one evaluation |
 | L5 | [`RecordHealthCheckSetPicklist`](entry-points.md#recordhealthchecksetpicklist) | App Builder dynamic picklist for Check Set Developer Name |
 

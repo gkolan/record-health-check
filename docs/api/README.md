@@ -119,7 +119,7 @@ The response and events are two different ways to receive results:
 | Mode | Events published | Use it when |
 | --- | --- | --- |
 | `NONE` | No result events | Apex or Flow reads the response directly, or only background-job completion is needed. This is the default. |
-| `ACTIONABLE` | `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` | Another automation should receive only results that need attention. `PASS` is not published. |
+| `ACTIONABLE` | `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`; plus a completed Set Run heartbeat | Another automation receives only Check results that need attention while still seeing that every record was scanned. `PASS` Check Result events are not published. |
 | `ALL` | `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` | Another automation must receive every result, including successful Checks. |
 
 Publishing an event does not save a permanent history by itself. A Flow, Apex trigger, or external

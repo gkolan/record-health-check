@@ -47,6 +47,13 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
           'Applicability SOQL must be a single COUNT() or COUNT(Id) query without GROUP BY.'
         );
       }
+      when APPLICABILITY_SOQL_UNSUPPORTED_BULK_SHAPE {
+        return buildUnableResult(
+          check,
+          'UNSUPPORTED_BULK_QUERY_SHAPE',
+          'Applicability SOQL cannot be safely rewritten for a multi-record scope.'
+        );
+      }
       when APPLICABILITY_OPERATOR_MISSING {
         return buildUnableResult(
           check,
@@ -112,6 +119,13 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
           check,
           'INVALID_SOQL_TEMPLATE',
           'Source Query Field is required for non-aggregate queries.'
+        );
+      }
+      when PRIMARY_QUERY_UNSUPPORTED_BULK_SHAPE {
+        return buildUnableResult(
+          check,
+          'UNSUPPORTED_BULK_QUERY_SHAPE',
+          'Source Query cannot be safely rewritten for a multi-record scope.'
         );
       }
       when DUAL_OPERATOR_ON_SINGLE {
@@ -196,6 +210,13 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
           check,
           'INVALID_SOQL_TEMPLATE',
           'Comparison Query Field is required for non-aggregate comparison queries.'
+        );
+      }
+      when COMPARISON_QUERY_UNSUPPORTED_BULK_SHAPE {
+        return buildUnableResult(
+          check,
+          'UNSUPPORTED_BULK_QUERY_SHAPE',
+          'Comparison Query cannot be safely rewritten for a multi-record scope.'
         );
       }
       when CURRENCY_AGGREGATE_NOT_GROUPED {

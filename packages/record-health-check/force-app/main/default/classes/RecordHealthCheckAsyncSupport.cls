@@ -33,6 +33,13 @@ public with sharing class RecordHealthCheckAsyncSupport {
           '.'
       );
     }
+    normalizedIds = idsForSelectedObject(normalizedIdentity, normalizedIds);
+    if (normalizedIds.isEmpty()) {
+      throw new IllegalArgumentException(
+        populationLabel +
+        ' must contain at least one ID for the selected Check Set object.'
+      );
+    }
     return new RequestState(normalizedIdentity, normalizedIds);
   }
 
@@ -49,5 +56,35 @@ public with sharing class RecordHealthCheckAsyncSupport {
       }
     }
     return result;
+  }
+
+  private static List<Id> idsForSelectedObject(
+    String checkSetQualifiedApiName,
+    List<Id> normalizedIds
+  ) {
+    // Custom Metadata is framework configuration and is read in system context.
+    // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata defines the packaged Check Set object and must remain available to authorized async runners.
+    List<Record_Health_Check_Set__mdt> checkSets = [
+      SELECT ObjectApiName__c
+      FROM Record_Health_Check_Set__mdt
+      WHERE QualifiedApiName = :checkSetQualifiedApiName
+      LIMIT 2
+    ];
+    if (
+      checkSets.size() != 1 || String.isBlank(checkSets[0].ObjectApiName__c)
+    ) {
+      return normalizedIds;
+    }
+    String expectedObject = checkSets[0].ObjectApiName__c;
+    List<Id> matchingIds = new List<Id>();
+    for (Id recordId : normalizedIds) {
+      String actualObject = RecordHealthCheckDescribeCache.objectApiName(
+        recordId
+      );
+      if (expectedObject.equalsIgnoreCase(actualObject)) {
+        matchingIds.add(recordId);
+      }
+    }
+    return matchingIds;
   }
 }

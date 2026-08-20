@@ -55,6 +55,10 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
       output.errorType,
       'A completed health result is not an adapter error.'
     );
+    Assert.isFalse(
+      RestContext.response.responseBody.toString().contains(':null'),
+      'The REST wire response must omit unused null fields.'
+    );
   }
 
   @IsTest
@@ -435,6 +439,10 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
       null,
       output.status,
       'An adapter error must not include health status.'
+    );
+    Assert.isFalse(
+      RestContext.response.responseBody.toString().contains(':null'),
+      'Adapter error wire responses must omit unused null fields.'
     );
   }
 }

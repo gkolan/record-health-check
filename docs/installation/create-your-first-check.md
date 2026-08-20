@@ -13,14 +13,19 @@ page, and prove that the guidance makes sense when the field is blank and when i
 The administrator completing this guide needs:
 
 - the installed **Record Health Check Admin** Permission Set;
-- the Salesforce Setup access required to manage Custom Metadata and edit Lightning record pages;
+- Salesforce **Customize Application** (or equivalent Custom Metadata management access) to create
+  and save Check Set and Check records; **Record Health Check Admin does not grant this Salesforce
+  system permission**;
+- access to edit Lightning record pages; the page builder also needs **Record Health Check Admin**
+  so App Builder can load the Check Set picklist;
   and
 - Read access to Account and `BillingCity`.
 
-People who only run the completed card need **Record Health Check User** plus access to the Account
+People who only run the completed card need **Record Health Check Card User** plus access to the Account
 records and fields being checked.
 
-**You do not need:** Apex, Flow, or command-line tools.
+**You do not need:** Apex or command-line tools. The validation step uses the packaged Flow action
+once in Flow Builder so invalid metadata is caught before users see it.
 
 If Record Health Check is not installed yet, complete [Install and verify in your
 org](install-and-verify.md) first.
@@ -87,7 +92,21 @@ Manual execution makes the first test easier to follow because the card waits fo
 
 The Formula Check reads only the current Account, so it does not need SOQL or Apex.
 
-## Step 3: Add the card to an Account page
+## Step 3: Validate the configuration
+
+1. In Setup, open **Flows** and create a short autolaunched flow.
+2. Add the **Validate Record Health Check Configuration** action.
+3. Store or display its **Configuration Is Valid**, **Error Count**, **Warning Count**, and
+   **Validation Report JSON** outputs, then run **Debug**.
+4. Do not activate the Check Set for users while **Configuration Is Valid** is false. Correct every
+   error named in the report and debug the flow again. Warnings deserve review but do not make the
+   configuration invalid.
+
+The action checks active definitions and inactive drafts, including prerequisite names and whether
+SOQL can use the runtime's multi-record query grammar. Keep this small administrator flow as a
+reusable validation tool after future Custom Metadata edits.
+
+## Step 4: Add the card to an Account page
 
 1. Open an Account record.
 2. Select **Setup → Edit Page**.
@@ -105,7 +124,7 @@ Skipped outcomes with Found and Expected values):
 
 ![Example Account Relationship and Risk health check card](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
 
-## Step 4: Test both results
+## Step 5: Test both results
 
 Use an Account you can safely edit.
 

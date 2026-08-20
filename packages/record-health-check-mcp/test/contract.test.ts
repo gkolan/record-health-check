@@ -31,7 +31,7 @@ describe("public contract", () => {
         agentToolResponseSchema.safeParse({
           contractVersion: "1.0",
           correlationId: "corr-1",
-          success: !["UNABLE_TO_EVALUATE", "ERROR"].includes(status),
+          success: true,
           operation: "RUN_CHECK",
           status,
           ...(["UNABLE_TO_EVALUATE", "ERROR"].includes(status)
@@ -48,22 +48,22 @@ describe("public contract", () => {
     }
   });
 
-  it("rejects inconclusive Check and Check Set results without a diagnosis", () => {
+  it("accepts completed inconclusive results without an optional diagnosis", () => {
     expect(
       agentToolResponseSchema.safeParse({
         contractVersion: "1.0",
         correlationId: "corr-check",
-        success: false,
+        success: true,
         operation: "RUN_CHECK",
         status: "ERROR",
         reasonCode: "PLUGIN_THREW"
       }).success
-    ).toBe(false);
+    ).toBe(true);
     expect(
       agentToolResponseSchema.safeParse({
         contractVersion: "1.0",
         correlationId: "corr-set",
-        success: false,
+        success: true,
         operation: "RUN_CHECK_SET",
         status: "UNABLE_TO_EVALUATE",
         passed: 0,
@@ -72,7 +72,7 @@ describe("public contract", () => {
         unable: 3,
         systemError: 0
       }).success
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("rejects a set status inconsistent with its counts", () => {

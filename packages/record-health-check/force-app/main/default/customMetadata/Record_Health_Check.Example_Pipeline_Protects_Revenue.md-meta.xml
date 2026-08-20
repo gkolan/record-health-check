@@ -28,7 +28,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT CurrencyIsoCode, SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null GROUP BY CurrencyIsoCode</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>

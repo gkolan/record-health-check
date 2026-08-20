@@ -82,20 +82,9 @@ No Event records are created. Recent engagement comes from the two completed Tas
 | Recent activity | Exactly 2 completed Tasks in the last 90 days |
 | Cases | Exactly 4 open, High-priority Cases |
 
-### Object-specific example portfolio
-
-The same setup command also creates four fictional companies, eight populated Contacts, and eight
-populated Opportunities in USD and EUR. The portfolio includes complete records and deliberately
-incomplete records so the Contact and Opportunity cards demonstrate both success and remediation.
-
-`Harborline Dispatch Pilot` includes three Tasks, two Events, and two Opportunity Contact Roles:
-Priya Shah is the primary Executive Sponsor, and Evan Brooks is the Technical Buyer. Its Amount and
-Next Step remain blank intentionally, producing exactly two passed and two failed Opportunity checks.
-Jonas Keller similarly produces exactly two passed and two failed Contact checks while retaining
-realistic department, address, reporting-line, email, and business-context data.
-
 The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
-relationships, and health-check outcomes remain predictable.
+relationships, and health-check outcomes remain predictable. It creates only the Asteron hierarchy
+and Acme teaching data listed above; it does not seed a separate Contact or Opportunity portfolio.
 
 After setup, use these expected outcomes to verify the eight Checks on Acme Corporation:
 
@@ -103,7 +92,7 @@ After setup, use these expected outcomes to verify the eight Checks on Acme Corp
 | --- | --- |
 | Executive sponsorship | Pass |
 | Account owner is active | Failed |
-| Industry aligns with the parent Account | Pass |
+| Open deals have decision-maker contacts | Pass |
 | Contacts have email | Failed |
 | Customer engagement is current | Pass |
 | Pipeline protects revenue | Failed |

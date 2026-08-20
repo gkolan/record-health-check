@@ -48,7 +48,7 @@
     </values>
     <values>
         <field>NoRowsResult__c</field>
-        <value xsi:type="xsd:string">PASS</value>
+        <value xsi:type="xsd:string">FAIL</value>
     </values>
     <values>
         <field>EmptyValueHandling__c</field>

@@ -15,6 +15,7 @@ export const VALID_RESULT_STATUSES = new Set([
 export function synthesizeResult(check, status, reasonCode, message) {
   return {
     checkDeveloperName: check.developerName,
+    checkQualifiedApiName: check.qualifiedApiName || check.developerName,
     label: check.label,
     status,
     reasonCode,
@@ -38,6 +39,10 @@ export function normalizeResult(result, check) {
     ? {
         checkDeveloperName:
           result.evaluation.checkQualifiedApiName || check.developerName,
+        checkQualifiedApiName:
+          result.evaluation.checkQualifiedApiName ||
+          check.qualifiedApiName ||
+          check.developerName,
         recordId: result.evaluation.recordId,
         status: result.evaluation.status,
         severity: result.evaluation.severity,
@@ -50,6 +55,7 @@ export function normalizeResult(result, check) {
           result.display?.expectedDisplayValue ??
           result.evaluation.expected?.storedValue ??
           null,
+        expectedValueLabel: result.display?.expectedValueLabel,
         actualDisplayFormat: result.display?.foundDisplayFormat,
         expectedDisplayFormat: result.display?.expectedDisplayFormat,
         actualCurrencyIsoCode: result.display?.foundCurrencyIsoCode,
@@ -77,7 +83,8 @@ export function toCompletionResult(result, recordId) {
   return {
     evaluation: {
       recordId: result?.recordId || recordId,
-      checkQualifiedApiName: result?.checkDeveloperName,
+      checkQualifiedApiName:
+        result?.checkQualifiedApiName || result?.checkDeveloperName,
       status: result?.status,
       severity: result?.severity,
       reasonCode: result?.reasonCode

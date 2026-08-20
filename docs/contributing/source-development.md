@@ -20,7 +20,7 @@ instead.
 Before you start:
 
 - Git
-- Salesforce CLI 2.147.7 (`sf`) installed and on your `PATH`
+- Salesforce CLI 2.148.3 (`sf`) installed and on your `PATH`
 - A Dev Hub org you can authenticate (example alias: `my-dev-hub`)
 - Node.js 22
 
@@ -35,7 +35,7 @@ sf org login web --set-default-dev-hub --alias my-dev-hub
 npm run check:toolchain
 ```
 
-The final command must report that the local and CI toolchains use Salesforce CLI 2.147.7. The
+The final command must report that the local and CI toolchains use Salesforce CLI 2.148.3. The
 repository intentionally stops contributor commands when another CLI version is installed.
 
 ## Step 1: Create the contributor org
