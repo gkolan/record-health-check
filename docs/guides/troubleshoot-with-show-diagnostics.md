@@ -257,7 +257,8 @@ line.
 
 `Record_Health_Check_Log__e` carries structured Record Health Check `ERROR` details for restricted
 monitoring. Its Check Set control is **Publish Error Log Event** (`PublishErrorLogEvent__c`), which
-is enabled by default. This event is separate from Check Result and Set Run lifecycle events.
+is disabled by default and also requires the Error Log Publisher permission. This event is separate
+from Check Result and Set Run lifecycle events.
 
 Use it when a Flow, Apex trigger, or integration needs ongoing error notification. Its structured
 details JSON retains category, phase, Diagnostic ID, fingerprint, ownership, retryability, scope

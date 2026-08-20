@@ -78,7 +78,8 @@ Id jobId = rhc.RecordHealthCheckQueueable.enqueue(
 This call performs submission checks before creating a job. It requires:
 
 - a nonblank qualified Check Set name;
-- between 1 and 200 distinct, non-null record IDs after nulls and duplicates are removed; and
+- between 1 and 200 distinct, non-null record IDs after nulls and duplicates are removed;
+- every remaining ID belongs to the selected Check Set object, or the entire submission is rejected; and
 - the **Record Health Check Run** Custom Permission.
 
 The job checks authorization again when it executes. With `NONE`, the packaged job does not send

@@ -73,7 +73,8 @@ The packaged scheduling class accepts:
 
 - a job name containing 1–80 characters;
 - a Check Set Qualified API Name copied from Setup;
-- 1–2,000 distinct, non-null record IDs; and
+- 1–2,000 distinct, non-null record IDs;
+- every remaining ID belongs to the selected Check Set object, or scheduling is rejected; and
 - an explicit event-publication mode.
 
 Invalid input or missing permission is rejected before Salesforce creates a `CronTrigger`.

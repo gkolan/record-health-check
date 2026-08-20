@@ -53,14 +53,14 @@ For step-by-step Flow and Apex examples, see
 
 ## When Record Health Check publishes the event
 
-The **Publish Error Log Event** checkbox on each Check Set controls this event. The checkbox is on
+The **Publish Error Log Event** checkbox on each Check Set controls this event. The checkbox is off
 by default.
 
-- Leave it selected when restricted error monitoring is configured or may be needed.
-- Clear it when your org must not publish technical error details for that Check Set.
+- Select it only when restricted error monitoring is configured and the running user has the
+  **Record Health Check Error Log Publisher** Permission Set.
+- Leave it cleared when your org must not publish technical error details for that Check Set.
 - Clearing it does not turn off Salesforce debug logs.
-- If Record Health Check cannot find or load the Check Set, it leaves publication enabled so that
-  the configuration error can still be reported.
+- If Record Health Check cannot find or load the Check Set, publication fails closed.
 
 Record Health Check creates this event only for an `ERROR`. It does not create one for informational,
 warning, or debug messages.

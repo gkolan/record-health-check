@@ -80,6 +80,20 @@ private class RecordHealthCheckConfigValidationTest {
       service.validateCheckForEvaluation(check),
       RecordHealthCheckConfigService.RC_INVALID_CONFIG
     );
+    check = queryCheck('Query_Numeric_Contains');
+    check.SourceQuery__c = 'SELECT NumberOfEmployees FROM Account';
+    check.SourceQueryField__c = 'NumberOfEmployees';
+    check.ComparisonOperator__c = 'CONTAINS';
+    assertUnable(
+      service.validateCheckForEvaluation(check),
+      RecordHealthCheckReasonCodes.FIELD_TYPE_NOT_SUPPORTED
+    );
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> typeIssues = new RecordHealthCheckMetadataValidator()
+      .validateRecords(
+        new List<Record_Health_Check_Set__mdt>(),
+        new List<Record_Health_Check__mdt>{ check }
+      );
+    Assert.areEqual('FIELD_TYPE_NOT_SUPPORTED', typeIssues[0].reasonCode);
     check = queryCheck('Query_Invalid_Source');
     check.ExpectedValueSource__c = 'Magic';
     assertUnable(

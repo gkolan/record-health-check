@@ -139,7 +139,8 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
       result.errorMessage = error.getMessage();
     } else if (
       error instanceof RecordHealthCheckRequest.RecordHealthCheckRequestException ||
-      error instanceof RecordHealthCheckScope.RecordHealthCheckScopeException
+      error instanceof RecordHealthCheckScope.RecordHealthCheckScopeException ||
+      error instanceof RecordHealthCheckScopePipeline.ScopePipelineException
     ) {
       result.errorType = 'VALIDATION';
       result.errorMessage = error.getMessage();

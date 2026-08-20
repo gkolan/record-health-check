@@ -182,6 +182,14 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
           'INVALID_OPERATOR'
         );
       }
+      when TEXT_OPERATOR_REQUIRES_TEXT {
+        return issue(
+          check,
+          'ComparisonOperator__c',
+          'Contains and Does not contain require text-like query fields.',
+          'FIELD_TYPE_NOT_SUPPORTED'
+        );
+      }
       when MULTI_ROWS_MISSING {
         return issue(
           check,

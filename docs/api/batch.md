@@ -134,7 +134,8 @@ Id jobId = rhc.RecordHealthCheckBatch.run(
 | `jobId` | The ID used to find this Batch job in **Setup → Apex Jobs** |
 
 The packaged Batch accepts 1–2,000 distinct record IDs. It removes null and repeated IDs before it
-checks that limit. It checks only the IDs supplied when the job starts. It does not automatically
+checks that limit. Every remaining ID must match the selected Check Set object; one mismatch rejects
+the entire submission, so requested and processed counts cannot silently diverge. It checks only the IDs supplied when the job starts. It does not automatically
 include records created or changed later.
 
 If the fourth argument is omitted, the package checks up to 100 records per transaction. To choose

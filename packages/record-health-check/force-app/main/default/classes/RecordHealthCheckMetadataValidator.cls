@@ -205,9 +205,9 @@ public with sharing class RecordHealthCheckMetadataValidator {
             'WARNING',
             csName,
             null,
-            'Only the first ' +
+            'The Lightning card includes only the first ' +
               RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS +
-              ' active checks are included in a run; remaining checks are omitted.',
+              ' active Checks; direct Apex, Flow, Batch, Queueable, and Scheduled requests reject the entire oversized Check Set.',
             'CHECK_LIMIT_EXCEEDED'
           )
         );

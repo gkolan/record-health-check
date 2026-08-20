@@ -3,27 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/**
- * Shared check-validation decision tree for Record Health Check.
- * The per-type query/compare-queries/applicability/formula/apex/MaxRows/empty-value validation
- * lives here once. Producers report neutral Findings in a single official order
- * (= ConfigService's first-fail order). Each caller maps FindingCode to its own
- * output contract:
- * - ConfigService takes findings[0] (first failure) → toResult(...);
- * - MetadataValidator collects every finding → toIssue(...).
- * The divergent reason codes / messages / field names live only in those two
- * mapping tables, never in the branching logic below.
- * Intentionally not shared:
- * - The baseline checks (Label, Run Order, Message When Check Fails, Check Type,
- * Severity, Applicability Mode) stay inline in each caller — divergent ordering
- * granularity (ConfigService combines Label+Priority into one message), and
- * return-early semantics (MetadataValidator validates Severity/Message before
- * its terminating bad-Check-Type return).
- * - MaxRows and null/empty-behavior are standalone producers — ConfigService scopes
- * them to Query/CompareTwoQueries; MetadataValidator runs them once at top level
- * for all types. Keeping them separate avoids double-counting and adds no findings
- * on the runtime path.
- */
+/** Shared validation findings used by runtime and metadata-audit callers. */
 public with sharing class RecordHealthCheckValidator {
   // Valid-value sets are owned by RecordHealthCheckConstants so this validator and its two
   // callers can never get out of sync. Local aliases keep the producers below readable.
@@ -64,6 +44,7 @@ public with sharing class RecordHealthCheckValidator {
     DUAL_OPERATOR_ON_SINGLE,
     OPERATOR_INVALID,
     OPERATOR_MISSING,
+    TEXT_OPERATOR_REQUIRES_TEXT,
     MULTI_ROWS_MISSING,
     MULTI_ROWS_INVALID,
     COMPARE_AS_LISTS_ON_SINGLE,
@@ -267,6 +248,7 @@ public with sharing class RecordHealthCheckValidator {
     } else if (!VALID_OPERATORS.contains(check.ComparisonOperator__c)) {
       out.add(f(FindingCode.OPERATOR_INVALID, check.ComparisonOperator__c));
     }
+    addTextOperatorFinding(out, check);
 
     // Query result interpretation — at most one finding.
     if (String.isBlank(check.QueryResultHandling__c)) {
@@ -385,6 +367,7 @@ public with sharing class RecordHealthCheckValidator {
         f(FindingCode.DUAL_OPERATOR_INVALID, check.ComparisonOperator__c)
       );
     }
+    addTextOperatorFinding(out, check);
 
     // Query result interpretation — only OneResult / CompareAsLists are valid.
     if (String.isBlank(check.QueryResultHandling__c)) {
@@ -421,6 +404,31 @@ public with sharing class RecordHealthCheckValidator {
 
   private static Boolean isSupportedBulkShape(String soql) {
     return RecordHealthCheckBulkQuerySupport.isSupportedShape(soql);
+  }
+
+  private static void addTextOperatorFinding(
+    List<Finding> out,
+    Record_Health_Check__mdt check
+  ) {
+    if (
+      check.ComparisonOperator__c != 'CONTAINS' &&
+      check.ComparisonOperator__c != 'DOES_NOT_CONTAIN'
+    ) {
+      return;
+    }
+    Boolean sourceIsText = RecordHealthCheckQuerySchemaValidator.isTextSelection(
+      check.SourceQuery__c,
+      check.SourceQueryField__c
+    );
+    Boolean comparisonIsText = check.EvaluationType__c == 'COMPARE_TWO_QUERIES'
+      ? RecordHealthCheckQuerySchemaValidator.isTextSelection(
+          check.ComparisonQuery__c,
+          check.ComparisonQueryField__c
+        )
+      : true;
+    if (sourceIsText == false || comparisonIsText == false) {
+      out.add(f(FindingCode.TEXT_OPERATOR_REQUIRES_TEXT));
+    }
   }
 
   public static List<Finding> maxRowsFindings(Record_Health_Check__mdt check) {

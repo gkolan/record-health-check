@@ -70,20 +70,19 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       'Example_Account_Profile_Readiness'
     );
 
-    Test.startTest();
-    RecordHealthCheckAsyncSupport.RequestState state = RecordHealthCheckAsyncSupport.requestState(
-      checkSetName,
-      new List<Id>{ accountId, contactId },
-      RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE,
-      'Test population'
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      new List<Id>{ accountId },
-      state.recordIds,
-      'A wrong-object ID must not abort the valid part of an async scope.'
-    );
+    try {
+      RecordHealthCheckAsyncSupport.requestState(
+        checkSetName,
+        new List<Id>{ accountId, contactId },
+        RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE,
+        'Test population'
+      );
+      Assert.fail('A mixed-object async population must be rejected in full.');
+    } catch (IllegalArgumentException expected) {
+      Assert.isTrue(
+        expected.getMessage().contains('no records were submitted')
+      );
+    }
   }
 
   @IsTest
@@ -103,8 +102,8 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       Assert.fail('A missing Check Set must not bypass object filtering.');
     } catch (IllegalArgumentException expected) {
       Assert.isTrue(
-        expected.getMessage().contains('selected Check Set object'),
-        'The caller should receive the fail-closed population contract.'
+        expected.getMessage().contains('was not found'),
+        'The caller should receive the missing Check Set diagnosis.'
       );
     }
   }
@@ -374,8 +373,8 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       Assert.fail('A missing Check Set must fail before Batch submission.');
     } catch (IllegalArgumentException error) {
       Assert.isTrue(
-        error.getMessage().contains('selected Check Set object'),
-        'The Batch rejection must retain the fail-closed explanation.'
+        error.getMessage().contains('was not found'),
+        'The Batch rejection must identify the missing Check Set.'
       );
     }
   }

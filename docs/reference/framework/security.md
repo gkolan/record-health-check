@@ -33,7 +33,7 @@ Permission Sets.
 
 | Installed Permission Set | What it provides | Assign it to |
 | --- | --- | --- |
-| **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`) | Run Custom Permission and Lightning controller class only | People who only run the record-page card; this is the least-privilege default for interactive users |
+| **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`) | Run Custom Permission, Lightning controller and App Builder picker classes, and Create access for card lifecycle events | People who only configure or run the record-page card; this is the least-privilege default for interactive users and supports explicitly enabled card publication |
 | **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to Lightning, Apex, Flow, Agentforce, REST, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for Set Run and Check Result events | Automation principals that use those broader entry points; not the default card-only assignment |
 | **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Runner access plus diagnostics, Custom Metadata type visibility, validation, and App Builder picklist access | Administrators who maintain or troubleshoot Checks; creating Custom Metadata also requires Salesforce Customize Application or equivalent access |
 | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create) | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data |

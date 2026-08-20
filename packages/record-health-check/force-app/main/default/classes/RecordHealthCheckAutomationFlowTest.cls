@@ -59,8 +59,10 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('EXECUTION', checkOutputs[0].errorType);
-    Assert.areEqual('EXECUTION', setOutputs[0].errorType);
+    Assert.areEqual('VALIDATION', checkOutputs[0].errorType);
+    Assert.areEqual('VALIDATION', setOutputs[0].errorType);
+    Assert.isTrue(checkOutputs[0].errorMessage.contains('was not found'));
+    Assert.isTrue(setOutputs[0].errorMessage.contains('was not found'));
   }
 
   @IsTest

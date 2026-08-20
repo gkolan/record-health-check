@@ -214,7 +214,7 @@ private class RecordHealthCheckApiTest {
   }
 
   @IsTest
-  static void flowAdaptersReturnExecutionErrorsForUnknownSelections() {
+  static void flowAdaptersReturnValidationErrorsForUnknownSelections() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckRunCheckFlowAction.Request checkInput = new RecordHealthCheckRunCheckFlowAction.Request();
     checkInput.checkQualifiedApiName = 'Unknown.Check';
@@ -234,8 +234,8 @@ private class RecordHealthCheckApiTest {
     );
     Test.stopTest();
 
-    assertCheckFlowError(checkOutputs, 'EXECUTION', 'could not be evaluated');
-    assertSetFlowError(setOutputs, 'EXECUTION', 'could not be evaluated');
+    assertCheckFlowError(checkOutputs, 'VALIDATION', 'was not found');
+    assertSetFlowError(setOutputs, 'VALIDATION', 'was not found');
   }
 
   @IsTest

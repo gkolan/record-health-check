@@ -142,6 +142,13 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
           'Comparison operator "' + val + '" is not recognized.'
         );
       }
+      when TEXT_OPERATOR_REQUIRES_TEXT {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.FIELD_TYPE_NOT_SUPPORTED,
+          'Contains and Does not contain require text-like query fields.'
+        );
+      }
       when OPERATOR_MISSING {
         return buildUnableResult(
           check,

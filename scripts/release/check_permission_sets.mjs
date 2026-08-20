@@ -67,8 +67,11 @@ const expected = {
     ]
   },
   Record_Health_Check_Card_User: {
-    classes: ["RecordHealthCheckController"],
-    objects: [],
+    classes: ["RecordHealthCheckController", "RecordHealthCheckSetPicklist"],
+    objects: [
+      "Record_Health_Check_Result__e",
+      "Record_Health_Check_Set_Run__e"
+    ],
     customPermissions: ["Record_Health_Check_Run"],
     customMetadataTypes: []
   },

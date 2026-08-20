@@ -33,13 +33,11 @@ public with sharing class RecordHealthCheckAsyncSupport {
           '.'
       );
     }
-    normalizedIds = idsForSelectedObject(normalizedIdentity, normalizedIds);
-    if (normalizedIds.isEmpty()) {
-      throw new IllegalArgumentException(
-        populationLabel +
-        ' must contain at least one ID for the selected Check Set object.'
-      );
-    }
+    requireIdsForSelectedObject(
+      normalizedIdentity,
+      normalizedIds,
+      populationLabel
+    );
     return new RequestState(normalizedIdentity, normalizedIds);
   }
 
@@ -58,33 +56,48 @@ public with sharing class RecordHealthCheckAsyncSupport {
     return result;
   }
 
-  private static List<Id> idsForSelectedObject(
+  private static void requireIdsForSelectedObject(
     String checkSetQualifiedApiName,
-    List<Id> normalizedIds
+    List<Id> normalizedIds,
+    String populationLabel
   ) {
     // Custom Metadata is framework configuration and is read in system context.
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata defines the packaged Check Set object and must remain available to authorized async runners.
     List<Record_Health_Check_Set__mdt> checkSets = [
       SELECT ObjectApiName__c
       FROM Record_Health_Check_Set__mdt
-      WHERE QualifiedApiName = :checkSetQualifiedApiName
+      WHERE QualifiedApiName = :checkSetQualifiedApiName AND IsActive__c = TRUE
       LIMIT 2
     ];
     if (
       checkSets.size() != 1 || String.isBlank(checkSets[0].ObjectApiName__c)
     ) {
-      return new List<Id>();
+      throw new IllegalArgumentException(
+        'Check Set "' +
+          checkSetQualifiedApiName +
+          '" was not found, is inactive, or has no configured object.'
+      );
     }
     String expectedObject = checkSets[0].ObjectApiName__c;
-    List<Id> matchingIds = new List<Id>();
+    Integer mismatchCount = 0;
     for (Id recordId : normalizedIds) {
       String actualObject = RecordHealthCheckDescribeCache.objectApiName(
         recordId
       );
       if (expectedObject.equalsIgnoreCase(actualObject)) {
-        matchingIds.add(recordId);
+        continue;
       }
+      mismatchCount++;
     }
-    return matchingIds;
+    if (mismatchCount > 0) {
+      throw new IllegalArgumentException(
+        populationLabel +
+          ' contains ' +
+          mismatchCount +
+          ' ID(s) outside the selected Check Set object ' +
+          expectedObject +
+          '; no records were submitted.'
+      );
+    }
   }
 }
