@@ -27,6 +27,8 @@ public class RecordHealthCheckDefinitionResponse {
   @AuraEnabled
   public String skippedDisplayMode; // Show, Hide — mapped from SkippedChecksDisplay__c
   @AuraEnabled
+  public String summaryDisplay; // TOP, BOTTOM — defaults to BOTTOM
+  @AuraEnabled
   public String comparisonDisplay; // OnDemand, FailuresOnly, AllRows — mapped from FoundExpectedDisplay__c
   @AuraEnabled
   public Boolean stopOnFirstError;

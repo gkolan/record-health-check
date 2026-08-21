@@ -153,7 +153,9 @@ the row. Example: `Checks open Opportunity count and pipeline amount.`
 ### Category (`Category__c`)
 
 Optional restricted picklist. Category classifies the business purpose of a Check. It does not
-change the result, severity, order, or current card layout.
+change the result, severity, or evaluation order. After a run, categorized Checks produce grouped
+category summaries that replace the single overall totals bar. The Check Set's **Summary Display**
+setting places those groups above or below the Check rows.
 
 | Setup choice | Stored value |
 | --- | --- |

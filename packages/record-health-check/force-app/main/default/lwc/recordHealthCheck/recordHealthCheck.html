@@ -5,23 +5,64 @@
 <template>
   <div class={themeClass}>
     <template if:true={hasComponentError}>
-      <div class={errorBannerClass} role="alert" aria-live="assertive">
-        <lightning-icon
-          icon-name={errorBannerIcon}
-          size="x-small"
-          variant={errorBannerIconVariant}
-          alternative-text={errorBannerIconAltText}
-        ></lightning-icon>
-        <div class="rhc-error-banner__body">
-          <span class="rhc-error-banner__title" role="heading" aria-level="2"
-            >{errorBannerTitle}</span
-          >
-          <span class="rhc-error-banner__msg">{componentError}</span>
-          <template if:true={isSetupError}>
-            <span class="rhc-error-banner__hint"> {setupErrorHint} </span>
-          </template>
+      <article class="rhc-card">
+        <div class="rhc-body">
+          <div class="rhc-header">
+            <div class="rhc-header__bar">
+              <div class="rhc-header__main">
+                <h2 class="rhc-header__title">{errorBannerTitle}</h2>
+              </div>
+            </div>
+          </div>
+          <ul class="rhc-list" role="list">
+            <li
+              class={errorBannerClass}
+              role="alert"
+              aria-live="assertive"
+              aria-label={componentErrorAccessibleLabel}
+            >
+              <span
+                class="rhc-row__accent rhc-row__accent--system-error"
+                aria-hidden="true"
+              ></span>
+              <div class="rhc-row__icon" aria-hidden="true">
+                <span
+                  class="rhc-status-icon rhc-status-icon--system-error"
+                ></span>
+              </div>
+              <div class="rhc-row__content rhc-error-banner__body">
+                <span class="rhc-row__message rhc-error-banner__msg"
+                  >{componentError}</span
+                >
+                <template if:true={setupErrorHint}>
+                  <span class="rhc-error-banner__hint">{setupErrorHint}</span>
+                </template>
+                <template if:true={componentErrorTechnicalDetail}>
+                  <span class="rhc-error-banner__technical"
+                    >Administrator detail: {componentErrorTechnicalDetail}</span
+                  >
+                </template>
+                <template if:true={componentErrorDiagnosticCode}>
+                  <span class="rhc-error-banner__diagnostic"
+                    >Diagnostic ID: {componentErrorDiagnosticCode}</span
+                  >
+                </template>
+                <template if:true={componentErrorRetryable}>
+                  <div class="rhc-error-banner__actions">
+                    <button
+                      type="button"
+                      class="slds-button slds-button_neutral"
+                      onclick={handleComponentErrorRetry}
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </template>
+              </div>
+            </li>
+          </ul>
         </div>
-      </div>
+      </article>
     </template>
 
     <template if:false={hasComponentError}>
@@ -39,13 +80,13 @@
 
               <template if:true={showHeaderActions}>
                 <div class="rhc-header__actions">
-                  <template if:true={isLoading}>
+                  <template if:true={showHeaderLoadingSpinner}>
                     <lightning-spinner
                       alternative-text="Loading health checks"
                       size="small"
                     ></lightning-spinner>
                   </template>
-                  <template if:false={isLoading}>
+                  <template if:true={showHeaderActionButton}>
                     <template if:true={showActionButton}>
                       <button
                         type="button"
@@ -95,6 +136,23 @@
             </template>
           </div>
 
+          <template if:true={completionWarning}>
+            <div class="rhc-completion-warning" role="status">
+              <span
+                class="rhc-status-icon rhc-status-icon--unable"
+                aria-hidden="true"
+              ></span>
+              <div class="rhc-completion-warning__body">
+                <span>{completionWarning}</span>
+                <template if:true={completionWarningDiagnosticCode}>
+                  <span class="rhc-completion-warning__diagnostic"
+                    >Diagnostic ID: {completionWarningDiagnosticCode}</span
+                  >
+                </template>
+              </div>
+            </div>
+          </template>
+
           <template if:true={showPreRunHint}>
             <p class="rhc-pre-run-hint" role="status">{preRunHintText}</p>
           </template>
@@ -102,6 +160,43 @@
             <p class="rhc-pre-run-hint" role="status">
               {hiddenEvaluationHintText}
             </p>
+          </template>
+
+          <template if:true={showSummaryStatsAbove}>
+            <div class="rhc-stats-bar" data-summary-position="top">
+              <template for:each={summaryGroups} for:item="group">
+                <div key={group.key} class={group.cssClass}>
+                  <template if:true={group.label}>
+                    <div class="rhc-stats-group__label">{group.label}</div>
+                  </template>
+                  <template if:true={group.assistiveLabel}>
+                    <span class="slds-assistive-text"
+                      >{group.assistiveLabel}</span
+                    >
+                  </template>
+                  <div class="rhc-stats-group__pills">
+                    <template for:each={group.stats} for:item="stat">
+                      <span key={stat.key} class="rhc-summary-pill">
+                        <span
+                          class={stat.cssClass}
+                          data-tooltip={stat.tooltip}
+                          tabindex={stat.tabIndex}
+                        >
+                          <span
+                            class={stat.iconClass}
+                            aria-hidden="true"
+                          ></span>
+                          {stat.label}
+                        </span>
+                        <span class="rhc-stat__nubbin-host" aria-hidden="true">
+                          <span class="rhc-stat__nubbin"></span>
+                        </span>
+                      </span>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
           </template>
 
           <ul class="rhc-list" role="list">
@@ -322,8 +417,8 @@
             </p>
           </template>
 
-          <template if:true={showSummaryStats}>
-            <div class="rhc-stats-bar">
+          <template if:true={showSummaryStatsBelow}>
+            <div class="rhc-stats-bar" data-summary-position="bottom">
               <template for:each={summaryGroups} for:item="group">
                 <div key={group.key} class={group.cssClass}>
                   <template if:true={group.label}>

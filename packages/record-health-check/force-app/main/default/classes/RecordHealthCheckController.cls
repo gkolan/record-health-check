@@ -8,6 +8,41 @@ public with sharing class RecordHealthCheckController {
   private static RecordHealthCheckConfigService configService = new RecordHealthCheckConfigService();
 
   /**
+   * Returns only the selected Check Set's configured run mode so the component
+   * can avoid loading Check definitions for a Manual card before Run is selected.
+   *
+   * @param checkSetQualifiedApiName Namespace-safe name of the selected Check Set.
+   * @return Run mode, Card Title, description, active Check count, and button presentation; or an empty map when blank or missing.
+   * @throws AuraHandledException if shell configuration cannot be loaded safely.
+   */
+  @AuraEnabled
+  public static Map<String, String> getCheckSetShellConfig(
+    String checkSetQualifiedApiName
+  ) {
+    requireRunAccess();
+    try {
+      return configService.getCheckSetShellConfig(checkSetQualifiedApiName);
+    } catch (Exception ex) {
+      RecordHealthCheckLogger.log(
+        RecordHealthCheckLogger.Level.ERROR,
+        null,
+        checkSetQualifiedApiName,
+        null,
+        null,
+        'SHELL_CONFIG_LOAD_FAILED',
+        null,
+        ex
+      );
+      throw buildAuraException(
+        'LOAD_FAILED',
+        'An unexpected error occurred loading the health check configuration.'
+      );
+    } finally {
+      RecordHealthCheckLogger.flush();
+    }
+  }
+
+  /**
    * Reports whether the record's object has active and/or inactive Check Sets.
    * Used when the LWC has no Check Set selected, so the setup banner can say
    * choose one, activate one, or create one.

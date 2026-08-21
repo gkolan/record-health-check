@@ -76,6 +76,7 @@ create this Check Set:
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm every open Opportunity has a positive Amount. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

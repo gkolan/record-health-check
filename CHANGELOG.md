@@ -40,9 +40,11 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 
 ### Lightning performance
 
-- Record-page placements declare **When Checks Run** in App Builder. Manual cards perform no
-  Salesforce server work until Run; Automatic cards defer definition loading and evaluation until
-  browser idle. The component fails closed if the App Builder mode and Check Set mode differ.
+- Superseded during 2.0.4 development: an earlier implementation declared **When Checks Run** in
+  App Builder and failed closed on a mode mismatch. The current component uses the selected Check
+  Set as the single source of truth and loads lightweight shell configuration on initial render.
+  Manual cards defer definitions and evaluation until Run; Automatic cards defer those operations
+  until browser idle.
 
 ### Administrator experience
 

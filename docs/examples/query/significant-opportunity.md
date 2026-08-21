@@ -79,6 +79,7 @@ create this Check Set:
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm an open Opportunity is significant for this Account. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

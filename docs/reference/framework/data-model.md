@@ -28,6 +28,11 @@ erDiagram
         string ObjectApiName
         boolean IsActive
         string CardRunMode
+        string CardRevealMode
+        string PassedChecksDisplay
+        string SkippedChecksDisplay
+        string FoundExpectedDisplay
+        string SummaryDisplay
         boolean ShowDiagnostics
     }
     CHECK {
@@ -37,6 +42,7 @@ erDiagram
         string PrerequisiteCheck
         string ComparisonOperator
         string FailureSeverity
+        string Category
     }
 ```
 

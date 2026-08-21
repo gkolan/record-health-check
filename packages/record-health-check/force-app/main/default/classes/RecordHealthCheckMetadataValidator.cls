@@ -67,6 +67,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         FoundExpectedDisplay__c,
         PassedChecksDisplay__c,
         SkippedChecksDisplay__c,
+        SummaryDisplay__c,
         CardTitle__c,
         PublishUserRunEvent__c
       FROM Record_Health_Check_Set__mdt

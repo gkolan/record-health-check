@@ -46,7 +46,7 @@ from the authorized Diagnosis or `[RHC]` browser-console summary after the run f
 
 | Symptom | Check first | Likely cause area | Go to |
 | --- | --- | --- | --- |
-| Card is missing, empty, or says no Check Set is configured | App Builder component properties and Check Set identity | Lightning page or metadata selection | [Card and definition problems](#card-and-definition-problems) |
+| Card is missing, empty, or says no Check Set is configured | App Builder Check Set selection and Check Set identity | Lightning page or metadata selection | [Card and definition problems](#card-and-definition-problems) |
 | Run button is absent | **When Checks Run** and **Run Button Display** on the Check Set | Intended card configuration | [Card and definition problems](#card-and-definition-problems) |
 | One user succeeds and another does not | Permission Sets, record sharing, object access, and field access | Salesforce authorization | [Access differences](#access-differences-between-users) |
 | Check is Skipped | Reason Code and prerequisite/applicability diagnostics | Applicability or dependency | [Read the result first](#read-the-result-first) |
@@ -112,8 +112,11 @@ testing as the intended user because administrators can see records and fields o
 3. Treat a hidden Run button as configuration until proven otherwise. Check **When Checks Run**,
    **Run Button Display** on the selected Check Set. Hidden and icon-only controls intentionally
    release their unused header space to the title.
-4. Refresh the record page after metadata, permission, or Lightning-page changes.
-5. If definition loading still fails, capture the card's Diagnostic ID and copied diagnostic
+4. Remember that the card loads lightweight shell configuration immediately. An inactive or missing
+   Check Set can therefore fail before a Manual user selects Run; definitions and evaluation still
+   remain deferred until Run.
+5. Refresh the record page after metadata, permission, or Lightning-page changes.
+6. If definition loading still fails, capture the card's Diagnostic ID and copied diagnostic
    report. Use a debug log only if the diagnosis reports incomplete telemetry.
 
 ## Access differences between users

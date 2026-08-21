@@ -62,6 +62,9 @@ The result can be Pass, Failed, Warning, Info, Skipped, Unable to Check, or Syst
 on the record and Check severity. Use [Read Record Health Check results](../guides/read-results.md)
 to translate the card label into the programmatic status.
 
+Lightning App Builder selects only the Check Set. Run timing, summary placement, and Run/Rerun
+presentation come from that Check Set's Custom Metadata fields.
+
 ## If verification fails
 
 If no example appears in Lightning App Builder, confirm the installed package version and refresh

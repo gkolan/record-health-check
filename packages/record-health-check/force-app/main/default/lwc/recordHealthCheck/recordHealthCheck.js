@@ -6,6 +6,8 @@
 import { LightningElement, api, track } from "lwc";
 import themeStyles from "./recordHealthCheckTheme.css";
 import USER_ID from "@salesforce/user/Id";
+import CAN_VIEW_DIAGNOSTICS from "@salesforce/customPermission/Record_Health_Check_View_Diagnostics";
+import getCheckSetShellConfig from "@salesforce/apex/RecordHealthCheckController.getCheckSetShellConfig";
 import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.getCheckDefinitions";
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
 import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheck";
@@ -15,6 +17,7 @@ import { annotateCheck, buildSummaryGroups } from "./healthCheckPresentation";
 import { HealthCheckRunner } from "./healthCheckRunner";
 import {
   buildInactiveCheckStat,
+  componentErrorPresentation,
   diagnosticNextSteps,
   formatRunSummary,
   parseDiagnosticJson,
@@ -72,7 +75,6 @@ export default class RecordHealthCheck extends LightningElement {
   static stylesheets = [themeStyles];
 
   _checkSetName;
-  _whenChecksRun;
   @track _isSlds2 = false;
 
   get themeClass() {
@@ -87,20 +89,7 @@ export default class RecordHealthCheck extends LightningElement {
     const changed = value !== this._checkSetName;
     this._checkSetName = value;
     if (this._connected && changed) {
-      this._restartConfiguredLifecycle();
-    }
-  }
-
-  @api
-  get whenChecksRun() {
-    return this._whenChecksRun;
-  }
-  set whenChecksRun(value) {
-    const normalized = ["Manual", "Automatic"].includes(value) ? value : null;
-    const changed = normalized !== this._whenChecksRun;
-    this._whenChecksRun = normalized;
-    if (this._connected && changed) {
-      this._restartConfiguredLifecycle();
+      this._restartConfiguredLifecycle(true);
     }
   }
 
@@ -135,6 +124,7 @@ export default class RecordHealthCheck extends LightningElement {
   @track revealMode;
   @track successDisplayMode;
   @track skippedDisplayMode;
+  @track summaryDisplay = "BOTTOM";
   @track comparisonDisplay = "OnDemand";
   @track stopOnFirstError;
   @track showDiagnostics = false;
@@ -152,6 +142,12 @@ export default class RecordHealthCheck extends LightningElement {
   @track componentError = null; // safe user-facing message
   @track componentErrorCode = null;
   @track componentErrorDiagnosticCode = null;
+  @track componentErrorTitle = null;
+  @track componentErrorGuidance = null;
+  @track componentErrorTechnicalDetail = null;
+  @track componentErrorRetryable = false;
+  @track completionWarning = null;
+  @track completionWarningDiagnosticCode = null;
   @track checksOmittedByLimit = false;
   @track isLoading = true;
 
@@ -183,14 +179,43 @@ export default class RecordHealthCheck extends LightningElement {
   _cancelAutomaticRun = null;
   _definitionLoadInProgress = false;
 
+  _clearComponentError() {
+    this.componentError = null;
+    this.componentErrorCode = null;
+    this.componentErrorDiagnosticCode = null;
+    this.componentErrorTitle = null;
+    this.componentErrorGuidance = null;
+    this.componentErrorTechnicalDetail = null;
+    this.componentErrorRetryable = false;
+  }
+
+  _setComponentError(reasonCode, technicalMessage, diagnosticCode = null) {
+    const presentation = componentErrorPresentation(
+      reasonCode,
+      technicalMessage,
+      CAN_VIEW_DIAGNOSTICS === true,
+      diagnosticCode
+    );
+    this.componentError = presentation.message;
+    this.componentErrorCode = presentation.reasonCode;
+    this.componentErrorDiagnosticCode = presentation.diagnosticCode;
+    this.componentErrorTitle = presentation.title;
+    this.componentErrorGuidance = presentation.guidance;
+    this.componentErrorTechnicalDetail = presentation.technicalDetail;
+    this.componentErrorRetryable = presentation.retryable;
+  }
+
   connectedCallback() {
     this._connected = true;
     window.addEventListener("resize", this._handleViewportResize);
-    this._restartConfiguredLifecycle(true);
+    this._restartConfiguredLifecycle(true, true);
   }
 
-  _restartConfiguredLifecycle(deferLegacyInitialLoad = false) {
-    this._loadToken++;
+  _restartConfiguredLifecycle(
+    resolveRunMode = false,
+    deferInitialLoad = false
+  ) {
+    const loadToken = ++this._loadToken;
     if (this._initialLoadFrame) {
       cancelAnimationFrame(this._initialLoadFrame);
       this._initialLoadFrame = null;
@@ -199,62 +224,118 @@ export default class RecordHealthCheck extends LightningElement {
     this._runner.invalidate();
     this._definitionLoadInProgress = false;
 
-    if (this._whenChecksRun === "Manual") {
-      this._prepareQuietManualShell();
+    if (!resolveRunMode && this.triggerMode === "Manual") {
+      this._prepareQuietManualShell({
+        cardTitle: this.displayTitle,
+        cardDescription: this.displayDescription,
+        activeCheckCount: this.totalAvailableCheckCount,
+        runButtonDisplay: this.checkSetRunButtonDisplay,
+        runButtonLabel: this.runButtonLabel,
+        rerunButtonLabel: this.rerunButtonLabel,
+        runButtonIcon: this.runButtonIcon
+      });
       return;
     }
-    if (this._whenChecksRun === "Automatic") {
-      this._prepareDeferredAutomaticShell();
+    if (!resolveRunMode && this.triggerMode === "Automatic") {
+      this._prepareDeferredAutomaticShell({
+        cardTitle: this.displayTitle,
+        cardDescription: this.displayDescription,
+        activeCheckCount: this.totalAvailableCheckCount,
+        runButtonDisplay: this.checkSetRunButtonDisplay,
+        runButtonLabel: this.runButtonLabel,
+        rerunButtonLabel: this.rerunButtonLabel,
+        runButtonIcon: this.runButtonIcon
+      });
       this._scheduleAutomaticLoad();
       return;
     }
 
-    // Compatibility for programmatic consumers created before the App Builder
-    // property existed. Packaged record-page placements always receive the
-    // required design property and use one of the zero-initial-server-work paths.
-    if (!deferLegacyInitialLoad) {
+    if (deferInitialLoad) {
+      // eslint-disable-next-line @lwc/lwc/no-async-operation
+      this._initialLoadFrame = requestAnimationFrame(() => {
+        this._initialLoadFrame = null;
+        this._resolveConfiguredLifecycle(loadToken, this.checkSetName);
+      });
+      return;
+    }
+    this._resolveConfiguredLifecycle(loadToken, this.checkSetName);
+  }
+
+  async _resolveConfiguredLifecycle(loadToken, checkSetName) {
+    let shellConfig = null;
+    try {
+      shellConfig = await getCheckSetShellConfig({
+        checkSetQualifiedApiName: checkSetName
+      });
+    } catch {
+      // The definition load owns user-facing configuration and access errors.
+    }
+    if (
+      !this._connected ||
+      loadToken !== this._loadToken ||
+      checkSetName !== this.checkSetName
+    ) {
+      return;
+    }
+    if (
+      shellConfig?.runMode === "Manual" &&
+      shellConfig?.runButtonDisplay === "HIDE"
+    ) {
       this._loadDefinitions();
       return;
     }
-    // eslint-disable-next-line @lwc/lwc/no-async-operation
-    this._initialLoadFrame = requestAnimationFrame(() => {
-      this._initialLoadFrame = null;
-      this._loadDefinitions();
-    });
+    if (shellConfig?.runMode === "Manual") {
+      this._prepareQuietManualShell(shellConfig);
+      return;
+    }
+    if (shellConfig?.runMode === "Automatic") {
+      this._prepareDeferredAutomaticShell(shellConfig);
+      this._scheduleAutomaticLoad();
+      return;
+    }
+    this._loadDefinitions();
   }
 
-  _prepareQuietManualShell() {
+  _prepareQuietManualShell(shellConfig = {}) {
     this.triggerMode = "Manual";
-    this.displayTitle = "Record Health Check";
-    this.displayDescription = null;
-    this.checkSetRunButtonDisplay = DEFAULT_RUN_BUTTON_DISPLAY;
-    this.runButtonLabel = null;
-    this.rerunButtonLabel = null;
-    this.runButtonIcon = null;
+    this._prepareMetadataShell(shellConfig);
     this.isLoading = false;
-    this.componentError = null;
-    this.componentErrorCode = null;
+    this._clearComponentError();
+    this.completionWarning = null;
+    this.completionWarningDiagnosticCode = null;
     this.checks = [];
-    this.totalCheckCount = 0;
     this.runComplete = false;
     this.hasCompletedRunOnce = false;
   }
 
-  _prepareDeferredAutomaticShell() {
+  _prepareDeferredAutomaticShell(shellConfig = {}) {
     this.triggerMode = "Automatic";
-    this.displayTitle = "Record Health Check";
-    this.displayDescription = null;
-    this.checkSetRunButtonDisplay = DEFAULT_RUN_BUTTON_DISPLAY;
-    this.runButtonLabel = null;
-    this.rerunButtonLabel = null;
-    this.runButtonIcon = null;
+    this._prepareMetadataShell(shellConfig);
     this.isLoading = false;
-    this.componentError = null;
-    this.componentErrorCode = null;
+    this._clearComponentError();
+    this.completionWarning = null;
+    this.completionWarningDiagnosticCode = null;
     this.checks = [];
-    this.totalCheckCount = 0;
     this.runComplete = false;
     this.hasCompletedRunOnce = false;
+  }
+
+  _prepareMetadataShell(shellConfig) {
+    const activeCheckCount = Number(shellConfig.activeCheckCount) || 0;
+    this.displayTitle =
+      shellConfig.cardTitle || this.checkSetName || "Record Health Check";
+    this.displayDescription = shellConfig.cardDescription || null;
+    this.totalAvailableCheckCount = activeCheckCount;
+    this.totalCheckCount = Math.min(activeCheckCount, this.frameworkMaxChecks);
+    this.checksOmittedByLimit = activeCheckCount > this.frameworkMaxChecks;
+    this.checkSetRunButtonDisplay = RUN_BUTTON_DISPLAYS.includes(
+      shellConfig.runButtonDisplay
+    )
+      ? shellConfig.runButtonDisplay
+      : DEFAULT_RUN_BUTTON_DISPLAY;
+    this.runButtonLabel = shellConfig.runButtonLabel || null;
+    this.rerunButtonLabel = shellConfig.rerunButtonLabel || null;
+    this.runButtonIcon = shellConfig.runButtonIcon || null;
   }
 
   disconnectedCallback() {
@@ -476,8 +557,9 @@ export default class RecordHealthCheck extends LightningElement {
     this._expandedNames = {};
 
     this.isLoading = true;
-    this.componentError = null;
-    this.componentErrorCode = null;
+    this._clearComponentError();
+    this.completionWarning = null;
+    this.completionWarningDiagnosticCode = null;
 
     if (!this.checkSetName || !this.checkSetName.trim()) {
       await this._applyBlankCheckSetSetupError(loadToken, requestedRecordId);
@@ -495,7 +577,7 @@ export default class RecordHealthCheck extends LightningElement {
 
       if (loadToken !== this._loadToken || !this._connected) return;
       if (!response || !Array.isArray(response.checks)) {
-        throw new Error(
+        throw this._clientDefinitionError(
           "The server returned an invalid health-check definition response."
         );
       }
@@ -503,17 +585,17 @@ export default class RecordHealthCheck extends LightningElement {
       const seenNames = new Set();
       for (const def of response.checks) {
         if (!def || !def.developerName) {
-          throw new Error(
+          throw this._clientDefinitionError(
             "A health-check definition is missing its developer name."
           );
         }
         if (!def.qualifiedApiName) {
-          throw new Error(
+          throw this._clientDefinitionError(
             "A health-check definition is missing its qualified API name."
           );
         }
         if (seenNames.has(def.developerName)) {
-          throw new Error(
+          throw this._clientDefinitionError(
             `Duplicate health-check developer name: ${def.developerName}.`
           );
         }
@@ -527,13 +609,6 @@ export default class RecordHealthCheck extends LightningElement {
         ["Automatic", "Manual"],
         "When Checks Run"
       );
-      if (this._whenChecksRun && response.triggerMode !== this._whenChecksRun) {
-        const configurationError = new Error(
-          `App Builder When Checks Run is ${this._whenChecksRun}, but the selected Check Set is ${response.triggerMode}. Update the component property or Check Set so they match.`
-        );
-        configurationError.reasonCode = "INVALID_CONFIG";
-        throw configurationError;
-      }
       this._requireMode(
         response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY,
         RUN_BUTTON_DISPLAYS,
@@ -559,6 +634,11 @@ export default class RecordHealthCheck extends LightningElement {
         ["OnDemand", "FailuresOnly", "AllRows"],
         "Found/Expected Display"
       );
+      this._requireMode(
+        response.summaryDisplay || "BOTTOM",
+        ["TOP", "BOTTOM"],
+        "Summary Display"
+      );
       this.triggerMode = response.triggerMode;
       this.checkSetRunButtonDisplay =
         response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY;
@@ -578,6 +658,7 @@ export default class RecordHealthCheck extends LightningElement {
       this.revealMode = response.revealMode;
       this.successDisplayMode = response.successDisplayMode;
       this.skippedDisplayMode = response.skippedDisplayMode;
+      this.summaryDisplay = response.summaryDisplay || "BOTTOM";
       this.comparisonDisplay = response.comparisonDisplay;
       this.stopOnFirstError = response.stopOnFirstError;
       this.showDiagnostics = response.showDiagnostics === true;
@@ -616,8 +697,7 @@ export default class RecordHealthCheck extends LightningElement {
       }));
 
       this.isLoading = false;
-      this.componentError = null;
-      this.componentErrorCode = null;
+      this._clearComponentError();
 
       if (runSource) {
         this._runner.run(runSource === "RUN_ON_LOAD", runSource);
@@ -632,9 +712,15 @@ export default class RecordHealthCheck extends LightningElement {
       if (loadToken !== this._loadToken || !this._connected) return;
       this.isLoading = false;
       const parsed = parseAuraError(err);
-      this.componentError = parsed.message;
-      this.componentErrorCode = parsed.reasonCode;
-      this.componentErrorDiagnosticCode = parsed.diagnosticCode;
+      const reasonCode =
+        err?.reasonCode === "CLIENT_DEFINITION_INVALID"
+          ? "CLIENT_DEFINITION_INVALID"
+          : parsed.reasonCode;
+      this._setComponentError(
+        reasonCode,
+        parsed.message,
+        parsed.diagnosticCode
+      );
     }
   }
 
@@ -646,7 +732,7 @@ export default class RecordHealthCheck extends LightningElement {
       this._cancelAutomaticRun = null;
       if (
         !this._connected ||
-        this._whenChecksRun !== "Automatic" ||
+        this.triggerMode !== "Automatic" ||
         checkSetName !== this.checkSetName ||
         recordId !== this.recordId
       ) {
@@ -728,15 +814,18 @@ export default class RecordHealthCheck extends LightningElement {
         const parsed = parseAuraError(error);
         this.isLoading = false;
         if (parsed.reasonCode === "NOT_AUTHORIZED") {
-          this.componentError = parsed.message;
-          this.componentErrorCode = parsed.reasonCode;
-          this.componentErrorDiagnosticCode = parsed.diagnosticCode;
+          this._setComponentError(
+            parsed.reasonCode,
+            parsed.message,
+            parsed.diagnosticCode
+          );
           return;
         }
-        this.componentError =
-          "Record Health Check could not verify its setup. Please try again.";
-        this.componentErrorCode = "AVAILABILITY_LOOKUP_FAILED";
-        this.componentErrorDiagnosticCode = parsed.diagnosticCode;
+        this._setComponentError(
+          "AVAILABILITY_LOOKUP_FAILED",
+          parsed.message,
+          parsed.diagnosticCode
+        );
         return;
       }
     }
@@ -745,20 +834,23 @@ export default class RecordHealthCheck extends LightningElement {
     }
     this.isLoading = false;
     if (availability.hasActive) {
-      this.componentError =
-        "No Check Set is selected for this Record Health Check component.";
-      this.componentErrorCode = "SETUP_REQUIRED";
+      this._setComponentError(
+        "SETUP_REQUIRED",
+        "No Check Set is selected for this Record Health Check component."
+      );
       return;
     }
     if (availability.hasInactive) {
-      this.componentError =
-        "Check Sets exist for this object, but none of them are active.";
-      this.componentErrorCode = "INACTIVE_CHECK_SETS_ONLY";
+      this._setComponentError(
+        "INACTIVE_CHECK_SETS_ONLY",
+        "Check Sets exist for this object, but none of them are active."
+      );
       return;
     }
-    this.componentError =
-      "No Check Set has been configured for this object's records.";
-    this.componentErrorCode = "NO_ACTIVE_CHECK_SETS";
+    this._setComponentError(
+      "NO_ACTIVE_CHECK_SETS",
+      "No Check Set has been configured for this object's records."
+    );
   }
 
   _requireMode(value, allowed, label) {
@@ -772,51 +864,51 @@ export default class RecordHealthCheck extends LightningElement {
     }
   }
 
+  _clientDefinitionError(message) {
+    return Object.assign(new Error(message), {
+      reasonCode: "CLIENT_DEFINITION_INVALID"
+    });
+  }
+
   _handleCompletionFailure(error) {
     const parsed = parseAuraError(error);
-    this.componentError =
-      "The checks finished, but the run could not be completed. Please try again.";
-    this.componentErrorCode = "RUN_COMPLETION_FAILED";
-    this.componentErrorDiagnosticCode = parsed.diagnosticCode;
+    this.completionWarning =
+      "Your results are shown, but the run couldn't be finalized.";
+    this.completionWarningDiagnosticCode =
+      CAN_VIEW_DIAGNOSTICS === true ? parsed.diagnosticCode : null;
   }
 
   get isSetupError() {
     return SETUP_ERROR_CODES.has(this.componentErrorCode);
   }
 
-  get isAccessError() {
-    return this.componentErrorCode === "NOT_AUTHORIZED";
-  }
-
   get errorBannerClass() {
-    return this.isAccessError
-      ? "rhc-error-banner rhc-error-banner--access"
-      : "rhc-error-banner";
-  }
-
-  get errorBannerIcon() {
-    if (this.isAccessError) return "utility:deny_access_object";
-    return this.isSetupError ? "utility:setup" : "utility:error";
-  }
-
-  get errorBannerIconVariant() {
-    return this.isAccessError ? null : "error";
-  }
-
-  get errorBannerIconAltText() {
-    if (this.isAccessError) return "Access required";
-    return this.isSetupError ? "Setup required" : "Error";
+    return "rhc-row rhc-row--system-error rhc-error-banner";
   }
 
   get errorBannerTitle() {
-    if (this.isAccessError) return "Record Health Check Access Required";
-    return this.isSetupError
-      ? "Health Check Needs Setup"
-      : "Health Check Unavailable";
+    return this.componentErrorTitle || "Health Check Unavailable";
+  }
+
+  get componentErrorAccessibleLabel() {
+    return [
+      this.errorBannerTitle,
+      this.componentError,
+      this.componentErrorGuidance
+    ]
+      .filter(Boolean)
+      .join(". ");
   }
 
   get setupErrorHint() {
-    return setupErrorHint(this.componentErrorCode);
+    return (
+      this.componentErrorGuidance || setupErrorHint(this.componentErrorCode)
+    );
+  }
+
+  async handleComponentErrorRetry() {
+    if (!this.componentErrorRetryable || this.isLoading) return;
+    await this._loadDefinitions();
   }
 
   get showRunButton() {
@@ -1063,6 +1155,14 @@ export default class RecordHealthCheck extends LightningElement {
     return this.isLoading || this.showActionButton;
   }
 
+  get showHeaderLoadingSpinner() {
+    return this.isLoading && !this._definitionLoadInProgress;
+  }
+
+  get showHeaderActionButton() {
+    return !this.isLoading || this._definitionLoadInProgress;
+  }
+
   get showPreRunHint() {
     // Shown before the first Manual run in both reveal modes. Rule names stay
     // hidden until the user starts evaluation.
@@ -1072,7 +1172,7 @@ export default class RecordHealthCheck extends LightningElement {
       !this.isLoading &&
       !this.runComplete &&
       !this._runner.isRunning &&
-      this.checks.length > 0
+      this.totalCheckCount > 0
     );
   }
 
@@ -1098,6 +1198,14 @@ export default class RecordHealthCheck extends LightningElement {
 
   get showSummaryStats() {
     return this.runComplete && this.summaryGroups.length > 0;
+  }
+
+  get showSummaryStatsAbove() {
+    return this.showSummaryStats && this.summaryDisplay === "TOP";
+  }
+
+  get showSummaryStatsBelow() {
+    return this.showSummaryStats && !this.showSummaryStatsAbove;
   }
 
   /**
@@ -1168,11 +1276,13 @@ export default class RecordHealthCheck extends LightningElement {
     if (this._definitionLoadInProgress || this._runner.isRunning) {
       return;
     }
+    this.completionWarning = null;
+    this.completionWarningDiagnosticCode = null;
     // A Rerun starts a fresh evaluation, so per-row carets the user opened on the
     // previous run should collapse back to the placement default rather than
     // linger open over rows whose values are being recomputed.
     this._expandedNames = {};
-    if (this.checks.length === 0 && this._whenChecksRun === "Manual") {
+    if (this.checks.length === 0 && this.triggerMode === "Manual") {
       this._definitionLoadInProgress = true;
       try {
         await this._loadDefinitions("USER_INITIATED");

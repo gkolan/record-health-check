@@ -75,6 +75,7 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm Phone or Website is available before seller research. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

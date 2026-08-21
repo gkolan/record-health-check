@@ -105,9 +105,10 @@ Everyday users see business guidance. Administrators can temporarily use **Show 
 they need evidence about configuration, access, or an unexpected result. Diagnostic detail should
 remain off during normal use.
 
-**Show Diagnostics** is a property of the Record Health Check component in Lightning App Builder.
-Open the record, select **Setup → Edit Page**, select the component, and change the property only on
-the intended page assignment.
+**Show Diagnostics** is a field on the Record Health Check Set Custom Metadata record. In Setup,
+open **Custom Metadata Types → Record Health Check Set → Manage Records**, edit the Check Set used by
+the card, and select **Show Diagnostics** only for the investigation. The viewer must also have the
+**Record Health Check View Diagnostics** Custom Permission.
 
 ### First troubleshooting checks
 

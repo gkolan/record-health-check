@@ -81,6 +81,7 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm the parent Account Billing City before branch handoff. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

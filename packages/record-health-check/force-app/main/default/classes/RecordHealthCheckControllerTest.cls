@@ -2,7 +2,6 @@
  * @author Gautam Kolan (https://github.com/gkolan)
  * SPDX-License-Identifier: Apache-2.0
  */
-
 @IsTest
 private class RecordHealthCheckControllerTest {
   @TestSetup
@@ -40,6 +39,7 @@ private class RecordHealthCheckControllerTest {
       'Expected visible check definitions.'
     );
   }
+
   @IsTest
   static void getCheckDefinitionsWrapsConfigErrorsForAura() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();

@@ -61,7 +61,7 @@ future save. Administrators should still test Checks in a sandbox before activat
 | Public Apex API, Batch, Queueable, Scheduled Apex, and two Flow actions | The same evaluation code for automation and integrations |
 | `Record_Health_Check_Set_Run__e` and `Record_Health_Check_Result__e` | Optional Platform Events after deliberately started runs |
 | `Record_Health_Check_Log__e` | `ERROR` detail published through `RecordHealthCheckLogger.flush()` |
-| Two Permission Sets and two Custom Permissions | Separate run access (**Record Health Check Run** (`rhc__Record_Health_Check_Run`)) from diagnostics access (**Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`)) |
+| Four Permission Sets and two Custom Permissions | **Card User** grants the record-page card, **User** grants broader runtime entry points, **Admin** grants configuration and diagnostics, and **Error Log Publisher** grants restricted log-event publication. The Custom Permissions separately gate runs and diagnostics. |
 
 Record Health Check does not create history records. Apex, Flow, and custom Batch classes can save
 the returned results directly to a custom object created by your team. Platform Events are optional
@@ -76,6 +76,12 @@ SOQL does not count against the query governor limits that Check queries do.
 Record_Health_Check_Set__mdt          one card on one object
   ObjectApiName__c                    which object the card belongs to
   IsActive__c, CardRunMode__c         whether it runs, and on load or on request
+  CardRevealMode__c                   whether Check rows appear progressively or together
+  PassedChecksDisplay__c              whether passed rows remain visible
+  SkippedChecksDisplay__c             whether skipped rows remain visible
+
+  FoundExpectedDisplay__c             when Found and Expected evidence appears
+  SummaryDisplay__c                   whether overall/category summaries appear above or below rows
   ShowDiagnostics__c                  whether troubleshooting detail may be shown
   PublishUserRunEvent__c              card Run/Rerun can publish Record_Health_Check_Set_Run__e
   PublishErrorLogEvent__c             publishes Record_Health_Check_Log__e (default off)
@@ -294,7 +300,7 @@ result.
 | `RecordHealthCheck.evaluate(request)` | Apex, Batch, Scheduled Apex, tests | Qualified API Name, record IDs, result mode, Platform Event choice, and run ID |
 | `RecordHealthCheckRunCheckFlowAction` | Flow Builder | Invocable inputs and a versioned response, including result JSON |
 | `RecordHealthCheckRunSetFlowAction` | Flow Builder | The same for a whole Check Set |
-| `RecordHealthCheckController` | The Lightning card | Availability, definitions, one evaluate call per Check, and `completeRun` |
+| `RecordHealthCheckController` | The Lightning card | Availability, lightweight shell configuration, definitions, one evaluate call per Check, and `completeRun` |
 
 Each entry point supplies a **source** value that travels with the run. Publishable programmatic
 and deliberate sources include `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`,
@@ -302,8 +308,12 @@ and deliberate sources include `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`
 controller keeps non-publishable, so page views generate no health-result Platform Events. The browser may
 request only the two Lightning values, and the server substitutes `RUN_ON_LOAD` for anything else.
 
-**Lightning record page:** the component calls `getCheckDefinitions` once, then `evaluateCheck` once
-per Check, at most five calls in flight, so each Check is its own Apex transaction. On a
+**Lightning record page:** initial rendering calls `getCheckSetShellConfig` for the active Check
+Set's run mode, title, subtitle, active Check count, and Run-button presentation. Manual mode then
+waits for Run; automatic mode waits for browser idle.
+
+When execution begins, the component calls `getCheckDefinitions` once, then `evaluateCheck` once per
+Check, at most five calls in flight, so each Check is its own Apex transaction. On a
 `USER_INITIATED` run, `completeRun` does not evaluate the Checks again. It filters the completed
 browser results to the current record and the Checks in the resolved Check Set, rejects duplicates,
 calculates the summary from the accepted results, and then publishes the Check Result and Check Set
@@ -366,8 +376,8 @@ results, Platform Events, custom Apex Checks, and Action URLs, see
 | Lightning event input | `completeRun` accepts only a button-initiated run, the current record, and one result for each configured Check; it calculates counts from the accepted results |
 | Error messages | Public responses return a safe message and a Reason Code; exception text stays in authorized diagnostics |
 
-Both installed Permission Sets include the **Record Health Check Run** Custom Permission and Apex
-class access needed to run checks. **Record Health Check Admin**
+The installed **Card User**, **User**, and **Admin** Permission Sets include the **Record Health
+Check Run** Custom Permission and the Apex access appropriate to their surfaces. **Record Health Check Admin**
 (`rhc__Record_Health_Check_Admin`) also includes **Record Health Check View Diagnostics**, setup
 access for the Custom Metadata, and Apex class access for the package metadata validator.
 
@@ -511,7 +521,7 @@ For longer per-class descriptions, see [Reference: Apex classes](../apex/README.
 | `RecordHealthCheckAsyncSupport` | Shared record-ID and request preparation for those three Apex options |
 | `RecordHealthCheckFlowSupport` | Shared Flow input checking, result lookup, response-size limit, and summary Status |
 | `RecordHealthCheckFlowGroupExecutor` | Groups compatible inputs and runs them for both Flow actions |
-| `RecordHealthCheckController` | Lightning card: availability, definitions, `evaluateCheck`, `completeRun` |
+| `RecordHealthCheckController` | Lightning card: availability, shell configuration, definitions, `evaluateCheck`, `completeRun` |
 | `RecordHealthCheckScopePipeline` | Qualified API Name selection, request checks, record loading, ordered evaluation, event publication, and response creation |
 | `RecordHealthCheckEvaluatorRegistry` | Sends each Evaluation Type to its matching class |
 | `RecordHealthCheckFieldPlanner` | Identifies fields needed by all Checks before one user-mode record query runs |
@@ -592,7 +602,7 @@ One bundle, four modules. Keep them together as one component.
 
 | Module | Responsibility |
 | --- | --- |
-| `recordHealthCheck` | The component itself: wires, rendering, and user interaction |
+| `recordHealthCheck` | The component itself: shell and definition loading, rendering, and user interaction |
 | `healthCheckRunner` | Run sequence: prerequisite checks, no more than five Apex calls at once, and results shown as they finish |
 | `healthCheckModel` | Consistent result fields, error handling, run IDs, and circular-dependency detection |
 | `healthCheckPresentation` | Display shaping, summary counts, and link safety |

@@ -37,6 +37,10 @@ project at `packages/record-health-check/sfdx-project.json` registers only `forc
   that also ship in `force-app`
 - `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for
   verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
+- `Review_Summary_Above_Checks`: a permanent integration-only Account card with two uncategorized
+  Checks and `SummaryDisplay__c=TOP`, used to verify that the overall summary appears above Check
+  rows. Because contributor and release workflows deploy this directory, the fixture is included
+  in every integration-test deployment.
 - `RHC_Negative_Runtime`: an integration-only Account card for row-cap testing plus inactive,
   opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](negative-scenarios.md)
 - `RHC_Diagnostic_Bad_Formula`, `RHC_Diagnostic_Bad_Query`, and `RHC_Diagnostic_Bad_Apex`:

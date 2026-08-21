@@ -88,6 +88,7 @@ create this Check Set:
 | **Card Title** | Account Record Alignment |
 | **Card Subtitle** | Compare open-pipeline and previously purchased Products. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

@@ -92,6 +92,7 @@ Use values like these for the Account handoff example:
 | **Passed Checks** | Show each check | Users can see what is already complete. |
 | **Skipped Checks** | Show each check | Users can see which Checks did not apply. |
 | **Found/Expected Display** | On demand | Users can reveal comparison details when needed. |
+| **Summary Display** | Below Checks | The overall or category summary appears after the Check rows. |
 | **Show Diagnostics** | Unchecked | Detailed diagnostic data stays hidden during normal use. |
 | **Active** | Unchecked while building | Prevents users from running an unfinished Check Set. |
 
@@ -105,7 +106,9 @@ For every available field and value, see [Check Set fields](../metadata/fields-c
 On the card, **Reveal Mode** controls whether rows appear together or progressively. **Passed
 Checks** and **Skipped Checks** control whether those rows remain visible. **Found/Expected
 Display** controls whether evidence is shown immediately, on demand, or not at all. These settings
-change presentation, not the underlying result status.
+change presentation, not the underlying result status. **Summary Display** places the summary above
+or below the rows. If Checks have Categories, grouped category summaries replace the single overall
+totals bar at that position.
 
 ## Step 4: Create the first Check
 
@@ -273,7 +276,8 @@ query and formula behavior.
 
 | What the user sees | What to check first |
 | --- | --- |
-| **Record Health Check needs setup** | Select an active Check Set in Lightning App Builder. |
+| **Health Check Needs Setup** | Select an active Check Set in Lightning App Builder. |
+| **Health Check Unavailable** | Review access, active Check Set status, record context, and configuration guidance shown on the card. |
 | The Check Set is not available in the component dropdown | Confirm the Check Set is active and its Object matches the record page object. |
 | No Checks appear | Confirm at least one Check in the selected Check Set is active. |
 | A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |

@@ -142,6 +142,11 @@ The AI draft should use Setup labels and API names together. A typical proposal 
 | **Object** | `ObjectApiName__c` | `Account` |
 | **Card Title** | `CardTitle__c` | Account Handoff Review |
 | **When Checks Run** | `CardRunMode__c` | When the user clicks Run (`RUN_ON_REQUEST`) |
+| **Reveal Mode** | `CardRevealMode__c` | One by one (`ONE_BY_ONE`) |
+| **Passed Checks** | `PassedChecksDisplay__c` | Show each check (`SHOW_EACH_CHECK`) |
+| **Skipped Checks** | `SkippedChecksDisplay__c` | Show each check (`SHOW_EACH_CHECK`) |
+| **Found/Expected Display** | `FoundExpectedDisplay__c` | On demand (`ON_DEMAND`) |
+| **Summary Display** | `SummaryDisplay__c` | Below Checks (`BOTTOM`) |
 | **Show Diagnostics** | `ShowDiagnostics__c` | Unchecked (`false`) |
 | **Publish User Run Event** | `PublishUserRunEvent__c` | Unchecked (`false`) |
 | **Active** | `IsActive__c` | Unchecked until testing is ready |

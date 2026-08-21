@@ -46,7 +46,7 @@ run ID. The method returns one `RecordHealthCheckResponse` containing the result
 
 **Type:** Service class · `public with sharing`
 
-Exposes four card operations and nothing else. It cleans up the card's inputs, identifies whether the
+Exposes five card operations and nothing else. It cleans up the card's inputs, identifies whether the
 run came from page load or a button click, and passes the work to the package classes that load and
 run the Checks.
 
@@ -55,6 +55,7 @@ run the Checks.
 | Member | Purpose |
 | --- | --- |
 | `getCheckSetAvailabilityForRecord(recordId)` | Active/inactive Check Sets for the record's object (setup banner) |
+| `getCheckSetShellConfig(checkSetQualifiedApiName)` | Lightweight active Check Set run mode, card text, active Check count, and Run-button presentation used before definitions load |
 | `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)` | Display settings and ordered Check definitions for the card |
 | `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)` | One Check evaluation (one Apex transaction per Check from the card) |
 | `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)` | After a user-initiated run: filters completed card results, calculates the summary, and publishes the Set completion event |

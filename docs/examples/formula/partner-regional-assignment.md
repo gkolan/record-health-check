@@ -78,6 +78,7 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm Partner Accounts have a Billing Country. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show count only |
 | **Skipped Checks** | Show each check |

@@ -128,6 +128,16 @@ private class RecordHealthCheckDefinitionLoaderTest {
         RecordHealthCheckDefinitionLoader.normalizedPrerequisite(null),
         'A missing prerequisite should remain absent.'
       );
+      Assert.areEqual(
+        'BOTTOM',
+        RecordHealthCheckConstants.normalizedSummaryDisplay(null),
+        'A missing Summary Display should default to Below Checks.'
+      );
+      Assert.areEqual(
+        'TOP',
+        RecordHealthCheckConstants.normalizedSummaryDisplay('TOP'),
+        'The Above Checks API value should remain TOP.'
+      );
     }
   }
 

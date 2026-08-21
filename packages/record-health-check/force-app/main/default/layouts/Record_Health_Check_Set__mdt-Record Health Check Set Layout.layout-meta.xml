@@ -111,14 +111,18 @@
                 <field>CardRevealMode__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Required</behavior>
-                <field>PassedChecksDisplay__c</field>
+                <behavior>Edit</behavior>
+                <field>SummaryDisplay__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
                 <field>FoundExpectedDisplay__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Required</behavior>
+                <field>PassedChecksDisplay__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>

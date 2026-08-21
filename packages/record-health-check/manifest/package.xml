@@ -66,6 +66,7 @@
         <members>Record_Health_Check_Set__mdt.RunButtonIcon__c</members>
         <members>Record_Health_Check_Set__mdt.RunButtonLabel__c</members>
         <members>Record_Health_Check_Set__mdt.SkippedChecksDisplay__c</members>
+        <members>Record_Health_Check_Set__mdt.SummaryDisplay__c</members>
         <members>Record_Health_Check_Set__mdt.ShowDiagnostics__c</members>
         <members>Record_Health_Check_Set__mdt.FoundExpectedDisplay__c</members>
         <members>Record_Health_Check__mdt.Record_Health_Check_Set__c</members>
@@ -351,6 +352,7 @@
         <members>RHCConfigCheckValidationTest</members>
         <members>RecordHealthCheckConfigServiceTest</members>
         <members>RecordHealthCheckConfigValidationTest</members>
+        <members>RecordHealthCheckControllerShellTest</members>
         <members>RecordHealthCheckControllerTest</members>
         <members>RHCConstructorMutationCheck</members>
         <members>RecordHealthCheckAdversarialBoundaryTest</members>

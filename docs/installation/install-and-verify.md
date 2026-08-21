@@ -112,6 +112,10 @@ evidence, remediation guidance, and checks that apply only in certain situations
 The component appears under **Custom** because Record Health Check is an unlocked package. Nothing
 is wrong if you do not see it under **Custom - Managed**.
 
+Lightning App Builder selects the Check Set; the Check Set metadata owns run timing and card
+presentation. In **Setup → Custom Metadata Types → Record Health Check Set**, use **Summary
+Display** to place the overall or category summary above or below the Check rows.
+
 **Setup → Edit Page** opens the active Lightning page for the current record context. If your org
 uses several apps or profile assignments, confirm the page name and activation assignment before
 saving so you do not update a page that the test user never receives.

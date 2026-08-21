@@ -54,6 +54,7 @@ result without blocking record save or changing Account data.
 | **Object** | `Account` | Makes the Check Set available on Account pages |
 | **Card Title** | Account Readiness | Tells users what the card is reviewing |
 | **When Checks Run** | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
+| **Summary Display** | **Below Checks** | Places the completed result summary after the Check rows |
 | **Run Button Display** | **Label and icon** | Keeps the standard, discoverable Run and Rerun action |
 | **Run Button Label** | Run | Names the initial action |
 | **Rerun Button Label** | Rerun | Names the action after results appear |
@@ -121,12 +122,11 @@ reusable validation tool after future Custom Metadata edits.
 2. Select **Setup → Edit Page**.
 3. Drag **Record Health Check** onto the Lightning record page.
 4. In the component properties, select the `Account_Readiness` Check Set.
-5. Set the component's **When Checks Run** property to **Manual**, matching the Check Set's **When
-   the user clicks Run** setting. Manual cards make no Salesforce server request until Run.
-6. Confirm the component is using the intended **Check Set**; its Run/Rerun presentation comes from
-   that Check Set after the first explicit run.
-7. Save and activate the page.
-8. Return to the Account and refresh the page.
+5. Confirm the component is using the intended **Check Set**. Its run timing, summary position, and
+   Run/Rerun presentation come from that Check Set.
+6. Save and activate the page.
+7. Return to the Account and refresh the page. The card loads lightweight Check Set shell settings;
+   definitions and evaluation remain deferred until you select **Run**.
 
 If the Check Set picker is empty, confirm the Check Set is active and its **Object** value is
 `Account`.

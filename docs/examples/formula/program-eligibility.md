@@ -77,6 +77,7 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm employee count meets the program minimum. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

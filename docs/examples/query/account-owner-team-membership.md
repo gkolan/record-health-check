@@ -88,6 +88,7 @@ create this Check Set:
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm the Account Owner appears on the Account Team. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

@@ -19,7 +19,7 @@ For a guided example that creates both a Check Set and its Checks, start with
 | Name the Check Set and choose its Salesforce object | [Label and Developer Name](#label-and-developer-name), [Object](#object-objectapiname__c), [Active](#active-isactive__c) |
 | Choose when the card runs | [When Checks Run](#when-checks-run-cardrunmode__c), [Stop after a system error](#stop-after-a-system-error-stoponsystemerror__c) |
 | Choose how the card looks | [Card Title](#card-title-cardtitle__c), [Card Subtitle](#card-subtitle-cardsubtitle__c), [Reveal Mode](#reveal-mode-cardrevealmode__c), [Run button fields](#run-button-fields) |
-| Choose which result details appear | [Found/Expected Display](#foundexpected-display-foundexpecteddisplay__c), [Passed Checks](#passed-checks-passedchecksdisplay__c), [Skipped Checks](#skipped-checks-skippedchecksdisplay__c) |
+| Choose which result details appear | [Found/Expected Display](#foundexpected-display-foundexpecteddisplay__c), [Passed Checks](#passed-checks-passedchecksdisplay__c), [Skipped Checks](#skipped-checks-skippedchecksdisplay__c), [Summary Display](#summary-display-summarydisplay__c) |
 | Troubleshoot a Check Set | [Show Diagnostics](#show-diagnostics-showdiagnostics__c) |
 | Publish Platform Events | [Publish User Run Event](#publish-user-run-event-publishuserrunevent__c), [Publish Error Log Event](#publish-error-log-event-publisherrorlogevent__c) |
 
@@ -131,6 +131,16 @@ Expected value contains information that should not be shown to every card user.
 
 A Check can be skipped because it does not apply to the record or because a prerequisite Check did
 not pass. Hiding the row does not change the result.
+
+### Summary Display (`SummaryDisplay__c`)
+
+| Setup choice | Stored value | What the user sees |
+| --- | --- | --- |
+| Above Checks | `TOP` | The result summary appears above the Check rows. |
+| Below Checks | `BOTTOM` | The result summary appears below the Check rows. This is the default. |
+
+The setting applies to both the overall summary and category-based summaries. When Checks use
+categories, the grouped category summaries replace the overall totals at the selected position.
 
 ## When Checks run
 
@@ -265,6 +275,7 @@ publish a Set Run Platform Event unless Flow or Apex separately requests publica
 | Found/Expected Display | `On demand` |
 | Passed Checks | `Show each check` |
 | Skipped Checks | `Show each check` |
+| Summary Display | `Below Checks` |
 | Stop after a system error | Cleared |
 | Show Diagnostics | Cleared |
 | Publish User Run Event | Cleared |

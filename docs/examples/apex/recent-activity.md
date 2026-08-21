@@ -326,6 +326,7 @@ create this Check Set:
 | **Card Title** | `Account Readiness` |
 | **Card Subtitle** | Confirm recent Tasks or Events within the configured window. |
 | **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |
