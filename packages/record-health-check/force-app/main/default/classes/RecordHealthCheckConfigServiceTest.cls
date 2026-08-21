@@ -6,6 +6,34 @@
 @IsTest
 private class RecordHealthCheckConfigServiceTest {
   @IsTest
+  static void shellLookupHandlesBlankMissingAndAutomaticSets() {
+    RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
+
+    Test.startTest();
+    Map<String, String> blank = service.getCheckSetShellConfig(' ');
+    Map<String, String> missing = service.getCheckSetShellConfig(
+      'Definitely_Missing'
+    );
+    Map<String, String> automatic = service.getCheckSetShellConfig(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Opportunity_Deal_Readiness'
+      )
+    );
+    Test.stopTest();
+
+    Assert.isTrue(blank.isEmpty(), 'A blank shell selection returns no shell.');
+    Assert.isTrue(
+      missing.isEmpty(),
+      'An unknown shell selection returns no shell.'
+    );
+    Assert.areEqual(
+      'Automatic',
+      automatic.get('runMode'),
+      'RUN_ON_LOAD must map to the Automatic client contract.'
+    );
+  }
+
+  @IsTest
   static void metadataLookupAndLimitLoggingCoverConfiguredPaths() {
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
     String checkName = RecordHealthCheckTestDataFactory.qualifiedCheckName(

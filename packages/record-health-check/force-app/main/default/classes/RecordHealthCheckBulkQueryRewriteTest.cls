@@ -2,6 +2,20 @@
 @IsTest
 private with sharing class RecordHealthCheckBulkQueryRewriteTest {
   @IsTest
+  static void appendGroupByDoesNotDuplicateExistingCorrelation() {
+    String original = 'SELECT AccountId, COUNT(Id) total FROM Contact GROUP BY AccountId';
+
+    Test.startTest();
+    String rewritten = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
+      original,
+      'AccountId'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(original, rewritten);
+  }
+
+  @IsTest
   static void selfQueryDoesNotDuplicateAnExistingCorrelationField() {
     Account account = RecordHealthCheckTestDataFactory.createAccount(
       RecordHealthCheckTestDataFactory.account(

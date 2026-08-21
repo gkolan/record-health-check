@@ -73,6 +73,44 @@ private class RecordHealthCheckDefinitionLoaderTest {
   }
 
   @IsTest
+  static void rejectsUnknownSummaryPlacementAtDefinitionBoundary() {
+    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+      new Map<String, Object>{
+        'IsActive__c' => true,
+        'ObjectApiName__c' => 'Account',
+        'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'SummaryDisplay__c' => 'MIDDLE',
+        'CardRunMode__c' => 'RUN_ON_REQUEST',
+        'CardRevealMode__c' => 'ALL_AT_ONCE',
+        'CardTitle__c' => 'Invalid summary placement',
+        'FoundExpectedDisplay__c' => 'ON_DEMAND'
+      }
+    );
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+
+    Test.startTest();
+    try {
+      RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
+        checkSet,
+        'Invalid_Summary_Placement',
+        accountId
+      );
+      Assert.fail('An unknown Summary Display must be rejected.');
+    } catch (RecordHealthCheckConfigService.ConfigException expected) {
+      Assert.areEqual(
+        RecordHealthCheckConfigService.RC_INVALID_CONFIG,
+        expected.reasonCode
+      );
+      Assert.isTrue(expected.getMessage().contains('Summary Display'));
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
   static void appliesDefinitionPresentationPolicies() {
     System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       List<String> inactiveLabels = RecordHealthCheckDefinitionLoader.inactiveCheckLabelsForDiagnostics(

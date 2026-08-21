@@ -339,6 +339,12 @@ private with sharing class RecordHealthCheckApexScopeTest {
       )
     );
     invalidOutcomes.add(RecordHealthCheckOutcome.pass('MISSING_VALUES'));
+    invalidOutcomes.add(
+      (RecordHealthCheckOutcome) JSON.deserialize(
+        '{"status":"PASS","reasonCode":"INVALID_DISPLAY","actualDisplayValue":0.75,"actualDisplayFormat":"ratio_percent","expectedValue":"80%"}',
+        RecordHealthCheckOutcome.class
+      )
+    );
 
     Test.startTest();
     for (RecordHealthCheckOutcome outcome : invalidOutcomes) {

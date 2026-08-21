@@ -158,6 +158,28 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     );
   }
 
+  @IsTest
+  static void configuredTypeResolvesExplicitPackageNamespace() {
+    String qualifiedCheck = RecordHealthCheckTestDataFactory.qualifiedCheckName(
+      'Example_Profile_Phone_Available'
+    );
+    if (!qualifiedCheck.contains('__')) {
+      return;
+    }
+    String namespace = qualifiedCheck.substringBefore('__');
+
+    Test.startTest();
+    Type resolved = RecordHealthCheckApexPluginResolver.configuredType(
+      namespace + '.AccountHasRecentActivityCheck'
+    );
+    Test.stopTest();
+
+    Assert.isNotNull(
+      resolved,
+      'An explicitly namespaced packaged plugin must resolve.'
+    );
+  }
+
   private static void assertReason(
     RecordHealthCheckInternalResult result,
     String expectedReason

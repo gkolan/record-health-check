@@ -175,6 +175,7 @@
         <members>AccountHasRecentActivityCheckTest</members>
         <members>RHCAbsentSchemaRedTest</members>
         <members>RHCBase64FieldRedTest</members>
+        <members>RHCCoverageBoundaryTest</members>
         <members>RHCCurrencyAuthoringRedTest</members>
         <members>RHCMixedCurrencyRedTest</members>
         <members>RHCQueryClassificationRedTest</members>

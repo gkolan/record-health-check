@@ -6,6 +6,29 @@
 @IsTest
 private class RecordHealthCheckTemplateServiceTest {
   @IsTest
+  static void resolverRejectsUnsupportedNamespaceDirectly() {
+    RecordHealthCheckToken token = new RecordHealthCheckToken(
+      '{!unknown.value}', // rejected-token-fixture
+      'unknown',
+      'value',
+      0,
+      16
+    );
+
+    Test.startTest();
+    try {
+      RecordHealthCheckTemplateValueResolver.valueFor(
+        token,
+        new RecordHealthCheckMergeContext()
+      );
+      Assert.fail('An unsupported token namespace must be rejected.');
+    } catch (Exception expected) {
+      Assert.isTrue(expected.getMessage().contains('not supported'));
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
   static void formatsRawRecordFieldsWithCanonicalApiNames() {
     Account record = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Acme', 'AnnualRevenue' => 70000 }

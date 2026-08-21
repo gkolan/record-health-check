@@ -379,6 +379,51 @@ private class RecordHealthCheckDiagnosticFactoryTest {
     );
   }
 
+  @IsTest
+  static void recorderFallsBackToCheckEvaluatorAndClassifiesErrorSeverity() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => 'Fallback_Evaluator',
+        'CheckTitle__c' => 'Fallback Evaluator',
+        'EvaluationType__c' => 'QUERY'
+      }
+    );
+    Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      4
+    );
+    RecordHealthCheckDiagnosticContext scopeContext = contextFor(
+      RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE,
+      'EXECUTE'
+    );
+    scopeContext.evaluatorType = null;
+    RecordHealthCheckInternalResult errorResult = new RecordHealthCheckInternalResult();
+    errorResult.status = RecordHealthCheckStatus.ERROR;
+    errorResult.reasonCode = RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID;
+    RecordHealthCheckDiagnosticContext resultContext = contextFor(
+      errorResult.reasonCode,
+      'PLUGIN_VALIDATE'
+    );
+
+    Test.startTest();
+    Map<Id, RecordHealthCheckInternalResult> scoped = RecordHealthCheckIncidentRecorder.recordScopeFailure(
+      check,
+      new List<Id>{ recordId },
+      scopeContext,
+      null
+    );
+    RecordHealthCheckIncidentRecorder.attachResultFailure(
+      check,
+      recordId,
+      resultContext,
+      errorResult
+    );
+    Test.stopTest();
+
+    Assert.areEqual('QUERY', scoped.get(recordId).evaluatorType);
+    Assert.areEqual('CRITICAL', errorResult.diagnosticIncident.severity);
+  }
+
   private static RecordHealthCheckDiagnosticContext contextFor(
     String reasonCode,
     String phase

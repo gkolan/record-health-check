@@ -112,6 +112,30 @@ private class RHCQueryClassificationRedTest {
     );
   }
 
+  @IsTest
+  static void shouldCoverTypeofAndTextSelectionBoundaries() {
+    Test.startTest();
+    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
+      'SELECT TYPEOF What WHEN Account THEN Name END FROM Task'
+    );
+    Boolean blankSelection = RecordHealthCheckQuerySchemaValidator.isTextSelection(
+      null,
+      null
+    );
+    Boolean absentRootSelection = RecordHealthCheckQuerySchemaValidator.isTextSelection(
+      'SELECT Name FROM RHC_Absent_Object__c',
+      'Name'
+    );
+    Test.stopTest();
+
+    Assert.isNull(blankSelection);
+    Assert.isNull(absentRootSelection);
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.hasMultipleOuterAggregateValues(null),
+      'A blank query has no aggregate values.'
+    );
+  }
+
   private static String classify(String message) {
     return RecordHealthCheckValueResolver.classifyQueryException(
       new SyntheticQueryException(message)
