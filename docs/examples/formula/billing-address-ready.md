@@ -50,6 +50,21 @@ A Salesforce user is preparing an Account for tax and territory review.
   your tax or territory process.
 - Confirm that intended users can read all three fields.
 
+## Confirm the example fits your org
+
+- `AND()` requires every listed address value. `IF()` chooses display text, and `&` joins text.
+- In State and Country/Territory Picklists orgs, confirm whether your policy should use
+  `BillingStateCode` and `BillingCountryCode` instead of the display fields in this example.
+- Add Street or Postal Code to the formula if a complete address requires them.
+- **Display: Found Formula** returns Text. An empty Found value on a passing record is possible and
+does not mean evaluation failed; use the PASS status as the result.
+- Verify field access from **Permission Sets → [User permission set] → Object Settings → Account →
+  Field Permissions**.
+
+Create an Account with a partial billing address, add the card to the Account Lightning page,
+activate the intended assignment, assign **Record Health Check User**, and test both partial and
+complete addresses.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -62,7 +77,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm billing address fields are complete for tax and territory review. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

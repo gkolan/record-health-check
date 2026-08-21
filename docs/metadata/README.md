@@ -11,6 +11,21 @@ inside that card.
 Start with the name you see in Salesforce Setup. Each reference also supplies the API name needed
 for metadata XML, Apex, automation, and generated configuration.
 
+If you are creating your first configuration, leave this reference and follow
+[Create your first Check](../installation/create-your-first-check.md). Return here only to look up a
+field not covered by that walkthrough.
+
+Custom Metadata records are configuration that administrators manage under **Setup → Custom
+Metadata Types** and move through change sets or source control. Platform Events are messages that
+Flows, Apex, or integrations receive; they are not edited through **Manage Records**. See
+[Back up and restore configuration](../guides/back-up-configuration.md) for movement between orgs.
+
+**Label** is the human name, **Developer Name** is the stable record identity, and **Qualified API
+Name** is the exact identity callers copy after save, including `rhc__` only for package-owned
+records. Running Checks requires **Record Health Check User**. Editing Custom Metadata additionally
+requires Salesforce Setup permissions such as **Customize Application**; the package permission
+set does not grant that system permission.
+
 ## Choose a reference
 
 | Reference | What it covers |

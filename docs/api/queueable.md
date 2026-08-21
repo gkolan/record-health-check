@@ -4,6 +4,11 @@
 > Use Queueable Apex when up to 200 known record IDs should run in a separate transaction and the
 > submitting process does not need the response immediately.
 
+> [!IMPORTANT]
+> **Audience: Salesforce developers.** Flow Builder cannot enqueue the packaged helper directly.
+> An administrator can monitor the returned job ID in **Setup → Apex Jobs**, but a developer must
+> choose the packaged or custom Queueable and its result destination.
+
 ## What Queueable changes
 
 Queueable Apex moves evaluation out of the submitting transaction. Salesforce returns an
@@ -73,7 +78,8 @@ Id jobId = rhc.RecordHealthCheckQueueable.enqueue(
 This call performs submission checks before creating a job. It requires:
 
 - a nonblank qualified Check Set name;
-- between 1 and 200 distinct, non-null record IDs after nulls and duplicates are removed; and
+- between 1 and 200 distinct, non-null record IDs after nulls and duplicates are removed;
+- every remaining ID belongs to the selected Check Set object, or the entire submission is rejected; and
 - the **Record Health Check Run** Custom Permission.
 
 The job checks authorization again when it executes. With `NONE`, the packaged job does not send
@@ -187,8 +193,10 @@ Health Check caught that problem and returned it as a health result.
 
 ## Understand duplicate submissions
 
-The packaged Queueable class creates a platform `QueueableDuplicateSignature` from the Check Set,
-publication mode, and record IDs after it removes nulls, repeated IDs, and record-order differences.
+The packaged Queueable class creates a platform `QueueableDuplicateSignature` from the submitting
+user, Check Set, publication mode, and record IDs after it removes nulls, repeated IDs, and
+record-order differences. Equivalent work submitted by a different user receives a separate job;
+deduplication prevents accidental retries by the same submitting principal.
 
 If an equivalent job is already pending, Salesforce throws `DuplicateMessageException` instead of
 using another Queueable slot. This means an equivalent job is already waiting to run. Use the saved

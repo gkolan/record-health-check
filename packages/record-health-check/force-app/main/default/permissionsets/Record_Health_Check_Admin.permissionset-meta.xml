@@ -2,7 +2,7 @@
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Record Health Check Admin</label>
     <description
-  >Configure Record Health Check, run metadata validation, and view diagnostic result details. For administrators who maintain Check Sets and Checks.</description>
+  >Configure and validate Record Health Check and view diagnostics. Creating Custom Metadata records also requires Salesforce Customize Application or equivalent access.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <customPermissions>
         <enabled>true</enabled>
@@ -33,6 +33,10 @@
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
+        <apexClass>RecordHealthCheckValidateMetadataAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>RecordHealthCheckSetPicklist</apexClass>
         <enabled>true</enabled>
     </classAccesses>
@@ -42,6 +46,18 @@
     </classAccesses>
     <classAccesses>
         <apexClass>RecordHealthCheckRunSetFlowAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>RecordHealthCheckRunCheckAgentAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>RecordHealthCheckRunSetAgentAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>RecordHealthCheckAgentRestResource</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>

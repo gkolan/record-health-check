@@ -3,7 +3,7 @@
 > [!NOTE]
 > Use this page when Salesforce rejects a Check Set or Check value, a Check returns `RESOLVED_TEMPLATE_TOO_LONG`, or a failed Check does not show its action link.
 
-<!-- Generated from shipped Salesforce metadata by scripts/release/generate_field_size_registry.py. -->
+<!-- Maintainers: generated from shipped metadata by scripts/release/generate_field_size_registry.py. -->
 
 Two limits can apply. The Salesforce field limit controls what an administrator can save in Custom Metadata. The completed-text limit applies later, after Record Health Check replaces merge tokens such as `{!record.Name}` with Salesforce values. Most fields have only the Salesforce limit.
 
@@ -13,7 +13,7 @@ Two limits can apply. The Salesforce field limit controls what an administrator 
 | --- | --- | --- |
 | Salesforce will not save or deploy the Custom Metadata value | **What Salesforce accepts** | Find the field below and shorten or correct the value so it matches the Salesforce field type and limit. |
 | A Check returns `UNABLE_TO_EVALUATE` with `RESOLVED_TEMPLATE_TOO_LONG` | **Completed text limit** | Shorten the configured text or the Salesforce values inserted by its merge tokens. |
-| A failed Check does not show its configured action link | The `ActionUrl__c` limit and URL checks | Keep the final URL within 2,000 characters and use a same-org relative URL or an `https://` URL. |
+| A failed Check does not show its configured action link | The **Action URL** limit and URL checks | The failure still appears. Keep the final URL within 2,000 characters and use a same-org relative URL or an `https://` URL. |
 
 ## Why completed text has a separate limit
 
@@ -80,14 +80,14 @@ These fields are still constrained, but making their text shorter will not solve
 
 | Metadata type | Salesforce field type | Constraint | Field API names |
 | --- | --- | --- | --- |
-| Check Set | Picklist | Restricted value set | [`CardRevealMode__c`](../../metadata/fields-check-set.md#reveal-mode-cardrevealmode__c), [`CardRunMode__c`](../../metadata/fields-check-set.md#when-checks-run-cardrunmode__c), [`FoundExpectedDisplay__c`](../../metadata/fields-check-set.md#foundexpected-display-foundexpecteddisplay__c), [`PassedChecksDisplay__c`](../../metadata/fields-check-set.md#passed-checks-passedchecksdisplay__c), [`RunButtonDisplay__c`](../../metadata/fields-check-set.md#run-button-display-runbuttondisplay__c), [`SkippedChecksDisplay__c`](../../metadata/fields-check-set.md#skipped-checks-skippedchecksdisplay__c) |
+| Check Set | Picklist | Restricted value set | [`CardRevealMode__c`](../../metadata/fields-check-set.md#reveal-mode-cardrevealmode__c), [`CardRunMode__c`](../../metadata/fields-check-set.md#when-checks-run-cardrunmode__c), [`FoundExpectedDisplay__c`](../../metadata/fields-check-set.md#foundexpected-display-foundexpecteddisplay__c), [`PassedChecksDisplay__c`](../../metadata/fields-check-set.md#passed-checks-passedchecksdisplay__c), [`RunButtonDisplay__c`](../../metadata/fields-check-set.md#run-button-display-runbuttondisplay__c), [`SkippedChecksDisplay__c`](../../metadata/fields-check-set.md#skipped-checks-skippedchecksdisplay__c), [`SummaryDisplay__c`](../../metadata/fields-check-set.md#summary-display-summarydisplay__c) |
 | Check Set | Checkbox | true/false | [`IsActive__c`](../../metadata/fields-check-set.md#active-isactive__c), [`PublishErrorLogEvent__c`](../../metadata/fields-check-set.md#publish-error-log-event-publisherrorlogevent__c), [`PublishUserRunEvent__c`](../../metadata/fields-check-set.md#publish-user-run-event-publishuserrunevent__c), [`ShowDiagnostics__c`](../../metadata/fields-check-set.md#show-diagnostics-showdiagnostics__c), [`StopOnSystemError__c`](../../metadata/fields-check-set.md#stop-after-a-system-error-stoponsystemerror__c) |
 | Check | Picklist | Restricted value set | [`ApplicabilityCountOperator__c`](../../metadata/fields-check.md#count-must-be-applicabilitycountoperator__c), [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c), [`Category__c`](../../metadata/fields-check.md#category-category__c), [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c), [`DisplayValueFormat__c`](../../metadata/fields-check.md#display-value-format-displayvalueformat__c), [`EmptyValueHandling__c`](../../metadata/fields-check.md#if-field-value-is-empty-emptyvaluehandling__c), [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c), [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c), [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c), [`FormulaResultType__c`](../../metadata/fields-check.md#formula-result-type-formularesulttype__c), [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c), [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) |
 | Check | Number | 4 digits, 0 decimal places | [`ApplicabilityCountThreshold__c`](../../metadata/fields-check.md#count-value-applicabilitycountthreshold__c), [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c), [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) |
 | Check | Checkbox | true/false | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c), [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) |
 | Check | Metadata relationship | Must name a Check Set | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) |
 
-This page covers all **17 Check Set fields** and **44 Check fields** in the shipped Custom Metadata definitions.
+This page covers all **18 Check Set fields** and **44 Check fields** in the shipped Custom Metadata definitions.
 
 ## If the limit is exceeded
 

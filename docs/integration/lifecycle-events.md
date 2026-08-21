@@ -19,13 +19,31 @@ Start with the **Check Set Run** event when the receiving process needs one summ
 **Check Result** events only when it needs the status, Reason Code, and severity for individual
 Checks.
 
+## Card-only setup sequence
+
+If only a person on the card should publish events:
+
+1. In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, open the Set and
+   enable **Publish User Run Event**.
+2. In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, enable **Publish
+   User Result Event** only on Checks whose individual results a receiver needs.
+3. Keep **When Checks Run** as **When the user clicks Run** and keep Run or Rerun visible. Page-load
+   evaluation never publishes result events.
+4. Build and test the receiver before enabling publication in production.
+5. Assign event object access to the receiving Flow user, Apex context, or integration. The packaged
+   User and Admin Permission Sets include Set Run and Check Result access, but not the restricted
+   Log event.
+
+Flow, Apex, Queueable, Batch, and Scheduled callers ignore those two card checkboxes and use their
+own `NONE`, `ACTIONABLE`, or `ALL` request value.
+
 ## Choose the event detail
 
 | Another process needs… | Event | Use |
 | --- | --- | --- |
 | One summary for a completed Check Set | [`Record_Health_Check_Set_Run__e`](../metadata/event-set-run.md) | For the card, **Publish User Run Event**. For Apex or Flow, choose `ACTIONABLE` or `ALL`. |
 | One result for selected Checks | [`Record_Health_Check_Result__e`](../metadata/event-check-result.md) | For the card, each Check's **Publish User Result Event**. For Apex or Flow, choose `ACTIONABLE` or `ALL`. |
-| Restricted Record Health Check error details | [`Record_Health_Check_Log__e`](../metadata/event-log.md) | Check Set **Publish Error Log Event** (on by default; uncheck to opt out) |
+| Restricted Record Health Check error details | [`Record_Health_Check_Log__e`](../metadata/event-log.md) | Check Set **Publish Error Log Event** (off by default; enable after assigning the publisher permission) |
 | The immediate decision in the current transaction | Neither lifecycle event | Use the Lightning, Apex, or Flow response instead |
 
 The Set Run and Check Result events are **high-volume Platform Events** configured as **Publish
@@ -166,22 +184,26 @@ checkboxes above are not consulted.
 | Event Publication | What is published |
 | --- | --- |
 | `NONE` | No Check Set Run or Check Result events. Use this when the caller handles or saves the response itself. |
-| `ACTIONABLE` | Check Result events for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`. A Check Set Run event is also published when at least one such result exists. If every result is `PASS` or `SKIPPED`, no result event is published. |
+| `ACTIONABLE` | Check Result events for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus a completed Check Set Run heartbeat for every scanned record. All-pass and all-skipped runs therefore publish the Set Run heartbeat but no Check Result events. |
 | `ALL` | A Check Result event for every result, including `PASS` and `SKIPPED`, plus the Check Set Run event. |
 
 ### Error Log events
 
 Check Set **Publish Error Log Event** (`PublishErrorLogEvent__c`) is separate from result
-publication. It is on by default and publishes `Record_Health_Check_Log__e` when Record Health Check
-captures an `ERROR`. Uncheck it to opt that Check Set out. If Record Health Check cannot resolve a
-Check Set, Log publication remains enabled.
+publication. It is off by default and publishes `Record_Health_Check_Log__e` when Record Health
+Check captures an `ERROR` only after a Set explicitly opts in. Assign the packaged publisher
+permission to every running identity first. Missing Check Set configuration fails closed without
+publishing restricted details.
 
 For a user-initiated Lightning run, the completion call publishes the outcomes returned by the
 progressive browser evaluation after filtering them to the requested record and the Checks in the
-resolved Check Set. It does not run the Checks again while publishing. Treat these Lightning events
-as advisory monitoring data. A receiving process that makes a security-sensitive or
-business-critical change must run the Check again through Apex or Flow before acting. Apex- and
-Flow-originated events come directly from their server-side evaluations.
+resolved Check Set. It does not run the Checks again while publishing. These `USER_INITIATED`
+events are **client-attested advisory notifications**, not server-attested compliance evidence. A
+user with Run permission controls the browser request that supplies the completion statuses.
+
+A receiving process that makes a security-sensitive, compliance, or business-critical change must
+run the Check again through Apex or Flow before acting. Apex- and Flow-originated events come
+directly from their server-side evaluations.
 
 ## Contract versions on events
 
@@ -240,6 +262,8 @@ Salesforce data using their own Salesforce access, the Record ID, metadata Quali
 | No event after selecting Run or Rerun on the card | The Check Set or Check publication field is off, the transaction rolled back, or publication failed | Check the relevant metadata field, source, logs, and commit outcome. |
 | No event after Flow or Apex | Event Publication is `NONE`, `ACTIONABLE` found no actionable result, the transaction rolled back, or publication failed | Check the caller's Event Publication choice, returned statuses, logs, and commit outcome. |
 | Repeated processing | Replay or a receiving-process retry delivered the event again | Keep unique by `EventId__c`; make follow-up work safe to repeat |
+| Two valid events describe near-simultaneous card runs | Separate tabs or intentional reruns completed independently | Treat delivery as at least once. Keep each `EventId__c`; apply a reviewed business-window key only if the process must collapse equivalent runs. |
+| Health result succeeded but no requested event arrived | Publication can fail independently and is warning-only to the health caller | Monitor Record Health Check logs and receiver health; never treat a successful health response as proof of event delivery. |
 | Missing record context | The run had no single record, or a record ID was not available at publish | Correlate with `RunId__c` and metadata names; `RecordId__c` is set only when available |
 | Receiving process failed | Its Salesforce limits, access, or business logic failed after publication | Monitor and retry that process separately; the health result is already final. |
 
@@ -251,14 +275,14 @@ restricted Record Health Check `ERROR` details and uses **Publish Immediately**.
 | Property | Lifecycle events (Set / Check) | Diagnostics event (Log) |
 | --- | --- | --- |
 | Purpose | Completion facts | Errors that need reproducing |
-| Default | Optional per Set/Check (off) | **On by default**; opt out per Check Set with `PublishErrorLogEvent__c` |
+| Default | Optional per Set/Check (off) | **Off by default**; enable per Check Set with `PublishErrorLogEvent__c` and the publisher permission |
 | Publish behavior | Publish After Commit | **Publish Immediately**: survives the rollback a failing check triggers |
 | Carries error detail | No: record ID + counts/status only | Yes: record ID plus message, exception type, stack trace |
 | Results included | Only the results selected by the card metadata or caller's Event Publication choice | `ERROR` only |
 | Access | Users and integrations assigned event access | **Restricted**: grant access only to the error-monitoring users or integration. |
 
 The Log event is independent of **Publish User Run Event** and **Publish User Result Event**. It is controlled
-by the Check Set's default-on **Publish Error Log Event** field. Its complete event body, security
+by the Check Set's default-off **Publish Error Log Event** field. Its complete event body, security
 requirements, repeated-call guard, possibilities, and known limitations are in the [Log Platform
 Event reference](../metadata/event-log.md).
 

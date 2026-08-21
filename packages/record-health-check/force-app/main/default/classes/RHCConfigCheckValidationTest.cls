@@ -50,6 +50,15 @@ private class RHCConfigCheckValidationTest {
       'INVALID_SOQL_TEMPLATE'
     );
 
+    Record_Health_Check__mdt queryUnsupportedBulkShape = queryCheck(
+      'Query_Unsupported_Bulk_Shape'
+    );
+    queryUnsupportedBulkShape.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId != {!record.Id}';
+    assertUnable(
+      service.validateCheckForEvaluation(queryUnsupportedBulkShape),
+      'UNSUPPORTED_BULK_QUERY_SHAPE'
+    );
+
     Record_Health_Check__mdt queryDualOperator = queryCheck(
       'Query_Dual_Operator'
     );

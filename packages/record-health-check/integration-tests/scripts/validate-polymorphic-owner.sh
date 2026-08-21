@@ -24,6 +24,9 @@ SF_DISABLE_LOG_FILE=true sf project deploy start \
   --target-org "$target_org" \
   --source-dir packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFormulaFieldScanner.cls \
   --source-dir packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFieldPlanner.cls \
+  --source-dir packages/record-health-check/force-app/main/default/classes/RecordHealthCheckInternalResult.cls \
+  --source-dir packages/record-health-check/force-app/main/default/classes/RecordHealthCheckResultDisplay.cls \
+  --source-dir packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopeResultSupport.cls \
   --source-dir packages/record-health-check/integration-tests/main/default/objects/Lead/fields/RHC_Owner_Is_Active__c.field-meta.xml \
   --source-dir packages/record-health-check/integration-tests/main/default/permissionsets/RHC_Polymorphic_Formula_Test.permissionset-meta.xml \
   --wait 30 \

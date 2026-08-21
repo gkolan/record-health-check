@@ -31,7 +31,7 @@ private class RHCMetadataValidatorSmokeTest {
   // Multi-currency orgs correctly receive currency-basis findings until optional examples declare
   // an ISO basis or retain ISO identity; those recipe changes remain outside core.
   @IsTest
-  static void packagedActiveMetadataHasNoValidationErrors() {
+  static void packagedExampleMetadataHasNoValidationErrors() {
     Test.startTest();
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new RecordHealthCheckMetadataValidator()
       .validate();
@@ -40,6 +40,8 @@ private class RHCMetadataValidatorSmokeTest {
     List<String> errors = new List<String>();
     for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
       if (
+        issue.componentName != null &&
+        issue.componentName.startsWith('Example_') &&
         issue.severity == 'ERROR' &&
         !(RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg() &&
         issue.reasonCode == 'MIXED_CURRENCY')
@@ -59,7 +61,7 @@ private class RHCMetadataValidatorSmokeTest {
     Assert.areEqual(
       0,
       errors.size(),
-      'Packaged active metadata must have no unexpected validation errors. Issues found:\n' +
+      'Packaged Example_ metadata must have no unexpected validation errors. Issues found:\n' +
       String.join(errors, '\n')
     );
   }

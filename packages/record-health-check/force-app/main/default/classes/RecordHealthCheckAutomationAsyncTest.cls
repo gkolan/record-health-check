@@ -1,8 +1,7 @@
 @IsTest
 private with sharing class RecordHealthCheckAutomationAsyncTest {
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest
@@ -54,6 +53,58 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       empty.isEmpty(),
       'A null population must normalize to empty.'
     );
+  }
+
+  @IsTest
+  static void asyncRequestsDropIdsForOtherObjects() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+    Id contactId = RecordHealthCheckTestDataFactory.syntheticId(
+      Contact.SObjectType,
+      1
+    );
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
+
+    try {
+      RecordHealthCheckAsyncSupport.requestState(
+        checkSetName,
+        new List<Id>{ accountId, contactId },
+        RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE,
+        'Test population'
+      );
+      Assert.fail('A mixed-object async population must be rejected in full.');
+    } catch (IllegalArgumentException expected) {
+      Assert.isTrue(
+        expected.getMessage().contains('no records were submitted')
+      );
+    }
+  }
+
+  @IsTest
+  static void asyncRequestsFailClosedWhenCheckSetIsMissing() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+
+    try {
+      RecordHealthCheckAsyncSupport.requestState(
+        'Missing_Check_Set',
+        new List<Id>{ accountId },
+        RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE,
+        'Test population'
+      );
+      Assert.fail('A missing Check Set must not bypass object filtering.');
+    } catch (IllegalArgumentException expected) {
+      Assert.isTrue(
+        expected.getMessage().contains('was not found'),
+        'The caller should receive the missing Check Set diagnosis.'
+      );
+    }
   }
 
   @IsTest
@@ -121,23 +172,67 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
   }
 
   @IsTest
+  static void equivalentQueueableRequestsAreScopedPerSubmittingUser() {
+    User otherUser = RecordHealthCheckPersonaTestDataFactory.createUserWithLocale(
+      'en_US',
+      'rhcqdif'
+    );
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      otherUser,
+      RecordHealthCheckSchemaTestDataFactory.runnerPermissionSetName()
+    );
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      42
+    );
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
+
+    Test.startTest();
+    Id firstJob = RecordHealthCheckQueueable.enqueue(
+      checkSetName,
+      new List<Id>{ accountId },
+      RecordHealthCheckEventPublication.NONE
+    );
+    Id secondJob;
+    System.runAs(otherUser) {
+      secondJob = RecordHealthCheckQueueable.enqueue(
+        checkSetName,
+        new List<Id>{ accountId },
+        RecordHealthCheckEventPublication.NONE
+      );
+    }
+    Test.stopTest();
+
+    Assert.areNotEqual(
+      firstJob,
+      secondJob,
+      'Equivalent requests from different submitting users must not share an org-wide duplicate signature.'
+    );
+  }
+
+  @IsTest
   static void duplicateScheduleNameDoesNotConsumeAnotherSlot() {
     Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
       Account.SObjectType,
       1
     );
     String jobName = 'RHC duplicate schedule test';
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
     Test.startTest();
     String firstJobId = RecordHealthCheckScheduled.scheduleDaily(
       jobName,
-      'Qualified_Set',
+      checkSetName,
       new List<Id>{ recordId },
       RecordHealthCheckEventPublication.NONE
     );
     try {
       RecordHealthCheckScheduled.scheduleDaily(
         jobName,
-        'Qualified_Set',
+        checkSetName,
         new List<Id>{ recordId },
         RecordHealthCheckEventPublication.NONE
       );
@@ -162,13 +257,16 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
     List<Id> boundary = syntheticAccountIds(
       RecordHealthCheckConstants.MAX_ASYNC_RECORDS
     );
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Profile_Readiness'
+    );
     RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
-      'Qualified_Set',
+      checkSetName,
       boundary,
       RecordHealthCheckEventPublication.NONE
     );
     new RecordHealthCheckScheduled(
-      'Qualified_Set',
+      checkSetName,
       boundary,
       RecordHealthCheckEventPublication.NONE
     );
@@ -259,28 +357,23 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
   }
 
   @IsTest
-  static void batchScopeFailureIsLoggedAndRethrown() {
+  static void missingCheckSetIsRejectedBeforeBatchSubmission() {
     Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
       Account.SObjectType,
       1
     );
 
-    Test.startTest();
-    Database.executeBatch(
+    try {
       new RecordHealthCheckBatch(
         'Missing_Check_Set',
         new List<Id>{ recordId },
         RecordHealthCheckEventPublication.NONE
-      ),
-      1
-    );
-    try {
-      Test.stopTest();
-      Assert.fail('A missing Check Set must fail the Batch scope.');
-    } catch (Exception error) {
-      Assert.isNotNull(
-        error.getMessage(),
-        'The Batch failure must retain an explanation.'
+      );
+      Assert.fail('A missing Check Set must fail before Batch submission.');
+    } catch (IllegalArgumentException error) {
+      Assert.isTrue(
+        error.getMessage().contains('was not found'),
+        'The Batch rejection must identify the missing Check Set.'
       );
     }
   }

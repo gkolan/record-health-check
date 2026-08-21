@@ -48,11 +48,31 @@ that already exist.
 | "Run a custom readiness algorithm that a formula or single query cannot express." | Record Health Check (Apex Evaluation Type) |
 | "Let a user see a Fix it link and instructions, but still let them save regardless." | Record Health Check |
 
+Other native tools can complement either choice:
+
+| Tool | Use it for | Setup starting point |
+| --- | --- | --- |
+| Required Field | A value that every save through the supported UI/API must provide | **Setup → Object Manager → [Object] → Fields & Relationships → [Field]** |
+| Path and Guidance for Success | Stage-specific coaching without evaluating a set of health requirements | **Setup → Path Settings** |
+| Dynamic Forms | Showing or hiding fields and sections based on page rules | **Setup → Lightning App Builder** |
+| List views and reports | Finding and monitoring groups of records | The object's **List Views** or the **Reports** tab |
+| Record Health Check | Explaining whether one open record meets related, aggregate, formula, or custom readiness requirements | **Setup → Custom Metadata Types** and Lightning App Builder |
+
+For save-time controls, start at **Setup → Object Manager → [Object] → Validation Rules**,
+**Setup → Duplicate Rules** with a Matching Rule, or **Setup → Flows**. A Duplicate Rule's action
+on create or edit determines whether Salesforce allows the save, allows it with an alert, or blocks
+it.
+
+For example, a user can save an Opportunity with a blank Amount when no save-time rule prevents it.
+A Record Health Check can then show a failed readiness row and guidance. If the Amount must never
+be blank, make it required or use a Validation Rule instead.
+
 ## Why the boundary matters
 
 A Validation Rule, a blocking Duplicate Rule, and a Flow custom error can stop every matching save.
 A Record Health Check never blocks the save. If a Check cannot run because its setup is incomplete
-or the user lacks access, the card shows `UNABLE_TO_EVALUATE` or `ERROR` with a Reason Code. Users can
+or the user lacks access, the card shows `UNABLE_TO_EVALUATE` or `ERROR` with a **Reason Code**, a
+stable machine-readable value that identifies the cause. Users can
 still save the record while an administrator corrects the Check. See
 [Architecture: Position in the platform](../reference/framework/architecture.md#1-position-in-the-platform)
 for the full comparison.
@@ -77,3 +97,4 @@ conflict, because a Check result never changes what Salesforce allows to be save
 - [Reason Codes](../reference/contracts/reason-codes.md)
 - [FAQ](faq.md)
 - [Configure Check Sets and Checks](configure-check-sets-and-checks.md)
+- [Create your first Check](../installation/create-your-first-check.md)

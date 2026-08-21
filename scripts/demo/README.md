@@ -22,6 +22,12 @@ The setup installs the promoted **Record Health Check** package (`04t` from
 metadata from `subscriber-app`, seeds demo Account data from `scripts/subscriber/data/`, and runs
 `RHCSubscriberSmokeTest`.
 
+The seed lifecycle is intentionally three transactions and must stay in this order:
+
+1. `setupDemoUser.apex` creates or reactivates Jordan Blake.
+2. `setupDemoData.apex` creates Acme and assigns Jordan as owner.
+3. `deactivateDemoUser.apex` deactivates Jordan so the owner-health Check demonstrates a failure.
+
 It does **not** deploy unpackaged Framework source or `integration-tests` samples.
 
 The deterministic Acme data seeded by `setupDemoData.apex` includes:

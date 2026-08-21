@@ -56,7 +56,26 @@ public with sharing class RecordHealthCheckApexEvaluator {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException ex) {
-      return scopeError(check, recordIds, ex.reasonCode, ex.getMessage());
+      RecordHealthCheckDiagnosticContext configurationContext = diagnosticContext(
+        check,
+        checkSetDeveloperName,
+        runId,
+        ex.reasonCode,
+        ex.reasonCode == 'INVALID_APEX_PARAMETERS'
+          ? 'PLUGIN_PARAMETERS'
+          : ex.reasonCode ==
+              RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
+              ? 'PLUGIN_CONSTRUCT'
+              : 'PLUGIN_RESOLVE'
+      );
+      configurationContext.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+      configurationContext.severity = 'WARNING';
+      return RecordHealthCheckIncidentRecorder.recordScopeFailure(
+        check,
+        recordIds,
+        configurationContext,
+        ex
+      );
     }
 
     RecordHealthCheckScope scope = new RecordHealthCheckScope(
@@ -71,28 +90,77 @@ public with sharing class RecordHealthCheckApexEvaluator {
     try {
       outcomes = RecordHealthCheckPluginDispatch.run(plugin, scope);
     } catch (RecordHealthCheckPluginDispatch.ContractException ex) {
-      return scopeError(check, recordIds, ex.reasonCode, ex.getMessage());
+      return RecordHealthCheckIncidentRecorder.recordScopeFailure(
+        check,
+        recordIds,
+        diagnosticContext(
+          check,
+          checkSetDeveloperName,
+          runId,
+          ex.reasonCode,
+          ex.reasonCode == RecordHealthCheckReasonCodes.PLUGIN_THREW
+            ? 'PLUGIN_EXECUTE'
+            : 'PLUGIN_VALIDATE'
+        ),
+        ex
+      );
     }
 
-    return finalizeOutcomes(check, recordIds, loadedRecords, outcomes);
+    return finalizeOutcomes(
+      check,
+      recordIds,
+      loadedRecords,
+      outcomes,
+      checkSetDeveloperName,
+      runId
+    );
   }
 
   private Map<Id, RecordHealthCheckInternalResult> finalizeOutcomes(
     Record_Health_Check__mdt check,
     List<Id> recordIds,
     Map<Id, SObject> loadedRecords,
-    Map<Id, RecordHealthCheckOutcome> outcomes
+    Map<Id, RecordHealthCheckOutcome> outcomes,
+    String checkSetDeveloperName,
+    String runId
   ) {
     Map<Id, RecordHealthCheckInternalResult> results = new Map<Id, RecordHealthCheckInternalResult>();
     for (Id recordId : recordIds) {
-      results.put(
-        recordId,
-        finalizeOutcome(
-          check,
-          loadedRecords.get(recordId),
-          outcomes.get(recordId)
-        )
+      RecordHealthCheckInternalResult result = finalizeOutcome(
+        check,
+        loadedRecords.get(recordId),
+        outcomes.get(recordId)
       );
+      if (
+        result.status == RecordHealthCheckStatus.ERROR &&
+        (result.reasonCode ==
+        RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING ||
+        result.reasonCode ==
+        RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID ||
+        result.reasonCode ==
+        RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING ||
+        result.reasonCode ==
+        RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID)
+      ) {
+        RecordHealthCheckDiagnosticContext contractContext = diagnosticContext(
+          check,
+          checkSetDeveloperName,
+          runId,
+          result.reasonCode,
+          'PLUGIN_VALIDATE'
+        );
+        contractContext.technicalMessage = result.detailMessage;
+        results.putAll(
+          RecordHealthCheckIncidentRecorder.recordScopeFailure(
+            check,
+            new List<Id>{ recordId },
+            contractContext,
+            null
+          )
+        );
+      } else {
+        results.put(recordId, result);
+      }
     }
     return results;
   }
@@ -143,6 +211,30 @@ public with sharing class RecordHealthCheckApexEvaluator {
       results.put(recordId, result);
     }
     return results;
+  }
+
+  private RecordHealthCheckDiagnosticContext diagnosticContext(
+    Record_Health_Check__mdt check,
+    String checkSetQualifiedApiName,
+    String runId,
+    String reasonCode,
+    String phase
+  ) {
+    RecordHealthCheckDiagnosticContext context = new RecordHealthCheckDiagnosticContext();
+    context.runId = runId;
+    context.checkSetQualifiedApiName = checkSetQualifiedApiName;
+    context.checkQualifiedApiName = check.QualifiedApiName;
+    context.evaluatorType = 'APEX';
+    context.phase = phase;
+    context.component = check.ApexClass__c;
+    context.reasonCode = reasonCode;
+    context.configurationField = phase == 'PLUGIN_PARAMETERS'
+      ? 'ApexParametersJson__c'
+      : phase == 'PLUGIN_RESOLVE' ||
+          phase == 'PLUGIN_CONSTRUCT'
+          ? 'ApexClass__c'
+          : null;
+    return context;
   }
 
   private RecordHealthCheckInternalResult baseResult(

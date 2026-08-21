@@ -49,6 +49,20 @@ A seller is preparing an Account for forecast review.
 - Confirm that intended users can read Opportunity, `AccountId`, `IsClosed`, and `Amount` and can
   see every open Opportunity included in forecast review.
 
+## Read the result and prepare test data
+
+`{!rhcResult.failedRecordCount}` is a Record Health Check result merge token. It inserts the number
+of query rows that did not match; it is not a Flow or Apex expression. Test an open Opportunity
+with Amount blank, zero, negative, and positive. At 201 returned rows with **Max Query Rows** 200,
+the Check returns Unable to Check with `ROW_LIMIT_EXCEEDED` instead of evaluating a partial set.
+
+Decide whether zero is valid, whether Amount is already enforced at save time, and whether the
+business rule should use Amount or Expected Revenue. In a multi-currency org, review the documented
+currency rules before comparing values.
+
+Create the Opportunities from the Account related list, add the card to the Account Lightning
+page, activate the intended assignment, and test as a user with **Record Health Check User**.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -61,7 +75,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm every open Opportunity has a positive Amount. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

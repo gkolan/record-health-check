@@ -64,6 +64,14 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
           'INVALID_SOQL_TEMPLATE'
         );
       }
+      when APPLICABILITY_SOQL_UNSUPPORTED_BULK_SHAPE {
+        return issue(
+          check,
+          'ApplicabilityCountQuery__c',
+          'Applicability SOQL cannot be safely rewritten for a multi-record scope.',
+          'UNSUPPORTED_BULK_QUERY_SHAPE'
+        );
+      }
       when APPLICABILITY_OPERATOR_MISSING {
         return issue(
           check,
@@ -140,6 +148,14 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
           'MISSING_REQUIRED_FIELD'
         );
       }
+      when PRIMARY_QUERY_UNSUPPORTED_BULK_SHAPE {
+        return issue(
+          check,
+          'SourceQuery__c',
+          'Source Query cannot be safely rewritten for a multi-record scope.',
+          'UNSUPPORTED_BULK_QUERY_SHAPE'
+        );
+      }
       when DUAL_OPERATOR_ON_SINGLE {
         return issue(
           check,
@@ -164,6 +180,14 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
           'ComparisonOperator__c',
           'Comparison operator is required for Query checks.',
           'INVALID_OPERATOR'
+        );
+      }
+      when TEXT_OPERATOR_REQUIRES_TEXT {
+        return issue(
+          check,
+          'ComparisonOperator__c',
+          'Contains and Does not contain require text-like query fields.',
+          'FIELD_TYPE_NOT_SUPPORTED'
         );
       }
       when MULTI_ROWS_MISSING {
@@ -236,6 +260,14 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
           'ComparisonQueryField__c',
           'Comparison Query Field is required for non-aggregate queries.',
           'MISSING_REQUIRED_FIELD'
+        );
+      }
+      when COMPARISON_QUERY_UNSUPPORTED_BULK_SHAPE {
+        return issue(
+          check,
+          'ComparisonQuery__c',
+          'Comparison Query cannot be safely rewritten for a multi-record scope.',
+          'UNSUPPORTED_BULK_QUERY_SHAPE'
         );
       }
       when CURRENCY_AGGREGATE_NOT_GROUPED {

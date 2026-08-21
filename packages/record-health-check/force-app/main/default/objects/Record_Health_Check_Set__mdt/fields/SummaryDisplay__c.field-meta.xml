@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>SummaryDisplay__c</fullName>
+    <label>Summary Display</label>
+    <description
+  >Controls whether the result summary appears above or below the individual Check results. When resolved Checks have categories, category summaries replace the overall totals. When there are no categories, one overall totals summary appears. The selected position applies in either case. Defaults to Below Checks.</description>
+    <inlineHelpText
+  >Choose where the summary appears. Categories replace the overall totals with category summaries; otherwise one overall totals summary appears.</inlineHelpText>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>TOP</fullName>
+                <default>false</default>
+                <label>Above Checks</label>
+            </value>
+            <value>
+                <fullName>BOTTOM</fullName>
+                <default>true</default>
+                <label>Below Checks</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

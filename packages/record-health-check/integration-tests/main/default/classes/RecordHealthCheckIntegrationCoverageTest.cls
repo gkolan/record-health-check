@@ -11,6 +11,81 @@ private class RecordHealthCheckIntegrationCoverageTest {
   }
 
   @IsTest
+  static void namespacedErrorLogSettingUsesQualifiedApiName() {
+    String qualifiedName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Account_Advanced_Checks'
+    );
+
+    Assert.isTrue(
+      new RecordHealthCheckSettingsProvider()
+        .isErrorEventPublicationEnabled(qualifiedName),
+      'An enabled namespaced Check Set must not be mistaken for missing metadata.'
+    );
+  }
+
+  @IsTest
+  static void scheduledAdapterPublishesScheduledSource() {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Scheduled source fixture'
+    );
+    RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Account_Profile_Readiness'
+      ),
+      new List<Id>{ accountRecord.Id },
+      RecordHealthCheckEventPublication.ALL
+    );
+
+    Test.startTest();
+    scheduled.execute((SchedulableContext) null);
+    Test.stopTest();
+    Test.getEventBus().deliver();
+
+    List<RHC_Event_Export__c> exports = [
+      SELECT Payload__c
+      FROM RHC_Event_Export__c
+    ];
+    Boolean foundScheduledSource = false;
+    for (RHC_Event_Export__c exported : exports) {
+      foundScheduledSource =
+        foundScheduledSource ||
+        exported.Payload__c.contains('"source":"SCHEDULED"');
+    }
+    Assert.isTrue(
+      foundScheduledSource,
+      'Scheduled result events must retain SCHEDULED source through Batch.'
+    );
+  }
+
+  @IsTest
+  static void oversizedCheckSetRetainsStableFlowLimitContract() {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Flow Check Set limit fixture'
+    );
+    RecordHealthCheckRunSetFlowAction.Request request = new RecordHealthCheckRunSetFlowAction.Request();
+    request.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Over_25_Checks'
+    );
+    request.recordId = accountRecord.Id;
+    request.eventPublication = 'NONE';
+
+    Test.startTest();
+    List<RecordHealthCheckRunSetFlowAction.Response> outputs = RecordHealthCheckRunSetFlowAction.runSet(
+      new List<RecordHealthCheckRunSetFlowAction.Request>{ request }
+    );
+    Test.stopTest();
+
+    Assert.isFalse(outputs[0].isSuccess, 'The oversized Set must be rejected.');
+    Assert.areEqual('LIMIT', outputs[0].errorType);
+    Assert.isTrue(
+      outputs[0].errorMessage.startsWith('FRAMEWORK_MAX_CHECKS_EXCEEDED:'),
+      'Flow must retain the stable framework limit code.'
+    );
+  }
+
+  @IsTest
   static void seederPhasesPersistExactTelemetry() {
     RHC_Benchmark_Result__c telemetry = RHCIntegrationTestDataFactory.benchmarkResult(
       new Map<String, Object>{

@@ -209,7 +209,7 @@
             <componentInstance>
                 <componentInstanceProperties>
                     <name>checkSetName</name>
-                    <value>rhc__Account_Display_Formats</value>
+                    <value>Account_Display_Formats</value>
                 </componentInstanceProperties>
                 <componentName>recordHealthCheck</componentName>
                 <identifier>c_recordHealthCheck</identifier>

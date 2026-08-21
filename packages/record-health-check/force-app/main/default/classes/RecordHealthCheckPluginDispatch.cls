@@ -9,8 +9,9 @@
  * Every guarantee the extension boundary makes is enforced here, in one place,
  * so there is no second path a caller could use to reach a plugin without them.
  * Consumers must never instantiate a plugin directly: doing so would bypass
- * scope construction, the write check that blocks DML, callouts, email, events,
- * and async work, completeness validation, and identity stamping all at once.
+ * scope construction, the runtime write checks, completeness validation, and
+ * identity stamping all at once. Platform Event, Batch, and Scheduled work have
+ * no reliable Apex counter and remain contract/static-review prohibitions.
  *
  * Two behaviors are worth reading closely, because both are easy to get subtly
  * wrong and neither is recoverable afterwards.
@@ -40,6 +41,10 @@ public with sharing class RecordHealthCheckPluginDispatch {
 
   public class ContractException extends Exception {
     public String reasonCode;
+    public String originalExceptionType;
+    public String originalExceptionMessage;
+    public String originalStackTrace;
+    public Integer originalLineNumber;
   }
 
   /**
@@ -162,10 +167,15 @@ public with sharing class RecordHealthCheckPluginDispatch {
       // No prohibited effect, so the throw is attributable to the check and can
       // safely become results. The engine cannot tell WHICH record caused it,
       // so the whole scope is affected; only the plugin can isolate per record.
-      throw newContractException(
+      ContractException contractFailure = newContractException(
         RecordHealthCheckReasonCodes.PLUGIN_THREW,
         'The check threw an unhandled exception: ' + pluginFailure.getMessage()
       );
+      contractFailure.originalExceptionType = pluginFailure.getTypeName();
+      contractFailure.originalExceptionMessage = pluginFailure.getMessage();
+      contractFailure.originalStackTrace = pluginFailure.getStackTraceString();
+      contractFailure.originalLineNumber = pluginFailure.getLineNumber();
+      throw contractFailure;
     }
 
     return validate(returned, scope);

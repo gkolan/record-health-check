@@ -109,6 +109,10 @@ Person Accounts are supported when your org has the feature enabled. `IsPersonAc
 plan normally. A Formula Pass Condition or display formula referencing them behaves the same as
 any other field, including automatic field-level-security and dependency-expansion handling.
 
+To confirm the feature, go to **Setup → Account Settings** and look for the Person Accounts
+settings available to your org. Do not copy a Check that uses Person Account fields into an org
+where the feature is not enabled.
+
 These fields exist only when Person Accounts are enabled for the org. A Check authored (or copied
 from a Person-Account org) that references a Person* field in a business-Account-only org returns
 `UNABLE_TO_EVALUATE` / `FIELD_NOT_RESOLVED`; an unresolved relationship traversal returns
@@ -135,13 +139,14 @@ The project has not completed compatibility testing for:
 - running the component in Experience Cloud, which is not currently exposed as an Experience
   Builder component.
 
-Record Health Check does not include a REST API, Named Credential, External Service, cross-org
-connection, or Omni-Channel routing feature. Those items do not need a compatibility check for a
-standard installation. See [Architecture: Out of scope](architecture.md#16-out-of-scope).
+Record Health Check includes one versioned, read-only agent tool REST API for approved Agentforce and
+MCP integrations. It does not include a Named Credential, External Service, general cross-org
+connection, or Omni-Channel routing feature. See
+[Agent tool REST API](../../integration/agent-tool-rest-api.md) and
+[Architecture: Out of scope](architecture.md#16-out-of-scope).
 
 ## Related
 
-- [Architecture](architecture.md)
 - [Install and verify](../../installation/install-and-verify.md)
 - [FAQ](../../guides/faq.md)
 - [Security and data access](security.md)

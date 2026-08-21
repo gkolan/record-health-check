@@ -26,4 +26,16 @@ global class RecordHealthCheckEvaluationResult {
   @AuraEnabled
   /** Typed target value used by the Check. */
   global RecordHealthCheckValue expected;
+  @AuraEnabled
+  /** Safe correlation ID for a technical diagnosis, when one was recorded. */
+  global String diagnosticId;
+  @AuraEnabled
+  /** Broad safe category for a technical diagnosis. */
+  global String diagnosticCategory;
+  @AuraEnabled
+  /** Plain-language, disclosure-safe diagnosis summary. */
+  global String diagnosticSummary;
+  @AuraEnabled
+  /** First disclosure-safe corrective action for automation surfaces. */
+  global String recommendedAction;
 }

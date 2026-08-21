@@ -13,14 +13,19 @@ page, and prove that the guidance makes sense when the field is blank and when i
 The administrator completing this guide needs:
 
 - the installed **Record Health Check Admin** Permission Set;
-- the Salesforce Setup access required to manage Custom Metadata and edit Lightning record pages;
+- Salesforce **Customize Application** (or equivalent Custom Metadata management access) to create
+  and save Check Set and Check records; **Record Health Check Admin does not grant this Salesforce
+  system permission**;
+- access to edit Lightning record pages; the page builder also needs **Record Health Check Admin**
+  so App Builder can load the Check Set picklist;
   and
 - Read access to Account and `BillingCity`.
 
 People who only run the completed card need **Record Health Check User** plus access to the Account
 records and fields being checked.
 
-**You do not need:** Apex, Flow, or command-line tools.
+**You do not need:** Apex or command-line tools. The validation step uses the packaged Flow action
+once in Flow Builder so invalid metadata is caught before users see it.
 
 If Record Health Check is not installed yet, complete [Install and verify in your
 org](install-and-verify.md) first.
@@ -37,7 +42,7 @@ result without blocking record save or changing Account data.
 
 ## Step 1: Create the Check Set
 
-1. In Salesforce Setup, open **Custom Metadata Types**.
+1. In Salesforce Setup, enter **Custom Metadata Types** in Quick Find and open it.
 2. Next to **Record Health Check Set**, select **Manage Records**.
 3. Select **New**.
 4. Enter these values:
@@ -49,6 +54,7 @@ result without blocking record save or changing Account data.
 | **Object** | `Account` | Makes the Check Set available on Account pages |
 | **Card Title** | Account Readiness | Tells users what the card is reviewing |
 | **When Checks Run** | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
+| **Summary Display** | **Below Checks** | Places the completed result summary after the Check rows |
 | **Run Button Display** | **Label and icon** | Keeps the standard, discoverable Run and Rerun action |
 | **Run Button Label** | Run | Names the initial action |
 | **Rerun Button Label** | Rerun | Names the action after results appear |
@@ -59,6 +65,10 @@ result without blocking record save or changing Account data.
 
 Manual execution makes the first test easier to follow because the card waits for you to select
 **Run**.
+
+`utility:play` is the name of a standard Salesforce Lightning icon. Paste the name as written; it
+is not a file to upload. **Developer Name** is the stable API identity that other configuration
+references. Some Salesforce screens describe the same identity as a record name.
 
 ## Step 2: Create the Check
 
@@ -87,15 +97,36 @@ Manual execution makes the first test easier to follow because the card waits fo
 
 The Formula Check reads only the current Account, so it does not need SOQL or Apex.
 
-## Step 3: Add the card to an Account page
+To confirm `BillingCity`, open **Setup → Object Manager → Account → Fields & Relationships →
+Billing City** and read **Field Name**. The merge token `{!record.Name fallback="This Account"}`
+uses the Account Name when it is readable and substitutes “This Account” when the value is blank or
+unavailable.
+
+## Step 3: Validate the configuration
+
+1. In Setup, open **Flows** and create a short autolaunched flow.
+2. Add the **Validate Record Health Check Configuration** action.
+3. Store or display its **Configuration Is Valid**, **Error Count**, **Warning Count**, and
+   **Validation Report JSON** outputs, then run **Debug**.
+4. Do not activate the Check Set for users while **Configuration Is Valid** is false. Correct every
+   error named in the report and debug the flow again. Warnings deserve review but do not make the
+   configuration invalid.
+
+The action checks active definitions and inactive drafts, including prerequisite names and whether
+SOQL can use the runtime's multi-record query grammar. Keep this small administrator flow as a
+reusable validation tool after future Custom Metadata edits.
+
+## Step 4: Add the card to an Account page
 
 1. Open an Account record.
 2. Select **Setup → Edit Page**.
 3. Drag **Record Health Check** onto the Lightning record page.
 4. In the component properties, select the `Account_Readiness` Check Set.
-5. Confirm the component is using the intended **Check Set**; its Run/Rerun presentation comes from that Check Set.
+5. Confirm the component is using the intended **Check Set**. Its run timing, summary position, and
+   Run/Rerun presentation come from that Check Set.
 6. Save and activate the page.
-7. Return to the Account and refresh the page.
+7. Return to the Account and refresh the page. The card loads lightweight Check Set shell settings;
+   definitions and evaluation remain deferred until you select **Run**.
 
 If the Check Set picker is empty, confirm the Check Set is active and its **Object** value is
 `Account`.
@@ -105,7 +136,7 @@ Skipped outcomes with Found and Expected values):
 
 ![Example Account Relationship and Risk health check card](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
 
-## Step 4: Test both results
+## Step 5: Test both results
 
 Use an Account you can safely edit.
 
@@ -117,6 +148,10 @@ Use an Account you can safely edit.
 The card does not rerun automatically after a record edit. This manual example should use
 **Rerun**. For an automatic Check Set whose action is hidden, refresh reevaluates the saved data,
 but that refresh does not publish user-run lifecycle events.
+
+User-run lifecycle events are optional Platform Events emitted only after a person selects Run or
+Rerun and the Check Set or Check publication settings are enabled. Page-load evaluation never
+publishes those result events.
 
 Open **Edit account** during the failing test and confirm it opens the same Account. The link does
 not save anything automatically; close the edit page without saving or restore the test value when
@@ -142,5 +177,6 @@ For authorized troubleshooting details, use [Troubleshoot Record Health Check](.
 | Check Contacts, Opportunities, Cases, or other related records | [Query examples](../examples/README.md#query-examples) |
 | Understand every available field | [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md) |
 | Add a link or instruction to a failed Check | [Configure action links](../guides/configure-action-links.md) |
-| Prepare the Check Set for release | [Configuration review checklist](../guides/configure-check-sets-and-checks.md#14-review-checklist) |
+| Prepare the Check Set for release | [Configuration review checklist](../guides/configure-check-sets-and-checks.md#step-12-review-checklist) |
 | Look up exact Setup fields | [Check Set fields](../metadata/fields-check-set.md) and [Check fields](../metadata/fields-check.md) |
+| Translate card labels and statuses | [Read Record Health Check results](../guides/read-results.md) |

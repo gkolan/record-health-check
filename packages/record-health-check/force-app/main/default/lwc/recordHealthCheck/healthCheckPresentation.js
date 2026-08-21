@@ -292,12 +292,36 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     .filter(Boolean)
     .join(". ");
 
-  const adminDetailMessage =
-    (isResolved &&
-      c.result &&
-      (c.result.adminDetail?.message || c.result.adminDetailMessage)) ||
-    null;
-  const showAdminDetail = showDiagnostics && !!adminDetailMessage;
+  const incident =
+    (showDiagnostics && isResolved && c.result?.adminDetail?.incident) || null;
+  const diagnosis = incident
+    ? {
+        ...incident,
+        location: [
+          incident.phase,
+          incident.topFrameClass
+            ? `${incident.topFrameClass}${incident.topFrameMethod ? `.${incident.topFrameMethod}` : ""}${incident.topFrameLine != null ? `, line ${incident.topFrameLine}` : ""}`
+            : incident.component
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        remediationActions: (incident.remediationActions || []).map(
+          (item, index) => ({
+            ...item,
+            key: `${item.kind || "action"}-${index}`
+          })
+        ),
+        verificationSteps: (incident.verificationSteps || []).map(
+          (instruction, index) => ({
+            key: `verify-${index}`,
+            number: index + 1,
+            instruction
+          })
+        )
+      }
+    : null;
+  const showDiagnosis = diagnosis != null;
+  const diagnosisClass = `rhc-diagnosis${outcome === "systemError" ? " rhc-diagnosis--system-error" : ""}`;
 
   const diagnosticsMeta =
     showDiagnostics && isResolved
@@ -317,6 +341,7 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     ...c,
     isPending,
     isLoading,
+    loadingAlternativeText: `Evaluating ${c.label}`,
     isResolved,
     statusLabel,
     statusIconClass,
@@ -349,8 +374,9 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     showExpandedExpected,
     inlineComparisonValues,
     expandedComparisonValues,
-    adminDetailMessage,
-    showAdminDetail,
+    diagnosis,
+    diagnosisClass,
+    showDiagnosis,
     diagnosticsMeta,
     showDiagnosticsMeta,
     accessibleLabel

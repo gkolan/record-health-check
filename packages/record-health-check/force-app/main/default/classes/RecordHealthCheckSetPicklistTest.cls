@@ -40,9 +40,9 @@ private class RecordHealthCheckSetPicklistTest {
         LIMIT 1
       ];
       Assert.areEqual(
-        expectedSet.MasterLabel,
+        expectedSet.MasterLabel + ' (' + expectedSet.QualifiedApiName + ')',
         defaultValue.getLabel(),
-        'App Builder should display the Check Set Master Label'
+        'App Builder should distinguish duplicate labels with qualified identity'
       );
       Assert.areEqual(
         expectedSet.QualifiedApiName,
@@ -59,7 +59,7 @@ private class RecordHealthCheckSetPicklistTest {
   }
 
   @IsTest
-  static void emptyForUnknownObjectAndNullContextIsSafe() {
+  static void emptyForUnknownObjectAndMissingPageObjectIsSafe() {
     VisualEditor.DesignTimePageContext ctx = new VisualEditor.DesignTimePageContext();
     ctx.entityName = 'ZZ_No_Such_Object__x';
     RecordHealthCheckSetPicklist unknown = new RecordHealthCheckSetPicklist(
@@ -76,17 +76,18 @@ private class RecordHealthCheckSetPicklistTest {
       'No match → no auto-default'
     );
 
-    // A null context (e.g. a page template with no bound entity) must not throw
-    // and falls back to every active Check Set.
-    Integer allActive = [
-      SELECT COUNT()
-      FROM Record_Health_Check_Set__mdt
-      WHERE IsActive__c = TRUE
-    ];
     Assert.areEqual(
-      allActive,
+      0,
       new RecordHealthCheckSetPicklist(null).getValues().size(),
-      'Null page context shows all active Check Sets'
+      'A missing page object must not expose unrelated Check Sets'
+    );
+
+    VisualEditor.DesignTimePageContext blank = new VisualEditor.DesignTimePageContext();
+    blank.entityName = ' ';
+    Assert.areEqual(
+      0,
+      new RecordHealthCheckSetPicklist(blank).getValues().size(),
+      'A blank page object must not expose unrelated Check Sets'
     );
   }
 }

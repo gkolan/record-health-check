@@ -19,7 +19,7 @@ For a guided example that creates both a Check Set and its Checks, start with
 | Name the Check Set and choose its Salesforce object | [Label and Developer Name](#label-and-developer-name), [Object](#object-objectapiname__c), [Active](#active-isactive__c) |
 | Choose when the card runs | [When Checks Run](#when-checks-run-cardrunmode__c), [Stop after a system error](#stop-after-a-system-error-stoponsystemerror__c) |
 | Choose how the card looks | [Card Title](#card-title-cardtitle__c), [Card Subtitle](#card-subtitle-cardsubtitle__c), [Reveal Mode](#reveal-mode-cardrevealmode__c), [Run button fields](#run-button-fields) |
-| Choose which result details appear | [Found/Expected Display](#foundexpected-display-foundexpecteddisplay__c), [Passed Checks](#passed-checks-passedchecksdisplay__c), [Skipped Checks](#skipped-checks-skippedchecksdisplay__c) |
+| Choose which result details appear | [Found/Expected Display](#foundexpected-display-foundexpecteddisplay__c), [Passed Checks](#passed-checks-passedchecksdisplay__c), [Skipped Checks](#skipped-checks-skippedchecksdisplay__c), [Summary Display](#summary-display-summarydisplay__c) |
 | Troubleshoot a Check Set | [Show Diagnostics](#show-diagnostics-showdiagnostics__c) |
 | Publish Platform Events | [Publish User Run Event](#publish-user-run-event-publishuserrunevent__c), [Publish Error Log Event](#publish-error-log-event-publisherrorlogevent__c) |
 
@@ -58,6 +58,10 @@ Set uses `Account` and belongs on an Account record page.
 
 If the objects do not match, the component does not show the Check Set.
 
+When the App Builder dropdown is empty, confirm **Active**, compare this Object API name with the
+record page object, assign **Record Health Check Admin** to the page builder, and refresh Lightning
+App Builder after the permission or metadata change.
+
 ### Active (`IsActive__c`)
 
 | Attribute | Value |
@@ -68,6 +72,10 @@ If the objects do not match, the component does not show the Check Set.
 Leave **Active** selected to allow the Check Set to load and run. Clear it to temporarily disable
 the entire Check Set without deleting it. The Lightning component then shows **Health Check
 Unavailable** instead of running its Checks.
+
+Clear Active for a reversible stop. **Hide** changes only the card's Run/Rerun control and does not
+disable evaluation. Deleting the Set can break page selection and dependent Checks, so back up and
+remove dependencies before deletion.
 
 ## Card text and display
 
@@ -123,6 +131,16 @@ Expected value contains information that should not be shown to every card user.
 
 A Check can be skipped because it does not apply to the record or because a prerequisite Check did
 not pass. Hiding the row does not change the result.
+
+### Summary Display (`SummaryDisplay__c`)
+
+| Setup choice | Stored value | What the user sees |
+| --- | --- | --- |
+| Above Checks | `TOP` | The result summary appears above the Check rows. |
+| Below Checks | `BOTTOM` | The result summary appears below the Check rows. This is the default. |
+
+The setting applies to both the overall summary and category-based summaries. When Checks use
+categories, the grouped category summaries replace the overall totals at the selected position.
 
 ## When Checks run
 
@@ -227,14 +245,14 @@ allocation. See [Record Health Check Set Run Platform Event](event-set-run.md).
 | Attribute | Value |
 | --- | --- |
 | Type | Checkbox |
-| Default | Selected (`true`) |
+| Default | Cleared (`false`) |
 
-Leave this field selected when restricted administrator or support automation needs technical
-Record Health Check errors for this Check Set. Clear it when your org must not publish those error
-details. Clearing it does not turn off Salesforce debug logs.
+Select this field only when restricted administrator or support automation needs technical Record
+Health Check errors for this Check Set. Assign **Record Health Check Error Log Publisher** to each
+running identity first. Leaving it cleared does not turn off Salesforce debug logs.
 
-If Record Health Check cannot find the Check Set, it leaves error-event publication enabled so that
-the configuration error can still be reported. See
+If Record Health Check cannot find the Check Set, it fails closed and does not publish restricted
+error details without an explicit setting. See
 [Record Health Check Log Platform Event](event-log.md) before granting access or saving these
 restricted details.
 
@@ -257,10 +275,11 @@ publish a Set Run Platform Event unless Flow or Apex separately requests publica
 | Found/Expected Display | `On demand` |
 | Passed Checks | `Show each check` |
 | Skipped Checks | `Show each check` |
+| Summary Display | `Below Checks` |
 | Stop after a system error | Cleared |
 | Show Diagnostics | Cleared |
 | Publish User Run Event | Cleared |
-| Publish Error Log Event | Selected |
+| Publish Error Log Event | Cleared |
 
 After saving, copy the **Qualified API Name** shown by Setup when Flow or Apex needs to identify this
 Check Set.

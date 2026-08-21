@@ -41,7 +41,34 @@ private class RHCCurrencyAuthoringRedTest {
   }
 
   @IsTest
+  static void shouldRejectGroupedCurrencyAggregateAgainstUnitlessFixedThreshold() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.SourceQuery__c = 'SELECT CurrencyIsoCode, SUM(AnnualRevenue) totalValue FROM Account GROUP BY CurrencyIsoCode';
+    check.SourceQueryField__c = 'totalValue';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = '100';
+
+    Assert.isTrue(
+      findingNames(RecordHealthCheckValidator.queryFindings(check))
+        .contains('FIXED_CURRENCY_BASIS_MISSING'),
+      'A grouped Currency aggregate still needs an explicit fixed-threshold ISO basis.'
+    );
+
+    try {
+      RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
+      Assert.fail('Runtime must reject the same unitless aggregate threshold.');
+    } catch (RecordHealthCheckEvaluatorException expected) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.FIXED_CURRENCY_BASIS_MISSING,
+        expected.reasonCode
+      );
+    }
+  }
+
+  @IsTest
   static void shouldCoverNeutralCurrencyShapeBoundaries() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
       null,
       null,
@@ -55,6 +82,10 @@ private class RHCCurrencyAuthoringRedTest {
       RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
         'SELECT SUM(AnnualRevenue) totalValue FROM Account GROUP BY CurrencyIsoCode'
       )
+    );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.isCurrencySelection(null, 'Amount'),
+      'A missing query cannot identify a currency selection.'
     );
     Assert.isFalse(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
@@ -85,6 +116,22 @@ private class RHCCurrencyAuthoringRedTest {
         'SELECT Account.AnnualRevenue FROM Opportunity',
         'Account.AnnualRevenue'
       )
+    );
+    Assert.areEqual(
+      'CurrencyIsoCode',
+      RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
+        'SELECT AnnualRevenue FROM Account',
+        'AnnualRevenue'
+      ),
+      'A root Currency selection must request the root ISO field.'
+    );
+    Assert.areEqual(
+      'Account.CurrencyIsoCode',
+      RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
+        'SELECT Account.AnnualRevenue FROM Opportunity',
+        'Account.AnnualRevenue'
+      ),
+      'A relationship Currency selection must request relationship-scoped ISO evidence.'
     );
     Assert.isFalse(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
@@ -194,6 +241,125 @@ private class RHCCurrencyAuthoringRedTest {
       ),
       'A nested OR does not weaken the outer conjunctive ISO equality.'
     );
+  }
+
+  @IsTest
+  static void shouldRejectUngroupedCurrencyAggregateAtRuntime() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.SourceQuery__c = 'SELECT SUM(AnnualRevenue) totalValue FROM Account';
+    check.SourceQueryField__c = 'totalValue';
+
+    Test.startTest();
+    try {
+      RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
+      Assert.fail('Runtime must reject an ungrouped Currency aggregate.');
+    } catch (RecordHealthCheckEvaluatorException expected) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.CURRENCY_AGGREGATE_NOT_GROUPED,
+        expected.reasonCode,
+        'Runtime must return the stable aggregate safety reason code.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void compareQueriesRejectsUngroupedCurrencyBeforeExecution() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.EvaluationType__c = 'COMPARE_TWO_QUERIES';
+    check.SourceQuery__c = 'SELECT SUM(AnnualRevenue) totalValue FROM Account';
+    check.SourceQueryField__c = 'totalValue';
+    check.ComparisonQuery__c = 'SELECT SUM(AnnualRevenue) totalValue FROM Account';
+    check.ComparisonQueryField__c = 'totalValue';
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckCompareQueriesEvaluator()
+      .evaluate(
+        check,
+        RecordHealthCheckTestDataFactory.syntheticId(Account.SObjectType, 1),
+        RecordHealthCheckTestDataFactory.account(
+          new Map<String, Object>{ 'Name' => 'Currency safety fixture' }
+        )
+      );
+    Test.stopTest();
+
+    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.CURRENCY_AGGREGATE_NOT_GROUPED,
+      result.reasonCode,
+      'Compare Two Queries must enforce the same runtime aggregate guard as Query.'
+    );
+  }
+
+  @IsTest
+  static void shouldRejectNestedOnlyIsoFilterAtRuntime() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.SourceQuery__c =
+      'SELECT SUM(Amount) totalValue FROM Opportunity ' +
+      'WHERE AccountId IN (SELECT Id FROM Account WHERE CurrencyIsoCode = \'USD\')';
+    check.SourceQueryField__c = 'totalValue';
+
+    Test.startTest();
+    try {
+      RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
+      Assert.fail(
+        'A nested ISO filter must not authorize the outer aggregate.'
+      );
+    } catch (RecordHealthCheckEvaluatorException expected) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.CURRENCY_AGGREGATE_NOT_GROUPED,
+        expected.reasonCode,
+        'Runtime must classify the unsafe outer aggregate.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void shouldRejectFixedCurrencyWithoutIsoAtRuntime() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.SourceQuery__c = 'SELECT AnnualRevenue FROM Account LIMIT 1';
+    check.SourceQueryField__c = 'AnnualRevenue';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = '100';
+
+    Test.startTest();
+    try {
+      RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
+      Assert.fail(
+        'Runtime must reject a fixed Currency threshold without ISO.'
+      );
+    } catch (RecordHealthCheckEvaluatorException expected) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.FIXED_CURRENCY_BASIS_MISSING,
+        expected.reasonCode,
+        'Runtime must return the stable fixed-basis reason code.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void shouldAllowExplicitOuterCurrencyBasisAtRuntime() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    Record_Health_Check__mdt check = baseQueryCheck();
+    check.SourceQuery__c =
+      'SELECT SUM(AnnualRevenue) totalValue FROM Account ' +
+      'WHERE CurrencyIsoCode = \'USD\'';
+    check.SourceQueryField__c = 'totalValue';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = '100';
+    check.ExpectedCurrencyIsoCode__c = 'USD';
+
+    Test.startTest();
+    RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
+    Test.stopTest();
+
+    Assert.isTrue(true, 'An explicit outer ISO basis must remain valid.');
   }
 
   private static Record_Health_Check__mdt baseQueryCheck() {

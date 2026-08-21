@@ -46,7 +46,13 @@
     >{!rhcCheck.checkTitle} could not evaluate {!record.Name fallback="this account"}. Verify access to Account Phone and retry.</value></values>
     <values><field>ApplicabilityMode__c</field><value
       xsi:type="xsd:string"
-    >ALL_RECORDS</value></values>
+    >WHEN_FORMULA_TRUE</value></values>
+    <values><field>ApplicabilityFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(IsPersonAccount)</value></values>
+    <values><field>ApplicabilityNotMetMessage__c</field><value
+      xsi:type="xsd:string"
+    >This business-account profile check does not apply to Person Accounts.</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
     >10</value></values>

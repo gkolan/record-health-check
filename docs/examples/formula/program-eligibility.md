@@ -49,6 +49,21 @@ A territory planner is reviewing Accounts for a small-business program whose con
   that 10 is the approved program minimum.
 - Confirm that intended users can read Employees.
 
+## Confirm the example fits your org
+
+`BLANKVALUE(NumberOfEmployees, 0)` treats a blank value as zero; `>= 10` means 10 or more passes.
+If zero should mean unknown, do not use this formula unchanged. Confirm the field under **Setup →
+Object Manager → Account → Fields & Relationships → Employees** and replace the threshold with the
+approved program rule.
+
+Reuse an existing Account Check Set only when its purpose and Object match; otherwise create a
+uniquely named Set instead of another `Account_Data_Quality`. The merge token uses Account Name and
+falls back to plain text when Name is unavailable.
+
+Open a sandbox Account, edit Employees below and above the threshold, save, then Run or Rerun. Add
+the card to the Account Lightning page, activate the intended assignment, and test as a seller with
+**Record Health Check User** and read access to Employees.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -61,7 +76,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm employee count meets the program minimum. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

@@ -15,6 +15,9 @@ global class RecordHealthCheckResultDisplay {
   /** Locale-formatted Expected value. */
   global String expectedDisplayValue;
   @AuraEnabled
+  /** Optional semantic label for Expected, such as Passes when. */
+  global String expectedValueLabel;
+  @AuraEnabled
   /** Display-format token used for Found. */
   global String foundDisplayFormat;
   @AuraEnabled

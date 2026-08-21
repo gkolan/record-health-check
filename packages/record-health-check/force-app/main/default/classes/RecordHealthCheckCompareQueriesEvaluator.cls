@@ -52,6 +52,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
     List<Id> recordIds,
     Map<Id, SObject> loadedRecords
   ) {
+    RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
     Integer maxRows = check.MaxQueryRows__c != null
       ? (Integer) check.MaxQueryRows__c
       : DEFAULT_MAX_ROWS;
@@ -141,6 +142,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
     SObject record,
     RecordHealthCheckInternalResult result
   ) {
+    RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
     Integer maxRows = check.MaxQueryRows__c != null
       ? (Integer) check.MaxQueryRows__c
       : DEFAULT_MAX_ROWS;

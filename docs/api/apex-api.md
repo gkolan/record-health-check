@@ -4,6 +4,11 @@
 > Use this page to run Record Health Check from Apex and read the returned results before the
 > current transaction continues.
 
+> [!IMPORTANT]
+> **Audience: Salesforce developers.** If an administrator can build the process in Flow, stop and
+> use [Run Record Health Check from Flow](flow.md). Writing the Apex caller requires **Author Apex**
+> and the organization's normal code review, tests, and deployment process.
+
 The `rhc.` before an Apex type tells Salesforce that the installed Record Health Check package owns
 that type. The `rhc__` in a Check Set name has a different purpose: it appears when the package
 delivered that Custom Metadata record. Always copy the Check or Check Set **Qualified API Name**
@@ -41,6 +46,12 @@ Do not use this API for an unlimited number of records. Use
    Set.
 6. Decide which statuses the code must handle and whether Platform Events are required.
 
+The running user needs **Record Health Check User** for the package Custom Permission and package
+Apex access, plus ordinary access to evaluated data. The developer needs **Author Apex** to create
+or change the caller, but Author Apex does not grant permission to run Record Health Check as an
+end user. A returned `FAIL` is business output; a returned `ERROR` is a health result needing
+operations review; an `AuthorizationException` means no response was returned to the caller.
+
 ## Step 1: Build and run a Check Set request
 
 Evaluate a Check Set for several records:
@@ -54,7 +65,7 @@ String checkSetApiName = 'My_Account_Checks';
 rhc.RecordHealthCheckRequest request = rhc.RecordHealthCheckRequest.forCheckSet(
   checkSetApiName,
   accountIds
-).withRunId('nightly-' + Date.today());
+).withRunId('nightly-' + System.now().formatGMT('yyyyMMdd-HHmmss-SSS'));
 
 rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(request);
 Set<Id> recordsNeedingAttention = new Set<Id>();

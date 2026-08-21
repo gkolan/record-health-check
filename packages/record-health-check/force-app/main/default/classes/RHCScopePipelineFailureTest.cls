@@ -43,9 +43,35 @@ private with sharing class RHCScopePipelineFailureTest {
 
     Assert.areEqual(1, items.size(), 'The result must remain aligned.');
     Assert.areEqual(
-      'APEX_EVALUATOR_ERROR',
+      RecordHealthCheckReasonCodes.FRAMEWORK_UNEXPECTED,
       items.values()[0].evaluation.reasonCode,
       'Unexpected evaluator failures must map to the stable framework reason.'
+    );
+
+    Record_Health_Check__mdt apexCheck = queryCountCheck();
+    apexCheck.EvaluationType__c = 'APEX';
+    apexCheck.ApexClass__c = 'AccountHasRecentActivityCheck';
+    items.clear();
+    RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'EVALUATOR';
+    try {
+      evaluatorPipeline.evaluateCheck(
+        apexCheck,
+        evaluationContext(),
+        new List<Id>{ account.Id },
+        new Map<Id, SObject>{ account.Id => account },
+        false,
+        false,
+        RecordHealthCheckResultMode.EVALUATION,
+        'unexpected-apex-failure',
+        items
+      );
+    } finally {
+      RecordHealthCheckScopePipeline.evaluatorFailureOverride = null;
+    }
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PLUGIN_THREW,
+      items.values()[0].evaluation.reasonCode,
+      'Unexpected Apex failures must retain the plugin failure classification.'
     );
   }
 

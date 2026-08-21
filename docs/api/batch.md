@@ -1,5 +1,10 @@
 # Check Many Records with Batch Apex
 
+> [!IMPORTANT]
+> **Audience: Salesforce developers and release administrators.** Flow Builder cannot start the
+> packaged Batch helper directly. An administrator can monitor it in **Setup → Apex Jobs**, but a
+> developer must submit it or provide approved automation.
+
 Use Batch Apex when Record Health Check should automatically check many records after they change
 or at a scheduled time. For example, a process changes Accounts or related Contacts, so the
 affected Accounts should be checked after those changes finish. Another process might check all
@@ -124,12 +129,13 @@ Id jobId = rhc.RecordHealthCheckBatch.run(
 | --- | --- |
 | `checkSetApiName` | The Check Set Salesforce runs |
 | `accountIdsToCheck` | The exact Accounts Salesforce checks |
-| `ACTIONABLE` | Publish only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` |
+| `ACTIONABLE` | Publish only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` Check Results, plus a completed Check Set Run heartbeat for every scanned record |
 | `25` | Check no more than 25 Accounts in one Salesforce transaction |
 | `jobId` | The ID used to find this Batch job in **Setup → Apex Jobs** |
 
 The packaged Batch accepts 1–2,000 distinct record IDs. It removes null and repeated IDs before it
-checks that limit. It checks only the IDs supplied when the job starts. It does not automatically
+checks that limit. Every remaining ID must match the selected Check Set object; one mismatch rejects
+the entire submission, so requested and processed counts cannot silently diverge. It checks only the IDs supplied when the job starts. It does not automatically
 include records created or changed later.
 
 If the fourth argument is omitted, the package checks up to 100 records per transaction. To choose
@@ -397,6 +403,11 @@ individual nightly Batch run. See [Scheduled Apex](scheduled.md) for more schedu
 
 ## Send results with Platform Events
 
+Batch scopes are separate Salesforce transactions. Earlier scopes can publish committed per-record
+events before a later scope fails. The terminal `FAILED` job envelope does not retract those events;
+consumers must correlate by job Run ID and wait for the terminal envelope before treating the run as
+complete.
+
 Use Platform Events when a Flow, Apex trigger, or external integration should react to health
 results independently of the Batch. The number of records is not the deciding factor. Platform
 Events can handle large jobs, but they require a receiver and count toward the org's Platform Event
@@ -463,6 +474,15 @@ tested to confirm that they finish in the required time.
    integration.
 5. If a group of records fails with an exception, review the
    [`BATCH_SCOPE_FAILED` error event](../platform-events/error-log.md).
+
+Use this distinction when reading **Setup → Apex Jobs**:
+
+| Evidence | Meaning |
+| --- | --- |
+| Job Completed | Salesforce finished every Batch scope; records can still have health `FAIL` results |
+| Job Failed | An Apex scope or framework transaction failed; inspect the first exception |
+| `BATCH_SCOPE_FAILED` Log event | Structured error evidence for a failed scope, when Log publication succeeded |
+| Saved result or Result event with `ERROR` | Evaluation completed far enough to return an error health result |
 
 One failed group does not remove results produced by earlier successful groups. Retrying a Batch
 can create the same saved result again or publish the same result again. Add a unique key to the

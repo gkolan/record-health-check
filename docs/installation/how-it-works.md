@@ -36,6 +36,10 @@ Administrators define both as Salesforce Custom Metadata. That means the configu
 reviewed and moved between orgs like other Salesforce setup, without hard-coding every business
 question into the component.
 
+Use an outbound change set between connected orgs or retrieve the Custom Metadata into source
+control. Salesforce Setup has no standard download button that creates a complete restorable
+archive. See [Back up and restore configuration](../guides/back-up-configuration.md).
+
 ## What each outcome means
 
 | Outcome | What it tells the user |
@@ -48,6 +52,10 @@ question into the component.
 
 These distinctions keep the result honest. A Check that does not apply is not treated as a pass, and
 a Check that could not be evaluated is not treated as a failure in the business data.
+
+Failed, Warning, and Info are three card presentations for the one programmatic status `FAIL`.
+[Read Record Health Check results](../guides/read-results.md) maps every card label to Flow, Apex,
+event, Agentforce, and REST values.
 
 ## Where a Check can find its answer
 
@@ -90,9 +98,17 @@ investigate unexpected results receive **Record Health Check Admin** plus the Sa
 access needed for the work. Neither installed permission set grants access to your Account, Contact,
 Opportunity, Case, or custom-object data.
 
+Assign them from **Setup → Permission Sets → Record Health Check User** or **Record Health Check
+Admin → Manage Assignments**.
+
 Everyday users see business guidance. Administrators can temporarily use **Show Diagnostics** when
 they need evidence about configuration, access, or an unexpected result. Diagnostic detail should
 remain off during normal use.
+
+**Show Diagnostics** is a field on the Record Health Check Set Custom Metadata record. In Setup,
+open **Custom Metadata Types → Record Health Check Set → Manage Records**, edit the Check Set used by
+the card, and select **Show Diagnostics** only for the investigation. The viewer must also have the
+**Record Health Check View Diagnostics** Custom Permission.
 
 ### First troubleshooting checks
 
@@ -100,6 +116,10 @@ If the card is missing, confirm that it was added and activated on the correct L
 page. If a Check Set is unavailable, confirm that it is active and uses the same Salesforce object
 as the page. If a Check cannot provide an answer, check the explanation on the card and the running
 user's access before changing the Check.
+
+When activating a Lightning page, verify whether it is the **Org Default**, **App Default**, or an
+app, record type, and profile assignment. Saving a page that the user is not assigned does not
+change the page they see.
 
 ## Next steps
 

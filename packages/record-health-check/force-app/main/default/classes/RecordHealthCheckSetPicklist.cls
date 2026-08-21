@@ -9,9 +9,9 @@
  * of a blank card — with a dropdown of the active Check Sets that apply to the
  * record page's object.
  *
- * Each option displays the Check Set Master Label while storing its
- * QualifiedApiName. This keeps packaged and subscriber-owned records
- * unambiguous without exposing namespace prefixes in App Builder. App Builder
+ * Each option displays the Check Set Master Label and QualifiedApiName while
+ * storing its QualifiedApiName. This keeps packaged and subscriber-owned records
+ * unambiguous when labels are duplicated. App Builder
  * supplies the page's object through DesignTimePageContext.entityName, so the
  * list is scoped to Check Sets whose ObjectApiName__c matches. Runs at design
  * time as the admin building the page; custom-metadata SOQL is not
@@ -48,6 +48,9 @@ public with sharing class RecordHealthCheckSetPicklist extends VisualEditor.Dyna
   private List<Record_Health_Check_Set__mdt> scopedCheckSets() {
     String entityName = context == null ? null : context.entityName;
     List<Record_Health_Check_Set__mdt> checkSets = new List<Record_Health_Check_Set__mdt>();
+    if (String.isBlank(entityName)) {
+      return checkSets;
+    }
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is setup data for App Builder design-time choices; runtime access is enforced by RecordHealthCheckAccess before definitions are exposed.
     for (Record_Health_Check_Set__mdt checkSet : [
       SELECT QualifiedApiName, DeveloperName, MasterLabel, ObjectApiName__c
@@ -55,22 +58,17 @@ public with sharing class RecordHealthCheckSetPicklist extends VisualEditor.Dyna
       WHERE IsActive__c = TRUE
       ORDER BY MasterLabel ASC, DeveloperName ASC
     ]) {
-      // Scope to the record page's object when App Builder names one; a page
-      // without an entity (e.g. a template being edited) shows every active set.
-      if (
-        String.isBlank(entityName) ||
-        entityName.equalsIgnoreCase(checkSet.ObjectApiName__c)
-      ) {
+      if (entityName.equalsIgnoreCase(checkSet.ObjectApiName__c)) {
         checkSets.add(checkSet);
       }
     }
     return checkSets;
   }
 
-  /** Displays Master Label while retaining QualifiedApiName as the stored value. */
+  /** Displays label and identity while retaining QualifiedApiName as the value. */
   private VisualEditor.DataRow row(Record_Health_Check_Set__mdt checkSet) {
     return new VisualEditor.DataRow(
-      checkSet.MasterLabel,
+      checkSet.MasterLabel + ' (' + checkSet.QualifiedApiName + ')',
       checkSet.QualifiedApiName
     );
   }

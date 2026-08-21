@@ -17,10 +17,7 @@ public with sharing class RecordHealthCheckAccess {
     if (runPermissionOverride != null) {
       return runPermissionOverride;
     }
-    Boolean hasRunPermission = FeatureManagement.checkPermission(
-      'Record_Health_Check_Run'
-    );
-    return hasRunPermission;
+    return FeatureManagement.checkPermission('Record_Health_Check_Run');
   }
 
   /** Overrides runner authorization only within an Apex test transaction. */

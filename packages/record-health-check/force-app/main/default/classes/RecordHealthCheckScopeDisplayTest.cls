@@ -63,6 +63,10 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
       item.display.expectedDisplayValue,
       'Raw Formula conditions require the diagnostics entitlement.'
     );
+    Assert.isNull(
+      item.display.expectedValueLabel,
+      'The semantic label must be hidden with its restricted Formula text.'
+    );
   }
 
   @IsTest

@@ -45,9 +45,6 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       return results;
     }
     Date cutoff = Date.today().addDays(-daysBack);
-    if (cutoff == null) {
-      return results;
-    }
 
     // Seed every Id with zero BEFORE overlaying the aggregates. An aggregate
     // returns no row at all for an Account with no activity, so a map built

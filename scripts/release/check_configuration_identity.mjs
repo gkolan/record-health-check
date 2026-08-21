@@ -73,17 +73,64 @@ const definitionLoader = fs.readFileSync(
 );
 const failures = [];
 
+const requiredIntegrationFixtures = [
+  "Record_Health_Check_Set.Review_Summary_Above_Checks.md-meta.xml",
+  "Record_Health_Check.Review_Summary_Account_Name.md-meta.xml",
+  "Record_Health_Check.Review_Summary_Account_Industry.md-meta.xml"
+];
+const integrationMetadataDirectory = path.join(
+  root,
+  "packages/record-health-check/integration-tests/main/default/customMetadata"
+);
+const checkSetMetadataDirectories = [
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/customMetadata"
+  ),
+  integrationMetadataDirectory
+];
+
+for (const fixture of requiredIntegrationFixtures) {
+  if (!fs.existsSync(path.join(integrationMetadataDirectory, fixture))) {
+    failures.push(`Missing required integration-test fixture: ${fixture}`);
+  }
+}
+
+for (const directory of checkSetMetadataDirectories) {
+  for (const fileName of fs
+    .readdirSync(directory)
+    .filter((name) => name.startsWith("Record_Health_Check_Set."))) {
+    const metadata = fs.readFileSync(path.join(directory, fileName), "utf8");
+    const summaryDisplay = metadata.match(
+      /<field>SummaryDisplay__c<\/field>\s*<value[^>]*>(TOP|BOTTOM)<\/value>/
+    )?.[1];
+    if (!summaryDisplay) {
+      failures.push(
+        `Check Set must explicitly set SummaryDisplay__c to TOP or BOTTOM: ${fileName}`
+      );
+    }
+  }
+}
+
 const appBuilderProperties = [
   ...componentMetadata.matchAll(
     /<property\s+[\s\S]*?name="([^"]+)"[\s\S]*?\/>/g
   )
 ].map((match) => match[1]);
+const requiredAppBuilderProperties = ["checkSetName"];
 if (
-  appBuilderProperties.length !== 1 ||
-  appBuilderProperties[0] !== "checkSetName"
+  appBuilderProperties.length !== requiredAppBuilderProperties.length ||
+  requiredAppBuilderProperties.some(
+    (property, index) => appBuilderProperties[index] !== property
+  )
 ) {
   failures.push(
     `Lightning App Builder must expose only checkSetName; found: ${appBuilderProperties.join(", ") || "none"}`
+  );
+}
+if (componentMetadata.includes('name="whenChecksRun"')) {
+  failures.push(
+    "Lightning App Builder must not duplicate the Check Set run mode"
   );
 }
 
@@ -171,5 +218,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Verified exact QualifiedApiName identity, Check Set-only App Builder configuration, and strict configuration contracts."
+  "Verified exact QualifiedApiName identity, metadata-owned run scheduling, strict configuration contracts, and required integration-test fixtures."
 );

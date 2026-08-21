@@ -1,5 +1,10 @@
 # Internal Apex class reference
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > On this page, find the production Apex class responsible for an internal Record Health Check
 > behavior. Use this while reading or changing the package source. Writing a custom Apex Check? Start with
@@ -83,6 +88,9 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L5 | [`RecordHealthCheckController`](entry-points.md#recordhealthcheckcontroller) | Aura-enabled API for the Lightning card |
 | L5 | [`RecordHealthCheckRunCheckFlowAction`](entry-points.md#recordhealthcheckruncheckflowaction) | Packaged Flow action "Run Record Health Check" |
 | L5 | [`RecordHealthCheckRunSetFlowAction`](entry-points.md#recordhealthcheckrunsetflowaction) | Packaged Flow action "Run Record Health Check Set" |
+| L5 | [`RecordHealthCheckRunCheckAgentAction`](entry-points.md#recordhealthcheckruncheckagentaction) | Native Agentforce action for one exact Check and record |
+| L5 | [`RecordHealthCheckRunSetAgentAction`](entry-points.md#recordhealthcheckrunsetagentaction) | Native Agentforce action for one exact Check Set and record |
+| L5 | [`RecordHealthCheckAgentRestResource`](entry-points.md#recordhealthcheckagentrestresource) | Versioned read-only REST boundary for approved agent tools |
 | L5 | `RecordHealthCheckQueueable` | Runs one bounded Check Set group in the background; results are not saved unless the caller publishes events or custom code saves them |
 | L5 | `RecordHealthCheckBatch` | Splits an explicit list of 1–2,000 IDs into scopes of 1–200 records that share the Batch job Run ID; defaults to 100 |
 | L5 | `RecordHealthCheckScheduled` | Runs the same saved list of IDs daily by launching `RecordHealthCheckBatch` |
@@ -90,6 +98,8 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L5 | `RecordHealthCheckFlowSupport` | Shared Flow input normalization, result alignment, and summary status logic |
 | L5 | `RecordHealthCheckFlowGroupExecutor` | Shared normalized grouping and engine execution for both Flow actions |
 | L5 | [`RecordHealthCheckLifecyclePublisher`](entry-points.md#recordhealthchecklifecyclepublisher) | Optional Set Run and Check Result platform events |
+| L5 | [`RecordHealthCheckEventId`](entry-points.md#recordhealthcheckeventid) | Unique, bounded lifecycle-event identifier generation |
+| L5 | [`RecordHealthCheckValidateMetadataAction`](entry-points.md#recordhealthcheckvalidatemetadataaction) | Administrator Flow action for configuration validation |
 | L5 | [`RecordHealthCheckRunContext`](entry-points.md#recordhealthcheckruncontext) | Run id, source, and timing for one evaluation |
 | L5 | [`RecordHealthCheckSetPicklist`](entry-points.md#recordhealthchecksetpicklist) | App Builder dynamic picklist for Check Set Developer Name |
 

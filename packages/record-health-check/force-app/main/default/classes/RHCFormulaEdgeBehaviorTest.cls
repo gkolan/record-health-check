@@ -22,7 +22,7 @@ private class RHCFormulaEdgeBehaviorTest {
     Assert.areEqual('INVALID_FORMULA', reasonCode[0]);
 
     Account nullTextAccount = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'null' }
+      new Map<String, Object>{ 'Name' => null }
     );
     Assert.areEqual(
       'Name: ',

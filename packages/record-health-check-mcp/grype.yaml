@@ -1,0 +1,19 @@
+# Keep the High/Critical gate enabled. These exact package/CVE pairs are ignored only after the
+# reachability review documented in OPERATIONS.md. Unexpected findings still fail the artifact job.
+ignore:
+  - vulnerability: CVE-2026-5450
+    package:
+      name: libc6
+      type: deb
+  - vulnerability: CVE-2026-5928
+    package:
+      name: libc6
+      type: deb
+  - vulnerability: CVE-2026-5435
+    package:
+      name: libc6
+      type: deb
+  - vulnerability: CVE-2026-14456
+    package:
+      name: libssl3t64
+      type: deb

@@ -43,15 +43,18 @@ New to the model? Read [Integrate Record Health Check](../integration/README.md)
 
 ## Prerequisites and quick start
 
-1. Assign the **Record Health Check User** (`rhc__Record_Health_Check_User`) Permission Set to the viewer
-   and grant access to the record and fields used by the selected Checks.
-2. In Lightning App Builder, open a **record page** and add **Record Health Check**, then select an
-   active Check Set for that object. The component is listed only while you are editing a record
-   page; it is not offered on App Pages or Home Pages because it has no record to evaluate there.
-3. On the Check Set Custom Metadata record, set **When Checks Run** to **When the page opens** or
-   **When the user clicks Run**, then choose the Run button display, labels, and icon. **Hide** is
-   valid only for an automatic page-load Check Set.
-4. Save and activate the Lightning page, then open a matching record.
+1. Assign the least-privilege **Record Health Check Card User**
+   (`rhc__Record_Health_Check_Card_User`) Permission Set to a card-only viewer and grant access to
+   the record and fields used by the selected Checks. Use **Record Health Check User** only when the
+   same person or automation also needs Flow, Agent, REST, or Apex entry points.
+2. In Lightning App Builder, open a **record page**, add **Record Health Check**, and select an active
+   Check Set for that object. The component is listed only while you are editing a record page; it
+   is not offered on App Pages or Home Pages because it has no record to evaluate there.
+3. Configure **When Checks Run**, Summary Display, and the Run-button presentation on the Check Set
+   Custom Metadata record. The Check Set is the single source of truth. **Hide** is valid only for
+   an automatic page-load Check Set.
+4. Save and activate the Lightning page as **Org Default**, **App Default**, or for the intended
+   app, record type, and profiles. Then open a matching record as an assigned user.
 5. Confirm the card returns rows and summary counts. Click Run or Rerun only when an explicit run is
    intended.
 
@@ -66,6 +69,18 @@ diagnostic values additionally require **Show Diagnostics** and the
 When both are present, the card renders the server-provided admin-detail message; that detail remains
 absent for viewers without the permission and never changes record or field access.
 
+If the Check Set dropdown is empty, first confirm that the Check Set is active and its **Object**
+exactly matches the record-page object. Then confirm the page builder has **Record Health Check
+Admin**, refresh App Builder after permission changes, and verify the package installation.
+
+| Card label | Programmatic status | Meaning |
+| --- | --- | --- |
+| Pass | `PASS` | Requirement met |
+| Failed, Warning, or Info | `FAIL` | Requirement not met; severity changes presentation |
+| Skipped | `SKIPPED` | Check did not apply |
+| Unable to Check | `UNABLE_TO_EVALUATE` | No reliable answer because of data, access, configuration, or limits |
+| System Error | `ERROR` | Framework or custom Apex problem |
+
 ## When the card publishes result events
 
 | Component action | Source | Set event | Check events |
@@ -79,12 +94,16 @@ Leave these settings off when users only need results on the card:
 - `PublishUserRunEvent__c` enables one Set Run completion event for the Check Set.
 - `PublishUserResultEvent__c` enables a Check Result event for that Check.
 
-Error Log events use a separate default-on Check Set setting. `PublishErrorLogEvent__c` publishes
+Error Log events use a separate default-off Check Set setting. `PublishErrorLogEvent__c` publishes
 Record Health Check `ERROR` details from automatic and deliberate runs; uncheck it to opt that Check Set
 out. This does not disable Salesforce debug-log output.
 
 An automatic run never publishes lifecycle events even when both lifecycle switches are enabled.
-It can still publish an Error Log event when the default-on error setting permits it.
+
+If no event follows Run or Rerun, confirm the visible action was used, the Check Set and relevant
+Check checkboxes are enabled, the transaction committed, the receiver has event access, and the
+receiver itself did not fail. Refresh is a page-load run and never publishes result events.
+It can still publish an Error Log event when the Set explicitly opts in and the user has publisher permission.
 
 The block is intentional. Opening or refreshing a record page is passive navigation, not a request
 to notify another process. If automatic runs published, ordinary browsing could consume Platform
@@ -97,8 +116,8 @@ Rerun provide the deliberate boundary required before publication is eligible.
 | --- | --- |
 | Check Set selected in App Builder | One active Check Set whose Object matches the record page. The dropdown shows its Label and stores its exact Qualified API Name. |
 | Current record ID | Record evaluated |
-| Check Set **When Checks Run** = **When the page opens** (`RUN_ON_LOAD`) | Run after definitions load; publication blocked |
-| Check Set **When Checks Run** = **When the user clicks Run** (`RUN_ON_REQUEST`) | Wait for an explicit Run; publication can be enabled |
+| **When the page opens** (`RUN_ON_LOAD`) | Load the lightweight Check Set shell configuration during initial rendering. At browser idle, load definitions and evaluate; publication remains blocked. |
+| **When the user clicks Run** (`RUN_ON_REQUEST`) | Load the lightweight Check Set shell configuration during initial rendering, then defer definitions and evaluation until the user selects Run. |
 | Check Set **Run Button Display** | Show label and icon, label only, a compact icon, or hide the action on automatic Check Sets only |
 | Run or Rerun button | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank. |
 
@@ -107,9 +126,11 @@ can use that space. **Icon only** uses a compact square button and retains an ac
 Rerun name for assistive technology. An invalid custom icon name falls back to the built-in play
 icon. A limit notice still reserves the space it needs in the header.
 
-The App Builder override controls only presentation. It does not change when checks run. A manual
-Check Set combined with an effective **Hide** value is invalid and the card explains the
-configuration error instead of leaving users with no way to start the run.
+The selected Check Set is the single source of truth for scheduling. The component calls the
+lightweight `getCheckSetShellConfig` Apex method on load to obtain its run mode, title, subtitle,
+active Check count, and Run-button presentation. A manual Check Set combined with an effective
+**Hide** value is invalid and the card explains the configuration error instead of leaving users
+with no way to start the run.
 
 An automatic Check Set continues to show **Rerun** after it finishes unless its action is hidden.
 This default preserves existing card behavior after an upgrade. A Check Set with no active Checks
@@ -120,11 +141,24 @@ action that can publish lifecycle events. Refreshing the page runs the automatic
 of page load and never publishes those events. When the action is hidden, refresh the page to
 reevaluate the card, or call the Check Set from Apex or Flow when another process needs an event.
 
-The visible output is the completed row list and summary counts. Long Found and Expected values
-clamp to two lines; use the adjacent `+`/`−` control to expand or collapse the complete value.
-Results remain in component state; the component does not create a history record.
+The visible output is the completed row list and summary counts. **Summary Display** places the
+summary above or below the rows. If resolved Checks have categories, category summaries replace the
+single overall totals bar at that same position. Long Found and Expected values clamp to two lines;
+use the adjacent `+`/`−` control to expand or collapse the complete value. Results remain in
+component state; the component does not create a history record.
+
+A definition, access, or setup failure blocks the card and appears as a component-wide error row. A
+failure while finalizing a completed user run is different: the evaluated results remain visible
+and the card shows a nonblocking completion warning because the run summary or configured event may
+not have been finalized.
 
 ## Event outputs for Run and Rerun
+
+> [!WARNING]
+> `USER_INITIATED` completion events are client-attested advisory notifications. The server confirms
+> that submitted Check names belong to the selected Check Set, but it does not re-evaluate their
+> submitted statuses during completion. Use Apex or Flow to re-evaluate before a
+> compliance-sensitive or irreversible action.
 
 ### Check Set Run event
 
@@ -150,6 +184,10 @@ time so the card can finish promptly without flooding the browser or Salesforce 
 Check all at once. When it is checked, evaluation becomes sequential; the component must know whether
 the current Check returned `ERROR` before deciding whether the next Check is allowed to start.
 
+With **Reveal Mode = One by one**, the card can show work in groups of up to five evaluations while
+it advances through the ordered Checks. That staged appearance is not a failure; wait for the run
+summary before troubleshooting missing rows.
+
 For an explicit run:
 
 1. Each server-finalized Check result can publish its own Check Result event after that Apex request commits.
@@ -167,6 +205,9 @@ A later Run or Rerun starts again from the current saved record data.
 Event publication never changes the card result. If the completion call or event publication fails,
 the user still sees the completed health-check results. The receiving Flow, Apex trigger, or
 integration needs its own monitoring; the card is not event-delivery confirmation.
+
+A successful card result is not proof that requested events were published. Monitor publication
+warnings and receiving automation separately.
 
 Use the [lifecycle-events overview](lifecycle-events.md) for cross-event behavior and
 the linked metadata references for exact field types, replay, retention, and receiving-process design.

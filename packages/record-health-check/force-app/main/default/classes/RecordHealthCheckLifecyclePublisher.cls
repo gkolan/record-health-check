@@ -6,7 +6,7 @@
 /** Best-effort, optional lifecycle publication for deliberately initiated runs. */
 public with sharing class RecordHealthCheckLifecyclePublisher {
   public static final String CONTRACT_VERSION = '1.0';
-  public static final String FRAMEWORK_VERSION = '2.0.4';
+  public static final String FRAMEWORK_VERSION = '2.0.5';
   public static final String SOURCE_APEX_API = 'APEX_API';
   public static final String SOURCE_FLOW = 'FLOW';
   public static final String SOURCE_USER_INITIATED = 'USER_INITIATED';
@@ -116,20 +116,13 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
       }
       selected.add(item);
     }
-    if (
-      selected.isEmpty() &&
-      publication == RecordHealthCheckEventPublication.ACTIONABLE
-    ) {
-      return;
-    }
-
     List<Record_Health_Check_Result__e> checkEvents = new List<Record_Health_Check_Result__e>();
     for (RecordHealthCheckResultItem item : selected) {
       RecordHealthCheckEvaluationResult evaluation = item.evaluation;
       checkEvents.add(
         new Record_Health_Check_Result__e(
           ContractVersion__c = CONTRACT_VERSION,
-          EventId__c = newEventId(
+          EventId__c = RecordHealthCheckEventId.newId(
             response.runId,
             evaluation.checkQualifiedApiName + '-' + evaluation.recordId
           ),
@@ -165,17 +158,44 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
     return settingsProvider.isRunPublicationEnabled(checkSetQualifiedApiName);
   }
 
+  /** Publishes one terminal envelope for an asynchronous adapter job. */
+  public static void publishAsyncJobTerminal(
+    String runId,
+    String checkSetQualifiedApiName,
+    String source,
+    RecordHealthCheckEventPublication publication,
+    Boolean succeeded,
+    Integer submittedRecordCount,
+    Integer processedRecordCount
+  ) {
+    if (
+      publication == null ||
+      publication == RecordHealthCheckEventPublication.NONE ||
+      inSubscriberContext
+    ) {
+      return;
+    }
+    publishSetEvents(
+      new List<Record_Health_Check_Set_Run__e>{
+        new Record_Health_Check_Set_Run__e(
+          ContractVersion__c = CONTRACT_VERSION,
+          EventId__c = RecordHealthCheckEventId.newId(runId, 'JOB-TERMINAL'),
+          RunId__c = runId,
+          Phase__c = succeeded == true ? 'COMPLETED' : 'FAILED',
+          CheckSetQualifiedApiName__c = checkSetQualifiedApiName,
+          OccurredAt__c = System.now(),
+          Source__c = source,
+          FrameworkVersion__c = FRAMEWORK_VERSION,
+          SubmittedRecordCount__c = submittedRecordCount,
+          ProcessedRecordCount__c = processedRecordCount
+        )
+      }
+    );
+  }
+
   /** Prevents event subscribers from recursively publishing lifecycle events. */
   public static void enterSubscriberContext() {
     inSubscriberContext = true;
-  }
-
-  private static String newEventId(String runId, String suffix) {
-    String identity = String.valueOf(runId) + '|' + String.valueOf(suffix);
-    String digest = EncodingUtil.convertToHex(
-      Crypto.generateDigest('SHA-256', Blob.valueOf(identity))
-    );
-    return String.valueOf(runId).left(50) + '-' + digest.left(16);
   }
 
   private static List<Record_Health_Check_Set_Run__e> buildSetEvents(
@@ -199,7 +219,10 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
       events.add(
         new Record_Health_Check_Set_Run__e(
           ContractVersion__c = CONTRACT_VERSION,
-          EventId__c = newEventId(response.runId, 'SET-' + recordId),
+          EventId__c = RecordHealthCheckEventId.newId(
+            response.runId,
+            'SET-' + recordId
+          ),
           RunId__c = response.runId,
           Phase__c = 'COMPLETED',
           CheckSetQualifiedApiName__c = checkSetQualifiedApiName,

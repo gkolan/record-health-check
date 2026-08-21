@@ -6,11 +6,11 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.3-1`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.4-2`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](config/package-releases.json).
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current released candidate: `Record Health Check@2.0.3-1`.
+- Current released candidate: `Record Health Check@2.0.4-2`.
 
 ### Evaluation and integration
 
@@ -28,13 +28,23 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
 
 - Business-record SOQL runs in user mode. Administrator-authored templates reject unsafe query
   shapes and system-mode execution.
-- Plugin dispatch rejects DML, callouts, email, event publication, and asynchronous work.
+- Plugin dispatch detects and rejects DML, callouts, email, Queueable, and Future work. Apex exposes
+  no reliable counter for Platform Event publication, Batch, or Scheduled work, so those plugin
+  prohibitions rely on contract tests, static analysis, and human review.
 - Public results protect access details; authorized Show Diagnostics viewers can investigate the
   specific restricted reason.
 - Merge tokens use explicit namespaces, typed fallbacks, bounded resolution, and safe Action URL
   handling.
 - Checks per run, records per request, query rows, FormulaEval work, token count, and completed text
   all have documented limits.
+
+### Lightning performance
+
+- Superseded during 2.0.4 development: an earlier implementation declared **When Checks Run** in
+  App Builder and failed closed on a mode mismatch. The current component uses the selected Check
+  Set as the single source of truth and loads lightweight shell configuration on initial render.
+  Manual cards defer definitions and evaluation until Run; Automatic cards defer those operations
+  until browser idle.
 
 ### Administrator experience
 
@@ -64,10 +74,28 @@ For installation and verification, start with
 
 ## Unreleased
 
-Target package version: **2.0.4**.
+Target package version: **2.0.5**.
+
+No changes documented yet.
+
+## Version 2.0.4.2
+
+Released package version: **2.0.4.2**.
 
 ### Fixed
 
+- Flow Check Set actions now fail closed when an aligned result is missing and preserve stable
+  authorization, validation, and limit categories instead of flattening engine failures into a
+  generic execution response.
+- Compare Two Queries now applies the same pre-execution multi-currency safety checks as Query
+  Checks, and aggregate queries that return multiple values require an explicit source-field alias.
+- Error Log publication is now an explicit, default-off Check Set choice. Missing configuration
+  fails closed, and publishers still require the separate Error Log Publisher Permission Set.
+- Async adapters reject missing or object-less Check Set configuration, App Builder returns no
+  unrelated Check Sets without a record-object context, and one rejected Lightning Check can no
+  longer unlock a concurrent run while other evaluations remain active.
+- Flow documentation now describes whole-request rejection above 25 active Checks and identifies
+  Flow result JSON as evaluation-only rather than authorized display data.
 - Lifecycle events now report framework version `2.0.4`; the release gate also verifies that the
   Apex event publisher stays synchronized with the package version.
 - Scope-wide Query Check classification now ignores `LIMIT`, `ORDER BY`, and correlation-like text
@@ -82,6 +110,28 @@ Target package version: **2.0.4**.
 - Apex tests no longer receive an implicit run-permission grant. Namespaced restricted-persona
   conformance now proves the actual Custom Permission boundary across Apex, Lightning, Flow, and
   asynchronous entry points.
+- Query runtime now repeats multi-currency authoring safeguards before SOQL executes. Legacy or
+  bypassed metadata cannot run an ungrouped Currency aggregate, rely on a semi-join-only ISO filter,
+  or compare a Currency field with a fixed threshold that has no declared ISO basis.
+- MCP concurrency exhaustion now returns the versioned structured `LIMIT` contract with safe retry
+  guidance instead of an unclassified tool error.
+- Lifecycle guidance now identifies `USER_INITIATED` card completion events as client-attested
+  advisory notifications and requires server re-evaluation for compliance-sensitive actions.
+- The packaged Account-owner example now uses a correlated Query Check against `User` instead of
+  asking Formula evaluation to resolve User-only fields through polymorphic `Owner`; inactive,
+  missing, and Queue owners fail closed. Its display guidance no longer reintroduces unsupported
+  polymorphic `Owner.Name` or `Owner.Manager.Name` paths.
+- The packaged Channel Partner Governance example now uses a correlated parent-count Query and a
+  static display label, so non-applicable Accounts skip cleanly instead of becoming inconclusive
+  while hydrating `ParentId` or `Parent.Name`.
+- The Agent REST wire handler now sends its explicitly null-suppressed contract body instead of
+  allowing Salesforce to auto-serialize unused Apex fields as `null`. The strict MCP adapter maps
+  exhausted Salesforce authorization, request-limit, contract, and availability failures to safe
+  structured outcomes.
+- The MCP runtime now uses a digest-pinned, non-root distroless Node 22 image without package-manager
+  layers. Its High/Critical artifact gate retains exact, documented reachability exceptions for four
+  unreachable glibc/OpenSSL code paths; unmatched findings still fail the build. The production npm
+  dependency audit is clear, and the exact built-image result remains a hosted gate after push.
 - Authorized card diagnostics now render the nested admin-detail message returned by the public Apex
   display contract instead of leaving the troubleshooting panel empty.
 - User-initiated Lightning runs now send completed results in the nested Apex result-item contract,
@@ -123,9 +173,13 @@ Target package version: **2.0.4**.
 
 - Added a repeatable, cross-transaction scratch-org gate for the reported active-User-owned Lead
   checkbox formula configuration. The integration fixture is excluded from subscriber packaging.
-- Documented Person Account field portability and raw multi-currency comparison behavior. Person
-  Account coverage remains conditional on a PA-enabled org; currency behavior is documentation and
-  measurement guidance rather than a new conversion feature.
+- Focused namespaced tests in a Person Account and multi-currency scratch org prove that reachable
+  mixed units, unsafe aggregates, semi-join-only ISO filters, and fixed thresholds without an ISO
+  basis fail closed. The framework still does not convert currencies. The complete packaged
+  Person-versus-Business Account example matrix remains a separate live verification item.
+- The exhaustive query-verdict gate now launches its fifth 50-Check page. Its reviewed namespaced
+  baseline covers 114 query-bearing Checks and 173 query templates, including fail-closed diagnostic
+  fixtures and the corrected owner and channel-partner examples.
 
 ## [2.0.3] - 2026-08-11
 

@@ -9,6 +9,15 @@ Use this path when you want to judge a known, repeatable experience rather than 
 data happens to be in an existing sandbox. When setup finishes, you can open Acme Corporation and
 compare the card with the expected outcomes documented below.
 
+> [!IMPORTANT]
+> Stop here if you have only a sandbox login. Use [Install and verify](install-and-verify.md)
+> instead. This contributor and evaluator path requires source tools and permission to create
+> disposable orgs from a Dev Hub.
+
+A **Dev Hub** is the Salesforce org authorized to create scratch orgs. A **scratch org** is a
+temporary, source-driven Salesforce org. The **alias** is the local CLI name used in later commands.
+The demo scratch org has no namespace of its own so it behaves like a package subscriber.
+
 ## Before you begin
 
 You need Git, Node.js with npm, the Salesforce CLI, and a Dev Hub that can create scratch orgs. The
@@ -39,6 +48,11 @@ npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
 
 The command deliberately refuses to overwrite an existing alias. If `rhc-demo` already exists, delete it yourself
 only when you no longer need that org, or choose another alias.
+
+The terminal prints each major operation, including capacity check, scratch-org creation, package
+installation, permission assignment, demo deployment, data setup, and smoke verification. Success
+ends with the org alias and next command. On failure, use the last named operation as the starting
+point for investigation.
 
 The command creates a separate scratch org and prepares the entire experience:
 
@@ -82,20 +96,9 @@ No Event records are created. Recent engagement comes from the two completed Tas
 | Recent activity | Exactly 2 completed Tasks in the last 90 days |
 | Cases | Exactly 4 open, High-priority Cases |
 
-### Object-specific example portfolio
-
-The same setup command also creates four fictional companies, eight populated Contacts, and eight
-populated Opportunities in USD and EUR. The portfolio includes complete records and deliberately
-incomplete records so the Contact and Opportunity cards demonstrate both success and remediation.
-
-`Harborline Dispatch Pilot` includes three Tasks, two Events, and two Opportunity Contact Roles:
-Priya Shah is the primary Executive Sponsor, and Evan Brooks is the Technical Buyer. Its Amount and
-Next Step remain blank intentionally, producing exactly two passed and two failed Opportunity checks.
-Jonas Keller similarly produces exactly two passed and two failed Contact checks while retaining
-realistic department, address, reporting-line, email, and business-context data.
-
 The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
-relationships, and health-check outcomes remain predictable.
+relationships, and health-check outcomes remain predictable. It creates only the Asteron hierarchy
+and Acme teaching data listed above; it does not seed a separate Contact or Opportunity portfolio.
 
 After setup, use these expected outcomes to verify the eight Checks on Acme Corporation:
 
@@ -103,7 +106,7 @@ After setup, use these expected outcomes to verify the eight Checks on Acme Corp
 | --- | --- |
 | Executive sponsorship | Pass |
 | Account owner is active | Failed |
-| Industry aligns with the parent Account | Pass |
+| Open deals have decision-maker contacts | Pass |
 | Contacts have email | Failed |
 | Customer engagement is current | Pass |
 | Pipeline protects revenue | Failed |
@@ -175,6 +178,11 @@ sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
 
 The first command confirms that the scratch org exists. The remaining commands provide deeper
 evidence when package setup, automated verification, or demo-data verification failed.
+
+Scratch-org capacity is managed in the Dev Hub. In its Setup, enter **Scratch Org Info** in Quick
+Find to review active and deleted scratch orgs; limits also appear in the Dev Hub's Company
+Information. A scratch org expires automatically at the end of its duration. Deleting it early or
+allowing it to expire permanently removes its data.
 
 ## Currency mode
 

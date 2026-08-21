@@ -88,7 +88,7 @@ private class RecordHealthCheckLifecyclePublisherTest {
   }
 
   @IsTest
-  static void noneAndActionablePassPublishNothing() {
+  static void nonePublishesNothingAndActionablePassPublishesSetHeartbeat() {
     Assert.areEqual(
       '1.0',
       RecordHealthCheckLifecyclePublisher.CONTRACT_VERSION,
@@ -107,7 +107,11 @@ private class RecordHealthCheckLifecyclePublisherTest {
       'Account_Data_Quality',
       'MISSPELLED_SOURCE'
     );
-    Assert.areEqual(beforeDml, Limits.getDmlStatements());
+    Assert.areEqual(
+      beforeDml + 1,
+      Limits.getDmlStatements(),
+      'ACTIONABLE must publish a Set Run heartbeat even when no Check result needs attention.'
+    );
   }
 
   @IsTest
@@ -120,6 +124,36 @@ private class RecordHealthCheckLifecyclePublisherTest {
       'CUSTOM_TELEMETRY_SOURCE'
     );
     Assert.areEqual(beforeDml + 2, Limits.getDmlStatements());
+  }
+
+  @IsTest
+  static void asyncTerminalHonorsPublicationAndEmitsOneEnvelope() {
+    Integer beforeDml = Limits.getDmlStatements();
+    RecordHealthCheckLifecyclePublisher.publishAsyncJobTerminal(
+      'batch-707000000000001AAA',
+      'Account_Data_Quality',
+      RecordHealthCheckLifecyclePublisher.SOURCE_BATCH,
+      RecordHealthCheckEventPublication.NONE,
+      false,
+      250,
+      200
+    );
+    Assert.areEqual(beforeDml, Limits.getDmlStatements());
+
+    RecordHealthCheckLifecyclePublisher.publishAsyncJobTerminal(
+      'batch-707000000000001AAA',
+      'Account_Data_Quality',
+      RecordHealthCheckLifecyclePublisher.SOURCE_BATCH,
+      RecordHealthCheckEventPublication.ALL,
+      false,
+      250,
+      200
+    );
+    Assert.areEqual(
+      beforeDml + 1,
+      Limits.getDmlStatements(),
+      'A requested async terminal envelope must publish in one DML statement.'
+    );
   }
 
   @IsTest

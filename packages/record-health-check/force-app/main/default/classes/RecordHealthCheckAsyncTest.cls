@@ -1,8 +1,10 @@
 @IsTest
 private with sharing class RecordHealthCheckAsyncTest {
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  private static final String VALID_CHECK_SET = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+    'Example_Account_Profile_Readiness'
+  );
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   private class EnabledLogSettingsProvider extends RecordHealthCheckSettingsProvider {
@@ -12,7 +14,6 @@ private with sharing class RecordHealthCheckAsyncTest {
       return true;
     }
   }
-
   @IsTest
   static void shouldRejectQueueableWithNullScope() {
     Test.startTest();
@@ -27,7 +28,6 @@ private with sharing class RecordHealthCheckAsyncTest {
     }
     Test.stopTest();
   }
-
   @IsTest
   static void shouldHandleEmptyBatchExecuteScopeSafely() {
     Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
@@ -35,7 +35,7 @@ private with sharing class RecordHealthCheckAsyncTest {
       1
     );
     RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
-      'Any_Set',
+      VALID_CHECK_SET,
       new List<Id>{ recordId },
       null
     );
@@ -59,7 +59,7 @@ private with sharing class RecordHealthCheckAsyncTest {
       1
     );
     RecordHealthCheckQueueable queueable = new RecordHealthCheckQueueable(
-      'Any_Set',
+      VALID_CHECK_SET,
       new List<Id>{ recordId },
       RecordHealthCheckEventPublication.NONE
     );
@@ -72,7 +72,7 @@ private with sharing class RecordHealthCheckAsyncTest {
     RecordHealthCheckLogger.log(
       RecordHealthCheckLogger.Level.ERROR,
       'pre-finalizer',
-      'Any_Set',
+      VALID_CHECK_SET,
       null,
       null,
       'PRE_FINALIZER_ERROR',
@@ -105,7 +105,7 @@ private with sharing class RecordHealthCheckAsyncTest {
     Test.startTest();
     String jobId = RecordHealthCheckScheduled.scheduleDaily(
       'RHC Async Test',
-      'Any_Set',
+      VALID_CHECK_SET,
       new List<Id>{ accountRecord.Id },
       null
     );
@@ -271,11 +271,11 @@ private with sharing class RecordHealthCheckAsyncTest {
       RecordHealthCheckConstants.MAX_ASYNC_RECORDS
     );
 
-    RecordHealthCheckQueueable.validateScope('Qualified_Set', queueBoundary);
-    RecordHealthCheckBatch.validatePopulation('Qualified_Set', batchBoundary);
+    RecordHealthCheckQueueable.validateScope(VALID_CHECK_SET, queueBoundary);
+    RecordHealthCheckBatch.validatePopulation(VALID_CHECK_SET, batchBoundary);
     RecordHealthCheckScheduled.validateSubmission(
       'RHC boundary',
-      'Qualified_Set',
+      VALID_CHECK_SET,
       batchBoundary
     );
 
@@ -284,7 +284,7 @@ private with sharing class RecordHealthCheckAsyncTest {
       duplicates.add(queueBoundary[0]);
     }
     duplicates.add(null);
-    RecordHealthCheckQueueable.validateScope('Qualified_Set', duplicates);
+    RecordHealthCheckQueueable.validateScope(VALID_CHECK_SET, duplicates);
 
     assertQueueScopeRejected(
       syntheticAccountIds(RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE + 1)
@@ -331,17 +331,17 @@ private with sharing class RecordHealthCheckAsyncTest {
       1
     );
     RecordHealthCheckQueueable queueable = new RecordHealthCheckQueueable(
-      'Qualified_Set',
+      VALID_CHECK_SET,
       new List<Id>{ recordId },
       RecordHealthCheckEventPublication.NONE
     );
     RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
-      'Qualified_Set',
+      VALID_CHECK_SET,
       new List<Id>{ recordId },
       RecordHealthCheckEventPublication.NONE
     );
     RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
-      'Qualified_Set',
+      VALID_CHECK_SET,
       new List<Id>{ recordId },
       RecordHealthCheckEventPublication.NONE
     );

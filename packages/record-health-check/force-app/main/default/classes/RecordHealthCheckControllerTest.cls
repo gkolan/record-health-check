@@ -1,13 +1,11 @@
-/**
- * @author Gautam Kolan (https://github.com/gkolan)
- * SPDX-License-Identifier: Apache-2.0
- */
-
 @IsTest
 private class RecordHealthCheckControllerTest {
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+  }
+
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
     RecordHealthCheckTestDataFactory.createTestRecords();
   }
 
@@ -40,6 +38,7 @@ private class RecordHealthCheckControllerTest {
       'Expected visible check definitions.'
     );
   }
+
   @IsTest
   static void getCheckDefinitionsWrapsConfigErrorsForAura() {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();

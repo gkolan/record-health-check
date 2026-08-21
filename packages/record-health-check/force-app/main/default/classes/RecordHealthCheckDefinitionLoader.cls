@@ -5,6 +5,7 @@
  */
 public with sharing class RecordHealthCheckDefinitionLoader {
   private static final Set<String> VALID_DISPLAY_MODES = RecordHealthCheckConstants.validDisplayModes;
+  private static final Set<String> VALID_SUMMARY_DISPLAYS = RecordHealthCheckConstants.validSummaryDisplays;
   private static final Set<String> VALID_TRIGGER_MODES = RecordHealthCheckConstants.validTriggerModes;
   private static final Set<String> VALID_RUN_BUTTON_DISPLAYS = RecordHealthCheckConstants.validRunButtonDisplays;
   private static final Set<String> VALID_REVEAL_MODES = RecordHealthCheckConstants.validRevealModes;
@@ -66,6 +67,7 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         RunButtonIcon__c,
         PassedChecksDisplay__c,
         SkippedChecksDisplay__c,
+        SummaryDisplay__c,
         CardRevealMode__c,
         FoundExpectedDisplay__c,
         StopOnSystemError__c,
@@ -135,6 +137,9 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     );
     response.skippedDisplayMode = RecordHealthCheckConstants.toLwcDisplayMode(
       checkSet.SkippedChecksDisplay__c
+    );
+    response.summaryDisplay = RecordHealthCheckConstants.normalizedSummaryDisplay(
+      checkSet.SummaryDisplay__c
     );
     response.comparisonDisplay = RecordHealthCheckConstants.toLwcComparisonDisplay(
       comparisonDisplay(checkSet)
@@ -319,6 +324,17 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         'Skipped Checks Display "' +
           checkSet.SkippedChecksDisplay__c +
           '" is not recognized. Valid values: SHOW_EACH_CHECK, SHOW_COUNT_ONLY.',
+        RC_INVALID_CONFIG
+      );
+    }
+    String summaryDisplay = RecordHealthCheckConstants.normalizedSummaryDisplay(
+      checkSet.SummaryDisplay__c
+    );
+    if (!VALID_SUMMARY_DISPLAYS.contains(summaryDisplay)) {
+      throw new RecordHealthCheckConfigService.ConfigException(
+        'Summary Display "' +
+          checkSet.SummaryDisplay__c +
+          '" is not recognized. Valid values: TOP, BOTTOM.',
         RC_INVALID_CONFIG
       );
     }

@@ -11,6 +11,10 @@ package.
 
 ## For Salesforce administrators
 
+If you only install and operate the package, follow this section and then return to
+[Revalidate or upgrade](../../installation/upgrading.md). The contributor sections below do not
+apply to a subscriber org.
+
 ### Use a package version, not a source deployment
 
 | Use this approach | Do not use this approach |
@@ -28,7 +32,8 @@ with the package remain package content and can change in a later package versio
 
 1. Read the release notes and identify configuration or permission changes.
 2. Confirm the current package version in **Setup → Installed Packages**.
-3. Back up Check Sets and Checks created by your team through the normal metadata process.
+3. Back up Check Sets and Checks created by your team by following
+   [Back up configuration](../../guides/back-up-configuration.md).
 4. Install the new promoted version in a sandbox that represents production.
 5. Reassign or verify the installed Permission Sets.
 6. Run the checks and automation used in everyday workflows.
@@ -39,6 +44,10 @@ Follow [Revalidate or upgrade](../../installation/upgrading.md) for the complete
 procedure and current installation link.
 
 ### CLI upgrade example
+
+The normal administrator path is **Setup → Installed Packages** and the approved upgrade link.
+Use this optional command only if your team already manages package installations with Salesforce
+CLI.
 
 Administrators who use Salesforce CLI can install the new promoted version over the existing one:
 

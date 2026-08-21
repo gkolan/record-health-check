@@ -11,12 +11,14 @@
  *   25
  * );
  */
-global with sharing class RecordHealthCheckBatch implements Database.Batchable<Id> {
+global with sharing class RecordHealthCheckBatch implements Database.Batchable<Id>, Database.Stateful {
   /** Packaged execute-scope size, below the engine's 200-record public ceiling. */
   global static final Integer DEFAULT_SCOPE_SIZE = 100;
   private String checkSetQualifiedApiName;
   private List<Id> recordIds;
   private RecordHealthCheckEventPublication publication;
+  private RecordHealthCheckExecutionOrigin executionOrigin;
+  private Integer processedRecordCount = 0;
 
   /**
    * Creates a batch over an explicit, defensively copied record population.
@@ -34,6 +36,20 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     List<Id> recordIds,
     RecordHealthCheckEventPublication publication
   ) {
+    this(
+      checkSetQualifiedApiName,
+      recordIds,
+      publication,
+      RecordHealthCheckExecutionOrigin.BATCH
+    );
+  }
+
+  private RecordHealthCheckBatch(
+    String checkSetQualifiedApiName,
+    List<Id> recordIds,
+    RecordHealthCheckEventPublication publication,
+    RecordHealthCheckExecutionOrigin executionOrigin
+  ) {
     RecordHealthCheckAccess.requireCanRunChecks();
     RecordHealthCheckAsyncSupport.RequestState state = RecordHealthCheckAsyncSupport.requestState(
       checkSetQualifiedApiName,
@@ -44,6 +60,7 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     this.checkSetQualifiedApiName = state.checkSetQualifiedApiName;
     this.recordIds = state.recordIds;
     this.publication = publication ?? RecordHealthCheckEventPublication.NONE;
+    this.executionOrigin = executionOrigin;
   }
 
   /**
@@ -75,10 +92,11 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     try {
       RecordHealthCheck.evaluate(
         RecordHealthCheckRequest.forCheckSet(checkSetQualifiedApiName, scope)
-          .withExecutionOrigin(RecordHealthCheckExecutionOrigin.BATCH)
+          .withExecutionOrigin(executionOrigin)
           .withEventPublication(publication)
           .withRunId('batch-' + context.getJobId())
       );
+      processedRecordCount += scope.size();
     } catch (Exception error) {
       RecordHealthCheckLogger.log(
         RecordHealthCheckLogger.Level.ERROR,
@@ -96,13 +114,36 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
   }
 
   /**
-   * Completes without a second evaluation, result aggregation, or chained transaction.
-   * Results must be consumed during execute or through explicitly requested lifecycle events.
+   * Publishes one requested job-level terminal envelope without re-evaluating records.
    *
    * @param context Platform context for the completed Batch job.
    */
   global void finish(Database.BatchableContext context) {
-    return;
+    Id jobId = context == null ? null : context.getJobId();
+    Integer numberOfErrors = 0;
+    if (jobId != null) {
+      List<AsyncApexJob> jobs = [
+        SELECT NumberOfErrors
+        FROM AsyncApexJob
+        WHERE Id = :jobId
+        LIMIT 1
+      ];
+      numberOfErrors = jobs.isEmpty() ? 0 : jobs[0].NumberOfErrors;
+    }
+    Boolean succeeded =
+      numberOfErrors == 0 &&
+      processedRecordCount == recordIds.size();
+    RecordHealthCheckLifecyclePublisher.publishAsyncJobTerminal(
+      jobId == null ? 'batch-test' : 'batch-' + jobId,
+      checkSetQualifiedApiName,
+      executionOrigin == RecordHealthCheckExecutionOrigin.SCHEDULED
+        ? RecordHealthCheckLifecyclePublisher.SOURCE_SCHEDULED
+        : RecordHealthCheckLifecyclePublisher.SOURCE_BATCH,
+      publication,
+      succeeded,
+      recordIds.size(),
+      processedRecordCount
+    );
   }
 
   /**
@@ -152,14 +193,46 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     RecordHealthCheckEventPublication publication,
     Integer scopeSize
   ) {
+    return runInternal(
+      checkSetQualifiedApiName,
+      recordIds,
+      publication,
+      scopeSize,
+      RecordHealthCheckExecutionOrigin.BATCH
+    );
+  }
+
+  /** Starts Batch work while retaining Scheduled lifecycle attribution. */
+  public static Id runScheduled(
+    String checkSetQualifiedApiName,
+    List<Id> recordIds,
+    RecordHealthCheckEventPublication publication
+  ) {
+    return runInternal(
+      checkSetQualifiedApiName,
+      recordIds,
+      publication,
+      DEFAULT_SCOPE_SIZE,
+      RecordHealthCheckExecutionOrigin.SCHEDULED
+    );
+  }
+
+  private static Id runInternal(
+    String checkSetQualifiedApiName,
+    List<Id> recordIds,
+    RecordHealthCheckEventPublication publication,
+    Integer scopeSize,
+    RecordHealthCheckExecutionOrigin executionOrigin
+  ) {
     RecordHealthCheckAccess.requireCanRunChecks();
-    validatePopulation(checkSetQualifiedApiName, recordIds);
     validateScopeSize(scopeSize);
+    validatePopulation(checkSetQualifiedApiName, recordIds);
     return Database.executeBatch(
       new RecordHealthCheckBatch(
         checkSetQualifiedApiName,
         recordIds,
-        publication
+        publication,
+        executionOrigin
       ),
       scopeSize
     );

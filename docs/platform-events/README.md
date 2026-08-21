@@ -55,12 +55,22 @@ This is the simplest Platform Event pattern when your org needs a history.
    (`Health_Check_Run_History__c`). This object is an example; the package does not create it.
 2. Add a Text(80) field for Event ID. Mark the field **Unique** so one event cannot create the same
    history record twice.
-3. Add the Check Set name, Record ID, date/time, source, and result-count fields your reports need.
-4. Create a **Platform Event-Triggered Flow** for **Record Health Check Set Run**.
+3. Add Text fields for Run ID, Check Set API Name, Record ID, Source, and Contract Version; a
+   Date/Time field for Occurred At; and Number(5,0) fields for each result count. Grant the Flow
+   context Create access and intended administrators Read access through an org-owned Permission
+   Set.
+4. In **Setup → Flows**, select **New Flow → Platform Event-Triggered Flow**, then select **Record
+   Health Check Set Run**.
 5. Before creating history, use **Get Records** to look for the event's `EventId__c`. End the Flow
    successfully when it already exists.
 6. Create the history record and map only the event fields your team approved.
 7. Test one event, the same event a second time, and a Flow fault before activating it.
+
+The Get Records check improves normal duplicate handling, while the destination field's Unique
+constraint closes the race where two deliveries check before either creates the record. Connect the
+Create Records fault path to monitored automation. Use Flow Debug where the current Salesforce UI
+supports Platform Event test input, or publish a synthetic sandbox event and inspect **Paused and
+Failed Flow Interviews** plus the destination record.
 
 See [Save Check Set run summaries](check-set-run.md) for the complete field mapping and Apex option.
 
@@ -105,6 +115,10 @@ An external Pub/Sub API integration saves the Replay ID from the last event it p
 After reconnecting, it requests events after that position. Replay IDs are opaque, are not
 guaranteed to be consecutive, and must not be calculated. See Salesforce's
 [Event Message Durability](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/event-message-durability.html).
+
+Review publishing and delivery allocations from **Setup → Company Information** and the event usage
+views available for the org edition. A durable history object or external store, not the event bus,
+is the recovery source after the retention window.
 
 ## Access and data protection
 

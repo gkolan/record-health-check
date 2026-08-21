@@ -44,23 +44,28 @@ result immediately. Leave event publication as `NONE` because this Flow already 
 
 ## Build the Flow
 
-1. Open the Flow in Flow Builder.
-2. Add an **Action** element.
-3. In the **Record Health Check** category, select **Run Record Health Check Set** or **Run Record
+1. In Setup, enter **Flows** in Quick Find, open **Flows**, and select **New Flow**.
+2. Choose the Flow type that matches the job. For the Account example, choose a record-triggered
+   Flow on Account and run it **After the record is saved** so Record Health Check evaluates saved
+   values. A Screen, Autolaunched, or Scheduled-Triggered Flow can use the same actions when its
+   start behavior is intentional. Do not use a before-save Flow for this action.
+3. Configure the trigger and entry conditions, then add an **Action** element.
+4. Search the **Record Health Check** category and select **Run Record Health Check Set** or **Run Record
    Health Check**.
-4. For **Check Set Qualified API Name** or **Check Qualified API Name**, enter the exact value copied
+5. For **Check Set Qualified API Name** or **Check Qualified API Name**, enter the exact value copied
    from Setup.
-5. Set **Record ID** to the ID of the record the Flow should check.
-6. Set **Event Publication** to `NONE` when this Flow uses the returned result. Select `ACTIONABLE`
+6. Set **Record ID** to `$Record.Id` for the record-triggered example.
+7. Set the required **Event Publication** input to **None** (`NONE`) when this Flow uses the returned result. Select **Actionable** (`ACTIONABLE`)
    or `ALL` only when another Flow, Apex trigger, or integration is ready to receive Platform
    Events.
-7. Add a Decision element after the action. Check **Success** first.
-8. When **Success** is false, use **Error Type** and **Error Message** to handle the rejected input.
-9. When **Success** is true, create paths for `PASS`, `FAIL`, `SKIPPED`,
+8. Add a Decision element after the action. Check **Success** first.
+9. When **Success** is false, use **Error Type** and **Error Message** to handle the rejected input.
+10. When **Success** is true, create paths for **Status** values `PASS`, `FAIL`, `SKIPPED`,
    `UNABLE_TO_EVALUATE`, and `ERROR`.
-10. Connect the action's fault path to the organization's Flow error handling for a Salesforce
+11. Connect the action's fault path to the organization's Flow error handling for a Salesforce
     transaction failure that prevented the action from returning outputs.
-11. Debug the Flow as the real running user, or a user with the same access, before activation.
+12. Debug the Flow with a test Account. Use **Run flow as another user** when available, or test with
+    a user who has equivalent access and **Record Health Check User**, before activation.
 
 See [Flow action inputs and outputs](../integration/flow-actions.md#inputs-and-outputs) for every
 available field returned by each action.
@@ -79,6 +84,10 @@ available field returned by each action.
 
 Do not send every non-`PASS` result to the fault path. `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and
 `ERROR` are returned outputs for the Decision element.
+
+For a Check Set, **Status** is the strongest row status in this order: `ERROR`,
+`UNABLE_TO_EVALUATE`, `FAIL`, `PASS`, then `SKIPPED`. Use the individual counts when the Flow must
+distinguish a mixed run. Prefer Status and counts over parsing Result JSON in Flow.
 
 ## Bulk and transaction limits
 
@@ -99,9 +108,15 @@ Test at least one path for each status the selected Checks can return. Confirm t
 - `FAIL` follows a Decision path instead of the fault connector;
 - an invalid input follows the **Success is false** path;
 - a Salesforce transaction failure follows the fault connector;
-- the running user sees only authorized display data;
+- `resultJson` contains evaluation data only; Flow does not request display fields,
+  even when the running user can view diagnostics;
 - Platform Events appear only when `ACTIONABLE` or `ALL` was selected and a Flow, Apex trigger, or
   external integration is configured to receive them.
+
+After Debug, open **Setup → Paused and Failed Flow Interviews** for failed interviews. A health
+`FAIL` should follow the Decision path and does not create a failed interview. To test rollback,
+use a sandbox-only fault after the action and confirm that after-commit result events are not
+delivered when the transaction rolls back.
 
 ## Troubleshooting
 

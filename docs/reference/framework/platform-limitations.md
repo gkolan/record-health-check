@@ -1,5 +1,8 @@
 # Platform limitations and safe patterns
 
+Audience: Check authors and developers diagnosing a platform edge case. For ordinary configuration,
+start with the [Formula](../evaluation/formula.md) or [Query](../evaluation/query.md) reference.
+
 Record Health Check runs inside Salesforce security, query, and FormulaEval contracts. Use this
 page to identify boundaries where a syntactically valid Check can otherwise look more capable than
 it is and choose a safe alternative.
@@ -76,9 +79,12 @@ New Task action starts from Contact or Person Account context, set the intended 
 
 ## Person Accounts
 
-Packaged examples do not require Person Account-only fields. A Person Account has no ordinary child
-Contact row for itself, so `COUNT(Contact) WHERE AccountId = current Account` can return a vacuous
-zero even when the person's contact details are complete.
+Packaged examples do not require Person Account-only fields. Salesforce gives a Person Account one
+underlying `PersonContact` child whose `AccountId` is the Person Account. Consequently,
+`COUNT(Contact) WHERE AccountId = current Account` returns one for that system-created identity, and
+a generic “at least one Contact” Check can vacuously `PASS` without proving that the account has a
+separate business contact. Use explicit Person Account applicability instead of interpreting that
+count as relationship coverage.
 
 | Business Account concept | Person Account counterpart | Guidance |
 | --- | --- | --- |

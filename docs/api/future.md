@@ -4,6 +4,11 @@
 > Use this page to replace an existing `@future` Record Health Check caller. Do not create a new
 > future method for Record Health Check.
 
+> [!IMPORTANT]
+> **Audience: Salesforce developers maintaining legacy code.** This is a migration page, not a
+> supported new entry point and not a Flow recipe. Administrators should use Flow or ask a developer
+> to replace the legacy caller.
+
 ## Why replace the future method
 
 Queueable Apex makes background work easier to monitor and maintain:

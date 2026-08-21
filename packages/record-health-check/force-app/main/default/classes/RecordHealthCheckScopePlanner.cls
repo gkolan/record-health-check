@@ -20,7 +20,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     String qualifiedApiName
   ) {
     List<Record_Health_Check__mdt> checks = queryChecks(
-      'QualifiedApiName = :qualifiedApiName',
+      'QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
       qualifiedApiName
     );
     if (checks.isEmpty()) {
@@ -31,6 +31,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     RecordHealthCheckScopePipeline.SelectionContext context = contextFromCheck(
       checks[0]
     );
+    context.fullCheckSetSelection = false;
     context.checks.add(checks[0]);
     return context;
   }
@@ -60,6 +61,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     context.checkSetActive = checkSet.IsActive__c;
     context.objectApiName = checkSet.ObjectApiName__c;
     context.showDiagnostics = checkSet.ShowDiagnostics__c == true;
+    context.fullCheckSetSelection = true;
     context.checks = queryChecks(
       'Record_Health_Check_Set__r.QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
       qualifiedApiName
@@ -103,7 +105,9 @@ public with sharing class RecordHealthCheckScopePlanner {
       'SELECT ' +
       String.join(checkFields, ', ') +
       ', Record_Health_Check_Set__r.QualifiedApiName, ' +
-      'Record_Health_Check_Set__r.DeveloperName, Record_Health_Check_Set__r.IsActive__c, ' +
+      'Record_Health_Check_Set__r.DeveloperName, Record_Health_Check_Set__r.MasterLabel, ' +
+      'Record_Health_Check_Set__r.CardTitle__c, Record_Health_Check_Set__r.CardSubtitle__c, ' +
+      'Record_Health_Check_Set__r.IsActive__c, ' +
       'Record_Health_Check_Set__r.ObjectApiName__c, Record_Health_Check_Set__r.ShowDiagnostics__c ' +
       'FROM Record_Health_Check__mdt WHERE ' +
       predicate +
@@ -112,7 +116,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     List<Record_Health_Check__mdt> checks = Database.queryWithBinds(
       query,
       new Map<String, Object>{ 'qualifiedApiName' => qualifiedApiName },
-      AccessLevel.USER_MODE
+      AccessLevel.SYSTEM_MODE
     );
     enforceCheckLimit(checks);
     return checks;

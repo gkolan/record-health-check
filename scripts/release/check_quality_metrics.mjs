@@ -32,7 +32,7 @@ for (const text of [
   `Namespaced_Apex_coverage-${namespacedApexPercent}%25-brightgreen`,
   `LWC_lines-${lwcLines}%25-brightgreen`,
   `${namespacedApexPercent}% namespaced package coverage`,
-  `${apexPercent}% subscriber-style floor`,
+  `${apexPercent}% subscriber-style coverage`,
   `${lwcLines}% line coverage`
 ]) {
   if (!readme.includes(text)) {

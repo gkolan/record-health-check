@@ -4,10 +4,8 @@
 @IsTest
 private with sharing class RecordHealthCheckScopePipelineTest {
   private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
-
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest
@@ -156,9 +154,9 @@ private with sharing class RecordHealthCheckScopePipelineTest {
         .withEventPublication(RecordHealthCheckEventPublication.ACTIONABLE)
     );
     Assert.areEqual(
-      0,
+      1,
       Limits.getDmlStatements() - beforeActionable,
-      'ACTIONABLE should publish nothing for an all-pass response.'
+      'A synchronous ACTIONABLE request should publish its Set Run heartbeat.'
     );
 
     Integer beforeAll = Limits.getDmlStatements();

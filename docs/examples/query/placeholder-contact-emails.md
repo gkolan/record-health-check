@@ -60,6 +60,22 @@ the Check; do not assume that an unfamiliar customer domain is a placeholder.
 The prerequisite and this Check must use the same Check Set. The prerequisite uses evaluation order
 `10`; this example uses `100`, so Salesforce evaluates the prerequisite first.
 
+## Confirm the text and prerequisite behavior
+
+**Does not contain text** performs a substring check. A value such as
+`person@example.com.customer.com` still contains `example.com`, so test legitimate domains before
+using the rule. Also test case variants such as `Example.COM` according to the documented operator
+behavior. Use reviewed Apex when several domains or stricter email parsing are required.
+
+**Ignore record** for a blank Email leaves that row out of the comparison; it does not remove the
+Contact from Salesforce or prove the email is acceptable. Select the prerequisite from the Check's
+**Prerequisite Check** field. It must be active, in the same Check Set, and have a lower Evaluation
+Order. If you already created Customer Handoff, reuse it rather than creating a duplicate Set.
+
+Confirm Email under **Setup → Object Manager → Contact → Fields & Relationships**, add the card to
+the Account Lightning page, activate the intended assignment, and test as a user with **Record
+Health Check User**.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -72,7 +88,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm Contact emails do not use a placeholder domain. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

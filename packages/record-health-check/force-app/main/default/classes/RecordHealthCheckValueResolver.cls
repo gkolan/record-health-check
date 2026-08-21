@@ -36,15 +36,19 @@ public with sharing class RecordHealthCheckValueResolver {
         return ar.get(fieldName);
       }
       Map<String, Object> populated = ar.getPopulatedFieldsAsMap();
-      if (populated.containsKey('expr0')) {
-        return populated.get('expr0');
-      }
+      List<String> valueFields = new List<String>();
       for (String populatedField : populated.keySet()) {
         if (!populatedField.equalsIgnoreCase('rhcCorrelation')) {
-          return populated.get(populatedField);
+          valueFields.add(populatedField);
         }
       }
-      return null;
+      if (valueFields.size() > 1) {
+        throw new ResolverException(
+          'INVALID_SOQL_TEMPLATE',
+          'A query field alias is required when an aggregate query returns more than one value.'
+        );
+      }
+      return valueFields.isEmpty() ? null : populated.get(valueFields[0]);
     }
     if (String.isBlank(fieldName)) {
       throw new ResolverException(

@@ -12,6 +12,8 @@ public class RecordHealthCheckReasonCodes {
   public static final String RELATIONSHIP_NOT_RESOLVED = 'RELATIONSHIP_NOT_RESOLVED';
   public static final String OBJECT_NOT_RESOLVED = 'OBJECT_NOT_RESOLVED';
   public static final String MIXED_CURRENCY = 'MIXED_CURRENCY';
+  public static final String CURRENCY_AGGREGATE_NOT_GROUPED = 'CURRENCY_AGGREGATE_NOT_GROUPED';
+  public static final String FIXED_CURRENCY_BASIS_MISSING = 'FIXED_CURRENCY_BASIS_MISSING';
   public static final String ROW_LIMIT_EXCEEDED = 'ROW_LIMIT_EXCEEDED';
   public static final String SCOPE_ROW_CAP_EXCEEDED = 'SCOPE_ROW_CAP_EXCEEDED';
   public static final String NO_ROWS_RETURNED = 'NO_ROWS_RETURNED';
@@ -38,6 +40,12 @@ public class RecordHealthCheckReasonCodes {
 
   /** The Check threw and did not handle it. The engine cannot attribute it to one record. */
   public static final String PLUGIN_THREW = 'PLUGIN_THREW';
+  public static final String PLUGIN_CONSTRUCTOR_FAILED = 'PLUGIN_CONSTRUCTOR_FAILED';
+  public static final String PLUGIN_INTERFACE_INVALID = 'PLUGIN_INTERFACE_INVALID';
+  public static final String PLUGIN_STATUS_INVALID = 'PLUGIN_STATUS_INVALID';
+  public static final String PLUGIN_VALUES_MISSING = 'PLUGIN_VALUES_MISSING';
+  public static final String PLUGIN_DISPLAY_INVALID = 'PLUGIN_DISPLAY_INVALID';
+  public static final String FRAMEWORK_UNEXPECTED = 'FRAMEWORK_UNEXPECTED';
 
   /**
    * The Check changed something. Outranks every other outcome, including an

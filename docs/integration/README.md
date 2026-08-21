@@ -25,9 +25,23 @@ does not create a second configuration model.
 | 2 | [Flow actions](flow-actions.md) | Branch in automation without custom Apex |
 | 3 | [Lifecycle events](lifecycle-events.md) | Optional Platform Events for a separate receiving process |
 
+Stop after the row that meets your requirement. Agentforce is an optional administrator track when
+the org has Agentforce enabled. MCP and REST are platform-engineering tracks and are not part of a
+normal card or Flow rollout.
+
+| Optional advanced track | Guide | Audience |
+| --- | --- | --- |
+| Native agent tools | [Agentforce actions](agentforce-actions.md) | Agentforce administrator |
+| Hosted MCP service | [Deploy the MCP service](deploy-mcp-service.md) | Platform and security engineer |
+| Service-identity API | [Agent tool REST API](agent-tool-rest-api.md) | Salesforce and integration developer |
+
 For immediate and background Apex patterns, use [API examples](../api/README.md). For receiving
 Flow, Apex, or external-integration examples, use
 [Platform Event subscriptions](../platform-events/README.md).
+
+All callers use **Record Health Check User** or equivalent least-privilege package access plus the
+running principal's normal record and field access. Use [Read results](../guides/read-results.md) to
+translate card labels and API statuses.
 
 ## Choose an integration
 
@@ -36,6 +50,9 @@ Flow, Apex, or external-integration examples, use
 | Show health to a user on a record page | [Lightning component](lightning-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
 | Make an immediate or background decision in code | [API examples](../api/README.md) | Choose the direct Apex API, Queueable, Batch, or Scheduled Apex |
 | Branch in automation without custom Apex | [Flow actions](../integration/flow-actions.md) | Configure an Action and Decision element with explicit status paths |
+| Answer record-health questions with a native agent action | [Agentforce actions](agentforce-actions.md) | Configure exact Check or Check Set tools and preserve five-state results |
+| Deploy the separately hosted MCP service | [Deploy the MCP service](deploy-mcp-service.md) | Follow and test all 11 HTTP, identity, tool, operational, and Salesforce security gates |
+| Call approved agent tools from a hosted MCP service | [Agent tool REST API](agent-tool-rest-api.md) | Authenticate a service identity and preserve the versioned tool contract |
 | Notify a separate process after the health-check transaction completes | [Platform Event subscriptions](../platform-events/README.md) | Build a receiving Flow, Apex trigger, or external integration and handle repeated delivery |
 | Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/recent-activity.md) | Write the class used by a Verify with Apex Check |
 
@@ -121,6 +138,8 @@ check rather than the complete configured health assessment.
 | Show health on a record page | [Lightning component](lightning-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
 | Make a code-level decision | [Apex API](../api/apex-api.md) | Typed Check or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
 | Branch in automation without code | [Flow actions](flow-actions.md) | Flow output variables and JSON | `FLOW` |
+| Answer through native Agentforce actions | [Agentforce actions](agentforce-actions.md) | Versioned structured Check or Check Set fields | `AGENT` |
+| Call through an approved MCP service identity | [Agent tool REST API](agent-tool-rest-api.md) | Versioned JSON Check or Check Set fields | `AGENT` |
 | Notify a separate process or export results | [Platform events](lifecycle-events.md) | Platform Event fields | Depends on what started the run |
 | Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/recent-activity.md) | Normal Check result | Inherits the calling run |
 
@@ -198,12 +217,12 @@ For every input and output, use the [Flow actions reference](flow-actions.md).
 Enabling events does not change the result returned to the caller. A successful run does not prove
 that the receiving Flow, Apex trigger, or integration completed.
 
-Lifecycle publication is off by default; error-log publication is on by default:
+Lifecycle and restricted error-log publication are off by default:
 
 - Check Set **Publish User Run Event** enables one completed Set event.
 - Check **Publish User Result Event** enables one event for that server-finalized Check.
-- Check Set **Publish Error Log Event** publishes Record Health Check `ERROR` diagnostics; uncheck it to opt
-  that Check Set out without changing Salesforce debug logs.
+- Check Set **Publish Error Log Event** publishes Record Health Check `ERROR` diagnostics only after
+  explicit enablement and assignment of **Record Health Check Error Log Publisher** to the running identity.
 - Automatic Lightning page-load runs and page refreshes never publish. If an automatic card hides
   Run and Rerun, show the action or call the Check Set from Apex or Flow when another process needs an
   event.

@@ -7,6 +7,9 @@
 Use `Ctrl+F` / `Cmd+F` to jump to a question, or read the [documentation home](../README.md) for a
 guided path instead.
 
+Most answers are for Salesforce administrators. Questions about source deployment, package tests,
+or test factories are marked **Developers only** and are not subscriber setup steps.
+
 ## Does Record Health Check block saves?
 
 No. Record Health Check evaluates an existing record and does not change it. A `FAIL` tells the user
@@ -24,6 +27,10 @@ your org's edition restricts Custom Metadata Types, Platform Events, or Apex, co
 platform features are available before installing. See
 [Reference: Compatibility](../reference/framework/compatibility.md).
 
+Professional Edition is not currently a verified supported edition for this project. In **Setup →
+Company Information**, confirm the org edition, then verify that Apex, Lightning App Builder,
+Custom Metadata Types, and Platform Events are available before any evaluation installation.
+
 ## Can I combine it with Validation Rules?
 
 Yes. They solve different problems and do not conflict. A Validation Rule can enforce a
@@ -35,8 +42,7 @@ records that existed before the Check did). See
 ## Should I install the package or deploy from source?
 
 Install the namespaced unlocked package (`rhc`) for production, sandboxes, and evaluation orgs.
-The current stable `04t` ID and install URLs live in
-[`config/package-releases.json`](../../config/package-releases.json).
+Choose the current stable `04t` ID and install URL from [Package versions](../installation/package-versions.md).
 
 Deploying unpackaged source is a **contributor-only** workflow for changing Record Health Check.
 See [Source development](../contributing/source-development.md). Subscribers must not use source
@@ -45,6 +51,8 @@ deploy as an installation path. Package-owned metadata carries the `rhc__` prefi
 [Configuration identity](../reference/framework/configuration-identity.md).
 
 ## Do I need to modify Record Health Check test classes or the test factory?
+
+**Developers only.** Package subscribers can skip this answer.
 
 No. Subscribers must not edit packaged Apex, including `RecordHealthCheckTestDataFactory` or any
 `@IsTest` class shipped in the package. Your org-specific Checks, plugins, and tests belong in your
@@ -57,12 +65,14 @@ promoting a new `04t`. See
 
 ## Which installed permission set should I assign?
 
-Assign **Record Health Check User** to people who run health checks. Assign **Record Health Check
-Admin** to administrators who configure the package or need authorized diagnostics.
+Assign **Record Health Check Card User** to people who use only the Lightning record-page card.
+Assign **Record Health Check User** only when a person or automation also needs Flow, Agent, REST,
+or Apex entry points. Assign **Record Health Check Admin** to administrators who configure the
+package or need authorized diagnostics.
 
-Both permission sets include the **Record Health Check Run** Custom Permission and the Apex class
-access needed to run a health check. **Record Health Check Admin** also includes the permissions used
-to manage configuration and view diagnostics.
+All three permission sets include the **Record Health Check Run** Custom Permission and the Apex
+class access required for their documented surface. **Record Health Check Admin** also includes the
+permissions used to manage configuration and view diagnostics.
 
 These permission sets do not grant access to your Account, Contact, Opportunity, Case, or custom
 object data. Users still need the appropriate access from your org's profiles or permission sets.
@@ -73,8 +83,8 @@ See [Install and verify](../installation/install-and-verify.md).
 No, not the two result events. **Publish User Run Event** (Check Set) and **Publish User Result
 Event** (Check) both default to off, because publication consumes the org's Platform Event allocation
 and can start your org's Flow, Apex, or integration automation. **Publish Error Log Event** (Check
-Set) defaults to **on**, so unexpected errors can be monitored unless an administrator turns it off
-for that Check Set. Automatic
+Set) also defaults to **off** because it carries restricted diagnostics and requires the separately
+assigned publisher permission. Automatic
 page-load runs never publish, regardless of these settings. See
 [Lifecycle events](../integration/lifecycle-events.md).
 
@@ -96,10 +106,9 @@ can read. Record Health Check does not give the user additional access. See
 
 Formula Pass Conditions are re-evaluated against the queried record, not read from the page's
 stored formula-field value. If your formula depends on a polymorphic relationship such as Owner
-(for example a custom field defined as `Owner:User.IsActive`, or a Pass Condition of
-`Owner.IsActive` directly), make sure the colon syntax matches what that object's schema requires:
-`Owner:User.IsActive` on objects where Owner can be more than one type (Lead), or plain
-`Owner.IsActive` on objects where Owner is only ever a User (Account in most orgs). See
+(for example a custom field defined as `Owner:User.IsActive`), use the explicit polymorphic type
+for User-only fields: `Owner:User.IsActive`. Bare `Owner.IsActive` is not portable and can be
+reported as `FIELD_NOT_RESOLVED`. See
 [polymorphic relationships](../reference/evaluation/formula.md#formula-context-and-syntax) in the
 Formula reference. If access is the problem instead, confirm the running user's field-level
 security includes both the custom field and the fields it depends on.
@@ -109,7 +118,7 @@ security includes both the custom field and the fields it depends on.
 Two supported patterns answer "is the owner an active User," and they fail differently for a
 non-User or otherwise-imperfect owner:
 
-- A **Formula** Pass Condition (`Owner:User.IsActive` or `Owner.IsActive`) reports
+- A **Formula** Pass Condition (`Owner:User.IsActive`) reports
   `UNABLE_TO_EVALUATE` for a Queue/Group owner or a missing User, because FormulaEval genuinely
   cannot resolve a User-only path against a non-User owner, and a null result never becomes `FAIL`.
 - The **QUERY** pattern (`SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true`)
@@ -127,7 +136,8 @@ For optional relationship text in a Check message, include a fallback such as
 
 ## What are the Example Check Sets, and should I use them in production?
 
-Record Health Check ships four example Check Sets (Developer Names prefixed `Example_`, card titles
+Record Health Check ships [four example Check Sets and 21 Checks](../installation/installed-examples.md)
+(Developer Names prefixed `Example_`, installed Qualified API Names prefixed `rhc__Example_`, and card titles
 prefixed `Example:`) covering Account, Contact, and Opportunity scenarios. They are teaching starters,
 not production policy. Review or deactivate them before going live, and create Check Sets with your
 own Developer Names and titles for org policy. See
@@ -185,9 +195,13 @@ can surface as `UNABLE_TO_EVALUATE` or an unexpected `FAIL`. Packaged example Ch
 reference Person* fields for this reason. See
 [Compatibility: Person Accounts](../reference/framework/compatibility.md#person-accounts).
 
+In a Person Accounts org, open **Setup → Object Manager → Account → Fields & Relationships** and
+confirm the required Person fields appear. If they do not appear, do not copy a Person Account
+Check into that org.
+
 ## Why did contributor source deploy fail Apex tests in a multi-currency org?
 
-This question applies only to contributors deploying unpackaged source. Package subscribers do not
+**Developers only.** This question applies only to contributors deploying unpackaged source. Package subscribers do not
 need this workflow.
 
 A contributor source deploy with `--test-level RunLocalTests` into a multi-currency org can fail
@@ -210,6 +224,8 @@ relationships, duplicate-merge identity, formula globals, numeric blanks, curren
 | --- | --- |
 | Understand the mental model | [How Record Health Check works](../installation/how-it-works.md) |
 | Install it | [Install and verify](../installation/install-and-verify.md) |
+| Create a small Check | [Create your first Check](../installation/create-your-first-check.md) |
+| Investigate an unexpected result | [Troubleshoot Record Health Check](troubleshoot-with-show-diagnostics.md) |
 | Confirm single- vs multi-currency behavior | [Does Record Health Check work in single-currency and multi-currency orgs?](#does-record-health-check-work-in-single-currency-and-multi-currency-orgs) |
 | Compare it to Validation Rules, Duplicate Rules, and Flow | [Compare Record Health Check to native Salesforce tools](compare-to-native-salesforce.md) |
 | Look up a term | [Glossary](../reference/glossary.md) |

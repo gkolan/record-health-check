@@ -211,8 +211,8 @@
                     <name>checkSetName</name>
                     <value>rhc__Example_Account_Relationship_Risk</value>
                 </componentInstanceProperties>
-                <componentName>recordHealthCheck</componentName>
-                <identifier>c_recordHealthCheck</identifier>
+                <componentName>rhc:recordHealthCheck</componentName>
+                <identifier>rhc_recordHealthCheck</identifier>
             </componentInstance>
         </itemInstances>
         <itemInstances>

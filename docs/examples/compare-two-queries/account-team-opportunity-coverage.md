@@ -58,6 +58,25 @@ A sales manager prepares an Account for a team handoff.
 
 - **Report:** A report can monitor many Accounts. It does not place the answer directly on the Account being handed off.
 
+## Confirm direction, empty results, and test data
+
+Source is the required set of open Opportunity Owner IDs. Comparison is the coverage available
+from Account Team User IDs. For example, Source `[005A, 005B]` and Comparison `[005A, 005B, 005C]`
+pass **Lists contain all**. Reversing the queries incorrectly asks whether every Account Team member
+owns an open Opportunity.
+
+**Applies To → When a count query matches** first decides whether the Check applies. Its no-open-
+Opportunity path can skip the Check. **If Query Finds No Records → Fail** applies later when the
+required or coverage list is empty during evaluation. Keep those decisions distinct.
+
+Enable Account Teams from **Setup → Account Settings**, then add team members from the Account's
+Account Team related list. Found and Expected are User IDs, not names. Add an Account Team related-
+list action URL if users need a direct fix. Do not use this unchanged for Queue-owned Opportunities
+or an org where Account Teams are disabled.
+
+Add **Max Query Rows**, add the card to the Account Lightning page, activate the intended
+assignment, and test as a user with **Record Health Check User**.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -70,7 +89,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Record Alignment |
 | **Card Subtitle** | Confirm open Opportunity owners are on the Account Team. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

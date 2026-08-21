@@ -71,6 +71,34 @@ private class RHCMetadataSetValidatorTest {
   }
 
   @IsTest
+  static void rejectsUnknownSummaryDisplay() {
+    Record_Health_Check_Set__mdt checkSet = validCheckSet();
+    checkSet.SummaryDisplay__c = 'MIDDLE';
+
+    Test.startTest();
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataSetValidator.validate(
+      checkSet
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      1,
+      issues.size(),
+      'The invalid summary position must be reported.'
+    );
+    Assert.areEqual(
+      'SummaryDisplay__c',
+      issues[0].fieldName,
+      'The issue must identify Summary Display.'
+    );
+    Assert.areEqual(
+      'INVALID_CONFIG',
+      issues[0].reasonCode,
+      'The invalid configuration reason must remain stable.'
+    );
+  }
+
+  @IsTest
   static void warnsWhenHiddenAutomaticSetCannotPublishFromCard() {
     Record_Health_Check_Set__mdt checkSet = validCheckSet();
     checkSet.CardRunMode__c = 'RUN_ON_LOAD';

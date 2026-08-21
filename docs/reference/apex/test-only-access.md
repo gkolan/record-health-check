@@ -1,5 +1,10 @@
 # Contributor checks for Apex test-only access
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page when changing Apex in this repository. It explains when test-only access is allowed
 > and what `npm run check:apex-architecture` enforces.

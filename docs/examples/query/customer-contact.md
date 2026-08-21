@@ -49,6 +49,22 @@ A seller is preparing an Account for a handoff or account review.
 - Confirm that intended users can read Contact and `AccountId` and can see the Contacts that should
   count for this handoff requirement.
 
+## Read the query and prepare test data
+
+`SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}` counts Contacts related to the open
+Account. `{!record.Id}` is replaced with that Account's ID. **Greater than** expected `0` means one
+or more visible Contacts pass; it does not mean the count should equal zero. Bare `COUNT()` returns
+one aggregate value, so **One row or aggregate** is correct and Source Query Field stays blank.
+
+Confirm Contact and Account Name access under **Permission Sets → [permission set] → Object
+Settings**. Create a Contact from the Account's Contacts related list for the passing case instead
+of relying on removing every existing Contact. If your business uses indirect Contacts, Person
+Account relationships, or a junction object, adapt the query.
+
+Add the card to the Account Lightning page, activate the intended assignment, assign **Record
+Health Check User**, and test as the intended user. The card label is **Unable to Check** for an
+`UNABLE_TO_EVALUATE` status.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -61,7 +77,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm at least one related Contact exists for handoff. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

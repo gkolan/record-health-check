@@ -188,7 +188,7 @@ Full outcome list lives in [Reason Codes](reason-codes.md).
 
 ## Related
 
-- [Configure Check Sets and Checks: Merge tokens](../../guides/configure-check-sets-and-checks.md#11-merge-tokens)
+- [Configure Check Sets and Checks: Merge tokens](../../guides/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options)
 - [Configure action links](../../guides/configure-action-links.md)
 - [Check fields](../../metadata/fields-check.md)
 - [Query reference](../evaluation/query.md)

@@ -47,6 +47,67 @@ public with sharing class RecordHealthCheckConfigService {
 
   // ─── Public API ───────────────────────────────────────────────────────────
 
+  /** Returns shell display data without loading Check definitions. */
+  public Map<String, String> getCheckSetShellConfig(
+    String checkSetQualifiedApiName
+  ) {
+    checkSetQualifiedApiName = RecordHealthCheckLogger.normalizeIdentifier(
+      checkSetQualifiedApiName,
+      80
+    );
+    if (String.isBlank(checkSetQualifiedApiName)) {
+      return new Map<String, String>();
+    }
+    // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by the controller.
+    List<Record_Health_Check_Set__mdt> checkSets = [
+      SELECT
+        CardRunMode__c,
+        CardTitle__c,
+        CardSubtitle__c,
+        RunButtonDisplay__c,
+        RunButtonLabel__c,
+        RerunButtonLabel__c,
+        RunButtonIcon__c
+      FROM Record_Health_Check_Set__mdt
+      WHERE QualifiedApiName = :checkSetQualifiedApiName AND IsActive__c = TRUE
+      LIMIT 1
+    ];
+    if (checkSets.isEmpty()) {
+      return new Map<String, String>();
+    }
+    // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by the controller.
+    Integer activeCheckCount = [
+      SELECT COUNT()
+      FROM Record_Health_Check__mdt
+      WHERE
+        Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
+        AND IsActive__c = TRUE
+    ];
+    return new Map<String, String>{
+      'runMode' => toShellRunMode(checkSets[0].CardRunMode__c),
+      'cardTitle' => checkSets[0].CardTitle__c,
+      'cardDescription' => checkSets[0].CardSubtitle__c,
+      'activeCheckCount' => String.valueOf(activeCheckCount),
+      'runButtonDisplay' => RecordHealthCheckConstants.normalizedRunButtonDisplay(
+        checkSets[0].RunButtonDisplay__c
+      ),
+      'runButtonLabel' => checkSets[0].RunButtonLabel__c,
+      'rerunButtonLabel' => checkSets[0].RerunButtonLabel__c,
+      'runButtonIcon' => checkSets[0].RunButtonIcon__c
+    };
+  }
+
+  private static String toShellRunMode(String cardRunMode) {
+    if (cardRunMode == 'RUN_ON_LOAD') {
+      return 'Automatic';
+    }
+    if (cardRunMode == 'RUN_ON_REQUEST') {
+      return 'Manual';
+    }
+    // Let the full definition loader report malformed metadata as INVALID_CONFIG.
+    return null;
+  }
+
   /** Finds the parent Check Set for a Check API name. */
   public String findCheckSetDeveloperName(String checkDeveloperName) {
     checkDeveloperName = RecordHealthCheckLogger.normalizeIdentifier(

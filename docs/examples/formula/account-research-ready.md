@@ -48,6 +48,20 @@ A seller is preparing to contact an Account and needs a reliable place to begin.
 - Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
 - Confirm that intended users can read Account, Phone, and Website.
 
+## Confirm the example fits your org
+
+- `OR()` means either Phone or Website can satisfy the Check. `ISBLANK()` tests whether a value is
+  empty, and `NOT()` reverses that result. Use `AND()` instead if both fields are required.
+- Confirm Phone and Website under **Setup → Object Manager → Account → Fields & Relationships**.
+  Person Accounts use the same Account fields, but test the intended record types explicitly.
+- A syntactically nonblank placeholder website still passes. Use Query or reviewed Apex if validity,
+  not presence, is the real requirement.
+- `/lightning/r/Account/{!record.Id}/edit` is a Lightning navigation URL, not a formula field. It
+  opens the Account edit form and does not save automatically.
+
+After configuration, add the card to the Account Lightning record page, activate the correct page
+assignment, assign **Record Health Check User**, and test with the user's Account field permissions.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -60,7 +74,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm Phone or Website is available before seller research. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

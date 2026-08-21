@@ -63,7 +63,8 @@ retest that experience before changing the package.
 
 Keep:
 
-- an export of your Record Health Check Sets and Checks;
+- a verified backup of your Record Health Check Sets and Checks created with
+  [Back up and restore configuration](../guides/back-up-configuration.md);
 - the currently installed package version;
 - a list of Lightning pages that contain the card and the Check Set selected on each page;
 - the users assigned **Record Health Check User** and **Record Health Check Admin**;
@@ -86,9 +87,11 @@ normal use.
 
 ## Step 2: Upgrade the sandbox
 
-Open the current installation link from
-[`config/package-releases.json`](../../config/package-releases.json), sign in to the validation
-sandbox, and follow the Salesforce upgrade prompts.
+Confirm the current version in **Setup → Installed Packages → Record Health Check**, then choose an
+approved target from [Package versions](package-versions.md). Open its sandbox installation link,
+sign in to the validation sandbox, and follow the Salesforce upgrade prompts. Salesforce indicates
+that the package is already installed, shows the target version, and can complete the upgrade in
+the background with an email notification.
 
 Keep the Check Sets and Checks created by administrators in your org. A package upgrade should not
 silently replace that configuration. Compare the upgraded configuration with the export if
@@ -119,6 +122,10 @@ macOS, and Linux. The first command confirms the target org before the upgrade c
 | Configuration created by administrators in your org | Check Sets and Checks match the approved pre-upgrade configuration |
 | Flow or Apex automation | Every caller still receives and handles the expected outcomes |
 | Platform Event automation | The intended Flow, Apex trigger, or integration receives events and does not repeat follow-up work |
+
+For Flow verification, open **Setup → Flows**, open the approved Flow version, and use **Debug** with
+a retained test record. Confirm that `FAIL` follows the health-result decision path rather than the
+fault path.
 
 Investigate a changed Check result before approving production. The cause may be the package,
 configuration, user access, or changed Salesforce data; the retained before-and-after record helps
@@ -182,3 +189,4 @@ not use it without a verified configuration backup and an approved dependency-re
 | Investigate a result | [Troubleshoot Record Health Check](../guides/troubleshoot-with-show-diagnostics.md) |
 | Remove Record Health Check | [Uninstall and rollback](uninstall-and-rollback.md) |
 | Review connected surfaces | [Integration overview](../integration/README.md) |
+| Back up or restore configuration | [Configuration backup and restore](../guides/back-up-configuration.md) |

@@ -127,7 +127,12 @@ public with sharing class RecordHealthCheckRunCheckFlowAction {
         key
       );
       if (grouped.errorMessage != null) {
-        outputs.add(errorResponse('EXECUTION', grouped.errorMessage));
+        outputs.add(
+          errorResponse(
+            String.isBlank(grouped.errorType) ? 'EXECUTION' : grouped.errorType,
+            grouped.errorMessage
+          )
+        );
         continue;
       }
       try {

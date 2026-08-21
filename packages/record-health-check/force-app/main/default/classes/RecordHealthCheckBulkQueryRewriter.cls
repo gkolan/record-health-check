@@ -46,20 +46,81 @@ public with sharing class RecordHealthCheckBulkQueryRewriter {
       afterSelect.substring(injectedPrefix.length());
   }
 
-  /** Adds an outer GROUP BY before any tail clause. */
+  /** Adds a field to an existing outer GROUP BY, or creates one before the tail. */
   public static String appendGroupBy(String soql, String fieldPath) {
-    Matcher tail = Pattern.compile(
-        '(?i)\\b(ORDER\\s+BY|LIMIT|OFFSET|WITH\\s+(?:USER_MODE|SECURITY_ENFORCED))\\b'
-      )
-      .matcher(soql);
-    if (!tail.find()) {
+    Integer groupAt = outerClauseStart(soql, '\\bGROUP\\s+BY\\b');
+    Integer tailAt = firstOuterTailStart(soql, groupAt >= 0);
+    if (groupAt >= 0) {
+      Integer groupEnd = tailAt >= 0 ? tailAt : soql.length();
+      String groupClause = soql.substring(groupAt, groupEnd).trim();
+      if (
+        Pattern.compile('(?i)\\b(?:ROLLUP|CUBE)\\s*\\(')
+          .matcher(groupClause)
+          .find()
+      ) {
+        throw new RecordHealthCheckEvaluatorException(
+          'UNSUPPORTED_BULK_QUERY_SHAPE',
+          'GROUP BY ROLLUP and CUBE cannot be safely correlated to a record scope.'
+        );
+      }
+      for (
+        String groupedField : groupClause.replaceFirst(
+            '(?i)^GROUP\\s+BY\\s+',
+            ''
+          )
+          .split('\\s*,\\s*')
+      ) {
+        if (groupedField.trim().equalsIgnoreCase(fieldPath)) {
+          return soql;
+        }
+      }
+      return soql.substring(0, groupEnd).trim() +
+        ', ' +
+        fieldPath +
+        (tailAt >= 0 ? ' ' + soql.substring(tailAt).trim() : '');
+    }
+    if (tailAt < 0) {
       return soql.trim() + ' GROUP BY ' + fieldPath;
     }
-    return soql.substring(0, tail.start()).trim() +
+    return soql.substring(0, tailAt).trim() +
       ' GROUP BY ' +
       fieldPath +
       ' ' +
-      soql.substring(tail.start()).trim();
+      soql.substring(tailAt).trim();
+  }
+
+  private static Integer firstOuterTailStart(
+    String soql,
+    Boolean includeHaving
+  ) {
+    Integer first = -1;
+    List<String> patterns = new List<String>{
+      '\\bORDER\\s+BY\\b',
+      '\\bLIMIT\\b',
+      '\\bOFFSET\\b',
+      '\\bWITH\\s+(?:USER_MODE|SECURITY_ENFORCED)\\b'
+    };
+    if (includeHaving) {
+      patterns.add('\\bHAVING\\b');
+    }
+    for (String patternValue : patterns) {
+      Integer candidate = outerClauseStart(soql, patternValue);
+      if (candidate >= 0 && (first < 0 || candidate < first)) {
+        first = candidate;
+      }
+    }
+    return first;
+  }
+
+  private static Integer outerClauseStart(String soql, String clausePattern) {
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
+    Matcher matcher = Pattern.compile('(?i)' + clausePattern).matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
+        return matcher.start();
+      }
+    }
+    return -1;
   }
 
   /** Rewrites ORDER BY ... LIMIT 1 as a grouped MIN/MAX aggregate. */

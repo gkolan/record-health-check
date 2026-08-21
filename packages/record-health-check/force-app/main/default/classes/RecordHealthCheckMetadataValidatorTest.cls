@@ -1,10 +1,41 @@
-/**
- * @author Gautam Kolan (https://github.com/gkolan)
- * SPDX-License-Identifier: Apache-2.0
- */
+// SPDX-License-Identifier: Apache-2.0
 
 @IsTest
 private class RecordHealthCheckMetadataValidatorTest {
+  @IsTest
+  static void metadataValidatorRejectsUnsupportedBulkShape() {
+    Id checkSetId = Id.valueOf('m00' + '000000000099');
+    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+      new Map<String, Object>{
+        'DeveloperName' => String.valueOf(checkSetId),
+        'ObjectApiName__c' => 'Account',
+        'CardTitle__c' => 'Bulk validation'
+      }
+    );
+    Record_Health_Check__mdt check = queryCheck('Unsupported_Bulk_Shape');
+    check.Record_Health_Check_Set__c = checkSetId;
+    check.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId != {!record.Id}';
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new RecordHealthCheckMetadataValidator()
+      .validateRecords(
+        new List<Record_Health_Check_Set__mdt>{ checkSet },
+        new List<Record_Health_Check__mdt>{ check }
+      );
+
+    Boolean found = false;
+    for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
+      found =
+        found ||
+        (issue.componentName == 'Unsupported_Bulk_Shape' &&
+        issue.fieldName == 'SourceQuery__c' &&
+        issue.reasonCode == 'UNSUPPORTED_BULK_QUERY_SHAPE');
+    }
+    Assert.isTrue(
+      found,
+      'The metadata audit must use the runtime bulk grammar.'
+    );
+  }
+
   @IsTest
   static void validateRejectsUnrecognizedComparisonDisplay() {
     Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
@@ -344,6 +375,11 @@ private class RecordHealthCheckMetadataValidatorTest {
     check.Record_Health_Check_Set__c = setId;
     check.SourceQueryField__c = null;
     checks.add(check);
+    check = queryCheck('Metadata_Query_Ambiguous_Aggregate_Field');
+    check.Record_Health_Check_Set__c = setId;
+    check.SourceQuery__c = 'SELECT SUM(AnnualRevenue) totalRevenue, MAX(NumberOfEmployees) largestTeam FROM Account';
+    check.SourceQueryField__c = null;
+    checks.add(check);
     check = queryCheck('Metadata_Query_Invalid_Mode');
     check.Record_Health_Check_Set__c = setId;
     check.QueryResultHandling__c = 'Nope';
@@ -386,12 +422,21 @@ private class RecordHealthCheckMetadataValidatorTest {
       checks
     );
     Set<String> reasonCodes = new Set<String>();
+    Boolean foundAmbiguousAggregateField = false;
     for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
       reasonCodes.add(issue.reasonCode);
+      foundAmbiguousAggregateField =
+        foundAmbiguousAggregateField ||
+        (issue.componentName == 'Metadata_Query_Ambiguous_Aggregate_Field' &&
+        issue.fieldName == 'SourceQueryField__c');
     }
     Assert.isTrue(reasonCodes.contains('CHECK_LIMIT_EXCEEDED'));
     Assert.isTrue(reasonCodes.contains('DEPENDENCY_NOT_IN_RUN'));
     Assert.isTrue(reasonCodes.contains('INVALID_APEX_PARAMETERS'));
+    Assert.isTrue(
+      foundAmbiguousAggregateField,
+      'A multi-aggregate query must name the aggregate alias at authoring time.'
+    );
   }
 
   private static Record_Health_Check__mdt baseCheck(

@@ -23,8 +23,13 @@ rule with values approved for your org.
 ## Before you start
 
 - Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator who creates Check Sets and Checks.
-- Assign **Record Health Check User** to people who run the card.
+- Confirm the author has Salesforce **Customize Application** (or equivalent Custom Metadata
+  management access), then assign **Record Health Check Admin**. The packaged Admin permission set
+  does not itself grant the Salesforce system permission needed to create Custom Metadata records.
+- Give Lightning page builders **Record Health Check Admin** so App Builder can load its Check Set
+  picklist. If the list is empty, verify this class access before creating another Check Set.
+- Assign **Record Health Check Card User** to people who only run the card. Reserve **Record Health
+  Check User** for Flow, Apex, Agentforce, REST, or asynchronous automation.
 - Confirm the object, fields, and related records those users are allowed to read.
 - Write down the business question in ordinary language, including what passes, what fails, and when
   the Check should not apply.
@@ -55,7 +60,7 @@ For each planned Check, record these answers:
 | What should the user do next? | Edit the Account and enter the verified country. |
 | Does it apply to every Account? | Yes. |
 
-## 2. What it can check
+## Step 2: Choose what it can check
 
 Choose the simplest Evaluation Type that can answer the business question.
 
@@ -69,7 +74,7 @@ Choose the simplest Evaluation Type that can answer the business question.
 Start with the [examples library](../examples/README.md) for complete Setup values. Use **Verify with
 Apex** only when the other Evaluation Types cannot meet the requirement.
 
-## 3. Check Set fields
+## Step 3: Configure the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New**.
 
@@ -82,11 +87,12 @@ Use values like these for the Account handoff example:
 | **Object** | `Account` | The Salesforce object this Check Set can evaluate. |
 | **Card Title** | Account Handoff Review | The heading users see on the card. |
 | **Card Subtitle** | Complete these checks before changing ownership. | Why the review matters. |
-| **When Checks Run** | Run on request | Users select **Run** when they are ready to check saved data. |
+| **When Checks Run** | When the user clicks Run | Users select **Run** when they are ready to check saved data. |
 | **Reveal Mode** | One by one | Results appear in Evaluation Order. |
 | **Passed Checks** | Show each check | Users can see what is already complete. |
 | **Skipped Checks** | Show each check | Users can see which Checks did not apply. |
 | **Found/Expected Display** | On demand | Users can reveal comparison details when needed. |
+| **Summary Display** | Below Checks | The overall or category summary appears after the Check rows. |
 | **Show Diagnostics** | Unchecked | Detailed diagnostic data stays hidden during normal use. |
 | **Active** | Unchecked while building | Prevents users from running an unfinished Check Set. |
 
@@ -96,6 +102,13 @@ in your org normally has no `rhc__` prefix. A Check Set included with the instal
 that prefix. Do not add or remove it yourself.
 
 For every available field and value, see [Check Set fields](../metadata/fields-check-set.md).
+
+On the card, **Reveal Mode** controls whether rows appear together or progressively. **Passed
+Checks** and **Skipped Checks** control whether those rows remain visible. **Found/Expected
+Display** controls whether evidence is shown immediately, on demand, or not at all. These settings
+change presentation, not the underlying result status. **Summary Display** places the summary above
+or below the rows. If Checks have Categories, grouped category summaries replace the single overall
+totals bar at that position.
 
 ## Step 4: Create the first Check
 
@@ -118,6 +131,14 @@ This example checks Billing Country with a formula:
 | **Action URL** | `/lightning/r/Account/{!record.Id}/edit` |
 | **Evaluation Order** | `10` |
 | **Active** | Checked |
+
+This comparison means the Contact count must be greater than zero. One or more visible Contacts
+passes; zero visible Contacts fails.
+
+For **One row or aggregate**, Record Health Check reads one scalar result. Leave **Source Query
+Field** blank for bare `COUNT()`; for an aliased aggregate such as `SUM(Amount) total`, enter the
+alias `total`. Other query-result modes evaluate each returned row or compare lists and require the
+matching fields described in the Query reference.
 
 The Pass Condition must return `true` or `false`:
 
@@ -200,7 +221,8 @@ meaning of `PASS`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`.
 2. Edit the Account record page used by the intended users.
 3. Drag **Record Health Check** onto the page.
 4. In the component properties, select **Account Handoff Review** for **Check Set**.
-5. Save and activate the Lightning page for the intended apps and users.
+5. Save and activate the Lightning page. Choose **Org Default**, **App Default**, or an app, record
+   type, and profile assignment that matches the intended users, then record that choice.
 
 The component is for Lightning record pages because it needs the current record ID. Do not place it
 on a Home page or App page.
@@ -231,10 +253,11 @@ Turn on **Show Diagnostics** only for authorized troubleshooting. The installed 
 Check Admin** permission set includes the **Record Health Check View Diagnostics** Custom Permission.
 Turn diagnostics off again after the investigation.
 
-## Limits to consider
+## Step 10: Review limits
 
 - One direct Apex or Flow request accepts at most 200 record IDs.
-- One Check Set run evaluates at most the first 25 active Checks in Evaluation Order.
+- The Lightning card evaluates the first 25 active Checks in Evaluation Order. Direct Apex and
+  Flow reject the entire Check Set when it has more than 25 active Checks.
 - A Query Check can return at most the configured **Max Query Rows**, from 1 through 2,000.
 - Formula Checks share Salesforce transaction limits. A large number of records and formulas can
   require a smaller Batch Apex size.
@@ -242,26 +265,31 @@ Turn diagnostics off again after the investigation.
 These are separate limits. For example, a request can check 100 Accounts, and each Account can run
 up to 25 active Checks. Test realistic data volumes before scheduling or automating a large run.
 
+The Lightning card evaluates one record at a time. It is not an org-wide scanner. For a recurring
+review across many records, involve a developer or automation owner and choose where results will
+go before using Flow, Queueable, Batch, or Scheduled Apex.
+
 See [Batch Apex](../api/batch.md) for large-volume examples and the Evaluation Type references for
 query and formula behavior.
 
-## 13. Troubleshooting
+## Step 11: Troubleshoot the configuration
 
 | What the user sees | What to check first |
 | --- | --- |
-| **Record Health Check needs setup** | Select an active Check Set in Lightning App Builder. |
+| **Health Check Needs Setup** | Select an active Check Set in Lightning App Builder. |
+| **Health Check Unavailable** | Review access, active Check Set status, record context, and configuration guidance shown on the card. |
 | The Check Set is not available in the component dropdown | Confirm the Check Set is active and its Object matches the record page object. |
 | No Checks appear | Confirm at least one Check in the selected Check Set is active. |
 | A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |
-| **Unable to check** | Review the Reason Code, query or formula configuration, and the running user's object and field access. |
-| **System error** | Review custom Apex, Salesforce debug logs, and the Reason Code. |
+| **Unable to Check** | Review the Reason Code, query or formula configuration, and the running user's object and field access. |
+| **System Error** | Review custom Apex, Salesforce debug logs, and the Reason Code. |
 | Results did not change after an edit | Save the record, then select **Rerun**. If the action is hidden, refresh the page. |
 | A Platform Event was expected but not received | Confirm publication is enabled, the run source publishes events, the transaction committed, and receiving automation is active. |
 
 Use [Troubleshoot Record Health Check](troubleshoot-with-show-diagnostics.md) for a complete,
 step-by-step investigation.
 
-## 14. Review checklist
+## Step 12: Review checklist
 
 - [ ] The Check Set name, title, and subtitle describe one recognizable business review.
 - [ ] The Check Set Object exactly matches the Lightning record page object.
@@ -287,7 +315,7 @@ Record Health Check does not automatically create a Salesforce record for every 
 [Batch Apex](../api/batch.md), [Flow actions](../integration/flow-actions.md), and
 [Lifecycle events](../integration/lifecycle-events.md) before building automation.
 
-## 11. Merge tokens
+## Step 13: Learn the merge-token options
 
 Merge tokens insert values from the current record or health-check result into messages, queries,
 and supported URLs. For example, `{!record.Name fallback="this Account"}` uses the Account name when

@@ -8,7 +8,8 @@ import {
   normalizeResult,
   toCompletionResult,
   detectDependencyCycles,
-  newRunId
+  newRunId,
+  parseAuraError
 } from "./healthCheckModel";
 
 const MAX_CONCURRENT_EVALUATIONS = 5;
@@ -180,8 +181,17 @@ export class HealthCheckRunner {
 
     for (const check of this.host.checks) {
       runCheck(check).catch(() => {
-        if (token === this._runToken) {
-          this._runInProgress = false;
+        if (
+          token === this._runToken &&
+          this._resultBuffer[check.developerName] === undefined
+        ) {
+          this._resultBuffer[check.developerName] = synthesizeResult(
+            check,
+            "ERROR",
+            "CLIENT_CALL_FAILED",
+            "The check could not be reached. Please try again."
+          );
+          this._drain(token);
         }
       });
     }
@@ -303,12 +313,16 @@ export class HealthCheckRunner {
         runId: this._runId,
         source: this._source
       });
-    } catch {
+    } catch (error) {
+      const parsed = parseAuraError(error);
+      const isGenericFailure = parsed.reasonCode === "LOAD_FAILED";
       result = synthesizeResult(
         check,
         "ERROR",
-        "CLIENT_CALL_FAILED",
-        "The check could not be reached. Please try again."
+        isGenericFailure ? "CLIENT_CALL_FAILED" : parsed.reasonCode,
+        isGenericFailure
+          ? "The check could not be reached. Please try again."
+          : parsed.message
       );
     } finally {
       this._releaseEvaluationSlot(acquiredScheduler);

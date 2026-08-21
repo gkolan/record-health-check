@@ -135,7 +135,12 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
         key
       );
       if (grouped.errorMessage != null) {
-        outputs.add(errorResponse('EXECUTION', grouped.errorMessage));
+        outputs.add(
+          errorResponse(
+            String.isBlank(grouped.errorType) ? 'EXECUTION' : grouped.errorType,
+            grouped.errorMessage
+          )
+        );
         continue;
       }
       try {
@@ -186,8 +191,10 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
     List<RecordHealthCheckResultItem> items = itemsByRecord == null
       ? null
       : itemsByRecord.get(recordId);
-    if (items == null) {
-      return result;
+    if (items == null || items.isEmpty()) {
+      throw new RecordHealthCheckFlowSupport.FlowSupportException(
+        'No aligned Check Set result was returned.'
+      );
     }
     for (RecordHealthCheckResultItem item : items) {
       result.results.add(item);

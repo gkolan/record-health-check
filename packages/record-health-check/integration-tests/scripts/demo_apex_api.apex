@@ -20,9 +20,22 @@ if (demoAccounts.isEmpty()) {
   demoAccount = demoAccounts[0];
 }
 
+String setQualifiedApiName = [
+  SELECT QualifiedApiName
+  FROM Record_Health_Check_Set__mdt
+  WHERE DeveloperName = 'Account_Data_Quality'
+  LIMIT 1
+].QualifiedApiName;
+String checkQualifiedApiName = [
+  SELECT QualifiedApiName
+  FROM Record_Health_Check__mdt
+  WHERE DeveloperName = 'Account_DQ_BillingCity'
+  LIMIT 1
+].QualifiedApiName;
+
 RecordHealthCheckResponse setResult = RecordHealthCheck.evaluate(
   RecordHealthCheckRequest.forCheckSet(
-      'Account_Data_Quality',
+      setQualifiedApiName,
       demoAccount.Id
     )
     .withRunId('demo-apex-set-' + String.valueOf(Datetime.now().getTime()))
@@ -32,7 +45,7 @@ System.assert(!setResult.results.isEmpty(), 'The demo Check Set must run at leas
 
 RecordHealthCheckResponse checkResult = RecordHealthCheck.evaluate(
   RecordHealthCheckRequest.forCheck(
-      'Account_DQ_BillingCity',
+      checkQualifiedApiName,
       demoAccount.Id
     )
     .withRunId('demo-apex-check-' + String.valueOf(Datetime.now().getTime()))

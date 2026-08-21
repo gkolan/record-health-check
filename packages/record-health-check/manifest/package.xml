@@ -66,6 +66,7 @@
         <members>Record_Health_Check_Set__mdt.RunButtonIcon__c</members>
         <members>Record_Health_Check_Set__mdt.RunButtonLabel__c</members>
         <members>Record_Health_Check_Set__mdt.SkippedChecksDisplay__c</members>
+        <members>Record_Health_Check_Set__mdt.SummaryDisplay__c</members>
         <members>Record_Health_Check_Set__mdt.ShowDiagnostics__c</members>
         <members>Record_Health_Check_Set__mdt.FoundExpectedDisplay__c</members>
         <members>Record_Health_Check__mdt.Record_Health_Check_Set__c</members>
@@ -118,6 +119,7 @@
         <members>Record_Health_Check_Log__e.CheckSetDeveloperName__c</members>
         <members>Record_Health_Check_Log__e.Code__c</members>
         <members>Record_Health_Check_Log__e.ContractVersion__c</members>
+        <members>Record_Health_Check_Log__e.DetailsJson__c</members>
         <members>Record_Health_Check_Log__e.FrameworkVersion__c</members>
         <members>Record_Health_Check_Log__e.EventId__c</members>
         <members>Record_Health_Check_Log__e.ExceptionType__c</members>
@@ -156,10 +158,14 @@
         <members>Record_Health_Check_Set_Run__e.OccurredAt__c</members>
         <members>Record_Health_Check_Set_Run__e.PassedCount__c</members>
         <members>Record_Health_Check_Set_Run__e.Phase__c</members>
+        <members
+    >Record_Health_Check_Set_Run__e.ProcessedRecordCount__c</members>
         <members>Record_Health_Check_Set_Run__e.RecordId__c</members>
         <members>Record_Health_Check_Set_Run__e.RunId__c</members>
         <members>Record_Health_Check_Set_Run__e.SkippedCount__c</members>
         <members>Record_Health_Check_Set_Run__e.Source__c</members>
+        <members
+    >Record_Health_Check_Set_Run__e.SubmittedRecordCount__c</members>
         <members>Record_Health_Check_Set_Run__e.SystemErrorCount__c</members>
         <members>Record_Health_Check_Set_Run__e.UnableCount__c</members>
         <name>CustomField</name>
@@ -169,13 +175,16 @@
         <members>AccountHasRecentActivityCheckTest</members>
         <members>RHCAbsentSchemaRedTest</members>
         <members>RHCBase64FieldRedTest</members>
+        <members>RHCCoverageBoundaryTest</members>
         <members>RHCCurrencyAuthoringRedTest</members>
         <members>RHCMixedCurrencyRedTest</members>
         <members>RHCQueryClassificationRedTest</members>
         <members>RHCRowLimitOutcomeTest</members>
         <members>RHCRowLimitTestDataFactory</members>
         <members>RecordHealthCheck</members>
+        <members>RHCValidateMetadataActionTest</members>
         <members>RecordHealthCheckAccess</members>
+        <members>RecordHealthCheckAccessTest</members>
         <members>RecordHealthCheckAsyncTest</members>
         <members>RecordHealthCheckApexAdapterTest</members>
         <members>RecordHealthCheckConstructorFailureCheck</members>
@@ -223,6 +232,13 @@
         <members>RecordHealthCheckDisplayNumberTest</members>
         <members>RecordHealthCheckDisplayTemporalTest</members>
         <members>RecordHealthCheckDisplayCurrencyTest</members>
+        <members>RecordHealthCheckDiagContextBuilder</members>
+        <members>RecordHealthCheckDiagnosticAction</members>
+        <members>RecordHealthCheckDiagnosticContext</members>
+        <members>RecordHealthCheckDiagnosticFactory</members>
+        <members>RecordHealthCheckDiagnosticFactoryTest</members>
+        <members>RecordHealthCheckDiagnosticGuidance</members>
+        <members>RecordHealthCheckDiagnosticIncident</members>
         <members>RecordHealthCheckDiagnosticTrace</members>
         <members>RecordHealthCheckDiagnosticTraceTest</members>
         <members>RHCDisplayCurrencyResolutionTest</members>
@@ -261,6 +277,9 @@
         <members>RecordHealthCheckQueueable</members>
         <members>RecordHealthCheckValueSource</members>
         <members>RecordHealthCheckInternalResult</members>
+        <members>RecordHealthCheckIncidentRecorder</members>
+        <members>RecordHealthCheckEventId</members>
+        <members>RecordHealthCheckEventIdTest</members>
         <members>RecordHealthCheckEventPublication</members>
         <members>RecordHealthCheckEvaluationResult</members>
         <members>RecordHealthCheckExecutionOrigin</members>
@@ -300,10 +319,16 @@
         <members>RecordHealthCheckValue</members>
         <members>RecordHealthCheckReasonCodes</members>
         <members>RecordHealthCheckRunContext</members>
+        <members>RecordHealthCheckAgentRestResource</members>
+        <members>RecordHealthCheckAgentRestResourceTest</members>
+        <members>RecordHealthCheckRunCheckAgentAction</members>
+        <members>RecordHealthCheckAgentActionTest</members>
         <members>RecordHealthCheckRunCheckFlowAction</members>
+        <members>RecordHealthCheckRunSetAgentAction</members>
         <members>RecordHealthCheckRunSetFlowAction</members>
         <members>RecordHealthCheck</members>
         <members>RecordHealthCheckValidator</members>
+        <members>RecordHealthCheckValidateMetadataAction</members>
         <members>RecordHealthCheckSetAvailability</members>
         <members>RecordHealthCheckSetPicklist</members>
         <members>RecordHealthCheckSoqlEvaluator</members>
@@ -328,6 +353,7 @@
         <members>RHCConfigCheckValidationTest</members>
         <members>RecordHealthCheckConfigServiceTest</members>
         <members>RecordHealthCheckConfigValidationTest</members>
+        <members>RecordHealthCheckControllerShellTest</members>
         <members>RecordHealthCheckControllerTest</members>
         <members>RHCConstructorMutationCheck</members>
         <members>RecordHealthCheckAdversarialBoundaryTest</members>
@@ -351,6 +377,7 @@
         <members>RHCScopePipelineFailureTest</members>
         <members>RecordHealthCheckSetPicklistTest</members>
         <members>RecordHealthCheckValueSourceTest</members>
+        <members>RecordHealthCheckSoqlBoundaryTest</members>
         <members>RecordHealthCheckSoqlTemplateTest</members>
         <members>RecordHealthCheckTemplateServiceTest</members>
         <members>RecordHealthCheckTemplateParserTest</members>
@@ -371,6 +398,8 @@
     </types>
     <types>
         <members>Record_Health_Check_Admin</members>
+        <members>Record_Health_Check_Card_User</members>
+        <members>Record_Health_Check_Error_Log_Publisher</members>
         <members>Record_Health_Check_User</members>
         <name>PermissionSet</name>
     </types>

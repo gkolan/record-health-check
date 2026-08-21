@@ -9,9 +9,15 @@ one Check or a complete Check Set, then use a Decision element to respond to the
 
 Start with the Check Set action unless your Flow intentionally needs only one specific Check.
 
+For the complete New Flow, trigger, Action, Decision, debug, and rollback recipe, start with
+[Run Record Health Check from Flow](../api/flow.md). Use this page as the complete input/output and
+limits reference after that first build.
+
 Salesforce can send a collection of Flow inputs to one action call. Each packaged action accepts at
 most 200 inputs, using no more than ten distinct Check-or-Check-Set and Event Publication
-combinations. A Check Set evaluates at most the first 25 active Checks in Evaluation Order.
+combinations. If a Check Set contains more than 25 active Checks, Flow rejects the
+entire request with `LIMIT` and `FRAMEWORK_MAX_CHECKS_EXCEEDED`; it does not run a
+partial first page.
 
 ## Choose the right Flow action
 
@@ -48,6 +54,10 @@ Flow paths.
 5. Set **Record ID** to the ID of the record you want to evaluate.
 6. Set **Event Publication** to `NONE`. The Flow already receives the result directly, so it does
    not need a Platform Event unless a separate process must also receive the result.
+
+**Event Publication** is required. In Flow Builder, choose the value whose API form is `NONE`,
+`ACTIONABLE`, or `ALL`; use `NONE` for this recipe. Do not parse Result JSON when Status, counts, and
+Reason Code already provide the decision data.
 
 ### Step 2: Check whether the action succeeded
 
@@ -115,7 +125,7 @@ This action runs every active Check in one Check Set. Its Apex implementation is
 | --- | --- | --- |
 | **Check Set Qualified API Name** | Yes | Exact value copied from Setup, such as `Account_Readiness` for an administrator-created Check Set or `rhc__Example_Account_Profile_Readiness` for an installed example |
 | **Record ID** | Yes | ID of the Salesforce record to evaluate |
-| **Event Publication** | Yes | Use `NONE` for no Platform Events, `ACTIONABLE` for only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, or `ALL` for every result, including `PASS` and `SKIPPED`. |
+| **Event Publication** | Yes | Use `NONE` for no Platform Events; `ACTIONABLE` for actionable Check Results plus a completed Set Run heartbeat; or `ALL` for every result, including `PASS` and `SKIPPED`. |
 
 #### Outputs
 
@@ -132,6 +142,11 @@ This action runs every active Check in one Check Set. Its Apex implementation is
 | **System Error Count** | Number of Checks with unexpected execution problems | Route for technical investigation |
 | **Result JSON** | Complete serialized `RecordHealthCheckResponse` for the input record | Use only when later Flow elements or another integration need Check-level fields not exposed separately |
 | **Contract Version** | Version carried by the returned response | Preserve and inspect it when a long-lived integration stores or forwards the response |
+
+Flow actions always request the evaluation-only result mode. `Result JSON` therefore omits display
+messages, formatted values, and actions, regardless of the running user's diagnostics permission.
+An Apex caller that is building a user interface can explicitly request
+`EVALUATION_WITH_DISPLAY`; Flow automation should branch on the stable evaluation fields above.
 
 The overall Set status reflects the most serious contained result:
 
@@ -152,7 +167,7 @@ This action runs one Check. Its Apex implementation is `RecordHealthCheckRunChec
 | --- | --- | --- |
 | **Check Qualified API Name** | Yes | Exact value copied from Setup, such as `Billing_City_Is_Populated` for an administrator-created Check or `rhc__Example_Profile_Billing_Address` for an installed example |
 | **Record ID** | Yes | ID of the Salesforce record to evaluate |
-| **Event Publication** | Yes | Use `NONE` for no Platform Events, `ACTIONABLE` for only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, or `ALL` for every result, including `PASS` and `SKIPPED`. |
+| **Event Publication** | Yes | Use `NONE` for no Platform Events; `ACTIONABLE` for actionable Check Results plus a completed Set Run heartbeat; or `ALL` for every result, including `PASS` and `SKIPPED`. |
 
 #### Outputs
 
@@ -240,7 +255,7 @@ commits the Flow transaction.
 | **Event Publication** input | Platform Events from the Flow call |
 | --- | --- |
 | `NONE` | No Set Run or Check Result events. Use this when the current Flow handles the result itself. |
-| `ACTIONABLE` | Check Result events only for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus the Set Run event when the call contains at least one of those results. |
+| `ACTIONABLE` | Check Result events only for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus a completed Set Run heartbeat for every scanned record. |
 | `ALL` | A Check Result event for every result, including `PASS` and `SKIPPED`, plus the Set Run event. |
 
 **Event Publication** is required, so explicitly use `NONE` when no event is needed. For Flow calls,
@@ -253,8 +268,9 @@ returned to Flow. A successful Flow action does not prove that the receiving Flo
 integration completed.
 
 Record Health Check `ERROR` diagnostics are separate from these result events. The Check Set's
-default-on `PublishErrorLogEvent__c` controls `Record_Health_Check_Log__e`; uncheck it to opt out
-without disabling Salesforce debug logs.
+default-off `PublishErrorLogEvent__c` controls `Record_Health_Check_Log__e`; enable it only after
+assigning **Record Health Check Error Log Publisher** to the running identity. Leaving it off does
+not disable Salesforce debug logs.
 
 Receiving automation must tolerate repeated or replayed delivery. Use `EventId__c` so the same event
 does not create the same follow-up work twice. For the complete event fields and receiving-process

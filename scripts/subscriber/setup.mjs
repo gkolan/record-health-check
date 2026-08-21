@@ -165,17 +165,35 @@ function main() {
     "30"
   ]);
 
+  console.log("Deploying the namespaced Account demo record page...");
+  run("sf", [
+    "project",
+    "deploy",
+    "start",
+    "--metadata-dir",
+    paths.demoMetadata,
+    "--target-org",
+    options.alias,
+    "--wait",
+    "30"
+  ]);
+
   if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
-    const demoDataScript = `${paths.subscriberData}/setupDemoData.apex`;
-    console.log("Creating demo Account data...");
-    run("sf", [
-      "apex",
-      "run",
-      "--target-org",
-      options.alias,
-      "--file",
-      demoDataScript
-    ]);
+    for (const script of [
+      "setupDemoUser.apex",
+      "setupDemoData.apex",
+      "deactivateDemoUser.apex"
+    ]) {
+      console.log(`Running demo lifecycle step ${script}...`);
+      run("sf", [
+        "apex",
+        "run",
+        "--target-org",
+        options.alias,
+        "--file",
+        `${paths.subscriberData}/${script}`
+      ]);
+    }
   }
 
   console.log("Running subscriber smoke tests...");

@@ -14,6 +14,7 @@ subscriber-owned metadata and runs `RHCSubscriberSmokeTest`.
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `RHCSubscriberSmokeTest`       | Calls installed package behavior from subscriber-owned Apex and verifies the supported boundary               |
 | `RHCSubscriberTestDataFactory` | Creates only the records required by the subscriber smoke test                                                |
+| `RHCSubscriberPlugin`          | Proves a subscriber-owned global Apex plugin resolves from installed namespaced package code                  |
 | `Subscriber_Smoke_Extension`   | Proves subscriber-owned Custom Metadata can coexist with package-owned Example records and survive an upgrade |
 
 This directory is not package source, not production customer metadata, and not the broad

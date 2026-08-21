@@ -69,6 +69,29 @@ private class RecordHealthCheckValueResolverTest {
   }
 
   @IsTest
+  static void multipleAggregatesRequireAnExplicitFieldAlias() {
+    AggregateResult multiple = [
+      SELECT COUNT(Id) recordCount, MAX(CreatedDate) newestRecord
+      FROM Account
+    ];
+
+    Test.startTest();
+    try {
+      RecordHealthCheckValueResolver.singleValueFromRow(multiple, null);
+      Assert.fail(
+        'Multiple aggregate values must not use map iteration order.'
+      );
+    } catch (RecordHealthCheckValueResolver.ResolverException error) {
+      Assert.areEqual('INVALID_SOQL_TEMPLATE', error.reasonCode);
+      Assert.isTrue(
+        error.getMessage().contains('query field alias is required'),
+        'The failure must tell the author how to select the intended measure.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
   static void singleValueFromRowTraversesRelationshipPath() {
     // Build a nested SObject in memory via JSON so getSObject('Parent') resolves.
     Account a = (Account) JSON.deserialize(

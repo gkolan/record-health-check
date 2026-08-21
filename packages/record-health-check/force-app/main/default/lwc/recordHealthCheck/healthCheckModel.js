@@ -15,6 +15,7 @@ export const VALID_RESULT_STATUSES = new Set([
 export function synthesizeResult(check, status, reasonCode, message) {
   return {
     checkDeveloperName: check.developerName,
+    checkQualifiedApiName: check.qualifiedApiName || check.developerName,
     label: check.label,
     status,
     reasonCode,
@@ -38,6 +39,10 @@ export function normalizeResult(result, check) {
     ? {
         checkDeveloperName:
           result.evaluation.checkQualifiedApiName || check.developerName,
+        checkQualifiedApiName:
+          result.evaluation.checkQualifiedApiName ||
+          check.qualifiedApiName ||
+          check.developerName,
         recordId: result.evaluation.recordId,
         status: result.evaluation.status,
         severity: result.evaluation.severity,
@@ -50,6 +55,7 @@ export function normalizeResult(result, check) {
           result.display?.expectedDisplayValue ??
           result.evaluation.expected?.storedValue ??
           null,
+        expectedValueLabel: result.display?.expectedValueLabel,
         actualDisplayFormat: result.display?.foundDisplayFormat,
         expectedDisplayFormat: result.display?.expectedDisplayFormat,
         actualCurrencyIsoCode: result.display?.foundCurrencyIsoCode,
@@ -77,7 +83,8 @@ export function toCompletionResult(result, recordId) {
   return {
     evaluation: {
       recordId: result?.recordId || recordId,
-      checkQualifiedApiName: result?.checkDeveloperName,
+      checkQualifiedApiName:
+        result?.checkQualifiedApiName || result?.checkDeveloperName,
       status: result?.status,
       severity: result?.severity,
       reasonCode: result?.reasonCode
@@ -116,11 +123,39 @@ export function detectDependencyCycles(checks) {
   return cycleMembers;
 }
 
+const ACCESS_REQUIRED_MESSAGE =
+  "You don't have access to Record Health Check. Ask your Salesforce administrator for access.";
+
+function isPlatformAccessError(err, message = "") {
+  const errorCode =
+    err?.body?.errorCode || err?.body?.output?.errors?.[0]?.errorCode;
+  return (
+    err?.status === 401 ||
+    err?.status === 403 ||
+    errorCode === "INSUFFICIENT_ACCESS" ||
+    errorCode === "INSUFFICIENT_ACCESS_OR_READONLY" ||
+    /(?:do not have access to the apex class|insufficient privileges|permission to run record health checks)/i.test(
+      message
+    )
+  );
+}
+
+function accessRequiredError(diagnosticCode) {
+  return {
+    reasonCode: "NOT_AUTHORIZED",
+    message: ACCESS_REQUIRED_MESSAGE,
+    diagnosticCode
+  };
+}
+
 /** Parse Aura error body; defaults to LOAD_FAILED when reason code is absent. */
 export function parseAuraError(err) {
   const diagnosticCode =
     err?.body?.errorCode || err?.errorId || err?.status || newRunId();
   if (err?.reasonCode) {
+    if (err.reasonCode === "NOT_AUTHORIZED") {
+      return accessRequiredError(diagnosticCode);
+    }
     return {
       reasonCode: err.reasonCode,
       message: err.message || "An error occurred loading health checks.",
@@ -130,12 +165,19 @@ export function parseAuraError(err) {
   try {
     const body = err.body && err.body.message ? err.body.message : "";
     const parsed = JSON.parse(body);
+    if (parsed.reasonCode === "NOT_AUTHORIZED") {
+      return accessRequiredError(parsed.diagnosticCode || diagnosticCode);
+    }
     return {
       reasonCode: parsed.reasonCode || "LOAD_FAILED",
       message: parsed.message || "An error occurred loading health checks.",
       diagnosticCode: parsed.diagnosticCode || diagnosticCode
     };
   } catch {
+    const message = err?.body?.message || err?.message || "";
+    if (isPlatformAccessError(err, message)) {
+      return accessRequiredError(diagnosticCode);
+    }
     return {
       reasonCode: "LOAD_FAILED",
       message:

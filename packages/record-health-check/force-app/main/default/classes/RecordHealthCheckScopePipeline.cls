@@ -322,7 +322,8 @@ public with sharing class RecordHealthCheckScopePipeline {
         RecordHealthCheckInternalResult prerequisiteBlock = resultSupport.findPrerequisiteBlock(
           check,
           recordId,
-          itemsByIdentity
+          itemsByIdentity,
+          context.fullCheckSetSelection
         );
         if (prerequisiteBlock != null) {
           internalByRecordId.put(recordId, prerequisiteBlock);
@@ -363,17 +364,51 @@ public with sharing class RecordHealthCheckScopePipeline {
           )
         );
       } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
+        RecordHealthCheckDiagnosticContext diagnosticContext = RecordHealthCheckDiagContextBuilder.forCheck(
+          check,
+          context.checkSetQualifiedApiName,
+          runId,
+          RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
+          'PLUGIN_SIDE_EFFECT'
+        );
+        diagnosticContext.sideEffect = ex.effect;
+        diagnosticContext.sideEffectReversible = ex.reversible;
+        RecordHealthCheckIncidentRecorder.recordFatalFailure(
+          applicableIds,
+          diagnosticContext,
+          ex
+        );
         throw ex;
       } catch (RecordHealthCheckEvaluatorException ex) {
         internalByRecordId.putAll(
-          resultSupport.unavailableForScope(check, applicableIds, ex.reasonCode)
+          RecordHealthCheckIncidentRecorder.recordScopeFailure(
+            check,
+            applicableIds,
+            RecordHealthCheckDiagContextBuilder.forCheck(
+              check,
+              context.checkSetQualifiedApiName,
+              runId,
+              ex.reasonCode,
+              RecordHealthCheckDiagContextBuilder.evaluatorPhase(check)
+            ),
+            ex
+          )
         );
       } catch (Exception ex) {
         internalByRecordId.putAll(
-          resultSupport.unavailableForScope(
+          RecordHealthCheckIncidentRecorder.recordScopeFailure(
             check,
             applicableIds,
-            'APEX_EVALUATOR_ERROR'
+            RecordHealthCheckDiagContextBuilder.forCheck(
+              check,
+              context.checkSetQualifiedApiName,
+              runId,
+              check.EvaluationType__c == 'APEX'
+                ? RecordHealthCheckReasonCodes.PLUGIN_THREW
+                : RecordHealthCheckReasonCodes.FRAMEWORK_UNEXPECTED,
+              RecordHealthCheckDiagContextBuilder.evaluatorPhase(check)
+            ),
+            ex
           )
         );
       }
@@ -382,6 +417,18 @@ public with sharing class RecordHealthCheckScopePipeline {
     for (Id recordId : recordIds) {
       RecordHealthCheckInternalResult internalResult = internalByRecordId.get(
         recordId
+      );
+      RecordHealthCheckIncidentRecorder.attachResultFailure(
+        check,
+        recordId,
+        RecordHealthCheckDiagContextBuilder.forCheck(
+          check,
+          context.checkSetQualifiedApiName,
+          runId,
+          internalResult?.reasonCode,
+          RecordHealthCheckDiagContextBuilder.evaluatorPhase(check)
+        ),
+        internalResult
       );
       resultSupport.finalizeDisplay(
         check,
@@ -433,6 +480,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     public Boolean checkSetActive;
     public String objectApiName;
     public Boolean showDiagnostics;
+    public Boolean fullCheckSetSelection = false;
     public String executionOrigin;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
   }

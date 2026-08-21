@@ -1,8 +1,7 @@
 @IsTest
 private with sharing class RecordHealthCheckAutomationFlowTest {
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest
@@ -59,8 +58,10 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('EXECUTION', checkOutputs[0].errorType);
-    Assert.areEqual('EXECUTION', setOutputs[0].errorType);
+    Assert.areEqual('VALIDATION', checkOutputs[0].errorType);
+    Assert.areEqual('VALIDATION', setOutputs[0].errorType);
+    Assert.isTrue(checkOutputs[0].errorMessage.contains('was not found'));
+    Assert.isTrue(setOutputs[0].errorMessage.contains('was not found'));
   }
 
   @IsTest
@@ -169,8 +170,15 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       List<RecordHealthCheckRunSetFlowAction.Response> emptySet = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.isTrue(emptySet[0].isSuccess);
-      Assert.areEqual('SKIPPED', emptySet[0].status);
+      Assert.isFalse(
+        emptySet[0].isSuccess,
+        'Missing aligned Set results must fail closed.'
+      );
+      Assert.areEqual('EXECUTION', emptySet[0].errorType);
+      Assert.areEqual(
+        'No aligned Check Set result was returned.',
+        emptySet[0].errorMessage
+      );
 
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = false;
       RecordHealthCheckFlowSupport.itemsByRecordOverride = new Map<Id, List<RecordHealthCheckResultItem>>{

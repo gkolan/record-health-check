@@ -71,6 +71,23 @@ List<Id> accountIds = scope.recordIds;
 
 The complete class below returns one outcome for every requested Account.
 
+## Confirm the business rule and developer ownership
+
+This class is not installed in a subscriber org. A developer must review, test, and deploy it before
+an administrator enters its class name. The Check uses calendar-quarter logic; do not use it
+unchanged for custom fiscal periods. `LastActivityDate` is derived from activity and is not normally
+edited directly, so create dated Tasks or Events for tests.
+
+The applicability count query skips Accounts with no open Opportunities before the class runs. The
+class's own zero-open result is defensive and would pass if reached. This example fails only when
+one Opportunity carries all configured risk conditions; use separate Formula or Query Checks when
+any single warning should fail. The default stale window is 30 days when the parameter is missing
+or invalid, so approve that fallback explicitly.
+
+The card reports counts, not Opportunity names. Add a related-list or report action when users need
+the records. Add the card to the Account Lightning page, activate the intended assignment, and test
+as a user with **Record Health Check User**. Execute Anonymous is developer verification.
+
 ## Step 1: Choose the stale-activity window
 
 Use Check parameters to change the stale-activity window without editing the Apex class:
@@ -280,7 +297,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Readiness |
 | **Card Subtitle** | Confirm open Opportunities are ready for coaching. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

@@ -27,6 +27,10 @@ Choose this Evaluation Type when the answer requires comparing two query results
 value from the current record. Use an [Apex example](../apex/README.md) only when the available
 count and list comparisons cannot express the requirement clearly.
 
+Both **Source Query** and **Comparison Query** are required. If one side is a fixed value or current
+record field, use Verify with a query instead. For aggregates other than bare `COUNT()`, give the
+aggregate an alias in SOQL and enter that alias in the matching query-field setting.
+
 Every example configures these fields:
 
 | Setup field | What it does |
@@ -43,6 +47,14 @@ The three list operators answer different questions:
 | **Lists overlap** | Found and Expected share at least one value |
 | **Lists contain all** | Expected contains every value in Found; Expected can contain additional values |
 | **Lists match exactly** | Found and Expected contain the same values |
+
+For example, Source `[005A, 005B]` and Comparison `[005A, 005B, 005C]` pass **Lists contain all**
+because the Comparison side covers every required Source value. Reversing the queries asks a
+different question. **Lists match exactly** would fail because Comparison has the extra `005C`.
+
+Choose the documented no-row behavior for each example. An empty Source list can mean there is
+nothing to require, while an empty Comparison list can mean no coverage exists; do not assume those
+business meanings are interchangeable.
 
 The running user's record and field access applies to both queries. A value the user cannot access
 cannot appear in either result, so test the Check with the same access assigned to its intended

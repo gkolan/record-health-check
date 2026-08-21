@@ -3,36 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/* ── Error banner ──────────────────────────────────────────────────────────── */
+/* ── Component-wide error row ─────────────────────────────────────────────── */
 .rhc-error-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.625rem;
-  padding: 0.875rem var(--slds-g-spacing-4, 1rem);
-  background: var(--slds-g-color-error-base-95, #fff8f8);
-  border: var(--slds-g-sizing-border-1, 1px) solid
-    var(--slds-g-color-error-base-80, #fccfcf);
-  border-left: 4px solid var(--slds-g-color-error-base-40, #ba0517);
-  border-radius: 0.375rem;
-  margin: var(--slds-g-spacing-3, 0.75rem);
+  background: var(--rhc-theme-card-background);
 }
 
 .rhc-error-banner__body {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  min-width: 0;
 }
 
 .rhc-error-banner__title {
-  font-size: var(--slds-g-font-scale-base, 0.8125rem);
-  font-weight: var(--slds-g-font-weight-6, 600);
-  color: var(--slds-g-color-error-base-30, #8f0311);
+  color: var(--slds-g-color-neutral-base-10, #181818);
 }
 
 .rhc-error-banner__msg {
   /* SLDS body_regular (13px). */
   font-size: var(--slds-g-font-scale-base, 0.8125rem);
   color: var(--slds-g-color-neutral-base-40, #706e6b);
+  overflow-wrap: anywhere;
 }
 
 .rhc-error-banner__hint {
@@ -40,7 +31,44 @@
   color: var(--slds-g-color-neutral-base-40, #706e6b);
   margin-top: 0.375rem;
   padding-top: 0.375rem;
-  border-top: 1px solid var(--slds-g-color-error-base-80, #fccfcf);
+  border-top: 1px solid var(--slds-g-color-border-base-1, #e5e5e5);
+}
+
+.rhc-error-banner__technical,
+.rhc-error-banner__diagnostic {
+  font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+  color: var(--slds-g-color-neutral-base-40, #706e6b);
+  overflow-wrap: anywhere;
+}
+
+.rhc-error-banner__technical {
+  margin-top: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rhc-error-banner__actions {
+  margin-top: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rhc-completion-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--slds-g-spacing-2, 0.5rem);
+  padding: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-4, 1rem);
+  border-bottom: 1px solid var(--slds-g-color-border-base-1, #e5e5e5);
+  background: var(--rhc-theme-card-background);
+  color: var(--rhc-theme-text-weak);
+  font-size: var(--slds-g-font-scale-base, 0.8125rem);
+}
+
+.rhc-completion-warning__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rhc-completion-warning__diagnostic {
+  font-size: var(--slds-g-font-scale-neg-1, 0.75rem);
+  overflow-wrap: anywhere;
 }
 
 .rhc-pre-run-hint {
@@ -175,7 +203,7 @@
   min-width: 0;
   width: min(var(--slds-g-sizing-8, 2rem), 100%);
   height: var(--slds-g-sizing-8, 2rem);
-  padding: 0;
+  padding: var(--slds-g-spacing-2, 0.5rem);
 }
 
 .rhc-action-button_icon-only .rhc-action-button__glyph {
@@ -281,7 +309,7 @@
 /* Shown when Passed/Skipped Hide leaves the list empty after a completed run. */
 .rhc-hidden-results {
   margin: 0;
-  padding: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-4, 1rem) 0;
+  padding: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-4, 1rem);
   font-size: var(--slds-g-font-scale-base, 0.8125rem);
   line-height: 1.4;
   color: var(--slds-g-color-neutral-base-30, #514f4d);
@@ -298,6 +326,10 @@
   gap: 0;
   padding: 0;
   border-top: 1px solid var(--slds-g-color-border-base-1, #f0f0f0);
+}
+
+.rhc-stats-bar[data-summary-position="top"] {
+  border-bottom: 1px solid var(--slds-g-color-border-base-1, #f0f0f0);
 }
 
 .rhc-stats-group {
@@ -1117,35 +1149,61 @@
   }
 }
 
-/* ── Troubleshooting detail section (ShowDiagnostics__c = true) ───────────────────── */
-.rhc-debug-detail {
-  margin-top: 0.375rem;
+/* Diagnostics use the same quiet label/value language as Found / Expected.
+   Outcome color stays on the row accent and icon; only System Error labels use
+   error color. */
+.rhc-diagnosis {
+  width: 100%;
+  color: var(--slds-g-color-neutral-base-20, #2b2826);
+  font-size: var(--slds-g-font-scale-base, 0.8125rem);
+  line-height: 1.4;
 }
 
-/* When showDiagnostics is on the technical detail is shown inline (no click-to-expand), so
-   this is a static caption above the message rather than a clickable summary. */
-.rhc-debug-detail__label {
+.rhc-diagnosis .rhc-row__divider {
+  margin-bottom: var(--slds-g-spacing-2, 0.5rem);
+}
+
+.rhc-diagnosis__item {
+  display: grid;
+  grid-template-columns: 5.75rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--slds-g-spacing-2, 0.5rem);
+  min-width: 0;
+}
+
+.rhc-diagnosis__label {
   display: block;
-  font-size: 0.6875rem;
-  font-weight: var(--slds-g-font-weight-6, 600);
-  color: var(--slds-g-color-neutral-base-40, #706e6b);
-  letter-spacing: 0.02em;
+  padding-top: 0.2rem;
+  color: var(--slds-g-color-neutral-base-50, #706e6b);
+  font-size: var(--slds-g-font-scale-base, 0.8125rem);
+  font-weight: var(--slds-g-font-weight-7, 700);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.rhc-debug-detail__body {
-  margin: 0.375rem 0 0;
-  padding: var(--slds-g-spacing-2, 0.5rem) var(--slds-g-spacing-3, 0.75rem);
-  background: var(--slds-g-color-neutral-base-95, #f3f3f3);
-  border: var(--slds-g-sizing-border-1, 1px) solid
-    var(--slds-g-color-border-base-1, #dddbda);
-  border-radius: var(--slds-g-radius-border-1, 0.25rem);
-  font-family: monospace;
-  font-size: 0.6875rem;
-  color: var(--slds-g-color-neutral-base-20, #3e3e3c);
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-x: auto;
+.rhc-diagnosis--system-error .rhc-diagnosis__label {
+  color: var(--slds-g-color-error-base-40, #ba0517);
+}
+
+.rhc-diagnosis__title {
+  margin: 0;
+  padding: 0.2rem 0.45rem;
+  color: var(--slds-g-color-neutral-base-20, #2b2826);
+  font-size: var(--slds-g-font-scale-base, 0.8125rem);
+  font-weight: var(--slds-g-font-weight-4, 400);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rhc-diagnosis__item p {
+  margin: 0;
+  padding: 0.2rem 0.45rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rhc-diagnosis__item + .rhc-diagnosis__item {
+  margin-top: var(--slds-g-spacing-1, 0.25rem);
 }
 
 /* ── Diagnostics (showDiagnostics only) ───────────────────────────────────────── */
@@ -1162,9 +1220,20 @@
   margin: 0;
   padding: 0.375rem var(--slds-g-spacing-4, 1rem) 0.625rem;
   border-top: 1px solid var(--slds-g-color-border-base-1, #f0f0f0);
-  font-size: 0.6875rem;
+  font-size: var(--slds-g-font-scale-base, 0.8125rem);
   color: var(--slds-g-color-neutral-base-40, #706e6b);
   text-align: right;
+}
+
+@media (max-width: 30rem) {
+  .rhc-diagnosis__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .rhc-debug-console-hint {
+    text-align: left;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

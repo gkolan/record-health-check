@@ -1,5 +1,10 @@
 # Record Health Check Log Platform Event
 
+> [!IMPORTANT]
+> **Audience: restricted support automation owners.** For step-by-step Flow setup, use
+> [Save or route restricted errors](../platform-events/error-log.md). Do not branch permanent
+> business automation on diagnostic `Code__c`; use public result Status and Reason Code instead.
+
 | Setup value | Name |
 | --- | --- |
 | Label | Record Health Check Log |
@@ -39,19 +44,23 @@ Give access to `Record_Health_Check_Log__e` separately and only to the users or 
 must receive these errors. Also restrict access to any custom object, external system, email, or
 collaboration channel where the receiving automation sends the details.
 
+In an org-owned Permission Set, open **Object Settings → Record Health Check Log** and grant only
+the event access required by the receiver. Grant saved Message, Stack Trace, User ID, and Record ID
+field access separately on the protected destination object.
+
 For step-by-step Flow and Apex examples, see
 [Save or route Record Health Check errors](../platform-events/error-log.md).
 
 ## When Record Health Check publishes the event
 
-The **Publish Error Log Event** checkbox on each Check Set controls this event. The checkbox is on
+The **Publish Error Log Event** checkbox on each Check Set controls this event. The checkbox is off
 by default.
 
-- Leave it selected when restricted error monitoring is configured or may be needed.
-- Clear it when your org must not publish technical error details for that Check Set.
+- Select it only when restricted error monitoring is configured and the running user has the
+  **Record Health Check Error Log Publisher** Permission Set.
+- Leave it cleared when your org must not publish technical error details for that Check Set.
 - Clearing it does not turn off Salesforce debug logs.
-- If Record Health Check cannot find or load the Check Set, it leaves publication enabled so that
-  the configuration error can still be reported.
+- If Record Health Check cannot find or load the Check Set, publication fails closed.
 
 Record Health Check creates this event only for an `ERROR`. It does not create one for informational,
 warning, or debug messages.
@@ -81,6 +90,7 @@ The API names below are the field names used by Flow, Apex, and integrations.
 | Level | `Level__c` | Text(10), required | Always `ERROR` for events published by Record Health Check. |
 | Code | `Code__c` | Text(120) | Technical error code, such as `APEX_EVALUATOR_ERROR` or `UNHANDLED_EXCEPTION`. These codes can change as the package implementation changes. |
 | Message | `Message__c` | Long Text Area(32,768) | Cleaned exception message or a short summary of the error details available to Record Health Check. |
+| Structured Diagnostic Details | `DetailsJson__c` | Long Text Area(32,768) | JSON object containing machine-readable Diagnostic ID, category, phase, reason, fingerprint, owner, retryability, scope impact, top frame, and exception context when available. |
 | Exception Type | `ExceptionType__c` | Text(120) | Apex exception type, when an exception caused the error. |
 | Stack Trace | `StackTrace__c` | Long Text Area(32,768) | Cleaned Apex stack trace, when one is available. |
 | Record ID | `RecordId__c` | Text(18) | Salesforce record that was being checked, when known. |
@@ -100,7 +110,7 @@ This example shows the shape of a Log event. The IDs and error details are illus
 ```json
 {
   "ContractVersion__c": "1.0",
-  "FrameworkVersion__c": "2.0.4",
+  "FrameworkVersion__c": "2.0.5",
   "EventId__c": "rhc-run-001-APEX_EVALUATOR_ERRO-18273",
   "RunId__c": "rhc-run-001",
   "OccurredAt__c": "2026-07-21T15:30:00.000Z",
@@ -112,6 +122,7 @@ This example shows the shape of a Log event. The IDs and error details are illus
   "UserId__c": "005000000000001AAA",
   "ExceptionType__c": "System.QueryException",
   "Message__c": "Illustrative cleaned exception message",
+  "DetailsJson__c": "{\"diagnosticId\":\"RHC-1787000000000-12345678\",\"category\":\"APEX_EXCEPTION\",\"phase\":\"PLUGIN_EXECUTE\",\"reasonCode\":\"PLUGIN_THREW\",\"owner\":\"DEVELOPER\",\"retryable\":false}",
   "StackTrace__c": "Illustrative cleaned stack trace"
 }
 ```

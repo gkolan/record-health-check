@@ -54,6 +54,21 @@ A service manager is preparing for the daily review of an important customer Acc
 - Confirm that intended users can read Case, `AccountId`, `IsClosed`, and `Priority` and can see the
   Cases included in the service review.
 
+## Read the query and prepare test data
+
+`IsClosed = false` uses Salesforce's closed-status classification rather than naming one Status.
+The Priority comparison uses the stored API value `High`; confirm it under **Setup → Object Manager
+→ Case → Fields & Relationships → Priority → Values**. **Less than or equal** expected `3` means
+three or fewer open High-priority Cases pass and four fail.
+
+Create four open High-priority Cases related to one sandbox Account to prove the failing case, then
+close or lower the priority of one to prove the pass. Do not use this example unchanged if Cases
+are unavailable, your org uses custom priority values, or the policy counts only queue-owned Cases.
+
+Add the card to the Account Lightning page, activate the intended assignment, and test as a user
+with **Record Health Check User**. The optional Platform Event section is for an automation owner;
+card-only administrators can skip it.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -66,7 +81,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm open high-priority Cases stay within capacity. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

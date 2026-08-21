@@ -24,14 +24,35 @@ org.
 Keep this path out of the root `sfdx-project.json` `packageDirectories`. The nested packaging
 project at `packages/record-health-check/sfdx-project.json` registers only `force-app`.
 
+Deploy the integration harness as one complete metadata transaction. Do not deploy only its Apex
+classes or Custom Metadata: the negative fixtures depend on the companion objects, permission sets,
+and helper classes in the adjacent directories. The maintained `npm run dev:setup` and release-gate
+workflows discover and deploy every metadata directory together. If a manual integration deployment
+was interrupted or selectively scoped, redeploy the complete bundle before running local tests.
+
 ## Contents (high level)
 
+- `agentforce/war-room-test-plan.md`: cross-layer MCP and Agentforce release, adversarial, failure,
+  observability, and rollback matrix with P0/P1/P2 exit criteria
+- `agentforce/Record_Health_Assistant-testing-center.yaml.template`: non-importable source template for the
+  Agentforce Testing Center behavior suite. Generate a runnable copy with
+  `npm run generate:agentforce-testing-center -- --record-id <real-account-id> --second-record-id <real-account-id> --output /tmp/record-health-testing-center.yaml`; the generator rejects synthetic IDs and existing output files.
+- `agentforce/record-health-agent-spec.md`: reviewable Agent Spec source draft; it is not generated
+  or deployed without the explicit approval required by the Agentforce generation workflow
 - Sample Check Sets and Checks, including a retained copy of the four `Example_` Check Sets
   that also ship in `force-app`
 - `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for
   verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
+- `Review_Summary_Above_Checks`: a permanent integration-only Account card with two uncategorized
+  Checks and `SummaryDisplay__c=TOP`, used to verify that the overall summary appears above Check
+  rows. Because contributor and release workflows deploy this directory, the fixture is included
+  in every integration-test deployment.
 - `RHC_Negative_Runtime`: an integration-only Account card for row-cap testing plus inactive,
   opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](negative-scenarios.md)
+- `RHC_Diagnostic_Bad_Formula`, `RHC_Diagnostic_Bad_Query`, and `RHC_Diagnostic_Bad_Apex`:
+  persistent diagnosis-first negative catalogs with 15 direct fixtures plus 36 paired Agentforce
+  and MCP Check/Check Set evaluations; see
+  [bad-configuration-diagnostic-fixtures.md](bad-configuration-diagnostic-fixtures.md)
 - `RHC_Negative_Conformance`: an Apex test suite that gathers the deterministic schema, query,
   currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and

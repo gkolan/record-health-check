@@ -167,6 +167,16 @@ private class RHCDualQueryEdgeBehaviorTest {
         'z'
       )
     );
+    try {
+      RecordHealthCheckComparisonEngine.applySingleValueComparison(
+        'CONTAINS',
+        2100,
+        '100'
+      );
+      Assert.fail('Numeric values must not be compared as substrings.');
+    } catch (RecordHealthCheckEvaluatorException expected) {
+      Assert.areEqual('INCOMPATIBLE_COMPARISON_TYPES', expected.reasonCode);
+    }
     Assert.areEqual(
       true,
       RecordHealthCheckComparisonEngine.applySingleValueComparison(

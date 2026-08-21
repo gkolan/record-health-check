@@ -27,4 +27,64 @@ private class RecordHealthCheckMetadataIssueMapperTest {
       'The established reason code must remain stable.'
     );
   }
+
+  @IsTest
+  static void mapsEveryFindingCodeToOneMetadataIssue() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'DeveloperName' => 'Every_Finding' }
+    );
+    List<RecordHealthCheckValidator.Finding> findings = new List<RecordHealthCheckValidator.Finding>();
+    for (
+      RecordHealthCheckValidator.FindingCode code : RecordHealthCheckValidator.FindingCode.values()
+    ) {
+      findings.add(new RecordHealthCheckValidator.Finding(code, 'invalid'));
+    }
+
+    Test.startTest();
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataIssueMapper.toIssues(
+      findings,
+      check
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      findings.size(),
+      issues.size(),
+      'Every shared finding code must map to exactly one metadata issue.'
+    );
+    for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
+      Assert.areEqual(
+        'ERROR',
+        issue.severity,
+        'Every invalid Check finding must remain a metadata error.'
+      );
+      Assert.areEqual(
+        'Every_Finding',
+        issue.componentName,
+        'Every issue must retain the selected Check identity.'
+      );
+      Assert.isFalse(
+        String.isBlank(issue.reasonCode),
+        'Every mapped issue must expose a stable reason code.'
+      );
+    }
+  }
+
+  @IsTest
+  static void mapsMissingFindingCodeToGenericIssue() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'DeveloperName' => 'Missing_Code' }
+    );
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataIssueMapper.toIssues(
+      new List<RecordHealthCheckValidator.Finding>{
+        new RecordHealthCheckValidator.Finding(null, null)
+      },
+      check
+    );
+
+    Assert.areEqual(1, issues.size(), 'The corrupted finding remains visible.');
+    Assert.areEqual('INVALID_CONFIG', issues[0].reasonCode);
+    Assert.areEqual('This check could not be validated.', issues[0].message);
+  }
 }

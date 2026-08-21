@@ -12,6 +12,10 @@
 
 ## Required Query settings
 
+> [!WARNING]
+> Zero returned rows means the running user could not see a matching row. It does not prove the org
+> contains no matching data. Test the Check as a representative non-administrator user.
+
 | Setup field | API name | Requirement |
 | --- | --- | --- |
 | **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | **Verify with a query**: `QUERY` |

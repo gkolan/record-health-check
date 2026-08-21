@@ -70,6 +70,15 @@ public class RecordHealthCheckTestDataFactory {
       WHERE Name = :permissionSetName
       LIMIT 1
     ];
+    List<PermissionSetAssignment> existingAssignments = [
+      SELECT Id
+      FROM PermissionSetAssignment
+      WHERE AssigneeId = :userRecord.Id AND PermissionSetId = :permissionSet.Id
+      LIMIT 1
+    ];
+    if (!existingAssignments.isEmpty()) {
+      return;
+    }
     System.runAs(currentUser()) {
       insert new PermissionSetAssignment(
         AssigneeId = userRecord.Id,

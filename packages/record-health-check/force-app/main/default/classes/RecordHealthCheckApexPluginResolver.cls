@@ -33,18 +33,32 @@ public with sharing class RecordHealthCheckApexPluginResolver {
     }
   }
 
-  private static Type configuredType(String className) {
+  public static Type configuredType(String className) {
     if (String.isBlank(className)) {
       throw configurationError(
         'APEX_CLASS_NOT_FOUND',
         'Apex Class Name is blank.'
       );
     }
-    Type evaluatorType = Type.forName(className);
+    String normalized = className.trim();
+    Type evaluatorType;
+    if (normalized.contains('.')) {
+      evaluatorType = Type.forName(
+        normalized.substringBefore('.'),
+        normalized.substringAfter('.')
+      );
+    } else {
+      evaluatorType = Type.forName(normalized);
+      if (evaluatorType == null) {
+        // Installed-package code resolves its own namespace first. An explicit
+        // empty namespace is required for subscriber-authored global plugins.
+        evaluatorType = Type.forName('', normalized);
+      }
+    }
     if (evaluatorType == null) {
       throw configurationError(
         'APEX_CLASS_NOT_FOUND',
-        'Class "' + className + '" was not found.'
+        'Class "' + normalized + '" was not found.'
       );
     }
     return evaluatorType;
@@ -56,14 +70,17 @@ public with sharing class RecordHealthCheckApexPluginResolver {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {
-      throw configurationError('APEX_CLASS_NOT_FOUND', ex.getMessage());
+      throw configurationError(
+        RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
+        ex.getMessage()
+      );
     }
   }
 
   private static RecordHealthCheckPlugin requireCheck(Object instance) {
     if (!(instance instanceof RecordHealthCheckPlugin)) {
       throw configurationError(
-        'APEX_CLASS_NOT_FOUND',
+        RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID,
         'The configured class does not implement RecordHealthCheckPlugin.'
       );
     }

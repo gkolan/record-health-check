@@ -1,5 +1,9 @@
 # Create a custom Apex Check
 
+Audience: Salesforce developers. Administrators select **Verify with Apex** for **Evaluation Type**
+and paste a reviewed class API name into the Check record; they do not need to implement this
+contract. Use a Formula or Query Check when either can express the rule safely.
+
 > [!NOTE]
 > On this page, create an Apex class for logic that cannot be expressed with a Formula or Query
 > Check. The class receives up to 200 record IDs at once and must return one result for every ID.
@@ -144,10 +148,15 @@ global with sharing class ContactPresenceCheck
 ## Actions a custom Apex Check must not perform
 
 A custom Apex Check must not create, update, or delete records; publish events; enqueue work; send
-email; make callouts; or start asynchronous Apex. Record Health Check uses a savepoint around each
-call and rejects a prohibited action. Catch a problem that affects only one record inside the record
-loop and return `UNABLE_TO_EVALUATE` for that record so one problem does not erase the results for
-every other record in the request.
+email; make callouts; or start asynchronous Apex. Record Health Check uses a savepoint and governor
+counters to reject observable prohibited actions. Apex exposes no reliable counter proving that a
+plugin did not call `EventBus.publish`, start Batch Apex, or schedule Apex, so contract tests, static
+analysis, and human code review must enforce those prohibitions. Runtime detection is not a complete
+sandbox.
+
+Catch a problem that affects only one record inside the record loop and return
+`UNABLE_TO_EVALUATE` for that record so one problem does not erase the results for every other
+record in the request.
 
 ## Verification
 

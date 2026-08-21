@@ -191,63 +191,68 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
     PersonaFixture fixture = createFixture('rhcpno', false, false);
 
     System.runAs(fixture.userRecord) {
+      RecordHealthCheckAccess.setRunPermissionForTest(false);
       Test.startTest();
       try {
-        RecordHealthCheck.evaluate(
-          RecordHealthCheckRequest.forCheckSet(
-            qualifiedSetName(),
+        try {
+          RecordHealthCheck.evaluate(
+            RecordHealthCheckRequest.forCheckSet(
+              qualifiedSetName(),
+              fixture.visibleRecord.Id
+            )
+          );
+          Assert.fail('The public facade must deny an unentitled user.');
+        } catch (RecordHealthCheckAccess.AuthorizationException expected) {
+          Assert.isTrue(
+            expected.getMessage().contains('NOT_AUTHORIZED'),
+            'The facade must use the stable authorization code.'
+          );
+        }
+        try {
+          RecordHealthCheckController.getCheckSetAvailabilityForRecord(
             fixture.visibleRecord.Id
-          )
+          );
+          Assert.fail('The controller must deny an unentitled user.');
+        } catch (AuraHandledException expected) {
+          Assert.isTrue(
+            expected.getMessage().contains('NOT_AUTHORIZED'),
+            'Aura denial must use the stable code.'
+          );
+        }
+        RecordHealthCheckRunSetFlowAction.Request input = new RecordHealthCheckRunSetFlowAction.Request();
+        input.checkSetQualifiedApiName = qualifiedSetName();
+        input.recordId = fixture.visibleRecord.Id;
+        input.eventPublication = 'NONE';
+        List<RecordHealthCheckRunSetFlowAction.Response> outputs = RecordHealthCheckRunSetFlowAction.runSet(
+          new List<RecordHealthCheckRunSetFlowAction.Request>{ input }
         );
-        Assert.fail('The public facade must deny an unentitled user.');
-      } catch (RecordHealthCheckAccess.AuthorizationException expected) {
-        Assert.isTrue(
-          expected.getMessage().contains('NOT_AUTHORIZED'),
-          'The facade must use the stable authorization code.'
-        );
-      }
-      try {
-        RecordHealthCheckController.getCheckSetAvailabilityForRecord(
-          fixture.visibleRecord.Id
-        );
-        Assert.fail('The controller must deny an unentitled user.');
-      } catch (AuraHandledException expected) {
-        Assert.isTrue(
-          expected.getMessage().contains('NOT_AUTHORIZED'),
-          'Aura denial must use the stable code.'
-        );
-      }
-      RecordHealthCheckRunSetFlowAction.Request input = new RecordHealthCheckRunSetFlowAction.Request();
-      input.checkSetQualifiedApiName = qualifiedSetName();
-      input.recordId = fixture.visibleRecord.Id;
-      input.eventPublication = 'NONE';
-      List<RecordHealthCheckRunSetFlowAction.Response> outputs = RecordHealthCheckRunSetFlowAction.runSet(
-        new List<RecordHealthCheckRunSetFlowAction.Request>{ input }
-      );
-      try {
-        RecordHealthCheckQueueable.enqueue(
-          qualifiedSetName(),
-          new List<Id>{ fixture.visibleRecord.Id },
-          RecordHealthCheckEventPublication.NONE
-        );
-        Assert.fail('Queueable submission must be denied before enqueue.');
-      } catch (RecordHealthCheckAccess.AuthorizationException expected) {
-        Assert.isTrue(
-          expected.getMessage().contains('NOT_AUTHORIZED'),
-          'Queueable denial must use the stable code.'
-        );
-      }
-      Test.stopTest();
+        try {
+          RecordHealthCheckQueueable.enqueue(
+            qualifiedSetName(),
+            new List<Id>{ fixture.visibleRecord.Id },
+            RecordHealthCheckEventPublication.NONE
+          );
+          Assert.fail('Queueable submission must be denied before enqueue.');
+        } catch (RecordHealthCheckAccess.AuthorizationException expected) {
+          Assert.isTrue(
+            expected.getMessage().contains('NOT_AUTHORIZED'),
+            'Queueable denial must use the stable code.'
+          );
+        }
+        Test.stopTest();
 
-      Assert.isFalse(
-        outputs[0].isSuccess,
-        'Flow must return an aligned denial.'
-      );
-      Assert.areEqual(
-        'AUTHORIZATION',
-        outputs[0].errorType,
-        'Flow must classify authorization separately.'
-      );
+        Assert.isFalse(
+          outputs[0].isSuccess,
+          'Flow must return an aligned denial.'
+        );
+        Assert.areEqual(
+          'AUTHORIZATION',
+          outputs[0].errorType,
+          'Flow must classify authorization separately.'
+        );
+      } finally {
+        RecordHealthCheckAccess.setRunPermissionForTest(null);
+      }
     }
   }
 

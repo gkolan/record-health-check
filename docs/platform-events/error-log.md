@@ -16,13 +16,23 @@ business automation needs.
 
 ## Before you receive this event
 
-The **Publish Error Log Event** checkbox on each Check Set is selected by default. Clear it when your
-org must not publish these technical details for that Check Set. Clearing it does not turn off
-Salesforce debug logs.
+The **Publish Error Log Event** checkbox on each Check Set is cleared by default. Select it only
+after approving restricted technical-detail publication for that Set. Leaving it cleared does not
+turn off Salesforce debug logs.
 
 The installed **Record Health Check User** and **Record Health Check Admin** Permission Sets do not
-provide access to this event. Grant access separately and only to the users or integration that must
-receive restricted errors.
+provide access to this event. Assign the packaged **Record Health Check Error Log Publisher**
+Permission Set narrowly to each running user whose Check Sets keep this setting enabled. It grants
+Create and the Read permission Salesforce requires with Platform Event Create, so treat every
+assignee as authorized for restricted error data. Grant subscriber automation access separately and
+only where needed. Without publisher access, Salesforce rejects the publish operation and no Log
+event is emitted.
+
+To grant receiver access, open **Setup → Permission Sets → [restricted support permission set] →
+Object Settings → Record Health Check Log**, enable the minimum event access, and assign the
+Permission Set only to approved support identities. Grant the protected destination object and its
+Message and Stack Trace field permissions separately. To opt a Set out, open **Custom Metadata
+Types → Record Health Check Set → Manage Records**, edit it, and clear **Publish Error Log Event**.
 
 Define all of these controls before creating automation:
 
@@ -77,6 +87,9 @@ read them.
 
 Do not call Record Health Check or publish another Log event from this Flow. Keep it focused on
 saving the error and notifying approved support staff.
+
+`Code__c` is diagnostic classification that can evolve. Do not use it as a public business Reason
+Code or a permanent Flow Decision contract; route unknown codes to restricted review.
 
 ## Alternative: Save restricted errors with Apex
 

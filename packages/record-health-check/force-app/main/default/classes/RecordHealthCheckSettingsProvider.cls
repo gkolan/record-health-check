@@ -2,15 +2,19 @@
 public virtual with sharing class RecordHealthCheckSettingsProvider {
   /** Returns whether ERROR log events are enabled for a Check Set. */
   public virtual Boolean isErrorEventPublicationEnabled(
-    String checkSetDeveloperName
+    String checkSetQualifiedApiName
   ) {
-    if (String.isBlank(checkSetDeveloperName)) {
-      return true;
+    if (String.isBlank(checkSetQualifiedApiName)) {
+      return false;
     }
-    Record_Health_Check_Set__mdt checkSet = Record_Health_Check_Set__mdt.getInstance(
-      checkSetDeveloperName
-    );
-    return checkSet == null || checkSet.PublishErrorLogEvent__c != false;
+    // code-analyzer-suppress-next-line ApexCRUDViolation: This reads core-owned Custom Metadata publication settings, not business records.
+    List<Record_Health_Check_Set__mdt> settings = [
+      SELECT PublishErrorLogEvent__c
+      FROM Record_Health_Check_Set__mdt
+      WHERE QualifiedApiName = :checkSetQualifiedApiName
+      LIMIT 1
+    ];
+    return !settings.isEmpty() && settings[0].PublishErrorLogEvent__c == true;
   }
 
   /** Returns whether an interactive Check Set run event is enabled. */

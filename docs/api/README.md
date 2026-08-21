@@ -4,6 +4,10 @@
 > Use this section when a Flow, Apex class, or scheduled process must run Record Health Check. Start
 > here to choose the correct API, then follow the linked guide from setup through verification.
 
+If you use only the Lightning card, start with [Choose how a Check starts](../guides/how-checks-run.md)
+and skip this section. Flow administrators can use the Flow row below. Apex, Queueable, Batch,
+Scheduled, and Future pages require a developer.
+
 ## What these APIs do
 
 The APIs run an existing **Check** or **Check Set** against one or more Salesforce records.
@@ -94,6 +98,9 @@ rhc.RecordHealthCheckResponse response =
   rhc.RecordHealthCheck.evaluate(request);
 ```
 
+Flow does not expose Apex result modes such as `EVALUATION`. Flow Builder returns its documented
+status, counts, Reason Code, and Result JSON outputs through the packaged actions.
+
 A request supplies:
 
 | Input | Meaning |
@@ -119,7 +126,7 @@ The response and events are two different ways to receive results:
 | Mode | Events published | Use it when |
 | --- | --- | --- |
 | `NONE` | No result events | Apex or Flow reads the response directly, or only background-job completion is needed. This is the default. |
-| `ACTIONABLE` | `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` | Another automation should receive only results that need attention. `PASS` is not published. |
+| `ACTIONABLE` | `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`; plus a completed Set Run heartbeat | Another automation receives only Check results that need attention while still seeing that every record was scanned. `PASS` Check Result events are not published. |
 | `ALL` | `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` | Another automation must receive every result, including successful Checks. |
 
 Publishing an event does not save a permanent history by itself. A Flow, Apex trigger, or external
@@ -147,6 +154,11 @@ integration must receive the event and decide what to do with it.
 
 Some request, authorization, or fatal plugin failures are thrown instead of returned as statuses.
 Each guide explains the correct fault or job-monitoring path.
+
+As a one-line rule: `FAIL` and most evaluation problems are returned health results; invalid
+requests, missing authorization, prohibited plugin side effects, and uncatchable platform failures
+can throw and use the Flow fault connector or Apex exception path. Result Platform Events publish
+after commit, so a later transaction rollback prevents their delivery.
 
 ## Limits that affect the design
 

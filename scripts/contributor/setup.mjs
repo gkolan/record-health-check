@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { paths } from "../lib/paths.mjs";
-import { run } from "../lib/run.mjs";
+import { run, tryRun } from "../lib/run.mjs";
 import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
 
 function parseArgs(argv) {
@@ -60,6 +61,13 @@ function main() {
     "Do not use this workflow to install or upgrade Record Health Check in a subscriber org."
   );
 
+  const integrationMetadataDirectories = fs
+    .readdirSync(path.join(paths.integrationTests, "main/default"), {
+      withFileTypes: true
+    })
+    .filter((entry) => entry.isDirectory() && entry.name !== "testSuites")
+    .map((entry) => `integration-tests/main/default/${entry.name}`);
+
   run(
     "sf",
     [
@@ -90,8 +98,47 @@ function main() {
       "force-app",
       "--target-org",
       options.alias,
+      "--wait",
+      "30"
+    ],
+    { cwd: paths.packageRoot }
+  );
+
+  const permissionAssignment = tryRun(
+    "sf",
+    [
+      "org",
+      "assign",
+      "permset",
+      "--name",
+      "Record_Health_Check_Admin",
+      "--target-org",
+      options.alias
+    ],
+    { cwd: paths.packageRoot }
+  );
+  if (permissionAssignment.status !== 0) {
+    const output = `${permissionAssignment.stdout ?? ""}${permissionAssignment.stderr ?? ""}`;
+    if (!output.includes("Duplicate PermissionSetAssignment")) {
+      process.stderr.write(output);
+      process.exit(permissionAssignment.status ?? 1);
+    }
+    console.log("Record_Health_Check_Admin is already assigned; continuing.");
+  }
+
+  run(
+    "sf",
+    [
+      "apex",
+      "run",
+      "test",
+      "--target-org",
+      options.alias,
       "--test-level",
       "RunLocalTests",
+      "--code-coverage",
+      "--result-format",
+      "human",
       "--wait",
       "30"
     ],
@@ -104,8 +151,10 @@ function main() {
       "project",
       "deploy",
       "start",
-      "--source-dir",
-      "integration-tests",
+      ...integrationMetadataDirectories.flatMap((directory) => [
+        "--source-dir",
+        directory
+      ]),
       "--target-org",
       options.alias,
       "--wait",

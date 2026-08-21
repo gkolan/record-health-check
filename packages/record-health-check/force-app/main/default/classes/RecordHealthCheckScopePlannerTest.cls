@@ -1,9 +1,24 @@
-/**
- * Verifies qualified selection, scope validation, ordering, and response modes.
- */
 @IsTest
 private with sharing class RecordHealthCheckScopePlannerTest {
   private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
+
+  @IsTest
+  static void checkQueryHydratesRegisteredCheckSetDisplayTokens() {
+    String qualifiedName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
+      PHONE_CHECK
+    );
+
+    Test.startTest();
+    List<Record_Health_Check__mdt> checks = new RecordHealthCheckScopePlanner()
+      .queryChecks('QualifiedApiName = :qualifiedApiName', qualifiedName);
+    Test.stopTest();
+
+    Assert.areEqual(1, checks.size());
+    SObject checkSet = checks[0].getSObject('Record_Health_Check_Set__r');
+    Assert.isNotNull(checkSet.get('MasterLabel'));
+    Assert.isNotNull(checkSet.get('CardTitle__c'));
+    Assert.isNotNull(checkSet.get('CardSubtitle__c'));
+  }
 
   @IsTest
   static void missingSelectionIsRejected() {
@@ -33,6 +48,20 @@ private with sharing class RecordHealthCheckScopePlannerTest {
       );
     }
     Test.stopTest();
+  }
+
+  @IsTest
+  static void inactiveSingleCheckIsRejected() {
+    Assert.areEqual(
+      0,
+      new RecordHealthCheckScopePlanner()
+        .queryChecks(
+          'DeveloperName = :qualifiedApiName AND IsActive__c = TRUE',
+          'Example_Industry_Aligns_With_Parent'
+        )
+        .size(),
+      'An inactive Check must not resolve through a single-Check API.'
+    );
   }
 
   @IsTest

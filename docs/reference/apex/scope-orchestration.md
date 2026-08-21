@@ -1,5 +1,10 @@
 # Apex classes that coordinate a health-check request (L4)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page to understand the internal classes that select the Checks, load the Salesforce
 > records, run each Evaluation Type, and assemble the response. Custom Apex should start with

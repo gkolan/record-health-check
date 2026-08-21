@@ -9,6 +9,7 @@ const ignoredDirectories = new Set([
   "node_modules",
   "reports",
   "coverage",
+  "dist",
   "recycle-bin",
   "releases",
   "slides_build",

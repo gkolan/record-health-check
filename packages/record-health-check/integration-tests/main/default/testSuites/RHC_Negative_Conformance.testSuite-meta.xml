@@ -3,6 +3,8 @@
     <testClassName>RHCAbsentSchemaRedTest</testClassName>
     <testClassName>RHCConfigCheckValidationTest</testClassName>
     <testClassName>RHCCurrencyAuthoringRedTest</testClassName>
+    <testClassName>RHCDiagnosticBadConfigurationTest</testClassName>
+    <testClassName>RHCDiagnosticAgentMcpSurfaceTest</testClassName>
     <testClassName>RHCDualQueryEdgeBehaviorTest</testClassName>
     <testClassName>RHCEvaluatorEdgeBehaviorTest</testClassName>
     <testClassName>RHCMixedCurrencyRedTest</testClassName>

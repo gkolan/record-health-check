@@ -47,7 +47,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
   // ─── Public API ───────────────────────────────────────────────────────────
 
   /**
-   * Validates all active Check Sets and Checks in the org.
+   * Validates all Check Sets and Checks in the org, including inactive drafts.
    * Returns a list of ValidationIssues — empty list means everything is valid.
    */
   public List<ValidationIssue> validate() {
@@ -67,10 +67,10 @@ public with sharing class RecordHealthCheckMetadataValidator {
         FoundExpectedDisplay__c,
         PassedChecksDisplay__c,
         SkippedChecksDisplay__c,
+        SummaryDisplay__c,
         CardTitle__c,
         PublishUserRunEvent__c
       FROM Record_Health_Check_Set__mdt
-      WHERE IsActive__c = TRUE
     ];
 
     // code-analyzer-suppress-next-line ApexCRUDViolation: Validator intentionally reads framework Custom Metadata setup records.
@@ -117,7 +117,6 @@ public with sharing class RecordHealthCheckMetadataValidator {
         PublishUserResultEvent__c,
         Record_Health_Check_Set__c
       FROM Record_Health_Check__mdt
-      WHERE IsActive__c = TRUE
       ORDER BY
         Record_Health_Check_Set__c ASC,
         EvaluationOrder__c ASC NULLS LAST,
@@ -207,9 +206,9 @@ public with sharing class RecordHealthCheckMetadataValidator {
             'WARNING',
             csName,
             null,
-            'Only the first ' +
+            'The Lightning card includes only the first ' +
               RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS +
-              ' active checks are included in a run; remaining checks are omitted.',
+              ' active Checks; direct Apex, Flow, Batch, Queueable, and Scheduled requests reject the entire oversized Check Set.',
             'CHECK_LIMIT_EXCEEDED'
           )
         );

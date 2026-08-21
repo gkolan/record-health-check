@@ -16,10 +16,14 @@ const expected = {
   Record_Health_Check_Admin: {
     classes: [
       "RecordHealthCheck",
+      "RecordHealthCheckAgentRestResource",
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
       "RecordHealthCheckMetadataValidator",
+      "RecordHealthCheckValidateMetadataAction",
+      "RecordHealthCheckRunCheckAgentAction",
       "RecordHealthCheckRunCheckFlowAction",
+      "RecordHealthCheckRunSetAgentAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
       "RecordHealthCheckScheduled",
@@ -41,12 +45,16 @@ const expected = {
   Record_Health_Check_User: {
     classes: [
       "RecordHealthCheck",
+      "RecordHealthCheckAgentRestResource",
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
+      "RecordHealthCheckRunCheckAgentAction",
       "RecordHealthCheckRunCheckFlowAction",
+      "RecordHealthCheckRunSetAgentAction",
       "RecordHealthCheckRunSetFlowAction",
       "RecordHealthCheckQueueable",
-      "RecordHealthCheckScheduled"
+      "RecordHealthCheckScheduled",
+      "RecordHealthCheckSetPicklist"
     ],
     objects: [
       "Record_Health_Check_Result__e",
@@ -57,6 +65,21 @@ const expected = {
       "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"
     ]
+  },
+  Record_Health_Check_Card_User: {
+    classes: ["RecordHealthCheckController", "RecordHealthCheckSetPicklist"],
+    objects: [
+      "Record_Health_Check_Result__e",
+      "Record_Health_Check_Set_Run__e"
+    ],
+    customPermissions: ["Record_Health_Check_Run"],
+    customMetadataTypes: []
+  },
+  Record_Health_Check_Error_Log_Publisher: {
+    classes: [],
+    objects: ["Record_Health_Check_Log__e"],
+    customPermissions: [],
+    customMetadataTypes: []
   }
 };
 

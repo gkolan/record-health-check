@@ -52,6 +52,22 @@ A seller is preparing a branch Account for territory or service handoff.
 - Confirm that the same users have permission to edit the parent Account if they will use the action
   link.
 
+## Confirm the example fits your org
+
+`ParentId` is the Account's Parent Account lookup. `Parent.BillingCity` follows that one lookup to
+read the parent's Billing City. Confirm both fields under **Setup → Object Manager → Account →
+Fields & Relationships**. If headquarters is stored on a custom object or on the branch itself,
+adapt the relationship and do not copy this formula unchanged.
+
+For test data, create or open a parent Account, create a child Account with **Parent Account** set
+to it, and change Billing City on the parent. The action URL opens the parent only when the running
+user can read `ParentId`; a blank or inaccessible parent can produce Unable to Check rather than a
+business skip. Test read access to the child, parent, and parent Billing City separately from edit
+access to the action destination.
+
+Add the card to the child Account Lightning page, activate the intended assignment, and test as a
+user with **Record Health Check User**.
+
 ## Step 1: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
@@ -64,7 +80,8 @@ create this Check Set:
 | **Object** | `Account` |
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm the parent Account Billing City before branch handoff. |
-| **When Checks Run** | Run on request |
+| **When Checks Run** | When the user clicks Run |
+| **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
 | **Passed Checks** | Show each check |
 | **Skipped Checks** | Show each check |

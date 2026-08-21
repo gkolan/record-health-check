@@ -86,8 +86,35 @@ function main() {
       "force-app",
       "--target-org",
       options.alias,
+      "--wait",
+      "30"
+    ],
+    { cwd: paths.packageRoot }
+  );
+
+  run("sf", [
+    "org",
+    "assign",
+    "permset",
+    "--name",
+    "Record_Health_Check_Admin",
+    "--target-org",
+    options.alias
+  ]);
+
+  run(
+    "sf",
+    [
+      "apex",
+      "run",
+      "test",
+      "--target-org",
+      options.alias,
       "--test-level",
       "RunLocalTests",
+      "--code-coverage",
+      "--result-format",
+      "human",
       "--wait",
       "30"
     ],

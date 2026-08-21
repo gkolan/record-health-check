@@ -1,0 +1,128 @@
+[
+  {
+    "schema": "request",
+    "value": {
+      "operation": "RUN_CHECK",
+      "recordId": "001000000000001AAA",
+      "qualifiedApiName": "Account_Name_Required",
+      "correlationId": "agent-session.42"
+    }
+  },
+  {
+    "schema": "request",
+    "value": {
+      "operation": "RUN_CHECK_SET",
+      "recordId": "001000000000001",
+      "qualifiedApiName": "rhc__Example_Account_Profile_Readiness"
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-1",
+      "success": true,
+      "operation": "RUN_CHECK",
+      "status": "FAIL",
+      "reasonCode": "VALUE_MISSING"
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-pass",
+      "success": true,
+      "operation": "RUN_CHECK",
+      "status": "PASS"
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-skipped",
+      "success": true,
+      "operation": "RUN_CHECK",
+      "status": "SKIPPED",
+      "reasonCode": "NOT_APPLICABLE"
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-unable",
+      "success": true,
+      "operation": "RUN_CHECK",
+      "status": "UNABLE_TO_EVALUATE",
+      "reasonCode": "FIELD_INACCESSIBLE"
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-error",
+      "success": true,
+      "operation": "RUN_CHECK",
+      "status": "ERROR",
+      "reasonCode": "EVALUATOR_ERROR"
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-2",
+      "success": true,
+      "operation": "RUN_CHECK_SET",
+      "status": "UNABLE_TO_EVALUATE",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "unable": 1,
+      "systemError": 0
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-3",
+      "success": false,
+      "errorType": "AUTHORIZATION",
+      "errorMessage": "You do not have permission to run Record Health Checks."
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-validation",
+      "success": false,
+      "errorType": "VALIDATION",
+      "errorMessage": "The request is invalid."
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-limit",
+      "success": false,
+      "errorType": "LIMIT",
+      "errorMessage": "The request exceeds the supported limit."
+    }
+  },
+  {
+    "schema": "response",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-execution",
+      "success": false,
+      "errorType": "EXECUTION",
+      "errorMessage": "The evaluation could not be completed."
+    }
+  }
+]

@@ -13,6 +13,11 @@ Use this page while creating or reviewing a Check in **Setup → Custom Metadata
 Health Check → Manage Records**. Start with the decision tables below. Open an individual field
 only when that field applies to the Evaluation Type you chose.
 
+For a Formula-only Check, use the identity and message fields plus **Pass Condition** and ignore the
+SOQL, Compare Two Queries, and Apex sections. Query configuration requires someone who can review
+SOQL safely. **Verify with Apex**, **Apex Class**, and **Apex Parameters (JSON)** require a developer
+to own the class, tests, and deployment.
+
 ## Build a Check in the order it runs
 
 | Stage | Decision | Start with |
@@ -33,8 +38,13 @@ only when that field applies to the Evaluation Type you chose.
 | Logic implemented in a package or org Apex class | **Verify with Apex** (`APEX`) | [Apex Class](#apex-class-apexclass__c) |
 
 For complete configurations, choose an [example by Evaluation Type](../examples/README.md). For text
-that adapts to the record and result, use [Merge Syntax](../guides/configure-check-sets-and-checks.md#11-merge-tokens):
+that adapts to the record and result, use [Merge Syntax](../guides/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options):
 `record.*`, `rhcResult.*`, `rhcRun.*`, `rhcCheck.*`, and `rhcSet.*`.
+
+**Prerequisite Check** stores the prerequisite's Developer Name within the same Check Set, not its
+card title. Card **Publish User Result Event** controls explicit Run/Rerun only; Flow and Apex
+publication values control programmatic runs. Action links render only for `FAIL`, not System Error
+or Unable to Check rows.
 
 ## Field index
 
@@ -143,7 +153,9 @@ the row. Example: `Checks open Opportunity count and pipeline amount.`
 ### Category (`Category__c`)
 
 Optional restricted picklist. Category classifies the business purpose of a Check. It does not
-change the result, severity, order, or current card layout.
+change the result, severity, or evaluation order. After a run, categorized Checks produce grouped
+category summaries that replace the single overall totals bar. The Check Set's **Summary Display**
+setting places those groups above or below the Check rows.
 
 | Setup choice | Stored value |
 | --- | --- |
@@ -175,7 +187,7 @@ is a separate result that means Record Health Check encountered a technical prob
 Optional Long Text Area(32,768), shown for `FAIL`. Explain what requirement was not met in language
 the card user understands. Do not include SOQL, formulas, or exception details.
 
-This field supports [merge tokens](../guides/configure-check-sets-and-checks.md#11-merge-tokens).
+This field supports [merge tokens](../guides/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options).
 Press Enter for a new line on the card.
 
 Choose the shortest useful example for the Check:
@@ -620,7 +632,7 @@ its pass/fail logic. When the condition is not met, the result is `SKIPPED`, not
 ### Message When Not Applicable (`ApplicabilityNotMetMessage__c`)
 
 Optional Long Text Area(32,768). Explain why a conditional Check was skipped. It supports
-[merge tokens](../guides/configure-check-sets-and-checks.md#11-merge-tokens).
+[merge tokens](../guides/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options).
 
 Examples:
 
@@ -675,9 +687,14 @@ Optional Text(255). Enter the **Developer Name** shown in Setup, not the Check T
 active Check in the same Check Set. That Check must have a lower Evaluation Order and must return
 `PASS` before this Check can run.
 
-If the prerequisite returns any other result, this Check is `SKIPPED`. A misspelled or unmatched
-name also produces `SKIPPED`; run Check Set validation to find the configuration error. Example:
-`Account_Phone_Is_Present`.
+During a complete Check Set run, any prerequisite result other than `PASS` makes this Check
+`SKIPPED`. A missing, inactive, misspelled, later-ordered, or omitted prerequisite is also skipped
+with the Check Set dependency result; run Check Set validation to find the configuration error.
+
+A single-Check request evaluates only the selected Check. Lightning single-Check, Flow **Run Record
+Health Check**, Agent, and Apex `RecordHealthCheckRequest.forCheck(...)` calls therefore do not load
+or enforce this dependency. Use a Check Set request whenever prerequisite ordering is required.
+Example: `Account_Phone_Is_Present`.
 
 
 ## 10. Custom Apex (`APEX`)

@@ -1,5 +1,10 @@
 # Apex entry points (L5)
 
+> [!IMPORTANT]
+> **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
+> Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
+> guides; subscriber developers should use the public Apex API or Apex Check contract.
+
 > [!NOTE]
 > Use this page to identify the package class behind each supported way to start a health check or
 > publish its results. Follow the linked task guide when you need working setup steps and examples.
@@ -41,7 +46,7 @@ run ID. The method returns one `RecordHealthCheckResponse` containing the result
 
 **Type:** Service class · `public with sharing`
 
-Exposes four card operations and nothing else. It cleans up the card's inputs, identifies whether the
+Exposes five card operations and nothing else. It cleans up the card's inputs, identifies whether the
 run came from page load or a button click, and passes the work to the package classes that load and
 run the Checks.
 
@@ -50,6 +55,7 @@ run the Checks.
 | Member | Purpose |
 | --- | --- |
 | `getCheckSetAvailabilityForRecord(recordId)` | Active/inactive Check Sets for the record's object (setup banner) |
+| `getCheckSetShellConfig(checkSetQualifiedApiName)` | Lightweight active Check Set run mode, card text, active Check count, and Run-button presentation used before definitions load |
 | `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)` | Display settings and ordered Check definitions for the card |
 | `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)` | One Check evaluation (one Apex transaction per Check from the card) |
 | `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)` | After a user-initiated run: filters completed card results, calculates the summary, and publishes the Set completion event |
@@ -99,6 +105,73 @@ and the complete response as JSON.
 
 **See also:** [Flow actions](../../integration/flow-actions.md)
 
+### `RecordHealthCheckValidateMetadataAction`
+
+**Role:** Validate Record Health Check configuration from an administrator Flow.
+
+**Type:** Invocable Flow action · `global with sharing`
+
+The installed **Validate Record Health Check Configuration** action audits every Check Set and
+Check, including inactive drafts. It returns whether the configuration is valid, error and warning
+counts, and a JSON report that identifies each component, field, reason code, and message.
+
+**Notable behavior:**
+
+- The action uses the same query-shape, required-field, and dependency validators as runtime.
+- Add it to an administrator-only Flow and correct every error before activation.
+
+### `RecordHealthCheckRunCheckAgentAction`
+
+**Role:** Run one exact Check for one record as a native Agentforce action.
+
+**Type:** Invocable Agentforce action · `public with sharing`
+
+This class provides **Run Record Health Check for Agentforce**. It accepts exactly one record ID,
+one exact Check Qualified API Name, and an optional safe correlation ID. It fixes event publication
+to `NONE`, attributes execution to `AGENT`, and returns versioned structured fields without display
+or diagnostic data.
+
+**Notable behavior:**
+
+- **Important:** `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` remain completed health
+  results. Authorization, request, limit, and execution problems use a separate safe error channel.
+
+### `RecordHealthCheckRunSetAgentAction`
+
+**Role:** Run one exact Check Set for one record as a native Agentforce action.
+
+**Type:** Invocable Agentforce action · `public with sharing`
+
+This class provides **Run Record Health Check Set for Agentforce**. It returns the strongest Set
+status and explicit PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR counts under agent tool
+contract version `1.0`.
+
+**Notable behavior:**
+
+- **Important:** the action accepts one input only. It never exposes event-publication choice, raw
+  serialized results, display values, or administrator diagnostics to the model.
+
+**See also:** [Agentforce actions](../../integration/agentforce-actions.md)
+
+### `RecordHealthCheckAgentRestResource`
+
+**Role:** Expose the two approved agent tool operations to a separately authenticated service.
+
+**Type:** Apex REST resource · `global with sharing`
+
+This class accepts one strict JSON request at the versioned agent tool route. It fixes publication to
+`NONE`, attributes execution to `AGENT`, and returns contract version `1.0`. Completed health results
+use HTTP `200`; adapter authorization, validation, limit, and execution failures use separate safe
+HTTP and JSON responses.
+
+**Notable behavior:**
+
+- **Important:** unknown JSON fields, generic operations, multi-record input, unsafe correlation IDs,
+  and alternate configuration identities are rejected before evaluation. Response objects exclude
+  display data and diagnostics.
+
+**See also:** [Agent tool REST API](../../integration/agent-tool-rest-api.md)
+
 ### `RecordHealthCheckLifecyclePublisher`
 
 **Role:** Publish optional Check Result and Check Set Run Platform Events.
@@ -132,6 +205,25 @@ each EventBus call and logs a publication failure without failing the health che
   a loop.
 
 **See also:** [Lifecycle events](../../integration/lifecycle-events.md)
+
+### `RecordHealthCheckEventId`
+
+**Role:** Generate unique, bounded application identifiers for lifecycle-event publications.
+
+**Type:** Utility class · `public with sharing`
+
+`newId(runId, eventIdentity)` preserves up to 50 characters of the caller-owned Run ID as an
+operational prefix and hashes the run, event identity, current time, a cryptographic random value,
+and a transaction-local sequence into a 16-character suffix. Separate publications therefore have
+different `EventId__c` values even when a caller deliberately reuses the same Run ID. A replay of
+the same Platform Event retains its original ID, so subscriber deduplication remains safe.
+
+**Notable behavior:**
+
+- **Important:** `RunId__c` remains the correlation key; it is not an event-uniqueness key.
+- Generated IDs are at most 67 characters and fit the event contract's Text(80) field.
+
+**See also:** [Check Result events](../../platform-events/check-result.md)
 
 ### `RecordHealthCheckRunContext`
 

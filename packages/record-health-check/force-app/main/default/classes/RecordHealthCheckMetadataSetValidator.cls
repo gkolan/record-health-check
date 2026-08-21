@@ -5,6 +5,7 @@
  */
 public with sharing class RecordHealthCheckMetadataSetValidator {
   private static final Set<String> VALID_DISPLAY_MODES = RecordHealthCheckConstants.validDisplayModes;
+  private static final Set<String> VALID_SUMMARY_DISPLAYS = RecordHealthCheckConstants.validSummaryDisplays;
   private static final Set<String> VALID_TRIGGER_MODES = RecordHealthCheckConstants.validTriggerModes;
   private static final Set<String> VALID_RUN_BUTTON_DISPLAYS = RecordHealthCheckConstants.validRunButtonDisplays;
   private static final Set<String> VALID_REVEAL_MODES = RecordHealthCheckConstants.validRevealModes;
@@ -80,6 +81,21 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
           'Skipped Checks Display "' +
             cs.SkippedChecksDisplay__c +
             '" is not recognized.',
+          'INVALID_CONFIG'
+        )
+      );
+    }
+
+    String summaryDisplay = RecordHealthCheckConstants.normalizedSummaryDisplay(
+      cs.SummaryDisplay__c
+    );
+    if (!VALID_SUMMARY_DISPLAYS.contains(summaryDisplay)) {
+      issues.add(
+        new RecordHealthCheckMetadataValidator.ValidationIssue(
+          'ERROR',
+          cs.DeveloperName,
+          'SummaryDisplay__c',
+          'Summary Display "' + cs.SummaryDisplay__c + '" is not recognized.',
           'INVALID_CONFIG'
         )
       );

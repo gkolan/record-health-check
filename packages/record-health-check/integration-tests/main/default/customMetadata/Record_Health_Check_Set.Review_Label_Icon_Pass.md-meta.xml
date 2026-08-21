@@ -51,4 +51,8 @@
     <values><field>RunButtonIcon__c</field><value
       xsi:type="xsd:string"
     >utility:check</value></values>
+    <values>
+        <field>SummaryDisplay__c</field>
+        <value xsi:type="xsd:string">BOTTOM</value>
+    </values>
 </CustomMetadata>

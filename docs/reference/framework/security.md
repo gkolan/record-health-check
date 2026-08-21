@@ -16,19 +16,27 @@ The package protects four separate areas:
 | --- | --- |
 | Starting a run | Requires the **Record Health Check Run** Custom Permission and access to the appropriate Apex entry point |
 | Reading Salesforce data | Package queries use `WITH USER_MODE` and package classes use `with sharing` |
+| Reading Check definitions | After Run authorization succeeds, packaged Custom Metadata definitions load in system mode; this does not grant access to business records or configuration editing |
 | Viewing troubleshooting detail | Requires both the Check Set setting and the diagnostics Custom Permission |
 | Publishing or receiving events | Requires Platform Event permissions and an explicit publication choice or setting |
 
 ## Choose the correct Permission Set
 
-The package installs two Permission Sets. **Record Health Check Run**
+The package installs four Permission Sets. **Record Health Check Run**
 (`rhc__Record_Health_Check_Run`) is a Custom Permission included in both; it is not a Permission Set
 by itself.
 
+To assign one, go to **Setup → Permission Sets**, open the installed Permission Set, select
+**Manage Assignments**, and then select **Add Assignments**. Do not search for a Permission Set named
+**Record Health Check Run**; that name belongs to the Custom Permission contained in the installed
+Permission Sets.
+
 | Installed Permission Set | What it provides | Assign it to |
 | --- | --- | --- |
-| **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to the Lightning, Apex, Flow, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for the Set Run and Check Result Platform Events | People and automation that run health checks but do not maintain configuration or view troubleshooting detail |
-| **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Everything required to run Checks, plus the diagnostics Custom Permission, Custom Metadata setup access, and access to `RecordHealthCheckMetadataValidator` | Administrators who create Checks, validate metadata, or investigate problems |
+| **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`) | Run Custom Permission, Lightning controller and App Builder picker classes, and Create access for card lifecycle events | People who only configure or run the record-page card; this is the least-privilege default for interactive users and supports explicitly enabled card publication |
+| **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to Lightning, Apex, Flow, Agentforce, REST, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for Set Run and Check Result events | Automation principals that use those broader entry points; not the default card-only assignment |
+| **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Runner access plus diagnostics, Custom Metadata type visibility, validation, and App Builder picklist access | Administrators who maintain or troubleshoot Checks; creating Custom Metadata also requires Salesforce Customize Application or equivalent access |
+| **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create) | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data |
 
 Do not assign the Admin Permission Set merely because a person needs to run a Check. Diagnostic
 detail can include formula text, SOQL text, and specific access problems.
@@ -51,6 +59,14 @@ The user who starts each Salesforce transaction supplies the access used in that
 Record Health Check queries business records with `WITH USER_MODE`. Salesforce therefore enforces
 object access, field access, record sharing, restriction rules, scoping rules, and future user-mode
 visibility controls for that user.
+
+The Admin Permission Set grants Record Health Check administration capabilities. It does not grant
+access to Account, Opportunity, Case, or any other business object or field. Grant those permissions
+through your organization's normal profiles and permission sets.
+
+The Flow action still checks the **Record Health Check Run** Custom Permission. Confirm that the
+user who causes or executes the Flow has an installed runner Permission Set, and test the Flow in
+its actual execution context rather than assuming a system-context Flow bypasses the package check.
 
 Query outcomes describe only the rows visible in that transaction. Zero returned rows do not prove
 that no matching rows exist elsewhere in the org; they prove that the configured user-mode query
@@ -108,7 +124,8 @@ at run time that custom code did not publish a Platform Event or start Batch or 
 Code review, static analysis, and the supplied contract tests must enforce those restrictions. The
 package also cannot correct an unsafe query written inside the custom class.
 
-See [Verify a custom Apex Check](../apex/plugin-verification.md) for the required review and tests.
+See [Create a custom Apex Check](../evaluation/apex-check-contract.md) for the required review and
+tests. Administrators only paste the reviewed class API name into the Check record in Setup.
 
 ## The diagnostics Custom Permission
 
@@ -196,10 +213,11 @@ user edit and save data according to that user's Salesforce access. See
 
 ## Related
 
-- [Architecture: Security model](architecture.md#9-security-model)
+- [Install and verify](../../installation/install-and-verify.md)
+- [Operate in production](../../guides/operate-in-production.md)
 - [Reason Codes](../contracts/reason-codes.md)
 - [Lifecycle events](../../integration/lifecycle-events.md)
-- [Verify a custom Apex Check](../apex/plugin-verification.md)
+- [Create a custom Apex Check](../evaluation/apex-check-contract.md)
 - [Configure action links](../../guides/configure-action-links.md)
 - [Troubleshoot Record Health Check](../../guides/troubleshoot-with-show-diagnostics.md)
 - [Security policy](../../../.github/SECURITY.md)

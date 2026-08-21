@@ -72,6 +72,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       result.adminDetail.containsRestrictedDetail = restricted;
       result.adminDetail.reasonCode = result.reasonCode;
       result.adminDetail.message = result.detailMessage;
+      result.adminDetail.incident = result.diagnosticIncident;
       RecordHealthCheckDiagnosticTrace.populate(
         check,
         record,
@@ -109,6 +110,15 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     Id recordId,
     Map<String, RecordHealthCheckResultItem> itemsByIdentity
   ) {
+    return findPrerequisiteBlock(check, recordId, itemsByIdentity, false);
+  }
+
+  public RecordHealthCheckInternalResult findPrerequisiteBlock(
+    Record_Health_Check__mdt check,
+    Id recordId,
+    Map<String, RecordHealthCheckResultItem> itemsByIdentity,
+    Boolean fullCheckSetSelection
+  ) {
     String prerequisiteName = check.PrerequisiteCheck__c;
     if (String.isBlank(prerequisiteName)) {
       return null;
@@ -127,11 +137,19 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       );
     }
     if (prior == null) {
-      // A qualified single-Check request intentionally has no results from the
-      // rest of its owning Check Set. Missing history is unknown, not evidence
-      // that the prerequisite failed. Full Check Set requests still enforce
-      // every prerequisite that produced a prior result.
-      return null;
+      if (fullCheckSetSelection != true) {
+        // A qualified single-Check request intentionally has no results from
+        // the rest of its owning Check Set.
+        return null;
+      }
+      RecordHealthCheckInternalResult missing = new RecordHealthCheckInternalResult();
+      missing.status = RecordHealthCheckStatus.SKIPPED;
+      missing.reasonCode = RecordHealthCheckReasonCodes.DEPENDENCY_NOT_IN_RUN;
+      missing.message =
+        'Skipped because Prerequisite Check "' +
+        prerequisiteName +
+        '" was not included in the Check Set run.';
+      return missing;
     }
     if (
       prior.evaluation != null &&
@@ -162,6 +180,14 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     if (check.ApplicabilityMode__c != 'WHEN_FORMULA_TRUE') {
       return unavailableResult(check, 'APPLICABILITY_NOT_MIGRATED');
     }
+    if (
+      isPersonAccountExclusionAutomaticallyMet(
+        record.getSObjectType(),
+        check.ApplicabilityFormula__c
+      )
+    ) {
+      return null;
+    }
     String[] reasonCode = new List<String>{ null };
     Boolean applies = formulaEvaluator.evaluateApplicabilityFormula(
       check.ApplicabilityFormula__c,
@@ -182,6 +208,20 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       ? check.ApplicabilityNotMetMessage__c
       : check.UnableToEvaluateMessage__c;
     return result;
+  }
+
+  public static Boolean isPersonAccountExclusionAutomaticallyMet(
+    Schema.SObjectType objectType,
+    String formula
+  ) {
+    return objectType == Account.SObjectType &&
+      !RecordHealthCheckDescribeCache.fieldMap(objectType)
+        .containsKey('IsPersonAccount') &&
+      String.isNotBlank(formula) &&
+      Pattern.matches(
+        '(?i)^\\s*NOT\\s*\\(\\s*IsPersonAccount\\s*\\)\\s*$',
+        formula
+      );
   }
 
   public Map<Id, RecordHealthCheckInternalResult> applicabilityResults(
@@ -356,6 +396,15 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       ? internalResult.severity
       : RecordHealthCheckConstants.toLwcSeverity(internalResult.severity);
     evaluation.reasonCode = internalResult.reasonCode;
+    if (internalResult.diagnosticIncident != null) {
+      evaluation.diagnosticId = internalResult.diagnosticIncident.diagnosticId;
+      evaluation.diagnosticCategory = internalResult.diagnosticIncident.category;
+      evaluation.diagnosticSummary = internalResult.diagnosticIncident.summary;
+      if (!internalResult.diagnosticIncident.remediationActions.isEmpty()) {
+        evaluation.recommendedAction = internalResult.diagnosticIncident.remediationActions[0]
+          .instruction;
+      }
+    }
     evaluation.found = internalResult.evaluationFound != null
       ? internalResult.evaluationFound
       : internalResult.actualValue == null
@@ -389,6 +438,9 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       display.expectedDisplayValue = hidesRawFormulaCondition
         ? null
         : internalResult.expectedValue;
+      display.expectedValueLabel = hidesRawFormulaCondition
+        ? null
+        : internalResult.expectedValueLabel;
       display.foundDisplayFormat = internalResult.actualDisplayFormat;
       display.expectedDisplayFormat = internalResult.expectedDisplayFormat;
       display.foundCurrencyIsoCode = internalResult.actualCurrencyIsoCode;

@@ -3,14 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/**
- * Parenthesis-depth-aware authority for administrator-authored SOQL shapes.
- * It masks backslash-escaped string literals and recognizes only outer clauses,
- * preventing nested clauses, aggregates, limits, or keywords from changing the
- * root, security injection, row cap, or classification decision. It validates
- * one outer SELECT, rejects unsafe access modes, injects WITH USER_MODE, and
- * exposes the same structural analysis to other core query guards.
- */
+/** Parenthesis-depth-aware authority for administrator-authored SOQL shapes. */
 public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DML_KEYWORD = Pattern.compile(
     '(?i)\\b(DELETE|INSERT|UPDATE|UNDELETE)\\b'
@@ -58,12 +51,9 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DATA_CATEGORY = Pattern.compile(
     '(?i)\\bWITH\\s+DATA\\s+CATEGORY\\b'
   );
-  // SYSTEM_MODE bypasses the sharing and FLS contract enforced by USER_MODE,
-  // so administrator-authored templates must never request it.
   private static final Pattern PATTERN_SYSTEM_MODE = Pattern.compile(
     '(?i)\\bWITH\\s+SYSTEM_MODE\\b'
   );
-  // Tail clauses that WITH USER_MODE must precede, in their legal order.
   private static final List<Pattern> TAIL_CLAUSE_PATTERNS = new List<Pattern>{
     PATTERN_GROUP_BY,
     Pattern.compile('(?i)\\bORDER\\s+BY\\b'),
@@ -79,10 +69,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
   }
 
-  /**
-   * Validates shape, rewrites bare COUNT(), enforces the outer row cap, and
-   * injects WITH USER_MODE using depth-aware clause positions.
-   */
+  /** Validates shape, row caps, and USER_MODE placement. */
   public static String prepareForExecution(String soql, Integer maxRows) {
     if (String.isBlank(soql)) {
       throw new TemplateException(
@@ -273,7 +260,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     return String.join(masked, '');
   }
 
-  /** True if the query has a depth-0 aggregate function or GROUP BY. */
   public static Boolean isAggregateQuery(String soql) {
     if (String.isBlank(soql)) {
       return false;
@@ -283,7 +269,23 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       firstDepth0Match(masked, PATTERN_GROUP_BY) >= 0;
   }
 
-  /** True only for a single single-value outer COUNT()/COUNT(Id) query without GROUP BY. */
+  public static Boolean hasMultipleOuterAggregateValues(String soql) {
+    String selectList = outerSelectList(soql);
+    if (String.isBlank(selectList)) {
+      return false;
+    }
+    Matcher matcher = PATTERN_AGGREGATE_FUNC.matcher(
+      maskStringLiterals(selectList)
+    );
+    Integer count = 0;
+    while (matcher.find()) {
+      if (depthAt(selectList, matcher.start()) == 0 && ++count > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static Boolean isSingleCountQuery(String soql) {
     if (String.isBlank(soql)) {
       return false;
@@ -461,7 +463,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return soql.trim() + ' LIMIT ' + cap;
   }
-  /** Returns the first depth-0 pattern match index, or -1. */
   private static Integer firstDepth0Match(String masked, Pattern pattern) {
     Matcher m = pattern.matcher(masked);
     while (m.find()) {
@@ -484,7 +485,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     return null;
   }
-  /** Computes parenthesis depth at an index in a literal-masked query. */
   public static Integer depthAt(String masked, Integer index) {
     Integer depth = 0;
     for (Integer i = 0; i < index && i < masked.length(); i++) {

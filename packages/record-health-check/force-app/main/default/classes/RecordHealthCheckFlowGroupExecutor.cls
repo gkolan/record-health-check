@@ -10,6 +10,7 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
   public class Result {
     public RecordHealthCheckResponse response;
     public Map<Id, List<RecordHealthCheckResultItem>> itemsByRecord;
+    public String errorType;
     public String errorMessage;
   }
 
@@ -117,10 +118,42 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {
-      result.errorMessage = String.valueOf(selectionKind) == 'CHECK'
-        ? 'The Check request could not be evaluated.'
-        : 'The Check Set request could not be evaluated.';
+      return stableFailure(ex, selectionKind);
     }
     return result;
+  }
+
+  private static Result stableFailure(
+    Exception error,
+    SelectionKind selectionKind
+  ) {
+    Result result = new Result();
+    if (error instanceof RecordHealthCheckAccess.AuthorizationException) {
+      result.errorType = 'AUTHORIZATION';
+      result.errorMessage = 'You do not have permission to run Record Health Checks.';
+    } else if (
+      error instanceof RecordHealthCheckScopePipeline.ScopePipelineException &&
+      error.getMessage()?.startsWith('FRAMEWORK_MAX_CHECKS_EXCEEDED:')
+    ) {
+      result.errorType = 'LIMIT';
+      result.errorMessage = error.getMessage();
+    } else if (
+      error instanceof RecordHealthCheckRequest.RecordHealthCheckRequestException ||
+      error instanceof RecordHealthCheckScope.RecordHealthCheckScopeException ||
+      error instanceof RecordHealthCheckScopePipeline.ScopePipelineException
+    ) {
+      result.errorType = 'VALIDATION';
+      result.errorMessage = error.getMessage();
+    } else {
+      result.errorType = 'EXECUTION';
+      result.errorMessage = safeExecutionMessage(selectionKind);
+    }
+    return result;
+  }
+
+  private static String safeExecutionMessage(SelectionKind selectionKind) {
+    return String.valueOf(selectionKind) == 'CHECK'
+      ? 'The Check request could not be evaluated.'
+      : 'The Check Set request could not be evaluated.';
   }
 }

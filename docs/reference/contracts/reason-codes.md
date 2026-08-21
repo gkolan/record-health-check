@@ -9,11 +9,16 @@ Use this registry to translate a stable **Reason Code** into its status, meaning
 investigation. Reason Codes let administrators, Flows, Apex, and integrations identify a cause
 without trying to interpret a message that an administrator can edit.
 
+On the Lightning card, `UNABLE_TO_EVALUATE` appears as **Unable to Check**. To see an authorized
+diagnostic Reason Code, edit the Check Set in **Setup → Custom Metadata Types → Record Health
+Check Set → Manage Records**, select **Show Diagnostics**, and run as a user assigned **Record
+Health Check Admin**. Turn the setting off after the investigation.
+
 ## How to use a Reason Code
 
 | Where you see it | How to use it |
 | --- | --- |
-| Card or Setup investigation | Decide whether to inspect applicability, dependencies, field access, Formula configuration, SOQL, or Apex |
+| Lightning card | Turn on authorized diagnostics temporarily, then inspect applicability, dependencies, field access, Formula configuration, SOQL, or Apex |
 | Flow | Route a known non-normal result without treating display text as an API |
 | Apex | Branch or log using a stable `UPPER_SNAKE_CASE` value |
 | Support or release review | Connect the public result with authorized **Show Diagnostics** details and logs |
@@ -101,7 +106,9 @@ a custom Apex Check.
 | `FIELD_TYPE_NOT_SUPPORTED` | `UNABLE_TO_EVALUATE` | A selected field resolves but its value type cannot safely enter the Query comparison or result contract. Base64/Blob fields are refused before query execution; use reviewed user-mode Apex that owns binary handling without returning the binary value. |
 | `RELATIONSHIP_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | A configured relationship segment could not be resolved safely. Correct the relationship API name or traversal. |
 | `OBJECT_NOT_RESOLVED` | `UNABLE_TO_EVALUATE` | The root object in a supported Query shape does not exist in the org. Correct its API name or remove the Check from orgs where that schema is unavailable. |
-| `MIXED_CURRENCY` | `UNABLE_TO_EVALUATE` / validation | In a multi-currency org, reachable query values use more than one unit, a fixed Currency threshold has no declared ISO basis, or a Currency aggregate discards unit evidence. Group by `CurrencyIsoCode`, constrain it to one literal ISO code with a conjunctive outer predicate, declare the fixed basis, or use Apex that explicitly owns unit handling. Outer-depth `OR` or `NOT` fails closed; nested semi-join predicates do not alter the outer proof. No conversion occurs. |
+| `MIXED_CURRENCY` | `UNABLE_TO_EVALUATE` | Reachable query values use more than one currency unit. Constrain the outer query to one ISO code, retain ISO grouping, or use Apex that explicitly owns unit handling. No conversion occurs. |
+| `CURRENCY_AGGREGATE_NOT_GROUPED` | `UNABLE_TO_EVALUATE` / validation | A Currency aggregate can combine units because the outer query neither groups by `CurrencyIsoCode` nor constrains every outer row to one ISO value. Fix the outer Source or Comparison Query; a filter inside a semi-join does not establish the outer unit. |
+| `FIXED_CURRENCY_BASIS_MISSING` | `UNABLE_TO_EVALUATE` / validation | A fixed threshold is compared with a Currency field without **Expected Currency ISO Code**. Set the ISO code that gives the fixed value its unit. |
 | `INVALID_OPERATOR` | `UNABLE_TO_EVALUATE` | Comparison Operator is missing or cannot be used with the selected Evaluation Type and query-result setting. |
 | `INCOMPATIBLE_COMPARISON_TYPES` | `UNABLE_TO_EVALUATE` | Ordered comparison cannot convert the two sides safely. |
 | `MULTIPLE_ROWS_RETURNED` | `UNABLE_TO_EVALUATE` | `ONE_RESULT` expected one row/aggregate but got more. |
@@ -135,6 +142,12 @@ a custom Apex Check.
 | `PLUGIN_RESULT_MISSING` | `ERROR` (per record) or thrown Apex exception | The plugin returned no entry for a requested record, or returned a null map for the whole request. Cover every requested ID. An empty request should return an empty map. |
 | `PLUGIN_RESULT_UNKNOWN_KEY` | Thrown Apex exception | The plugin returned an outcome for a record ID that was not requested. The complete custom Apex Check call fails. |
 | `PLUGIN_THREW` | Thrown Apex exception | The plugin threw an unhandled exception that cannot be assigned to one record. |
+| `PLUGIN_CONSTRUCTOR_FAILED` | `ERROR` | The configured class was found, but Record Health Check could not construct it. Confirm that the class has an accessible no-argument constructor and that initialization does not throw. |
+| `PLUGIN_INTERFACE_INVALID` | `ERROR` | The configured class does not implement `rhc.RecordHealthCheckPlugin` in the form required by the installed package version. |
+| `PLUGIN_STATUS_INVALID` | `ERROR` | The plugin returned a status other than `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`. |
+| `PLUGIN_VALUES_MISSING` | `ERROR` | A `PASS` or `FAIL` outcome omitted the required Found or Expected value. |
+| `PLUGIN_DISPLAY_INVALID` | `ERROR` | Plugin display data did not satisfy the public display-value contract. |
+| `FRAMEWORK_UNEXPECTED` | `ERROR` | The framework reached an unexpected internal failure path. Capture the Diagnostic ID and contact the package administrator or support team. |
 | `PLUGIN_SIDE_EFFECT_DETECTED` | Thrown Apex exception | The plugin changed data, made a callout, sent email, published an event, or started asynchronous Apex. The transaction must not commit that action. |
 | `RECORD_NO_LONGER_AVAILABLE` | Custom `UNABLE_TO_EVALUATE` / `ERROR` | A custom Apex Check can return this when a record disappears between applicability and evaluation. |
 | `APEX_PASS` / `APEX_FAIL` | Custom `PASS` / `FAIL` | The installed `AccountHasRecentActivityCheck` example uses these codes. Custom Apex Checks may define their own stable Reason Codes. |
@@ -200,7 +213,7 @@ Code for one record:
 | `FRAMEWORK_MAX_CHECKS_EXCEEDED` | A direct Apex or Flow request selected more than 25 active Checks. Reduce the active Checks in the Check Set. |
 | `MAX_FLOW_GROUPS_EXCEEDED` | One Flow action call supplied more than 10 distinct Check or Check Set and Platform Event combinations. Divide the Flow inputs into fewer calls. |
 | `FLOW_RESPONSE_BUDGET_EXCEEDED` | The JSON results returned by one Flow action call exceeded 2,000,000 characters. Request fewer records or reduce display content. |
-| `PLUGIN_SAVEPOINT_BUDGET_EXCEEDED` | The selected custom Apex Checks would require more savepoint operations than the transaction can support. Run fewer Apex Checks together. |
+| `PLUGIN_SAVEPOINT_BUDGET_EXCEEDED` | The planner throws this fault before evaluation when the selected custom Apex Checks would require more savepoint operations than the transaction can support. It is a stable message prefix, not a `RecordHealthCheckReasonCodes` constant or a per-record Reason Code. Run fewer Apex Checks together. |
 | `TRANSACTION_BUDGET_EXCEEDED` | The planned Checks and Platform Events would exceed a protected Salesforce transaction limit. Reduce the number of Checks or records in the transaction. |
 | `HEAP_BUDGET_EXCEEDED` | The planned response would require too much Apex memory. Reduce the number of Checks or records in the transaction. |
 

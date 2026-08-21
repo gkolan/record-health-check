@@ -12,9 +12,21 @@ System.assert(
   'Run integration-tests/scripts/demo_apex_api.apex first to create the demo Account.'
 );
 Id accountId = demoAccounts[0].Id;
+String setQualifiedApiName = [
+  SELECT QualifiedApiName
+  FROM Record_Health_Check_Set__mdt
+  WHERE DeveloperName = 'Account_Data_Quality'
+  LIMIT 1
+].QualifiedApiName;
+String checkQualifiedApiName = [
+  SELECT QualifiedApiName
+  FROM Record_Health_Check__mdt
+  WHERE DeveloperName = 'Account_DQ_BillingCity'
+  LIMIT 1
+].QualifiedApiName;
 
 RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
-setRequest.checkSetQualifiedApiName = 'Account_Data_Quality';
+setRequest.checkSetQualifiedApiName = setQualifiedApiName;
 setRequest.recordId = accountId;
 setRequest.eventPublication = 'NONE';
 List<RecordHealthCheckRunSetFlowAction.Response> setResponses = RecordHealthCheckRunSetFlowAction.runSet(
@@ -32,7 +44,7 @@ System.assertNotEquals(
 );
 
 RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
-checkRequest.checkQualifiedApiName = 'Account_DQ_BillingCity';
+checkRequest.checkQualifiedApiName = checkQualifiedApiName;
 checkRequest.recordId = accountId;
 checkRequest.eventPublication = 'NONE';
 List<RecordHealthCheckRunCheckFlowAction.Response> checkResponses = RecordHealthCheckRunCheckFlowAction.runCheck(

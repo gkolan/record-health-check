@@ -1,8 +1,7 @@
 @IsTest
 private with sharing class RecordHealthCheckBatchScopeTest {
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest
@@ -52,6 +51,51 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     );
   }
 
+  @IsTest
+  static void executeLogsAndRethrowsScopeFailure() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Framework Batch failure'
+    );
+    RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Account_Profile_Readiness'
+      ),
+      new List<Id>{ accountRecord.Id },
+      RecordHealthCheckEventPublication.NONE
+    );
+
+    Test.startTest();
+    try {
+      batch.execute(new StubBatchContext(), new List<Id>{ accountRecord.Id });
+      Assert.fail('A missing Check Set must fail the Batch scope.');
+    } catch (Exception expected) {
+      Assert.isTrue(
+        String.isNotBlank(expected.getMessage()),
+        'The original evaluation failure must be rethrown.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  private class StubBatchContext implements Database.BatchableContext {
+    private Integer calls = 0;
+
+    public Id getJobId() {
+      calls++;
+      if (calls == 1) {
+        throw new IllegalArgumentException('Expected context failure');
+      }
+      return RecordHealthCheckTestDataFactory.syntheticId(
+        AsyncApexJob.SObjectType,
+        1
+      );
+    }
+
+    public Id getChildJobId() {
+      return null;
+    }
+  }
+
   private static void assertBatchScopeSizeRejected(Integer scopeSize) {
     Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
       Account.SObjectType,
@@ -60,7 +104,9 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     Test.startTest();
     try {
       RecordHealthCheckBatch.run(
-        'Qualified_Set',
+        RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+          'Example_Account_Profile_Readiness'
+        ),
         new List<Id>{ recordId },
         RecordHealthCheckEventPublication.NONE,
         scopeSize

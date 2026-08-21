@@ -1,5 +1,15 @@
 /** Deterministic describe validation for the documented simple-query subset. */
 public with sharing class RecordHealthCheckQuerySchemaValidator {
+  private static final Set<Schema.DisplayType> TEXT_TYPES = new Set<Schema.DisplayType>{
+    Schema.DisplayType.EMAIL,
+    Schema.DisplayType.ENCRYPTEDSTRING,
+    Schema.DisplayType.MULTIPICKLIST,
+    Schema.DisplayType.PHONE,
+    Schema.DisplayType.PICKLIST,
+    Schema.DisplayType.STRING,
+    Schema.DisplayType.TEXTAREA,
+    Schema.DisplayType.URL
+  };
   private static final Pattern SIMPLE_FIELD = Pattern.compile(
     '^[A-Za-z_][A-Za-z0-9_.]*$'
   );
@@ -112,6 +122,26 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
         fieldPath
       );
     }
+  }
+
+  /** Returns false only when a resolvable scalar selection is not text-like. */
+  public static Boolean isTextSelection(String soql, String fieldPath) {
+    if (
+      String.isBlank(soql) ||
+      String.isBlank(fieldPath) ||
+      RecordHealthCheckSoqlTemplate.isAggregateQuery(soql)
+    ) {
+      return null;
+    }
+    Schema.SObjectType objectType = RecordHealthCheckDescribeCache.resolveSObjectType(
+      RecordHealthCheckSoqlTemplate.rootObject(soql)
+    );
+    if (objectType == null) {
+      return null;
+    }
+    Schema.DisplayType displayType = new RecordHealthCheckFieldPlanner()
+      .resolvedDisplayType(objectType, fieldPath);
+    return displayType == null ? null : TEXT_TYPES.contains(displayType);
   }
 
   private static RecordHealthCheckEvaluatorException failure(

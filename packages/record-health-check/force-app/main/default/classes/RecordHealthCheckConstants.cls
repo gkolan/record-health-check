@@ -55,6 +55,15 @@ public with sharing class RecordHealthCheckConstants {
       return new Set<String>(VALID_DISPLAY_MODES_INTERNAL);
     }
   }
+  private static final Set<String> VALID_SUMMARY_DISPLAYS_INTERNAL = new Set<String>{
+    'TOP',
+    'BOTTOM'
+  };
+  public static Set<String> validSummaryDisplays {
+    get {
+      return new Set<String>(VALID_SUMMARY_DISPLAYS_INTERNAL);
+    }
+  }
   private static final Set<String> VALID_TRIGGER_MODES_INTERNAL = new Set<String>{
     'RUN_ON_LOAD',
     'RUN_ON_REQUEST'
@@ -246,6 +255,10 @@ public with sharing class RecordHealthCheckConstants {
     return String.isBlank(runButtonDisplay)
       ? 'LABEL_AND_ICON'
       : runButtonDisplay;
+  }
+
+  public static String normalizedSummaryDisplay(String summaryDisplay) {
+    return String.isBlank(summaryDisplay) ? 'BOTTOM' : summaryDisplay;
   }
 
   public static String toLwcRevealMode(String cardRevealMode) {

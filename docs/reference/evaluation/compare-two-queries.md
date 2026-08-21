@@ -10,6 +10,10 @@
 >   limits, and outcomes.
 > - For every field's size, default, help text, and examples, use the [Check field reference](../../metadata/fields-check.md).
 
+This evaluation type requires working knowledge of SOQL. Both queries are stored on the same Check
+record in Setup: **Source Query** is the left side and **Comparison Query** is the right side. If you
+cannot safely write and test both queries, use a Formula Check or ask a Salesforce developer.
+
 ## Required Compare two queries settings
 
 | Setup field | API name | Requirement |

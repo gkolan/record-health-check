@@ -53,7 +53,7 @@ global with sharing class RecordHealthCheckScheduled implements Schedulable {
    */
   global void execute(SchedulableContext context) {
     RecordHealthCheckAccess.requireCanRunChecks();
-    RecordHealthCheckBatch.run(
+    RecordHealthCheckBatch.runScheduled(
       checkSetQualifiedApiName,
       recordIds,
       publication

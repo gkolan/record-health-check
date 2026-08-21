@@ -18,12 +18,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix packages/record-health-check-mcp
       - run: npm run check:toolchain-policy
       - run: npm run prettier:verify
       - run: npm run lint
       - run: npm run lint:slds
       - run: npm run check:namespaced-tokens
       - run: npm run check:configuration-identity
+      - run: npm run check:agent-tool-contract
+      - run: npm run check:mcp
       - run: npm run check:test-data-factory
       - run: npm run check:apex-architecture
       - run: npm run check:apex-surface
