@@ -195,7 +195,10 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
     String action,
     String context
   ) {
-    Assert.isFalse(success, context + ' must not report operational success.');
+    Assert.isTrue(
+      success,
+      context + ' must report that the tool operation completed.'
+    );
     Assert.isTrue(
       status == 'ERROR' || status == 'UNABLE_TO_EVALUATE',
       context + ' must remain explicitly inconclusive.'

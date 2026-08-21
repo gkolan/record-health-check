@@ -98,26 +98,6 @@ function main() {
       "force-app",
       "--target-org",
       options.alias,
-      "--test-level",
-      "RunLocalTests",
-      "--wait",
-      "30"
-    ],
-    { cwd: paths.packageRoot }
-  );
-
-  run(
-    "sf",
-    [
-      "project",
-      "deploy",
-      "start",
-      ...integrationMetadataDirectories.flatMap((directory) => [
-        "--source-dir",
-        directory
-      ]),
-      "--target-org",
-      options.alias,
       "--wait",
       "30"
     ],
@@ -145,6 +125,43 @@ function main() {
     }
     console.log("Record_Health_Check_Admin is already assigned; continuing.");
   }
+
+  run(
+    "sf",
+    [
+      "apex",
+      "run",
+      "test",
+      "--target-org",
+      options.alias,
+      "--test-level",
+      "RunLocalTests",
+      "--code-coverage",
+      "--result-format",
+      "human",
+      "--wait",
+      "30"
+    ],
+    { cwd: paths.packageRoot }
+  );
+
+  run(
+    "sf",
+    [
+      "project",
+      "deploy",
+      "start",
+      ...integrationMetadataDirectories.flatMap((directory) => [
+        "--source-dir",
+        directory
+      ]),
+      "--target-org",
+      options.alias,
+      "--wait",
+      "30"
+    ],
+    { cwd: paths.packageRoot }
+  );
 
   console.log("");
   console.log(`Contributor development org '${options.alias}' is ready.`);

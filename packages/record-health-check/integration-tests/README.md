@@ -24,6 +24,12 @@ org.
 Keep this path out of the root `sfdx-project.json` `packageDirectories`. The nested packaging
 project at `packages/record-health-check/sfdx-project.json` registers only `force-app`.
 
+Deploy the integration harness as one complete metadata transaction. Do not deploy only its Apex
+classes or Custom Metadata: the negative fixtures depend on the companion objects, permission sets,
+and helper classes in the adjacent directories. The maintained `npm run dev:setup` and release-gate
+workflows discover and deploy every metadata directory together. If a manual integration deployment
+was interrupted or selectively scoped, redeploy the complete bundle before running local tests.
+
 ## Contents (high level)
 
 - `agentforce/war-room-test-plan.md`: cross-layer MCP and Agentforce release, adversarial, failure,

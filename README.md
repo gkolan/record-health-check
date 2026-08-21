@@ -2,7 +2,7 @@
 
 [![License: Apache 2.0](assets/img/badge-license.svg)](LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Namespaced Apex coverage: 99.60%](https://img.shields.io/badge/Namespaced_Apex_coverage-99.60%25-brightgreen)](config/quality-metrics.json)
+[![Namespaced Apex coverage: 98.54%](https://img.shields.io/badge/Namespaced_Apex_coverage-98.54%25-brightgreen)](config/quality-metrics.json)
 [![LWC line coverage: 98.58%](https://img.shields.io/badge/LWC_lines-98.58%25-brightgreen)](config/quality-metrics.json)
 [![Salesforce API](assets/img/badge-salesforce-api.svg)](packages/record-health-check/sfdx-project.json)
 
@@ -88,7 +88,7 @@ Record Health Check keeps the result, evidence, and next step together on the Li
 | Measure               | Details                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | 2GP unlocked package  | `rhc` namespace                                                                                                          |
-| Apex                  | 212 classes, including 104 test classes · 99.60% namespaced package coverage · 99.53% subscriber-style floor             |
+| Apex                  | 212 classes, including 104 test classes · 98.54% namespaced package coverage · 98.08% subscriber-style floor             |
 | LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 220 Jest tests · 98.58% line coverage · 91.53% branch coverage         |
 | Packaged examples     | 4 packaged Example Check Sets containing 21 Checks                                                                       |
 | Permission sets       | Card User, User, Admin, and Error Log Publisher                                                                          |
