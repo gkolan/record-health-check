@@ -6,11 +6,11 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.3-1`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.4-2`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](config/package-releases.json).
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current released candidate: `Record Health Check@2.0.3-1`.
+- Current released candidate: `Record Health Check@2.0.4-2`.
 
 ### Evaluation and integration
 
@@ -74,7 +74,13 @@ For installation and verification, start with
 
 ## Unreleased
 
-Target package version: **2.0.4**.
+Target package version: **2.0.5**.
+
+No changes documented yet.
+
+## Version 2.0.4.2
+
+Released package version: **2.0.4.2**.
 
 ### Fixed
 
