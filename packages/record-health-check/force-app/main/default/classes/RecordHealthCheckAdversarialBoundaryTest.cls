@@ -1,9 +1,12 @@
 /** Adversarial tests for public and extension trust boundaries. */
 @IsTest
 private with sharing class RecordHealthCheckAdversarialBoundaryTest {
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+  }
+
   @TestSetup
   static void setupRecords() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
     RecordHealthCheckTestDataFactory.createTestRecords();
   }
 

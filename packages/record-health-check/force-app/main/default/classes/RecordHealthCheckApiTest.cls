@@ -5,6 +5,10 @@
 
 @IsTest
 private class RecordHealthCheckApiTest {
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+  }
+
   private class EnabledLogSettingsProvider extends RecordHealthCheckSettingsProvider {
     public override Boolean isErrorEventPublicationEnabled(
       String checkSetQualifiedApiName
@@ -15,7 +19,6 @@ private class RecordHealthCheckApiTest {
 
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
     RecordHealthCheckTestDataFactory.createTestRecords();
   }
 

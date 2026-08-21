@@ -1,8 +1,7 @@
 @IsTest
 private with sharing class RecordHealthCheckAutomationAsyncTest {
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest

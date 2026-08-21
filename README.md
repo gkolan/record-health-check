@@ -87,7 +87,7 @@ When a record needs attention, the card explains what was **Found**, what was **
 | Area                  | Details                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Package               | Salesforce 2GP unlocked package with the `rhc` namespace                                                                 |
-| Apex                  | 213 classes, including 105 test classes · 99.44% namespaced package coverage · 98.94% subscriber-style coverage          |
+| Apex                  | 213 classes, including 105 test classes · 99.44% namespaced package coverage · 98.93% subscriber-style coverage          |
 | LWC                   | 1 Lightning Web Component (`recordHealthCheck`) · 220 Jest tests · 98.58% line coverage · 91.53% branch coverage         |
 | Packaged examples     | 4 Example Check Sets containing 21 Checks                                                                                |
 | Permission sets       | Card User, User, Admin, and Error Log Publisher                                                                          |

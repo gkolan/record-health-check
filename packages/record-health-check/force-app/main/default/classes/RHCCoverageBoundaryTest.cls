@@ -1,9 +1,8 @@
 /** Focused tests for defensive branches that span public framework boundaries. */
 @IsTest
 private with sharing class RHCCoverageBoundaryTest {
-  @TestSetup
-  static void setup() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest

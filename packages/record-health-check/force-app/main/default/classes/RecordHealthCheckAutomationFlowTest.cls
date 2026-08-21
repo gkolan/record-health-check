@@ -1,8 +1,7 @@
 @IsTest
 private with sharing class RecordHealthCheckAutomationFlowTest {
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest

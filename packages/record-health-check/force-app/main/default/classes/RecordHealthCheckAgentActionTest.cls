@@ -1,8 +1,11 @@
 @IsTest
 private with sharing class RecordHealthCheckAgentActionTest {
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+  }
+
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
     RecordHealthCheckTestDataFactory.createTestRecords();
   }
 

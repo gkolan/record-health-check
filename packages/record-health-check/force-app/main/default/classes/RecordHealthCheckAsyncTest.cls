@@ -3,10 +3,10 @@ private with sharing class RecordHealthCheckAsyncTest {
   private static final String VALID_CHECK_SET = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
     'Example_Account_Profile_Readiness'
   );
-  @TestSetup
-  static void setupRunPermission() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
+
   private class EnabledLogSettingsProvider extends RecordHealthCheckSettingsProvider {
     public override Boolean isErrorEventPublicationEnabled(
       String checkSetQualifiedApiName

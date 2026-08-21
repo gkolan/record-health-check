@@ -1,19 +1,19 @@
 {
   "verifiedAt": "2026-08-21",
   "apex": {
-    "coveragePercent": 98.94,
+    "coveragePercent": 98.93,
     "namespacedCoveragePercent": 99.44,
     "namespacedCoveredLines": 10388,
     "namespacedExecutableLines": 10447,
-    "namespacedTestCount": 766,
+    "namespacedTestCount": 757,
     "namespacedEvidenceOrgAlias": "rhc-integration-20260821",
-    "namespacedTestRunId": "707Rt00002CdjHPIAZ",
-    "coveredLines": 10336,
+    "namespacedTestRunId": "707Rt00002CdgF1IAJ",
+    "coveredLines": 10335,
     "executableLines": 10447,
-    "testCount": 681,
+    "testCount": 672,
     "evidenceOrgShape": "no-namespace",
     "evidenceOrgAlias": "rhc-summary-nons-20260820",
-    "testRunId": "707Ov00006YirSoIAJ"
+    "testRunId": "707Ov00006Yj6oIIAR"
   },
   "lwc": {
     "testCount": 220,

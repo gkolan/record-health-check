@@ -5,9 +5,8 @@
 
 @IsTest
 private class RecordHealthCheckControllerShellTest {
-  @TestSetup
-  static void setup() {
-    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
 
   @IsTest
