@@ -18,7 +18,8 @@
   },
   "permissionSets": {
     "user": "Record_Health_Check_User",
-    "admin": "Record_Health_Check_Admin"
+    "admin": "Record_Health_Check_Admin",
+    "mcp": "Record_Health_Check_MCP_Integration"
   },
   "installUrl": {
     "production": "https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000cZBFAA2",

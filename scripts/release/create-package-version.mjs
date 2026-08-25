@@ -38,6 +38,10 @@ const branch = execFileSync("git", ["branch", "--show-current"], {
   cwd: paths.repoRoot,
   encoding: "utf8"
 }).trim();
+const gitCommit = execFileSync("git", ["rev-parse", "HEAD"], {
+  cwd: paths.repoRoot,
+  encoding: "utf8"
+}).trim();
 if (!branch || branch === "main") {
   console.error(
     "Create the package candidate from a committed release branch, not main or a detached HEAD."
@@ -92,6 +96,30 @@ console.log(
     `${versionNumber ? ` at ${versionNumber}` : " (version from sfdx-project.json)"}...`
 );
 
+const versionListArguments = [
+  "package",
+  "version",
+  "list",
+  "--packages",
+  releases.package2Id,
+  "--target-dev-hub",
+  values["dev-hub"],
+  "--created-last-days",
+  "1",
+  "--order-by",
+  "CreatedDate",
+  "--concise"
+];
+const versionsBefore = runJson("sf", versionListArguments, {
+  cwd: paths.packageRoot
+});
+const idsBefore = new Set(
+  (versionsBefore.result ?? [])
+    .map((record) => record.SubscriberPackageVersionId)
+    .filter(Boolean)
+);
+const candidateBranch = `${branch}@${gitCommit.slice(0, 12)}`;
+
 const createArguments = [
   "package",
   "version",
@@ -103,6 +131,8 @@ const createArguments = [
   "--code-coverage",
   "--generate-pkg-zip",
   "--installation-key-bypass",
+  "--branch",
+  candidateBranch,
   "--wait",
   values.wait,
   "--target-dev-hub",
@@ -114,31 +144,24 @@ if (versionNumber) {
 
 run("sf", createArguments, { cwd: paths.packageRoot });
 
-const versions = runJson(
-  "sf",
-  [
-    "package",
-    "version",
-    "list",
-    "--packages",
-    releases.package2Id,
-    "--target-dev-hub",
-    values["dev-hub"],
-    "--created-last-days",
-    "1",
-    "--order-by",
-    "CreatedDate",
-    "--concise"
-  ],
-  { cwd: paths.packageRoot }
-);
+const versions = runJson("sf", versionListArguments, {
+  cwd: paths.packageRoot
+});
 
 const records = versions.result ?? [];
-const latest = records[records.length - 1];
-if (!latest?.SubscriberPackageVersionId) {
-  console.error("Package version create finished but no new 04t was found.");
+const createdRecords = records.filter(
+  (record) =>
+    record.SubscriberPackageVersionId &&
+    !idsBefore.has(record.SubscriberPackageVersionId) &&
+    (record.Branch ?? record.branch) === candidateBranch
+);
+if (createdRecords.length !== 1) {
+  console.error(
+    `Package version create must produce exactly one candidate bound to ${candidateBranch}; found ${createdRecords.length}.`
+  );
   process.exit(1);
 }
+const latest = createdRecords[0];
 
 const evidenceDirectory = path.join(paths.packageRoot, ".package-evidence");
 fs.mkdirSync(evidenceDirectory, { recursive: true });
@@ -151,10 +174,8 @@ fs.writeFileSync(
   `${JSON.stringify(
     {
       capturedAt: new Date().toISOString(),
-      gitCommit: execFileSync("git", ["rev-parse", "HEAD"], {
-        cwd: paths.repoRoot,
-        encoding: "utf8"
-      }).trim(),
+      gitCommit,
+      packageBranch: candidateBranch,
       package2Id: releases.package2Id,
       subscriberPackageVersionId: latest.SubscriberPackageVersionId,
       packageVersionId: latest.Id ?? null,

@@ -156,6 +156,17 @@ for (const member of manifestByType.get("CustomMetadata") ?? []) {
   }
 }
 
+for (const file of files("customMetadata", ".md-meta.xml")) {
+  const source = fs.readFileSync(file, "utf8");
+  const label = source.match(/<label>([^<]*)<\/label>/)?.[1]?.trim() ?? "";
+  if (label.length > 40) {
+    errors.push(
+      `Custom Metadata label exceeds Salesforce's 40-character limit: ` +
+        `${path.relative(paths.root, file)} (${label.length} characters).`
+    );
+  }
+}
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exitCode = 1;

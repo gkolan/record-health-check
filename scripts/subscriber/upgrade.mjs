@@ -6,7 +6,8 @@ import {
   readPackageReleases,
   stablePackageVersionId
 } from "../lib/package-releases.mjs";
-import { run, tryRun } from "../lib/run.mjs";
+import { paths } from "../lib/paths.mjs";
+import { run, runJson, tryRun } from "../lib/run.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -72,6 +73,31 @@ run("sf", [
   "--wait",
   "30"
 ]);
+
+if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
+  const demoQuery = runJson("sf", [
+    "data",
+    "query",
+    "--target-org",
+    values.alias,
+    "--query",
+    "SELECT Id FROM Account WHERE AccountNumber = 'RHC-DEMO-ACME' LIMIT 1"
+  ]);
+  if ((demoQuery.result?.records ?? []).length === 1) {
+    run("sf", [
+      "apex",
+      "run",
+      "--target-org",
+      values.alias,
+      "--file",
+      `${paths.subscriberData}/verifyDemo.apex`
+    ]);
+  } else {
+    console.log(
+      "The optional RHC demo dataset is not installed; skipping demo-data verification."
+    );
+  }
+}
 
 console.log(
   `Upgraded ${values.alias} to ${packageVersionId} with DeprecateOnly and reran subscriber smoke tests.`

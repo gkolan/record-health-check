@@ -151,6 +151,17 @@ function runSubscriberSmoke(alias) {
   ]);
 }
 
+function runDemoVerification(alias) {
+  run("sf", [
+    "apex",
+    "run",
+    "--target-org",
+    alias,
+    "--file",
+    `${paths.subscriberData}/verifyDemo.apex`
+  ]);
+}
+
 function assertNoInternalFactory(alias) {
   const query = runJson("sf", [
     "data",
@@ -185,6 +196,12 @@ function main() {
     process.exit(1);
   }
   const candidateId = values.package;
+  if (!/^04t[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(candidateId)) {
+    console.error(
+      "Pass a 15- or 18-character subscriber package version ID beginning with 04t."
+    );
+    process.exit(1);
+  }
   const alias = values.alias;
   const previousId = releases.previous?.subscriberPackageVersionId ?? "";
   const needsUpgradeOrg =
@@ -193,7 +210,7 @@ function main() {
     previousId !== candidateId;
 
   if (values["upgrade-only"]) {
-    runUpgradeGate(candidateId, alias, devHub, releases);
+    runUpgradeGate(candidateId, alias, devHub, releases, true);
     return;
   }
 
@@ -250,14 +267,32 @@ function main() {
   runUpgradeGate(candidateId, alias, devHub, releases);
 }
 
-function runUpgradeGate(candidateId, alias, devHub, releases) {
+function runUpgradeGate(
+  candidateId,
+  alias,
+  devHub,
+  releases,
+  required = false
+) {
   const previousId = releases.previous?.subscriberPackageVersionId ?? "";
   if (!previousId.startsWith("04t") || previousId === candidateId) {
+    if (required) {
+      console.error(
+        "Upgrade-only verification requires a distinct previous 04t in package-releases.json."
+      );
+      process.exit(1);
+    }
     console.log("Skipping upgrade gate: no distinct previous 04t configured.");
     return;
   }
 
   if (!isPromoted(previousId, devHub)) {
+    if (required) {
+      console.error(
+        `Upgrade-only verification requires promoted previous version ${previousId}.`
+      );
+      process.exit(1);
+    }
     console.warn(
       `Skipping upgrade gate: previous ${previousId} is not promoted on Dev Hub. Promote it to enable N-1 upgrade CI.`
     );
@@ -316,11 +351,15 @@ function runUpgradeGate(candidateId, alias, devHub, releases) {
         `${paths.subscriberData}/${script}`
       ]);
     }
+    runDemoVerification(alias);
   }
 
   console.log(`Upgrading ${alias} to candidate ${candidateId}...`);
   installPackage(candidateId, alias);
   runSubscriberSmoke(alias);
+  if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
+    runDemoVerification(alias);
+  }
 
   const upgraded = installedPackageRecords(
     runJson("sf", ["package", "installed", "list", "--target-org", alias])

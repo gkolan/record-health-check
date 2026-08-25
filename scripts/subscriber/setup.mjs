@@ -194,6 +194,15 @@ function main() {
         `${paths.subscriberData}/${script}`
       ]);
     }
+    console.log("Verifying deterministic demo data and Check outcomes...");
+    run("sf", [
+      "apex",
+      "run",
+      "--target-org",
+      options.alias,
+      "--file",
+      `${paths.subscriberData}/verifyDemo.apex`
+    ]);
   }
 
   console.log("Running subscriber smoke tests...");

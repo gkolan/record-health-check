@@ -29,5 +29,17 @@
       "errorMessage": "The evaluation could not be completed.",
       "status": "PASS"
     }
+  },
+  {
+    "schema": "response",
+    "reason": "Adapter failures cannot carry a completed-evaluation diagnosis.",
+    "value": {
+      "contractVersion": "1.0",
+      "correlationId": "run-5",
+      "success": false,
+      "errorType": "EXECUTION",
+      "errorMessage": "The evaluation could not be completed.",
+      "diagnosticId": "RHC-run-5"
+    }
   }
 ]

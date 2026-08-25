@@ -57,6 +57,7 @@ jobs:
           name: record-health-check-mcp-${{ github.sha }}
           path: |
             artifact-digests.txt
+            record-health-check-mcp.tar
             record-health-check-mcp.spdx.json
           if-no-files-found: error
           retention-days: 30

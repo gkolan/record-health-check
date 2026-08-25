@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import { parseArgs } from "node:util";
+import { paths } from "../lib/paths.mjs";
 import { readPackageReleases } from "../lib/package-releases.mjs";
-import { run } from "../lib/run.mjs";
+import { run, runJson } from "../lib/run.mjs";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -19,15 +23,60 @@ if (!devHub) {
 }
 
 const releases = readPackageReleases();
-const packageVersionId =
-  values.package ??
-  positionals[0] ??
-  releases.stable?.subscriberPackageVersionId ??
-  "";
+const packageVersionId = values.package ?? positionals[0] ?? "";
 
-if (!packageVersionId.startsWith("04t")) {
+if (!/^04t[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(packageVersionId)) {
   console.error(
     "Pass a candidate 04t via --package or as the first positional argument."
+  );
+  process.exit(1);
+}
+
+const evidencePath = path.join(
+  paths.packageRoot,
+  ".package-evidence",
+  `${packageVersionId}-create.json`
+);
+if (!fs.existsSync(evidencePath)) {
+  console.error(
+    `Missing immutable creation evidence for ${packageVersionId}: ${evidencePath}`
+  );
+  process.exit(1);
+}
+const evidence = JSON.parse(fs.readFileSync(evidencePath, "utf8"));
+const gitCommit = execFileSync("git", ["rev-parse", "HEAD"], {
+  cwd: paths.repoRoot,
+  encoding: "utf8"
+}).trim();
+if (
+  evidence.subscriberPackageVersionId !== packageVersionId ||
+  evidence.package2Id !== releases.package2Id ||
+  evidence.gitCommit !== gitCommit
+) {
+  console.error(
+    "Candidate evidence does not bind this 04t to the configured package and current commit."
+  );
+  process.exit(1);
+}
+
+const report = runJson("sf", [
+  "package",
+  "version",
+  "report",
+  "--package",
+  packageVersionId,
+  "--target-dev-hub",
+  devHub
+]).result;
+const reportedPackage2Id = report?.Package2Id ?? report?.package2Id;
+const reportedSubscriberId =
+  report?.SubscriberPackageVersionId ?? report?.subscriberPackageVersionId;
+if (
+  reportedPackage2Id !== releases.package2Id ||
+  (reportedSubscriberId && reportedSubscriberId !== packageVersionId)
+) {
+  console.error(
+    "Dev Hub package report does not match the configured package or candidate 04t."
   );
   process.exit(1);
 }

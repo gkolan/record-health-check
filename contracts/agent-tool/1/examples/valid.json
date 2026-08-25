@@ -56,7 +56,11 @@
       "success": true,
       "operation": "RUN_CHECK",
       "status": "UNABLE_TO_EVALUATE",
-      "reasonCode": "FIELD_INACCESSIBLE"
+      "reasonCode": "FIELD_INACCESSIBLE",
+      "diagnosticId": "RHC-run-unable-1",
+      "diagnosticCategory": "SECURITY",
+      "diagnosticSummary": "A required field is not accessible.",
+      "recommendedAction": "Grant field read access or update the Check."
     }
   },
   {
@@ -82,7 +86,11 @@
       "failed": 1,
       "skipped": 0,
       "unable": 1,
-      "systemError": 0
+      "systemError": 0,
+      "diagnosticId": "RHC-run-set-unable-1",
+      "diagnosticCategory": "CONFIGURATION",
+      "diagnosticSummary": "One Check could not be evaluated.",
+      "recommendedAction": "Review the Check diagnostic and correct its configuration."
     }
   },
   {

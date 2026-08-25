@@ -37,6 +37,7 @@ const expected = {
       "Record_Health_Check_Run",
       "Record_Health_Check_View_Diagnostics"
     ],
+    tabs: [],
     customMetadataTypes: [
       "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"
@@ -61,6 +62,7 @@ const expected = {
       "Record_Health_Check_Set_Run__e"
     ],
     customPermissions: ["Record_Health_Check_Run"],
+    tabs: [],
     customMetadataTypes: [
       "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"
@@ -73,13 +75,25 @@ const expected = {
       "Record_Health_Check_Set_Run__e"
     ],
     customPermissions: ["Record_Health_Check_Run"],
-    customMetadataTypes: []
+    customMetadataTypes: [],
+    tabs: []
+  },
+  Record_Health_Check_MCP_Integration: {
+    classes: ["RecordHealthCheckAgentRestResource"],
+    objects: [],
+    customPermissions: ["Record_Health_Check_Run"],
+    tabs: [],
+    customMetadataTypes: [
+      "Record_Health_Check__mdt",
+      "Record_Health_Check_Set__mdt"
+    ]
   },
   Record_Health_Check_Error_Log_Publisher: {
     classes: [],
     objects: ["Record_Health_Check_Log__e"],
     customPermissions: [],
-    customMetadataTypes: []
+    customMetadataTypes: [],
+    tabs: []
   }
 };
 
@@ -94,10 +108,87 @@ const blockValues = (xml, block, tag) =>
     )
     .filter(Boolean)
     .map((value) => value.trim());
+const blocks = (xml, block) =>
+  [...xml.matchAll(new RegExp(`<${block}>([\\s\\S]*?)<\\/${block}>`, "g"))].map(
+    (match) => match[1]
+  );
+const childValue = (block, tag) =>
+  block.match(new RegExp(`<${tag}>([^<]+)<\\/${tag}>`))?.[1].trim();
 const sorted = (items) => [...items].sort();
 const same = (left, right) =>
   JSON.stringify(sorted(left)) === JSON.stringify(sorted(right));
 const errors = [];
+const forbiddenPrivilegeBlocks = [
+  "agentAccesses",
+  "applicationVisibilities",
+  "customSettingAccesses",
+  "emailRoutingAddressAccesses",
+  "externalCredentialPrincipalAccesses",
+  "externalDataSourceAccesses",
+  "fieldPermissions",
+  "flowAccesses",
+  "genComputingSummaryDefAccess",
+  "pageAccesses",
+  "recordTypeVisibilities",
+  "ServicePresenceStatusAccesses",
+  "userPermissions"
+];
+
+function validateEnabledBlocks(name, xml, blockName, identityTag) {
+  for (const block of blocks(xml, blockName)) {
+    const identity = childValue(block, identityTag) ?? "unknown";
+    if (childValue(block, "enabled") !== "true") {
+      errors.push(`${name} ${blockName} ${identity} must be enabled.`);
+    }
+    const allowedTags = new Set([identityTag, "enabled"]);
+    for (const match of block.matchAll(/<([A-Za-z][A-Za-z0-9]*)>/g)) {
+      if (!allowedTags.has(match[1])) {
+        errors.push(
+          `${name} ${blockName} ${identity} contains unexpected field ${match[1]}.`
+        );
+      }
+    }
+  }
+}
+
+function validateObjectBlocks(name, xml) {
+  const expectedBooleans = {
+    allowCreate: "true",
+    allowDelete: "false",
+    allowEdit: "false",
+    allowRead: "true",
+    modifyAllRecords: "false",
+    viewAllRecords: "false"
+  };
+  const allowedTags = new Set([
+    ...Object.keys(expectedBooleans),
+    "object",
+    "viewAllFields"
+  ]);
+  for (const block of blocks(xml, "objectPermissions")) {
+    const objectName = childValue(block, "object") ?? "unknown";
+    for (const [tag, expectedValue] of Object.entries(expectedBooleans)) {
+      if (childValue(block, tag) !== expectedValue) {
+        errors.push(
+          `${name} object ${objectName} must set ${tag}=${expectedValue}.`
+        );
+      }
+    }
+    if (
+      childValue(block, "viewAllFields") !== undefined &&
+      childValue(block, "viewAllFields") !== "false"
+    ) {
+      errors.push(`${name} object ${objectName} must not grant viewAllFields.`);
+    }
+    for (const match of block.matchAll(/<([A-Za-z][A-Za-z0-9]*)>/g)) {
+      if (!allowedTags.has(match[1])) {
+        errors.push(
+          `${name} object ${objectName} contains unexpected field ${match[1]}.`
+        );
+      }
+    }
+  }
+}
 
 for (const [name, contract] of Object.entries(expected)) {
   const file = path.join(PERMISSION_SETS, `${name}.permissionset-meta.xml`);
@@ -117,6 +208,18 @@ for (const [name, contract] of Object.entries(expected)) {
       `${name} description exceeds the project's ${PROJECT_DESCRIPTION_BUDGET}-character safety budget (${description.length}).`
     );
   }
+  if (childValue(xml, "hasActivationRequired") !== "false") {
+    errors.push(`${name} must set hasActivationRequired=false.`);
+  }
+  for (const blockName of forbiddenPrivilegeBlocks) {
+    if (blocks(xml, blockName).length > 0) {
+      errors.push(`${name} contains forbidden privilege block ${blockName}.`);
+    }
+  }
+  validateEnabledBlocks(name, xml, "classAccesses", "apexClass");
+  validateEnabledBlocks(name, xml, "customPermissions", "name");
+  validateEnabledBlocks(name, xml, "customMetadataTypeAccesses", "name");
+  validateObjectBlocks(name, xml);
 
   const actualClasses = values(xml, "apexClass");
   const actualObjects = values(xml, "object");
@@ -126,6 +229,7 @@ for (const [name, contract] of Object.entries(expected)) {
     "customMetadataTypeAccesses",
     "name"
   );
+  const actualTabs = blockValues(xml, "tabSettings", "tab");
   if (!same(actualClasses, contract.classes))
     errors.push(`${name} Apex class access is out of date.`);
   if (!same(actualObjects, contract.objects))
@@ -134,6 +238,21 @@ for (const [name, contract] of Object.entries(expected)) {
     errors.push(`${name} custom permission access is out of date.`);
   if (!same(actualCustomMetadataTypes, contract.customMetadataTypes))
     errors.push(`${name} custom metadata access is out of date.`);
+  if (!same(actualTabs, contract.tabs))
+    errors.push(`${name} tab visibility is out of date.`);
+  for (const block of blocks(xml, "tabSettings")) {
+    const tab = childValue(block, "tab") ?? "unknown";
+    if (childValue(block, "visibility") !== "Visible") {
+      errors.push(`${name} tab ${tab} must be Visible.`);
+    }
+    for (const match of block.matchAll(/<([A-Za-z][A-Za-z0-9]*)>/g)) {
+      if (!new Set(["tab", "visibility"]).has(match[1])) {
+        errors.push(
+          `${name} tab ${tab} contains unexpected field ${match[1]}.`
+        );
+      }
+    }
+  }
 
   for (const apexClass of actualClasses) {
     if (!fs.existsSync(path.join(DEFAULT, "classes", `${apexClass}.cls`)))
@@ -181,6 +300,6 @@ if (errors.length) {
   process.exitCode = 1;
 } else {
   console.log(
-    `Verified ${actualNames.length} permission sets; descriptions are at most ${PROJECT_DESCRIPTION_BUDGET} characters and access contracts are current.`
+    `Verified ${actualNames.length} permission sets; descriptions, enabled flags, object CRUD, forbidden privilege blocks, and access contracts are current.`
   );
 }

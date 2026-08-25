@@ -5,7 +5,6 @@ import {
 } from "@modelcontextprotocol/express";
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import type { Express, RequestHandler } from "express";
-import express from "express";
 
 import { JwtTokenVerifier } from "./auth.js";
 import type { ServiceConfig } from "./config.js";
@@ -20,7 +19,8 @@ export function createApp(
 ): Express {
   const app = createMcpExpressApp({
     host: config.host,
-    allowedHosts: config.allowedHosts
+    allowedHosts: config.allowedHosts,
+    jsonLimit: "32kb"
   });
   app.disable("x-powered-by");
   app.use(originValidation(config.allowedOrigins));
@@ -30,11 +30,6 @@ export function createApp(
       buildId: config.buildId
     });
   });
-  app.use(
-    "/mcp",
-    express.json({ limit: "32kb", strict: true, type: "application/json" })
-  );
-
   const middleware: RequestHandler[] = [];
   if (config.authMode === "jwt") {
     middleware.push(

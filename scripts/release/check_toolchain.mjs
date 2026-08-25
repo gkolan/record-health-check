@@ -34,10 +34,30 @@ const releaseWorkflow = readFileSync(
   resolve(root, ".github/workflows/salesforce-validate.yml"),
   "utf8"
 );
+const subscriberWorkflow = readFileSync(
+  resolve(root, ".github/workflows/subscriber-validate.yml"),
+  "utf8"
+);
 if (!releaseWorkflow.includes(`code-analyzer@${policy.codeAnalyzerPlugin}`)) {
   fail(
     `.github/workflows/salesforce-validate.yml must install code-analyzer@${policy.codeAnalyzerPlugin}.`
   );
+}
+
+if (!subscriberWorkflow.includes("stablePackageVersionId()")) {
+  fail(
+    ".github/workflows/subscriber-validate.yml must resolve the configured stable package version explicitly."
+  );
+}
+for (const expectedCommand of [
+  'npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias rhc-ci-subscriber --skip-upgrade',
+  'npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias rhc-ci-upgrade --upgrade-only'
+]) {
+  if (!subscriberWorkflow.includes(expectedCommand)) {
+    fail(
+      `.github/workflows/subscriber-validate.yml is missing the explicit package verification contract: ${expectedCommand}`
+    );
+  }
 }
 
 if (!policyOnly) {
