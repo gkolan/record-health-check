@@ -1,25 +1,25 @@
 {
-  "verifiedAt": "2026-08-21",
+  "verifiedAt": "2026-08-22",
   "apex": {
-    "coveragePercent": 98.93,
-    "namespacedCoveragePercent": 99.44,
-    "namespacedCoveredLines": 10388,
-    "namespacedExecutableLines": 10447,
-    "namespacedTestCount": 757,
+    "coveragePercent": 99.54,
+    "namespacedCoveragePercent": 98.79,
+    "namespacedCoveredLines": 11970,
+    "namespacedExecutableLines": 12116,
+    "namespacedTestCount": 847,
     "namespacedEvidenceOrgAlias": "rhc-integration-20260821",
-    "namespacedTestRunId": "707Rt00002CdgF1IAJ",
-    "coveredLines": 10335,
-    "executableLines": 10447,
-    "testCount": 672,
+    "namespacedTestRunId": "707Rt00002CyI1pIAF",
+    "coveredLines": 12060,
+    "executableLines": 12116,
+    "testCount": 850,
     "evidenceOrgShape": "no-namespace",
     "evidenceOrgAlias": "rhc-summary-nons-20260820",
-    "testRunId": "707Ov00006Yj6oIIAR"
+    "testRunId": "707Ov00006Z1U70IAF"
   },
   "lwc": {
-    "testCount": 220,
-    "linesPercent": 98.58,
-    "statementsPercent": 97.95,
-    "functionsPercent": 98.52,
-    "branchesPercent": 91.53
+    "testCount": 228,
+    "linesPercent": 98.63,
+    "statementsPercent": 98.1,
+    "functionsPercent": 98.57,
+    "branchesPercent": 91.19
   }
 }

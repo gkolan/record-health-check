@@ -197,6 +197,14 @@ public with sharing class RecordHealthCheckController {
     );
     runId = RecordHealthCheckLogger.normalizeIdentifier(runId, 120);
     try {
+      if (
+        String.isBlank(checkSetQualifiedApiName) ||
+        String.isBlank(checkQualifiedApiName)
+      ) {
+        throw new RecordHealthCheckControllerException(
+          'Both Check Set and Check QualifiedApiName values are required.'
+        );
+      }
       String effectiveSource = normalizeLwcSource(source);
       validateCheckMembership(checkSetQualifiedApiName, checkQualifiedApiName);
       RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(

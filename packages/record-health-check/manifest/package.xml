@@ -175,7 +175,9 @@
         <members>AccountHasRecentActivityCheckTest</members>
         <members>RHCAbsentSchemaRedTest</members>
         <members>RHCBase64FieldRedTest</members>
+        <members>RHCBulkQueryRuntimeRegressionTest</members>
         <members>RHCCoverageBoundaryTest</members>
+        <members>RHCCrossBoundaryCoverageTest</members>
         <members>RHCCurrencyAuthoringRedTest</members>
         <members>RHCMixedCurrencyRedTest</members>
         <members>RHCQueryClassificationRedTest</members>
@@ -195,8 +197,12 @@
         <members>RecordHealthCheckBatchScopeTest</members>
         <members>RHCEvaluatorEdgeBehaviorTest</members>
         <members>RHCComparisonDisplayEdgeBehaviorTest</members>
+        <members>RHCDefinitionDependencyIdentity</members>
+        <members>RHCDefinitionDependencyIdentityTest</members>
         <members>RHCDualQueryEdgeBehaviorTest</members>
         <members>RHCFormulaEdgeBehaviorTest</members>
+        <members>RHCFormulaRelationshipPlanningTest</members>
+        <members>RHCScopeQueryRowBudgetTest</members>
         <members>RHCSoqlEvaluatorEdgeBehaviorTest</members>
         <members>RecordHealthCheckAdminDetail</members>
         <members>RecordHealthCheckBulkQueryDepthTest</members>
@@ -400,6 +406,7 @@
         <members>Record_Health_Check_Admin</members>
         <members>Record_Health_Check_Card_User</members>
         <members>Record_Health_Check_Error_Log_Publisher</members>
+        <members>Record_Health_Check_MCP_Integration</members>
         <members>Record_Health_Check_User</members>
         <name>PermissionSet</name>
     </types>

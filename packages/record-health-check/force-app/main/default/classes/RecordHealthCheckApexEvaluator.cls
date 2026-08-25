@@ -3,9 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * Runs configured Apex Checks through safety checks that reject DML, callouts,
+ * email, events, and background work. Setup, returned-value, and execution
+ * problems are reported as Record Health Check results.
+ */
 public with sharing class RecordHealthCheckApexEvaluator {
   private RecordHealthCheckFormulaEvaluator formulaEvaluator = new RecordHealthCheckFormulaEvaluator();
 
+  /**
+   * Applies the current Run ID and related run details to Formula display work.
+   *
+   * @param value Current evaluation run context.
+   * @return This evaluator so the caller can continue the same setup statement.
+   */
   public RecordHealthCheckApexEvaluator withRunContext(
     RecordHealthCheckRunContext value
   ) {
@@ -13,8 +24,19 @@ public with sharing class RecordHealthCheckApexEvaluator {
     return this;
   }
 
-  // ─── Public entry point ───────────────────────────────────────────────────
+  // ─── Public evaluation method ─────────────────────────────────────────────
 
+  /**
+   * Evaluates one record through the same Apex Check path used for multiple records.
+   * A missing record ID becomes an ERROR result for that Check instead of
+   * calling Apex without a record.
+   *
+   * @param check Apex Check metadata selected for this run.
+   * @param recordId Record being evaluated.
+   * @param record User-visible record already loaded for the result display.
+   * @return One internal result for the requested record.
+   * @throws RecordHealthCheckPluginDispatch.SideEffectException when plugin work must be rolled back to prevent a prohibited side effect.
+   */
   public RecordHealthCheckInternalResult evaluate(
     Record_Health_Check__mdt check,
     Id recordId,
@@ -39,7 +61,21 @@ public with sharing class RecordHealthCheckApexEvaluator {
     return results.get(recordId);
   }
 
-  /** Instantiates and invokes one Apex plugin exactly once for a complete scope. */
+  /**
+   * Creates and invokes one Apex Check exactly once for all requested records.
+   * Setup and ordinary Apex Check failures become matching results for the
+   * affected records. If the Check tries to change data or start other work,
+   * the exception is rethrown so Salesforce rolls back the transaction.
+   *
+   * @param check Apex Check metadata selected for this run.
+   * @param recordIds Requested record IDs within the framework limit.
+   * @param loadedRecords User-visible records keyed by ID for the result display.
+   * @param objectApiName Validated scope object API name.
+   * @param checkSetDeveloperName Owning Set identity for diagnostics and logging.
+   * @param runId Optional Run ID used to match logs and results.
+   * @return One result for each requested record ID.
+   * @throws RecordHealthCheckPluginDispatch.SideEffectException when plugin work must be rolled back to prevent a prohibited side effect.
+   */
   public Map<Id, RecordHealthCheckInternalResult> evaluateScope(
     Record_Health_Check__mdt check,
     List<Id> recordIds,
@@ -78,11 +114,14 @@ public with sharing class RecordHealthCheckApexEvaluator {
       );
     }
 
+    String checkQualifiedApiName = String.isBlank(check.QualifiedApiName)
+      ? check.DeveloperName
+      : check.QualifiedApiName;
     RecordHealthCheckScope scope = new RecordHealthCheckScope(
       objectApiName,
       recordIds,
       parameters,
-      check.DeveloperName,
+      checkQualifiedApiName,
       checkSetDeveloperName,
       runId
     );
@@ -191,26 +230,6 @@ public with sharing class RecordHealthCheckApexEvaluator {
       RecordHealthCheckApexResultFinalizer.toInternalResult(outcome, fallback),
       formulaEvaluator
     );
-  }
-
-  private Map<Id, RecordHealthCheckInternalResult> scopeError(
-    Record_Health_Check__mdt check,
-    List<Id> recordIds,
-    String reasonCode,
-    String detail
-  ) {
-    Map<Id, RecordHealthCheckInternalResult> results = new Map<Id, RecordHealthCheckInternalResult>();
-    for (Id recordId : recordIds) {
-      RecordHealthCheckInternalResult result = baseResult(check);
-      result.status = reasonCode != null && reasonCode.startsWith('PLUGIN_')
-        ? RecordHealthCheckStatus.ERROR
-        : RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
-      result.reasonCode = reasonCode;
-      result.message = safeCannotEvaluateMessage(check);
-      result.detailMessage = detail;
-      results.put(recordId, result);
-    }
-    return results;
   }
 
   private RecordHealthCheckDiagnosticContext diagnosticContext(

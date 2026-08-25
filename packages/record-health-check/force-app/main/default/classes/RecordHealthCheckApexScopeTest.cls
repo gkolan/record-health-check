@@ -51,6 +51,24 @@ private with sharing class RecordHealthCheckApexScopeTest {
     }
   }
 
+  private class CapturingScopeCheck implements RecordHealthCheckPlugin {
+    public String capturedCheckQualifiedApiName;
+
+    public Map<Id, RecordHealthCheckOutcome> evaluate(
+      RecordHealthCheckScope scope
+    ) {
+      capturedCheckQualifiedApiName = scope.checkDeveloperName;
+      Map<Id, RecordHealthCheckOutcome> outcomes = new Map<Id, RecordHealthCheckOutcome>();
+      for (Id recordId : scope.recordIds) {
+        outcomes.put(
+          recordId,
+          RecordHealthCheckOutcome.skipped('NOT_APPLICABLE')
+        );
+      }
+      return outcomes;
+    }
+  }
+
   @IsTest
   static void evaluateScopeRejectsInvalidClassConfigurations() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
@@ -319,6 +337,41 @@ private with sharing class RecordHealthCheckApexScopeTest {
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING,
       missing.reasonCode,
       'An omitted scope result must map to the stable missing-result outcome.'
+    );
+  }
+
+  @IsTest
+  static void pluginScopeReceivesQualifiedCheckIdentity() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Qualified plugin scope'
+    );
+    Record_Health_Check__mdt check = checkFor(
+      'AccountHasRecentActivityCheck',
+      null
+    );
+    check.QualifiedApiName = 'managed__Apex_Scope_Test';
+    CapturingScopeCheck plugin = new CapturingScopeCheck();
+
+    Test.startTest();
+    RecordHealthCheckConfigValidator.cachePluginForTest(
+      check.ApexClass__c,
+      plugin
+    );
+    new RecordHealthCheckApexEvaluator()
+      .evaluateScope(
+        check,
+        new List<Id>{ accountRecord.Id },
+        new Map<Id, SObject>{ accountRecord.Id => accountRecord },
+        'Account',
+        'subscriber__Set_A',
+        'qualified-plugin-scope'
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'managed__Apex_Scope_Test',
+      plugin.capturedCheckQualifiedApiName,
+      'A managed and subscriber Check with the same DeveloperName must remain distinguishable to the plugin.'
     );
   }
 

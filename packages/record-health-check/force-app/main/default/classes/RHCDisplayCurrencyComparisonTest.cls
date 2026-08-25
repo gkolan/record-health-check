@@ -148,6 +148,8 @@ private class RHCDisplayCurrencyComparisonTest {
 
   @IsTest
   static void aComparisonQueryLabelsTheExpectedSideWithItsOwnCurrency() {
+    Boolean multiCurrency = UserInfo.isMultiCurrencyOrganization();
+    String corporateIso = corporateIsoCode();
     Account card = RecordHealthCheckTestDataFactory.createAccount(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{
@@ -161,11 +163,20 @@ private class RHCDisplayCurrencyComparisonTest {
       'DVF Query Opportunity',
       70000
     );
-    Account record = [
-      SELECT Id, Name, AnnualRevenue
-      FROM Account
-      WHERE Id = :card.Id
-    ];
+    Id cardId = card.Id;
+    Account record = multiCurrency
+      ? (Account) Database.query(
+          'SELECT Id, Name, AnnualRevenue, CurrencyIsoCode FROM Account WHERE Id = :cardId'
+        )
+      : [SELECT Id, Name, AnnualRevenue FROM Account WHERE Id = :card.Id];
+    String sourceQuery = multiCurrency
+      ? 'SELECT AnnualRevenue, CurrencyIsoCode FROM Account WHERE Id = {!record.Id}'
+      : 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
+    String comparisonQuery = multiCurrency
+      ? 'SELECT SUM(Amount) total FROM Opportunity WHERE AccountId = {!record.Id} AND CurrencyIsoCode = \'' +
+        String.escapeSingleQuotes(corporateIso) +
+        '\''
+      : 'SELECT SUM(Amount) total FROM Opportunity WHERE AccountId = {!record.Id}';
 
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
@@ -173,12 +184,12 @@ private class RHCDisplayCurrencyComparisonTest {
         'MasterLabel' => 'DVF_Query_Comparison_Currency',
         'CheckTitle__c' => 'Revenue covers pipeline',
         'EvaluationType__c' => 'QUERY',
-        'SourceQuery__c' => 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}',
+        'SourceQuery__c' => sourceQuery,
         'SourceQueryField__c' => 'AnnualRevenue',
         'QueryResultHandling__c' => 'ONE_RESULT',
         'ComparisonOperator__c' => 'GREATER_THAN_OR_EQUAL',
         'ExpectedValueSource__c' => 'COMPARISON_QUERY',
-        'ComparisonQuery__c' => 'SELECT SUM(Amount) total FROM Opportunity WHERE AccountId = {!record.Id}',
+        'ComparisonQuery__c' => comparisonQuery,
         'ComparisonQueryField__c' => 'total',
         'NoRowsResult__c' => 'FAIL',
         'EmptyValueHandling__c' => 'SKIP_RECORD',
@@ -198,7 +209,11 @@ private class RHCDisplayCurrencyComparisonTest {
     // aggregate, so it carries the corporate currency rather than the Found
     // side's. Sharing one currency across both sides would mislabel it.
     Assert.areEqual(
-      RecordHealthCheckDisplayFormat.render(100000, CURRENCY_FORMAT, null),
+      RecordHealthCheckDisplayFormat.render(
+        100000,
+        CURRENCY_FORMAT,
+        multiCurrency ? String.valueOf(record.get('CurrencyIsoCode')) : null
+      ),
       result.actualValue,
       'The Found side reads in the record currency'
     );
@@ -208,7 +223,7 @@ private class RHCDisplayCurrencyComparisonTest {
         RecordHealthCheckDisplayFormat.render(
           70000,
           CURRENCY_FORMAT,
-          corporateIsoCode()
+          corporateIso
         )
       ),
       'The Expected side keeps the comparison query currency: ' +

@@ -10,8 +10,6 @@
  */
 @IsTest
 private class RecordHealthCheckSoqlTemplateTest {
-  // ─── literal masking ───────────────────────────────────────────────────────
-
   @IsTest
   static void maskBlanksLiteralContentsAndPreservesLength() {
     String input = 'A = \'xy\' B';
@@ -57,8 +55,6 @@ private class RecordHealthCheckSoqlTemplateTest {
       'Bare COUNT must be normalized through the supported preparation API.'
     );
   }
-
-  // ─── enforceRowCap ─────────────────────────────────────────────────────────
 
   @IsTest
   static void plainQueryGetsCap() {
@@ -205,6 +201,30 @@ private class RecordHealthCheckSoqlTemplateTest {
     // "update" inside a string literal must not be rejected.
     RecordHealthCheckSoqlTemplate.validateNoDisallowedKeywords(
       'SELECT Id FROM Account WHERE Name = \'please update me\''
+    );
+  }
+
+  @IsTest
+  static void allRowsWithLineBreakIsRejected() {
+    assertDisallowedPhraseRejected(
+      'SELECT Id FROM Account ALL\nROWS',
+      'ALL ROWS'
+    );
+  }
+
+  @IsTest
+  static void allRowsWithTabsAndExtraWhitespaceIsRejected() {
+    assertDisallowedPhraseRejected(
+      'SELECT Id FROM Account ALL\t  ROWS',
+      'ALL ROWS'
+    );
+  }
+
+  @IsTest
+  static void forUpdateWithLineBreakIsRejected() {
+    assertDisallowedPhraseRejected(
+      'SELECT Id FROM Account FOR\nUPDATE',
+      'FOR UPDATE'
     );
   }
 
@@ -454,5 +474,25 @@ private class RecordHealthCheckSoqlTemplateTest {
         'SELECT Id, (SELECT COUNT(Id) FROM Contacts) FROM Account'
       )
     );
+  }
+
+  private static void assertDisallowedPhraseRejected(
+    String soql,
+    String expectedPhrase
+  ) {
+    try {
+      RecordHealthCheckSoqlTemplate.validateNoDisallowedKeywords(soql);
+      Assert.fail('Expected rejection of ' + expectedPhrase + '.');
+    } catch (RecordHealthCheckSoqlTemplate.TemplateException error) {
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        error.reasonCode,
+        'A whitespace variant must retain the stable template reason code.'
+      );
+      Assert.isTrue(
+        error.getMessage().contains(expectedPhrase),
+        'The rejection must identify the normalized disallowed phrase.'
+      );
+    }
   }
 }

@@ -212,6 +212,28 @@ private with sharing class RHCCoverageBoundaryTest {
   }
 
   @IsTest
+  static void constrainedCurrencyAggregateRetainsLiteralUnitEvidence() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    List<SObject> rows = new List<SObject>{
+      [SELECT SUM(AnnualRevenue) totalValue FROM Account]
+    };
+
+    Test.startTest();
+    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+      'SELECT SUM(AnnualRevenue) totalValue FROM Account WHERE CurrencyIsoCode = \'USD\'',
+      'totalValue',
+      rows,
+      null,
+      null,
+      new List<SObject>(),
+      null
+    );
+    Test.stopTest();
+
+    Assert.areEqual(1, rows.size());
+  }
+
+  @IsTest
   static void aggregateCurrencyRowsRejectMixedUnits() {
     RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     RecordHealthCheckTestDataFactory.createAccount('Currency coverage');

@@ -1,7 +1,4 @@
-/**
- * Converts one supported record-token SOQL template into one scope-wide query
- * and attributes the returned rows back to every evaluated record.
- */
+/** Executes one supported record-token SOQL template across an evaluated scope. */
 public with sharing class RecordHealthCheckBulkQuerySupport {
   public static final String SELF = 'SELF';
   public static final String CHILD_DIRECT = 'CHILD_DIRECT';
@@ -13,14 +10,11 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   public static final String UNCLASSIFIED = 'UNCLASSIFIED';
 
   private static final String CORRELATION_ALIAS = 'rhcCorrelation';
-  private static final Pattern TOKEN = Pattern.compile(
-    '\\{!record\\.([A-Za-z0-9_.]+)\\}'
+  private static final Pattern EQUALITY_PREFIX = Pattern.compile(
+    '([A-Za-z_][A-Za-z0-9_.]*)\\s*=\\s*$'
   );
-  private static final Pattern EQUALITY = Pattern.compile(
-    '([A-Za-z_][A-Za-z0-9_.]*)\\s*=\\s*\\{!record\\.([A-Za-z0-9_.]+)\\}'
-  );
-  private static final Pattern NEGATION = Pattern.compile(
-    '([A-Za-z_][A-Za-z0-9_.]*)\\s*(?:!=|<>)\\s*\\{!record\\.([A-Za-z0-9_.]+)\\}'
+  private static final Pattern NEGATION_PREFIX = Pattern.compile(
+    '([A-Za-z_][A-Za-z0-9_.]*)\\s*(?:!=|<>)\\s*$'
   );
   private static final Pattern ORDER_BY = Pattern.compile(
     '(?i)\\bORDER\\s+BY\\s+([A-Za-z_][A-Za-z0-9_.]*)\\s*(ASC|DESC)?'
@@ -41,6 +35,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   private class Correlation {
     private String fieldPath;
     private String tokenPath;
+    private String fallbackValue;
     private Integer startIndex;
     private Integer endIndex;
   }
@@ -96,6 +91,18 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
             loadedRecords.get(recordId),
             correlation.tokenPath
           );
+          if (
+            (tokenValue == null ||
+            (tokenValue instanceof String &&
+            String.isBlank((String) tokenValue))) &&
+            correlation.fallbackValue != null
+          ) {
+            tokenValue = RecordHealthCheckSoqlBindValueResolver.coerceFallbackValue(
+              loadedRecords.get(recordId),
+              correlation.tokenPath,
+              correlation.fallbackValue
+            );
+          }
           if (tokenValue == null) {
             continue;
           }
@@ -170,12 +177,6 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       }
     }
 
-    if (hasDepthZeroMatch(scopeSoql, TOKEN)) {
-      throw unsupportedShape(
-        'The scope-wide rewrite left an unresolved record token.'
-      );
-    }
-
     if (RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()) {
       for (
         String selectedField : RecordHealthCheckBulkQueryRewriter.selectedFields(
@@ -238,9 +239,6 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       Object correlationValue = row instanceof AggregateResult
         ? ((AggregateResult) row).get(CORRELATION_ALIAS)
         : readPath(row, correlation.fieldPath);
-      if (correlationValue == null) {
-        continue;
-      }
       if (result.strategy == INDIRECT_REFERENCE) {
         List<Id> matching = recordIdsByToken.get(
           String.valueOf(correlationValue)
@@ -271,14 +269,14 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
 
   /** Classifies a template using the same ordering as the repository inventory. */
   public static String classify(String soql) {
-    Correlation negated = matchCorrelation(soql, NEGATION);
+    Correlation negated = matchCorrelation(soql, NEGATION_PREFIX);
     if (negated != null) {
       return UNCLASSIFIED;
     }
-    if (!hasDepthZeroMatch(soql, TOKEN)) {
-      return TOKEN.matcher(soql).find() ? UNCLASSIFIED : SCOPE_INVARIANT;
+    if (!hasDepthZeroRecordToken(soql)) {
+      return countTokens(soql) > 0 ? UNCLASSIFIED : SCOPE_INVARIANT;
     }
-    Correlation correlation = matchCorrelation(soql, EQUALITY);
+    Correlation correlation = matchCorrelation(soql, EQUALITY_PREFIX);
     if (correlation == null) {
       return UNCLASSIFIED;
     }
@@ -296,7 +294,9 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       List<String> selected = RecordHealthCheckBulkQueryRewriter.selectedFields(
         soql
       );
-      return selected.size() == 1 && selected[0].equalsIgnoreCase(orderField)
+      return selected.size() == 1 &&
+        selected[0].equalsIgnoreCase(orderField) &&
+        !selected[0].contains('.')
         ? ORDERED_PICK_AGGREGATE
         : ORDERED_PICK_IN_MEMORY;
     }
@@ -329,9 +329,10 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
 
   private static Integer countTokens(String soql) {
     Integer count = 0;
-    Matcher matcher = TOKEN.matcher(soql);
-    while (matcher.find()) {
-      count++;
+    for (RecordHealthCheckToken token : recordTokens(soql)) {
+      if (token.namespaceName == 'record') {
+        count++;
+      }
     }
     return count;
   }
@@ -354,22 +355,37 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   }
 
   private static Correlation findCorrelation(String soql) {
-    return matchCorrelation(soql, EQUALITY);
+    return matchCorrelation(soql, EQUALITY_PREFIX);
   }
 
-  private static Correlation matchCorrelation(String soql, Pattern pattern) {
+  private static Correlation matchCorrelation(
+    String soql,
+    Pattern prefixPattern
+  ) {
     String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
-    Matcher matcher = pattern.matcher(masked);
     Correlation firstMatch;
-    while (matcher.find()) {
-      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0) {
+    for (RecordHealthCheckToken token : recordTokens(soql)) {
+      if (
+        token.namespaceName != 'record' ||
+        !isDepthZeroVisibleToken(masked, token)
+      ) {
+        continue;
+      }
+      Matcher matcher = prefixPattern.matcher(
+        masked.substring(0, token.startIndex)
+      );
+      if (
+        !matcher.find() ||
+        RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0
+      ) {
         continue;
       }
       Correlation current = new Correlation();
       current.fieldPath = matcher.group(1);
-      current.tokenPath = matcher.group(2);
+      current.tokenPath = token.propertyPath;
+      current.fallbackValue = token.fallbackValue;
       current.startIndex = matcher.start();
-      current.endIndex = matcher.end();
+      current.endIndex = token.endIndex;
       if (firstMatch == null) {
         firstMatch = current;
       }
@@ -378,6 +394,34 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       }
     }
     return firstMatch;
+  }
+
+  private static Boolean hasDepthZeroRecordToken(String soql) {
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
+    for (RecordHealthCheckToken token : recordTokens(soql)) {
+      if (
+        token.namespaceName == 'record' &&
+        isDepthZeroVisibleToken(masked, token)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static Boolean isDepthZeroVisibleToken(
+    String masked,
+    RecordHealthCheckToken token
+  ) {
+    return token.startIndex < masked.length() &&
+      masked.substring(token.startIndex, token.startIndex + 1) == '{' &&
+      RecordHealthCheckSoqlTemplate.depthAt(masked, token.startIndex) == 0;
+  }
+
+  private static List<RecordHealthCheckToken> recordTokens(String soql) {
+    return String.isBlank(soql)
+      ? new List<RecordHealthCheckToken>()
+      : RecordHealthCheckTemplateService.parse(soql);
   }
 
   private static String replaceSpan(

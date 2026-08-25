@@ -9,7 +9,9 @@ import {
   toCompletionResult,
   detectDependencyCycles,
   newRunId,
-  parseAuraError
+  parseAuraError,
+  checkIdentity,
+  prerequisiteIdentity
 } from "./healthCheckModel";
 
 const MAX_CONCURRENT_EVALUATIONS = 5;
@@ -71,7 +73,7 @@ export function resetPageEvaluationSchedulerForTest() {
  * Run lifecycle: dependency gating, concurrency-capped evaluation, progressive reveal.
  */
 export class HealthCheckRunner {
-  _resultBuffer = {};
+  _resultBuffer = new Map();
   _stopped = false;
   _runInProgress = false;
   _runToken = 0;
@@ -106,7 +108,7 @@ export class HealthCheckRunner {
     this._runToken++;
     this._runInProgress = false;
     this._stopped = false;
-    this._resultBuffer = {};
+    this._resultBuffer = new Map();
   }
 
   run(reuseRunId = false, source = "USER_INITIATED") {
@@ -126,7 +128,7 @@ export class HealthCheckRunner {
     const token = ++this._runToken; // capture token for this run; prior in-flight calls carry the old value
     this.host.completedCheckCount = 0;
     this.host.runComplete = false;
-    this._resultBuffer = {};
+    this._resultBuffer = new Map();
     this._stopped = false;
     this._source = source;
 
@@ -148,19 +150,23 @@ export class HealthCheckRunner {
     // rather than hanging indefinitely awaiting each other.
     // Message wording matches RecordHealthCheckScopePipeline (names the blocking prerequisite).
     const cycleNames = detectDependencyCycles(this.host.checks);
-    const checkMap = {};
+    const checkMap = new Map();
     for (const check of this.host.checks) {
-      checkMap[check.developerName] = check;
+      checkMap.set(checkIdentity(check), check);
     }
     for (const name of cycleNames) {
-      const check = checkMap[name];
+      const check = checkMap.get(name);
       if (check) {
-        const prereqName = check.dependsOnCheckDeveloperName;
-        this._resultBuffer[name] = synthesizeResult(
-          check,
-          "UNABLE_TO_EVALUATE",
-          "CIRCULAR_DEPENDENCY",
-          `Circular dependency with "${prereqName}".`
+        const prereqName =
+          check.dependsOnCheckDeveloperName || prerequisiteIdentity(check);
+        this._resultBuffer.set(
+          name,
+          synthesizeResult(
+            check,
+            "UNABLE_TO_EVALUATE",
+            "CIRCULAR_DEPENDENCY",
+            `Circular dependency with "${prereqName}".`
+          )
         );
       }
     }
@@ -176,20 +182,23 @@ export class HealthCheckRunner {
 
     // Fire checks concurrently, but create tasks recursively so dependencies
     // can point to checks that appear later in the ordered run list.
-    const taskMap = {}; // developerName -> Promise
+    const taskMap = new Map(); // qualifiedApiName -> Promise
     const runCheck = this._makeRunCheck(taskMap, checkMap, cycleNames, token);
 
     for (const check of this.host.checks) {
       runCheck(check).catch(() => {
         if (
           token === this._runToken &&
-          this._resultBuffer[check.developerName] === undefined
+          !this._resultBuffer.has(checkIdentity(check))
         ) {
-          this._resultBuffer[check.developerName] = synthesizeResult(
-            check,
-            "ERROR",
-            "CLIENT_CALL_FAILED",
-            "The check could not be reached. Please try again."
+          this._resultBuffer.set(
+            checkIdentity(check),
+            synthesizeResult(
+              check,
+              "ERROR",
+              "CLIENT_CALL_FAILED",
+              "The check could not be reached. Please try again."
+            )
           );
           this._drain(token);
         }
@@ -205,29 +214,27 @@ export class HealthCheckRunner {
    */
   _makeRunCheck(taskMap, checkMap, cycleNames, token) {
     const runCheck = (check) => {
-      if (taskMap[check.developerName]) {
-        return taskMap[check.developerName];
+      const identity = checkIdentity(check);
+      if (taskMap.has(identity)) {
+        return taskMap.get(identity);
       }
-      if (cycleNames.has(check.developerName)) {
-        taskMap[check.developerName] = Promise.resolve();
+      if (cycleNames.has(identity)) {
+        taskMap.set(identity, Promise.resolve());
         this._drain(token);
-        return taskMap[check.developerName];
+        return taskMap.get(identity);
       }
-      taskMap[check.developerName] = this._runOneCheck(
-        check,
-        taskMap,
-        checkMap,
-        runCheck,
-        token
+      taskMap.set(
+        identity,
+        this._runOneCheck(check, taskMap, checkMap, runCheck, token)
       );
-      return taskMap[check.developerName];
+      return taskMap.get(identity);
     };
     return runCheck;
   }
 
   async _runChecksSequentially(checkMap, cycleNames, token) {
     try {
-      const taskMap = {};
+      const taskMap = new Map();
       const runCheck = this._makeRunCheck(taskMap, checkMap, cycleNames, token);
 
       for (const check of this.host.checks) {
@@ -240,8 +247,8 @@ export class HealthCheckRunner {
       }
     } finally {
       if (token === this._runToken) {
-        const allResolved = this.host.checks.every(
-          (c) => this._resultBuffer[c.developerName] !== undefined
+        const allResolved = this.host.checks.every((c) =>
+          this._resultBuffer.has(checkIdentity(c))
         );
         if (!allResolved) {
           this._runInProgress = false;
@@ -254,43 +261,45 @@ export class HealthCheckRunner {
     if (this._stopped || token !== this._runToken) return;
 
     // Enforce the Prerequisite Check before calling Apex.
-    if (check.dependsOnCheckDeveloperName) {
-      const prerequisiteCheck = checkMap[check.dependsOnCheckDeveloperName];
+    const prerequisiteKey = prerequisiteIdentity(check);
+    if (prerequisiteKey) {
+      const prerequisiteCheck = checkMap.get(prerequisiteKey);
       if (!prerequisiteCheck) {
         const skipped = synthesizeResult(
           check,
           "SKIPPED",
           "DEPENDENCY_NOT_IN_RUN",
-          `Skipped because Prerequisite Check "${check.dependsOnCheckDeveloperName}" was not included in the Framework run.`
+          `Skipped because Prerequisite Check "${check.dependsOnCheckDeveloperName || prerequisiteKey}" was not included in the Framework run.`
         );
-        this._resultBuffer[check.developerName] = skipped;
+        this._resultBuffer.set(checkIdentity(check), skipped);
         this._drain(token);
         return;
       }
-      if (!taskMap[check.dependsOnCheckDeveloperName]) {
+      if (!taskMap.has(prerequisiteKey)) {
         runCheck(prerequisiteCheck);
       }
-      await taskMap[check.dependsOnCheckDeveloperName];
+      await taskMap.get(prerequisiteKey);
       if (this._stopped || token !== this._runToken) return;
-      const prereqResult =
-        this._resultBuffer[check.dependsOnCheckDeveloperName];
+      const prereqResult = this._resultBuffer.get(prerequisiteKey);
       if (!prereqResult || prereqResult.status !== "PASS") {
         const prereqLabel =
-          prerequisiteCheck.label || check.dependsOnCheckDeveloperName;
+          prerequisiteCheck.label ||
+          check.dependsOnCheckDeveloperName ||
+          prerequisiteKey;
         const skipped = synthesizeResult(
           check,
           "SKIPPED",
           "PREREQUISITE_NOT_MET",
           `Skipped because Prerequisite Check "${prereqLabel}" did not pass.`
         );
-        this._resultBuffer[check.developerName] = skipped;
+        this._resultBuffer.set(checkIdentity(check), skipped);
         this._drain(token);
         return;
       }
     }
 
     // Set row to LOADING
-    this._setCheckUiState(check.developerName, "LOADING");
+    this._setCheckUiState(checkIdentity(check), "LOADING");
 
     let acquiredScheduler = tryAcquirePageEvaluationSlot(
       () => token === this._runToken
@@ -331,7 +340,10 @@ export class HealthCheckRunner {
     // Discard result if a newer run has started since this call was fired
     if (token !== this._runToken) return;
 
-    this._resultBuffer[check.developerName] = normalizeResult(result, check);
+    this._resultBuffer.set(
+      checkIdentity(check),
+      normalizeResult(result, check)
+    );
     this._drain(token);
   }
 
@@ -339,8 +351,9 @@ export class HealthCheckRunner {
     if (token !== this._runToken) return;
 
     this.host.checks = this.host.checks.map((c) => {
-      const buffered = this._resultBuffer[c.developerName];
-      if (buffered !== undefined && c.uiState !== "RESOLVED") {
+      const identity = checkIdentity(c);
+      const buffered = this._resultBuffer.get(identity);
+      if (this._resultBuffer.has(identity) && c.uiState !== "RESOLVED") {
         return {
           ...c,
           uiState: "RESOLVED",
@@ -363,12 +376,16 @@ export class HealthCheckRunner {
         this._stopped = true;
         let synthesizedAny = false;
         for (const c of this.host.checks) {
-          if (this._resultBuffer[c.developerName] === undefined) {
-            this._resultBuffer[c.developerName] = synthesizeResult(
-              c,
-              "SKIPPED",
-              "STOPPED_AFTER_ERROR",
-              "This check was skipped because an earlier check encountered an error."
+          const identity = checkIdentity(c);
+          if (!this._resultBuffer.has(identity)) {
+            this._resultBuffer.set(
+              identity,
+              synthesizeResult(
+                c,
+                "SKIPPED",
+                "STOPPED_AFTER_ERROR",
+                "This check was skipped because an earlier check encountered an error."
+              )
             );
             synthesizedAny = true;
           }
@@ -381,8 +398,8 @@ export class HealthCheckRunner {
     }
 
     // The run is complete once every check has produced a result.
-    const allResolved = this.host.checks.every(
-      (c) => this._resultBuffer[c.developerName] !== undefined
+    const allResolved = this.host.checks.every((c) =>
+      this._resultBuffer.has(checkIdentity(c))
     );
     if (allResolved && !this.host.runComplete) {
       this.host.runComplete = true;
@@ -395,7 +412,7 @@ export class HealthCheckRunner {
           source: this._source,
           recordId: this.host.recordId,
           resultsJson: JSON.stringify(
-            Object.values(this._resultBuffer).map((result) =>
+            Array.from(this._resultBuffer.values()).map((result) =>
               toCompletionResult(result, this.host.recordId)
             )
           )
@@ -419,9 +436,9 @@ export class HealthCheckRunner {
     releasePageEvaluationSlot(scheduler);
   }
 
-  _setCheckUiState(developerName, uiState) {
+  _setCheckUiState(identity, uiState) {
     this.host.checks = this.host.checks.map((c) => {
-      return c.developerName === developerName ? { ...c, uiState } : c;
+      return checkIdentity(c) === identity ? { ...c, uiState } : c;
     });
   }
 }

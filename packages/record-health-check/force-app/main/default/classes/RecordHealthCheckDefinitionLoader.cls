@@ -20,9 +20,12 @@ public with sharing class RecordHealthCheckDefinitionLoader {
 
   /**
    * Loads and validates a Check Set and its active checks.
-   * Throws ConfigException for component-level failures (CONFIG_NOT_FOUND,
-   * CONFIG_INACTIVE, OBJECT_MISMATCH, NO_RECORD_CONTEXT, NO_ACTIVE_CHECKS).
-   * Returns a fully filled-in RecordHealthCheckDefinitionResponse on success.
+   *
+   * @param service Service that loads the selected Custom Metadata.
+   * @param checkSetDeveloperName Selected Check Set Developer Name.
+   * @param recordId Record page context used to enforce the configured object.
+   * @return Complete definition response within the Check limit.
+   * @throws RecordHealthCheckConfigService.ConfigException for missing, inactive, mismatched, empty, or invalid configuration.
    */
   public static RecordHealthCheckDefinitionResponse getDefinitionResponse(
     RecordHealthCheckConfigService service,
@@ -180,6 +183,10 @@ public with sharing class RecordHealthCheckDefinitionLoader {
       def.priority = check.EvaluationOrder__c;
       def.dependsOnCheckDeveloperName = normalizedPrerequisite(
         check.PrerequisiteCheck__c
+      );
+      def.dependsOnCheckQualifiedApiName = RHCDefinitionDependencyIdentity.resolve(
+        check,
+        allChecks
       );
       response.checks.add(def);
     }
@@ -428,7 +435,7 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   /**
    * Display names of the inactive Checks, for the diagnostics "N Inactive"
    * tooltip. Capped at the framework check limit so a long-neglected Check Set
-   * cannot grow an unbounded tooltip; the pill still shows the exact count.
+   * cannot make the tooltip too long; the pill still shows the exact count.
    */
   public static List<String> inactiveCheckLabels(String checkSetDeveloperName) {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by RecordHealthCheckAccess before definitions are exposed.

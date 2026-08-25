@@ -10,6 +10,9 @@ public with sharing class RecordHealthCheckCurrencySupport {
   private static final Pattern ISO_GROUP_PATTERN = Pattern.compile(
     '(?is)\\bGROUP\\s+BY\\s+[^;]*\\bCurrencyIsoCode\\b'
   );
+  private static final Pattern ISO_EQUALITY_LITERAL_PATTERN = Pattern.compile(
+    '(?i)\\bCurrencyIsoCode\\s*=\\s*\'([A-Za-z]{3})\''
+  );
 
   /**
    * Refuses query configuration that can blend currency units at runtime.
@@ -164,9 +167,14 @@ public with sharing class RecordHealthCheckCurrencySupport {
     ) {
       return isoCodes;
     }
+    String constrainedIsoCode = constrainedCurrencyIsoCode(query);
+    if (String.isNotBlank(constrainedIsoCode)) {
+      isoCodes.add(constrainedIsoCode);
+      return isoCodes;
+    }
     for (SObject row : rows) {
       Object unit = RecordHealthCheckSoqlTemplate.isAggregateQuery(query)
-        ? row.get('CurrencyIsoCode')
+        ? row.getPopulatedFieldsAsMap().get('CurrencyIsoCode')
         : readPath(row, isoFieldPath(fieldPath));
       String isoCode = unit == null ? null : String.valueOf(unit);
       if (String.isNotBlank(isoCode)) {
@@ -193,17 +201,39 @@ public with sharing class RecordHealthCheckCurrencySupport {
     Boolean aggregateQuery = RecordHealthCheckSoqlTemplate.isAggregateQuery(
       query
     );
+    if (
+      aggregateQuery && String.isNotBlank(constrainedCurrencyIsoCode(query))
+    ) {
+      return false;
+    }
     String unitFieldPath = aggregateQuery ? null : isoFieldPath(fieldPath);
     for (SObject row : rows) {
       if (
         (aggregateQuery
-          ? row.get('CurrencyIsoCode')
+          ? row.getPopulatedFieldsAsMap().get('CurrencyIsoCode')
           : readPath(row, unitFieldPath)) == null
       ) {
         return true;
       }
     }
     return false;
+  }
+
+  private static String constrainedCurrencyIsoCode(String query) {
+    if (
+      !RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(
+        query,
+        'CurrencyIsoCode'
+      )
+    ) {
+      return null;
+    }
+    Set<String> literals = new Set<String>();
+    Matcher matcher = ISO_EQUALITY_LITERAL_PATTERN.matcher(query);
+    while (matcher.find()) {
+      literals.add(matcher.group(1).toUpperCase());
+    }
+    return literals.size() == 1 ? new List<String>(literals)[0] : null;
   }
 
   private static Object readPath(SObject row, String fieldPath) {

@@ -75,10 +75,10 @@
       "maximum": 3,
       "category": "settings supply and held-event observation test-only access"
     },
-    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckMetadataValidator.cls": {
-      "maximum": 1,
-      "category": "validation test-only access"
-    },
+  "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckMetadataValidator.cls": {
+    "maximum": 1,
+    "category": "validation test-only access"
+  },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckPluginDispatch.cls": {
       "maximum": 1,
       "category": "plugin dispatch test-only access"

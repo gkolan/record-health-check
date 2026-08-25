@@ -77,6 +77,53 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     Test.stopTest();
   }
 
+  @IsTest
+  static void directBatchExecuteRejectsScopeAboveEngineLimit() {
+    List<Id> oversizedScope = new List<Id>();
+    for (
+      Integer indexAt = 0;
+      indexAt <= RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
+      indexAt++
+    ) {
+      oversizedScope.add(
+        RecordHealthCheckTestDataFactory.syntheticId(
+          Account.SObjectType,
+          indexAt + 1
+        )
+      );
+    }
+    RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Account_Profile_Readiness'
+      ),
+      oversizedScope,
+      RecordHealthCheckEventPublication.NONE
+    );
+
+    Test.startTest();
+    try {
+      batch.execute(null, oversizedScope);
+      Assert.fail(
+        'A direct Batch scope above the engine ceiling must fail closed.'
+      );
+    } catch (IllegalArgumentException error) {
+      Assert.isTrue(
+        error.getMessage()
+          .contains(
+            'Batch execute scope cannot exceed ' +
+            RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE
+          ),
+        'The error must explain the engine scope ceiling.'
+      );
+      Assert.isTrue(
+        error.getMessage()
+          .contains('suppliedScopeSize=' + oversizedScope.size()),
+        'The error must report the rejected platform scope size.'
+      );
+    }
+    Test.stopTest();
+  }
+
   private class StubBatchContext implements Database.BatchableContext {
     private Integer calls = 0;
 

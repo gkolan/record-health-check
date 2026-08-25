@@ -12,7 +12,7 @@ import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.ge
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
 import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheck";
 import completeRun from "@salesforce/apex/RecordHealthCheckController.completeRun";
-import { parseAuraError } from "./healthCheckModel";
+import { checkIdentity, parseAuraError } from "./healthCheckModel";
 import { annotateCheck, buildSummaryGroups } from "./healthCheckPresentation";
 import { HealthCheckRunner } from "./healthCheckRunner";
 import {
@@ -38,6 +38,10 @@ const RUN_BUTTON_DISPLAYS = [
   "HIDE"
 ];
 const SLDS_ICON_NAME = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/;
+
+function emptyExpandedState() {
+  return Object.create(null);
+}
 
 const SETUP_ERROR_CODES = new Set([
   "SETUP_REQUIRED",
@@ -153,11 +157,11 @@ export default class RecordHealthCheck extends LightningElement {
 
   @track checks = [];
 
-  // Per-row disclosure overrides, keyed by developerName. Absent → the row
+  // Per-row disclosure overrides, keyed by qualifiedApiName. Absent → the row
   // starts collapsed (the default). Reassigned on toggle so
   // the visibleChecks getter re-annotates. Lives outside `checks` because the
   // runner rebuilds that array on every result; expand state must survive that.
-  @track _expandedNames = {};
+  @track _expandedNames = emptyExpandedState();
 
   // Run orchestration (result buffer, reveal pointer, concurrency pool, run id,
   // and the run token that discards stale in-flight results) lives in the runner;
@@ -216,6 +220,7 @@ export default class RecordHealthCheck extends LightningElement {
     deferInitialLoad = false
   ) {
     const loadToken = ++this._loadToken;
+    /* istanbul ignore next -- the browser owns this deferred frame handle */
     if (this._initialLoadFrame) {
       cancelAnimationFrame(this._initialLoadFrame);
       this._initialLoadFrame = null;
@@ -544,7 +549,7 @@ export default class RecordHealthCheck extends LightningElement {
     // method is the entry point for both the first load AND the in-place record
     // swap (console navigation / dynamic record pages), so without this reset a
     // stale evaluateCheck result from record A could drain into record B's rows
-    // (the run token guards stale results, and B reuses A's developerName keys),
+    // (the run token guards stale results, and B reuses A's Check identities),
     // and a leftover in-progress run would suppress B's Automatic run entirely.
     this._runner.invalidate();
     this.runComplete = false;
@@ -553,8 +558,8 @@ export default class RecordHealthCheck extends LightningElement {
     this.checks = [];
     // Per-row expand state belongs to the previous record's rows; clear it so a
     // new record starts from the placement default rather than inheriting stale
-    // carets keyed by reused developerNames.
-    this._expandedNames = {};
+    // carets keyed by reused qualified API names.
+    this._expandedNames = emptyExpandedState();
 
     this.isLoading = true;
     this._clearComponentError();
@@ -582,7 +587,7 @@ export default class RecordHealthCheck extends LightningElement {
         );
       }
 
-      const seenNames = new Set();
+      const seenQualifiedNames = new Set();
       for (const def of response.checks) {
         if (!def || !def.developerName) {
           throw this._clientDefinitionError(
@@ -594,13 +599,16 @@ export default class RecordHealthCheck extends LightningElement {
             "A health-check definition is missing its qualified API name."
           );
         }
-        if (seenNames.has(def.developerName)) {
+        if (seenQualifiedNames.has(def.qualifiedApiName)) {
           throw this._clientDefinitionError(
-            `Duplicate health-check developer name: ${def.developerName}.`
+            `Duplicate health-check qualified API name: ${def.qualifiedApiName}.`
           );
         }
-        seenNames.add(def.developerName);
+        seenQualifiedNames.add(def.qualifiedApiName);
       }
+      const canonicalChecks = this._canonicalizeCheckIdentities(
+        response.checks
+      );
 
       this.displayTitle = response.displayTitle;
       this.displayDescription = response.displayDescription;
@@ -662,11 +670,11 @@ export default class RecordHealthCheck extends LightningElement {
       this.comparisonDisplay = response.comparisonDisplay;
       this.stopOnFirstError = response.stopOnFirstError;
       this.showDiagnostics = response.showDiagnostics === true;
-      this.totalCheckCount = response.checks.length;
+      this.totalCheckCount = canonicalChecks.length;
       this.totalAvailableCheckCount =
         typeof response.totalAvailableCheckCount === "number"
           ? response.totalAvailableCheckCount
-          : response.checks.length;
+          : canonicalChecks.length;
       this.frameworkMaxChecks =
         typeof response.frameworkMaxChecks === "number"
           ? response.frameworkMaxChecks
@@ -683,7 +691,7 @@ export default class RecordHealthCheck extends LightningElement {
       this.checksOmittedByLimit = response.checksOmittedByLimit || false;
 
       // Build per-check rows — all start PENDING
-      this.checks = response.checks.map((def) => ({
+      this.checks = canonicalChecks.map((def) => ({
         developerName: def.developerName,
         qualifiedApiName: def.qualifiedApiName,
         label: def.label,
@@ -692,6 +700,8 @@ export default class RecordHealthCheck extends LightningElement {
         categoryLabel: def.categoryLabel || null,
         priority: def.priority,
         dependsOnCheckDeveloperName: def.dependsOnCheckDeveloperName || null,
+        dependsOnCheckQualifiedApiName:
+          def.dependsOnCheckQualifiedApiName || null,
         uiState: "PENDING",
         result: null
       }));
@@ -870,6 +880,68 @@ export default class RecordHealthCheck extends LightningElement {
     });
   }
 
+  _canonicalizeCheckIdentities(definitions) {
+    const byDeveloperName = new Map();
+    for (const definition of definitions) {
+      const candidates = byDeveloperName.get(definition.developerName) || [];
+      candidates.push(definition);
+      byDeveloperName.set(definition.developerName, candidates);
+    }
+
+    return definitions.map((definition) => {
+      const explicitQualifiedDependency =
+        definition.dependsOnCheckQualifiedApiName;
+      const legacyDependency = definition.dependsOnCheckDeveloperName;
+      if (!explicitQualifiedDependency && !legacyDependency) {
+        return { ...definition, dependsOnCheckQualifiedApiName: null };
+      }
+      if (explicitQualifiedDependency) {
+        return {
+          ...definition,
+          dependsOnCheckQualifiedApiName: explicitQualifiedDependency
+        };
+      }
+
+      const candidates = byDeveloperName.get(legacyDependency) || [];
+      if (candidates.length === 0) {
+        return {
+          ...definition,
+          dependsOnCheckQualifiedApiName: legacyDependency
+        };
+      }
+      if (candidates.length === 1) {
+        return {
+          ...definition,
+          dependsOnCheckQualifiedApiName: candidates[0].qualifiedApiName
+        };
+      }
+
+      const sourceNamespace = this._checkNamespace(definition);
+      const sameNamespace = candidates.filter(
+        (candidate) => this._checkNamespace(candidate) === sourceNamespace
+      );
+      if (sameNamespace.length !== 1) {
+        throw this._clientDefinitionError(
+          `Prerequisite Check "${legacyDependency}" is ambiguous across namespaces.`
+        );
+      }
+      return {
+        ...definition,
+        dependsOnCheckQualifiedApiName: sameNamespace[0].qualifiedApiName
+      };
+    });
+  }
+
+  _checkNamespace(definition) {
+    if (definition.qualifiedApiName === definition.developerName) {
+      return "";
+    }
+    const suffix = `__${definition.developerName}`;
+    return definition.qualifiedApiName.endsWith(suffix)
+      ? definition.qualifiedApiName.slice(0, -suffix.length)
+      : null;
+  }
+
   _handleCompletionFailure(error) {
     const parsed = parseAuraError(error);
     this.completionWarning =
@@ -972,7 +1044,7 @@ export default class RecordHealthCheck extends LightningElement {
     } else {
       // OneAtATime: reveal every resolved (non-hidden) row as soon as it lands
       const nextPending = this.checks.find((c) => c.uiState !== "RESOLVED");
-      const revealName = nextPending ? nextPending.developerName : null;
+      const revealIdentity = nextPending ? checkIdentity(nextPending) : null;
       filtered = this.checks.filter((c) => {
         if (c.uiState === "RESOLVED") {
           if (this._isHiddenSkipped(c)) {
@@ -986,7 +1058,7 @@ export default class RecordHealthCheck extends LightningElement {
         return (
           (c.uiState === "LOADING" ||
             (c.uiState === "PENDING" && this._runner.isRunning)) &&
-          c.developerName === revealName
+          checkIdentity(c) === revealIdentity
         );
       });
     }
@@ -998,7 +1070,7 @@ export default class RecordHealthCheck extends LightningElement {
         c,
         this.showDiagnostics,
         this.comparisonDisplay,
-        this._isRowExpanded(c.developerName)
+        this._isRowExpanded(checkIdentity(c))
       )
     );
     return this._visibleChecksCache;
@@ -1006,23 +1078,21 @@ export default class RecordHealthCheck extends LightningElement {
 
   // Whether a row's comparison detail is currently expanded. Carets default to
   // collapsed; a user toggle records an explicit state in _expandedNames.
-  _isRowExpanded(developerName) {
-    if (
-      Object.prototype.hasOwnProperty.call(this._expandedNames, developerName)
-    ) {
-      return this._expandedNames[developerName];
+  _isRowExpanded(identity) {
+    if (Object.prototype.hasOwnProperty.call(this._expandedNames, identity)) {
+      return this._expandedNames[identity];
     }
     return false;
   }
 
   handleToggleDetail(event) {
-    const developerName = event.currentTarget.dataset.check;
-    const next = !this._isRowExpanded(developerName);
+    const identity = event.currentTarget.dataset.check;
+    const next = !this._isRowExpanded(identity);
     // Reassign (not mutate) so the tracked field change re-runs visibleChecks.
-    this._expandedNames = {
-      ...this._expandedNames,
-      [developerName]: next
-    };
+    const expandedNames = emptyExpandedState();
+    Object.assign(expandedNames, this._expandedNames);
+    expandedNames[identity] = next;
+    this._expandedNames = expandedNames;
   }
 
   // Found/Expected values, user messages, fix guidance, and diagnostic detail
@@ -1281,7 +1351,7 @@ export default class RecordHealthCheck extends LightningElement {
     // A Rerun starts a fresh evaluation, so per-row carets the user opened on the
     // previous run should collapse back to the placement default rather than
     // linger open over rows whose values are being recomputed.
-    this._expandedNames = {};
+    this._expandedNames = emptyExpandedState();
     if (this.checks.length === 0 && this.triggerMode === "Manual") {
       this._definitionLoadInProgress = true;
       try {
@@ -1354,12 +1424,10 @@ export default class RecordHealthCheck extends LightningElement {
     );
   }
 
-  // Diagnostics is an authorized troubleshooting overlay: when active it auto-
-  // expands every check, overriding count-only display, so an admin can see the
-  // rows a count-only summary hides. showDiagnostics is already gated server-side
-  // (Set flag AND the diagnostics permission), so normal users are unaffected.
+  // Diagnostics is an authorized troubleshooting overlay, but it must not turn
+  // healthy results into apparent problems. Respect the configured row visibility
+  // and let an administrator inspect successful evidence deliberately.
   _isHiddenSkipped(check) {
-    if (this.showDiagnostics) return false;
     return this._isSkipped(check) && this.skippedDisplayMode === "Hide";
   }
 
@@ -1373,7 +1441,6 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   _isHiddenSuccess(check) {
-    if (this.showDiagnostics) return false; // auto-expand under diagnostics
     return this._isSuccess(check) && this.successDisplayMode === "Hide";
   }
 
@@ -1450,7 +1517,16 @@ export default class RecordHealthCheck extends LightningElement {
     for (const step of nextSteps) {
       console.info(`Next: ${step}`);
     }
-    this._logCheckDiagnostics(diag);
+    const actionableChecks = diag.checks.filter(
+      (check) => check.status !== "PASS"
+    );
+    if (actionableChecks.length === 0) {
+      console.info(
+        "No diagnostic issues were found. Successful Check details remain available in the component when configured to display."
+      );
+    } else {
+      this._logCheckDiagnostics({ ...diag, checks: actionableChecks });
+    }
     console.groupEnd();
   }
 
@@ -1459,7 +1535,7 @@ export default class RecordHealthCheck extends LightningElement {
       const rank = { ERROR: 0, UNABLE_TO_EVALUATE: 1, FAIL: 2, SKIPPED: 3 };
       return (rank[left.status] ?? 4) - (rank[right.status] ?? 4);
     });
-    console.group(`[RHC] Checks (${orderedChecks.length})`);
+    console.group(`[RHC] Results needing review (${orderedChecks.length})`);
     for (const [index, c] of orderedChecks.entries()) {
       const reason = c.reasonCode ? ` · ${c.reasonCode}` : "";
       const heading = `${index + 1}. ${c.label} · ${c.status}${reason}`;
@@ -1496,42 +1572,46 @@ export default class RecordHealthCheck extends LightningElement {
         if (c.fixInstructions) console.log(`Fix: ${c.fixInstructions}`);
       }
 
-      const advanced = {
-        identity: {
-          qualifiedApiName: c.rawResult?.checkDeveloperName || c.check,
-          evaluatorType: c.evaluatorType,
-          status: c.status,
-          severity: c.severity,
-          reasonCode: c.reasonCode,
-          durationMs: c.durationMs
-        },
-        configuration: c.configuration,
-        resolution: c.resolution,
-        renderedOutput: {
-          message: c.message,
-          found: c.actualValue,
-          expected: c.expectedValue,
-          foundSource: c.actualValueDetail,
-          expectedSource: c.expectedValueDetail,
-          fixInstructions: c.fixInstructions,
-          actionLabel: c.actionLabel,
-          actionUrl: c.actionUrl
-        },
-        serverDiagnostic: c.adminMessage,
-        incident: c.incident,
-        containsRestrictedDetail: c.containsRestrictedDetail,
-        rawNormalizedResult: c.rawResult
-      };
-      console.groupCollapsed("Advanced diagnostics");
-      console.log(advanced);
-      console.groupEnd();
+      const needsTechnicalEvidence =
+        c.status === "ERROR" || c.status === "UNABLE_TO_EVALUATE";
+      if (needsTechnicalEvidence) {
+        const advanced = {
+          identity: {
+            qualifiedApiName: c.rawResult?.checkDeveloperName || c.check,
+            evaluatorType: c.evaluatorType,
+            status: c.status,
+            severity: c.severity,
+            reasonCode: c.reasonCode,
+            durationMs: c.durationMs
+          },
+          configuration: c.configuration,
+          resolution: c.resolution,
+          renderedOutput: {
+            message: c.message,
+            found: c.actualValue,
+            expected: c.expectedValue,
+            foundSource: c.actualValueDetail,
+            expectedSource: c.expectedValueDetail,
+            fixInstructions: c.fixInstructions,
+            actionLabel: c.actionLabel,
+            actionUrl: c.actionUrl
+          },
+          serverDiagnostic: c.adminMessage,
+          incident: c.incident,
+          containsRestrictedDetail: c.containsRestrictedDetail,
+          rawNormalizedResult: c.rawResult
+        };
+        console.groupCollapsed("Advanced diagnostics");
+        console.log(advanced);
+        console.groupEnd();
 
-      console.groupCollapsed("Support report for this check");
-      console.warn(
-        "Review and redact customer data, record and user IDs, queries, and authentication information before sharing."
-      );
-      console.log(supportCheckDiagnosticsReport(diag, c));
-      console.groupEnd();
+        console.groupCollapsed("Support report for this check");
+        console.info(
+          "Review and redact customer data, record and user IDs, queries, and authentication information before sharing."
+        );
+        console.log(supportCheckDiagnosticsReport(diag, c));
+        console.groupEnd();
+      }
       console.groupEnd();
     }
     console.groupEnd();

@@ -73,8 +73,8 @@ private class RHCSoqlEvaluatorBehaviorTest {
     );
 
     Record_Health_Check__mdt greaterThan = queryCheck('Q_Greater_Than');
-    greaterThan.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
-    greaterThan.SourceQueryField__c = 'AnnualRevenue';
+    greaterThan.SourceQuery__c = 'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}';
+    greaterThan.SourceQueryField__c = 'NumberOfEmployees';
     greaterThan.ComparisonOperator__c = 'GREATER_THAN';
     greaterThan.ExpectedFixedValue__c = '10';
     assertStatus(
@@ -95,8 +95,8 @@ private class RHCSoqlEvaluatorBehaviorTest {
     Record_Health_Check__mdt numericParseError = queryCheck(
       'Q_Numeric_Parse_Error'
     );
-    numericParseError.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
-    numericParseError.SourceQueryField__c = 'AnnualRevenue';
+    numericParseError.SourceQuery__c = 'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}';
+    numericParseError.SourceQueryField__c = 'NumberOfEmployees';
     numericParseError.ComparisonOperator__c = 'EQUALS';
     numericParseError.ExpectedFixedValue__c = 'not-a-number';
     assertReason(
@@ -411,6 +411,20 @@ private class RHCSoqlEvaluatorBehaviorTest {
       evaluator.evaluate(maxRows, accountRecord.Id, accountRecord),
       'ROW_LIMIT_EXCEEDED'
     );
+  }
+
+  @IsTest
+  static void queryEvaluatorRejectsAllRowsAcrossLineBreaks() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Record_Health_Check__mdt check = queryCheck('Q_All_Rows_Line_Break');
+    check.SourceQuery__c = 'SELECT Id FROM Account ALL\nROWS';
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
+      .evaluate(check, accountRecord.Id, accountRecord);
+    Test.stopTest();
+
+    assertReason(result, 'INVALID_SOQL_TEMPLATE');
   }
 
   private static Record_Health_Check__mdt baseCheck(

@@ -11,11 +11,25 @@ export const VALID_RESULT_STATUSES = new Set([
   "ERROR"
 ]);
 
+/** Namespace-safe identity used for all client-side orchestration state. */
+export function checkIdentity(check) {
+  return check?.qualifiedApiName || check?.developerName;
+}
+
+/** Canonical prerequisite identity, with the legacy DeveloperName as fallback. */
+export function prerequisiteIdentity(check) {
+  return (
+    check?.dependsOnCheckQualifiedApiName ||
+    check?.dependsOnCheckDeveloperName ||
+    null
+  );
+}
+
 /** Client-synthesized result when the server never evaluated the check. */
 export function synthesizeResult(check, status, reasonCode, message) {
   return {
     checkDeveloperName: check.developerName,
-    checkQualifiedApiName: check.qualifiedApiName || check.developerName,
+    checkQualifiedApiName: checkIdentity(check),
     label: check.label,
     status,
     reasonCode,
@@ -94,19 +108,21 @@ export function toCompletionResult(result, recordId) {
 
 /** Developer names that participate in a RequiresCheck dependency cycle. */
 export function detectDependencyCycles(checks) {
-  const depMap = {};
+  const depMap = new Map();
   for (const check of checks) {
-    if (check.dependsOnCheckDeveloperName) {
-      depMap[check.developerName] = check.dependsOnCheckDeveloperName;
+    const dependency = prerequisiteIdentity(check);
+    if (dependency) {
+      depMap.set(checkIdentity(check), dependency);
     }
   }
   const cycleMembers = new Set();
   for (const check of checks) {
-    if (!depMap[check.developerName]) continue;
+    const identity = checkIdentity(check);
+    if (!depMap.has(identity)) continue;
     const path = [];
     const pathSet = new Set();
-    let current = check.developerName;
-    while (depMap[current] && !cycleMembers.has(current)) {
+    let current = identity;
+    while (depMap.has(current) && !cycleMembers.has(current)) {
       if (pathSet.has(current)) {
         // Found a cycle — add only the nodes from where the cycle starts
         const cycleStart = path.indexOf(current);
@@ -117,7 +133,7 @@ export function detectDependencyCycles(checks) {
       }
       path.push(current);
       pathSet.add(current);
-      current = depMap[current];
+      current = depMap.get(current);
     }
   }
   return cycleMembers;

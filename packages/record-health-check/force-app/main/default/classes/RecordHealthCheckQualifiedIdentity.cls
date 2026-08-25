@@ -2,7 +2,12 @@
 public with sharing class RecordHealthCheckQualifiedIdentity {
   /** Trims and bounds one Check or Check Set QualifiedApiName. */
   public static String normalize(String supplied, String label) {
-    if (String.isBlank(supplied)) {
+    if (supplied == null) {
+      throw new IllegalArgumentException(
+        label + ' QualifiedApiName is required.'
+      );
+    }
+    if (String.isBlank(supplied.trim())) {
       throw new IllegalArgumentException(
         label + ' QualifiedApiName is required.'
       );

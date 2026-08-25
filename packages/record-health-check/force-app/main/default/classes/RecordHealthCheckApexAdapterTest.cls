@@ -2,6 +2,24 @@
 @IsTest
 private with sharing class RecordHealthCheckApexAdapterTest {
   @IsTest
+  static void configuredTypeHandlesExplicitNamespaceSyntax() {
+    Test.startTest();
+    try {
+      RecordHealthCheckApexPluginResolver.configuredType(
+        'missing.NamespaceClass'
+      );
+      Assert.fail('An unknown explicitly namespaced type must be rejected.');
+    } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException error) {
+      Assert.areEqual(
+        'APEX_CLASS_NOT_FOUND',
+        error.reasonCode,
+        'Explicit namespace lookup must retain the stable missing-class reason.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
   static void evaluateReturnsClassNotFoundWhenClassNameBlank() {
     Account record = RecordHealthCheckTestDataFactory.createAccount(
       'Blank class'

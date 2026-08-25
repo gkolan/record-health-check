@@ -86,8 +86,18 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
    */
   global void execute(Database.BatchableContext context, List<Id> scope) {
     RecordHealthCheckAccess.requireCanRunChecks();
-    if (scope.isEmpty()) {
+    if (scope == null || scope.isEmpty()) {
       return;
+    }
+    if (scope.size() > RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE) {
+      throw new IllegalArgumentException(
+        'Batch execute scope cannot exceed ' +
+          RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE +
+          ' records. Submit this Batch through RecordHealthCheckBatch.run or pass an executeBatch scope of 1–' +
+          RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE +
+          '. suppliedScopeSize=' +
+          scope.size()
+      );
     }
     try {
       RecordHealthCheck.evaluate(

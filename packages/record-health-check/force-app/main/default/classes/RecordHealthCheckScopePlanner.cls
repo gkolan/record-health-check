@@ -274,18 +274,51 @@ public with sharing class RecordHealthCheckScopePlanner {
     RecordHealthCheckEventPublication publication
   ) {
     Integer requiredQueries = recordCount > 0 ? 1 : 0;
+    Integer requiredQueryRows = recordCount > 0 ? recordCount : 0;
     Integer requiredDml = 0;
     for (Record_Health_Check__mdt check : checks) {
       if (check.ApplicabilityMode__c == 'WHEN_COUNT_QUERY_MATCHES') {
         requiredQueries++;
+        requiredQueryRows += plannedQueryRows(
+          check.ApplicabilityCountQuery__c,
+          RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS,
+          recordCount
+        );
       }
       if (check.EvaluationType__c == 'QUERY') {
         requiredQueries++;
-        if (check.ExpectedValueSource__c == 'COMPARISON_QUERY') {
+        Integer maxRows = configuredMaxRows(check);
+        Boolean isListOperator = RecordHealthCheckValidator.isListOperator(
+          check.ComparisonOperator__c
+        );
+        requiredQueryRows += plannedQueryRows(
+          isListOperator ? check.ComparisonQuery__c : check.SourceQuery__c,
+          maxRows,
+          recordCount
+        );
+        if (
+          !isListOperator && check.ExpectedValueSource__c == 'COMPARISON_QUERY'
+        ) {
           requiredQueries++;
+          requiredQueryRows += plannedQueryRows(
+            check.ComparisonQuery__c,
+            maxRows,
+            recordCount
+          );
         }
       } else if (check.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
         requiredQueries += 2;
+        Integer maxRows = configuredMaxRows(check);
+        requiredQueryRows += plannedQueryRows(
+          check.SourceQuery__c,
+          maxRows,
+          recordCount
+        );
+        requiredQueryRows += plannedQueryRows(
+          check.ComparisonQuery__c,
+          maxRows,
+          recordCount
+        );
       } else if (check.EvaluationType__c == 'APEX') {
         requiredDml += 2;
       }
@@ -298,14 +331,24 @@ public with sharing class RecordHealthCheckScopePlanner {
       requiredDml += ceilingDivide(recordCount, 100);
     }
     Integer remainingQueries = Limits.getLimitQueries() - Limits.getQueries();
+    Integer remainingQueryRows =
+      Limits.getLimitQueryRows() - Limits.getQueryRows();
     Integer remainingDml =
       Limits.getLimitDmlStatements() - Limits.getDmlStatements();
-    if (requiredQueries > remainingQueries || requiredDml > remainingDml) {
+    if (
+      requiredQueries > remainingQueries ||
+      requiredQueryRows > remainingQueryRows ||
+      requiredDml > remainingDml
+    ) {
       throw new RecordHealthCheckScopePipeline.ScopePipelineException(
         'TRANSACTION_BUDGET_EXCEEDED: queriesRequired=' +
           requiredQueries +
           ', queriesRemaining=' +
           remainingQueries +
+          ', queryRowsRequired=' +
+          requiredQueryRows +
+          ', queryRowsRemaining=' +
+          remainingQueryRows +
           ', dmlRequired=' +
           requiredDml +
           ', dmlRemaining=' +
@@ -322,6 +365,63 @@ public with sharing class RecordHealthCheckScopePlanner {
           remainingHeap
       );
     }
+  }
+
+  private Integer configuredMaxRows(Record_Health_Check__mdt check) {
+    return check.MaxQueryRows__c == null ||
+      check.MaxQueryRows__c <= 0
+      ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
+      : (Integer) check.MaxQueryRows__c;
+  }
+
+  /**
+   * Reserves the largest result set the scope-wide rewrite can materialize.
+   * Every non-self query may consume its configured cap plus the sentinel row
+   * used to prove overflow. Aggregate queries keep that full reservation because
+   * Salesforce counts contributing rows against the transaction query-row limit.
+   */
+  private Integer plannedQueryRows(
+    String soql,
+    Integer maxRows,
+    Integer recordCount
+  ) {
+    if (String.isBlank(soql) || recordCount <= 0) {
+      return 0;
+    }
+    Integer rowCap = maxRows == null ||
+      maxRows <= 0
+      ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
+      : maxRows;
+    String strategy = RecordHealthCheckBulkQuerySupport.classify(soql);
+    if (strategy == RecordHealthCheckBulkQuerySupport.SCOPE_INVARIANT) {
+      if (RecordHealthCheckSoqlTemplate.isSingleCountQuery(soql)) {
+        return rowCap + 1;
+      }
+      Integer configuredLimit = outerNumericLimit(soql);
+      return configuredLimit == null
+        ? rowCap + 1
+        : Math.min(configuredLimit, rowCap + 1);
+    }
+    if (strategy == RecordHealthCheckBulkQuerySupport.SELF) {
+      return Math.min(recordCount, rowCap + 1);
+    }
+    return rowCap + 1;
+  }
+
+  private Integer outerNumericLimit(String soql) {
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
+    Matcher matcher = Pattern.compile('(?i)\\bLIMIT\\s+(\\d+)').matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0) {
+        continue;
+      }
+      try {
+        return Integer.valueOf(matcher.group(1));
+      } catch (Exception ignored) {
+        return null;
+      }
+    }
+    return null;
   }
 
   private Integer ceilingDivide(Integer value, Integer divisor) {
