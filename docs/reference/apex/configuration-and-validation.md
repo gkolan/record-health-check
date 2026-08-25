@@ -47,6 +47,23 @@ resolves a Check's parent Check Set, loads Checks for evaluation, and maps the f
   including optional fields that are blank, so downstream consumers do not encounter an
   unqueried-field exception.
 
+### `RHCDefinitionDependencyIdentity`
+
+**Role:** Resolve a Check prerequisite to its namespace-safe qualified identity.
+
+**Type:** Shared helper · `public with sharing`
+
+The Lightning definition loader uses this helper after loading the active Checks in a Check Set.
+When managed and subscriber metadata reuse a Developer Name, it prefers the prerequisite from the
+dependent Check's namespace. It returns the only unambiguous match as a compatibility fallback and
+returns `null` when the prerequisite is absent or cannot be resolved safely.
+
+**Key members:**
+
+| Member | Purpose |
+| --- | --- |
+| `resolve(dependent, checks)` | Return the prerequisite Check's qualified API name without collapsing namespace identities |
+
 ### `RecordHealthCheckValidator`
 
 **Role:** Apply the same Check-field rules to every Evaluation Type.

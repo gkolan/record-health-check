@@ -128,13 +128,14 @@ Do not use an administrator, a human employee, or the Agentforce user.
 6. Select a minimal profile. Do not select **System Administrator**.
 7. Save the user.
 8. In Setup, enter `Permission Sets` in **Quick Find**, then select **Permission Sets**.
-9. Open **Record Health Check User**.
+9. Open **Record Health Check MCP Integration**.
 10. Select **Manage Assignments**, then **Add Assignments**.
 11. Select the dedicated integration user and complete the assignment.
 12. Do not assign **Record Health Check Admin** merely to make the integration work.
 
-**Expected result:** the user exists and has the package's normal run permission, but does not have
-administrator or diagnostic-detail access.
+**Expected result:** the user has only the versioned REST entry point, the package run permission,
+and read access to the two Custom Metadata types. It has no package UI, Flow, Agentforce, async,
+lifecycle-event, administrator, or diagnostic-detail access.
 
 ## Step 3: Grant only the required Salesforce data access
 
@@ -488,7 +489,7 @@ This gate proves that an authenticated Salesforce user is allowed to run Record 
 ### Configure the gate
 
 1. In Setup, open **Permission Sets**.
-2. Open **Record Health Check User**.
+2. Open **Record Health Check MCP Integration**.
 3. Confirm that the dedicated integration user appears under **Manage Assignments**.
 4. Confirm that the user's assigned permissions include the packaged run Custom Permission.
 5. Do not add the diagnostics Custom Permission.
@@ -496,10 +497,10 @@ This gate proves that an authenticated Salesforce user is allowed to run Record 
 ### Prove the gate
 
 1. Run a known-readable Check Set and confirm the request reaches evaluation.
-2. Remove **Record Health Check User** from the integration user in a controlled test org.
+2. Remove **Record Health Check MCP Integration** from the integration user in a controlled test org.
 3. Repeat the same call.
 4. Confirm a safe permission error. It must not return `PASS`, `FAIL`, or a diagnostic stack trace.
-5. Reassign **Record Health Check User**.
+5. Reassign **Record Health Check MCP Integration**.
 6. Repeat the successful call.
 
 This test isolates package entitlement from normal object and field access. Keep the same record,

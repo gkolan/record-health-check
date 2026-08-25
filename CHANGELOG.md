@@ -76,7 +76,35 @@ For installation and verification, start with
 
 Target package version: **2.0.5**.
 
-No changes documented yet.
+### Added
+
+- Added MCP deployment and configuration safeguards, consistent Salesforce failure responses, and
+  tests for simultaneous requests, timeouts, authorization, availability, and protocol behavior.
+
+### Changed
+
+- Browser diagnostics now keep a completely passing run concise and warning-free. Per-Check console
+  groups exclude Pass results; ordinary business Fail and Skipped outcomes remain concise; full
+  **Advanced diagnostics** and support-report bundles are reserved for Unable to Check and System
+  Error outcomes.
+- Show Diagnostics no longer overrides the Check Set's configured visibility for passed or skipped
+  rows. Administrators do not see hidden healthy rows reappear as apparent problems merely because
+  troubleshooting is enabled.
+- Record Health Check now applies the same stricter request limits when it loads relationship
+  fields, runs queries and Apex Checks, compares values, and handles multiple currencies across
+  Lightning, Apex, Flow, background, Agentforce, REST, and MCP requests.
+- Package, subscriber-validation, permission, manifest, API, documentation, and quality-metric
+  gates now cover the new MCP and core-framework surfaces.
+
+### Fixed
+
+- Corrected diagnostics documentation and support guidance so expected business failures are not
+  described as technical incidents or sources of full support bundles.
+
+### Documentation
+
+- Clarified the browser-console behavior for Pass, Fail, Skipped, Unable to Check, and System Error
+  so administrators know which outcomes produce technical support evidence.
 
 ## Version 2.0.4.2
 

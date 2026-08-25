@@ -148,5 +148,5 @@ connection, or Omni-Channel routing feature. See
 ## Related
 
 - [Install and verify](../../installation/install-and-verify.md)
-- [FAQ](../../guides/faq.md)
+- [Setup and troubleshooting FAQ](../../guides/faq/setup-and-troubleshooting.md)
 - [Security and data access](security.md)

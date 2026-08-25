@@ -158,7 +158,7 @@ when both options exist.
 | `An org already uses alias '…'` | Confirm which org owns the alias. Choose a new `--alias`, or delete the old scratch org only when this work created it and it is no longer needed. |
 | Scratch-org capacity is insufficient | Reuse a suitable contributor org, delete an owned org that is no longer needed, or wait for the daily limit to reset |
 | Toolchain check reports another CLI version | Install the exact version shown in `config/toolchain.json`, then rerun `npm run check:toolchain` |
-| Deploy fails on currency field planner tests | The org is multi-currency; see the [FAQ](../guides/faq.md#why-did-contributor-source-deploy-fail-apex-tests-in-a-multi-currency-org) |
+| Deploy fails on currency field planner tests | The org is multi-currency; see the [setup and troubleshooting FAQ](../guides/faq/setup-and-troubleshooting.md#why-did-source-deployment-fail-a-currency-planner-test) |
 | `sf` not found on Windows | Confirm the Salesforce CLI install and that your shell session can resolve `sf` |
 | Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../installation/create-rhc-scratch-org.md) |
 

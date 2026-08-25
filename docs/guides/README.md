@@ -31,7 +31,8 @@ optional; there is no theme picker, and an AI draft never replaces human review.
 | I want to… | Guide |
 | --- | --- |
 | Decide between Record Health Check, a Validation Rule, Flow, or another Salesforce tool | [Compare to native Salesforce](compare-to-native-salesforce.md) |
-| Answer a common Record Health Check question | [FAQ](faq.md), which gives the answer and the right next page |
+| Understand purpose, fit, value, rollout, or day-to-day behavior | [Using Record Health Check FAQ](faq/using-record-health-check.md) |
+| Understand setup, security, operations, integration, or code | [Setup and troubleshooting FAQ](faq/setup-and-troubleshooting.md) |
 
 ### Configure
 

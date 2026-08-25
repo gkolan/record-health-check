@@ -23,7 +23,7 @@ Complete reports are easier to reproduce and resolve. Before reporting a bug:
 
 - Record the expected behavior, actual behavior, and exact steps to reproduce it.
 - Include the **Check Set Qualified API Name** and **Check Developer Name**, not only the labels shown on the card.
-- Temporarily enable **Show Diagnostics**, reproduce the issue, and capture the `[RHC]` report from the browser console. If diagnostics cannot be enabled or do not apply, explain why. See [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md).
+- Temporarily enable **Show Diagnostics** and reproduce the issue. Capture the concise `[RHC]` summary. For **Unable to Check** or **System Error**, also capture the affected Check's support report. Ordinary Pass, Fail, and Skipped results intentionally do not produce a technical support bundle. If diagnostics cannot be enabled or do not apply, explain why. See [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md).
 - Attach a screenshot or screen recording when the problem appears on the card.
 - Include the package version or installed `04t`, installation type, org type, Salesforce API version, and browser or device when relevant.
 - Redact customer data, record IDs, Org IDs, session IDs, access tokens, screenshots, and console output before sharing anything.
@@ -37,7 +37,8 @@ Complete reports are easier to reproduce and resolve. Before reporting a bug:
 | A Check is not behaving as expected   | [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md)               |
 | A result code needs explaining        | [Reason Codes](docs/reference/contracts/reason-codes.md)                                              |
 | Comparing to Validation Rules or Flow | [Compare Record Health Check to native Salesforce tools](docs/guides/compare-to-native-salesforce.md) |
-| Quick answers to common questions     | [FAQ](docs/guides/faq.md)                                                                             |
+| Purpose, fit, rollout, and use        | [Using Record Health Check FAQ](docs/guides/faq/using-record-health-check.md)                         |
+| Setup, security, operations, and code | [Setup and troubleshooting FAQ](docs/guides/faq/setup-and-troubleshooting.md)                         |
 
 ## Community Slack
 

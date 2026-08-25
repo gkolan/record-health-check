@@ -27,6 +27,33 @@ data holders, the plugin interface, merge-token helpers, and a few other types a
 classes (no sharing keyword) because they hold data or interfaces rather than query Salesforce
 records.
 
+## Codebase size and verification
+
+The 2.0.4.2 source snapshot contains 213 packaged Apex classes and 45,975 physical lines. The
+class count is almost evenly divided between the runtime framework and its verification surface;
+it should not be read as 213 classes of production behavior.
+
+| Category | Classes | Physical lines | Substantive code lines |
+| --- | ---: | ---: | ---: |
+| Runtime framework | 108 | 20,183 | 16,627 |
+| Tests and contract-verification support | 105 | 25,792 | 23,178 |
+| **Total** | **213** | **45,975** | **39,805** |
+
+Of all physical lines, 3,166 (6.9%) are comment-only and 3,004 (6.5%) are blank. In other words,
+86.6% are substantive code lines and 13.4% are comments or whitespace. The verification category
+includes 104 directly executable test classes plus the abstract
+`RecordHealthCheckContractTest` harness that subscriber plugin tests extend.
+
+Calling every non-runtime line "fluff" would therefore be misleading. More than half of the
+source is test and contract evidence for dynamic SOQL, formulas, metadata validation, security
+boundaries, bulk execution, asynchronous entry points, integrations, and failure diagnostics.
+That code does not run during an ordinary health check, but it is what demonstrates that the
+runtime framework behaves safely across those boundaries.
+
+These figures describe the named release snapshot rather than a permanent project invariant.
+The main README's class and test counts are checked automatically by `npm run check:docs`; line
+counts should be remeasured when this section is updated for a later release.
+
 ## Recommended path
 
 The L5 through L1 labels describe which internal classes can call which other classes. L5 receives
@@ -164,6 +191,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L2 | `RecordHealthCheckComparisonDisplay` | Converts comparison operands into stable display content |
 | L2 | `RecordHealthCheckConfigFindingMapper` | Converts validation findings into configuration results returned during a run |
 | L2 | `RecordHealthCheckDefinitionLoader` | Loads and validates Lightning definition metadata |
+| L2 | `RHCDefinitionDependencyIdentity` | Resolves prerequisite identity without namespace collisions |
 | L2 | `RecordHealthCheckDisplayCurrencyRenderer` | Renders currency symbols and minor units |
 | L2 | `RecordHealthCheckDisplayCurrencyResolver` | Resolves row and corporate currency context with transaction caching |
 | L2 | `RecordHealthCheckDisplayFieldResolver` | Extracts display values from described field paths |

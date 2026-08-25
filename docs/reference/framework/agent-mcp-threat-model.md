@@ -27,7 +27,7 @@ rotation, revocation, and audit trails. Neither credential represents the conver
 | Service identity mistaken for user delegation | Setup documentation; prefer native action for in-org use | Identity review |
 | Prompt injection in stored text | Treat output as data; exclude display text; fixed agent instructions | Injection suite |
 | Tool side effects | Read-only operations; publication `NONE`; no generic Apex or SOQL | Mutation and event tests |
-| Diagnostics disclosure | Exclude diagnostics; integration user lacks diagnostics permission | Restricted-user tests |
+| Diagnostics disclosure | Allow only four bounded, disclosure-safe diagnosis fields; exclude raw administrator diagnostics; integration user lacks diagnostics permission | Contract and restricted-user tests |
 | Credential theft | Managed secrets, narrow scopes, rotation, token validation, no token logs | Rotation and log tests |
 | Server-side request forgery | Salesforce host list, redirect refusal, outbound controls | Host tests |
 | Excessive calls | Per-client rate, concurrency, timeout, body, and response limits | Load tests |
@@ -45,7 +45,8 @@ rotation, revocation, and audit trails. Neither credential represents the conver
 - `UNABLE_TO_EVALUATE`, `ERROR`, missing output, and adapter failure never become `PASS`.
 - MCP never claims to preserve the conversational user's Salesforce access.
 - Removing **Record Health Check Run** prevents evaluation.
-- Ordinary Agentforce and MCP principals cannot receive diagnostics.
+- Ordinary Agentforce and MCP principals can receive only the four bounded completed-evaluation
+  diagnosis fields; they cannot receive raw or administrator-only diagnostics.
 - Models cannot select event publication in version 1.
 - MCP exposes no generic query, Apex, record update, or metadata operation.
 - Logs exclude complete tool inputs and Apex responses.

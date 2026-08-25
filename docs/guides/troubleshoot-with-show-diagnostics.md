@@ -33,7 +33,7 @@ on [Install and verify](../installation/install-and-verify.md).
 | --- | --- |
 | Why does checking Show Diagnostics appear to do nothing? | The viewer also needs **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) through the Admin Permission Set |
 | What changes on the card? | Authorized troubleshooting lines and details appear after a run |
-| What appears in the browser console? | One `[RHC]` summary with a collapsed group for each Check and its complete diagnostics |
+| What appears in the browser console? | One `[RHC]` summary; only results needing review receive per-Check groups, and full support evidence is reserved for technical outcomes |
 | How do I return to normal operation? | Uncheck Show Diagnostics and remove temporary administrator access when appropriate |
 
 ## Start with the symptom users see
@@ -85,7 +85,7 @@ browser-console group completes the sequence:
 4. **How do I fix it?** One or more actions tailored to configuration, access, query, formula,
    plugin contract, limits, or framework failure.
 5. **How do I verify it?** A concrete rerun or configuration validation step.
-6. **How do I correlate it?** A Diagnostic ID and Run ID that are safe to copy into a support case.
+6. **How do I match the evidence?** A Diagnostic ID and Run ID that are safe to copy into a support case.
 
 In the browser console, expand **Support report for this check** and copy the structured report when
 you need to escalate. Review it before sharing: it can contain record and user IDs, queries, source
@@ -174,8 +174,9 @@ troubleshooting information. The Record Health Check Admin Permission Set includ
 | Result troubleshooting line | Yes | Yes | Status, Reason Code, duration, and Evaluation Type beneath each result. |
 | **Diagnosis** | Yes | Yes | A concise Issue, Where, and Why explanation for `UNABLE_TO_EVALUATE` or `ERROR`. |
 | Browser-console prompt | Yes | Yes | A reminder that full technical evidence and next steps are available in the browser console. |
-| `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, next steps, and one collapsed diagnostic group per Check. |
-| Found and Expected source detail | Yes | Yes | `actualValueDetail` and `expectedValueDetail` notes inside each Check's collapsed **Advanced diagnostics** group. These explain where displayed values came from and never appear on the card. |
+| `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, and ordered next steps. A completely passing run states that no diagnostic issues were found and does not create per-Check groups. |
+| Results needing review | Yes | Yes | A concise collapsed group for each Fail, Skipped, Unable to Check, or System Error result. Passing Checks are omitted from console detail. |
+| Advanced diagnostics and support report | Yes | Yes | Technical evidence for `UNABLE_TO_EVALUATE` and `ERROR` only. Ordinary business Fail and Skipped results remain concise and do not produce a support bundle. |
 
 The Custom Permission does not grant record or field access. Record Health Check still uses the
 running user's Salesforce access, and diagnostic output can describe only information the user was
@@ -192,7 +193,7 @@ After you **run** the checks (automatic or manual), and only when both steps abo
 | **Gray line under each result** | Compact summary, for example `FAIL · FORMULA_FALSE · 38ms · Formula`: Status, Reason Code, duration, and Evaluation Type (API value). |
 | **Diagnosis** | An automatically expanded explanation limited to Issue, Where, and Why. Remediation, verification, IDs, and evidence stay in the browser console. |
 | **Found / Expected** | On failing checks, labelled chips when the engine captured values. Found / Expected visibility is controlled by **Found/Expected Display** on the Check Set. |
-| **Found and Expected source details** | When the viewer has **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`), source details are included in the browser-console diagnostics, not on the card. |
+| **Found and Expected source details** | For Unable to Check and System Error outcomes, source details may be included in the browser console's **Advanced diagnostics** group. Business Fail and Skipped results do not produce that technical bundle. |
 | **Console hint** | Small footnote directing technical users to the browser console (F12) for evidence and next steps. |
 
 Users **without** **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) never see the gray lines, Diagnosis panels, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
@@ -211,26 +212,29 @@ distinguish multiple Record Health Check cards on the same Lightning record page
 | --- | --- |
 | **Outcome summary** | A count such as `3 Passed, 2 Failed · 847ms total`. |
 | **Next steps** | Ordered plain-language guidance. System Error guidance appears before Unable, Fail, or Skipped guidance. |
-| **Checks** | Every Check, ordered with System Error, Unable, Fail, and Skipped before Pass. Each Check is collapsed by default. |
+| **Results needing review** | Every non-Pass result, ordered with System Error, Unable, Fail, and Skipped. Passing Checks do not create per-Check console noise. |
 | **Check summary** | Readable Status, Severity, Reason Code, Evaluation Type, duration, Issue, Where, Why, Fix, and Verify lines when available. |
-| **Advanced diagnostics** | A collapsed JSON snapshot with identity, configuration, resolution, rendered values and sources, server diagnosis, and the complete normalized result for that Check. |
-| **Support report for this check** | A collapsed, standalone JSON report for only that Check plus the run context needed to identify it. Review and redact it before sharing. |
+| **Advanced diagnostics** | For Unable to Check or System Error only, a collapsed JSON view with the Check name, configuration, values, source details, server diagnosis, and complete result returned by the server. |
+| **Support report for this check** | For Unable to Check or System Error only, a collapsed standalone JSON report for the Check plus the Run ID and Set details needed to identify it. Review and redact it before sharing. |
 
-Expand only the Check you need. Its summary separates Issue, Where, Why, Fix, and Verify. Expand
-**Advanced diagnostics** when the summary is not enough. It can contain query templates, merged
-record identifiers, prepared execution queries, source values, customer data, and the Diagnostic
-ID, and must be reviewed before it is shared.
+For a Fail or Skipped result, read the concise Check summary and correct the business data,
+applicability, prerequisite, or configuration. Those expected outcomes are not system incidents and
+do not receive an advanced support bundle. For Unable to Check or System Error, expand only the
+technical Check you need. Its summary separates Issue, Where, Why, Fix, and Verify. Expand
+**Advanced diagnostics** only when that summary is not enough. It can contain query templates,
+merged record identifiers, prepared execution queries, source values, customer data, and the
+Diagnostic ID, and must be reviewed before it is shared.
 
-For a bounded per-record query, **Advanced diagnostics** shows the prepared query that execution used.
-Its `LIMIT` is **Max Query Rows + 1** because the framework probes for one extra row to distinguish
-an exact-cap result from `ROW_LIMIT_EXCEEDED`.
+For a query that runs separately for each record, **Advanced diagnostics** shows the prepared query
+that execution used. Its `LIMIT` is **Max Query Rows + 1** because Record Health Check reads one
+extra row to determine whether the configured maximum was exceeded.
 
-Use the **Diagnostic ID** and **Run ID** to correlate the card, console, Agentforce or API response,
+Use the **Diagnostic ID** and **Run ID** to match the card, console, Agentforce or API response,
 and structured Log event. Open a Salesforce debug log only when the diagnosis explicitly lacks
 enough evidence for resolution.
-The console prints a redaction warning inside every per-Check support-report group. Record and User IDs,
-queries, source values, and customer data can still be present; “support report” does not mean “safe
-to publish without review.”
+The console prints a redaction reminder inside each technical support-report group. Record and User
+IDs, queries, source values, and customer data can still be present; “support report” does not mean
+“safe to publish without review.”
 
 ## Developer and integration evidence
 
@@ -247,7 +251,8 @@ governor limits, Salesforce internal failures, and novel framework defects.
 3. Open the matching log and search for `[RHC]`, the Run ID, the Check Set or Check identity,
    `EXCEPTION_THROWN`, `FATAL_ERROR`, and `LIMIT_USAGE_FOR_NS`.
 4. Read the first relevant exception and its cause before later wrapper exceptions. Confirm whether
-   the failure occurred while loading metadata, planning scope, evaluating Formula/SOQL/Apex,
+   the failure occurred while loading configuration, preparing the requested records, evaluating
+   Formula/SOQL/Apex,
    rendering display data, or publishing an event.
 5. Disable the temporary trace flag and redact record data, user IDs, org IDs, queries, and tokens
    before sharing the log.
@@ -264,8 +269,9 @@ is disabled by default and also requires the Error Log Publisher permission. Thi
 from Check Result and Set Run lifecycle events.
 
 Use it when a Flow, Apex trigger, or integration needs ongoing error notification. Its structured
-details JSON retains category, phase, Diagnostic ID, fingerprint, ownership, retryability, scope
-impact, and safe exception context independently from the human message. Publication can still
+details JSON retains the problem type, failed step, Diagnostic ID, repeated-problem value,
+responsible area, whether a retry may help, affected records, and safe exception details
+independently from the human message. Publication can still
 fail, and an uncatchable transaction-ending limit can prevent the event. See the complete field,
 security, and loop-prevention details in [Log Platform Event](../metadata/event-log.md).
 

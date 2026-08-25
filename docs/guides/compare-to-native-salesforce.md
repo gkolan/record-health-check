@@ -95,6 +95,6 @@ conflict, because a Check result never changes what Salesforce allows to be save
 - [Architecture: Position in the platform](../reference/framework/architecture.md#1-position-in-the-platform)
 - [How Record Health Check works](../installation/how-it-works.md)
 - [Reason Codes](../reference/contracts/reason-codes.md)
-- [FAQ](faq.md)
+- [Using Record Health Check FAQ](faq/using-record-health-check.md)
 - [Configure Check Sets and Checks](configure-check-sets-and-checks.md)
 - [Create your first Check](../installation/create-your-first-check.md)
