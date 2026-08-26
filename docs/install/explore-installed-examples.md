@@ -5,16 +5,19 @@
 > Setup and on Lightning record pages. These records are different from the copyable recipes in
 > the [examples library](../examples/README.md).
 
-The package installs four active Check Sets and 21 Checks. Their labels begin with **Example:** and
-their Developer Names begin with `Example_`. In an installed managed package, a Qualified API Name
-also includes the `rhc__` namespace, such as `rhc__Example_Account_Profile_Readiness`.
+The package installs four active Example Check Set records and 42 Example Check records. Forty-one
+Checks are active. One original Relationship & Risk Check remains inactive so upgrades do not
+remove metadata that an existing subscriber may still reference. Their labels begin with
+**Example:** and their Developer Names begin with `Example_`. In an installed package, a Qualified
+API Name also includes the `rhc__` namespace, such as
+`rhc__Example_Account_Check_Builder_Guide`.
 
 Use these records to verify a sandbox installation. Create separate Check Sets with names and
 requirements owned by your organization before using Record Health Check in a business process.
 
 ## Outcome
 
-After this walkthrough, you will have located all four installed example Check Sets, connected one
+After this walkthrough, you will have located the installed example Check Sets, connected one
 to a Lightning record page, and proved that a controlled record change updates the expected result.
 
 ## Before you start
@@ -29,8 +32,12 @@ to a Lightning record page, and proved that a controlled record change updates t
 
 | Check Set Developer Name | Card title | Installed Checks |
 | --- | --- | --- |
-| `Example_Account_Profile_Readiness` | Example: Account Profile Readiness | Profile Billing Address; Industry Classified; Phone Available; Website Available |
-| `Example_Account_Relationship_Risk` | Example: Account Relationship & Risk Health Check | Account Owner Is Active; Channel Partner Governance; Contacts Have Email Addresses; Customer Engagement Is Current; Executive Sponsorship; Industry Aligns With Parent; No High-Priority Issues; Open Deals Have Contacts; Pipeline Protects Revenue |
+| `Example_Account_Check_Builder_Guide` | Example: Account Check Builder Guide | 25 active Checks: 3 Formula, 10 Query, 11 Compare Two Queries, and 1 Apex |
+| `Example_Account_Relationship_Risk` | Example: Account Relationship & Risk Health Check | Original example from `main`: 9 Checks, 8 active |
+
+The Account Check Builder Guide is ordered from Formula to Query to Compare Two Queries, followed by
+one Apex Check. See [Install the demo in a scratch org](./install-demo-in-a-scratch-org.md#what-the-demo-prepares)
+for the exact 25 Checks, their order, expected outcomes, and seeded evidence.
 
 ### Contact and Opportunity
 
@@ -43,7 +50,7 @@ to a Lightning record page, and proved that a controlled record change updates t
 
 1. In Setup, open **Custom Metadata Types**.
 2. Next to **Record Health Check Set**, select **Manage Records**.
-3. Open one of the four records whose label begins with **Example:**. Note its **Developer Name**,
+3. Open one of the records whose label begins with **Example:**. Note its **Developer Name**,
    **Base Object API Name**, and **Card Title**.
 4. Return to **Custom Metadata Types**. Next to **Record Health Check**, select **Manage Records**.
 5. Open a record whose label begins with **Example:** and confirm that **Check Set** points to the
@@ -76,7 +83,7 @@ result, follow [Troubleshoot with Show Diagnostics](../diagnostics/browser-conso
 
 | Source | Already in the org? | Intended use |
 | --- | --- | --- |
-| The four Check Sets on this page | Yes, after package installation | Verify installation and inspect working metadata |
+| The four Check Set records on this page | Yes, after package installation | Verify installation and inspect working metadata; use the example for the same Salesforce object as the record page |
 | Pages under `docs/examples/` | No | Copy a pattern and adapt it to an approved business requirement |
 | Apex class `AccountHasRecentActivityCheck` | Yes | Demonstrate a packaged custom Apex Check |
 | Strategic readiness and inactive approver Apex classes | No; test fixtures only | Developer examples that require review, deployment, and tests |

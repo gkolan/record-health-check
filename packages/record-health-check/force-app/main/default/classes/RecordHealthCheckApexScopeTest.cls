@@ -52,12 +52,18 @@ private with sharing class RecordHealthCheckApexScopeTest {
   }
 
   private class CapturingScopeCheck implements RecordHealthCheckPlugin {
+    public String capturedCheckDeveloperName;
     public String capturedCheckQualifiedApiName;
+    public String capturedCheckSetDeveloperName;
+    public String capturedCheckSetQualifiedApiName;
 
     public Map<Id, RecordHealthCheckOutcome> evaluate(
       RecordHealthCheckScope scope
     ) {
-      capturedCheckQualifiedApiName = scope.checkDeveloperName;
+      capturedCheckDeveloperName = scope.checkDeveloperName;
+      capturedCheckQualifiedApiName = scope.checkQualifiedApiName;
+      capturedCheckSetDeveloperName = scope.checkSetDeveloperName;
+      capturedCheckSetQualifiedApiName = scope.checkSetQualifiedApiName;
       Map<Id, RecordHealthCheckOutcome> outcomes = new Map<Id, RecordHealthCheckOutcome>();
       for (Id recordId : scope.recordIds) {
         outcomes.put(
@@ -341,7 +347,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
   }
 
   @IsTest
-  static void pluginScopeReceivesQualifiedCheckIdentity() {
+  static void pluginScopeReceivesUnqualifiedAndQualifiedIdentities() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Qualified plugin scope'
     );
@@ -363,15 +369,31 @@ private with sharing class RecordHealthCheckApexScopeTest {
         new List<Id>{ accountRecord.Id },
         new Map<Id, SObject>{ accountRecord.Id => accountRecord },
         'Account',
+        'Set_A',
         'subscriber__Set_A',
         'qualified-plugin-scope'
       );
     Test.stopTest();
 
     Assert.areEqual(
+      check.DeveloperName,
+      plugin.capturedCheckDeveloperName,
+      'The DeveloperName property must expose the unqualified Check identity.'
+    );
+    Assert.areEqual(
       'managed__Apex_Scope_Test',
       plugin.capturedCheckQualifiedApiName,
-      'A managed and subscriber Check with the same DeveloperName must remain distinguishable to the plugin.'
+      'The qualified property must distinguish managed and subscriber Checks with the same DeveloperName.'
+    );
+    Assert.areEqual(
+      'Set_A',
+      plugin.capturedCheckSetDeveloperName,
+      'The Set DeveloperName property must expose the unqualified Set identity.'
+    );
+    Assert.areEqual(
+      'subscriber__Set_A',
+      plugin.capturedCheckSetQualifiedApiName,
+      'The qualified Set property must preserve its namespace.'
     );
   }
 

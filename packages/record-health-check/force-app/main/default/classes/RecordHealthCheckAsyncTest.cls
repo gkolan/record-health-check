@@ -1,7 +1,7 @@
 @IsTest
 private with sharing class RecordHealthCheckAsyncTest {
   private static final String VALID_CHECK_SET = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-    'Example_Account_Profile_Readiness'
+    'Example_Account_Check_Builder_Guide'
   );
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
@@ -131,7 +131,7 @@ private with sharing class RecordHealthCheckAsyncTest {
     );
     RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.NONE
@@ -174,7 +174,7 @@ private with sharing class RecordHealthCheckAsyncTest {
     Test.startTest();
     Id jobId = RecordHealthCheckQueueable.enqueue(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.NONE
@@ -203,7 +203,7 @@ private with sharing class RecordHealthCheckAsyncTest {
     Test.startTest();
     Id jobId = RecordHealthCheckBatch.run(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.NONE

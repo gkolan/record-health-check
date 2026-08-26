@@ -16,12 +16,46 @@ export function checkIdentity(check) {
   return check?.qualifiedApiName || check?.developerName;
 }
 
-/** Canonical prerequisite identity, with the legacy DeveloperName as fallback. */
-export function prerequisiteIdentity(check) {
-  return (
+/** Namespace parsed only when QualifiedApiName and DeveloperName agree. */
+export function checkNamespace(check) {
+  const qualifiedApiName = check?.qualifiedApiName;
+  const developerName = check?.developerName;
+  if (!qualifiedApiName || !developerName) return null;
+  if (qualifiedApiName === developerName) return "";
+  const suffix = `__${developerName}`;
+  return qualifiedApiName.endsWith(suffix)
+    ? qualifiedApiName.slice(0, -suffix.length)
+    : null;
+}
+
+/** Canonical prerequisite identity, with the unqualified DeveloperName as fallback. */
+export function prerequisiteIdentity(check, checks) {
+  const configuredIdentity =
     check?.dependsOnCheckQualifiedApiName ||
     check?.dependsOnCheckDeveloperName ||
-    null
+    null;
+  if (!configuredIdentity || !checks) return configuredIdentity;
+
+  const normalized = configuredIdentity.toLowerCase();
+  const candidates = checks.filter(
+    (candidate) =>
+      checkIdentity(candidate)?.toLowerCase() === normalized ||
+      candidate?.developerName?.toLowerCase() === normalized
+  );
+  if (candidates.length === 0) return configuredIdentity;
+
+  const dependentNamespace = checkNamespace(check)?.toLowerCase();
+  const sameNamespace = candidates.find((candidate) => {
+    const candidateNamespace = checkNamespace(candidate)?.toLowerCase();
+    return (
+      dependentNamespace !== undefined &&
+      candidateNamespace === dependentNamespace
+    );
+  });
+  return (
+    checkIdentity(
+      sameNamespace || (candidates.length === 1 && candidates[0])
+    ) || configuredIdentity
   );
 }
 
@@ -51,8 +85,7 @@ export function normalizeResult(result, check) {
   }
   const normalized = result.evaluation
     ? {
-        checkDeveloperName:
-          result.evaluation.checkQualifiedApiName || check.developerName,
+        checkDeveloperName: check.developerName,
         checkQualifiedApiName:
           result.evaluation.checkQualifiedApiName ||
           check.qualifiedApiName ||
@@ -110,7 +143,7 @@ export function toCompletionResult(result, recordId) {
 export function detectDependencyCycles(checks) {
   const depMap = new Map();
   for (const check of checks) {
-    const dependency = prerequisiteIdentity(check);
+    const dependency = prerequisiteIdentity(check, checks);
     if (dependency) {
       depMap.set(checkIdentity(check), dependency);
     }

@@ -250,6 +250,13 @@ private with sharing class RecordHealthCheckSoqlEdgeTest {
           error.reasonCode,
           'Invalid typed fallbacks should use the missing-value reason code.'
         );
+        if (scenario[0] == 'IsDeleted') {
+          Assert.areEqual(
+            'Boolean fallback must be true or false.',
+            error.getMessage(),
+            'The specific Boolean correction must survive fallback coercion.'
+          );
+        }
       }
     }
     Test.stopTest();

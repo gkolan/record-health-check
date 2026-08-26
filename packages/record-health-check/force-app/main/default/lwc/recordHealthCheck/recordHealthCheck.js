@@ -12,7 +12,11 @@ import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.ge
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
 import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheck";
 import completeRun from "@salesforce/apex/RecordHealthCheckController.completeRun";
-import { checkIdentity, parseAuraError } from "./healthCheckModel";
+import {
+  checkIdentity,
+  checkNamespace,
+  parseAuraError
+} from "./healthCheckModel";
 import { annotateCheck, buildSummaryGroups } from "./healthCheckPresentation";
 import { HealthCheckRunner } from "./healthCheckRunner";
 import {
@@ -891,8 +895,8 @@ export default class RecordHealthCheck extends LightningElement {
     return definitions.map((definition) => {
       const explicitQualifiedDependency =
         definition.dependsOnCheckQualifiedApiName;
-      const legacyDependency = definition.dependsOnCheckDeveloperName;
-      if (!explicitQualifiedDependency && !legacyDependency) {
+      const developerNameDependency = definition.dependsOnCheckDeveloperName;
+      if (!explicitQualifiedDependency && !developerNameDependency) {
         return { ...definition, dependsOnCheckQualifiedApiName: null };
       }
       if (explicitQualifiedDependency) {
@@ -902,11 +906,11 @@ export default class RecordHealthCheck extends LightningElement {
         };
       }
 
-      const candidates = byDeveloperName.get(legacyDependency) || [];
+      const candidates = byDeveloperName.get(developerNameDependency) || [];
       if (candidates.length === 0) {
         return {
           ...definition,
-          dependsOnCheckQualifiedApiName: legacyDependency
+          dependsOnCheckQualifiedApiName: developerNameDependency
         };
       }
       if (candidates.length === 1) {
@@ -922,7 +926,7 @@ export default class RecordHealthCheck extends LightningElement {
       );
       if (sameNamespace.length !== 1) {
         throw this._clientDefinitionError(
-          `Prerequisite Check "${legacyDependency}" is ambiguous across namespaces.`
+          `Prerequisite Check "${developerNameDependency}" is ambiguous across namespaces.`
         );
       }
       return {
@@ -933,13 +937,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   _checkNamespace(definition) {
-    if (definition.qualifiedApiName === definition.developerName) {
-      return "";
-    }
-    const suffix = `__${definition.developerName}`;
-    return definition.qualifiedApiName.endsWith(suffix)
-      ? definition.qualifiedApiName.slice(0, -suffix.length)
-      : null;
+    return checkNamespace(definition);
   }
 
   _handleCompletionFailure(error) {
@@ -1577,7 +1575,10 @@ export default class RecordHealthCheck extends LightningElement {
       if (needsTechnicalEvidence) {
         const advanced = {
           identity: {
-            qualifiedApiName: c.rawResult?.checkDeveloperName || c.check,
+            qualifiedApiName:
+              c.rawResult?.checkQualifiedApiName ||
+              c.checkQualifiedApiName ||
+              c.check,
             evaluatorType: c.evaluatorType,
             status: c.status,
             severity: c.severity,
@@ -1606,7 +1607,7 @@ export default class RecordHealthCheck extends LightningElement {
         console.groupEnd();
 
         console.groupCollapsed("Support report for this check");
-        console.info(
+        console.warn(
           "Review and redact customer data, record and user IDs, queries, and authentication information before sharing."
         );
         console.log(supportCheckDiagnosticsReport(diag, c));

@@ -15,7 +15,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
     RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
     input.recordId = accountRecord.Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
     input.correlationId = 'agent-check-1';
 
@@ -60,7 +60,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
     RecordHealthCheckRunSetAgentAction.Request input = new RecordHealthCheckRunSetAgentAction.Request();
     input.recordId = accountRecord.Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     input.correlationId = 'agent-set-1';
 
@@ -385,7 +385,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
     RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
     input.recordId = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
     input.correlationId = 'agent-check-valid';
     return input;
@@ -395,7 +395,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
     RecordHealthCheckRunSetAgentAction.Request input = new RecordHealthCheckRunSetAgentAction.Request();
     input.recordId = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     input.correlationId = 'agent-set-valid';
     return input;

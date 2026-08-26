@@ -156,7 +156,7 @@ administrators select in Setup; API values are useful for source files and integ
 
 The Check Set's **Qualified API Name** is the exact value shown in Setup. An administrator-created
 Check Set in your org normally looks like `Account_Handoff_Review`. A Check Set included with the
-installed package can look like `rhc__Account_Data_Quality`. Do not add or remove `rhc__` yourself.
+installed package can look like `rhc__Example_Account_Check_Builder_Guide`. Do not add or remove `rhc__` yourself.
 
 ## Step 5: Review the proposed Check
 

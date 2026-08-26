@@ -1,5 +1,8 @@
 /** Flow action that validates every Record Health Check metadata definition. */
 global with sharing class RecordHealthCheckValidateMetadataAction {
+  @TestVisible
+  private static List<RecordHealthCheckMetadataValidator.ValidationIssue> issuesOverride;
+
   /** Flow output for one validation request. */
   global class Result {
     @InvocableVariable(label='Configuration Is Valid')
@@ -26,8 +29,10 @@ global with sharing class RecordHealthCheckValidateMetadataAction {
   )
   /** Returns one complete metadata-validation result to Flow. */
   global static List<Result> validateConfiguration() {
-    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new RecordHealthCheckMetadataValidator()
-      .validate();
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = issuesOverride ==
+      null
+      ? new RecordHealthCheckMetadataValidator().validate()
+      : issuesOverride;
     Result output = new Result();
     output.errorCount = 0;
     output.warningCount = 0;

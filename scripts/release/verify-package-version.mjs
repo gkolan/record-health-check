@@ -337,11 +337,7 @@ function runUpgradeGate(
   deploySubscriberHarness(alias);
 
   if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
-    for (const script of [
-      "setupDemoUser.apex",
-      "setupDemoData.apex",
-      "deactivateDemoUser.apex"
-    ]) {
+    for (const script of ["setupDemoData.apex"]) {
       run("sf", [
         "apex",
         "run",

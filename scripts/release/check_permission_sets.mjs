@@ -118,21 +118,34 @@ const sorted = (items) => [...items].sort();
 const same = (left, right) =>
   JSON.stringify(sorted(left)) === JSON.stringify(sorted(right));
 const errors = [];
-const forbiddenPrivilegeBlocks = [
-  "agentAccesses",
-  "applicationVisibilities",
-  "customSettingAccesses",
-  "emailRoutingAddressAccesses",
-  "externalCredentialPrincipalAccesses",
-  "externalDataSourceAccesses",
-  "fieldPermissions",
-  "flowAccesses",
-  "genComputingSummaryDefAccess",
-  "pageAccesses",
-  "recordTypeVisibilities",
-  "ServicePresenceStatusAccesses",
-  "userPermissions"
-];
+const allowedTopLevelElements = new Set([
+  "label",
+  "description",
+  "hasActivationRequired",
+  "classAccesses",
+  "customPermissions",
+  "customMetadataTypeAccesses",
+  "objectPermissions",
+  "tabSettings"
+]);
+
+function topLevelElements(xml) {
+  const elements = [];
+  let depth = 0;
+  for (const match of xml.matchAll(
+    /<\/?([A-Za-z][A-Za-z0-9]*)(?:\s[^<>]*?)?\/?>/g
+  )) {
+    const token = match[0];
+    const name = match[1];
+    if (token.startsWith("</")) {
+      depth--;
+      continue;
+    }
+    if (depth === 1) elements.push(name);
+    if (!token.endsWith("/>")) depth++;
+  }
+  return elements;
+}
 
 function validateEnabledBlocks(name, xml, blockName, identityTag) {
   for (const block of blocks(xml, blockName)) {
@@ -211,9 +224,11 @@ for (const [name, contract] of Object.entries(expected)) {
   if (childValue(xml, "hasActivationRequired") !== "false") {
     errors.push(`${name} must set hasActivationRequired=false.`);
   }
-  for (const blockName of forbiddenPrivilegeBlocks) {
-    if (blocks(xml, blockName).length > 0) {
-      errors.push(`${name} contains forbidden privilege block ${blockName}.`);
+  for (const elementName of topLevelElements(xml)) {
+    if (!allowedTopLevelElements.has(elementName)) {
+      errors.push(
+        `${name} contains unexpected privilege block ${elementName}.`
+      );
     }
   }
   validateEnabledBlocks(name, xml, "classAccesses", "apexClass");
@@ -300,6 +315,6 @@ if (errors.length) {
   process.exitCode = 1;
 } else {
   console.log(
-    `Verified ${actualNames.length} permission sets; descriptions, enabled flags, object CRUD, forbidden privilege blocks, and access contracts are current.`
+    `Verified ${actualNames.length} permission sets; descriptions, enabled flags, object CRUD, the top-level privilege allowlist, and access contracts are current.`
   );
 }

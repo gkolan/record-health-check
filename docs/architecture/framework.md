@@ -61,7 +61,7 @@ future save. Administrators should still test Checks in a sandbox before activat
 | Public Apex API, Batch, Queueable, Scheduled Apex, and two Flow actions | The same evaluation code for automation and integrations |
 | `Record_Health_Check_Set_Run__e` and `Record_Health_Check_Result__e` | Optional Platform Events after deliberately started runs |
 | `Record_Health_Check_Log__e` | `ERROR` detail published through `RecordHealthCheckLogger.flush()` |
-| Four Permission Sets and two Custom Permissions | **Card User** grants the record-page card, **User** grants broader runtime entry points, **Admin** grants configuration and diagnostics, and **Error Log Publisher** grants restricted log-event publication. The Custom Permissions separately gate runs and diagnostics. |
+| Five Permission Sets and two Custom Permissions | **Card User** grants the record-page card, **User** grants broader runtime entry points, **Admin** grants configuration and diagnostics, **MCP Integration** grants only the versioned REST adapter, and **Error Log Publisher** grants restricted log-event publication. The Custom Permissions separately gate runs and diagnostics. |
 
 Record Health Check does not create history records. Apex, Flow, and custom Batch classes can save
 the returned results directly to a custom object created by your team. Platform Events are optional
@@ -455,8 +455,9 @@ Set created by an administrator in your org normally has no `rhc__` prefix. Alwa
 
 Operational consequences:
 
-- The installed package includes four example Check Sets (`Example_…`, card titles prefixed with `Example:`)
-  with matching integration-test sample copies under `packages/record-health-check/integration-tests/`.
+- The installed package includes four active Example Check Set records (`Example_…`, card titles
+  prefixed with `Example:`). They contain 42 Checks, of which 41 are active. Matching integration-test copies live under
+  `packages/record-health-check/integration-tests/`.
 - Check Sets and Checks are Custom Metadata, so they deploy between orgs and version control
   alongside the classes they configure.
 - Qualified API Names identify Checks and Check Sets in the Apex API, Flow actions, Lightning card,

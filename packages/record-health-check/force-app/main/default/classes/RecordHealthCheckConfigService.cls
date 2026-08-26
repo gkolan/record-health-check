@@ -108,25 +108,25 @@ public with sharing class RecordHealthCheckConfigService {
     return null;
   }
 
-  /** Finds the parent Check Set for a Check API name. */
-  public String findCheckSetDeveloperName(String checkDeveloperName) {
-    checkDeveloperName = RecordHealthCheckLogger.normalizeIdentifier(
-      checkDeveloperName,
+  /** Finds the qualified parent Check Set for an exact qualified Check name. */
+  public String findCheckSetQualifiedApiName(String checkQualifiedApiName) {
+    checkQualifiedApiName = RecordHealthCheckLogger.normalizeIdentifier(
+      checkQualifiedApiName,
       80
     );
-    if (String.isBlank(checkDeveloperName)) {
+    if (String.isBlank(checkQualifiedApiName)) {
       return null;
     }
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced before check evaluation.
     List<Record_Health_Check__mdt> checks = [
-      SELECT Record_Health_Check_Set__r.DeveloperName
+      SELECT Record_Health_Check_Set__r.QualifiedApiName
       FROM Record_Health_Check__mdt
-      WHERE DeveloperName = :checkDeveloperName
+      WHERE QualifiedApiName = :checkQualifiedApiName
       LIMIT 1
     ];
     return checks.isEmpty()
       ? null
-      : checks[0].Record_Health_Check_Set__r.DeveloperName;
+      : checks[0].Record_Health_Check_Set__r.QualifiedApiName;
   }
 
   /**

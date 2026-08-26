@@ -1,5 +1,137 @@
 [
   {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MAX(Amount) maxDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT AVG(Amount) avgDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Billing_State_In_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Billing_State_In_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MailingState FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Exact_Parent",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Overlap_Parent",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_States_Match_Billing",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MailingState FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Vs_Open_Opp_Count",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Vs_Open_Opp_Count",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contacts_Cover_Open_Cases",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contacts_Cover_Open_Cases",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
     "aggregate": false,
     "bareCount": false,
     "check": "Example_Contacts_Have_Email",
@@ -13,12 +145,155 @@
   {
     "aggregate": true,
     "bareCount": true,
+    "check": "Example_Distinct_Cities_Vs_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Distinct_Cities_Vs_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Earliest_Vs_Latest_Close",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Earliest_Vs_Latest_Close",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MAX(CloseDate) latestClose FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Earliest_Vs_Latest_Close",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MIN(CloseDate) earliestClose FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Fewer_Than_Ten_Open_Cases",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Guide_Contacts_Have_Email",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT Email FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Guide_Open_Deals_Have_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Guide_Open_Deals_Have_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Has_At_Least_One_Contact",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_High_Value_Open_Opp",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_No_High_Priority_Issues",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
     "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Oldest_Contact_City_Matches",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Open_Cases_Have_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -44,6 +319,61 @@
     "strategy": "CHILD_DIRECT"
   },
   {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Open_Opps_Have_Amount",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Open_Pipeline_Covers_Revenue",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Open_Pipeline_Covers_Revenue",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Covers_Contact_Cities",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
     "aggregate": true,
     "bareCount": true,
     "check": "Example_Pipeline_Protects_Revenue",
@@ -63,6 +393,17 @@
     "note": "GROUP BY AccountId",
     "package": "force-app",
     "soql": "SELECT CurrencyIsoCode, SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null GROUP BY CurrencyIsoCode",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Significant_Open_Opp",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -904,6 +1245,39 @@
   {
     "aggregate": true,
     "bareCount": true,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MAX(Amount) maxDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT AVG(Amount) avgDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_BillState_In_Contact_States",
     "correlation": "AccountId = record.Id",
     "field": "ApplicabilityCountQuery__c",
@@ -916,6 +1290,28 @@
     "aggregate": false,
     "bareCount": false,
     "check": "Example_BillState_In_Contact_States",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MailingState FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Billing_State_In_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Billing_State_In_Contacts",
     "correlation": "AccountId = record.Id",
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
@@ -979,6 +1375,61 @@
     "strategy": "CHILD_DIRECT"
   },
   {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Exact_Parent",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Overlap_Parent",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_States_Match_Billing",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MailingState FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Vs_Open_Opp_Count",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Vs_Open_Opp_Count",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
     "aggregate": true,
     "bareCount": true,
     "check": "Example_Contacts_Cover_Open_Cases",
@@ -1014,12 +1465,100 @@
   {
     "aggregate": true,
     "bareCount": true,
+    "check": "Example_Distinct_Cities_Vs_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Distinct_Cities_Vs_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Earliest_Vs_Latest_Close",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Earliest_Vs_Latest_Close",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MAX(CloseDate) latestClose FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Earliest_Vs_Latest_Close",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MIN(CloseDate) earliestClose FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_Fewer_Than_Ten_Open_Cases",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
     "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Guide_Contacts_Have_Email",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Email FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Guide_Open_Deals_Have_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Guide_Open_Deals_Have_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1078,6 +1617,17 @@
     "strategy": "CHILD_DIRECT"
   },
   {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_High_Value_Open_Opp",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
     "aggregate": true,
     "bareCount": true,
     "check": "Example_No_High_Priority_Issues",
@@ -1097,6 +1647,28 @@
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
     "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Oldest_Contact_City_Matches",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Open_Cases_Have_Contacts",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1141,6 +1713,61 @@
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
     "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Open_Opps_Have_Amount",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Open_Pipeline_Covers_Revenue",
+    "correlation": "AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Open_Pipeline_Covers_Revenue",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Covers_Contact_Cities",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1210,6 +1837,17 @@
     "strategy": "CHILD_DIRECT"
   },
   {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Significant_Open_Opp",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
     "aggregate": true,
     "bareCount": false,
     "check": "RHC_Diag_Compare_Missing",
@@ -1256,6 +1894,17 @@
   {
     "aggregate": true,
     "bareCount": false,
+    "check": "Example_Guide_Open_Deals_Have_Contacts",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
     "check": "Example_Open_Deals_Have_Contacts",
     "correlation": "Opportunity.AccountId = record.Id",
     "field": "SourceQuery__c",
@@ -1273,6 +1922,17 @@
     "note": "GROUP BY Opportunity.AccountId",
     "package": "integration-tests",
     "soql": "SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Role = 'Executive Sponsor' AND ContactId != null AND (Contact.Email != null OR Contact.Phone != null)",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Guide_Open_Deals_Have_Contacts",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
     "strategy": "CHILD_PATH"
   },
   {
@@ -1300,6 +1960,17 @@
   {
     "aggregate": false,
     "bareCount": false,
+    "check": "Example_Oldest_Contact_City_Matches",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects MailingCity but orders by CreatedDate",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate ASC LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
     "check": "Account_CTQ_T7_ContactCityMatchesBilling",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
@@ -1323,6 +1994,17 @@
     "aggregate": false,
     "bareCount": false,
     "check": "Example_Oldest_City_Matches_Billing",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects MailingCity but orders by CreatedDate",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate ASC LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Oldest_Contact_City_Matches",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "Selects MailingCity but orders by CreatedDate",
@@ -1383,6 +2065,39 @@
     "note": "Correlation column is Id; redundant LIMIT 1 dropped",
     "package": "force-app",
     "soql": "SELECT COUNT() parentAssignments FROM Account WHERE Id = {!record.Id} AND ParentId != null",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Oldest_Contact_City_Matches",
+    "correlation": "Id = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "force-app",
+    "soql": "SELECT BillingCity FROM Account WHERE Id = {!record.Id} LIMIT 1",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Open_Pipeline_Covers_Revenue",
+    "correlation": "Id = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "force-app",
+    "soql": "SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id} LIMIT 1",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "Id = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.Id} AND Parent.ParentId != null",
     "strategy": "SELF"
   },
   {
@@ -1641,6 +2356,39 @@
   {
     "aggregate": false,
     "bareCount": false,
+    "check": "Example_Oldest_Contact_City_Matches",
+    "correlation": "Id = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT BillingCity FROM Account WHERE Id = {!record.Id} LIMIT 1",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Open_Pipeline_Covers_Revenue",
+    "correlation": "Id = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id} LIMIT 1",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "Id = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.Id} AND Parent.ParentId != null",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
     "check": "Example_Pipeline_Covers_Revenue",
     "correlation": "Id = record.Id",
     "field": "ComparisonQuery__c",
@@ -1757,6 +2505,94 @@
     "note": "Reverse index on record.OwnerId values across the scope",
     "package": "force-app",
     "soql": "SELECT COUNT() activeOwners FROM User WHERE Id = {!record.OwnerId} AND IsActive = true",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Cities_Exact_Parent",
+    "correlation": "Id = record.ParentId",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Exact_Parent",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Cities_Overlap_Parent",
+    "correlation": "Id = record.ParentId",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Overlap_Parent",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Distinct_Cities_Vs_Contacts",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "AccountId = record.Parent.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.Parent.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Parent.ParentId} AND MailingCity != null",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Parent_Covers_Contact_Cities",
+    "correlation": "Id = record.ParentId",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Covers_Contact_Cities",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "force-app",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null",
     "strategy": "TOKEN_INDIRECT"
   },
   {
@@ -1895,6 +2731,94 @@
     "aggregate": false,
     "bareCount": false,
     "check": "Example_CTQ_ListsOverlap",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Cities_Exact_Parent",
+    "correlation": "Id = record.ParentId",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Exact_Parent",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_Cities_Overlap_Parent",
+    "correlation": "Id = record.ParentId",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Contact_Cities_Overlap_Parent",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Distinct_Cities_Vs_Contacts",
+    "correlation": "AccountId = record.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "AccountId = record.Parent.ParentId",
+    "field": "ComparisonQuery__c",
+    "note": "Reverse index on record.Parent.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Parent.ParentId} AND MailingCity != null",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Parent_Covers_Contact_Cities",
+    "correlation": "Id = record.ParentId",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "Reverse index on record.ParentId values across the scope",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}",
+    "strategy": "TOKEN_INDIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Parent_Covers_Contact_Cities",
     "correlation": "AccountId = record.ParentId",
     "field": "ComparisonQuery__c",
     "note": "Reverse index on record.ParentId values across the scope",

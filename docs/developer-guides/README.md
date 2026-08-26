@@ -25,11 +25,11 @@ Metadata first, and decide where results should go before choosing a background 
 | Term | Plain-language meaning |
 | --- | --- |
 | `rhc.` | The Record Health Check managed-package namespace used before an Apex class or type, such as `rhc.RecordHealthCheckResponse`. |
-| `rhc__` | The prefix used inside the API name of a Check or Check Set included with the installed Record Health Check package, such as `rhc__Account_Data_Quality`. It uses two underscores because that is Salesforce metadata naming syntax. |
+| `rhc__` | The prefix used inside the API name of a Check or Check Set included with the installed Record Health Check package, such as `rhc__Example_Account_Check_Builder_Guide`. It uses two underscores because that is Salesforce metadata naming syntax. |
 | Qualified API Name | The exact API name Salesforce assigns to a Check or Check Set Custom Metadata record. Copy this value from Setup. |
 | Platform Event | A Salesforce message sent after a health check so a Flow, Apex trigger, or external integration can receive the result. |
 | Run ID | Text used to connect related results and jobs during troubleshooting. It does not identify a Salesforce record. |
-| Custom Permission | A Salesforce access flag used by Apex or Flow. Administrators normally grant it through a Permission Set. **Record Health Check Run** is the Custom Permission; **Record Health Check User** and **Record Health Check Admin** are the packaged Permission Sets that include it. |
+| Custom Permission | A Salesforce access flag used by package entry points. Administrators normally grant it through a Permission Set. **Record Health Check Run** is included in the packaged Card User, User, Admin, and MCP Integration Permission Sets; Error Log Publisher does not include it. |
 
 The two prefixes have different purposes:
 
@@ -41,7 +41,7 @@ rhc.RecordHealthCheckResponse response;
 String checkSetName = 'My_Account_Checks';
 
 // Qualified API Name for a Check Set included with the installed package.
-// String checkSetName = 'rhc__Account_Data_Quality';
+// String checkSetName = 'rhc__Example_Account_Check_Builder_Guide';
 ```
 
 In **Setup**, open **Custom Metadata Types → Record Health Check Set → Manage Records** and copy the
@@ -69,10 +69,12 @@ Confirm all of the following:
 
 1. The Check or Check Set is active and has been tested from the Record Health Check user interface.
 2. Assign the running user one packaged Permission Set:
-   - **Record Health Check User** for running Checks from Lightning, Flow, or Apex.
+   - **Record Health Check Card User** for the Lightning record-page card only.
+   - **Record Health Check User** for Flow, Apex, Agentforce, or asynchronous Apex.
+   - **Record Health Check MCP Integration** for the versioned REST adapter used by MCP.
    - **Record Health Check Admin** when the user also configures Checks or views diagnostics.
 
-   Both Permission Sets include the **Custom Permission label:** Record Health Check Run,
+   All four runner Permission Sets include the **Custom Permission label:** Record Health Check Run,
    **Custom Permission API name:** `rhc__Record_Health_Check_Run`, and the required package Apex
    class access.
    **Record Health Check Run** is a Custom Permission, not the name of a Permission Set.
@@ -81,14 +83,14 @@ Confirm all of the following:
 4. You know the Custom Metadata **Qualified API Name** of the Check or Check Set. Records created by
    an administrator normally do not include a prefix, for example `My_Account_Checks`. Records
    included with the installed package normally include `rhc__`, for example
-   `rhc__Account_Data_Quality`.
+   `rhc__Example_Account_Check_Builder_Guide`.
 5. You know what should happen after a result is returned: branch immediately, publish Platform
    events, save an approved history record, notify monitoring, or only monitor job completion.
 
 Test with the same permissions and data access as the user who will run the real automation.
 
-To assign the normal user access, open **Setup → Permission Sets → Record Health Check User →
-Manage Assignments → Add Assignments**, select the user, and save.
+Open the Permission Set appropriate to the entry point under **Setup → Permission Sets → Manage
+Assignments → Add Assignments**, select the user, and save.
 
 ## Understand the shared request
 

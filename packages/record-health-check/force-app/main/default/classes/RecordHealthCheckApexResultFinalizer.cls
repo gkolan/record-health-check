@@ -1,5 +1,6 @@
 /** Enforces and enriches the result contract returned by custom Apex Checks. */
 public with sharing class RecordHealthCheckApexResultFinalizer {
+  private static final Integer REASON_CODE_MAX = 80;
   private static final Set<String> VALID_STATUSES = new Set<String>{
     'PASS',
     'FAIL',
@@ -67,6 +68,21 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
           '" returned an unsupported status: "' +
           apexResult.status +
           '". Expected one of PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, ERROR.'
+      );
+    }
+    if (
+      apexResult.reasonCode != null &&
+      apexResult.reasonCode.length() > REASON_CODE_MAX
+    ) {
+      return contractError(
+        check,
+        fallbackResult,
+        RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID,
+        '"' +
+          check.ApexClass__c +
+          '" returned a reason code longer than ' +
+          REASON_CODE_MAX +
+          ' characters.'
       );
     }
     String displayContractError = applyTypedDisplayValues(apexResult);

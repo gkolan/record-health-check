@@ -42,7 +42,7 @@ the complete **Qualified API Name**. Copy that exact Qualified API Name when Flo
 Check Set name:
 
 - A Check Set created by an administrator in your org might be `Account_Readiness`.
-- A Check Set included with the installed package might be `rhc__Account_Data_Quality`.
+- A Check Set included with the installed package might be `rhc__Example_Account_Check_Builder_Guide`.
 
 Do not add or remove `rhc__` yourself.
 

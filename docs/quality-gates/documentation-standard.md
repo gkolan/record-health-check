@@ -95,7 +95,7 @@ Setup and never add or remove `rhc__` themselves.
 ## Make examples safe to follow
 
 - Use an administrator-created Check Set such as `My_Account_Checks` in active code.
-- Mention an installed-package name such as `rhc__Account_Data_Quality` only as an alternative in a
+- Mention an installed-package name such as `rhc__Example_Account_Check_Builder_Guide` only as an alternative in a
   comment or explanation.
 - State where every sample variable comes from.
 - In Setup examples, give the complete navigation path and use the label the administrator sees.

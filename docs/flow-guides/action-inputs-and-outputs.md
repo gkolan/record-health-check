@@ -42,7 +42,7 @@ Flow paths.
   access to the packaged Flow action and `RecordHealthCheck` Apex class.
 - Copy the Check Set's exact **Qualified API Name** from Setup. An administrator-created Check Set
   in your org might be `Account_Readiness`. A Check Set included with the installed package might
-  be `rhc__Example_Account_Profile_Readiness`. Do not add or remove `rhc__` yourself.
+  be `rhc__Example_Account_Check_Builder_Guide`. Do not add or remove `rhc__` yourself.
 - Make the current record ID available to the Flow.
 
 ### Step 1: Add the action
@@ -123,7 +123,7 @@ This action runs every active Check in one Check Set. Its Apex implementation is
 
 | Input | Required | What to provide |
 | --- | --- | --- |
-| **Check Set Qualified API Name** | Yes | Exact value copied from Setup, such as `Account_Readiness` for an administrator-created Check Set or `rhc__Example_Account_Profile_Readiness` for an installed example |
+| **Check Set Qualified API Name** | Yes | Exact value copied from Setup, such as `Account_Readiness` for an administrator-created Check Set or `rhc__Example_Account_Check_Builder_Guide` for an installed example |
 | **Record ID** | Yes | ID of the Salesforce record to evaluate |
 | **Event Publication** | Yes | Use `NONE` for no Platform Events; `ACTIONABLE` for actionable Check Results plus a completed Set Run heartbeat; or `ALL` for every result, including `PASS` and `SKIPPED`. |
 
@@ -165,7 +165,7 @@ This action runs one Check. Its Apex implementation is `RecordHealthCheckRunChec
 
 | Input | Required | What to provide |
 | --- | --- | --- |
-| **Check Qualified API Name** | Yes | Exact value copied from Setup, such as `Billing_City_Is_Populated` for an administrator-created Check or `rhc__Example_Profile_Billing_Address` for an installed example |
+| **Check Qualified API Name** | Yes | Exact value copied from Setup, such as `Billing_City_Is_Populated` for an administrator-created Check or `rhc__Example_Guide_Industry_Manufacturing` for an installed example |
 | **Record ID** | Yes | ID of the Salesforce record to evaluate |
 | **Event Publication** | Yes | Use `NONE` for no Platform Events; `ACTIONABLE` for actionable Check Results plus a completed Set Run heartbeat; or `ALL` for every result, including `PASS` and `SKIPPED`. |
 

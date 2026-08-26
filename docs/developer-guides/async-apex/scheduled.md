@@ -57,7 +57,7 @@ Schedule the same known IDs to run daily at 2:00 AM in the scheduling user's tim
 
 ```apex
 // Copy the exact Check Set Qualified API Name from Setup.
-// A Check Set included with the installed package might be rhc__Account_Data_Quality.
+// A Check Set included with the installed package might be rhc__Example_Account_Check_Builder_Guide.
 String checkSetApiName = 'My_Account_Checks';
 
 String scheduledJobId = rhc.RecordHealthCheckScheduled.scheduleDaily(

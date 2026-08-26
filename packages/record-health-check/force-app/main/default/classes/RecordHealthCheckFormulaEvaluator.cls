@@ -27,9 +27,12 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   // Apex), retrying the same single-value formula per record multiplies that cost and
   // can exhaust the 100-call budget. Caching the return type that first resolved a
   // given formula (keyed by SObject type + expression) lets the second and later
-  // records resolve in a single call. Cached for the current transaction, like formulaEvalCallCount.
+  // records resolve in a single call. A failed eight-type probe is also cached so
+  // the same unresolvable formula does not consume eight calls for every record.
+  // Both caches last for the current transaction, like formulaEvalCallCount.
   @TestVisible
   private static Map<String, formulaeval.FormulaReturnType> resolvedReturnTypeByFormula = new Map<String, formulaeval.FormulaReturnType>();
+  private static Map<String, FormulaEvaluationException> unresolvedFormulaByFormula = new Map<String, FormulaEvaluationException>();
 
   /** Returns FormulaEval calls consumed by this framework transaction. */
   public static Integer callsUsed() {
@@ -315,6 +318,15 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
     formulaeval.FormulaReturnType preferredType = resolvedReturnTypeByFormula.get(
       cacheKey
     );
+    FormulaEvaluationException unresolvedFormula = unresolvedFormulaByFormula.get(
+      cacheKey
+    );
+    if (unresolvedFormula != null) {
+      throw new FormulaEvaluationException(
+        unresolvedFormula.reasonCode,
+        unresolvedFormula.getMessage()
+      );
+    }
     if (preferredType != null) {
       try {
         Object value = evaluateFormula(
@@ -324,6 +336,8 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
         );
         resolvedReturnTypeByFormula.put(cacheKey, preferredType);
         return value;
+      } catch (FormulaEvaluationException ex) {
+        throw ex;
       } catch (Exception ex) {
         resolvedReturnTypeByFormula.remove(cacheKey);
       }
@@ -349,11 +363,18 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
         Object value = evaluateFormula(formulaExpression, record, rt);
         resolvedReturnTypeByFormula.put(cacheKey, rt);
         return value;
+      } catch (FormulaEvaluationException ex) {
+        throw ex;
       } catch (Exception ex) {
         lastException = ex;
       }
     }
-    throw lastException;
+    FormulaEvaluationException unresolved = new FormulaEvaluationException(
+      classifyFormulaException(lastException),
+      lastException.getMessage()
+    );
+    unresolvedFormulaByFormula.put(cacheKey, unresolved);
+    throw unresolved;
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────

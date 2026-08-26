@@ -158,7 +158,8 @@ export class HealthCheckRunner {
       const check = checkMap.get(name);
       if (check) {
         const prereqName =
-          check.dependsOnCheckDeveloperName || prerequisiteIdentity(check);
+          prerequisiteIdentity(check, this.host.checks) ||
+          check.dependsOnCheckDeveloperName;
         this._resultBuffer.set(
           name,
           synthesizeResult(
@@ -261,7 +262,7 @@ export class HealthCheckRunner {
     if (this._stopped || token !== this._runToken) return;
 
     // Enforce the Prerequisite Check before calling Apex.
-    const prerequisiteKey = prerequisiteIdentity(check);
+    const prerequisiteKey = prerequisiteIdentity(check, this.host.checks);
     if (prerequisiteKey) {
       const prerequisiteCheck = checkMap.get(prerequisiteKey);
       if (!prerequisiteCheck) {
@@ -269,7 +270,7 @@ export class HealthCheckRunner {
           check,
           "SKIPPED",
           "DEPENDENCY_NOT_IN_RUN",
-          `Skipped because Prerequisite Check "${check.dependsOnCheckDeveloperName || prerequisiteKey}" was not included in the Framework run.`
+          `Skipped because Prerequisite Check "${prerequisiteKey}" was not included in the Framework run.`
         );
         this._resultBuffer.set(checkIdentity(check), skipped);
         this._drain(token);

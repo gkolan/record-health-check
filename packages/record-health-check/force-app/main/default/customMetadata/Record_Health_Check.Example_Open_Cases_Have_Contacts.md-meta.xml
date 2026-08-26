@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Open Case Contact Coverage</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Check_Builder_Guide</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">Every open Case has a Contact</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Queries Contact on every open Case related to the Account. The Query check passes only when every returned Case has a Contact.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">QUERY</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">ContactId</value>
+    </values>
+    <values>
+        <field>ExpectedValueSource__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>ExpectedFixedValue__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">IS_NOT_BLANK</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ALL_ROWS_PASS</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">PASS</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} open Cases have no Contact</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >All {!rhcResult.totalRecordCount} open Cases have a Contact</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">CRITICAL</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} open Cases on {!record.Name fallback="this Account"} have no Contact.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Assign the correct customer Contact to each open Case on {!record.Name fallback="this Account"}. Close any Case that no longer needs work.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review open Cases for {!record.Name fallback="Account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Cases/view</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">50</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">TEXT</value>
+    </values>
+</CustomMetadata>

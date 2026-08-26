@@ -52,6 +52,51 @@ private class RHCDefinitionDependencyIdentityTest {
     );
   }
 
+  @IsTest
+  static void resolvesQualifiedIdentityWithoutCaseSensitivity() {
+    Record_Health_Check__mdt dependent = check(
+      'Dependent',
+      'rhc__Dependent',
+      'account_has_owner'
+    );
+
+    Assert.areEqual(
+      'rhc__Account_Has_Owner',
+      RHCDefinitionDependencyIdentity.resolveQualified(
+        dependent,
+        new Set<String>{ 'rhc__Account_Has_Owner' }
+      ),
+      'Configured prerequisite casing must not change runtime identity resolution.'
+    );
+  }
+
+  @IsTest
+  static void ordersPrerequisitesBeforeDependents() {
+    Record_Health_Check__mdt dependent = check(
+      'Dependent',
+      'Dependent',
+      'Prerequisite'
+    );
+    dependent.EvaluationOrder__c = 10;
+    Record_Health_Check__mdt prerequisite = check(
+      'Prerequisite',
+      'Prerequisite',
+      null
+    );
+    prerequisite.EvaluationOrder__c = null;
+
+    List<Record_Health_Check__mdt> ordered = RHCDefinitionDependencyIdentity.orderForEvaluation(
+      new List<Record_Health_Check__mdt>{ dependent, prerequisite }
+    );
+
+    Assert.areEqual(
+      'Prerequisite',
+      ordered[0].QualifiedApiName,
+      'Dependency order must override nullable metadata ordering in headless runs.'
+    );
+    Assert.areEqual('Dependent', ordered[1].QualifiedApiName);
+  }
+
   private static Record_Health_Check__mdt check(
     String developerName,
     String qualifiedApiName,

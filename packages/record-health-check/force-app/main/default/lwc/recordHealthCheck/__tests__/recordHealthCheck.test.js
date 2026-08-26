@@ -17,9 +17,11 @@ import {
   resetPageEvaluationSchedulerForTest
 } from "../healthCheckRunner";
 import {
+  checkNamespace,
   detectDependencyCycles,
   normalizeResult,
   parseAuraError,
+  prerequisiteIdentity,
   synthesizeResult,
   toCompletionResult
 } from "../healthCheckModel";
@@ -1421,7 +1423,6 @@ describe("c-record-health-check — run orchestration", () => {
   });
 
   it("renders an actionable diagnosis without requiring the browser console", async () => {
-    const info = jest.spyOn(console, "info").mockImplementation(() => {});
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
     const writeText = jest.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", {
@@ -1511,10 +1512,9 @@ describe("c-record-health-check — run orchestration", () => {
     );
     expect(copyButton).toBeNull();
     expect(writeText).not.toHaveBeenCalled();
-    expect(info).toHaveBeenCalledWith(
+    expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("Review and redact customer data")
     );
-    expect(warn).not.toHaveBeenCalled();
   });
 
   it("shows re-run button after run completes", async () => {
@@ -2329,6 +2329,44 @@ describe("c-record-health-check — Prerequisite Check enforcement", () => {
       'Circular dependency with "Check_A".'
     );
   });
+
+  it("reports a cycle when one prerequisite edge has only an unqualified identity", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        skippedDisplayMode: "Show",
+        checks: [
+          {
+            developerName: "A",
+            qualifiedApiName: "rhc__A",
+            label: "A",
+            description: "",
+            priority: 1,
+            dependsOnCheckQualifiedApiName: "rhc__B",
+            dependsOnCheckDeveloperName: "B"
+          },
+          {
+            developerName: "B",
+            qualifiedApiName: "rhc__B",
+            label: "B",
+            description: "",
+            priority: 2,
+            dependsOnCheckQualifiedApiName: null,
+            dependsOnCheckDeveloperName: "A"
+          }
+        ]
+      })
+    );
+    await appendAndLoad(element);
+
+    await clickRun(element);
+
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).toHaveBeenCalledTimes(1);
+    expect(element.shadowRoot.textContent).toContain("Circular dependency");
+    expect(element.shadowRoot.textContent).not.toContain(
+      "was not included in the Framework run"
+    );
+  });
 });
 
 describe("c-record-health-check — stopOnFirstError", () => {
@@ -3120,10 +3158,9 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
       expect.objectContaining({ containsRestrictedDetail: true })
     );
     expect(group).toHaveBeenCalledWith("[RHC] Results needing review (1)");
-    expect(info).toHaveBeenCalledWith(
+    expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("Review and redact customer data")
     );
-    expect(warn).not.toHaveBeenCalled();
     group.mockRestore();
     groupCollapsed.mockRestore();
     log.mockRestore();
@@ -4737,6 +4774,8 @@ describe("healthCheckModel — complete response contracts", () => {
 
     expect(result.actualValue).toBe("rendered found");
     expect(result.expectedValue).toBe("rendered expected");
+    expect(result.checkDeveloperName).toBe("Check_A");
+    expect(result.checkQualifiedApiName).toBe("namespace__Check_A");
   });
 
   it("uses null values when evaluation-only values are absent", () => {
@@ -4772,6 +4811,60 @@ describe("healthCheckModel — complete response contracts", () => {
     ]);
 
     expect([...members].sort()).toEqual(["Check_A", "Check_B"]);
+  });
+
+  it("detects a qualified cycle with one unqualified prerequisite edge", () => {
+    const members = detectDependencyCycles([
+      {
+        developerName: "A",
+        qualifiedApiName: "rhc__A",
+        dependsOnCheckQualifiedApiName: "rhc__B",
+        dependsOnCheckDeveloperName: "B"
+      },
+      {
+        developerName: "B",
+        qualifiedApiName: "rhc__B",
+        dependsOnCheckQualifiedApiName: null,
+        dependsOnCheckDeveloperName: "A"
+      }
+    ]);
+
+    expect([...members].sort()).toEqual(["rhc__A", "rhc__B"]);
+  });
+
+  it("parses namespaces only from aligned qualified identities", () => {
+    expect(
+      checkNamespace({
+        developerName: "Check_A",
+        qualifiedApiName: "rhc__Check_A"
+      })
+    ).toBe("rhc");
+    expect(
+      checkNamespace({
+        developerName: "Check_A",
+        qualifiedApiName: "rhc__Different_Name"
+      })
+    ).toBeNull();
+  });
+
+  it("does not invent a namespace match from a misaligned identity", () => {
+    const checks = [
+      {
+        developerName: "Shared",
+        qualifiedApiName: "alpha__Shared"
+      },
+      {
+        developerName: "Shared",
+        qualifiedApiName: "beta__Shared"
+      }
+    ];
+    const dependent = {
+      developerName: "Dependent",
+      qualifiedApiName: "alpha__Different",
+      dependsOnCheckDeveloperName: "Shared"
+    };
+
+    expect(prerequisiteIdentity(dependent, checks)).toBe("Shared");
   });
 });
 
@@ -4824,6 +4917,20 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
     expect(presentation.retryable).toBe(true);
     expect(presentation.technicalDetail).toBeNull();
   });
+
+  it.each(["constructor", "toString", "valueOf", "hasOwnProperty"])(
+    "uses the safe fallback for prototype reason code %s",
+    (reasonCode) => {
+      const presentation = componentErrorPresentation(
+        reasonCode,
+        "Internal exception"
+      );
+
+      expect(presentation.title).toBe("Health Check Unavailable");
+      expect(presentation.message).toBe("We couldn't load this health check.");
+      expect(presentation.retryable).toBe(true);
+    }
+  );
 
   it("distinguishes inaccessible and deleted records", () => {
     expect(

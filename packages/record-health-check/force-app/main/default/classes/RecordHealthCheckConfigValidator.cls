@@ -76,6 +76,16 @@ public with sharing class RecordHealthCheckConfigValidator {
   }
 
   public static Boolean isValidApexPlugin(String className) {
+    return validateApexPlugin(className, null);
+  }
+
+  /** Validates and caches a plugin for one exact Check configuration. */
+  public static Boolean isValidApexPlugin(Record_Health_Check__mdt check) {
+    return check != null &&
+      validateApexPlugin(check.ApexClass__c, pluginCacheKey(check));
+  }
+
+  private static Boolean validateApexPlugin(String className, String cacheKey) {
     if (String.isBlank(className)) {
       return false;
     }
@@ -89,7 +99,9 @@ public with sharing class RecordHealthCheckConfigValidator {
       if (instance == null) {
         return false;
       }
-      validatedPluginInstances.put(className, instance);
+      if (cacheKey != null) {
+        validatedPluginInstances.put(cacheKey, instance);
+      }
       return true;
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
@@ -98,16 +110,24 @@ public with sharing class RecordHealthCheckConfigValidator {
     }
   }
 
-  public static RecordHealthCheckPlugin takeValidatedPlugin(String className) {
-    RecordHealthCheckPlugin instance = validatedPluginInstances.get(className);
-    validatedPluginInstances.remove(className);
+  public static RecordHealthCheckPlugin takeValidatedPlugin(
+    Record_Health_Check__mdt check
+  ) {
+    String cacheKey = pluginCacheKey(check);
+    RecordHealthCheckPlugin instance = validatedPluginInstances.get(cacheKey);
+    validatedPluginInstances.remove(cacheKey);
+    if (instance == null && check != null) {
+      // Test-only cache injection historically uses the class name directly.
+      instance = validatedPluginInstances.get(check.ApexClass__c);
+      validatedPluginInstances.remove(check.ApexClass__c);
+    }
     return instance;
   }
 
   /** Releases a validated plugin instance when later validation rejects its Check. */
-  public static void discardValidatedPlugin(String className) {
-    if (String.isNotBlank(className)) {
-      validatedPluginInstances.remove(className);
+  public static void discardValidatedPlugin(Record_Health_Check__mdt check) {
+    if (check != null) {
+      validatedPluginInstances.remove(pluginCacheKey(check));
     }
   }
 
@@ -117,6 +137,20 @@ public with sharing class RecordHealthCheckConfigValidator {
     RecordHealthCheckPlugin instance
   ) {
     validatedPluginInstances.put(className, instance);
+  }
+
+  private static String pluginCacheKey(Record_Health_Check__mdt check) {
+    if (check == null) {
+      return null;
+    }
+    String identity = String.isBlank(check.QualifiedApiName)
+      ? check.DeveloperName
+      : check.QualifiedApiName;
+    return String.valueOf(identity) +
+      '|' +
+      String.valueOf(check.ApexClass__c) +
+      '|' +
+      String.valueOf(check.ApexParametersJson__c);
   }
 
   public static Boolean isJsonObject(String jsonText) {

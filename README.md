@@ -2,8 +2,8 @@
 
 [![License: Apache 2.0](./assets/img/badge-license.svg)](./LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Namespaced Apex coverage: 98.79%](https://img.shields.io/badge/Namespaced_Apex_coverage-98.79%25-brightgreen)](./config/quality-metrics.json)
-[![LWC line coverage: 98.63%](https://img.shields.io/badge/LWC_lines-98.63%25-brightgreen)](./config/quality-metrics.json)
+[![Namespaced Apex coverage: 99.70%](https://img.shields.io/badge/Namespaced_Apex_coverage-99.70%25-brightgreen)](./config/quality-metrics.json)
+[![LWC line coverage: 98.73%](https://img.shields.io/badge/LWC_lines-98.73%25-brightgreen)](./config/quality-metrics.json)
 [![Salesforce API](./assets/img/badge-salesforce-api.svg)](./packages/record-health-check/sfdx-project.json)
 
 [![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://recordhealthcheck.com/install/sandbox)
@@ -37,11 +37,11 @@ When a record needs attention, the card explains what was **Found**, what was **
 <table>
   <tr>
     <td width="48%" valign="top">
-      <p><b>Example:</b><br /><b>Account Relationship &amp; Risk Health Check</b></p>
-      <p>An account team can review relationship strength, ownership, engagement, revenue coverage, and customer risk without leaving the record page.</p>
+      <p><b>Example:</b><br /><b>Account Check Builder Guide</b></p>
+      <p>Administrators can inspect 25 working patterns on one Account and learn what each configuration does without leaving the record page.</p>
       <ul>
         <li><b>Review the whole relationship.</b> Checks evaluate the Account together with Opportunity Contact Roles, Contacts, Opportunities, Cases, Activities, ownership, and parent-account context.</li>
-        <li><b>Understand why.</b> Found and Expected values explain results such as three reachable Executive Sponsors, six contacts missing email, four high-priority cases, and a dynamically calculated 75% revenue-coverage target.</li>
+        <li><b>Understand why.</b> Hover help teaches the pattern, while Found and Expected values explain results such as missing Contact emails, 12 open Cases across three priorities, uncovered Opportunities, and Account-versus-Parent comparisons.</li>
         <li><b>Know what to do next.</b> Remediation guidance directs the account team toward the ownership, relationship, pipeline, or service action that closes the gap.</li>
       </ul>
       <p><b>Administrators control the experience</b></p>
@@ -52,22 +52,23 @@ When a record needs attention, the card explains what was **Found**, what was **
       </ul>
     </td>
     <td width="52%" valign="top">
-      <img src="assets/img/Example_Account_Relationship_Risk_Screenshot.png" alt="Account Relationship and Risk Health Check showing executive sponsorship, ownership, engagement, revenue coverage, customer issues, descriptive Found and Expected values, and an intentional business-specific skip" width="100%" />
+      <img src="assets/img/Example_Account_Relationship_Risk_Screenshot.png" alt="Account Check Builder Guide showing Account results, Found and Expected values, remediation guidance, and a summary on the existing demo Lightning page" width="100%" />
     </td>
   </tr>
 </table>
 
 ### What this demo shows
 
-- **Formula Checks** evaluate fields on the current Account, such as whether the owner is still
-  an active user.
-- **Query Checks** measure related records and aggregates. Found and Expected values explain
-  results such as reachable Executive Sponsors, contacts missing email, open pipeline against a
-  75% revenue target, and high-priority Cases.
+- **Formula Checks** evaluate the Account and Parent Account fields, including URL format, Industry
+  alignment, and an applicability rule.
+- **Query Checks** measure related records, row values, lists, and aggregates. The seeded Account has
+  a realistic mix of High-, Medium-, and Low-priority Cases.
+- **Compare Two Queries Checks** teach number, currency, Date, text, aggregate, list-overlap,
+  list-containment, exact-list, and no-row patterns.
 - **Custom Apex** evaluates recent Tasks and Events within a configurable 90-day window to
   confirm customer engagement is current.
-- **Applicability conditions** skip Checks that do not apply to this Account. Channel-partner
-  governance is skipped for a direct Customer, and the card explains why.
+- **Applicability conditions** skip a Check below its Annual Revenue threshold, and a deliberate
+  no-row comparison demonstrates Unable to Check.
 
 ## Framework capabilities
 
@@ -87,9 +88,9 @@ When a record needs attention, the card explains what was **Found**, what was **
 | Area                  | Details                                                                                                                                                                                                              |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Package               | Salesforce 2GP unlocked package with the `rhc` namespace                                                                                                                                                             |
-| Apex                  | 220 classes, including 111 test classes · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 98.79% namespaced package coverage · 99.54% subscriber-style coverage |
-| LWC                   | 1 Lightning Web Component · 228 Jest tests · 98.63% line coverage · 91.19% branch coverage                                                                                                                           |
-| Packaged examples     | 4 Example Check Sets containing 21 Checks                                                                                                                                                                            |
+| Apex                  | 222 classes, including 113 test classes · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.70% namespaced package coverage · 99.59% subscriber-style coverage |
+| LWC                   | 1 Lightning Web Component · 236 Jest tests · 98.73% line coverage · 91.81% branch coverage                                                                                                                           |
+| Packaged examples     | 4 active Example Check Set records containing 42 Check records; 41 Checks are active                                                                                                                                 |
 | Permission sets       | Card User, User, Admin, MCP Integration, and Error Log Publisher                                                                                                                                                     |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                                                                                                                     |
 | Custom Metadata Types | Record Health Check Set (18 fields) and Record Health Check (44 fields)                                                                                                                                              |

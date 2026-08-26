@@ -1,11 +1,11 @@
 @IsTest
 private with sharing class RecordHealthCheckScopePlannerTest {
-  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
+  private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
 
   @IsTest
   static void checkQueryHydratesRegisteredCheckSetDisplayTokens() {
     String qualifiedName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      PHONE_CHECK
+      FORMULA_CHECK
     );
 
     Test.startTest();

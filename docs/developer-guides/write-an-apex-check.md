@@ -41,7 +41,9 @@ The Scope contains the information supplied to the custom Apex Check.
 | `recordIds` | Copy of all requested record IDs in order |
 | `recordIdAt(index)` | One ID at a numbered position, without creating another list copy |
 | `parameters` | Parsed Check parameter JSON |
+| `checkDeveloperName` | Unqualified Check Developer Name |
 | `checkQualifiedApiName` | Selected Check identity |
+| `checkSetDeveloperName` | Unqualified parent Check Set Developer Name |
 | `checkSetQualifiedApiName` | Parent Check Set identity |
 | `runId` | ID that connects results, logs, and events from the same run |
 
@@ -49,6 +51,10 @@ The class cannot change the package's original request. Read `recordIds` into a 
 query for all IDs together, organize the query results in a map, and then build one outcome per
 record. Each access to `scope.recordIds` returns another list copy. For a numbered loop, use
 `scope.size()` and `scope.recordIdAt(index)` instead.
+
+Use the qualified properties when identity must remain unique across namespaces. The Developer Name
+properties are convenient when the unqualified metadata name is specifically required, but two
+namespaces can publish the same Developer Name.
 
 ## Outcome
 

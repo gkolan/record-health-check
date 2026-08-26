@@ -13,7 +13,7 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     Test.startTest();
     Id jobId = RecordHealthCheckBatch.run(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.NONE,
@@ -58,7 +58,7 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     );
     RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.NONE
@@ -94,7 +94,7 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     }
     RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       oversizedScope,
       RecordHealthCheckEventPublication.NONE
@@ -152,7 +152,7 @@ private with sharing class RecordHealthCheckBatchScopeTest {
     try {
       RecordHealthCheckBatch.run(
         RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-          'Example_Account_Profile_Readiness'
+          'Example_Account_Check_Builder_Guide'
         ),
         new List<Id>{ recordId },
         RecordHealthCheckEventPublication.NONE,

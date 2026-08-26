@@ -179,7 +179,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
   @IsTest
   static void configuredTypeResolvesExplicitPackageNamespace() {
     String qualifiedCheck = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
     if (!qualifiedCheck.contains('__')) {
       return;

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Contact state consistency</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Check_Builder_Guide</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">110</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Contact states match Account Billing State</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">QUERY</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT MailingState FROM Contact WHERE AccountId = {!record.Id}</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ALL_ROWS_PASS</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">EQUALS</value>
+    </values>
+    <values>
+        <field>ExpectedValueSource__c</field>
+        <value xsi:type="xsd:string">RECORD_FORMULA</value>
+    </values>
+    <values>
+        <field>ExpectedRecordFormula__c</field>
+        <value xsi:type="xsd:string">BillingState</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">PASS</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">INFO</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contact mailing addresses on {!record.Name fallback="this Account"} use a different state.</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">MailingState</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >For {!record.Name fallback="this Account"}, confirm the Billing State, then correct the Mailing State on each Contact that should use that state.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review Contact addresses for {!record.Name fallback="Account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Evaluates Mailing State on every Contact. The Query check compares each value with Account Billing State and passes only when every value matches.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">TEXT</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">SKIP_RECORD</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contact Mailing States do not match</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Every Contact Mailing State equals {!rhcResult.expectedValue}</value>
+    </values>
+</CustomMetadata>

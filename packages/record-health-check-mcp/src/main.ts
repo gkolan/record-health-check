@@ -4,12 +4,14 @@ import { createApp } from "./app.js";
 import { loadConfig, safeConfigError } from "./config.js";
 import { JsonLogger } from "./logger.js";
 import { SalesforceClient } from "./salesforce-client.js";
+import { attachStartupErrorHandler } from "./startup.js";
 
 try {
   const config = loadConfig();
   const logger = new JsonLogger();
   const app = createApp(config, new SalesforceClient(config, logger), logger);
   const server = createServer(app);
+  attachStartupErrorHandler(server);
   server.listen(config.port, config.host, () => {
     logger.log("info", "MCP service started.", {
       event: "service_started",

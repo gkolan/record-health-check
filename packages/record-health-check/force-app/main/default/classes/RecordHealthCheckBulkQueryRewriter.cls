@@ -97,8 +97,7 @@ public with sharing class RecordHealthCheckBulkQueryRewriter {
     List<String> patterns = new List<String>{
       '\\bORDER\\s+BY\\b',
       '\\bLIMIT\\b',
-      '\\bOFFSET\\b',
-      '\\bWITH\\s+(?:USER_MODE|SECURITY_ENFORCED)\\b'
+      '\\bOFFSET\\b'
     };
     if (includeHaving) {
       patterns.add('\\bHAVING\\b');

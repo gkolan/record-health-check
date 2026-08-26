@@ -147,6 +147,7 @@ a custom Apex Check.
 | `PLUGIN_CONSTRUCTOR_FAILED` | `ERROR` | The configured class was found, but Record Health Check could not construct it. Confirm that the class has an accessible no-argument constructor and that initialization does not throw. |
 | `PLUGIN_INTERFACE_INVALID` | `ERROR` | The configured class does not implement `rhc.RecordHealthCheckPlugin` in the form required by the installed package version. |
 | `PLUGIN_STATUS_INVALID` | `ERROR` | The plugin returned a status other than `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`. |
+| `PLUGIN_REASON_CODE_INVALID` | `ERROR` | The plugin returned a blank, overlong, or otherwise invalid Reason Code. Return a stable nonblank code of at most 80 characters. |
 | `PLUGIN_VALUES_MISSING` | `ERROR` | A `PASS` or `FAIL` outcome omitted the required Found or Expected value. |
 | `PLUGIN_DISPLAY_INVALID` | `ERROR` | Plugin display data did not satisfy the public display-value contract. |
 | `FRAMEWORK_UNEXPECTED` | `ERROR` | The framework reached an unexpected internal failure path. Capture the Diagnostic ID and contact the package administrator or support team. |

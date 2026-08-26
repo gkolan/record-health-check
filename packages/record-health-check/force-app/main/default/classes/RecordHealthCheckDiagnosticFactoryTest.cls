@@ -155,6 +155,10 @@ private class RecordHealthCheckDiagnosticFactoryTest {
         'PLUGIN_VALIDATE'
       ),
       contextFor(
+        RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID,
+        'PLUGIN_VALIDATE'
+      ),
+      contextFor(
         RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID,
         'PLUGIN_VALIDATE'
       ),
@@ -201,16 +205,16 @@ private class RecordHealthCheckDiagnosticFactoryTest {
     }
     Assert.areEqual(
       'LIMIT',
-      incidents[12].category,
+      incidents[13].category,
       'Limit failures need their own category.'
     );
     Assert.areEqual(
       'FRAMEWORK',
-      incidents[13].category,
+      incidents[14].category,
       'Unknown failures need framework guidance.'
     );
     Assert.isTrue(
-      incidents[14].summary.contains('record'),
+      incidents[15].summary.contains('record'),
       'Record access needs record-specific guidance.'
     );
   }

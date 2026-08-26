@@ -265,8 +265,8 @@ The context contains:
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
 | `checkQualifiedApiName` | `String` | Qualified Check identity |
 | `checkSetQualifiedApiName` | `String` | Qualified Check Set identity |
-| `checkDeveloperName` | `String` | Legacy Check `DeveloperName`, retained for compatibility |
-| `checkSetDeveloperName` | `String` | Legacy parent Check Set identity, retained for compatibility |
+| `checkDeveloperName` | `String` | Unqualified Check `DeveloperName` |
+| `checkSetDeveloperName` | `String` | Unqualified parent Check Set `DeveloperName` |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a

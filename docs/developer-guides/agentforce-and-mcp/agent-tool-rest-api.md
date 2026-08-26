@@ -40,27 +40,23 @@ The resource accepts `POST` with `Content-Type: application/json`. Other methods
 ## Access
 
 The Salesforce user associated with the OAuth token is the running integration principal. Assign
-that user the following minimum package access:
+that user the packaged **Record Health Check MCP Integration**
+(`rhc__Record_Health_Check_MCP_Integration`) Permission Set. It grants only **Record Health Check
+Run**, Apex class access to `RecordHealthCheckAgentRestResource`, and read access to both Record
+Health Check Custom Metadata Types. The REST adapter calls the framework internally; callers do not
+need direct Apex class access to `RecordHealthCheck`.
 
-- **Record Health Check Run** (`rhc__Record_Health_Check_Run`);
-- Apex class access to `RecordHealthCheckAgentRestResource` and `RecordHealthCheck`;
-- read access to both Record Health Check Custom Metadata Types; and
-- read access, field access, sharing, restriction-rule access, and scoping-rule access required for
-  the target records and configured Checks.
-
-The packaged **Record Health Check User** Permission Set includes package entry-point access but also
-includes other supported package surfaces and result-event access. For a dedicated integration user,
-an administrator can create a narrower org-owned Permission Set containing only the listed access.
-Do not grant the diagnostics Custom Permission to the integration principal.
+Separately grant read access, field access, sharing, restriction-rule access, and scoping-rule
+access required for the target records and configured Checks. Do not grant **Record Health Check
+User**, diagnostics, UI, Flow, Agentforce, async Apex, or lifecycle-event access merely to make the
+REST integration work.
 
 Use a Salesforce External Client App or supported connected app with a dedicated integration user,
 client-credentials policy, narrow OAuth scopes, managed secret storage, rotation, and revocation.
 
-In Setup, create an organization-owned Permission Set for the integration principal. Under **Custom
-Permissions**, enable **Record Health Check Run**; under **Apex Class Access**, add the REST resource
-and public framework entry point; under **Custom Metadata Types**, grant read access to both Record
-Health Check types; and under **Object Settings**, grant only the target objects and fields required
-by approved Checks. Assign it only to the dedicated integration user.
+In Setup, assign the packaged **Record Health Check MCP Integration** Permission Set. Create a
+separate organization-owned data-access Permission Set containing only the target objects and fields
+required by approved Checks, and assign both sets only to the dedicated integration user.
 
 The endpoint is read-only with respect to business data. It always forces result-event publication
 to `NONE`, so an MCP or REST caller cannot produce Check Set Run or Check Result Platform Events.
@@ -96,8 +92,8 @@ Every completed evaluation uses HTTP `200`, including business `FAIL`, `SKIPPED`
   "correlationId": "mcp-request-42",
   "success": true,
   "operation": "RUN_CHECK",
-  "status": "FAIL",
-  "reasonCode": "VALUE_MISSING"
+  "status": "SKIPPED",
+  "reasonCode": "VALUE_IS_EMPTY"
 }
 ```
 

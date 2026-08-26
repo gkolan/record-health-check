@@ -12,10 +12,10 @@ private class RecordHealthCheckExhaustiveSmokeTest {
       'Exhaustive execution'
     );
     String setName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     String checkName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
 
     Test.startTest();

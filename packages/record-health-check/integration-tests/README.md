@@ -39,8 +39,8 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   `npm run generate:agentforce-testing-center -- --record-id <real-account-id> --second-record-id <real-account-id> --output /tmp/record-health-testing-center.yaml`; the generator rejects synthetic IDs and existing output files.
 - `agentforce/record-health-agent-spec.md`: reviewable Agent Spec source draft; it is not generated
   or deployed without the explicit approval required by the Agentforce generation workflow
-- Sample Check Sets and Checks, including a retained copy of the four `Example_` Check Sets
-  that also ship in `force-app`
+- Sample Check Sets and Checks, including matching copies of the four shipped Example Check Set
+  records and 41 shipped Example Check records. Three sets and 33 Checks are active.
 - `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for
   verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
 - `Review_Summary_Above_Checks`: a permanent integration-only Account card with two uncategorized
@@ -59,6 +59,9 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
 - `npm run test:war-room -- --alias <alias>`: cross-platform deploy-optional runner for the negative
   suite, row-cap data lifecycle, combined Person Account/currency gate, and optional full Apex run
+- `npm run contract:org --prefix packages/record-health-check-mcp -- --target-org <alias>`: drives
+  the real MCP Salesforce client across HTTPS into the deployed Apex REST resource for both public
+  operations, validates the strict response schemas, and removes its temporary Account fixture
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests

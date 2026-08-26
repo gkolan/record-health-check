@@ -28,8 +28,10 @@ global with sharing class RecordHealthCheckQueueable implements Queueable, Final
 
   /** Executes the immutable request in the queueable transaction. */
   global void execute(QueueableContext context) {
+    if (context != null) {
+      System.attachFinalizer(this);
+    }
     RecordHealthCheckAccess.requireCanRunChecks();
-    System.attachFinalizer(this);
     if (recordIds.isEmpty()) {
       return;
     }

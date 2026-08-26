@@ -118,7 +118,10 @@ const idsBefore = new Set(
     .map((record) => record.SubscriberPackageVersionId)
     .filter(Boolean)
 );
-const candidateBranch = `${branch}@${gitCommit.slice(0, 12)}`;
+// Salesforce stores this as the source-control branch, not as package ancestry.
+// Exact immutable provenance is recorded separately as gitCommit in the local
+// creation evidence.
+const candidateBranch = branch;
 
 const createArguments = [
   "package",

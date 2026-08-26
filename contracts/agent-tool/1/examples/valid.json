@@ -13,7 +13,7 @@
     "value": {
       "operation": "RUN_CHECK_SET",
       "recordId": "001000000000001",
-      "qualifiedApiName": "rhc__Example_Account_Profile_Readiness"
+      "qualifiedApiName": "rhc__Example_Account_Check_Builder_Guide"
     }
   },
   {

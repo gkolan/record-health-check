@@ -22,6 +22,12 @@ const validators = {
 const failures = [];
 const validExamples = readJson("examples/valid.json");
 
+for (const variant of responseSchema.oneOf) {
+  if (variant.additionalProperties !== false) {
+    failures.push("Every response schema variant must reject unknown fields.");
+  }
+}
+
 for (const example of validExamples) {
   const validate = validators[example.schema];
   if (!validate || !validate(example.value)) {
@@ -122,6 +128,11 @@ if (!apexResponseBody) {
     }
   }
 }
+if (!/JSON\.serialize\(output,\s*true\)/.test(apexResponseSource)) {
+  failures.push(
+    "Apex REST responses must suppress null DTO fields because response variants reject unknown properties."
+  );
+}
 
 const mcpContractSource = fs.readFileSync(
   path.join(root, "packages/record-health-check-mcp/src/contract.ts"),
@@ -158,6 +169,51 @@ if (!mcpDiagnosisBody) {
       failures.push(`MCP and JSON Schema constraints differ for ${field}.`);
     }
   }
+}
+
+const checkSuccessVariant = successResponseVariants.find(
+  (variant) => variant.properties?.operation?.const === "RUN_CHECK"
+);
+const mcpReasonCodeMax = Number(
+  mcpContractSource.match(
+    /reasonCode:\s*z\.string\(\)\.min\(1\)\.max\((\d+)\)\.optional\(\)/
+  )?.[1]
+);
+const schemaReasonCodeMax =
+  checkSuccessVariant?.properties?.reasonCode?.maxLength;
+const apexPluginFinalizerSource = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckApexResultFinalizer.cls"
+  ),
+  "utf8"
+);
+const apexReasonCodeMax = Number(
+  apexPluginFinalizerSource.match(/REASON_CODE_MAX\s*=\s*(\d+)/)?.[1]
+);
+const reasonCodeFieldSource = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Result__e/fields/ReasonCode__c.field-meta.xml"
+  ),
+  "utf8"
+);
+const eventReasonCodeMax = Number(
+  reasonCodeFieldSource.match(/<length>(\d+)<\/length>/)?.[1]
+);
+const reasonCodeLimits = [
+  mcpReasonCodeMax,
+  schemaReasonCodeMax,
+  apexReasonCodeMax,
+  eventReasonCodeMax
+];
+if (
+  reasonCodeLimits.some((limit) => !Number.isInteger(limit)) ||
+  new Set(reasonCodeLimits).size !== 1
+) {
+  failures.push(
+    `Reason-code limits differ across MCP, JSON Schema, Apex, and Platform Event metadata: ${reasonCodeLimits.join(", ")}.`
+  );
 }
 
 if (failures.length > 0) {

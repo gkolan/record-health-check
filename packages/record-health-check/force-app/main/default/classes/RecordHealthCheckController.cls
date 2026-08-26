@@ -207,6 +207,18 @@ public with sharing class RecordHealthCheckController {
       }
       String effectiveSource = normalizeLwcSource(source);
       validateCheckMembership(checkSetQualifiedApiName, checkQualifiedApiName);
+      if (recordId == null) {
+        RecordHealthCheckEvaluationResult evaluation = new RecordHealthCheckEvaluationResult();
+        evaluation.checkQualifiedApiName = checkQualifiedApiName;
+        evaluation.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+        evaluation.reasonCode = RecordHealthCheckConfigService.RC_NO_RECORD_CONTEXT;
+        RecordHealthCheckResultDisplay display = new RecordHealthCheckResultDisplay();
+        display.renderedMessage = 'A Salesforce record is required to run this health check.';
+        RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
+        item.evaluation = evaluation;
+        item.display = display;
+        return item;
+      }
       RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
           checkQualifiedApiName,
           recordId

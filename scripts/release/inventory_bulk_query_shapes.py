@@ -12,7 +12,7 @@ attributes each returned row back to one input record, and a few shapes have no
 grouped equivalent at all.
 
 This script is the inventory and the gate. Every template must map to exactly one
-named strategy in docs/architecture/bulk-query-grammar.md. `--check` exits non-zero
+named strategy in docs/reference/evaluation/bulk-query-grammar.md. `--check` exits non-zero
 when a template is UNCLASSIFIED or when the committed inventory would change, so a
 new Check authored in an unsupported shape fails CI rather than silently falling back
 to one query per record.
@@ -74,10 +74,16 @@ IN_MEMORY_STRATEGIES = {ORDERED_PICK_IN_MEMORY}
 
 # ─── Patterns ────────────────────────────────────────────────────────────────
 
-RE_TOKEN = re.compile(r"\{!record\.([A-Za-z0-9_.]+)\}")
-RE_EQ_TOKEN = re.compile(r"([A-Za-z_][A-Za-z0-9_.]*)\s*=\s*\{!record\.([A-Za-z0-9_.]+)\}")
+RE_TOKEN = re.compile(
+    r"\{!record\.([A-Za-z0-9_.]+)(?:\s+[^{}]*?)?\}"
+)
+RE_EQ_TOKEN = re.compile(
+    r"([A-Za-z_][A-Za-z0-9_.]*)\s*=\s*"
+    r"\{!record\.([A-Za-z0-9_.]+)(?:\s+[^{}]*?)?\}"
+)
 RE_NEQ_TOKEN = re.compile(
-    r"([A-Za-z_][A-Za-z0-9_.]*)\s*(?:!=|<>)\s*\{!record\.([A-Za-z0-9_.]+)\}"
+    r"([A-Za-z_][A-Za-z0-9_.]*)\s*(?:!=|<>)\s*"
+    r"\{!record\.([A-Za-z0-9_.]+)(?:\s+[^{}]*?)?\}"
 )
 RE_ORDER_BY = re.compile(r"(?i)\bORDER\s+BY\s+([A-Za-z_][A-Za-z0-9_.]*)")
 RE_LIMIT = re.compile(r"(?i)\bLIMIT\s+(\d+)")
@@ -150,7 +156,11 @@ def classify(soql):
             )
         ordered_field = order_by.group(1)
         selected = select_fields(soql)
-        if len(selected) == 1 and selected[0].lower() == ordered_field.lower():
+        if (
+            len(selected) == 1
+            and selected[0].lower() == ordered_field.lower()
+            and "." not in selected[0]
+        ):
             return (
                 ORDERED_PICK_AGGREGATE,
                 correlation,
@@ -232,7 +242,7 @@ def render(rows):
         "Every admin-authored SOQL template in this repository, classified into the bulk",
         "execution strategy that the framework uses to run it once per scope instead of once",
         "per record. The grammar these strategies belong to is described in",
-        "`specs/framework-contracts/04a-bulk-query-grammar.md`.",
+        "`docs/reference/evaluation/bulk-query-grammar.md`.",
         "",
         f"**{len(rows)} templates · {len(counts)} strategies · "
         f"{counts.get(UNCLASSIFIED, 0)} unclassified**",
@@ -284,6 +294,11 @@ SELF_TEST_CASES = (
         "SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true",
         TOKEN_INDIRECT,
     ),
+    (
+        'SELECT COUNT() FROM User WHERE Id = '
+        '{!record.OwnerId fallback="005000000000001"}',
+        TOKEN_INDIRECT,
+    ),
     ("SELECT Name FROM Restricted_Country__c WHERE Active__c = true", SCOPE_INVARIANT),
     (
         "SELECT Name FROM Restricted_Country__c WHERE Active__c = true "
@@ -298,6 +313,11 @@ SELF_TEST_CASES = (
     (
         "SELECT Probability FROM Opportunity WHERE AccountId = {!record.Id} "
         "ORDER BY CloseDate ASC LIMIT 1",
+        ORDERED_PICK_IN_MEMORY,
+    ),
+    (
+        "SELECT Owner.Name FROM Opportunity WHERE AccountId = {!record.Id} "
+        "ORDER BY Owner.Name ASC LIMIT 1",
         ORDERED_PICK_IN_MEMORY,
     ),
     (

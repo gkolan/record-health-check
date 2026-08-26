@@ -105,6 +105,8 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
         return Decimal.valueOf(trimmed);
       }
       return fallbackValue;
+    } catch (RecordHealthCheckEvaluatorException ex) {
+      throw ex;
     } catch (Exception ex) {
       throw new RecordHealthCheckEvaluatorException(
         'MISSING_BIND_VALUE',

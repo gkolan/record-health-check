@@ -623,7 +623,7 @@ for incident response, telemetry rules, evidence, rotation, and rollback exercis
 | Requests time out or receive unavailable | 7 | Kill switch, concurrency, timeout, retry and response limits |
 | OAuth works but the instance call returns `VALIDATION` and is blocked | 8 | Returned instance hostname in `SALESFORCE_ALLOWED_HOSTS`; this is destination policy, not an OAuth authorization failure |
 | Salesforce returns authentication failure | 9 | Client ID, rotated secret, app policy, run-as user |
-| Salesforce user authenticates but cannot run package | 10 | Record Health Check User assignment and run permission |
+| Salesforce user authenticates but cannot run package | 10 | Record Health Check MCP Integration assignment and run permission |
 | One record or Check cannot be evaluated | 11 | Object, field, sharing, restriction, and scoping-rule access |
 
 Change one gate at a time during diagnosis. Broadening several approved host lists or permissions at once

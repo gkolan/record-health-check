@@ -37,7 +37,7 @@ result immediately. Leave event publication as `NONE` because this Flow already 
    Check.
 4. In Setup, go to **Custom Metadata Types → Record Health Check Set → Manage Records** and copy the
    **Qualified API Name**. One created by an administrator can look like `My_Account_Checks`. One
-   included with the installed package can look like `rhc__Account_Data_Quality`.
+   included with the installed package can look like `rhc__Example_Account_Check_Builder_Guide`.
 5. Decide whether another automation also needs Platform Events. Choose `NONE` when this Flow uses
    the returned result itself, `ACTIONABLE` to publish only attention-needed results, or `ALL` to
    publish `PASS` and every other status.

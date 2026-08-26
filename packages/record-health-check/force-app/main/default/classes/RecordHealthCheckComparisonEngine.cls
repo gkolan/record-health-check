@@ -227,14 +227,14 @@ public with sharing class RecordHealthCheckComparisonEngine {
     Object primary,
     Object comparison
   ) {
-    if (primary == null && check.EmptyValueHandling__c == 'SKIP_RECORD') {
-      return null;
-    }
     if (
       check.ComparisonOperator__c == 'IS_BLANK' ||
       check.ComparisonOperator__c == 'IS_NOT_BLANK'
     ) {
       return applyUnaryComparison(check.ComparisonOperator__c, primary);
+    }
+    if (primary == null && check.EmptyValueHandling__c == 'SKIP_RECORD') {
+      return null;
     }
     return applySingleComparisonNullSafe(
       check.ComparisonOperator__c,

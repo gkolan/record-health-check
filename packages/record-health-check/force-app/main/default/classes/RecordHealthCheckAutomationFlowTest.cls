@@ -71,7 +71,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     );
     String groupKey = RecordHealthCheckFlowGroupExecutor.key(
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Guide_Recent_Activity'
       ),
       'NONE'
     );
@@ -115,6 +115,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
     checkRequest.checkQualifiedApiName = '  Missing.Check  ';
     checkRequest.recordId = recordId;
+    checkRequest.eventPublication = 'NONE';
     RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
     setRequest.checkSetQualifiedApiName = overlongIdentity();
     setRequest.recordId = recordId;
@@ -128,11 +129,15 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('Missing.Check', checkRequest.checkQualifiedApiName);
+    Assert.areEqual(
+      '  Missing.Check  ',
+      checkRequest.checkQualifiedApiName,
+      'Flow preparation must not mutate caller-owned input rows.'
+    );
     Assert.areEqual(
       'VALIDATION',
       checkOutputs[0].errorType,
-      'Missing required Event Publication must be a validation error.'
+      'The normalized but unknown Check must be a validation error.'
     );
     Assert.areEqual('VALIDATION', setOutputs[0].errorType);
     Assert.isTrue(
@@ -147,13 +152,13 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     );
     RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
     checkRequest.checkQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
     checkRequest.recordId = accountRecord.Id;
     checkRequest.eventPublication = 'NONE';
     RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
     setRequest.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     setRequest.recordId = accountRecord.Id;
     setRequest.eventPublication = 'NONE';
@@ -188,6 +193,11 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
       Assert.areEqual('EXECUTION', malformedSet[0].errorType);
+      Assert.areEqual(
+        'The Check Set response could not be prepared.',
+        malformedSet[0].errorMessage,
+        'Unexpected response-construction failures must not claim an alignment error.'
+      );
 
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
       RecordHealthCheckFlowSupport.payloadBudgetStartOverride = RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS;
@@ -314,6 +324,17 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
         'The stable response-budget code must be returned.'
       );
     }
+    try {
+      RecordHealthCheckFlowSupport.requirePayloadSerializationCapacity(
+        RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS
+      );
+      Assert.fail('An exhausted budget must reject before serialization.');
+    } catch (RecordHealthCheckFlowSupport.PayloadBudgetException expected) {
+      Assert.isTrue(
+        expected.getMessage().contains('FLOW_RESPONSE_BUDGET_EXCEEDED'),
+        'The pre-serialization guard must use the stable budget error.'
+      );
+    }
     Test.stopTest();
 
     Assert.areEqual(
@@ -322,6 +343,20 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       'The exact configured boundary must remain usable.'
     );
     Assert.areEqual(1, fromZero, 'A missing accumulator must begin at zero.');
+  }
+
+  @IsTest
+  static void availablePayloadBudgetDoesNotReserveUnusedCeilingInHeap() {
+    Test.startTest();
+    String existingHeapUse = ''.leftPad(1100000, 'x');
+    RecordHealthCheckFlowSupport.requirePayloadSerializationCapacity(0);
+    Test.stopTest();
+
+    Assert.areEqual(
+      1100000,
+      existingHeapUse.length(),
+      'The precondition must retain enough heap use to expose the old false rejection.'
+    );
   }
 
   private static String overlongIdentity() {
@@ -417,19 +452,19 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
   }
 
   @IsTest
-  static void bulkifiesTwoHundredDuplicateRows() {
+  static void bulkifiesDuplicateRowsBeyondOneScope() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      'Two hundred duplicate Flow rows'
+      'Duplicate Flow rows beyond one scope'
     );
     List<RecordHealthCheckRunCheckFlowAction.Request> requests = new List<RecordHealthCheckRunCheckFlowAction.Request>();
     for (
       Integer index = 0;
-      index < RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
+      index <= RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
       index++
     ) {
       RecordHealthCheckRunCheckFlowAction.Request input = new RecordHealthCheckRunCheckFlowAction.Request();
       input.checkQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Website_URL_Valid'
       );
       input.recordId = accountRecord.Id;
       input.eventPublication = 'NONE';
@@ -444,7 +479,11 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     Integer queriesUsed = Limits.getQueries() - queriesBefore;
     Test.stopTest();
 
-    Assert.areEqual(200, outputs.size(), 'Every Flow row needs a response.');
+    Assert.areEqual(
+      RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE + 1,
+      outputs.size(),
+      'The adapter must budget the deduplicated execution scope, not global Flow rows.'
+    );
     Assert.isTrue(
       queriesUsed <= 20,
       'One group must use a bounded query budget; used=' + queriesUsed

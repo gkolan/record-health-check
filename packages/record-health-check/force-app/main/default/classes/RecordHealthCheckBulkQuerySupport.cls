@@ -1,5 +1,8 @@
 /** Executes one supported record-token SOQL template across an evaluated scope. */
 public with sharing class RecordHealthCheckBulkQuerySupport {
+  @TestVisible
+  private static Integer remainingQueryRowsOverride;
+
   public static final String SELF = 'SELF';
   public static final String CHILD_DIRECT = 'CHILD_DIRECT';
   public static final String CHILD_PATH = 'CHILD_PATH';
@@ -177,24 +180,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       }
     }
 
-    if (RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()) {
-      for (
-        String selectedField : RecordHealthCheckBulkQueryRewriter.selectedFields(
-          scopeSoql
-        )
-      ) {
-        String isoField = RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
-          scopeSoql,
-          selectedField
-        );
-        if (String.isNotBlank(isoField)) {
-          scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
-            scopeSoql,
-            isoField
-          );
-        }
-      }
-    }
+    scopeSoql = RecordHealthCheckCurrencySupport.injectUnitEvidence(scopeSoql);
 
     String prepared;
     try {
@@ -208,10 +194,26 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
         ex.getMessage()
       );
     }
-    // queryWithBinds carries the user-mode access level itself. Salesforce
-    // rejects a dynamic query that also contains a WITH USER_MODE clause.
     prepared = RecordHealthCheckSoqlTemplate.removeOuterUserMode(prepared);
     result.executedSoql = prepared;
+
+    Integer queryRowReservation = RecordHealthCheckQueryEvaluatorSupport.queryRowReservation(
+      prepared,
+      rowBudget
+    );
+    Integer remainingQueryRows = remainingQueryRowsOverride == null
+      ? Limits.getLimitQueryRows() - Limits.getQueryRows()
+      : remainingQueryRowsOverride;
+    if (queryRowReservation > remainingQueryRows) {
+      throw new RecordHealthCheckEvaluatorException(
+        RecordHealthCheckReasonCodes.GOVERNOR_LIMIT_RISK,
+        'The query needs capacity for up to ' +
+          queryRowReservation +
+          ' rows, but only ' +
+          remainingQueryRows +
+          ' query rows remain in this transaction.'
+      );
+    }
 
     List<SObject> rows;
     try {
@@ -308,9 +310,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
         ? SELF
         : UNCLASSIFIED;
     }
-    // LIMIT 1 is removed from the rewritten scope query and applied while rows
-    // are attributed to each record. Larger bare limits have no supported
-    // per-record reduction contract and must remain rejected.
+    // LIMIT 1 is applied per record after rewrite; larger bare limits stay unsupported.
     if (hasLimit && Integer.valueOf(limitValue) != 1) {
       return UNCLASSIFIED;
     }

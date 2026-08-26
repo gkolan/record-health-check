@@ -17,7 +17,7 @@ A Custom Metadata record has several names. Only one belongs in Record Health Ch
 | --- | --- | --- |
 | Label | Account checks | No. This is text shown to administrators |
 | Developer Name | `My_Account_Checks` | Do not use it as a substitute for the Qualified API Name |
-| Qualified API Name | `My_Account_Checks` or `rhc__Example_Account_Profile_Readiness` | Yes. Copy this exact value |
+| Qualified API Name | `My_Account_Checks` or `rhc__Example_Account_Check_Builder_Guide` | Yes. Copy this exact value |
 
 For a Check Set created by an administrator in your org, Developer Name and Qualified API Name
 usually look the same. They are still different Salesforce fields. Always copy **Qualified API
@@ -31,7 +31,7 @@ Name of a Custom Metadata record included with that installed package.
 | Who created the Custom Metadata record? | Developer Name | Qualified API Name example |
 | --- | --- | --- |
 | An administrator in your org | `My_Account_Checks` | `My_Account_Checks` |
-| The installed Record Health Check package | `Example_Account_Profile_Readiness` | `rhc__Example_Account_Profile_Readiness` |
+| The installed Record Health Check package | `Example_Account_Check_Builder_Guide` | `rhc__Example_Account_Check_Builder_Guide` |
 | Another installed package with namespace `other` | `Account_Readiness` | `other__Account_Readiness` |
 
 The prefix belongs to the package that supplied that particular Custom Metadata record. It does not
@@ -94,10 +94,11 @@ namespace prefix.
 
 ## Keep Example starter configuration explicit
 
-The package installs four example Check Sets whose Developer Names begin with `Example_` and whose
-card titles begin with `Example:`. They are learning examples, not business rules for your org:
+The package installs four active Example Check Set records whose Developer Names begin with
+`Example_` and whose card titles begin with `Example:`. They are learning examples, not business
+rules for your org:
 
-- `Example_Account_Profile_Readiness`
+- `Example_Account_Check_Builder_Guide`
 - `Example_Account_Relationship_Risk`
 - `Example_Contact_Relationship_Readiness`
 - `Example_Opportunity_Deal_Readiness`

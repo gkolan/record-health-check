@@ -25,12 +25,15 @@ export class ConcurrencyLimiter {
       throw new ConcurrencyLimitError();
     }
     await new Promise<void>((resolve) => this.waiting.push(resolve));
-    this.active += 1;
   }
 
   private release(): void {
+    const next = this.waiting.shift();
+    if (next) {
+      next();
+      return;
+    }
     this.active -= 1;
-    this.waiting.shift()?.();
   }
 }
 

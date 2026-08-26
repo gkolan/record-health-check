@@ -22,7 +22,7 @@
 global class RecordHealthCheckOutcome {
   /** Plugin verdict status. */
   global String status { get; private set; }
-  /** Stable plugin-authored reason code. */
+  /** Stable plugin-authored reason code, at most 80 characters. */
   global String reasonCode { get; private set; }
   /** Typed value observed by the plugin. */
   global RecordHealthCheckValue found { get; private set; }

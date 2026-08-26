@@ -39,9 +39,12 @@ For immediate and background Apex patterns, use [API examples](./README.md). For
 Flow, Apex, or external-integration examples, use
 [Platform Event subscriptions](../save-results/README.md).
 
-All callers use **Record Health Check User** or equivalent least-privilege package access plus the
-running principal's normal record and field access. Use [Read results](../reference/results/statuses-and-labels.md) to
-translate card labels and API statuses.
+Choose the packaged Permission Set for the entry point: **Card User** for the record-page card,
+**User** for Flow, Apex, Agentforce, and asynchronous Apex, **MCP Integration** for the versioned
+REST adapter, or **Admin** for configuration and authorized diagnostics. Every caller also needs the
+running principal's normal record and field access. Use
+[Read results](../reference/results/statuses-and-labels.md) to translate card labels and API
+statuses.
 
 ## Choose an integration
 

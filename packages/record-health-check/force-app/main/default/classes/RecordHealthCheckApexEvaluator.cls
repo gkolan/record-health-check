@@ -84,6 +84,27 @@ public with sharing class RecordHealthCheckApexEvaluator {
     String checkSetDeveloperName,
     String runId
   ) {
+    return evaluateScope(
+      check,
+      recordIds,
+      loadedRecords,
+      objectApiName,
+      checkSetDeveloperName,
+      checkSetDeveloperName,
+      runId
+    );
+  }
+
+  /** Evaluates an Apex Check with unqualified and qualified Set identities. */
+  public Map<Id, RecordHealthCheckInternalResult> evaluateScope(
+    Record_Health_Check__mdt check,
+    List<Id> recordIds,
+    Map<Id, SObject> loadedRecords,
+    String objectApiName,
+    String checkSetDeveloperName,
+    String checkSetQualifiedApiName,
+    String runId
+  ) {
     RecordHealthCheckPlugin plugin;
     Map<String, Object> parameters;
     try {
@@ -94,7 +115,7 @@ public with sharing class RecordHealthCheckApexEvaluator {
     } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException ex) {
       RecordHealthCheckDiagnosticContext configurationContext = diagnosticContext(
         check,
-        checkSetDeveloperName,
+        checkSetQualifiedApiName,
         runId,
         ex.reasonCode,
         ex.reasonCode == 'INVALID_APEX_PARAMETERS'
@@ -121,9 +142,11 @@ public with sharing class RecordHealthCheckApexEvaluator {
       objectApiName,
       recordIds,
       parameters,
-      checkQualifiedApiName,
+      check.DeveloperName,
       checkSetDeveloperName,
-      runId
+      runId,
+      checkQualifiedApiName,
+      checkSetQualifiedApiName
     );
     Map<Id, RecordHealthCheckOutcome> outcomes;
     try {
@@ -134,7 +157,7 @@ public with sharing class RecordHealthCheckApexEvaluator {
         recordIds,
         diagnosticContext(
           check,
-          checkSetDeveloperName,
+          checkSetQualifiedApiName,
           runId,
           ex.reasonCode,
           ex.reasonCode == RecordHealthCheckReasonCodes.PLUGIN_THREW
@@ -150,7 +173,7 @@ public with sharing class RecordHealthCheckApexEvaluator {
       recordIds,
       loadedRecords,
       outcomes,
-      checkSetDeveloperName,
+      checkSetQualifiedApiName,
       runId
     );
   }
@@ -176,6 +199,8 @@ public with sharing class RecordHealthCheckApexEvaluator {
         RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING ||
         result.reasonCode ==
         RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID ||
+        result.reasonCode ==
+        RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID ||
         result.reasonCode ==
         RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING ||
         result.reasonCode ==

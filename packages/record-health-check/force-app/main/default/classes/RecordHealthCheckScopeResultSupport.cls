@@ -123,19 +123,60 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     if (String.isBlank(prerequisiteName)) {
       return null;
     }
-    RecordHealthCheckResultItem prior = itemsByIdentity.get(
-      itemKey(recordId, prerequisiteName)
-    );
-    if (
-      prior == null &&
-      String.isNotBlank(check.QualifiedApiName) &&
-      check.QualifiedApiName.contains('__')
-    ) {
-      String namespacePrefix = check.QualifiedApiName.substringBefore('__');
-      prior = itemsByIdentity.get(
-        itemKey(recordId, namespacePrefix + '__' + prerequisiteName)
-      );
+    String recordKeyPrefix = String.valueOf(recordId) + '|';
+    Set<String> availableIdentities = new Set<String>();
+    for (String key : itemsByIdentity.keySet()) {
+      if (key.startsWith(recordKeyPrefix)) {
+        availableIdentities.add(key.substring(recordKeyPrefix.length()));
+      }
     }
+    String resolvedPrerequisite = RHCDefinitionDependencyIdentity.resolveQualified(
+      check,
+      availableIdentities
+    );
+    return findPrerequisiteBlock(
+      check,
+      recordId,
+      itemsByIdentity,
+      fullCheckSetSelection,
+      resolvedPrerequisite
+    );
+  }
+
+  public String resolvePrerequisite(
+    Record_Health_Check__mdt check,
+    Map<String, RecordHealthCheckResultItem> itemsByIdentity
+  ) {
+    if (String.isBlank(check.PrerequisiteCheck__c)) {
+      return null;
+    }
+    Set<String> availableIdentities = new Set<String>();
+    for (String key : itemsByIdentity.keySet()) {
+      Integer separator = key.indexOf('|');
+      if (separator >= 0) {
+        availableIdentities.add(key.substring(separator + 1));
+      }
+    }
+    return RHCDefinitionDependencyIdentity.resolveQualified(
+      check,
+      availableIdentities
+    );
+  }
+
+  public RecordHealthCheckInternalResult findPrerequisiteBlock(
+    Record_Health_Check__mdt check,
+    Id recordId,
+    Map<String, RecordHealthCheckResultItem> itemsByIdentity,
+    Boolean fullCheckSetSelection,
+    String resolvedPrerequisite
+  ) {
+    String prerequisiteName = check.PrerequisiteCheck__c;
+    if (String.isBlank(prerequisiteName)) {
+      return null;
+    }
+    RecordHealthCheckResultItem prior = resolvedPrerequisite == null
+      ? null
+      : itemsByIdentity.get(itemKey(recordId, resolvedPrerequisite));
     if (prior == null) {
       if (fullCheckSetSelection != true) {
         // A qualified single-Check request intentionally has no results from

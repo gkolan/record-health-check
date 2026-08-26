@@ -255,7 +255,7 @@ matches, the component selects it automatically.
 - **Why it exists:** the list avoids mistakes caused by typing a Check Set name manually. The label
   helps the administrator recognize the Check Set, while the stored Qualified API Name keeps an
   administrator-created item such as `My_Account_Checks` distinct from an installed-package item
-  such as `rhc__Account_Data_Quality`. When App Builder does not provide an object name, such as
+  such as `rhc__Example_Account_Check_Builder_Guide`. When App Builder does not provide an object name, such as
   while editing a template outside a record page, the list shows every active Check Set.
 
 ---

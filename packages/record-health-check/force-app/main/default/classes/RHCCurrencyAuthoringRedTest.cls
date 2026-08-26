@@ -244,6 +244,61 @@ private class RHCCurrencyAuthoringRedTest {
   }
 
   @IsTest
+  static void shouldRequireTheIsoPathForTheAggregatedCurrencyField() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+
+    Assert.isTrue(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(Amount) totalValue FROM Opportunity ' +
+        'WHERE Account.CurrencyIsoCode = \'USD\''
+      ),
+      'A parent currency filter must not establish the unit of Opportunity.Amount.'
+    );
+    Assert.isTrue(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(Account.AnnualRevenue) totalValue FROM Opportunity ' +
+        'WHERE CurrencyIsoCode = \'USD\''
+      ),
+      'A root currency filter must not establish the unit of Account.AnnualRevenue.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(Account.AnnualRevenue) totalValue FROM Opportunity ' +
+        'WHERE Account.CurrencyIsoCode = \'USD\''
+      ),
+      'The ISO filter matching the aggregated relationship path establishes one unit.'
+    );
+  }
+
+  @IsTest
+  static void shouldRequireTheIsoGroupForTheAggregatedCurrencyField() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+
+    Assert.isTrue(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(Amount) totalValue FROM Opportunity ' +
+        'GROUP BY Account.CurrencyIsoCode'
+      ),
+      'Grouping by a parent unit must not authorize an aggregate of the root currency.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
+        'SELECT SUM(Account.AnnualRevenue) totalValue FROM Opportunity ' +
+        'GROUP BY Account.CurrencyIsoCode'
+      ),
+      'Grouping by the ISO field for the relationship currency must remain valid.'
+    );
+    Assert.areEqual(
+      new Set<String>{ 'Account.CurrencyIsoCode' },
+      RecordHealthCheckCurrencySupport.aggregateCurrencyIsoFieldPaths(
+        'SELECT SUM(Account.AnnualRevenue) totalValue FROM Opportunity ' +
+        'GROUP BY Account.CurrencyIsoCode'
+      ),
+      'Runtime execution must select the relationship ISO grouping as unit evidence.'
+    );
+  }
+
+  @IsTest
   static void shouldRejectUngroupedCurrencyAggregateAtRuntime() {
     RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     Record_Health_Check__mdt check = baseQueryCheck();
@@ -358,8 +413,7 @@ private class RHCCurrencyAuthoringRedTest {
     Test.startTest();
     RecordHealthCheckCurrencySupport.requireRuntimeSafeConfiguration(check);
     Test.stopTest();
-
-    Assert.isTrue(true, 'An explicit outer ISO basis must remain valid.');
+    // Successful completion proves an explicit matching ISO basis remains valid.
   }
 
   private static Record_Health_Check__mdt baseQueryCheck() {

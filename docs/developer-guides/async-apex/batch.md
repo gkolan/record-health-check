@@ -71,7 +71,7 @@ The packaged Batch can use `NONE` when only job completion matters.
 | Check Set | Qualified API Name example |
 | --- | --- |
 | Created by an administrator in your org | `My_Account_Checks` |
-| Included with the installed Record Health Check package | `rhc__Account_Data_Quality` |
+| Included with the installed Record Health Check package | `rhc__Example_Account_Check_Builder_Guide` |
 
 The code examples use `My_Account_Checks`. Replace it with the exact **Qualified API Name** shown in
 Setup. Do not add or remove `rhc__`; Salesforce includes that prefix when the Check Set came from

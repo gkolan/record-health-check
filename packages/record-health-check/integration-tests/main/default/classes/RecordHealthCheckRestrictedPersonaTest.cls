@@ -318,6 +318,8 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
       Boolean canSubscribeSetRuns = Schema.SObjectType.Record_Health_Check_Set_Run__e.isAccessible();
       Boolean canPublishResults = Schema.SObjectType.Record_Health_Check_Result__e.isCreateable();
       Boolean canSubscribeResults = Schema.SObjectType.Record_Health_Check_Result__e.isAccessible();
+      Boolean canPublishLogs = Schema.SObjectType.Record_Health_Check_Log__e.isCreateable();
+      Boolean canSubscribeLogs = Schema.SObjectType.Record_Health_Check_Log__e.isAccessible();
       Test.stopTest();
 
       Assert.isTrue(
@@ -340,18 +342,23 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
         canSubscribeResults,
         'The MCP persona must not subscribe to Result lifecycle events.'
       );
+      Assert.isFalse(
+        canPublishLogs,
+        'Restricted error telemetry must require its separate publisher Permission Set.'
+      );
+      Assert.isFalse(
+        canSubscribeLogs,
+        'The base MCP persona must not receive restricted error telemetry.'
+      );
     }
   }
 
-  /** @return True after proving this namespaced-only fixture is intentionally absent. */
+  /** @return True when this namespaced-only fixture is unavailable. */
   private static Boolean assertNamespacedFixtureOrReturn() {
     if (Schema.getGlobalDescribe().containsKey('rhc__RHC_Persona_Record__c')) {
       return false;
     }
-    Assert.isNull(
-      Schema.getGlobalDescribe().get('rhc__RHC_Persona_Record__c'),
-      'The namespaced restricted-persona fixture must remain absent in portable source orgs.'
-    );
+    // Portable no-namespace orgs do not install the namespaced persona fixture.
     return true;
   }
 

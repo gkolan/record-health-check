@@ -22,10 +22,14 @@
 global class RecordHealthCheckScope {
   /** Object shared by every requested record ID. */
   global String objectApiName { get; private set; }
-  /** Qualified Check identity. */
+  /** Unqualified Check DeveloperName. */
   global String checkDeveloperName { get; private set; }
-  /** Qualified parent Check Set identity. */
+  /** Qualified Check identity. */
+  global String checkQualifiedApiName { get; private set; }
+  /** Unqualified parent Check Set DeveloperName. */
   global String checkSetDeveloperName { get; private set; }
+  /** Qualified parent Check Set identity. */
+  global String checkSetQualifiedApiName { get; private set; }
   /** Correlation identifier for this evaluation. */
   global String runId { get; private set; }
 
@@ -74,10 +78,43 @@ global class RecordHealthCheckScope {
   ) {
     this.objectApiName = objectApiName;
     this.checkDeveloperName = checkDeveloperName;
+    this.checkQualifiedApiName = checkDeveloperName;
     this.checkSetDeveloperName = checkSetDeveloperName;
+    this.checkSetQualifiedApiName = checkSetDeveloperName;
     this.runId = runId;
     this.parametersInternal = copyParameters(parameters);
     this.recordIdsInternal = dedupe(recordIds, objectApiName);
+  }
+
+  /**
+   * Builds an engine scope with distinct unqualified and qualified identities.
+   * This overload is package-internal so callers receive the complete identity
+   * contract without authoring engine-only construction code.
+   */
+  public RecordHealthCheckScope(
+    String objectApiName,
+    List<Id> recordIds,
+    Map<String, Object> parameters,
+    String checkDeveloperName,
+    String checkSetDeveloperName,
+    String runId,
+    String checkQualifiedApiName,
+    String checkSetQualifiedApiName
+  ) {
+    this(
+      objectApiName,
+      recordIds,
+      parameters,
+      checkDeveloperName,
+      checkSetDeveloperName,
+      runId
+    );
+    this.checkQualifiedApiName = String.isBlank(checkQualifiedApiName)
+      ? checkDeveloperName
+      : checkQualifiedApiName;
+    this.checkSetQualifiedApiName = String.isBlank(checkSetQualifiedApiName)
+      ? checkSetDeveloperName
+      : checkSetQualifiedApiName;
   }
 
   private static List<Id> dedupe(List<Id> recordIds, String objectApiName) {

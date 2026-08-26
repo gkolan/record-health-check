@@ -39,6 +39,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix packages/record-health-check-mcp
       - name: Lint Lightning JavaScript
         run: npm run lint
       - name: Validate SLDS 1 and SLDS 2 styles
@@ -109,6 +110,8 @@ jobs:
             source_args+=(--source-dir "$directory")
           done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
           sf project deploy start "${source_args[@]}" --target-org rhc-ci --test-level NoTestRun --wait 30
+      - name: Verify the live MCP-to-Apex REST contract
+        run: npm run contract:org --prefix packages/record-health-check-mcp -- --target-org rhc-ci --namespace rhc
       - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
       - name: Enforce production Apex coverage class by class
         run: npm run check:apex-coverage -- rhc-ci --list

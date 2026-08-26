@@ -58,7 +58,7 @@ Evaluate a Check Set for several records:
 
 ```apex
 // Copy the exact Check Set Qualified API Name from Setup.
-// A Check Set included with the installed package might be rhc__Account_Data_Quality.
+// A Check Set included with the installed package might be rhc__Example_Account_Check_Builder_Guide.
 String checkSetApiName = 'My_Account_Checks';
 
 // accountIds is a List<Id> collected by the Apex process that needs the result.

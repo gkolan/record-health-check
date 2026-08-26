@@ -197,8 +197,9 @@ change process explicitly. See [Choose where results go](../start-here/choose-wh
 
 ## What are the installed examples?
 
-The package includes four example Check Sets containing 21 Checks. They demonstrate working
-patterns and make it easier to verify an installation. They are teaching starters, not your
+The package includes four active Example Check Set records containing 42 Check records. Forty-one
+Checks are active. They demonstrate working patterns and make it easier to verify an installation.
+They are teaching starters, not your
 organization’s production policy. Review or deactivate them and create Checks with requirements
 owned by your team before go-live. See [Installed examples](../install/explore-installed-examples.md).
 

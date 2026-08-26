@@ -1,6 +1,6 @@
 // Verifies the deterministic Account demo and every expected Check outcome.
 Account demoAccount = [
-  SELECT Id
+  SELECT Id, ParentId
   FROM Account
   WHERE AccountNumber = 'RHC-DEMO-ACME'
   LIMIT 1
@@ -9,11 +9,18 @@ Account demoAccount = [
 Map<String, Integer> expectedCounts = new Map<String, Integer>{
   'accounts' => 3,
   'contacts' => 38,
+  'parentContacts' => 6,
   'opportunities' => 2,
   'roles' => 3,
   'tasks' => 2,
   'events' => 0,
-  'cases' => 4
+  'cases' => 16,
+  'openHighCases' => 4,
+  'openMediumCases' => 4,
+  'openLowCases' => 4,
+  'closedCases' => 4,
+  'openCasesWithContacts' => 7,
+  'openCasesWithoutContacts' => 5
 };
 Map<String, Integer> actualCounts = new Map<String, Integer>{
   'accounts' => [
@@ -22,6 +29,11 @@ Map<String, Integer> actualCounts = new Map<String, Integer>{
     WHERE AccountNumber LIKE 'RHC-DEMO-%'
   ],
   'contacts' => [SELECT COUNT() FROM Contact WHERE AccountId = :demoAccount.Id],
+  'parentContacts' => [
+    SELECT COUNT()
+    FROM Contact
+    WHERE AccountId = :demoAccount.ParentId
+  ],
   'opportunities' => [
     SELECT COUNT()
     FROM Opportunity
@@ -34,7 +46,40 @@ Map<String, Integer> actualCounts = new Map<String, Integer>{
   ],
   'tasks' => [SELECT COUNT() FROM Task WHERE WhatId = :demoAccount.Id],
   'events' => [SELECT COUNT() FROM Event WHERE WhatId = :demoAccount.Id],
-  'cases' => [SELECT COUNT() FROM Case WHERE AccountId = :demoAccount.Id]
+  'cases' => [SELECT COUNT() FROM Case WHERE AccountId = :demoAccount.Id],
+  'openHighCases' => [
+    SELECT COUNT()
+    FROM Case
+    WHERE AccountId = :demoAccount.Id AND IsClosed = FALSE AND Priority = 'High'
+  ],
+  'openMediumCases' => [
+    SELECT COUNT()
+    FROM Case
+    WHERE
+      AccountId = :demoAccount.Id
+      AND IsClosed = FALSE
+      AND Priority = 'Medium'
+  ],
+  'openLowCases' => [
+    SELECT COUNT()
+    FROM Case
+    WHERE AccountId = :demoAccount.Id AND IsClosed = FALSE AND Priority = 'Low'
+  ],
+  'closedCases' => [
+    SELECT COUNT()
+    FROM Case
+    WHERE AccountId = :demoAccount.Id AND IsClosed = TRUE
+  ],
+  'openCasesWithContacts' => [
+    SELECT COUNT()
+    FROM Case
+    WHERE AccountId = :demoAccount.Id AND IsClosed = FALSE AND ContactId != NULL
+  ],
+  'openCasesWithoutContacts' => [
+    SELECT COUNT()
+    FROM Case
+    WHERE AccountId = :demoAccount.Id AND IsClosed = FALSE AND ContactId = NULL
+  ]
 };
 for (String key : expectedCounts.keySet()) {
   if (actualCounts.get(key) != expectedCounts.get(key)) {
@@ -53,7 +98,7 @@ for (String key : expectedCounts.keySet()) {
 String demoCheckSetQualifiedApiName = [
   SELECT QualifiedApiName
   FROM rhc__Record_Health_Check_Set__mdt
-  WHERE DeveloperName = 'Example_Account_Relationship_Risk'
+  WHERE DeveloperName = 'Example_Account_Check_Builder_Guide'
   LIMIT 1
 ]
 .QualifiedApiName;
@@ -64,10 +109,10 @@ rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
   )
 );
 if (
-  response.summary.passed != 3 ||
-  response.summary.failed != 4 ||
+  response.summary.passed != 5 ||
+  response.summary.failed != 18 ||
   response.summary.skipped != 1 ||
-  response.summary.unable != 0 ||
+  response.summary.unable != 1 ||
   response.summary.systemError != 0
 ) {
   throw new StringException(
@@ -86,14 +131,31 @@ if (
 }
 
 Map<String, String> expectedStatuses = new Map<String, String>{
-  'Example_Executive_Sponsorship' => 'PASS',
-  'Example_Account_Owner_Active' => 'FAIL',
-  'Example_Contacts_Have_Email' => 'FAIL',
-  'Example_Open_Deals_Have_Contacts' => 'PASS',
-  'Example_Customer_Engagement_Current' => 'PASS',
-  'Example_Pipeline_Protects_Revenue' => 'FAIL',
-  'Example_No_High_Priority_Issues' => 'FAIL',
-  'Example_Channel_Partner_Governance' => 'SKIPPED'
+  'Example_Website_URL_Valid' => 'PASS',
+  'Example_Guide_Industry_Manufacturing' => 'FAIL',
+  'Example_Segregation_Of_Duties' => 'SKIPPED',
+  'Example_Has_At_Least_One_Contact' => 'PASS',
+  'Example_Open_Cases_Have_Contacts' => 'FAIL',
+  'Example_Fewer_Than_Ten_Open_Cases' => 'FAIL',
+  'Example_Guide_Contacts_Have_Email' => 'FAIL',
+  'Example_Open_Opps_Have_Amount' => 'PASS',
+  'Example_High_Value_Open_Opp' => 'FAIL',
+  'Example_Significant_Open_Opp' => 'FAIL',
+  'Example_Contact_States_Match_Billing' => 'FAIL',
+  'Example_Billing_State_In_Contacts' => 'FAIL',
+  'Example_Contacts_Cover_Open_Cases' => 'PASS',
+  'Example_Contact_Vs_Open_Opp_Count' => 'FAIL',
+  'Example_Oldest_Contact_City_Matches' => 'FAIL',
+  'Example_Guide_Open_Deals_Have_Contacts' => 'FAIL',
+  'Example_Open_Pipeline_Covers_Revenue' => 'FAIL',
+  'Example_Average_Deal_Vs_Largest' => 'FAIL',
+  'Example_Earliest_Vs_Latest_Close' => 'FAIL',
+  'Example_Distinct_Cities_Vs_Contacts' => 'FAIL',
+  'Example_Contact_Cities_Overlap_Parent' => 'FAIL',
+  'Example_Parent_Covers_Contact_Cities' => 'FAIL',
+  'Example_Contact_Cities_Exact_Parent' => 'FAIL',
+  'Example_Parent_Cities_Require_Data' => 'UNABLE_TO_EVALUATE',
+  'Example_Guide_Recent_Activity' => 'PASS'
 };
 Map<String, String> expectedQualifiedStatuses = new Map<String, String>();
 Set<String> expectedDeveloperNames = expectedStatuses.keySet();
@@ -136,4 +198,7 @@ if (!expectedQualifiedStatuses.isEmpty()) {
   );
 }
 
-System.debug(LoggingLevel.INFO, 'RHC_DEMO_VERIFIED pass=3 fail=4 skip=1');
+System.debug(
+  LoggingLevel.INFO,
+  'RHC_DEMO_VERIFIED pass=5 fail=18 skip=1 unable=1 cases=16'
+);

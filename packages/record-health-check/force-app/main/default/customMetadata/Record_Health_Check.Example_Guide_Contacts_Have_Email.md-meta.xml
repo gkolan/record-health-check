@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Contact email coverage</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Check_Builder_Guide</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">All Contacts have an email address</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Evaluates Email on every Contact related to the Account. The Query check passes only when every returned Email value is not blank.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">QUERY</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT Email FROM Contact WHERE AccountId = {!record.Id}</value>
+    </values>
+    <values>
+        <field>ComparisonQuery__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">Email</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ALL_ROWS_PASS</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">IS_NOT_BLANK</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">FAIL</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >One or more Contacts on {!record.Name fallback="this Account"} have no email address.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.failedRecordCount} contacts are missing an email address</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >All {!rhcResult.totalRecordCount} contacts need an email address</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review Contact emails for {!record.Name fallback="Account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">70</value>
+    </values>
+    <values>
+        <field>PrerequisiteCheck__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">TEXT</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+</CustomMetadata>

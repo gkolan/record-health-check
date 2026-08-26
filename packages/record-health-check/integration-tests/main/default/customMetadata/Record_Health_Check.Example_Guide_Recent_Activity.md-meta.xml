@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Recent Account activity</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Check_Builder_Guide</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Account has recent customer activity</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Evaluates completed Tasks and Events related to the Account. Apex compares the most recent completed activity with a 90-day cutoff and passes when recent activity exists.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">APEX</value>
+    </values>
+    <values>
+        <field>ApexClass__c</field>
+        <value xsi:type="xsd:string">AccountHasRecentActivityCheck</value>
+    </values>
+    <values>
+        <field>ApexParametersJson__c</field>
+        <value xsi:type="xsd:string">{"daysBack": 90}</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This Account"}: No completed Task or Event was recorded for this Account in the last 90 days.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.foundValue} in the last 90 days</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcResult.expectedValue} in the last 90 days</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Log an activity for {!record.Name fallback="Account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Task/new?defaultFieldValues=WhatId={!record.Id}</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">250</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">TEXT</value>
+    </values>
+</CustomMetadata>

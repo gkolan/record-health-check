@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopeApplicabilityTest {
-  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
+  private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
@@ -34,7 +34,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.startTest();
     RecordHealthCheckResponse emptyResponse = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
-        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
         new List<Id>()
       )
     );

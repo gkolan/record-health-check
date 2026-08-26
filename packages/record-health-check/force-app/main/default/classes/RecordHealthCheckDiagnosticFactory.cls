@@ -142,15 +142,19 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
     String summary = reason ==
       RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID
       ? 'The custom Apex Check returned an unsupported status.'
-      : reason == RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID
-          ? 'The custom Apex Check returned an invalid display value or format.'
-          : 'The custom Apex Check omitted required Found or Expected values.';
+      : reason == RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID
+          ? 'The custom Apex Check returned a reason code longer than 80 characters.'
+          : reason == RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID
+              ? 'The custom Apex Check returned an invalid display value or format.'
+              : 'The custom Apex Check omitted required Found or Expected values.';
     String instruction = reason ==
       RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID
       ? 'Return PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, or ERROR.'
-      : reason == RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID
-          ? 'Return a supported typed value and canonical uppercase display format.'
-          : 'Return both Found and Expected for every PASS or FAIL outcome.';
+      : reason == RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID
+          ? 'Return a stable reason code of at most 80 characters.'
+          : reason == RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID
+              ? 'Return a supported typed value and canonical uppercase display format.'
+              : 'Return both Found and Expected for every PASS or FAIL outcome.';
     RecordHealthCheckDiagnosticGuidance.pluginContract(
       incident,
       summary,
@@ -217,6 +221,7 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
 
   private static Boolean isPluginResultReason(String reason) {
     return reason == RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID ||
+      reason == RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID ||
       reason == RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING ||
       reason == RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID;
   }

@@ -60,7 +60,7 @@ The command creates a separate scratch org and prepares the entire experience:
 
 1. Creates a scratch org that has no package namespace of its own.
 2. Installs the same promoted Record Health Check package offered by the public install links.
-3. Gives the scratch-org user Record Health Check administrator access.
+3. Gives the scratch-org user **Record Health Check Card User** access, matching the everyday record-page experience.
 4. Adds the prepared Lightning page and demo configuration.
 5. Creates the Acme records used by the Example Check Set and adds focused Account, Contact, and
    Opportunity list views for those records.
@@ -72,51 +72,84 @@ not replace the package with development source.
 ## What the demo prepares
 
 The setup creates the same Acme scenario every time. The record counts and relationships are
-intentional so the card can prove Passed, Failed, and Skipped outcomes with understandable evidence.
+intentional. Five Checks pass, most Checks fail at different business severities, one is skipped,
+and one cannot run because the comparison data is intentionally absent.
 
 | Salesforce object | Records created | Purpose |
 | --- | ---: | --- |
-| User | 1 | Jordan Blake, the owner who is deactivated after Acme receives ownership |
 | Account | 3 | Corporate parent, operating division, and Acme Corporation |
-| Contact | 38 | Stakeholders used for email coverage and executive sponsorship |
+| Contact | 44 | 38 Acme stakeholders and 6 Parent Account stakeholders used by the query examples |
 | Opportunity | 2 | Open pipeline totaling `$70,000` |
-| Opportunity Contact Role | 3 | Executive Sponsor relationships across the two Opportunities |
+| Opportunity Contact Role | 3 | Executive Sponsor relationships on one of the two Opportunities |
 | Task | 2 | Completed activity within the last 90 days |
-| Case | 4 | Open High-priority customer issues |
+| Case | 16 | A realistic mix of open and closed High-, Medium-, and Low-priority issues |
 
 No Event records are created. Recent engagement comes from the two completed Tasks.
 
 | Data | Exact result |
 | --- | --- |
 | Account hierarchy | `Asteron Global Holdings` → `Asteron Industrial Systems` → `Acme Corporation` |
-| Acme classification | Type `Customer`; Industry `Manufacturing`; Annual Revenue `$500,000`; 1,250 employees |
-| Parent alignment | Acme and its immediate parent both use Industry `Manufacturing` |
-| Owner | Jordan Blake owns Acme and is then deactivated in a separate transaction |
-| Contacts | 38 total; exactly 6 have no Email |
+| Acme classification | Type `Customer`; Industry `Technology`; Annual Revenue `$500,000`; 1,250 employees |
+| Industry example | Acme uses Industry `Technology`; the Formula Check expects `Manufacturing` when a Parent Account exists |
+| Owner | The user who runs setup owns Acme; the demo does not create or deactivate users |
+| Acme Contacts | 38 total; exactly 6 have no Email; addresses span Cleveland, Columbus, Indianapolis, and Madison |
+| Parent Account Contacts | 6 total across Chicago, Milwaukee, Detroit, Minneapolis, and St. Louis |
 | Open Opportunities | 2, totaling exactly `$70,000` |
-| Opportunity Contact Roles | Exactly 3 with Role `Executive Sponsor` |
+| Opportunity Contact Roles | Exactly 3 with Role `Executive Sponsor`, all on one open Opportunity |
 | Recent activity | Exactly 2 completed Tasks in the last 90 days |
-| Cases | Exactly 4 open, High-priority Cases |
+| Cases | 16 total: 4 open High, 4 open Medium, 4 open Low, and 4 closed; 5 of the 12 open Cases have no Contact |
 
 The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
 relationships, and health-check outcomes remain predictable. It creates only the Asteron hierarchy
 and Acme teaching data listed above; it does not seed a separate Contact or Opportunity portfolio.
 
-After setup, use these expected outcomes to verify the eight Checks on Acme Corporation:
+After setup, use these expected outcomes to verify all 25 Checks on Acme Corporation. Severity is
+shown only when a Check fails.
 
-| What the Check reviews | Expected outcome |
-| --- | --- |
-| Executive sponsorship | Pass |
-| Account owner is active | Failed |
-| Open deals have decision-maker contacts | Pass |
-| Contacts have email | Failed |
-| Customer engagement is current | Pass |
-| Pipeline protects revenue | Failed |
-| No high-priority customer issues | Failed |
-| Channel-partner governance | Skipped because Acme is a direct customer |
+| Order | Check | Type | Expected outcome | Why the demo produces this result |
+| ---: | --- | --- | --- | --- |
+| 10 | Website uses a valid URL | Formula | Pass | Acme has an HTTPS website. |
+| 20 | Industry is Manufacturing | Formula | Fail (Info) | Acme uses Technology. The Check expects Manufacturing when the Account has a Parent. |
+| 30 | Account Owner is not the record creator | Formula | Skipped | The Check applies only above its Annual Revenue threshold. Acme is below that threshold. |
+| 40 | Account has at least one Contact | Query | Pass | Acme has 38 Contacts. |
+| 50 | Every open Case has a Contact | Query | Fail (Critical) | 5 of Acme's 12 open Cases have no Contact. |
+| 60 | Account has fewer than 10 open Cases | Query | Fail (Critical) | Acme has 12 open Cases across High, Medium, and Low priority. |
+| 70 | All Contacts have an email address | Query | Fail (Warning) | 6 of the 38 Acme Contacts have no Email. |
+| 80 | All open Opportunities have an Amount | Query | Pass | Both open Opportunities have an Amount. |
+| 90 | Account has a high-value open Opportunity | Query | Fail (Warning) | Neither open Opportunity is greater than `$50,000`. |
+| 100 | Open Opportunity is at least 10% of Annual Revenue | Query | Fail (Info) | Ten percent of `$500,000` is `$50,000`; neither deal is above it. |
+| 110 | Contact states match Account Billing State | Query | Fail (Info) | Acme bills in Illinois, while its Contacts use Ohio, Indiana, and Wisconsin. |
+| 120 | Billing State appears in Contact addresses | Query | Fail (Info) | No Acme Contact has Illinois as Mailing State. |
+| 130 | Contact count covers open Case count | Query | Pass | 38 Contacts is greater than 12 open Cases. |
+| 140 | Contact count does not exceed open Opportunity count | Compare Two Queries | Fail (Warning) | The two count queries return 38 Contacts and 2 open Opportunities. |
+| 150 | Oldest Contact city matches Billing City | Compare Two Queries | Fail (Info) | The oldest seeded Contact is in Cleveland; Acme bills in Chicago. |
+| 160 | Every open Opportunity has a Contact Role | Compare Two Queries | Fail (Critical) | All 3 Contact Roles belong to one deal, leaving the other deal uncovered. |
+| 170 | Open pipeline covers Annual Revenue | Compare Two Queries | Fail (Critical) | Open pipeline is `$70,000`; Annual Revenue is `$500,000`. |
+| 180 | Open deal amounts are consistent | Compare Two Queries | Fail (Warning) | Average open deal Amount is `$35,000`; the largest is `$40,000`. |
+| 190 | Open deals share one Close Date | Compare Two Queries | Fail (Warning) | The two open Opportunities close on different dates. |
+| 200 | Contact count matches Parent Account | Compare Two Queries | Fail (Info) | Acme has 38 Contacts and its Parent Account has 6. |
+| 210 | Contact cities overlap with Parent Account | Compare Two Queries | Fail (Warning) | The Acme and Parent Account Contact city lists do not overlap. |
+| 220 | Parent Account covers all Contact cities | Compare Two Queries | Fail (Warning) | The Parent Account list does not contain Acme's Contact cities. |
+| 230 | Contact cities exactly match Parent Account | Compare Two Queries | Fail (Warning) | The two Contact city lists contain different values. |
+| 240 | Grandparent Account city comparison requires data | Compare Two Queries | Unable to Check | The Grandparent Account intentionally has no Contacts, which demonstrates no-row handling. |
+| 250 | Account has recent customer activity | Apex | Pass | Acme has two completed Tasks within the last 90 days. |
 
-The pipeline Check also demonstrates useful evidence: it shows `$70,000` as Found and `$375,000` as
-Expected, then explains the revenue-protection gap.
+The exact summary is **5 Passed, 18 Failed, 1 Skipped, and 1 Unable to Check**. The failed rows
+include Critical, Warning, and Info examples. These 25 Checks do not use categories, so the card
+shows one overall summary. Found and Expected values show the result of the comparison. Each title
+tooltip names the Evaluation Type, explains what Salesforce evaluates, identifies the two values
+being compared, and states what must be true for the Check to pass.
+
+Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing,
+and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and
+the running user has the **Record Health Check View Diagnostics** custom permission. The standard
+user permission does not include that permission. A System Administrator receives these details
+only through a permission set or another assignment that grants the custom permission.
+
+The prepared Lightning page points to
+`rhc__Example_Account_Check_Builder_Guide`. The Check Set keeps the existing demo interaction: run on
+request, reveal one result at a time, show passed and skipped rows, show Found and Expected on
+demand, and place the summary at the bottom.
 
 ## Step 2: Open and test the experience
 
@@ -127,8 +160,8 @@ sf org open --target-org rhc-demo --path 'lightning/o/Account/list?filterName=RH
 ```
 
 Open **Acme Corporation**. Its Account page already contains Record Health Check. Run the checks and
-confirm the summary is three passed, four failed, and one skipped. Expand the results and follow the
-guidance as someone preparing for the customer review would.
+confirm the summary is five passed, 18 failed, one skipped, and one unable to check. Expand the
+results and follow the guidance as someone preparing for the customer review would.
 
 The setup also deploys **RHC Demo Contacts** and **RHC Demo Opportunities** list views. These views
 show only the deterministic records created by the setup script, even though the scratch org also
@@ -149,7 +182,7 @@ The demo is ready when:
 - the setup command completes without an error;
 - if you run `verifyDemo.apex`, it completes without an assertion error;
 - Acme Corporation opens on the prepared Account page;
-- the summary shows three passed, four failed, and one skipped Check; and
+- the summary shows 5 passed, 18 failed, 1 skipped, and 1 unable-to-check result; and
 - the expanded results explain the known Acme data in the tables above.
 
 These outcomes prove the prepared demo. They do not certify a separate sandbox or production org;
@@ -180,6 +213,24 @@ sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
 
 The first command confirms that the scratch org exists. The remaining commands provide deeper
 evidence when package setup, automated verification, or demo-data verification failed.
+
+## Try the other permission sets
+
+The setup command assigns **Record Health Check Card User** so the first experience matches what an
+everyday Salesforce user sees on a record page. The package includes other permission sets for
+specific jobs. Assign them only when you want to test that job:
+
+| Permission set | Use it to test |
+| --- | --- |
+| **Record Health Check Card User** | Run the Lightning record-page card and select an available Check Set in App Builder |
+| **Record Health Check User** | Run Checks through Flow, Apex, REST, Agentforce, Queueable, Batch, or Scheduled entry points |
+| **Record Health Check Admin** | Configure Check metadata, validate setup, and view **Issue**, **Where**, and **Why** diagnostics when the Check Set enables them |
+| **Record Health Check MCP Integration** | Call the narrowly scoped MCP and agent-tool REST surface from an approved integration user |
+| **Record Health Check Error Log Publisher** | Publish restricted error-log events from a narrowly approved automation user |
+
+These permission sets add Record Health Check access. They do not grant access to Account, Contact,
+Opportunity, Case, or any custom object used by a Check. Keep Salesforce record and field access in
+your organization's normal profiles and permission sets.
 
 Scratch-org capacity is managed in the Dev Hub. In its Setup, enter **Scratch Org Info** in Quick
 Find to review active and deleted scratch orgs; limits also appear in the Dev Hub's Company

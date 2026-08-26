@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Open deals share a close date</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Check_Builder_Guide</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">Open deals share one Close Date</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Finds the earliest and latest Close Date across open Opportunities. Compare Two Queries passes when the dates are equal, meaning every open deal closes the same day.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">COMPARE_TWO_QUERIES</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT MIN(CloseDate) earliestClose FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">earliestClose</value>
+    </values>
+    <values>
+        <field>ComparisonQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT MAX(CloseDate) latestClose FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
+    </values>
+    <values>
+        <field>ComparisonQueryField__c</field>
+        <value xsi:type="xsd:string">latestClose</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">EQUALS</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">SKIP_RECORD</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This Account"}: Open Opportunities do not share one Close Date.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">WHEN_COUNT_QUERY_MATCHES</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountOperator__c</field>
+        <value xsi:type="xsd:string">GREATER_THAN</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountThreshold__c</field>
+        <value xsi:type="xsd:double">0</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">190</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review the open Opportunities for {!record.Name fallback="this Account"}. Confirm the Close Dates reflect the current customer plan.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review Close Dates for {!record.Name fallback="Account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
+    </values>
+
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">DATE</value>
+    </values>
+    <values>
+        <field>ApplicabilityNotMetMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This Account"} has no open Opportunities, so Close Date comparison does not apply.</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">FAIL</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+    </values>
+</CustomMetadata>

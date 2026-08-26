@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: High-value Opportunity</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Check_Builder_Guide</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">90</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Account has a high-value open Opportunity</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">QUERY</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ANY_ROW_PASSES</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">GREATER_THAN</value>
+    </values>
+    <values>
+        <field>ExpectedValueSource__c</field>
+        <value xsi:type="xsd:string">FIXED_VALUE</value>
+    </values>
+    <values>
+        <field>ExpectedFixedValue__c</field>
+        <value xsi:type="xsd:string">50000</value>
+    </values>
+    <values>
+        <field>ExpectedCurrencyIsoCode__c</field>
+        <value xsi:type="xsd:string">USD</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This Account"}: No open Opportunity has an Amount greater than $50,000.</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">Amount</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review pipeline for {!record.Name fallback="Account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Evaluates Amount on each open Opportunity related to the Account. The Query check compares each Amount with $50,000 and passes when at least one Amount is greater.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">CURRENCY</value>
+    </values>
+    <values>
+        <field>PrerequisiteCheck__c</field>
+        <value xsi:type="xsd:string">Example_Open_Opps_Have_Amount</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">FAIL</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">SKIP_RECORD</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+    </values>
+</CustomMetadata>

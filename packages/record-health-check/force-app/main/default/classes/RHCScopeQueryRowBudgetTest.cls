@@ -11,18 +11,20 @@ private with sharing class RHCScopeQueryRowBudgetTest {
       }
     );
 
+    RecordHealthCheckScopePlanner planner = new RecordHealthCheckScopePlanner();
+
     Test.startTest();
-    new RecordHealthCheckScopePlanner()
-      .enforceTransactionBudget(
-        new List<Record_Health_Check__mdt>{ check },
-        1,
-        RecordHealthCheckEventPublication.NONE
-      );
+    Integer plannedRows = planner.plannedQueryRows(
+      check.SourceQuery__c,
+      RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS,
+      1
+    );
     Test.stopTest();
 
-    Assert.isTrue(
-      true,
-      'An out-of-range LIMIT must safely use the bounded framework reservation.'
+    Assert.areEqual(
+      RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS + 1,
+      plannedRows,
+      'An out-of-range LIMIT must use the bounded framework reservation.'
     );
   }
 
@@ -43,22 +45,103 @@ private with sharing class RHCScopeQueryRowBudgetTest {
       }
     );
 
+    RecordHealthCheckScopePlanner planner = new RecordHealthCheckScopePlanner();
+
     Test.startTest();
-    new RecordHealthCheckScopePlanner()
-      .enforceTransactionBudget(
-        new List<Record_Health_Check__mdt>{ explicitLimit, defaultCap },
-        1,
-        RecordHealthCheckEventPublication.NONE
-      );
+    Integer explicitRows = planner.plannedQueryRows(
+      explicitLimit.SourceQuery__c,
+      (Integer) explicitLimit.MaxQueryRows__c,
+      1
+    );
+    Integer defaultRows = planner.plannedQueryRows(
+      defaultCap.SourceQuery__c,
+      RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS,
+      1
+    );
     Test.stopTest();
-    Assert.isTrue(
-      true,
-      'Both bounded reservation strategies must remain valid.'
+
+    Assert.areEqual(
+      1,
+      explicitRows,
+      'The outer LIMIT must bound the reservation.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS + 1,
+      defaultRows,
+      'An invariant query without LIMIT must reserve the default cap plus sentinel.'
+    );
+    Assert.areEqual(
+      1,
+      RecordHealthCheckQueryEvaluatorSupport.queryRowReservation(
+        explicitLimit.SourceQuery__c,
+        (Integer) explicitLimit.MaxQueryRows__c
+      ),
+      'The runtime gate must honor the same outer LIMIT as planning.'
     );
   }
 
   @IsTest
-  static void transactionBudgetRejectsCumulativeQueryRowOverflow() {
+  static void dualQueryCheckReservesBothSidesTogether() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'EvaluationType__c' => 'COMPARE_TWO_QUERIES',
+        'SourceQuery__c' => 'SELECT Id FROM Contact',
+        'ComparisonQuery__c' => 'SELECT Id FROM Opportunity',
+        'MaxQueryRows__c' => 30000
+      }
+    );
+
+    Test.startTest();
+    try {
+      new RecordHealthCheckScopePlanner()
+        .enforceTransactionBudget(
+          new List<Record_Health_Check__mdt>{ check },
+          1,
+          RecordHealthCheckEventPublication.NONE
+        );
+      Assert.fail('Both query reservations must be planned as one Check unit.');
+    } catch (RecordHealthCheckScopePipeline.ScopePipelineException expected) {
+      Assert.isTrue(
+        expected.getMessage().contains('queryRowsRequired=60003'),
+        'The preload and both query caps must be reported.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void queryWithComparisonSourceReservesBothQueriesTogether() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'EvaluationType__c' => 'QUERY',
+        'SourceQuery__c' => 'SELECT Id FROM Contact',
+        'ExpectedValueSource__c' => 'COMPARISON_QUERY',
+        'ComparisonQuery__c' => 'SELECT Id FROM Opportunity',
+        'ComparisonOperator__c' => 'EQUALS',
+        'MaxQueryRows__c' => 30000
+      }
+    );
+
+    Test.startTest();
+    try {
+      new RecordHealthCheckScopePlanner()
+        .enforceTransactionBudget(
+          new List<Record_Health_Check__mdt>{ check },
+          1,
+          RecordHealthCheckEventPublication.NONE
+        );
+      Assert.fail('The source and comparison query must be reserved together.');
+    } catch (RecordHealthCheckScopePipeline.ScopePipelineException expected) {
+      Assert.isTrue(
+        expected.getMessage().contains('queryRowsRequired=60003'),
+        'The preload and both query caps must be reported.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void transactionBudgetUsesIncrementalQueryRowReservations() {
     List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
     for (
       Integer index = 0;
@@ -75,36 +158,25 @@ private with sharing class RHCScopeQueryRowBudgetTest {
         )
       );
     }
-    Integer expectedRows =
-      1 +
-      (RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS *
-      (RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS + 1));
+    RecordHealthCheckScopePlanner planner = new RecordHealthCheckScopePlanner();
 
     Test.startTest();
-    try {
-      new RecordHealthCheckScopePlanner()
-        .enforceTransactionBudget(
-          checks,
-          1,
-          RecordHealthCheckEventPublication.NONE
-        );
-      Assert.fail(
-        'A valid check count whose cumulative row caps exceed the transaction limit must be rejected before SOQL executes.'
-      );
-    } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
-      Assert.isTrue(
-        error.getMessage().contains('TRANSACTION_BUDGET_EXCEEDED'),
-        'The planner must use the stable transaction-budget reason.'
-      );
-      Assert.isTrue(
-        error.getMessage().contains('queryRowsRequired=' + expectedRows),
-        'The reservation must include the record preload and every query overflow-sentinel row.'
-      );
-      Assert.isTrue(
-        error.getMessage().contains('queryRowsRemaining='),
-        'The rejection must expose the transaction-aware remaining query-row capacity.'
-      );
-    }
+    Integer largestNextQuery = planner.plannedQueryRows(
+      checks[0].SourceQuery__c,
+      RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS,
+      1
+    );
+    planner.enforceTransactionBudget(
+      checks,
+      1,
+      RecordHealthCheckEventPublication.NONE
+    );
     Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS + 1,
+      largestNextQuery,
+      'The pre-flight must reserve the preload plus the largest next query, not every Check cap at once.'
+    );
   }
 }

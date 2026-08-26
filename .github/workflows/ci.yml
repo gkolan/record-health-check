@@ -37,10 +37,12 @@ jobs:
       - run: npm run check:docs
       - run: npm run check:field-limits
       - run: npm run check:manifest
+      - run: npm run check:package-artifact
       - run: npm run check:package-boundary
       - run: npm run check:query-shapes
       - run: npm run check:distribution-boundary
       - run: npm run check:permission-sets
+      - run: npm run test:scripts
       - run: npm run test:unit:coverage
       - run: npm run check:quality-metrics
       - name: Validate XML

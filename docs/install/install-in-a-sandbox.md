@@ -31,12 +31,15 @@ You do not need this repository, Salesforce CLI, Apex, or Flow for the steps bel
 ## What the package adds
 
 The package adds the Record Health Check card, the configuration used to define checks, permission
-sets, and APIs for future automation. It also includes four example Check Sets:
+sets, and APIs for future automation. It also includes four active Example Check Set records:
 
-- **Example: Account Profile Readiness**
-- **Example: Account Relationship & Risk Health Check**
+- **Example: Account Check Builder Guide** is active, with 25 Checks.
+- **Example: Account Relationship & Risk** keeps the original Account example from earlier releases.
 - **Example: Contact Relationship Readiness**
 - **Example: Opportunity Deal Readiness**
+
+The 25-Check Account guide does not assign categories. Its title tooltips explain the Evaluation
+Type, what Salesforce evaluates, which values are compared, and the condition that produces a pass.
 
 The Example Check Sets are ready to evaluate records already in your org. They do not create or change
 Accounts, Contacts, Opportunities, or other business data.
@@ -86,6 +89,9 @@ To give a non-admin access after choosing **Install for Admins Only**:
 4. Select the users who should run the card and complete the assignment.
 
 Repeat those steps with **Record Health Check Admin** only for administrators and troubleshooters.
+The **Issue**, **Where**, and **Why** diagnosis requires both **Show Diagnostics** on the Check Set
+and the **Record Health Check View Diagnostics** custom permission. The card-user and standard-user
+permission sets do not grant that diagnostic permission.
 A person can be a Salesforce non-admin and still run Record Health Check; the **Record Health Check
 Card User** permission set provides card access, while the person's existing Salesforce access
 still controls which records and fields the checks can read.
@@ -96,14 +102,14 @@ org-level Setup permissions assigned by your organization.
 
 ## Step 3: Add a meaningful check to a record page
 
-Use one of the packaged Example Check Sets for the first review. **Example: Account Relationship & Risk Health Check**
-is a useful starting point because it demonstrates current-record fields, related records, clear
-evidence, remediation guidance, and checks that apply only in certain situations.
+Use one of the packaged Example Check Sets for the first review. **Example: Account Check Builder
+Guide** is a useful starting point because its 25 Checks demonstrate Formula, Query, Compare Two
+Queries, Apex, clear evidence, remediation guidance, and applicability rules.
 
 1. Open an Account in the sandbox.
 2. Select **Setup → Edit Page**.
 3. Drag **Record Health Check** from the **Custom** components into a useful position on the page.
-4. In the component properties, select **Example: Account Relationship & Risk Health Check**.
+4. In the component properties, select **Example: Account Check Builder Guide**.
 5. Save the page, then select **Activate**. Choose the assignment that matches the users you are
    testing: **Org Default**, **App Default**, or an app, record type, and profile assignment. An App
    Default affects only that Lightning app. Record the assignment you chose.
@@ -124,7 +130,7 @@ The packaged component is supported on Lightning record pages in Lightning Exper
 treat this guide as verification for Salesforce Classic, an App or Home page, Experience Cloud, or
 Salesforce mobile; validate any additional surface separately before promising support.
 
-![Demo Account Relationship and Risk health check card on an Account record page](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+![Account Check Builder Guide on the existing demo Account record page](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
 
 ## Step 4: Verify the experience as a user
 

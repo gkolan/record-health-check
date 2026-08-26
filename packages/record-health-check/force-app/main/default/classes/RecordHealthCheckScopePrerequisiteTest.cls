@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopePrerequisiteTest {
-  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
+  private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
 
   @IsTest
   static void missingPrerequisiteDoesNotBlockSingleCheckSelection() {
@@ -205,6 +205,52 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     Assert.isNull(
       result,
       'A value under the wrong identity key is ignored and absent history remains unknown.'
+    );
+  }
+
+  @IsTest
+  static void managedPrerequisiteWinsOverSubscriberNameCollision() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'Namespace-safe prerequisite'
+    );
+    Map<String, RecordHealthCheckResultItem> priorItems = new Map<String, RecordHealthCheckResultItem>{
+      String.valueOf(account.Id) +
+      '|Shared_Name' => buildPrerequisiteResultItem(
+        account.Id,
+        'Shared_Name',
+        RecordHealthCheckStatus.PASS
+      ),
+      String.valueOf(account.Id) +
+      '|namespace__Shared_Name' => buildPrerequisiteResultItem(
+        account.Id,
+        'namespace__Shared_Name',
+        RecordHealthCheckStatus.FAIL
+      )
+    };
+
+    Test.startTest();
+    RecordHealthCheckScopeResultSupport resultSupport = new RecordHealthCheckScopeResultSupport();
+    Record_Health_Check__mdt dependent = buildCheckWithPrerequisite(
+      'Shared_Name'
+    );
+    String resolvedPrerequisite = resultSupport.resolvePrerequisite(
+      dependent,
+      priorItems
+    );
+    RecordHealthCheckInternalResult result = resultSupport.findPrerequisiteBlock(
+      dependent,
+      account.Id,
+      priorItems,
+      true,
+      resolvedPrerequisite
+    );
+    Test.stopTest();
+
+    Assert.areEqual('namespace__Shared_Name', resolvedPrerequisite);
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET,
+      result.reasonCode,
+      'The managed dependent must use its own namespaced prerequisite result.'
     );
   }
 

@@ -1,6 +1,3 @@
-/**
- * Scope-based execution pipeline for the public request contract.
- */
 public with sharing class RecordHealthCheckScopePipeline {
   private RecordHealthCheckEvaluatorRegistry evaluatorRegistry = new RecordHealthCheckEvaluatorRegistry();
   private RecordHealthCheckConfigService configService = new RecordHealthCheckConfigService();
@@ -13,7 +10,6 @@ public with sharing class RecordHealthCheckScopePipeline {
 
   /**
    * @param request Immutable qualified selection, record IDs, and options.
-   * @return Ordered response with one item per record and selected Check.
    */
   public RecordHealthCheckResponse evaluate(RecordHealthCheckRequest request) {
     if (request == null) {
@@ -22,16 +18,16 @@ public with sharing class RecordHealthCheckScopePipeline {
       );
     }
 
-    Integer suppliedCount = request.recordIds.size();
-    if (suppliedCount > RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE) {
+    List<Id> recordIds = dedupeRecordIds(request.recordIds);
+    Integer dedupedCount = recordIds.size();
+    if (dedupedCount > RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE) {
       throw new ScopePipelineException(
-        'MAX_RECORDS_PER_SCOPE_EXCEEDED: suppliedCount=' +
-          suppliedCount +
+        'MAX_RECORDS_PER_SCOPE_EXCEEDED: uniqueCount=' +
+          dedupedCount +
           ', ceiling=' +
           RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE
       );
     }
-    List<Id> recordIds = dedupeRecordIds(request.recordIds);
 
     SelectionContext context = scopePlanner.resolveSelection(request.selection);
     scopePlanner.validateScope(context, recordIds);
@@ -218,6 +214,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     );
   }
 
+  @TestVisible
   private void evaluateCheck(
     Record_Health_Check__mdt check,
     SelectionContext context,
@@ -241,9 +238,7 @@ public with sharing class RecordHealthCheckScopePipeline {
       check
     );
     if (invalidConfiguration != null) {
-      RecordHealthCheckConfigValidator.discardValidatedPlugin(
-        check.ApexClass__c
-      );
+      RecordHealthCheckConfigValidator.discardValidatedPlugin(check);
       for (Id recordId : recordIds) {
         internalByRecordId.put(
           recordId,
@@ -303,6 +298,10 @@ public with sharing class RecordHealthCheckScopePipeline {
       !fieldAccessDenied
       ? resultSupport.applicabilityResults(check, recordIds, recordsById)
       : new Map<Id, RecordHealthCheckInternalResult>();
+    String resolvedPrerequisite = resultSupport.resolvePrerequisite(
+      check,
+      itemsByIdentity
+    );
     for (Id recordId : recordIds) {
       if (
         invalidConfiguration != null ||
@@ -323,7 +322,8 @@ public with sharing class RecordHealthCheckScopePipeline {
           check,
           recordId,
           itemsByIdentity,
-          context.fullCheckSetSelection
+          context.fullCheckSetSelection,
+          resolvedPrerequisite
         );
         if (prerequisiteBlock != null) {
           internalByRecordId.put(recordId, prerequisiteBlock);
@@ -475,8 +475,7 @@ public with sharing class RecordHealthCheckScopePipeline {
   }
 
   public class SelectionContext {
-    public String checkSetQualifiedApiName;
-    public String checkSetDeveloperName;
+    public String checkSetQualifiedApiName, checkSetDeveloperName;
     public Boolean checkSetActive;
     public String objectApiName;
     public Boolean showDiagnostics;

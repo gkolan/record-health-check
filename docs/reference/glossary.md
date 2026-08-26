@@ -43,7 +43,7 @@ Events. Copy it from the **Qualified API Name** field in Setup.
 
 - A Check Set created by an administrator in your org might be `My_Account_Checks`.
 - A Check Set included with the installed package might be
-  `rhc__Example_Account_Profile_Readiness`.
+  `rhc__Example_Account_Check_Builder_Guide`.
 
 Do not add or remove `rhc__`. See
 [Use the correct Check Set and Check API names](./configuration/names-and-api-identities.md).
@@ -141,8 +141,18 @@ work. See [Custom Apex Check contract](../developer-guides/write-an-apex-check.m
 ## Record Health Check Run
 
 The Custom Permission required to start a health check:
-`rhc__Record_Health_Check_Run`. It is included in both installed Permission Sets. It is not itself a
-Permission Set. See [Security and data access](../architecture/security-and-data-access.md#choose-the-correct-permission-set).
+`rhc__Record_Health_Check_Run`. It is included in the four installed runner Permission Sets: Card
+User, User, Admin, and MCP Integration. Error Log Publisher does not include it. The Custom
+Permission is not itself a Permission Set. See
+[Security and data access](../architecture/security-and-data-access.md#choose-the-correct-permission-set).
+
+## Record Health Check Error Log Publisher
+
+The fifth packaged Permission Set grants Create and Read access only to the restricted
+`rhc__Record_Health_Check_Log__e` Platform Event. It does not include **Record Health Check Run** and
+does not let its assignee start a Check. Assign it separately and narrowly only when a Check Set's
+default-off **Publish Error Log Event** setting is deliberately enabled. See
+[Save restricted errors](../save-results/save-restricted-errors.md).
 
 ## Show Diagnostics
 
@@ -162,7 +172,7 @@ and **Publish User Result Event** on each Check. Apex and Flow instead choose on
 | Value | Events published |
 | --- | --- |
 | `NONE` | No health-result events |
-| `ACTIONABLE` | Only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` results |
+| `ACTIONABLE` | Check Result events only for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus one completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs |
 | `ALL` | Every result, including `PASS` and `SKIPPED` |
 
 Publishing an event does not save a result-history record. A receiving Flow, Apex trigger, or

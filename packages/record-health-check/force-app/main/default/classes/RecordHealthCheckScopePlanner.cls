@@ -62,9 +62,11 @@ public with sharing class RecordHealthCheckScopePlanner {
     context.objectApiName = checkSet.ObjectApiName__c;
     context.showDiagnostics = checkSet.ShowDiagnostics__c == true;
     context.fullCheckSetSelection = true;
-    context.checks = queryChecks(
-      'Record_Health_Check_Set__r.QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
-      qualifiedApiName
+    context.checks = RHCDefinitionDependencyIdentity.orderForEvaluation(
+      queryChecks(
+        'Record_Health_Check_Set__r.QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
+        qualifiedApiName
+      )
     );
     return context;
   }
@@ -274,12 +276,14 @@ public with sharing class RecordHealthCheckScopePlanner {
     RecordHealthCheckEventPublication publication
   ) {
     Integer requiredQueries = recordCount > 0 ? 1 : 0;
-    Integer requiredQueryRows = recordCount > 0 ? recordCount : 0;
+    Integer preloadQueryRows = recordCount > 0 ? recordCount : 0;
+    Integer largestQueryRows = 0;
     Integer requiredDml = 0;
     for (Record_Health_Check__mdt check : checks) {
+      Integer checkQueryRows = 0;
       if (check.ApplicabilityMode__c == 'WHEN_COUNT_QUERY_MATCHES') {
         requiredQueries++;
-        requiredQueryRows += plannedQueryRows(
+        checkQueryRows += plannedQueryRows(
           check.ApplicabilityCountQuery__c,
           RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS,
           recordCount
@@ -291,7 +295,7 @@ public with sharing class RecordHealthCheckScopePlanner {
         Boolean isListOperator = RecordHealthCheckValidator.isListOperator(
           check.ComparisonOperator__c
         );
-        requiredQueryRows += plannedQueryRows(
+        checkQueryRows += plannedQueryRows(
           isListOperator ? check.ComparisonQuery__c : check.SourceQuery__c,
           maxRows,
           recordCount
@@ -300,7 +304,7 @@ public with sharing class RecordHealthCheckScopePlanner {
           !isListOperator && check.ExpectedValueSource__c == 'COMPARISON_QUERY'
         ) {
           requiredQueries++;
-          requiredQueryRows += plannedQueryRows(
+          checkQueryRows += plannedQueryRows(
             check.ComparisonQuery__c,
             maxRows,
             recordCount
@@ -309,12 +313,12 @@ public with sharing class RecordHealthCheckScopePlanner {
       } else if (check.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
         requiredQueries += 2;
         Integer maxRows = configuredMaxRows(check);
-        requiredQueryRows += plannedQueryRows(
+        checkQueryRows += plannedQueryRows(
           check.SourceQuery__c,
           maxRows,
           recordCount
         );
-        requiredQueryRows += plannedQueryRows(
+        checkQueryRows += plannedQueryRows(
           check.ComparisonQuery__c,
           maxRows,
           recordCount
@@ -322,6 +326,7 @@ public with sharing class RecordHealthCheckScopePlanner {
       } else if (check.EvaluationType__c == 'APEX') {
         requiredDml += 2;
       }
+      largestQueryRows = Math.max(largestQueryRows, checkQueryRows);
     }
     if (
       publication != null &&
@@ -331,6 +336,7 @@ public with sharing class RecordHealthCheckScopePlanner {
       requiredDml += ceilingDivide(recordCount, 100);
     }
     Integer remainingQueries = Limits.getLimitQueries() - Limits.getQueries();
+    Integer requiredQueryRows = preloadQueryRows + largestQueryRows;
     Integer remainingQueryRows =
       Limits.getLimitQueryRows() - Limits.getQueryRows();
     Integer remainingDml =
@@ -375,11 +381,13 @@ public with sharing class RecordHealthCheckScopePlanner {
   }
 
   /**
-   * Reserves the largest result set the scope-wide rewrite can materialize.
-   * Every non-self query may consume its configured cap plus the sentinel row
-   * used to prove overflow. Aggregate queries keep that full reservation because
-   * Salesforce counts contributing rows against the transaction query-row limit.
+   * Reserves the largest next result set a scope-wide rewrite can materialize.
+   * Runtime checks repeat this reservation before every query, using the rows
+   * actually consumed by earlier Checks instead of summing every configured cap.
+   * Aggregate queries keep their full reservation because Salesforce counts
+   * contributing rows against the transaction query-row limit.
    */
+  @TestVisible
   private Integer plannedQueryRows(
     String soql,
     Integer maxRows,
@@ -397,31 +405,15 @@ public with sharing class RecordHealthCheckScopePlanner {
       if (RecordHealthCheckSoqlTemplate.isSingleCountQuery(soql)) {
         return rowCap + 1;
       }
-      Integer configuredLimit = outerNumericLimit(soql);
-      return configuredLimit == null
-        ? rowCap + 1
-        : Math.min(configuredLimit, rowCap + 1);
+      return RecordHealthCheckQueryEvaluatorSupport.queryRowReservation(
+        soql,
+        rowCap
+      );
     }
     if (strategy == RecordHealthCheckBulkQuerySupport.SELF) {
       return Math.min(recordCount, rowCap + 1);
     }
     return rowCap + 1;
-  }
-
-  private Integer outerNumericLimit(String soql) {
-    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
-    Matcher matcher = Pattern.compile('(?i)\\bLIMIT\\s+(\\d+)').matcher(masked);
-    while (matcher.find()) {
-      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0) {
-        continue;
-      }
-      try {
-        return Integer.valueOf(matcher.group(1));
-      } catch (Exception ignored) {
-        return null;
-      }
-    }
-    return null;
   }
 
   private Integer ceilingDivide(Integer value, Integer divisor) {
@@ -436,6 +428,8 @@ public with sharing class RecordHealthCheckScopePlanner {
     if (String.isBlank(expression) || recordCount == 0) {
       return 0;
     }
+    // AUTO probes at most eight types once, then uses either the resolved type
+    // or the evaluator's negative cache for later records in the transaction.
     return String.isBlank(declaredType) || declaredType == 'AUTO'
       ? recordCount + 7
       : recordCount;

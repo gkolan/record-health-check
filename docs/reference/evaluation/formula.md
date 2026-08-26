@@ -92,7 +92,7 @@ non-User owners:
 | Pattern | Example | Queue/Group owner | Missing/inaccessible User |
 | --- | --- | --- | --- |
 | Formula `Owner:User.IsActive` | Custom Formula Check | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason |
-| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Example_Account_Owner_Active`, `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
+| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
 
 Both patterns are fail-closed in the sense that neither produces a false `PASS` for a non-User or
 inactive owner. They differ in **how** they fail: the Formula path reports "I could not determine

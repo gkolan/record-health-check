@@ -27,7 +27,7 @@ need to know whether the answer came from an Account field, related records, or 
 ## Terms to know
 
 A **Check Set** is the whole card. It brings together the questions that support one review, such as
-Account Relationship & Risk.
+Account Check Builder Guide.
 
 A **Check** is one question on that card. Each Check decides what to examine, when the question
 applies, and what guidance to show when the record needs attention.

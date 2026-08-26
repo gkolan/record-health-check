@@ -30,7 +30,7 @@ resolves a Check's parent Check Set, loads Checks for evaluation, and maps the f
 | --- | --- |
 | `ConfigException` (nested) | Exception carrying `reasonCode` |
 | `RC_*` | Shared Reason Code constants, such as `RC_CONFIG_INACTIVE`, `RC_OBJECT_MISMATCH`, and `RC_NO_ACTIVE_CHECKS` |
-| `findCheckSetDeveloperName(...)` | Resolve a Check's parent Check Set |
+| `findCheckSetQualifiedApiName(...)` | Resolve an exact Check Qualified API Name to its parent Check Set Qualified API Name |
 | `getCheckSetAvailabilityForObject(...)` | Active/inactive Check Sets for an object |
 | `getDefinitionResponse(...)` | Build the Lightning definition response |
 | `validateCheckForEvaluation(...)` | Map the first validator finding to a result |
@@ -46,6 +46,8 @@ resolves a Check's parent Check Set, loads Checks for evaluation, and maps the f
 - `loadCheck` selects the complete evaluation contract plus presentation fields such as Category,
   including optional fields that are blank, so downstream consumers do not encounter an
   unqueried-field exception.
+- Identity lookups bind exact Qualified API Names. They do not select the first matching Developer
+  Name, so shared names in different namespaces cannot resolve to the wrong configuration.
 
 ### `RHCDefinitionDependencyIdentity`
 

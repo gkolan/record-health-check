@@ -22,6 +22,7 @@ public with sharing class RHCDefinitionDependencyIdentity {
       dependent?.DeveloperName
     );
     String onlyMatch;
+    Integer matchCount = 0;
     for (Record_Health_Check__mdt candidate : checks) {
       if (
         candidate.QualifiedApiName != prerequisite &&
@@ -35,11 +36,97 @@ public with sharing class RHCDefinitionDependencyIdentity {
       ) {
         return candidate.QualifiedApiName;
       }
-      onlyMatch = onlyMatch == null
-        ? candidate.QualifiedApiName
-        : onlyMatch == candidate.QualifiedApiName ? onlyMatch : null;
+      onlyMatch = candidate.QualifiedApiName;
+      matchCount++;
     }
-    return onlyMatch;
+    return matchCount == 1 ? onlyMatch : null;
+  }
+
+  /**
+   * Resolves a prerequisite against qualified result identities.
+   * @param dependent Check whose prerequisite is being resolved.
+   * @param qualifiedApiNames identities available in the current record run.
+   * @return same-namespace identity first, then an unambiguous fallback, or null.
+   */
+  public static String resolveQualified(
+    Record_Health_Check__mdt dependent,
+    Set<String> qualifiedApiNames
+  ) {
+    String prerequisite = String.isNotBlank(dependent?.PrerequisiteCheck__c)
+      ? dependent.PrerequisiteCheck__c.trim()
+      : null;
+    if (prerequisite == null || qualifiedApiNames == null) {
+      return null;
+    }
+    String dependentNamespace = namespacePrefix(
+      dependent?.QualifiedApiName,
+      dependent?.DeveloperName
+    );
+    String preferred = String.isBlank(dependentNamespace)
+      ? prerequisite
+      : dependentNamespace + '__' + prerequisite;
+    for (String qualifiedApiName : qualifiedApiNames) {
+      if (
+        qualifiedApiName != null && qualifiedApiName.equalsIgnoreCase(preferred)
+      ) {
+        return qualifiedApiName;
+      }
+    }
+    String onlyMatch;
+    Integer matchCount = 0;
+    for (String qualifiedApiName : qualifiedApiNames) {
+      if (qualifiedApiName == null) {
+        continue;
+      }
+      if (
+        qualifiedApiName != prerequisite &&
+        !qualifiedApiName.toLowerCase()
+          .endsWith(('__' + prerequisite).toLowerCase())
+      ) {
+        continue;
+      }
+      onlyMatch = qualifiedApiName;
+      matchCount++;
+    }
+    return matchCount == 1 ? onlyMatch : null;
+  }
+
+  /**
+   * Orders Checks so an included prerequisite always precedes its dependents.
+   * Unresolved dependencies and cycles retain their input order.
+   * @param checks Checks in their normal deterministic display order.
+   * @return dependency-safe evaluation order.
+   */
+  public static List<Record_Health_Check__mdt> orderForEvaluation(
+    List<Record_Health_Check__mdt> checks
+  ) {
+    List<Record_Health_Check__mdt> ordered = new List<Record_Health_Check__mdt>();
+    Set<String> pending = new Set<String>();
+    for (Record_Health_Check__mdt check : checks) {
+      pending.add(check.QualifiedApiName);
+    }
+
+    Boolean madeProgress = true;
+    while (!pending.isEmpty() && madeProgress) {
+      madeProgress = false;
+      for (Record_Health_Check__mdt check : checks) {
+        if (!pending.contains(check.QualifiedApiName)) {
+          continue;
+        }
+        String prerequisite = resolve(check, checks);
+        if (prerequisite == null || !pending.contains(prerequisite)) {
+          ordered.add(check);
+          pending.remove(check.QualifiedApiName);
+          madeProgress = true;
+        }
+      }
+    }
+    for (Record_Health_Check__mdt check : checks) {
+      if (pending.contains(check.QualifiedApiName)) {
+        ordered.add(check);
+      }
+    }
+    return ordered;
   }
 
   private static String namespacePrefix(
@@ -49,7 +136,7 @@ public with sharing class RHCDefinitionDependencyIdentity {
     String suffix = '__' + developerName;
     return String.isNotBlank(qualifiedApiName) &&
       String.isNotBlank(developerName) &&
-      qualifiedApiName.endsWith(suffix)
+      qualifiedApiName.toLowerCase().endsWith(suffix.toLowerCase())
       ? qualifiedApiName.substring(
           0,
           qualifiedApiName.length() - suffix.length()

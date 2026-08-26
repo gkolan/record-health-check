@@ -31,7 +31,7 @@ private class RecordHealthCheckIntegrationCoverageTest {
     );
     RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.ALL
@@ -198,7 +198,7 @@ private class RecordHealthCheckIntegrationCoverageTest {
     Id jobId = RecordHealthCheckScaleBenchmark.run(
       'default_scope',
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       null
     );

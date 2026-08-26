@@ -23,7 +23,7 @@ public with sharing class RecordHealthCheckFlowSupport {
    * @param consumedChars Characters already accepted for this invocation.
    * @param payload Candidate serialized result.
    * @return New aggregate character count.
-   * @throws FlowSupportException when the aggregate response budget is exceeded.
+   * @throws PayloadBudgetException when the aggregate response budget is exceeded.
    */
   public static Integer consumePayloadBudget(
     Integer consumedChars,
@@ -39,13 +39,29 @@ public with sharing class RecordHealthCheckFlowSupport {
       candidateLength >
       RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS - current
     ) {
-      throw new PayloadBudgetException(
-        'FLOW_RESPONSE_BUDGET_EXCEEDED: ceiling=' +
-          RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS +
-          '.'
-      );
+      throw new PayloadBudgetException(payloadBudgetMessage());
     }
     return current + candidateLength;
+  }
+
+  /** Rejects serialization when no response character budget remains. */
+  public static void requirePayloadSerializationCapacity(
+    Integer consumedChars
+  ) {
+    Integer current = consumedChars == null ? 0 : consumedChars;
+    if (
+      current < 0 ||
+      current >= RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS
+    ) {
+      throw new PayloadBudgetException(payloadBudgetMessage());
+    }
+  }
+
+  /** Returns the stable public message for aggregate Flow payload exhaustion. */
+  public static String payloadBudgetMessage() {
+    return 'FLOW_RESPONSE_BUDGET_EXCEEDED: ceiling=' +
+      RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS +
+      '.';
   }
 
   /** Finds the aligned response item for one record. */

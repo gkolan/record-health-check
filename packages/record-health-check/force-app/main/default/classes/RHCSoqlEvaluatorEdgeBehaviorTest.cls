@@ -174,6 +174,47 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
     );
   }
 
+  @IsTest
+  static void multiRowIsBlankEvaluatesNullsWhenEmptyValuesSkip() {
+    List<Account> accounts = new List<Account>{
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{ 'Name' => 'Unary Blank Alpha' }
+      ),
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{ 'Name' => 'Unary Blank Beta' }
+      )
+    };
+    RecordHealthCheckTestDataFactory.createAccounts(accounts);
+    Record_Health_Check__mdt check = queryCheck('Multi_Row_Is_Blank');
+    check.SourceQuery__c = 'SELECT Description FROM Account WHERE Name LIKE \'Unary Blank %\'';
+    check.SourceQueryField__c = 'Description';
+    check.QueryResultHandling__c = 'ANY_ROW_PASSES';
+    check.ComparisonOperator__c = 'IS_BLANK';
+    check.ExpectedValueSource__c = null;
+    check.EmptyValueHandling__c = 'SKIP_RECORD';
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
+      .evaluate(check, accounts[0].Id, accounts[0]);
+    Integer failingRows = RecordHealthCheckComparisonEngine.countFailingRows(
+      check,
+      new List<Object>{ null, null },
+      null
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.PASS,
+      result.status,
+      'IS_BLANK must evaluate present null rows before Skip Record handling.'
+    );
+    Assert.areEqual(
+      0,
+      failingRows,
+      'The multi-row summary must agree that both blank rows pass.'
+    );
+  }
+
   private static Record_Health_Check__mdt queryCheck(String developerName) {
     Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
     check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
