@@ -1,8 +1,12 @@
 # Agent tool contract
 
+This contract defines the versioned Agentforce, REST, and MCP boundary.
+
+This page defines the versioned boundary used by Agentforce, REST, and MCP.
+
 Audience: Agentforce, REST, and MCP integrators. If you are not connecting an agent or MCP client,
 you can ignore this contract. Administrators enabling native actions should use
-[Agentforce actions](../../integration/agentforce-actions.md).
+[Agentforce actions](../../developer-guides/agentforce-and-mcp/agentforce-actions.md).
 
 > [!NOTE]
 > Use this contract when a native Agentforce action, Apex REST adapter, or MCP tool evaluates one
@@ -97,7 +101,7 @@ npm run check:agent-tool-contract
 
 ## Related
 
-- [Configuration identity](../framework/configuration-identity.md)
-- [Security and data access](../framework/security.md)
-- [Reason Codes](reason-codes.md)
-- [Apex API](../../api/apex-api.md)
+- [Configuration identity](../configuration/names-and-api-identities.md)
+- [Security and data access](../../architecture/security-and-data-access.md)
+- [Reason Codes](../results/reason-codes.md)
+- [Apex API](../../developer-guides/run-from-apex.md)

@@ -1,11 +1,11 @@
-# 02 · Open Pipeline Is Ready for Coaching
+# Open Pipeline Is Ready for Coaching
 
 > [!NOTE]
 > On this page, build an Apex Check that flags only an open Opportunity carrying all three coaching risks, stale activity, no Next Step, and a Close Date outside the current quarter.
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/evaluation/apex-check-contract.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../developer-guides/write-an-apex-check.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > The supporting Apex class lives under `integration-tests/` and does not install with the package.
@@ -62,7 +62,7 @@ A sales manager opens an Account before pipeline coaching.
 ## What Record Health Check passes to Apex
 
 Shared scope inputs are documented once in the
-[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Check receives Account
+[Apex examples README](./README.md#what-record-health-check-passes-to-apex). This Check receives Account
 Ids and binds them in one Opportunity query.
 
 ```apex
@@ -86,7 +86,7 @@ or invalid, so approve that fallback explicitly.
 
 The card reports counts, not Opportunity names. Add a related-list or report action when users need
 the records. Add the card to the Account Lightning page, activate the intended assignment, and test
-as a user with **Record Health Check User**. Execute Anonymous is developer verification.
+as a user with **Record Health Check Card User**. Execute Anonymous is developer verification.
 
 ## Step 1: Choose the stale-activity window
 
@@ -101,7 +101,7 @@ Use Check parameters to change the stale-activity window without editing the Ape
 Record Health Check parses the JSON and supplies it as `scope.parameters`. The class accepts
 `staleDays` from `1` through `3650`. A missing, nonnumeric, or out-of-range value silently uses 30.
 Enter and test an explicit valid whole number rather than relying on that fallback. See
-[Parameter parsing patterns](../../reference/evaluation/apex-check-contract.md#scope)
+[Parameter parsing patterns](../../developer-guides/write-an-apex-check.md#scope)
 for validation and type-conversion guidance.
 
 ## Step 2: Create and test the Apex class
@@ -246,7 +246,7 @@ Create an Apex test class that proves these cases before deployment:
 
 The repository's
 [`AccountOpenOpportunityHealthCheckTest`](../../../packages/record-health-check/integration-tests/main/default/classes/AccountOpenOpportunityHealthCheckTest.cls)
-shows the package-development tests. A subscriber test must use the public `rhc.*` types.
+shows the package implementation tests. A subscriber test must use the public `rhc.*` types.
 
 ## Context and result contract
 
@@ -263,8 +263,10 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope, such as `Account` |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `checkDeveloperName` | `String` | Qualified Check identity (property name is historical; value is the Check QualifiedApiName) |
-| `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
+| `checkQualifiedApiName` | `String` | Qualified Check identity |
+| `checkSetQualifiedApiName` | `String` | Qualified Check Set identity |
+| `checkDeveloperName` | `String` | Legacy Check `DeveloperName`, retained for compatibility |
+| `checkSetDeveloperName` | `String` | Legacy parent Check Set identity, retained for compatibility |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a
@@ -282,7 +284,7 @@ For applicability, configure **Applies To** on the Check so Record Health Check 
 runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/evaluation/apex-check-contract.md#outcome).
+[Returning an outcome](../../developer-guides/write-an-apex-check.md#outcome).
 
 
 ## Step 3: Create the Check Set
@@ -314,33 +316,33 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Open_Opportunities_Are_Healthy` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Open Opportunities Are Healthy |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Open Opportunities Are Healthy |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../metadata/fields-check.md#apex-class-apexclass__c) | `AccountOpenOpportunityHealthCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/fields-check.md#apex-parameters-json-apexparametersjson__c) | `{"staleDays": 30}` |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | When a count query matches |
-| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../metadata/fields-check.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Count Must Be** | [`ApplicabilityCountOperator__c`](../../metadata/fields-check.md#count-must-be-applicabilitycountoperator__c) | Greater than |
-| **Count Value** | [`ApplicabilityCountThreshold__c`](../../metadata/fields-check.md#count-value-applicabilitycountthreshold__c) | `0` |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Open_Opportunities_Are_Healthy` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Open Opportunities Are Healthy |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Open Opportunities Are Healthy |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with Apex |
+| **Apex Class** | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c) | `AccountOpenOpportunityHealthCheck` |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c) | `{"staleDays": 30}` |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a count query matches |
+| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../reference/custom-metadata/check-fields.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
+| **Count Must Be** | [`ApplicabilityCountOperator__c`](../../reference/custom-metadata/check-fields.md#count-must-be-applicabilitycountoperator__c) | Greater than |
+| **Count Value** | [`ApplicabilityCountThreshold__c`](../../reference/custom-metadata/check-fields.md#count-value-applicabilitycountthreshold__c) | `0` |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Checks whether any open Opportunity is stale, missing Next Step, and outside the current quarter at the same time. |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has open opportunities that are simultaneously stale, missing a Next Step, and have a Close Date outside the current quarter. Update Next Step, activity, or Close Date on the unhealthy Opportunities. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check open Opportunity health. Confirm the running user can read the Opportunities and fields used by this Check. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Review the open Opportunities. For each unhealthy Opportunity, update Next Step, log current activity, or correct Close Date. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Review open opportunities` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `20` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks whether any open Opportunity is stale, missing Next Step, and outside the current quarter at the same time. |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Critical |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has open opportunities that are simultaneously stale, missing a Next Step, and have a Close Date outside the current quarter. Update Next Step, activity, or Close Date on the unhealthy Opportunities. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check open Opportunity health. Confirm the running user can read the Opportunities and fields used by this Check. |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review the open Opportunities. For each unhealthy Opportunity, update Next Step, log current activity, or correct Close Date. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review open opportunities` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `20` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 `staleDays` sets how old `LastActivityDate` must be before an Opportunity counts as stale.
 
@@ -425,5 +427,5 @@ than skip.
 
 ## Related
 
-- [← Prev: Recent activity](recent-activity.md) · [Next: Strategic readiness score →](strategic-readiness.md)
-- [Browse Apex examples](README.md)
+- [← Prev: Recent activity](./recent-activity.md) · [Next: Strategic readiness score →](./strategic-readiness.md)
+- [Browse Apex examples](./README.md)

@@ -1,79 +1,58 @@
 # Record Health Check documentation
 
 Record Health Check shows whether a Salesforce record meets requirements configured by an
-administrator. For example, an Account readiness review can confirm that the Account has a billing
-address, an active owner, and at least one Contact with an email address.
+administrator. It reports what it finds; it does not block saves or change the record.
 
-An administrator groups related requirements in a **Check Set** and creates one **Check** for each
-requirement. Users can see the results on a Lightning record page. Flow and Apex can run the same
-Checks automatically.
+## New here? Follow these steps
 
-Record Health Check reports what it finds. It does not stop a record from being saved and does not
-change the record being checked.
+1. [See what Record Health Check does](./start-here/what-it-does.md).
+2. [Install it in a sandbox](./install/install-in-a-sandbox.md).
+3. [Explore a working installed example](./install/explore-installed-examples.md).
+4. [Create your first Check](./step-by-step-guide/create-your-first-check.md).
+5. [Configure the Lightning record-page component](./lightning-record-page/README.md).
 
-## Recommended path for new users
+Want the complete learning sequence? Open the [step-by-step guide](./step-by-step-guide/README.md).
 
-| Step | Task | Expected result |
-| ---: | --- | --- |
-| 1 | [Learn how Record Health Check works](installation/how-it-works.md) | Understand Check Sets, Checks, and the results users see |
-| 2 | [Install and verify the package](installation/install-and-verify.md) | Add the Record Health Check card to a record page in a sandbox |
-| 3 | [Explore the installed examples](installation/installed-examples.md) | Match the four installed Check Sets and 21 Checks to what appears in Setup and on the card |
-| 4 | [Create your first Check](installation/create-your-first-check.md) | Configure and run one Check from Setup |
-| 5 | [Choose an example that matches your requirement](examples/README.md) | Select Formula, Query, Compare Two Queries, or Apex based on where the required data lives |
-| 6 | [Configure a complete Check Set](guides/configure-check-sets-and-checks.md) | Prepare the Check Set and its Checks for testing with users |
+## Pick your task
 
-Salesforce developers who want a separate test org with prepared examples can
-[create a Record Health Check scratch org](installation/create-rhc-scratch-org.md).
+| Folder | Go here when you want to… |
+| --- | --- |
+| [Start here](./start-here/README.md) | Understand what Record Health Check does and choose your next task |
+| [Step-by-step guide](./step-by-step-guide/README.md) | Follow the complete sequence from installation to a working Check |
+| [Install](./install/README.md) | Install in a sandbox, install the demo in a scratch org, choose a version, upgrade, or uninstall |
+| [Frequently asked questions](./faqs/README.md) | Find direct answers about use, setup, security, operations, and code |
+| [Build Checks](./build-checks/README.md) | Choose an Evaluation Type and configure Check Sets and Checks |
+| [Examples](./examples/README.md) | Copy a complete Formula, Query, Compare Two Queries, or Apex pattern |
+| [Lightning record page](./lightning-record-page/README.md) | Configure and activate the Record Health Check component |
+| [Flow guides](./flow-guides/README.md) | Run a Check or Check Set from Flow and branch on its result |
+| [Save results](./save-results/README.md) | Send results to another process or save history with Platform Events |
+| [Diagnostics](./diagnostics/browser-console.md) | Investigate browser-console evidence or Salesforce debug logs |
+| [Production operations](./production-operations/README.md) | Back up configuration and operate the package after go-live |
+| [Architecture](./architecture/README.md) | Understand framework structure, security boundaries, data relationships, and Apex implementation |
+| [Reference](./reference/README.md) | Find statuses, contracts, limits, merge syntax, and exact evaluation rules |
+| [Developer guides](./developer-guides/README.md) | Use Apex, asynchronous execution, Agentforce, MCP, or Pub/Sub |
+| [Quality gates](./quality-gates/README.md) | Understand the checks required for code, packages, and documentation |
+| [Contributing](./contributing/README.md) | Change, test, document, or review the package source |
 
-## What do you want to do?
+The folder names describe user goals. You should not need to know which internal API or metadata
+layer owns your question before choosing a folder.
 
-| I want to… | Start here | What you will learn |
+## Choose how to build a Check
+
+| The required data is… | Evaluation Type | Start here |
 | --- | --- | --- |
-| Decide whether Record Health Check fits a requirement | [Compare Record Health Check with standard Salesforce features](guides/compare-to-native-salesforce.md) | When to use Record Health Check, Validation Rules, Required Fields, Flow, or reports |
-| Install, choose a version, upgrade, or remove the package | [Installation](installation/README.md) | Installation paths, immutable versions, and safe recovery guidance |
-| Configure a Check Set and its Checks | [Configuration guides](guides/README.md) | Check behavior, action links, card design, testing, and troubleshooting |
-| Choose how a run starts or where its result goes | [How Checks run](guides/how-checks-run.md) | Supported entry points, result destinations, and important pairing rules |
-| Start with an example | [Examples](examples/README.md) | Complete Formula, Query, Compare Two Queries, and Apex configurations |
-| Run Checks from Flow or Apex | [Integration overview](integration/README.md) | How to start a run and receive its results |
-| Respond to Platform Events | [Platform Event guides](platform-events/README.md) | How a Flow, Apex trigger, or external system receives published results |
-| Monitor and maintain an installed package | [Production operations](guides/operate-in-production.md) | Upgrades, monitoring, diagnostics, backups, and removal |
-| Look up a Setup field or its API name | [Metadata reference](metadata/README.md) | Check Set, Check, and Platform Event field definitions |
-| Look up exact technical behavior | [Technical reference](reference/README.md) | Limits, result codes, security, compatibility, and Apex implementation details |
+| On the current record or a parent | Formula | [Formula examples](./examples/formula/README.md) |
+| On related records | Query | [Query examples](./examples/query/README.md) |
+| Returned by two lists that must be compared | Compare Two Queries | [Compare Two Queries examples](./examples/compare-two-queries/README.md) |
+| Part of a decision that needs code | Apex | [Apex examples](./examples/apex/README.md) |
 
-## Learn by example
+## Important behavior
 
-| Your data is… | Evaluation Type | Examples |
-| --- | --- | --- |
-| On the current record or a parent | Verify with a formula | [Formula examples](examples/formula/README.md) |
-| On related records | Verify with a query | [Query examples](examples/query/README.md) |
-| Returned by two queries that must be compared | Compare Two Queries | [Compare Two Queries examples](examples/compare-two-queries/README.md) |
-| Part of a decision that needs custom code | Verify with Apex | [Apex examples](examples/apex/README.md) |
+- Failed, Warning, and Info are `FAIL` health results, not Salesforce errors.
+- Formula and Query Checks use only the records and fields available to the person running them.
+- Platform Events are optional and are not permanent storage.
+- The installed examples are for learning. Create organization-owned Check Sets before using the
+  framework in a business process.
 
-## Behavior that applies to every Check
-
-- Record Health Check reports readiness; it does **not** block a Salesforce record from being saved.
-- On the card, users see Pass, Failed, Warning, Info, Skipped, Unable to Check, or System Error.
-  Flow, Apex, events, Agentforce, and REST use the corresponding stable statuses `PASS`, `FAIL`,
-  `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR`.
-- Failed, Warning, and Info are all `FAIL` results with different Check severities. A `FAIL` is a
-  health result, not a Salesforce error. See [Read results](guides/read-results.md) for the complete
-  mapping.
-- Formula and Query Checks can use only the records and fields the person running the Check can
-  access.
-- Check Set Run, Check Result, and restricted Error Log Platform Events are off by default. Enable
-  them only after the receiving Flow, Apex trigger, or integration is ready; Error Log publication
-  also requires the narrowly assigned publisher permission.
-- The installed package includes [four example Check Sets and 21 Checks](installation/installed-examples.md).
-  Their Qualified API Names begin with `rhc__Example_`, and their card titles begin with
-  `Example:`. Use them for learning; create Check Sets with names and requirements that belong to
-  your org before using Record Health Check in a business process.
-
-## Related
-
-- [Installation paths](installation/README.md)
-- [Guides](guides/README.md)
-- [Integration overview](integration/README.md)
-- [Technical references](reference/README.md)
-- [Documentation writing standard](contributing/api-documentation-standard.md)
-- [Support](../SUPPORT.md)
-- [Release notes](../CHANGELOG.md)
+For exact status mappings, use [Understand result labels and statuses](./reference/results/statuses-and-labels.md).
+For help, see [Support](../SUPPORT.md).

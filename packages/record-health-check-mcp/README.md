@@ -10,7 +10,7 @@ optional safe correlation ID. The service does not expose generic SOQL, generic 
 MCP prompts, record mutation, or event-publication controls.
 
 For an administrator-friendly deployment walkthrough with a successful and rejection test for every
-security gate, use [Deploy the MCP service one security gate at a time](../../docs/integration/deploy-mcp-service.md).
+security gate, use [Deploy the MCP service one security gate at a time](../../docs/developer-guides/agentforce-and-mcp/deploy-mcp-service.md).
 
 ## Security model
 

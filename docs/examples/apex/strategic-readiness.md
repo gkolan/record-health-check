@@ -1,11 +1,11 @@
-# 03 · Strategic Account Is Ready
+# Strategic Account Is Ready
 
 > [!NOTE]
 > On this page, build a weighted Apex readiness score that combines four Strategic Account signals, explains the gaps, and lets an administrator control the passing threshold through Custom Metadata.
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/evaluation/apex-check-contract.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../developer-guides/write-an-apex-check.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > The supporting Apex class lives under `integration-tests/` and does not install with the package.
@@ -106,7 +106,7 @@ Before activation, choose the policy that matches your process:
 ## What Record Health Check passes to Apex
 
 Shared scope inputs are documented once in the
-[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Check receives Account
+[Apex examples README](./README.md#what-record-health-check-passes-to-apex). This Check receives Account
 Ids plus scoring parameters (`minScore`, activity window, and related weights).
 
 ```apex
@@ -130,7 +130,7 @@ plugin. The card shows the total score, not which individual criteria were misse
 `ISPICKVAL(Type, "Strategic")` uses the stored Account Type picklist API value, not Record Type.
 Confirm it in Object Manager. Review user-mode access across Account, Contact, Opportunity, and
 activity fields. Add the card to the Account Lightning page, activate the intended assignment, and
-test as a user with **Record Health Check User**. Repository tests and Execute Anonymous are
+test as a user with **Record Health Check Card User**. Repository tests and Execute Anonymous are
 developer steps.
 
 ## Step 1: Choose the score and activity window
@@ -148,7 +148,7 @@ Record Health Check parses the JSON and supplies both named values in `scope.par
 `minScore` accepts `1`–`100`, and `activityDaysBack` accepts `1`–`3650`; missing or invalid values
 silently use 80 and 30. Enter and test explicit valid whole numbers rather than relying on those
 fallbacks. See
-[Parameter parsing patterns](../../reference/evaluation/apex-check-contract.md#scope)
+[Parameter parsing patterns](../../developer-guides/write-an-apex-check.md#scope)
 for validation and type-conversion guidance.
 
 ## Implementation summary
@@ -367,7 +367,7 @@ Create an Apex test class before deployment. Test a score of 0, each individual 
 criterion, a score of 100, both parameter fallbacks, an unavailable Account, 200 Account IDs, and
 constant SOQL query usage as the number of Accounts increases. The repository's
 [`AccountStrategicReadinessCheckTest`](../../../packages/record-health-check/integration-tests/main/default/classes/AccountStrategicReadinessCheckTest.cls)
-is a package-development reference; a subscriber test must use the public `rhc.*` types.
+is a package implementation reference; a subscriber test must use the public `rhc.*` types.
 
 ## Context and result contract
 
@@ -384,8 +384,10 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope, such as `Account` |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `checkDeveloperName` | `String` | Qualified Check identity (property name is historical; value is the Check QualifiedApiName) |
-| `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
+| `checkQualifiedApiName` | `String` | Qualified Check identity |
+| `checkSetQualifiedApiName` | `String` | Qualified Check Set identity |
+| `checkDeveloperName` | `String` | Legacy Check `DeveloperName`, retained for compatibility |
+| `checkSetDeveloperName` | `String` | Legacy parent Check Set identity, retained for compatibility |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a
@@ -403,7 +405,7 @@ For applicability, configure **Applies To** on the Check so Record Health Check 
 runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/evaluation/apex-check-contract.md#outcome).
+[Returning an outcome](../../developer-guides/write-an-apex-check.md#outcome).
 
 
 ## Step 3: Create the Check Set
@@ -435,15 +437,15 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Strategic_Account_Is_Ready` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Strategic Account Is Ready |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Strategic Account Is Ready |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../metadata/fields-check.md#apex-class-apexclass__c) | `AccountStrategicReadinessCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/fields-check.md#apex-parameters-json-apexparametersjson__c) | `{"minScore": 80, "activityDaysBack": 60}` |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../metadata/fields-check.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Strategic")` |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Strategic_Account_Is_Ready` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Strategic Account Is Ready |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Strategic Account Is Ready |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with Apex |
+| **Apex Class** | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c) | `AccountStrategicReadinessCheck` |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c) | `{"minScore": 80, "activityDaysBack": 60}` |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a formula is true |
+| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Strategic")` |
 
 Confirm the `Strategic` Type picklist API value in your org. Skip comes from applicability: the class always returns PASS or FAIL when it runs.
 
@@ -451,17 +453,17 @@ Confirm the `Strategic` Type picklist API value in your org. Skip comes from app
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Scores Contact coverage, open pipeline, recent activity, and billing-address completeness for Strategic Accounts. |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | This strategic account is not ready: readiness score is below the required minimum. Improve the readiness checks or lower `minScore` in Apex Parameters (JSON). |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to calculate strategic readiness. Confirm the running user can read the Account and related records used by this Check. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Review Contact coverage, open pipeline, recent activity, and billing address to identify which criteria did not add points. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | Leave blank: one portable link cannot correct all four readiness areas. |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | Leave blank; use an org-specific readiness report or playbook only after verifying it. |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `30` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Scores Contact coverage, open pipeline, recent activity, and billing-address completeness for Strategic Accounts. |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Critical |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | This strategic account is not ready: readiness score is below the required minimum. Improve the readiness checks or lower `minScore` in Apex Parameters (JSON). |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to calculate strategic readiness. Confirm the running user can read the Account and related records used by this Check. |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review Contact coverage, open pipeline, recent activity, and billing address to identify which criteria did not add points. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | Leave blank: one portable link cannot correct all four readiness areas. |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | Leave blank; use an org-specific readiness report or playbook only after verifying it. |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `30` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 `minScore` and `activityDaysBack` change the passing score and activity window without changing the class.
 
@@ -548,5 +550,5 @@ test, threshold, and documentation updates.
 
 ## Related
 
-- [← Prev: Open Opportunity health](open-opportunity-health.md) · [Next: Inactive approvers →](inactive-approver.md)
-- [Browse Apex examples](README.md)
+- [← Prev: Open Opportunity health](./open-opportunity-health.md) · [Next: Inactive approvers →](./inactive-approver.md)
+- [Browse Apex examples](./README.md)

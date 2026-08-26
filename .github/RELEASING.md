@@ -175,9 +175,19 @@ npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 
 Run the commands from a clean, committed release branch. `package:create` repeats the release
 preflight, checks Dev Hub capacity, requests code coverage, and records redacted creation evidence.
+The Salesforce package-version Branch field records the stable Git release branch; it does not
+include a commit suffix. Exact commit provenance lives in the ignored creation evidence, while 2GP
+upgrade ancestry remains linear through `"ancestorVersion": "HIGHEST"` in `sfdx-project.json`.
 `package:verify` treats installation into a clean subscriber org as the authoritative validation of
 the immutable server artifact. ZIP retrieval can be retained as optional diagnostic evidence, but
 Salesforce reporting a generated ZIP as unretrievable does not block install verification.
+
+Preserve the ignored
+`packages/record-health-check/.package-evidence/<04t>-create.json` file written by
+`package:create`. The promotion command requires that local file and verifies that it binds the
+candidate to the configured package and the current `HEAD`. Promote from the same working copy at
+the exact creation commit; promotion intentionally fails after advancing or merging the branch, or
+from another machine without the creation evidence.
 
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
 on the bash-only `VAR=value command` prefix.

@@ -5,7 +5,7 @@
 Every admin-authored SOQL template in this repository, classified into the bulk
 execution strategy that the framework uses to run it once per scope instead of once
 per record. The grammar these strategies belong to is described in
-`specs/framework-contracts/04a-bulk-query-grammar.md`.
+`docs/reference/evaluation/bulk-query-grammar.md`.
 
 **173 templates · 7 strategies · 0 unclassified**
 

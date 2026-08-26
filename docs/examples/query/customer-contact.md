@@ -1,4 +1,4 @@
-# 01 · Account Is Ready for Customer Handoff
+# Account Is Ready for Customer Handoff
 
 > [!NOTE]
 > On this page, create a Query Check that turns a related Contact count and a visible minimum into a clear Account handoff decision users can understand.
@@ -94,35 +94,35 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Has_At_Least_One_Contact` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Has At Least One Contact |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Has At Least One Contact |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check.md#source-query-sourcequery__c) | `SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Greater than |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) | `0` |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200` (default; `COUNT()` returns one result) |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Has_At_Least_One_Contact` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Has At Least One Contact |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Has At Least One Contact |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a query |
+| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Greater than |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
+| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) | `0` |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200` (default; `COUNT()` returns one result) |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Checks whether the Account has at least one visible Contact. |
-| **Category** | [`Category__c`](../../metadata/fields-check.md#category-category__c) | Relationship coverage |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has no Contacts. Add at least one Contact before continuing. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count Contacts. Confirm the user can read Contact and AccountId. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Add a Contact related to this Account. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Review contacts` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Contacts/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `10` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks whether the Account has at least one visible Contact. |
+| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Relationship coverage |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has no Contacts. Add at least one Contact before continuing. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count Contacts. Confirm the user can read Contact and AccountId. |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Add a Contact related to this Account. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review contacts` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Contacts/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `10` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 `COUNT()` always returns one aggregate result, even when the count is zero. Therefore **Source Query
 Field**, **If Query Finds No Records**, and **If Field Value Is Empty** do not apply. Comparison Query,
@@ -170,5 +170,5 @@ Before activation, run the no-Contact and has-Contact cases with the sharing acc
 
 ## Related
 
-- [Next: Pipeline next steps →](opportunity-next-steps.md)
-- [Browse Query examples](README.md)
+- [Next: Pipeline next steps →](./opportunity-next-steps.md)
+- [Browse Query examples](./README.md)

@@ -1,4 +1,4 @@
-# 03 · Partner Account Is Ready for Regional Assignment
+# Partner Account Is Ready for Regional Assignment
 
 > [!NOTE]
 > On this page, use Formula applicability to require Billing Country for Partner Accounts and return `SKIPPED` for Accounts that do not belong in the regional-assignment process.
@@ -63,7 +63,7 @@ Skipped, not a warning. Because **Passed Checks** is **Show count only**, passin
 to the summary but do not show an individual green row.
 
 Add the card to the Account Lightning page, activate the intended assignment, and test as a user
-with **Record Health Check User**. Adapt separately for Person Account policies.
+with **Record Health Check Card User**. Adapt separately for Person Account policies.
 
 ## Step 1: Create the Check Set
 
@@ -94,14 +94,14 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Partner_Has_Billing_Country` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Partner Has Billing Country |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Partner Has Billing Country |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with a formula |
-| **Pass Condition** | [`PassConditionFormula__c`](../../metadata/fields-check.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCountry))` |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../metadata/fields-check.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Partner")` |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Partner_Has_Billing_Country` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Partner Has Billing Country |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Partner Has Billing Country |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a formula |
+| **Pass Condition** | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCountry))` |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a formula is true |
+| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Partner")` |
 
 Confirm the `Partner` picklist API value in your org before relying on the applicability formula.
 
@@ -109,18 +109,18 @@ Confirm the `Partner` picklist API value in your org before relying on the appli
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Requires Billing Country only when Account Type is Partner. |
-| **Category** | [`Category__c`](../../metadata/fields-check.md#category-category__c) | Completeness |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | Partner account `{!record.Name fallback="this record"}` must have Billing Country set. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Partner billing requirements. Confirm the user can read Type and Billing Country. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Enter Billing Country on this Partner Account. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Edit billing country` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/edit` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `60` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked after confirming the `Partner` picklist value |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Requires Billing Country only when Account Type is Partner. |
+| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Completeness |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Critical |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | Partner account `{!record.Name fallback="this record"}` must have Billing Country set. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Partner billing requirements. Confirm the user can read Type and Billing Country. |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Enter Billing Country on this Partner Account. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Edit billing country` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/edit` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `60` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked after confirming the `Partner` picklist value |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 The applicability fields in **Configure the Check** create the skip for non-Partner Accounts. Leave
 **Display: Found Formula** and **Display: Expected Formula** blank because the failure message
@@ -171,5 +171,5 @@ Before activation, test a Partner Account and a non-Partner Account with the Per
 
 ## Related
 
-- [← Prev: Billing address review](billing-address-ready.md) · [Next: Branch handoff →](branch-handoff.md)
-- [Browse Formula examples](README.md)
+- [← Prev: Billing address review](./billing-address-ready.md) · [Next: Branch handoff →](./branch-handoff.md)
+- [Browse Formula examples](./README.md)

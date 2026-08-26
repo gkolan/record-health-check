@@ -1,4 +1,4 @@
-# 02 · Open Pipeline Includes a Previously Purchased Product
+# Open Pipeline Includes a Previously Purchased Product
 
 > [!NOTE]
 > On this page, compare two SOQL lists to show whether the Account's open pipeline includes at least one Product the customer has already purchased.
@@ -73,7 +73,7 @@ business history lives in Orders or Assets.
 No purchase history and no open pipeline can both lead to Skipped through different query sides;
 use the Reason Code and configured messages to distinguish them. Add **Max Query Rows**, add the
 card to the Account Lightning page, activate the intended assignment, and test as a user with
-**Record Health Check User**.
+**Record Health Check Card User**.
 
 ## Step 1: Create the Check Set
 
@@ -104,22 +104,22 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Open_Pipeline_Uses_Purchased_Product` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Open Pipeline Uses Purchased Product |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Record_Alignment` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Open Pipeline Includes a Previously Purchased Product |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Compare two queries |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check.md#source-query-sourcequery__c) | `SELECT Product2Id FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false` |
-| **Source Query Field** | [`SourceQueryField__c`](../../metadata/fields-check.md#source-query-field-sourcequeryfield__c) | `Product2Id` |
-| **Comparison Query** | [`ComparisonQuery__c`](../../metadata/fields-check.md#comparison-query-comparisonquery__c) | `SELECT Product2Id FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsWon = true` |
-| **Comparison Query Field** | [`ComparisonQueryField__c`](../../metadata/fields-check.md#comparison-query-field-comparisonqueryfield__c) | `Product2Id` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Compare as lists |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Lists overlap |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Skip |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | When a count query matches |
-| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../metadata/fields-check.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsWon = true` |
-| **Count Must Be** | [`ApplicabilityCountOperator__c`](../../metadata/fields-check.md#count-must-be-applicabilitycountoperator__c) | Greater than |
-| **Count Value** | [`ApplicabilityCountThreshold__c`](../../metadata/fields-check.md#count-value-applicabilitycountthreshold__c) | `0` |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Open_Pipeline_Uses_Purchased_Product` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Open Pipeline Uses Purchased Product |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Record_Alignment` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Open Pipeline Includes a Previously Purchased Product |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Compare two queries |
+| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT Product2Id FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false` |
+| **Source Query Field** | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | `Product2Id` |
+| **Comparison Query** | [`ComparisonQuery__c`](../../reference/custom-metadata/check-fields.md#comparison-query-comparisonquery__c) | `SELECT Product2Id FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsWon = true` |
+| **Comparison Query Field** | [`ComparisonQueryField__c`](../../reference/custom-metadata/check-fields.md#comparison-query-field-comparisonqueryfield__c) | `Product2Id` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Compare as lists |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Lists overlap |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Skip |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a count query matches |
+| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../reference/custom-metadata/check-fields.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsWon = true` |
+| **Count Must Be** | [`ApplicabilityCountOperator__c`](../../reference/custom-metadata/check-fields.md#count-must-be-applicabilitycountoperator__c) | Greater than |
+| **Count Value** | [`ApplicabilityCountThreshold__c`](../../reference/custom-metadata/check-fields.md#count-value-applicabilitycountthreshold__c) | `0` |
 
 ## Optional configuration
 
@@ -127,18 +127,18 @@ These values improve presentation. Change them for your process, or leave an opt
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Info |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | On `{!record.Name fallback="this record"}`, open pipeline products do not overlap the products recorded on closed-won Opportunities. Confirm whether the proposal should include an existing product. |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Compares open-pipeline Product IDs with previously purchased Product IDs. |
-| **Category** | [`Category__c`](../../metadata/fields-check.md#category-category__c) | Consistency |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the query results. Confirm the user can read every object and field named in both queries. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Review the open and closed-won Opportunity Products. Correct the product selection only when it does not match the intended sale. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Review opportunities` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `10` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked only after confirming this example matches your business process |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Info |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | On `{!record.Name fallback="this record"}`, open pipeline products do not overlap the products recorded on closed-won Opportunities. Confirm whether the proposal should include an existing product. |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Compares open-pipeline Product IDs with previously purchased Product IDs. |
+| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Consistency |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the query results. Confirm the user can read every object and field named in both queries. |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review the open and closed-won Opportunity Products. Correct the product selection only when it does not match the intended sale. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review opportunities` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `10` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked only after confirming this example matches your business process |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 The applicability count keeps the Check focused on Accounts with purchased-product history. **If
 Query Finds No Records** then skips an Account whose open Opportunities have no Opportunity
@@ -191,5 +191,5 @@ Record Health Check builds both Product lists with the running user's Salesforce
 
 ## Related
 
-- [← Prev: Opportunity Contact Role coverage](opportunity-contact-role-coverage.md) · [Next: Account Team coverage →](account-team-opportunity-coverage.md)
-- [Browse Compare two queries examples](README.md)
+- [← Prev: Opportunity Contact Role coverage](./opportunity-contact-role-coverage.md) · [Next: Account Team coverage →](./account-team-opportunity-coverage.md)
+- [Browse Compare two queries examples](./README.md)

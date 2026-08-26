@@ -1,4 +1,4 @@
-# Verify records with a SOQL Query
+# Query Checks
 
 > [!NOTE]
 > On this page, configure one Query Check that turns SOQL results into a count, a single value, a
@@ -8,7 +8,7 @@
 >
 > - This page defines the required fields, query-result choices, Expected Value choices, access
 >   behavior, limits, and outcomes.
-> - For every field's size, default, help text, and examples, use the [Check field reference](../../metadata/fields-check.md).
+> - For every field's size, default, help text, and examples, use the [Check field reference](../custom-metadata/check-fields.md).
 
 ## Required Query settings
 
@@ -18,13 +18,13 @@
 
 | Setup field | API name | Requirement |
 | --- | --- | --- |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | **Verify with a query**: `QUERY` |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check.md#source-query-sourcequery__c) | Primary SOQL template; required except list-membership mode |
-| **Source Query Field** | [`SourceQueryField__c`](../../metadata/fields-check.md#source-query-field-sourcequeryfield__c) | Selected field or aggregate alias; blank for bare `COUNT()` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Converts returned rows into the value or row decision |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Required operator compatible with the selected mode |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Required when the operator needs a right-side value |
-| **Expected Currency ISO Code** | [`ExpectedCurrencyIsoCode__c`](../../metadata/fields-check.md#expected-currency-iso-code-expectedcurrencyisocode__c) | Required in a multi-currency org when a Currency field is compared with a fixed value |
+| **Evaluation Type** | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | **Verify with a query**: `QUERY` |
+| **Source Query** | [`SourceQuery__c`](../custom-metadata/check-fields.md#source-query-sourcequery__c) | Primary SOQL template; required except list-membership mode |
+| **Source Query Field** | [`SourceQueryField__c`](../custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | Selected field or aggregate alias; blank for bare `COUNT()` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Converts returned rows into the value or row decision |
+| **Comparison Operator** | [`ComparisonOperator__c`](../custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Required operator compatible with the selected mode |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Required when the operator needs a right-side value |
+| **Expected Currency ISO Code** | [`ExpectedCurrencyIsoCode__c`](../custom-metadata/check-fields.md#expected-currency-iso-code-expectedcurrencyisocode__c) | Required in a multi-currency org when a Currency field is compared with a fixed value |
 
 ## Result-handling modes
 
@@ -70,9 +70,9 @@ Then decide explicitly what should happen when the Account has no open Opportuni
 
 | Setup label | API value | Additional field |
 | --- | --- | --- |
-| **Fixed value** | `FIXED_VALUE` | [Expected Value (Fixed)](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) |
-| **Record formula** | `RECORD_FORMULA` | [Expected Value (Formula)](../../metadata/fields-check.md#expected-value-formula-expectedrecordformula__c) |
-| **Comparison query** | `COMPARISON_QUERY` | [Comparison Query](../../metadata/fields-check.md#comparison-query-comparisonquery__c) and, when needed, Comparison Query Field |
+| **Fixed value** | `FIXED_VALUE` | [Expected Value (Fixed)](../custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) |
+| **Record formula** | `RECORD_FORMULA` | [Expected Value (Formula)](../custom-metadata/check-fields.md#expected-value-formula-expectedrecordformula__c) |
+| **Comparison query** | `COMPARISON_QUERY` | [Comparison Query](../custom-metadata/check-fields.md#comparison-query-comparisonquery__c) and, when needed, Comparison Query Field |
 
 Leave Expected Value Comes From blank for **Is empty** and **Is not empty**. Compare-two-queries
 Checks also leave it blank because the second query is inherently the right side.
@@ -80,7 +80,7 @@ Checks also leave it blank because the second query is inherently the right side
 ## Operators
 
 Single-value and row modes support equality, ordering, contains, and empty-value operators as
-documented under [Comparison Operator](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c).
+documented under [Comparison Operator](../custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c).
 
 Query list-membership uses:
 
@@ -88,16 +88,16 @@ Query list-membership uses:
 - **List contains none**: `LIST_CONTAINS_NONE`
 
 For those operators, set How To Read Query Results to **Compare as lists**, put the current-record
-value in [Value to find in the list (formula)](../../metadata/fields-check.md#value-to-find-in-the-list-formula-findinlistformula__c),
+value in [Value to find in the list (formula)](../custom-metadata/check-fields.md#value-to-find-in-the-list-formula-findinlistformula__c),
 and return the candidate list from Comparison Query. Source Query is blank in this mode.
 
 ## No rows, empty values, and row caps
 
 | Setup field | API name | Behavior |
 | --- | --- | --- |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Returns Pass, Fail, Skip, or Unable to evaluate when a query returns zero rows |
-| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../metadata/fields-check.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignore the row, compare blank, or force no match |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | Defaults to `200`; maximum `2000` |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Returns Pass, Fail, Skip, or Unable to evaluate when a query returns zero rows |
+| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignore the row, compare blank, or force no match |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | Defaults to `200`; maximum `2000` |
 
 No-row behavior is a business decision. Configure it explicitly where required; zero rows can mean
 pass, fail, skip, or unable depending on the Check.
@@ -180,6 +180,6 @@ deprecated.
 ## Related
 
 - [Customer handoff](../../examples/query/customer-contact.md)
-- [Check fields](../../metadata/fields-check.md)
-- [Reason Codes](../contracts/reason-codes.md)
-- [Configure Check Sets and Checks](../../guides/configure-check-sets-and-checks.md)
+- [Check fields](../custom-metadata/check-fields.md)
+- [Reason Codes](../results/reason-codes.md)
+- [Configure Check Sets and Checks](../../build-checks/configure-check-sets-and-checks.md)

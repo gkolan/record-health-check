@@ -1,4 +1,4 @@
-# 01 · Account Is Ready for Customer Follow-up
+# Account Is Ready for Customer Follow-up
 
 > [!NOTE]
 > On this page, create an Account Check that passes when the running user can see a completed Task
@@ -7,7 +7,7 @@
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/evaluation/apex-check-contract.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../developer-guides/write-an-apex-check.md) for the complete setup fields and behavior.
 
 ## Scenario
 
@@ -26,7 +26,7 @@ An account manager opens an Account before a customer call and wants to know whe
 
 - Install Record Health Check and assign **Record Health Check Admin** to the administrator creating
   the Check Set and Check.
-- Confirm that the intended users have **Record Health Check User** and can read Account, Task,
+- Confirm that the intended users have **Record Health Check Card User** and can read Account, Task,
   Event, and the fields listed under [Security and access](#security-and-access).
 - Build and test this example in a sandbox before adding it to a production Lightning record page.
 
@@ -63,7 +63,7 @@ review.
 ## What Record Health Check passes to Apex
 
 Shared scope inputs (`scope.recordIds`, `scope.parameters`) are documented once in the
-[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Check receives Account
+[Apex examples README](./README.md#what-record-health-check-passes-to-apex). This Check receives Account
 Ids and a `daysBack` parameter.
 
 ```apex
@@ -90,7 +90,7 @@ still review required fields and save. If the standard `LastActivityDate` behavi
 business question, prefer a Formula Check.
 
 Add the card to the Account Lightning page, activate the intended assignment, and test as a user
-with **Record Health Check User**. Developer Console and Execute Anonymous sections are optional
+with **Record Health Check Card User**. Developer Console and Execute Anonymous sections are optional
 developer verification, not administrator setup.
 
 ## Step 1: Choose the activity window
@@ -107,7 +107,7 @@ Record Health Check parses the JSON automatically and passes it to the class as
 `scope.parameters`, a map of parameter names to values. The class uses 30 days only when `daysBack`
 is absent. A nonnumeric value or a whole number outside 1–3,650 returns `UNABLE_TO_EVALUATE` with
 reason code `INVALID_CONFIG`. This example explicitly uses 90 days. See
-[Parameter parsing patterns](../../reference/evaluation/apex-check-contract.md#scope)
+[Parameter parsing patterns](../../developer-guides/write-an-apex-check.md#scope)
 for validation and type-conversion guidance.
 
 ## Step 2: Review the packaged Apex class
@@ -291,8 +291,10 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope, such as `Account` |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `checkDeveloperName` | `String` | Qualified Check identity (property name is historical; value is the Check QualifiedApiName) |
-| `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
+| `checkQualifiedApiName` | `String` | Qualified Check identity |
+| `checkSetQualifiedApiName` | `String` | Qualified Check Set identity |
+| `checkDeveloperName` | `String` | Legacy Check `DeveloperName`, retained for compatibility |
+| `checkSetDeveloperName` | `String` | Legacy parent Check Set identity, retained for compatibility |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a
@@ -310,7 +312,7 @@ For applicability, configure **Applies To** on the Check so Record Health Check 
 runs. Record Health Check supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/evaluation/apex-check-contract.md#outcome).
+[Returning an outcome](../../developer-guides/write-an-apex-check.md#outcome).
 
 
 ## Step 3: Create the Check Set
@@ -345,30 +347,30 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Account_Has_Recent_Activity` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Has Recent Activity |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Has Recent Activity |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../metadata/fields-check.md#apex-class-apexclass__c) | `AccountHasRecentActivityCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/fields-check.md#apex-parameters-json-apexparametersjson__c) | `{"daysBack": 90}` |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Account_Has_Recent_Activity` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Has Recent Activity |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Has Recent Activity |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with Apex |
+| **Apex Class** | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c) | `AccountHasRecentActivityCheck` |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c) | `{"daysBack": 90}` |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Checks for a completed Task or Event related to the Account inside the selected number of days. |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | Names the record, then asks for a completed Task or Event in the window: copy it from below the table |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check recent activity. Enter `daysBack` as a whole number from 1 through 3650. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Review the Account activity timeline. If no completed Task or Event falls inside the 90-day window, log the activity and rerun the check. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Log account activity` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `10` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks for a completed Task or Event related to the Account inside the selected number of days. |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | Names the record, then asks for a completed Task or Event in the window: copy it from below the table |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check recent activity. Enter `daysBack` as a whole number from 1 through 3650. |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review the Account activity timeline. If no completed Task or Event falls inside the 90-day window, log the activity and rerun the check. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Log account activity` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `10` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 Copy this value into **Message When Failed**:
 
@@ -380,7 +382,7 @@ Change `daysBack` to change the window without redeploying the class.
 
 This example is deliberately `WhatId`-only. A Task related only through a Contact `WhoId`, Shared
 Activities relations, or an Opportunity/Case `WhatId` is not counted for the Account. See
-[Platform limitations and safe patterns](../../reference/framework/platform-limitations.md#activities-what-who-and-shared-relations)
+[Platform limitations and safe patterns](../../reference/platform/limitations.md#activities-what-who-and-shared-relations)
 for the exact matrix and a bulk-safe WhoId recipe.
 
 These values create a new Check owned by your org. They do not change the example Check included
@@ -490,5 +492,5 @@ Check with a simpler Verify with a formula.
 
 ## Related
 
-- [Next: Combine per-row conditions on a child object →](open-opportunity-health.md)
-- [Browse Apex examples](README.md)
+- [Next: Combine per-row conditions on a child object →](./open-opportunity-health.md)
+- [Browse Apex examples](./README.md)

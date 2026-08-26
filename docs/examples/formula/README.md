@@ -1,4 +1,4 @@
-# Formula examples
+# Formula Check examples
 
 > [!NOTE]
 > On this page, choose a Formula example when the answer comes from fields on the record being
@@ -8,7 +8,7 @@ Use **Verify with a formula** when a Salesforce formula can return `TRUE` for a 
 `FALSE` for a record that needs attention. For example, require several Account fields, allow Phone
 or Website, compare Number of Employees with a limit, or read a field from the parent Account.
 
-If you have never created a Salesforce formula, begin with [Create your first Check](../../installation/create-your-first-check.md).
+If you have never created a Salesforce formula, begin with [Create your first Check](../../step-by-step-guide/create-your-first-check.md).
 In formula syntax, functions such as `ISBLANK()` inspect values, `NOT()` reverses true and false,
 and `AND()` or `OR()` combine conditions. The Formula reference covers the supported subset.
 
@@ -20,11 +20,11 @@ Records**.
 
 | Example | Salesforce question | What the example demonstrates |
 | --- | --- | --- |
-| [Seller research readiness](account-research-ready.md) | Does the Account have a Phone or Website? | Formula `OR`, optional alternatives, and an edit action |
-| [Billing address review](billing-address-ready.md) | Are Billing City, Billing State, and Billing Country populated? | Formula `AND` with separate Found and Expected display formulas |
-| [Partner regional assignment](partner-regional-assignment.md) | Does a Partner Account have the country needed for assignment? | Formula applicability, `SKIPPED`, and compact passed-Check display |
-| [Branch handoff](branch-handoff.md) | Does the parent Account contain the headquarters location? | Parent relationship fields and a parent-record action URL |
-| [Small-business program eligibility](program-eligibility.md) | Does Number of Employees meet the program minimum? | Numeric Formula comparison with Found and Expected always visible |
+| [Seller research readiness](./account-research-ready.md) | Does the Account have a Phone or Website? | Formula `OR`, optional alternatives, and an edit action |
+| [Billing address review](./billing-address-ready.md) | Are Billing City, Billing State, and Billing Country populated? | Formula `AND` with separate Found and Expected display formulas |
+| [Partner regional assignment](./partner-regional-assignment.md) | Does a Partner Account have the country needed for assignment? | Formula applicability, `SKIPPED`, and compact passed-Check display |
+| [Branch handoff](./branch-handoff.md) | Does the parent Account contain the headquarters location? | Parent relationship fields and a parent-record action URL |
+| [Small-business program eligibility](./program-eligibility.md) | Does Number of Employees meet the program minimum? | Numeric Formula comparison with Found and Expected always visible |
 
 ## When Formula is the right choice
 
@@ -65,5 +65,5 @@ For every Formula setting, outcome, security check, and limit, use
 
 - [All practical examples](../README.md)
 - [Reference: Formula](../../reference/evaluation/formula.md)
-- [Check fields](../../metadata/fields-check.md)
-- [Create your first Check](../../installation/create-your-first-check.md)
+- [Check fields](../../reference/custom-metadata/check-fields.md)
+- [Create your first Check](../../step-by-step-guide/create-your-first-check.md)

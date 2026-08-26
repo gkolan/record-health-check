@@ -1,4 +1,4 @@
-# 07 · High-priority Case Backlog Is Within Review Capacity
+# High-priority Case Backlog Is Within Review Capacity
 
 > [!NOTE]
 > On this page, count open high-priority Cases, compare the count with your team's agreed limit, and optionally publish the result for a Flow, Apex trigger, or integration.
@@ -66,7 +66,7 @@ close or lower the priority of one to prove the pass. Do not use this example un
 are unavailable, your org uses custom priority values, or the policy counts only queue-owned Cases.
 
 Add the card to the Account Lightning page, activate the intended assignment, and test as a user
-with **Record Health Check User**. The optional Platform Event section is for an automation owner;
+with **Record Health Check Card User**. The optional Platform Event section is for an automation owner;
 card-only administrators can skip it.
 
 ## Step 1: Create the Check Set
@@ -98,18 +98,18 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `High_Priority_Case_Limit` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | High-Priority Case Limit |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | High-Priority Case Backlog Is Within Capacity |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check.md#source-query-sourcequery__c) | `SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'` |
-| **Source Query Field** | [`SourceQueryField__c`](../../metadata/fields-check.md#source-query-field-sourcequeryfield__c) | Leave blank for `COUNT()` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Less than or equal |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) | `3`; replace this example with your team's agreed limit |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200` (default; `COUNT()` returns one result) |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `High_Priority_Case_Limit` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | High-Priority Case Limit |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | High-Priority Case Backlog Is Within Capacity |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a query |
+| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'` |
+| **Source Query Field** | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | Leave blank for `COUNT()` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Less than or equal |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
+| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) | `3`; replace this example with your team's agreed limit |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200` (default; `COUNT()` returns one result) |
 
 Confirm the `High` Priority API value and replace `3` with the limit approved by your service team.
 
@@ -117,19 +117,19 @@ Confirm the `High` Priority API value and replace `3` with the limit approved by
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has more open high-priority Cases than the service team can review through its normal process. |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Compares the visible open high-priority Case count with the approved review limit. |
-| **Category** | [`Category__c`](../../metadata/fields-check.md#category-category__c) | Readiness |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count high-priority Cases. Confirm access to Case, AccountId, IsClosed, and Priority. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Review ownership and response plans for the open high-priority Cases, then follow your capacity-escalation process. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Review cases` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Cases/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `140` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked only after confirming the Priority value and approved capacity limit |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked unless a Flow, Apex trigger, or integration needs the result from this Check |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has more open high-priority Cases than the service team can review through its normal process. |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Compares the visible open high-priority Case count with the approved review limit. |
+| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Readiness |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count high-priority Cases. Confirm access to Case, AccountId, IsClosed, and Priority. |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review ownership and response plans for the open high-priority Cases, then follow your capacity-escalation process. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review cases` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Cases/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `140` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked only after confirming the Priority value and approved capacity limit |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked unless a Flow, Apex trigger, or integration needs the result from this Check |
 
 Source Query Field stays blank because bare `COUNT()` produces the value directly. Comparison
 Query, row-empty, list, Formula-result, and Apex fields do not apply. The count is `0` when no Case
@@ -159,7 +159,7 @@ runs automatically when the page opens does not publish them.
 
 Creating an event is only the sending side. Before enabling either setting, build and test the Flow,
 Apex trigger, or integration that receives the event, including how it handles a replayed or repeated
-event. See [Lifecycle events](../../integration/lifecycle-events.md) for the event fields and setup
+event. See [Lifecycle events](../../save-results/when-to-use-platform-events.md) for the event fields and setup
 choices.
 
 ## Security and access
@@ -196,5 +196,5 @@ Before activation, confirm the capacity result with the Case sharing model used 
 
 ## Related
 
-- [← Prev: Account Owner team membership](account-owner-team-membership.md) · [Next: Opportunity Contact Role coverage →](../compare-two-queries/opportunity-contact-role-coverage.md)
-- [Browse Query examples](README.md)
+- [← Prev: Account Owner team membership](./account-owner-team-membership.md) · [Next: Opportunity Contact Role coverage →](../compare-two-queries/opportunity-contact-role-coverage.md)
+- [Browse Query examples](./README.md)

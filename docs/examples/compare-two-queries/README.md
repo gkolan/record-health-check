@@ -1,5 +1,7 @@
 # Compare two queries examples
 
+Use these examples when two lists of records must be compared.
+
 > [!NOTE]
 > On this page, choose an example that compares the results of two SOQL queries without custom
 > Apex.
@@ -12,9 +14,9 @@ compare open-pipeline Product IDs with previously purchased Product IDs.
 
 | Example | Salesforce question | What the example demonstrates |
 | --- | --- | --- |
-| [Opportunity Contact Role coverage](opportunity-contact-role-coverage.md) | Does every open Opportunity have a Contact Role? | Aggregate aliases, two-query equality, and count-query applicability |
-| [Open-pipeline product continuity](open-pipeline-product-continuity.md) | Does open pipeline include a Product the customer previously purchased? | Two lists compared with **Lists overlap** |
-| [Account Team coverage](account-team-opportunity-coverage.md) | Does the Account Team include every open Opportunity owner? | Two lists compared with **Lists contain all** and no-row failure |
+| [Opportunity Contact Role coverage](./opportunity-contact-role-coverage.md) | Does every open Opportunity have a Contact Role? | Aggregate aliases, two-query equality, and count-query applicability |
+| [Open-pipeline product continuity](./open-pipeline-product-continuity.md) | Does open pipeline include a Product the customer previously purchased? | Two lists compared with **Lists overlap** |
+| [Account Team coverage](./account-team-opportunity-coverage.md) | Does the Account Team include every open Opportunity owner? | Two lists compared with **Lists contain all** and no-row failure |
 
 These examples are instructions; the installed package does not create these Checks. Follow one
 example to create a Check in **Setup → Custom Metadata Types → Record Health Check → Manage
@@ -67,5 +69,5 @@ For both query shapes, compatible operators, no-row behavior, security, and limi
 
 - [All practical examples](../README.md)
 - [Reference: Compare two queries](../../reference/evaluation/compare-two-queries.md)
-- [Check fields](../../metadata/fields-check.md)
-- [Configure Check Sets and Checks](../../guides/configure-check-sets-and-checks.md)
+- [Check fields](../../reference/custom-metadata/check-fields.md)
+- [Configure Check Sets and Checks](../../build-checks/configure-check-sets-and-checks.md)

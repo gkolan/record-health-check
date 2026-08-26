@@ -13,7 +13,7 @@ contributing, you agree that your contributions are licensed under the
 [Apache License, Version 2.0](../LICENSE).
 
 Subscribers should install the promoted unlocked package (see the root README install link and
-[Install and verify](../docs/installation/install-and-verify.md)). Contributors deploy unpackaged
+[Install and verify](../docs/install/install-in-a-sandbox.md)). Contributors deploy unpackaged
 Framework source for development; do not point new users at GitHub source deploy as the primary install
 path.
 
@@ -126,7 +126,7 @@ not guess namespaces or retry alternate name forms. See
 
 `@TestVisible` and `Test.isRunningTest()` are temporary workarounds. Do not add test-only access without
 updating the architecture baseline. The full policy lives in
-[Contributor policy: Apex test-only access](../docs/reference/apex/test-only-access.md). Run
+[Contributor policy: Apex test-only access](../docs/quality-gates/apex-test-only-access.md). Run
 `npm run check:apex-architecture` before opening a PR that touches Apex.
 
 ## Integration-test sample data

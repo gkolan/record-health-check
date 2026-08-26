@@ -1,4 +1,6 @@
-# Develop Record Health Check Package Source
+# Develop the repository source
+
+Use this workflow when changing the package implementation.
 
 > [!NOTE]
 > On this page, create a scratch org for changing the Record Health Check package source. The setup
@@ -8,14 +10,14 @@
 > [!IMPORTANT]
 > This workflow deploys unpackaged package source into a development org. Do **not** use it to
 > install or upgrade Record Health Check in a subscriber sandbox or production org. Subscribers
-> install the promoted unlocked package (`04t`) from [Install and verify](../installation/install-and-verify.md).
+> install the promoted unlocked package (`04t`) from [Install and verify](../install/install-in-a-sandbox.md).
 
 `npm run setup` creates an installed-package demo. `npm run dev:setup` deploys unpackaged contributor
 source. They are different workflows; do not substitute one command for the other.
 
 Use this guide only when contributing changes to this repository. The package project is in
 `packages/record-health-check/`. If the goal is to evaluate the installed package as an
-administrator or user, follow [Create a demo scratch org](../installation/create-rhc-scratch-org.md)
+administrator or user, follow [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md)
 instead.
 
 ## Prerequisites
@@ -158,15 +160,15 @@ when both options exist.
 | `An org already uses alias '…'` | Confirm which org owns the alias. Choose a new `--alias`, or delete the old scratch org only when this work created it and it is no longer needed. |
 | Scratch-org capacity is insufficient | Reuse a suitable contributor org, delete an owned org that is no longer needed, or wait for the daily limit to reset |
 | Toolchain check reports another CLI version | Install the exact version shown in `config/toolchain.json`, then rerun `npm run check:toolchain` |
-| Deploy fails on currency field planner tests | The org is multi-currency; see the [setup and troubleshooting FAQ](../guides/faq/setup-and-troubleshooting.md#why-did-source-deployment-fail-a-currency-planner-test) |
+| Deploy fails on currency field planner tests | The org is multi-currency; see the [setup and troubleshooting FAQ](../faqs/setup-and-troubleshooting.md#why-did-source-deployment-fail-a-currency-planner-test) |
 | `sf` not found on Windows | Confirm the Salesforce CLI install and that your shell session can resolve `sf` |
-| Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../installation/create-rhc-scratch-org.md) |
+| Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../install/install-demo-in-a-scratch-org.md) |
 
 ## Next steps
 
-- Follow the [documentation quality and accuracy standard](api-documentation-standard.md) when
+- Follow the [documentation quality and accuracy standard](../quality-gates/documentation-standard.md) when
   editing any page in `docs`
 - Review the local gates in [Contributing](../../.github/CONTRIBUTING.md) before you open a PR
-- Read [Package testing and upgrades](../reference/framework/package-testing-and-upgrades.md) for
+- Read [Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md) for
   test ownership and subscriber upgrade behavior
 - Follow [Releasing](../../.github/RELEASING.md) when you are ready to create a package version

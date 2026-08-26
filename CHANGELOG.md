@@ -7,7 +7,7 @@ interfaces and product-generation terminology.
 ## Current release
 
 **Subscriber install:** promoted unlocked package `Record Health Check@2.0.4-2`. Stable `04t` and
-install URLs are recorded in [`config/package-releases.json`](config/package-releases.json).
+install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
 - Current released candidate: `Record Health Check@2.0.4-2`.
@@ -68,9 +68,9 @@ install URLs are recorded in [`config/package-releases.json`](config/package-rel
   gates.
 
 For installation and verification, start with
-[Install and verify](docs/installation/install-and-verify.md). For the public contracts, use the
-[Apex API](docs/api/apex-api.md), [Flow actions](docs/integration/flow-actions.md), and
-[Apex Check plugin reference](docs/reference/evaluation/apex-check-contract.md).
+[Install and verify](./docs/install/install-in-a-sandbox.md). For the public contracts, use the
+[Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
+[Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
 ## Unreleased
 
@@ -93,13 +93,20 @@ Target package version: **2.0.5**.
 - Record Health Check now applies the same stricter request limits when it loads relationship
   fields, runs queries and Apex Checks, compares values, and handles multiple currencies across
   Lightning, Apex, Flow, background, Agentforce, REST, and MCP requests.
+- Formula field planning now treats a relationship path as one field reference. A formula such as
+  `Parent.Name = "Required Parent"` no longer fails field planning merely because `Parent` or `Name`
+  was also misread as a root field; null relationships now reach normal Salesforce formula
+  evaluation and can therefore produce the configured business verdict.
 - Package, subscriber-validation, permission, manifest, API, documentation, and quality-metric
   gates now cover the new MCP and core-framework surfaces.
 
 ### Fixed
 
-- Corrected diagnostics documentation and support guidance so expected business failures are not
-  described as technical incidents or sources of full support bundles.
+- Corrected the released version 1 agent-tool response schema so its strict validators accept the four
+  diagnostic summary fields already returned by the Apex REST adapter since 2.0.4.2. The schema,
+  examples, MCP validator, and disclosure guidance now describe the same response surface.
+- Corrected diagnostics support guidance so expected business failures are not described as
+  technical incidents or sources of full support bundles.
 
 ### Documentation
 
@@ -244,7 +251,7 @@ Released package version: **2.0.4.2**.
   package for Account, Contact, and Opportunity teaching scenarios.
 - Documentation surfaces for security and data access, glossary, compatibility, data model,
   localization, FAQ, native-Salesforce comparison, uninstall/rollback, and production operations.
-- [Support](SUPPORT.md) map for Issues, Discussions, Slack, and security advisories.
+- [Support](./SUPPORT.md) map for Issues, Discussions, Slack, and security advisories.
 
 ### Changed
 
@@ -252,7 +259,7 @@ Released package version: **2.0.4.2**.
   with concrete Production and Sandbox install URLs for promoted `04tak000000ZXVlAAO`, and source
   deploy reserved for contribution and scratch-org workflows.
 - Configuration identity guidance lives under
-  [Configuration identity](docs/reference/framework/configuration-identity.md).
+  [Configuration identity](./docs/reference/configuration/names-and-api-identities.md).
 - Technical references are grouped under `docs/reference/{framework,evaluation,contracts,apex}/`
   instead of a flat `reference-*.md` list. Old GitHub blob URLs to the previous filenames will not
   redirect.

@@ -45,7 +45,7 @@ Acme's Contacts, Opportunities, Opportunity Contact Roles, Tasks, Events, and Ca
 does not get out of sync or accumulate duplicates.
 
 For the full walkthrough, including Windows shell notes, see
-[Create the demo scratch org](../../docs/installation/create-rhc-scratch-org.md).
+[Create the demo scratch org](../../docs/install/install-demo-in-a-scratch-org.md).
 
 Contributors changing Framework source use
 [`npm run dev:setup`](../../docs/contributing/source-development.md) instead.

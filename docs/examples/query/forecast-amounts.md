@@ -1,4 +1,4 @@
-# 04 · Open Pipeline Is Ready for Forecast Review
+# Open Pipeline Is Ready for Forecast Review
 
 > [!NOTE]
 > On this page, require every open Opportunity to carry a positive Amount and use result-summary merge tokens to tell users how much pipeline passed the forecast check.
@@ -61,7 +61,7 @@ business rule should use Amount or Expected Revenue. In a multi-currency org, re
 currency rules before comparing values.
 
 Create the Opportunities from the Account related list, add the card to the Account Lightning
-page, activate the intended assignment, and test as a user with **Record Health Check User**.
+page, activate the intended assignment, and test as a user with **Record Health Check Card User**.
 
 ## Step 1: Create the Check Set
 
@@ -92,22 +92,22 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Open_Opps_Have_Positive_Amount` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | All Open Opportunities Have Positive Amount |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | All Open Opportunities Have Positive Amount |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check.md#source-query-sourcequery__c) | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Source Query Field** | [`SourceQueryField__c`](../../metadata/fields-check.md#source-query-field-sourcequeryfield__c) | `Amount` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Every record passes |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Greater than |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) | `0` |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Skip |
-| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../metadata/fields-check.md#if-field-value-is-empty-emptyvaluehandling__c) | Treat as not matching |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200`; raise only after confirming Accounts can exceed this many open Opportunities |
-| **Display: Found Text** | [`DisplayFoundText__c`](../../metadata/fields-check.md#display-found-text-displayfoundtext__c) | Count of open opportunities missing Amount out of the total: copy it from below the table |
-| **Display: Expected Text** | [`DisplayExpectedText__c`](../../metadata/fields-check.md#display-expected-text-displayexpectedtext__c) | `Every open opportunity has Amount greater than zero` |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Open_Opps_Have_Positive_Amount` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | All Open Opportunities Have Positive Amount |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | All Open Opportunities Have Positive Amount |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a query |
+| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
+| **Source Query Field** | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | `Amount` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Every record passes |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Greater than |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
+| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) | `0` |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Skip |
+| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../reference/custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Treat as not matching |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200`; raise only after confirming Accounts can exceed this many open Opportunities |
+| **Display: Found Text** | [`DisplayFoundText__c`](../../reference/custom-metadata/check-fields.md#display-found-text-displayfoundtext__c) | Count of open opportunities missing Amount out of the total: copy it from below the table |
+| **Display: Expected Text** | [`DisplayExpectedText__c`](../../reference/custom-metadata/check-fields.md#display-expected-text-displayexpectedtext__c) | `Every open opportunity has Amount greater than zero` |
 
 Copy this value into **Display: Found Text**:
 
@@ -119,19 +119,19 @@ Copy this value into **Display: Found Text**:
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Checks every visible open Opportunity for an Amount greater than zero; skips Accounts with none. |
-| **Category** | [`Category__c`](../../metadata/fields-check.md#category-category__c) | Readiness |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | One or more open Opportunities have Amount zero or blank. Enter a positive Amount on every open Opportunity. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check open Opportunity Amounts. Confirm the user can read the queried fields. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | All records; empty-query handling creates the skip |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Use Found to see how many open Opportunities need Amount, then correct each one. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Review open opportunities` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `70` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks every visible open Opportunity for an Amount greater than zero; skips Accounts with none. |
+| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Readiness |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | One or more open Opportunities have Amount zero or blank. Enter a positive Amount on every open Opportunity. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check open Opportunity Amounts. Confirm the user can read the queried fields. |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records; empty-query handling creates the skip |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Use Found to see how many open Opportunities need Amount, then correct each one. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review open opportunities` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `70` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 Comparison Query, list, Formula, and Apex fields do not apply.
 
@@ -177,5 +177,5 @@ Before activation, test as a forecast user with restricted Opportunity sharing a
 
 ## Related
 
-- [← Prev: Meaningful pipeline](significant-opportunity.md) · [Next: Placeholder email cleanup →](placeholder-contact-emails.md)
-- [Browse Query examples](README.md)
+- [← Prev: Meaningful pipeline](./significant-opportunity.md) · [Next: Placeholder email cleanup →](./placeholder-contact-emails.md)
+- [Browse Query examples](./README.md)

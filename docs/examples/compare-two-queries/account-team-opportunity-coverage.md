@@ -1,4 +1,4 @@
-# 03 · Account Team Covers Open Opportunity Owners
+# Account Team Covers Open Opportunity Owners
 
 > [!NOTE]
 > On this page, compare Account Team members with open Opportunity owners and flag the Account when
@@ -75,7 +75,7 @@ list action URL if users need a direct fix. Do not use this unchanged for Queue-
 or an org where Account Teams are disabled.
 
 Add **Max Query Rows**, add the card to the Account Lightning page, activate the intended
-assignment, and test as a user with **Record Health Check User**.
+assignment, and test as a user with **Record Health Check Card User**.
 
 ## Step 1: Create the Check Set
 
@@ -106,22 +106,22 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Account_Team_Covers_Opportunity_Owners` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | Account Team Covers Opportunity Owners |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Record_Alignment` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | Account Team Covers Opportunity Owners |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Compare two queries |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check.md#source-query-sourcequery__c) | `SELECT OwnerId FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Source Query Field** | [`SourceQueryField__c`](../../metadata/fields-check.md#source-query-field-sourcequeryfield__c) | `OwnerId` |
-| **Comparison Query** | [`ComparisonQuery__c`](../../metadata/fields-check.md#comparison-query-comparisonquery__c) | `SELECT UserId FROM AccountTeamMember WHERE AccountId = {!record.Id}` |
-| **Comparison Query Field** | [`ComparisonQueryField__c`](../../metadata/fields-check.md#comparison-query-field-comparisonqueryfield__c) | `UserId` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Compare as lists |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Lists contain all |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Fail |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | When a count query matches |
-| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../metadata/fields-check.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Count Must Be** | [`ApplicabilityCountOperator__c`](../../metadata/fields-check.md#count-must-be-applicabilitycountoperator__c) | Greater than |
-| **Count Value** | [`ApplicabilityCountThreshold__c`](../../metadata/fields-check.md#count-value-applicabilitycountthreshold__c) | `0` |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Account_Team_Covers_Opportunity_Owners` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Account Team Covers Opportunity Owners |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Record_Alignment` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Account Team Covers Opportunity Owners |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Compare two queries |
+| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT OwnerId FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
+| **Source Query Field** | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | `OwnerId` |
+| **Comparison Query** | [`ComparisonQuery__c`](../../reference/custom-metadata/check-fields.md#comparison-query-comparisonquery__c) | `SELECT UserId FROM AccountTeamMember WHERE AccountId = {!record.Id}` |
+| **Comparison Query Field** | [`ComparisonQueryField__c`](../../reference/custom-metadata/check-fields.md#comparison-query-field-comparisonqueryfield__c) | `UserId` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Compare as lists |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Lists contain all |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Fail |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a count query matches |
+| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../reference/custom-metadata/check-fields.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
+| **Count Must Be** | [`ApplicabilityCountOperator__c`](../../reference/custom-metadata/check-fields.md#count-must-be-applicabilitycountoperator__c) | Greater than |
+| **Count Value** | [`ApplicabilityCountThreshold__c`](../../reference/custom-metadata/check-fields.md#count-value-applicabilitycountthreshold__c) | `0` |
 
 ## Optional configuration
 
@@ -129,18 +129,18 @@ These values improve presentation. Change them for your process, or leave an opt
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | On `{!record.Name fallback="this record"}`, one or more open Opportunity owners are missing from the Account Team. Review the missing users before the handoff. |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Checks that the Account Team includes every open Opportunity owner. |
-| **Category** | [`Category__c`](../../metadata/fields-check.md#category-category__c) | Relationship coverage |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the query results. Confirm the user can read every object and field named in both queries. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Compare the missing Opportunity owners with the approved Account Team and update the appropriate records. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | Leave blank |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | Leave blank; Account Team availability and navigation depend on org setup |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `10` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked only after confirming this example matches your business process |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | On `{!record.Name fallback="this record"}`, one or more open Opportunity owners are missing from the Account Team. Review the missing users before the handoff. |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks that the Account Team includes every open Opportunity owner. |
+| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Relationship coverage |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the query results. Confirm the user can read every object and field named in both queries. |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Compare the missing Opportunity owners with the approved Account Team and update the appropriate records. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | Leave blank |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | Leave blank; Account Team availability and navigation depend on org setup |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `10` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked only after confirming this example matches your business process |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 Comparison display text, event publishing, and prerequisite behavior are optional. Expected-value, value-to-find, Formula-result, and Apex fields do not apply to Compare two queries.
 
@@ -190,5 +190,5 @@ Record Health Check builds the Opportunity Owner and Account Team lists with the
 
 ## Related
 
-- [← Prev: Product continuity](open-pipeline-product-continuity.md)
-- [Browse Compare two queries examples](README.md)
+- [← Prev: Product continuity](./open-pipeline-product-continuity.md)
+- [Browse Compare two queries examples](./README.md)

@@ -48,11 +48,11 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   rows. Because contributor and release workflows deploy this directory, the fixture is included
   in every integration-test deployment.
 - `RHC_Negative_Runtime`: an integration-only Account card for row-cap testing plus inactive,
-  opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](negative-scenarios.md)
+  opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](./negative-scenarios.md)
 - `RHC_Diagnostic_Bad_Formula`, `RHC_Diagnostic_Bad_Query`, and `RHC_Diagnostic_Bad_Apex`:
   persistent diagnosis-first negative catalogs with 15 direct fixtures plus 36 paired Agentforce
   and MCP Check/Check Set evaluations; see
-  [bad-configuration-diagnostic-fixtures.md](bad-configuration-diagnostic-fixtures.md)
+  [bad-configuration-diagnostic-fixtures.md](./bad-configuration-diagnostic-fixtures.md)
 - `RHC_Negative_Conformance`: an Apex test suite that gathers the deterministic schema, query,
   currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
@@ -162,11 +162,11 @@ exist so integration runs can deploy the same configurations alongside broader s
 ## Example test data
 
 Subscriber demo orgs use `npm run setup` and seed data from `scripts/subscriber/data/`. See the
-[scratch-org setup guide](../../../docs/installation/create-rhc-scratch-org.md) for the complete
+[scratch-org setup guide](../../../docs/install/install-demo-in-a-scratch-org.md) for the complete
 subscriber demo scenario.
 
 ## Related
 
 - [Source development](../../../docs/contributing/source-development.md)
-- [Package testing and upgrades](../../../docs/reference/framework/package-testing-and-upgrades.md)
-- [Create the demo scratch org](../../../docs/installation/create-rhc-scratch-org.md)
+- [Package testing and upgrades](../../../docs/quality-gates/package-testing-and-upgrades.md)
+- [Create the demo scratch org](../../../docs/install/install-demo-in-a-scratch-org.md)
