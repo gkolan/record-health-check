@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Parent city overlap</label>
+    <label>Example: Sales-service contact overlap</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact cities overlap with Parent Account</value>
+    >Sales and service work share a customer Contact</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Builds Contact Mailing City lists for the Account and Parent Account. Compare Two Queries passes when the lists share at least one distinct city.</value>
+    >The Compare Two Queries check passes when Contacts on open Cases overlap Contacts involved in open Opportunities.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
+    >SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">ContactId</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null</value>
+    >SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">ContactId</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -70,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Contacts on {!record.Name fallback="this Account"} and its Parent Account have no Mailing City in common.</value>
+    >No customer Contact currently connects open service work and open sales work for {!record.Name fallback="this Account"}.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -86,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}</value>
+    >SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -112,13 +112,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review Contact Mailing Cities on both Accounts. Correct incomplete addresses or confirm the teams serve different locations.</value>
+    >For {!record.Name fallback="this Account"}, confirm whether sales and service should share a stakeholder. Adapt this example when teams intentionally work with different people.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Compare Contact cities for {!record.Name fallback="Account"}</value>
+    >Review stakeholders for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -135,7 +135,7 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Parent Account, so the two city lists cannot be compared.</value>
+    >{!record.Name fallback="This Account"} has no open Case with a named Contact, so sales-service overlap does not apply.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Account Contact cities: {!rhcResult.foundValue}</value>
+    >Open Case Contacts: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Parent Account Contact cities: {!rhcResult.expectedValue}</value>
+    >Open Opportunity Contacts: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

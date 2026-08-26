@@ -11,46 +11,70 @@
     >Example_Contact_Relationship_Readiness</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Business Email Is Available</value></values>
+    >Email Channel Has No Standard Suppression</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A business email supports timely customer communication and follow-up.</value></values>
+    >A usable business email requires an address with no recorded bounce and no standard Email Opt Out flag.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
-    >FORMULA</value></values>
-    <values><field>PassConditionFormula__c</field><value
+    >QUERY</value></values>
+    <values><field>SourceQuery__c</field><value
       xsi:type="xsd:string"
-    >NOT(ISBLANK(Email))</value></values>
-    <values><field>DisplayFoundFormula__c</field><value
+    >SELECT COUNT() usableEmails FROM Contact WHERE Id = {!record.Id} AND Email != null AND EmailBouncedDate = null AND HasOptedOutOfEmail = false</value></values>
+    <values><field>SourceQueryField__c</field><value
       xsi:type="xsd:string"
-    >BLANKVALUE(Email, "No email provided")</value></values>
+    >usableEmails</value></values>
+    <values><field>ExpectedValueSource__c</field><value
+      xsi:type="xsd:string"
+    >FIXED_VALUE</value></values>
+    <values><field>ExpectedFixedValue__c</field><value
+      xsi:type="xsd:string"
+    >1</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >EQUALS</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+    <values><field>NoRowsResult__c</field><value
+      xsi:type="xsd:string"
+    >FAIL</value></values>
+    <values><field>EmptyValueHandling__c</field><value
+      xsi:type="xsd:string"
+    >AS_NO_MATCH</value></values>
+    <values><field>DisplayFoundText__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcResult.foundValue} usable email channel</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A verified business email for {!record.Name fallback="this contact"}</value></values>
+    >1 address without a recorded bounce or standard Email Opt Out</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Email outreach is blocked because {!record.Name fallback="this contact"} has no business email.</value></values>
+    >{!record.Name fallback="This contact"} has no email channel available under the standard Email, Email Bounced, and Email Opt Out fields.</value></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
-    >Confirm the preferred business address directly or through the account team, then record it before the next outreach.</value></values>
+    >Verify the address and bounce details. Respect Email Opt Out; use your organization's consent process before changing any communication preference.</value></values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
-    >Add email for {!record.Name fallback="contact"}</value></values>
+    >Review email status</value></values>
     <values><field>ActionUrl__c</field><value
       xsi:type="xsd:string"
     >/lightning/r/Contact/{!record.Id}/edit</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
-    >{!rhcCheck.checkTitle} could not evaluate {!record.Name fallback="this contact"}. Verify access to Contact Email and retry.</value></values>
+    >Email-channel readiness could not be evaluated. Verify Email, Email Bounced Date, and Email Opt Out access, then retry.</value></values>
     <values><field>ApplicabilityMode__c</field><value
       xsi:type="xsd:string"
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
     >10</value></values>
+    <values><field>MaxQueryRows__c</field><value
+      xsi:type="xsd:double"
+    >1</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

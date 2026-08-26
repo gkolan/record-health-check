@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: High-value Opportunity</label>
+    <label>Example: Opportunity amount ceiling</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Account has a high-value open Opportunity</value>
+    >Open Opportunity amounts are within a plausible range</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -36,11 +36,11 @@
     </values>
     <values>
         <field>QueryResultHandling__c</field>
-        <value xsi:type="xsd:string">ANY_ROW_PASSES</value>
+        <value xsi:type="xsd:string">ALL_ROWS_PASS</value>
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">GREATER_THAN</value>
+        <value xsi:type="xsd:string">LESS_THAN_OR_EQUAL</value>
     </values>
     <values>
         <field>ExpectedValueSource__c</field>
@@ -48,7 +48,7 @@
     </values>
     <values>
         <field>ExpectedFixedValue__c</field>
-        <value xsi:type="xsd:string">50000</value>
+        <value xsi:type="xsd:string">100000000</value>
     </values>
     <values>
         <field>ExpectedCurrencyIsoCode__c</field>
@@ -66,7 +66,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"}: No open Opportunity has an Amount greater than $50,000.</value>
+    >At least one open Opportunity for {!record.Name fallback="this Account"} exceeds the example $100 million plausibility ceiling.</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
@@ -86,7 +86,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, confirm scope, quantity, currency, and pricing on the outlier. Correct entry mistakes and customize the ceiling for your market; do not reduce a legitimate deal.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -104,7 +104,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates Amount on each open Opportunity related to the Account. The Query check compares each Amount with $50,000 and passes when at least one Amount is greater.</value>
+    >The Query check evaluates each open Opportunity Amount and passes when every value is at or below an illustrative $100 million USD data-quality ceiling.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -116,16 +116,12 @@
         <value xsi:type="xsd:string">CURRENCY</value>
     </values>
     <values>
-        <field>PrerequisiteCheck__c</field>
-        <value xsi:type="xsd:string">Example_Open_Opps_Have_Amount</value>
-    </values>
-    <values>
         <field>MaxQueryRows__c</field>
         <value xsi:type="xsd:double">200</value>
     </values>
     <values>
         <field>NoRowsResult__c</field>
-        <value xsi:type="xsd:string">FAIL</value>
+        <value xsi:type="xsd:string">PASS</value>
     </values>
     <values>
         <field>EmptyValueHandling__c</field>

@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Contacts cover open Cases</label>
+    <label>Example: Case throughput vs intake</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact count covers open Case count</value>
+    >Recent Case closures keep pace with intake</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -32,7 +32,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = true AND ClosedDate = LAST_N_DAYS:30</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -50,7 +50,7 @@
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false</value>
+    >SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND CreatedDate = LAST_N_DAYS:30</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -64,7 +64,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"}: The Account has fewer Contacts than open Cases.</value>
+    >Fewer Cases were closed than created for {!record.Name fallback="this Account"} during the last 30 days, which can indicate a growing service backlog.</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -80,13 +80,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, review Case demand, ownership, and aging. Address the backlog; do not close Cases merely to pass.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Contacts and Cases for {!record.Name fallback="Account"}</value>
+    >Review Cases for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -98,7 +98,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Counts Contacts and open Cases related to the Account. The Query check compares the two counts and passes when the Contact count is greater than or equal to the Case count.</value>
+    >The Query check compares the last 30 days of Case closures and intake and passes when closures are greater than or equal to new Cases.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -123,10 +123,14 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Cases closed in 30 days: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Cases created in 30 days: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

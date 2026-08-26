@@ -10,15 +10,28 @@
     >Record_Health_Check_Set.Example_Contact_Relationship_Readiness</members>
         <members
     >Record_Health_Check_Set.Example_Opportunity_Deal_Readiness</members>
+        <members>Record_Health_Check.Example_Contact_RR_Account</members>
         <members>Record_Health_Check.Example_Contact_RR_Email</members>
+        <members
+    >Record_Health_Check.Example_Contact_RR_Recent_Engagement</members>
+        <members
+    >Record_Health_Check.Example_Contact_RR_Reachable_Channel</members>
+        <members>Record_Health_Check.Example_Contact_RR_Owner_Active</members>
         <members>Record_Health_Check.Example_Contact_RR_Phone</members>
         <members>Record_Health_Check.Example_Contact_RR_Title</members>
         <members>Record_Health_Check.Example_Contact_RR_Mailing_City</members>
+        <members>Record_Health_Check.Example_Opportunity_DR_Account</members>
         <members>Record_Health_Check.Example_Opportunity_DR_Amount</members>
+        <members
+    >Record_Health_Check.Example_Opportunity_DR_Buyer_Contact</members>
         <members>Record_Health_Check.Example_Opportunity_DR_Close_Date</members>
         <members>Record_Health_Check.Example_Opportunity_DR_Next_Step</members>
         <members
+    >Record_Health_Check.Example_Opportunity_DR_Owner_Active</members>
+        <members
     >Record_Health_Check.Example_Opportunity_DR_Probability</members>
+        <members
+    >Record_Health_Check.Example_Opportunity_DR_Recent_Activity</members>
         <members>Record_Health_Check.Example_Executive_Sponsorship</members>
         <members>Record_Health_Check.Example_Guide_Contacts_Have_Email</members>
         <members>Record_Health_Check.Example_Guide_Recent_Activity</members>

@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Billing State in Contacts</label>
+    <label>Example: Local customer coverage</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Billing State appears in Contact addresses</value>
+    >A Contact represents the Account's billing region</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -72,7 +72,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >No Contact mailing address on {!record.Name fallback="this Account"} uses the Account Billing State.</value>
+    >No Contact mailing address on {!record.Name fallback="this Account"} represents the Account's Billing State.</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
@@ -92,7 +92,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm the Billing State is correct, then update the Mailing State on the appropriate Contacts.</value>
+    >For {!record.Name fallback="this Account"}, confirm whether a regional Contact is expected. Correct inaccurate data, or adapt this example when locations differ.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -110,7 +110,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates Account Billing State and Contact Mailing States. The Query check passes when the Contact state list contains the Account Billing State.</value>
+    >The Query check passes when the Contact Mailing State list contains the Account Billing State, demonstrating a configurable regional-coverage rule.</value>
     </values>
     <values>
         <field>Category__c</field>

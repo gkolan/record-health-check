@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Pipeline vs Annual Revenue</label>
+    <label>Example: Pipeline creation momentum</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,13 +12,15 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value xsi:type="xsd:string">Open pipeline covers Annual Revenue</value>
+        <value
+      xsi:type="xsd:string"
+    >Opportunity creation keeps pace quarter over quarter</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Totals Amount for open Opportunities and reads Account Annual Revenue. Compare Two Queries passes when pipeline is greater than or equal to Annual Revenue.</value>
+    >The Compare Two Queries check passes when Opportunities created this quarter are greater than or equal to the previous quarter.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -32,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT COUNT() currentQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = THIS_QUARTER</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">pipelineTotal</value>
+        <value xsi:type="xsd:string">currentQuarter</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id} LIMIT 1</value>
+    >SELECT COUNT() priorQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">AnnualRevenue</value>
+        <value xsi:type="xsd:string">priorQuarter</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -68,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Open pipeline for {!record.Name fallback="this Account"} is {!rhcResult.foundValue}, below Annual Revenue of {!rhcResult.expectedValue}.</value>
+    >Fewer Opportunities were created this quarter than last quarter for {!record.Name fallback="this Account"}.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -84,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -110,7 +112,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the open Opportunities and Annual Revenue. Correct stale values or add qualified pipeline to close the coverage gap.</value>
+    >For {!record.Name fallback="this Account"}, review prospecting and account-plan execution. Create only qualified Opportunities and adapt for seasonality.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -127,13 +129,13 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">CURRENCY</value>
+        <value xsi:type="xsd:string">NUMBER</value>
     </values>
     <values>
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no open Opportunity with an Amount, so pipeline coverage does not apply.</value>
+    >{!record.Name fallback="This Account"} had no Opportunities created last quarter, so there is no prior-quarter baseline.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -147,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open pipeline: {!rhcResult.foundValue}</value>
+    >Opportunities created this quarter: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Account Annual Revenue: {!rhcResult.expectedValue}</value>
+    >Opportunities created last quarter: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

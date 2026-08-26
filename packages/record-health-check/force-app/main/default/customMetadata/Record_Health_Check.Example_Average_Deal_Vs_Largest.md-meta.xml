@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Consistent open deal amounts</label>
+    <label>Example: Open pipeline concentration</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,13 +12,15 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value xsi:type="xsd:string">Open deal amounts are consistent</value>
+        <value
+      xsi:type="xsd:string"
+    >Open pipeline is not dependent on one deal</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Calculates average and largest Amount across open Opportunities. Compare Two Queries passes when the two values are equal, meaning every open deal has the same Amount.</value>
+    >The Compare Two Queries check passes when total open pipeline is greater than the largest open Opportunity, exposing single-deal concentration risk.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -32,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT AVG(Amount) avgDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">avgDeal</value>
+        <value xsi:type="xsd:string">pipelineTotal</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MAX(Amount) maxDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT MAX(Amount) largestDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">maxDeal</value>
+        <value xsi:type="xsd:string">largestDeal</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -54,7 +56,7 @@
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">EQUALS</value>
+        <value xsi:type="xsd:string">GREATER_THAN</value>
     </values>
     <values>
         <field>EmptyValueHandling__c</field>
@@ -68,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >The average open Opportunity Amount on {!record.Name fallback="this Account"} does not match the largest open Opportunity Amount.</value>
+    >All measured open pipeline on {!record.Name fallback="this Account"} comes from one Opportunity, creating concentration risk.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -110,13 +112,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Review the open Opportunities for {!record.Name fallback="this Account"}. Confirm that the different Amounts are expected, or correct the Amount that is out of line.</value>
+    >For {!record.Name fallback="this Account"}, confirm the pipeline and amounts are current. Treat concentration as a planning signal, not a reason to invent deals.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Compare Opportunity Amounts for {!record.Name fallback="Account"}</value>
+    >Review concentration for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -147,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Average open Opportunity Amount: {!rhcResult.foundValue}</value>
+    >Total open pipeline: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Largest open Opportunity Amount: {!rhcResult.expectedValue}</value>
+    >Largest open deal: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

@@ -19,14 +19,22 @@ const expectedCoreExamples = [
   "Record_Health_Check_Set.Example_Contact_Relationship_Readiness.md-meta.xml",
   "Record_Health_Check_Set.Example_Opportunity_Deal_Readiness.md-meta.xml",
   "Record_Health_Check.Example_Website_URL_Valid.md-meta.xml",
+  "Record_Health_Check.Example_Contact_RR_Account.md-meta.xml",
   "Record_Health_Check.Example_Contact_RR_Email.md-meta.xml",
+  "Record_Health_Check.Example_Contact_RR_Owner_Active.md-meta.xml",
   "Record_Health_Check.Example_Contact_RR_Phone.md-meta.xml",
+  "Record_Health_Check.Example_Contact_RR_Reachable_Channel.md-meta.xml",
+  "Record_Health_Check.Example_Contact_RR_Recent_Engagement.md-meta.xml",
   "Record_Health_Check.Example_Contact_RR_Title.md-meta.xml",
   "Record_Health_Check.Example_Contact_RR_Mailing_City.md-meta.xml",
+  "Record_Health_Check.Example_Opportunity_DR_Account.md-meta.xml",
   "Record_Health_Check.Example_Opportunity_DR_Amount.md-meta.xml",
+  "Record_Health_Check.Example_Opportunity_DR_Buyer_Contact.md-meta.xml",
   "Record_Health_Check.Example_Opportunity_DR_Close_Date.md-meta.xml",
   "Record_Health_Check.Example_Opportunity_DR_Next_Step.md-meta.xml",
+  "Record_Health_Check.Example_Opportunity_DR_Owner_Active.md-meta.xml",
   "Record_Health_Check.Example_Opportunity_DR_Probability.md-meta.xml",
+  "Record_Health_Check.Example_Opportunity_DR_Recent_Activity.md-meta.xml",
   "Record_Health_Check.Example_Executive_Sponsorship.md-meta.xml",
   "Record_Health_Check.Example_Guide_Contacts_Have_Email.md-meta.xml",
   "Record_Health_Check.Example_Guide_Recent_Activity.md-meta.xml",
@@ -157,7 +165,7 @@ if (
   JSON.stringify(fixtureCoreExamples) !== JSON.stringify(expectedCoreExamples)
 ) {
   failures.push(
-    `integration-tests must retain matching copies of the 46 shipped Example_ records.\n` +
+    `integration-tests must retain matching copies of the 54 shipped Example_ records.\n` +
       `  expected: ${expectedCoreExamples.join(", ")}\n` +
       `  found:    ${fixtureCoreExamples.join(", ") || "(none)"}`
   );

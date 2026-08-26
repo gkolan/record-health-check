@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>Example: Deal Readiness - Buyer Contact</label><protected
+  >false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Opportunity_Deal_Readiness</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >A Primary Buyer Contact Is Identified</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >An open deal needs a primary customer Contact Role so ownership of buyer communication is unambiguous.</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+  <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT COUNT() buyerContacts FROM OpportunityContactRole WHERE OpportunityId = {!record.Id} AND ContactId != null AND IsPrimary = true</value></values>
+  <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >buyerContacts</value></values>
+  <values><field>ExpectedValueSource__c</field><value
+      xsi:type="xsd:string"
+    >FIXED_VALUE</value></values>
+  <values><field>ExpectedFixedValue__c</field><value
+      xsi:type="xsd:string"
+    >1</value></values>
+  <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >EQUALS</value></values>
+  <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+  <values><field>NoRowsResult__c</field><value
+      xsi:type="xsd:string"
+    >FAIL</value></values>
+  <values><field>EmptyValueHandling__c</field><value
+      xsi:type="xsd:string"
+    >AS_NO_MATCH</value></values>
+  <values><field>DisplayFoundText__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcResult.foundValue} buyer contacts identified</value></values>
+  <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >Exactly 1 primary customer Contact Role</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This opportunity"} has no primary customer contact, so buyer communication ownership is unclear.</value></values>
+  <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Review the customer participants and mark the confirmed communication owner as primary; do not choose a primary contact without evidence.</value></values>
+  <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Review buyer contacts</value></values>
+  <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Opportunity/{!record.Id}/related/OpportunityContactRoles/view</value></values>
+  <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Buyer-contact coverage could not be evaluated. Verify Opportunity Contact Role access and retry.</value></values>
+  <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >WHEN_FORMULA_TRUE</value></values>
+  <values><field>ApplicabilityFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(IsClosed)</value></values>
+  <values><field>ApplicabilityNotMetMessage__c</field><value
+      xsi:type="xsd:string"
+    >The opportunity is closed, so active buyer-contact readiness is not evaluated.</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >50</value></values>
+  <values><field>MaxQueryRows__c</field><value
+      xsi:type="xsd:double"
+    >1</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

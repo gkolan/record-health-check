@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Exact Parent city match</label>
+    <label>Example: Open deal product coverage</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact cities exactly match Parent Account</value>
+    >Every open Opportunity has at least one Product</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Builds distinct Contact Mailing City lists for the Account and Parent Account. Compare Two Queries passes when both lists contain exactly the same cities.</value>
+    >The Compare Two Queries check passes when the open Opportunity ID list exactly matches the list represented by Opportunity Products.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
+    >SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">Id</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null</value>
+    >SELECT OpportunityId FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">OpportunityId</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -70,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact city lists for {!record.Name fallback="this Account"} and its Parent Account contain different values.</value>
+    >One or more open Opportunities on {!record.Name fallback="this Account"} have no Opportunity Product.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -86,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -112,13 +112,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review Contact Mailing Cities on both Accounts. Correct incomplete addresses or confirm the different location lists are expected.</value>
+    >For {!record.Name fallback="this Account"}, confirm whether sales uses Opportunity Products. Add verified products and prices, or deactivate this example.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Compare city lists for {!record.Name fallback="Account"}</value>
+    >Review products for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -135,7 +135,7 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Parent Account, so exact city comparison does not apply.</value>
+    >{!record.Name fallback="This Account"} has no open Opportunities, so product coverage does not apply.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Account Contact cities: {!rhcResult.foundValue}</value>
+    >Open Opportunity IDs: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Parent Account Contact cities: {!rhcResult.expectedValue}</value>
+    >Opportunity IDs with Products: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

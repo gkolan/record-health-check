@@ -456,7 +456,7 @@ Set created by an administrator in your org normally has no `rhc__` prefix. Alwa
 Operational consequences:
 
 - The installed package includes four active Example Check Set records (`Example_…`, card titles
-  prefixed with `Example:`). They contain 42 Checks, of which 41 are active. Matching integration-test copies live under
+  prefixed with `Example:`). They contain 50 Checks, of which 49 are active. Matching integration-test copies live under
   `packages/record-health-check/integration-tests/`.
 - Check Sets and Checks are Custom Metadata, so they deploy between orgs and version control
   alongside the classes they configure.

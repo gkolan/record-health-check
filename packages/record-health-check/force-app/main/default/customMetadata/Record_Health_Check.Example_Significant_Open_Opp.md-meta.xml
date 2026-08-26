@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Opportunity revenue target</label>
+    <label>Example: Rating and deal maturity</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunity is at least 10% of Annual Revenue</value>
+    >Account rating is supported by a mature open deal</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -32,7 +32,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT Probability FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Probability != null</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -48,7 +48,9 @@
     </values>
     <values>
         <field>ExpectedRecordFormula__c</field>
-        <value xsi:type="xsd:string">AnnualRevenue * 0.1</value>
+        <value
+      xsi:type="xsd:string"
+    >CASE(TEXT(Rating), "Hot", 70, "Warm", 40, 0)</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -62,11 +64,11 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"}: No open Opportunity is greater than 10% of Annual Revenue.</value>
+    >No open Opportunity probability supports the current rating on {!record.Name fallback="this Account"}.</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">Amount</value>
+        <value xsi:type="xsd:string">Probability</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -82,7 +84,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, review the Account rating and deal evidence. Customize the illustrative 70/40 thresholds; never inflate Probability to pass.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -100,7 +102,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates Amount on each open Opportunity. The Query check compares each Amount with 10% of Account Annual Revenue and passes when at least one Amount is greater.</value>
+    >The Query check passes when any open Opportunity Probability exceeds the illustrative threshold derived from Account Rating: Hot 70%, Warm 40%, otherwise 0%.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -109,7 +111,7 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">CURRENCY</value>
+        <value xsi:type="xsd:string">PERCENT</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>

@@ -5,7 +5,7 @@
 > Setup and on Lightning record pages. These records are different from the copyable recipes in
 > the [examples library](../examples/README.md).
 
-The package installs four active Example Check Set records and 42 Example Check records. Forty-one
+The package installs four active Example Check Set records and 50 Example Check records. Forty-nine
 Checks are active. One original Relationship & Risk Check remains inactive so upgrades do not
 remove metadata that an existing subscriber may still reference. Their labels begin with
 **Example:** and their Developer Names begin with `Example_`. In an installed package, a Qualified
@@ -43,8 +43,8 @@ for the exact 25 Checks, their order, expected outcomes, and seeded evidence.
 
 | Check Set Developer Name | Card title | Installed Checks |
 | --- | --- | --- |
-| `Example_Contact_Relationship_Readiness` | Example: Contact Relationship Readiness | Email; City; Phone; Title |
-| `Example_Opportunity_Deal_Readiness` | Example: Opportunity Deal Readiness | Amount; Close Date; Next Step; Probability |
+| `Example_Contact_Relationship_Readiness` | Example: Contact Relationship Readiness | 8 active Checks: Account context; active owner; unique email; permitted phone and outreach channels; role context; complete regional context; recent engagement |
+| `Example_Opportunity_Deal_Readiness` | Example: Opportunity Deal Readiness | 8 active Checks: Account context; active owner; positive amount; current close date; actionable next step; probability aligned with deal state; primary buyer contact; recent activity |
 
 ## Step 1: Inspect an example in Setup
 

@@ -11,31 +11,31 @@
     >Example_Contact_Relationship_Readiness</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Role Is Identified</value></values>
+    >Relationship Role Has Business Context</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A current title helps sales and service teams tailor communication to the contact's role.</value></values>
+    >A current title or department helps the team tailor engagement to the Contact's responsibilities.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>
     <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >NOT(ISBLANK(Title))</value></values>
+    >OR(NOT(ISBLANK(Title)), NOT(ISBLANK(Department)))</value></values>
     <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
-    >BLANKVALUE(Title, "Role not identified")</value></values>
+    >IF(NOT(ISBLANK(Title)), Title, BLANKVALUE(Department, "Role context not identified"))</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A current role or job title for {!record.Name fallback="this contact"}</value></values>
+    >A current job title or department for {!record.Name fallback="this contact"}</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >The team cannot tailor engagement because {!record.Name fallback="this contact"}'s role is not identified.</value></values>
+    >The team cannot tailor engagement because {!record.Name fallback="this contact"}'s title and department are both unknown.</value></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
-    >Confirm the contact's current responsibilities, not just a legacy title, and update the record.</value></values>
+    >Confirm current responsibilities and record the most useful title or department rather than copying a legacy value.</value></values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
     >Define {!record.Name fallback="contact"}'s role</value></values>
@@ -44,7 +44,7 @@
     >/lightning/r/Contact/{!record.Id}/edit</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
-    >Role readiness could not be determined for {!record.Name fallback="this contact"}. Verify access to Contact Title and retry.</value></values>
+    >Role readiness could not be determined. Verify Contact Title and Department access, then retry.</value></values>
     <values><field>ApplicabilityMode__c</field><value
       xsi:type="xsd:string"
     >ALL_RECORDS</value></values>

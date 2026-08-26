@@ -11,22 +11,22 @@
     >Example_Opportunity_Deal_Readiness</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Win Probability Is Meaningful</value></values>
+    >Win Probability Matches Deal State</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >An open opportunity needs a nonzero probability for a meaningful weighted forecast.</value></values>
+    >Open deals should have a probability between zero and 100; closed deals should resolve to zero or 100.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>
     <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >OR(IsClosed, Probability &gt; 0)</value></values>
+    >OR(AND(IsClosed, OR(Probability = 0, Probability = 100)), AND(NOT(IsClosed), Probability &gt; 0, Probability &lt; 100))</value></values>
     <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
     >Probability</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A nonzero probability consistent with {!record.Name fallback="this opportunity"}'s stage</value></values>
+    >Open: greater than 0% and less than 100%; closed: 0% or 100%</value></values>
     <values><field>FormulaResultType__c</field><value
       xsi:type="xsd:string"
     >NUMBER</value></values>
@@ -38,7 +38,7 @@
     >INFO</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This opportunity"} contributes no weighted value because its win probability is zero.</value></values>
+    >{!record.Name fallback="This opportunity"}'s probability conflicts with whether the deal is open or closed.</value></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
     >Reassess qualification evidence and stage. Update probability only when it reflects the deal's real confidence.</value></values>

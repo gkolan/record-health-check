@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Grandparent city data</label>
+    <label>Example: Account-deal owner continuity</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Grandparent Account city comparison requires data</value>
+    >An open Opportunity shares the Account owner</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Builds Contact city lists for the Account and Grandparent Account. Compare Two Queries passes when the lists overlap and returns Unable to Evaluate when either query has no rows.</value>
+    >The Compare Two Queries check passes when the Account owner list overlaps the owners of open Opportunities.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
+    >SELECT OwnerId FROM Account WHERE Id = {!record.Id}</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">OwnerId</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.Parent.ParentId} AND MailingCity != null</value>
+    >SELECT OwnerId FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">OwnerId</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -60,7 +60,7 @@
     </values>
     <values>
         <field>NoRowsResult__c</field>
-        <value xsi:type="xsd:string">UNABLE_TO_EVALUATE</value>
+        <value xsi:type="xsd:string">SKIP</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -70,13 +70,13 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact cities on {!record.Name fallback="this Account"} do not overlap with Contact cities on {!record.Parent.Parent.Name fallback="the Grandparent Account"}.</value>
+    >No open Opportunity for {!record.Name fallback="this Account"} is owned by the Account owner.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcCheck.checkTitle fallback="This check"} needs Contact city data on both {!record.Name fallback="this Account"} and {!record.Parent.Parent.Name fallback="the Grandparent Account"}.</value>
+    >{!rhcCheck.checkTitle fallback="This check"} needs readable owner data for both the Account and its open Opportunities.</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -86,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Account WHERE Id = {!record.Id} AND Parent.ParentId != null</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -112,13 +112,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Add Contact Mailing City values to {!record.Name fallback="this Account"} and {!record.Parent.Parent.Name fallback="the Grandparent Account"}, then run the checks again.</value>
+    >For {!record.Name fallback="this Account"}, confirm the ownership model. Align a deal only when appropriate; otherwise adapt or deactivate this example.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Account for {!record.Name fallback="Account"}</value>
+    >Review owners for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -135,7 +135,7 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Grandparent Account, so this comparison does not apply.</value>
+    >{!record.Name fallback="This Account"} has no open Opportunities, so owner continuity does not apply.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -147,10 +147,14 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Account owner: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Open Opportunity owners: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

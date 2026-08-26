@@ -197,7 +197,7 @@ change process explicitly. See [Choose where results go](../start-here/choose-wh
 
 ## What are the installed examples?
 
-The package includes four active Example Check Set records containing 42 Check records. Forty-one
+The package includes four active Example Check Set records containing 50 Check records. Forty-nine
 Checks are active. They demonstrate working patterns and make it easier to verify an installation.
 They are teaching starters, not your
 organization’s production policy. Review or deactivate them and create Checks with requirements

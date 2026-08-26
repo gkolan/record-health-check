@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Contact count and Parent</label>
+    <label>Example: Current close-date coverage</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact count matches Parent Account</value>
+    >Every open Opportunity has a current Close Date</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Counts Contacts on the Account and Parent Account. Compare Two Queries passes when the two counts are equal.</value>
+    >The Compare Two Queries check passes when open Opportunities with current Close Dates equal all open Opportunities.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,7 +34,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CloseDate &gt;= TODAY</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
@@ -44,7 +44,7 @@
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.ParentId}</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
@@ -70,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"}: The Contact count does not match the Parent Account's Contact count.</value>
+    >One or more open Opportunities on {!record.Name fallback="this Account"} have a Close Date in the past.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -86,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -112,19 +112,19 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Contacts for {!record.Name fallback="this Account"} and its Parent Account. Confirm the different stakeholder counts are expected.</value>
+    >For {!record.Name fallback="this Account"}, reconfirm customer timing and update only Close Dates supported by the current plan.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Contacts for {!record.Name fallback="Account"}</value>
+    >Review Close Dates for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
     </values>
 
     <values>
@@ -135,7 +135,7 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Contacts or no Parent Account, so the Contact-count comparison does not apply.</value>
+    >{!record.Name fallback="This Account"} has no open Opportunities, so close-date coverage does not apply.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -147,10 +147,14 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Open Opportunities with current dates: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >All open Opportunities: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

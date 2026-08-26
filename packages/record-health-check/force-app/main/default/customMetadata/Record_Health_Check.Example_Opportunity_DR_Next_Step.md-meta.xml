@@ -11,16 +11,16 @@
     >Example_Opportunity_Deal_Readiness</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Next Step Is Documented</value></values>
+    >Next Step Is Actionable</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >An open deal needs a concrete next action so the team can maintain momentum.</value></values>
+    >Salesforce defines Next Step as the next task needed to close the opportunity; common placeholders do not provide that operating context.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>
     <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >OR(IsClosed, NOT(ISBLANK(NextStep)))</value></values>
+    >OR(IsClosed, AND(NOT(ISBLANK(NextStep)), NOT(OR(LOWER(TRIM(NextStep)) = "tbd", LOWER(TRIM(NextStep)) = "n/a", LOWER(TRIM(NextStep)) = "na", TRIM(NextStep) = "-"))))</value></values>
     <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
     >IF(IsClosed, "Deal is closed", BLANKVALUE(NextStep, "No next step documented"))</value></values>
@@ -32,10 +32,10 @@
     >WARNING</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Momentum is unclear because {!record.Name fallback="this opportunity"} has no documented next step.</value></values>
+    >{!record.Name fallback="This opportunity"}'s next step is blank or uses a common placeholder instead of the next task needed to progress the deal.</value></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
-    >Document the agreed action with enough specificity that another team member can understand who does what next and when.</value></values>
+    >Replace the placeholder with the agreed next task, owner, and timing used by your sales process.</value></values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
     >Plan {!record.Name fallback="opportunity"}'s next move</value></values>

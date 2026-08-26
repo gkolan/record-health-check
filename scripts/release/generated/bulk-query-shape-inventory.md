@@ -7,21 +7,21 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `docs/reference/evaluation/bulk-query-grammar.md`.
 
-**257 templates · 7 strategies · 0 unclassified**
+**269 templates · 7 strategies · 0 unclassified**
 
 ## Strategy totals
 
 | Strategy | Templates | How one scope-wide query is built |
 | --- | --- | --- |
-| `CHILD_DIRECT` | 171 | Group child rows by the lookup field that carried the token |
-| `SELF` | 40 | Query the evaluated records themselves; correlation column is Id |
-| `TOKEN_INDIRECT` | 30 | Collect distinct token values across the scope, query them once, map back |
-| `CHILD_PATH` | 6 | Group child rows by the relationship path that carried the token |
-| `ORDERED_PICK_IN_MEMORY` | 5 | ORDER BY + LIMIT 1 on another field; rank per record in Apex |
+| `CHILD_DIRECT` | 193 | Group child rows by the lookup field that carried the token |
+| `SELF` | 38 | Query the evaluated records themselves; correlation column is Id |
+| `TOKEN_INDIRECT` | 18 | Collect distinct token values across the scope, query them once, map back |
+| `CHILD_PATH` | 12 | Group child rows by the relationship path that carried the token |
 | `SCOPE_INVARIANT` | 4 | No record token; one query serves every record in the scope |
+| `ORDERED_PICK_IN_MEMORY` | 3 | ORDER BY + LIMIT 1 on another field; rank per record in Apex |
 | `ORDERED_PICK_AGGREGATE` | 1 | ORDER BY + LIMIT 1 on the selected field becomes MIN/MAX with GROUP BY |
 
-5 template(s) resolve rows in Apex rather than in SOQL. Those are the
+3 template(s) resolve rows in Apex rather than in SOQL. Those are the
 ones the per-scope row budget governs, because the engine drops the per-record
 predicate to issue a single query.
 
@@ -34,8 +34,11 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | force-app | `Example_Average_Deal_Vs_Largest` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Billing_State_In_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Billing_State_In_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Exact_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Exact_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Overlap_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Overlap_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Contact_RR_Recent_Engagement` | `SourceQuery__c` | `WhoId = record.Id` | GROUP BY WhoId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_States_Match_Billing` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_Vs_Open_Opp_Count` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_Vs_Open_Opp_Count` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
@@ -43,26 +46,34 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | force-app | `Example_Contacts_Cover_Open_Cases` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contacts_Have_Email` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Distinct_Cities_Vs_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Distinct_Cities_Vs_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Distinct_Cities_Vs_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Earliest_Vs_Latest_Close` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Earliest_Vs_Latest_Close` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | force-app | `Example_Earliest_Vs_Latest_Close` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Fewer_Than_Ten_Open_Cases` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Guide_Contacts_Have_Email` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Guide_Open_Deals_Have_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Guide_Open_Deals_Have_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Guide_Open_Deals_Have_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Has_At_Least_One_Contact` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_High_Value_Open_Opp` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_No_High_Priority_Issues` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Oldest_Contact_City_Matches` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Oldest_Contact_City_Matches` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Oldest_Contact_City_Matches` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Open_Cases_Have_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Open_Deals_Have_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Open_Deals_Have_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Open_Opps_Have_Amount` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Open_Pipeline_Covers_Revenue` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Open_Pipeline_Covers_Revenue` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Open_Pipeline_Covers_Revenue` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | force-app | `Example_Parent_Cities_Require_Data` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | force-app | `Example_Parent_Covers_Contact_Cities` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Opportunity_DR_Buyer_Contact` | `SourceQuery__c` | `OpportunityId = record.Id` | GROUP BY OpportunityId |
+| `CHILD_DIRECT` | force-app | `Example_Opportunity_DR_Recent_Activity` | `SourceQuery__c` | `WhatId = record.Id` | GROUP BY WhatId |
+| `CHILD_DIRECT` | force-app | `Example_Parent_Cities_Require_Data` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Parent_Cities_Require_Data` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Parent_Covers_Contact_Cities` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Parent_Covers_Contact_Cities` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Pipeline_Protects_Revenue` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Pipeline_Protects_Revenue` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Significant_Open_Opp` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
@@ -154,8 +165,11 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `Example_CTQ_ExactListMatch` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_CTQ_ListContainsAll` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_CTQ_ListsOverlap` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Contact_RR_Recent_Engagement` | `SourceQuery__c` | `WhoId = record.Id` | GROUP BY WhoId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_States_Match_Billing` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_Vs_Open_Opp_Count` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_Vs_Open_Opp_Count` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
@@ -163,14 +177,15 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `Example_Contacts_Cover_Open_Cases` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contacts_Have_Email` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Distinct_Cities_Vs_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Distinct_Cities_Vs_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Distinct_Cities_Vs_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Earliest_Vs_Latest_Close` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Earliest_Vs_Latest_Close` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | integration-tests | `Example_Earliest_Vs_Latest_Close` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Fewer_Than_Ten_Open_Cases` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Guide_Contacts_Have_Email` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Guide_Open_Deals_Have_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Guide_Open_Deals_Have_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Guide_Open_Deals_Have_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Has_At_Least_One_Contact` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Has_At_Least_Two_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Has_Closed_Won_Opportunity` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
@@ -180,6 +195,8 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `Example_No_High_Priority_Issues` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Oldest_City_Matches_Billing` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Oldest_Contact_City_Matches` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Oldest_Contact_City_Matches` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Oldest_Contact_City_Matches` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Open_Cases_Have_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Open_Deals_Have_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Open_Deals_Have_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
@@ -187,9 +204,14 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `Example_Open_Opportunities_Have_Amount` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Open_Opps_Have_Amount` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Open_Pipeline_Covers_Revenue` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Open_Pipeline_Covers_Revenue` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Open_Pipeline_Covers_Revenue` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | integration-tests | `Example_Parent_Cities_Require_Data` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | integration-tests | `Example_Parent_Covers_Contact_Cities` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Opportunity_DR_Buyer_Contact` | `SourceQuery__c` | `OpportunityId = record.Id` | GROUP BY OpportunityId |
+| `CHILD_DIRECT` | integration-tests | `Example_Opportunity_DR_Recent_Activity` | `SourceQuery__c` | `WhatId = record.Id` | GROUP BY WhatId |
+| `CHILD_DIRECT` | integration-tests | `Example_Parent_Cities_Require_Data` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Parent_Cities_Require_Data` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Parent_Covers_Contact_Cities` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Parent_Covers_Contact_Cities` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Pipeline_Covers_Revenue` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Pipeline_Covers_Revenue` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Pipeline_Protects_Revenue` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
@@ -200,26 +222,29 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Compare_Missing` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Query_Max_Rows` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Negative_Row_Cap` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_PATH` | force-app | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | force-app | `Example_Contact_Cities_Overlap_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | force-app | `Example_Earliest_Vs_Latest_Close` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Executive_Sponsorship` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
-| `CHILD_PATH` | force-app | `Example_Guide_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | force-app | `Example_Parent_Covers_Contact_Cities` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | integration-tests | `Example_Earliest_Vs_Latest_Close` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | integration-tests | `Example_Executive_Sponsorship` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
-| `CHILD_PATH` | integration-tests | `Example_Guide_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | integration-tests | `Example_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | integration-tests | `Example_Parent_Covers_Contact_Cities` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `ORDERED_PICK_AGGREGATE` | integration-tests | `Account_DVF_Date` | `SourceQuery__c` | `AccountId = record.Id` | MIN/MAX(CloseDate) GROUP BY AccountId |
-| `ORDERED_PICK_IN_MEMORY` | force-app | `Example_Oldest_Contact_City_Matches` | `SourceQuery__c` | `AccountId = record.Id` | Selects MailingCity but orders by CreatedDate |
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Account_CTQ_T7_ContactCityMatchesBilling` | `SourceQuery__c` | `AccountId = record.Id` | Selects MailingCity but orders by CreatedDate |
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Account_DVF_Percent` | `SourceQuery__c` | `AccountId = record.Id` | Selects Probability but orders by CloseDate |
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Example_Oldest_City_Matches_Billing` | `SourceQuery__c` | `AccountId = record.Id` | Selects MailingCity but orders by CreatedDate |
-| `ORDERED_PICK_IN_MEMORY` | integration-tests | `Example_Oldest_Contact_City_Matches` | `SourceQuery__c` | `AccountId = record.Id` | Selects MailingCity but orders by CreatedDate |
 | `SCOPE_INVARIANT` | integration-tests | `Account_Country_Not_Restricted` | `ComparisonQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Diag_Query_Bad_Token` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Diag_Query_Missing_Object` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Negative_Missing_Object` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SELF` | force-app | `Example_Channel_Partner_Governance` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
-| `SELF` | force-app | `Example_Oldest_Contact_City_Matches` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
-| `SELF` | force-app | `Example_Open_Pipeline_Covers_Revenue` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
-| `SELF` | force-app | `Example_Parent_Cities_Require_Data` | `ApplicabilityCountQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | force-app | `Example_Contact_RR_Email` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | force-app | `Example_Parent_Cities_Require_Data` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Account_CTQ_SumVsAnnualRevenue` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Account_CTQ_T7_ContactCityMatchesBilling` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Account_DVF_Auto` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
@@ -241,11 +266,10 @@ predicate to issue a single query.
 | `SELF` | integration-tests | `Example_CTQ_ListContainsAll` | `ApplicabilityCountQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_CTQ_ListsOverlap` | `ApplicabilityCountQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Channel_Partner_Governance` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | integration-tests | `Example_Contact_RR_Email` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Long_Found_Expected` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Oldest_City_Matches_Billing` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
-| `SELF` | integration-tests | `Example_Oldest_Contact_City_Matches` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
-| `SELF` | integration-tests | `Example_Open_Pipeline_Covers_Revenue` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
-| `SELF` | integration-tests | `Example_Parent_Cities_Require_Data` | `ApplicabilityCountQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | integration-tests | `Example_Parent_Cities_Require_Data` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Pipeline_Covers_Revenue` | `ComparisonQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Rating_Is_Not_Cold` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `Example_Rating_Is_Set` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
@@ -257,14 +281,8 @@ predicate to issue a single query.
 | `SELF` | integration-tests | `RHC_Negative_Missing_Field` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_System_Mode` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `TOKEN_INDIRECT` | force-app | `Example_Account_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Contact_Cities_Exact_Parent` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Contact_Cities_Overlap_Parent` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Contact_Cities_Overlap_Parent` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Distinct_Cities_Vs_Contacts` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Parent_Cities_Require_Data` | `ComparisonQuery__c` | `AccountId = record.Parent.ParentId` | Reverse index on record.Parent.ParentId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Parent_Covers_Contact_Cities` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | force-app | `Example_Parent_Covers_Contact_Cities` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
+| `TOKEN_INDIRECT` | force-app | `Example_Contact_RR_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
+| `TOKEN_INDIRECT` | force-app | `Example_Opportunity_DR_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_ERB_UnableToEvaluate` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_ERB_UnableToEvaluate` | `SourceQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_T9_ExactListMatch` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
@@ -278,11 +296,5 @@ predicate to issue a single query.
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ExactListMatch` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ListContainsAll` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ListsOverlap` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Distinct_Cities_Vs_Contacts` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Parent_Cities_Require_Data` | `ComparisonQuery__c` | `AccountId = record.Parent.ParentId` | Reverse index on record.Parent.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Parent_Covers_Contact_Cities` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Parent_Covers_Contact_Cities` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
+| `TOKEN_INDIRECT` | integration-tests | `Example_Contact_RR_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
+| `TOKEN_INDIRECT` | integration-tests | `Example_Opportunity_DR_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |

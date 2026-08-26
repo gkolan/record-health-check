@@ -158,7 +158,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     checkRequest.eventPublication = 'NONE';
     RecordHealthCheckRunSetFlowAction.Request setRequest = new RecordHealthCheckRunSetFlowAction.Request();
     setRequest.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Check_Builder_Guide'
+      'Example_Account_Relationship_Risk'
     );
     setRequest.recordId = accountRecord.Id;
     setRequest.eventPublication = 'NONE';

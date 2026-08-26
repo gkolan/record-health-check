@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>Example: Contact - Permitted Channel</label><protected
+  >false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Contact_Relationship_Readiness</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >A Permitted Outreach Channel Is Available</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Relationship work needs at least one recorded channel that respects the Contact's standard email and call preferences.</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+  <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >OR(AND(NOT(HasOptedOutOfEmail), NOT(ISBLANK(Email))), AND(NOT(DoNotCall), NOT(ISBLANK(Phone))))</value></values>
+  <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >IF(AND(NOT(HasOptedOutOfEmail), NOT(ISBLANK(Email))), "Permitted email channel", IF(AND(NOT(DoNotCall), NOT(ISBLANK(Phone))), "Permitted phone channel", "No permitted channel"))</value></values>
+  <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >At least one recorded outreach channel allowed by standard Contact preferences</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >No permitted email or phone channel is available for {!record.Name fallback="this contact"}.</value></values>
+  <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Respect existing opt-out and do-not-call settings. Confirm whether another permitted business channel can be recorded; never clear a preference without authorization.</value></values>
+  <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Review outreach details</value></values>
+  <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Contact/{!record.Id}/edit</value></values>
+  <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Permitted outreach could not be evaluated. Verify Email, Phone, Email Opt Out, and Do Not Call access, then retry.</value></values>
+  <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >50</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

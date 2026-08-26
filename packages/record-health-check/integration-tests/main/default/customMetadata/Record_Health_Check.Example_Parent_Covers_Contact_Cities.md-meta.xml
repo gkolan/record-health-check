@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Parent city coverage</label>
+    <label>Example: Priority service stakeholders</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Parent Account covers all Contact cities</value>
+    >Sales stakeholder map covers priority service Contacts</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Builds Contact Mailing City lists for the Account and Parent Account. Compare Two Queries passes when every Account city also appears in the Parent Account list.</value>
+    >The Compare Two Queries check passes when open-Opportunity Contacts contain all Contacts from high-priority open Cases.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
+    >SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">ContactId</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingCity FROM Contact WHERE AccountId = {!record.ParentId} AND MailingCity != null</value>
+    >SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">MailingCity</value>
+        <value xsi:type="xsd:string">ContactId</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -70,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >One or more Contact cities on {!record.Name fallback="this Account"} do not appear in the Parent Account Contact city list.</value>
+    >One or more Contacts on high-priority open Cases for {!record.Name fallback="this Account"} are missing from its open-deal stakeholder map.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -86,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}</value>
+    >SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -112,13 +112,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review Contact Mailing Cities on both Accounts. Correct incomplete addresses or add the missing Parent Account coverage.</value>
+    >For {!record.Name fallback="this Account"}, review whether sales should know priority service Contacts. Add legitimate roles or adapt the handoff rule.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Parent city coverage for {!record.Name fallback="Account"}</value>
+    >Review handoffs for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -135,7 +135,7 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Parent Account, so city coverage does not apply.</value>
+    >{!record.Name fallback="This Account"} has no high-priority open Case with a Contact, so this handoff check does not apply.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Account Contact cities: {!rhcResult.foundValue}</value>
+    >Open Opportunity Contacts: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Parent Account Contact cities: {!rhcResult.expectedValue}</value>
+    >Priority open Case Contacts: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

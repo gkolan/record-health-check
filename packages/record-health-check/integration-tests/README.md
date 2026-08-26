@@ -40,7 +40,7 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
 - `agentforce/record-health-agent-spec.md`: reviewable Agent Spec source draft; it is not generated
   or deployed without the explicit approval required by the Agentforce generation workflow
 - Sample Check Sets and Checks, including matching copies of the four shipped Example Check Set
-  records and 41 shipped Example Check records. Three sets and 33 Checks are active.
+  records and 50 shipped Example Check records. All four sets and 49 Checks are active.
 - `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for
   verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
 - `Review_Summary_Above_Checks`: a permanent integration-only Account card with two uncategorized

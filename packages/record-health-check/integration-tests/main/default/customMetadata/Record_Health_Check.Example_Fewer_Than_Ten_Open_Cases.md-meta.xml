@@ -62,7 +62,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has 10 or more open Cases.</value>
+    >{!record.Name fallback="This Account"} has reached the example escalation threshold of 10 open Cases.</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -78,7 +78,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, review Case ownership and aging. Resolve the work and customize the threshold to match support capacity.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -96,7 +96,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Counts open Cases related to the Account. The Query check compares the Case count with 10 and passes when the count is less than 10.</value>
+    >The Query check uses an illustrative escalation threshold and passes when {!record.Name fallback="the Account"} has fewer than 10 open Cases.</value>
     </values>
     <values>
         <field>Category__c</field>

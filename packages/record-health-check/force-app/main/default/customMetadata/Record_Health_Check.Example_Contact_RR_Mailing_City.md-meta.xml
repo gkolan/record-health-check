@@ -10,31 +10,31 @@
     >Example_Contact_Relationship_Readiness</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Business Location Is Known</value></values>
+    >Business Location Has Regional Context</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A known business location supports regional planning and in-person engagement.</value></values>
+    >A city plus state or country gives enough context for regional planning without assuming the Account headquarters is the Contact's location.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>
     <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >NOT(ISBLANK(MailingCity))</value></values>
+    >AND(NOT(ISBLANK(MailingCity)), OR(NOT(ISBLANK(MailingState)), NOT(ISBLANK(MailingCountry))))</value></values>
     <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
     >BLANKVALUE(MailingCity, "Business location unknown")</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A current business city for {!record.Name fallback="this contact"}</value></values>
+    >A current business city plus state or country</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Regional planning is incomplete because {!record.Name fallback="this contact"}'s business location is unknown.</value></values>
+    >Regional planning is incomplete because {!record.Name fallback="this contact"}'s city lacks state or country context.</value></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
-    >Confirm where the contact currently works; do not assume the Account headquarters is their location.</value></values>
+    >Confirm the Contact's current city and either state or country; do not copy the Account headquarters without verification.</value></values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
     >Set {!record.Name fallback="contact"}'s business location</value></values>
@@ -43,7 +43,7 @@
     >/lightning/r/Contact/{!record.Id}/edit</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
-    >Business location could not be evaluated for {!record.Name fallback="this contact"}. Verify Mailing City access and retry.</value></values>
+    >Business location could not be evaluated. Verify Mailing City, State, and Country access, then retry.</value></values>
     <values><field>ApplicabilityMode__c</field><value
       xsi:type="xsd:string"
     >ALL_RECORDS</value></values>

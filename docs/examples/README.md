@@ -13,7 +13,7 @@ the example values, and replace its fields, limits, and messages with values app
 
 > [!IMPORTANT]
 > The pages in this library are instructions, not metadata installed in your org. The installed
-> package includes [four Check Set records and 42 Check records](../install/explore-installed-examples.md) whose names
+> package includes [four Check Set records and 50 Check records](../install/explore-installed-examples.md) whose names
 > begin with `rhc__Example_`. Other examples exist only in these documentation pages unless an
 > administrator creates them.
 

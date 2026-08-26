@@ -35,7 +35,7 @@ records.
 
 ## Codebase size and verification
 
-The 2.0.5 source contains 219 packaged Apex classes, including 110 test classes. Tests and contract
+The 2.0.5 source contains 222 packaged Apex classes, including 113 test classes. Tests and contract
 support cover dynamic SOQL, formulas, metadata validation, security boundaries, bulk execution,
 asynchronous entry points, integrations, and failure diagnostics; those classes are verification
 surface rather than ordinary health-check runtime behavior.

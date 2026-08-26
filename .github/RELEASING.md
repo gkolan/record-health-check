@@ -132,7 +132,7 @@ sf project retrieve start \
 Use a new, empty directory outside the tracked package source so retrieval cannot silently overwrite
 the files being audited. Confirm all of the following before continuing:
 
-1. The retrieve returns 46 records: four Check Sets and 42 Checks.
+1. The retrieve returns 54 records: four Check Sets and 50 Checks.
 2. Each manifest member has one physical record file with the same metadata full name.
 3. Record filenames omit `__mdt` and the `rhc__` namespace.
 4. Record XML field names remain unprefixed in package source.
@@ -150,7 +150,7 @@ exact release source first; the command refuses a dirty worktree, `main`, a deta
 missing explicit release-ready acknowledgement. The command runs the complete local release
 preflight before consuming package-version capacity. That preflight converts the package to
 Metadata API format and proves that every Custom Metadata member named in `package.xml` has a
-physical file, including exactly four Check Sets and 42 Checks.
+physical file, including exactly four Check Sets and 50 Checks.
 
 The command permits only one candidate attempt in a Dev Hub package-create limit window by default.
 If any package-create capacity has already been consumed, wait for the limit to reset. An additional
@@ -254,9 +254,9 @@ Current promoted subscriber package version ID: see `config/package-releases.jso
 
 ## Packaged Example Check Sets and Checks
 
-The 46 `Example_` Check Sets and Checks ship **inside** the package, from
+The 54 `Example_` Check Sets and Checks ship **inside** the package, from
 `packages/record-health-check/force-app/main/default/customMetadata`. A subscriber gets four Example
-Check Sets and 42 Checks on install, with no extra step. `check:package-boundary` enforces that they
+Check Sets and 50 Checks on install, with no extra step. `check:package-boundary` enforces that they
 stay there and stay byte-identical to their `integration-tests` copies.
 
 Do not move them to an unpackaged directory and do not add `unpackagedMetadata` to

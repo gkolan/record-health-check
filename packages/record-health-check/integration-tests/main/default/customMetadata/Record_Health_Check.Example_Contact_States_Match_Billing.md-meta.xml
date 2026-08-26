@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Contact state consistency</label>
+    <label>Example: Centralized Contact ownership</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact states match Account Billing State</value>
+    >Contacts align with the Account owner</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -32,7 +32,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingState FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT OwnerId FROM Contact WHERE AccountId = {!record.Id}</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -48,7 +48,7 @@
     </values>
     <values>
         <field>ExpectedRecordFormula__c</field>
-        <value xsi:type="xsd:string">BillingState</value>
+        <value xsi:type="xsd:string">OwnerId</value>
     </values>
     <values>
         <field>NoRowsResult__c</field>
@@ -66,11 +66,11 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contact mailing addresses on {!record.Name fallback="this Account"} use a different state.</value>
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contacts on {!record.Name fallback="this Account"} have a different owner.</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">MailingState</value>
+        <value xsi:type="xsd:string">OwnerId</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -86,13 +86,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm the Billing State, then correct the Mailing State on each Contact that should use that state.</value>
+    >For {!record.Name fallback="this Account"}, confirm the ownership model. Align legitimate owners, or adapt this example for team-based ownership.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Contact addresses for {!record.Name fallback="Account"}</value>
+    >Review ownership for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -104,7 +104,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates Mailing State on every Contact. The Query check compares each value with Account Billing State and passes only when every value matches.</value>
+    >The Query check passes only when every related Contact owner equals the Account owner, demonstrating a centralized-ownership model.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -127,12 +127,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contact Mailing States do not match</value>
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contact owners differ</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Every Contact Mailing State equals {!rhcResult.expectedValue}</value>
+    >Account owner: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

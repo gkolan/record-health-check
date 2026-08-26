@@ -77,7 +77,7 @@ namespaced unlocked package. See
 
 ## Why does the package contain so many Apex classes?
 
-The 2.0.5 source contains 219 packaged classes, including 110 test classes. Its verification
+The 2.0.5 source contains 222 packaged classes, including 113 test classes. Its verification
 surface covers dynamic SOQL, formulas, metadata, security boundaries, bulk and asynchronous
 execution, integrations, and failure diagnostics. See the
 [complete size breakdown](../architecture/apex-implementation/README.md#codebase-size-and-verification).

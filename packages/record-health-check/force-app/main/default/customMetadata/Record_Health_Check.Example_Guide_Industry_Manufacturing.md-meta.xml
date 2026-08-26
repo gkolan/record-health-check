@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Account Industry</label>
+    <label>Example: Account Revenue Range</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,13 +12,15 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value xsi:type="xsd:string">Industry is Manufacturing</value>
+        <value
+      xsi:type="xsd:string"
+    >Annual Revenue is within a plausible range</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates the Account Industry picklist as text. The formula compares Industry with Manufacturing and passes when they match. It runs only when the Account has a Parent Account.</value>
+    >The formula passes when Annual Revenue is blank or between zero and the illustrative 100-billion typo-detection ceiling.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -30,17 +32,17 @@
     </values>
     <values>
         <field>PassConditionFormula__c</field>
-        <value xsi:type="xsd:string">TEXT(Industry) = "Manufacturing"</value>
+        <value
+      xsi:type="xsd:string"
+    >OR(ISBLANK(AnnualRevenue), AND(AnnualRevenue &gt;= 0, AnnualRevenue &lt;= 100000000000))</value>
     </values>
     <values>
         <field>DisplayFoundFormula__c</field>
-        <value
-      xsi:type="xsd:string"
-    >IF(ISBLANK(TEXT(Industry)), "Not classified", TEXT(Industry))</value>
+        <value xsi:type="xsd:string">AnnualRevenue</value>
     </values>
     <values>
         <field>DisplayExpectedFormula__c</field>
-        <value xsi:type="xsd:string">"Manufacturing"</value>
+        <value xsi:type="xsd:string">100000000000</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -50,19 +52,19 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >The Industry on {!record.Name fallback="this Account"} is not Manufacturing.</value>
+    >Annual Revenue on {!record.Name fallback="this Account"} is negative or above the example typo-detection ceiling.</value>
     </values>
     <values>
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, verify the source and currency before correcting Annual Revenue. Adapt the bound to your customer profile.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Industry for {!record.Name fallback="Account"}</value>
+    >Review revenue for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -74,21 +76,11 @@
         <field>UnableToEvaluateMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
-    </values>
-    <values>
-        <field>ApplicabilityNotMetMessage__c</field>
-        <value
-      xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Parent Account, so this hierarchy example does not apply.</value>
+    >Annual Revenue on {!record.Name fallback="this Account"} could not be evaluated. Verify field access and retry.</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
-        <value xsi:type="xsd:string">WHEN_FORMULA_TRUE</value>
-    </values>
-    <values>
-        <field>ApplicabilityFormula__c</field>
-        <value xsi:type="xsd:string">NOT(ISBLANK(ParentId))</value>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
     </values>
     <values>
         <field>EvaluationOrder__c</field>
@@ -105,10 +97,10 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">TEXT</value>
+        <value xsi:type="xsd:string">CURRENCY</value>
     </values>
     <values>
         <field>FormulaResultType__c</field>
-        <value xsi:type="xsd:string">TEXT</value>
+        <value xsi:type="xsd:string">NUMBER</value>
     </values>
 </CustomMetadata>

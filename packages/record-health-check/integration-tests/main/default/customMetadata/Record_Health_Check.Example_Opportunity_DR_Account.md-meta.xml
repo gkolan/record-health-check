@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>Example: Deal Readiness - Account</label><protected>false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Example_Opportunity_Deal_Readiness</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Customer Account Is Identified</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >A customer account anchors buying context, relationship history, pipeline rollups, and ownership.</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+  <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(ISBLANK(AccountId))</value></values>
+  <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >IF(ISBLANK(AccountId), "No customer account linked", Account.Name)</value></values>
+  <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >A confirmed customer account for {!record.Name fallback="this opportunity"}</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >CRITICAL</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This opportunity"} has no customer account, so relationship context and pipeline rollups are incomplete.</value></values>
+  <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Confirm the buying organization, check for an existing Account, and link the Opportunity without creating a duplicate.</value></values>
+  <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >Link opportunity to an account</value></values>
+  <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Opportunity/{!record.Id}/edit</value></values>
+  <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Customer account context could not be evaluated. Verify Opportunity Account access and retry.</value></values>
+  <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >5</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

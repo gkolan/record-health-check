@@ -18,7 +18,7 @@
     >Example: Contact Relationship Readiness</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Checks whether a customer contact is reachable and ready for relationship management.</value></values>
+    >Review ownership, account context, permitted outreach channels, role, location, and recent engagement before relationship work.</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_LOAD</value></values>
@@ -27,10 +27,13 @@
     >ONE_BY_ONE</value></values>
     <values><field>PassedChecksDisplay__c</field><value
       xsi:type="xsd:string"
-    >SHOW_COUNT_ONLY</value></values>
+    >SHOW_EACH_CHECK</value></values>
     <values><field>SkippedChecksDisplay__c</field><value
       xsi:type="xsd:string"
-    >SHOW_COUNT_ONLY</value></values>
+    >SHOW_EACH_CHECK</value></values>
+    <values><field>PublishUserRunEvent__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
     <values><field>StopOnSystemError__c</field><value
       xsi:type="xsd:boolean"
     >false</value></values>

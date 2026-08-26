@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Contact vs Opportunity count</label>
+    <label>Example: Open deal next-step coverage</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact count does not exceed open Opportunity count</value>
+    >Every open Opportunity has a Next Step</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Counts Contacts and open Opportunities related to the Account. Compare Two Queries passes when the Contact count is less than or equal to the Opportunity count.</value>
+    >The Compare Two Queries check passes when open Opportunities with a Next Step equal all open Opportunities.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,7 +34,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND NextStep != null</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
@@ -48,7 +48,7 @@
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">LESS_THAN_OR_EQUAL</value>
+        <value xsi:type="xsd:string">EQUALS</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -58,7 +58,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has {!rhcResult.foundValue} Contacts but only {!rhcResult.expectedValue} open Opportunities.</value>
+    >One or more open Opportunities on {!record.Name fallback="this Account"} have no Next Step.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -86,13 +86,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm the open pipeline is complete, then decide whether Contacts without active Opportunity work should remain.</value>
+    >For {!record.Name fallback="this Account"}, review each uncovered deal and record the agreed next task. Do not add placeholder text.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Compare Contacts and pipeline for {!record.Name fallback="Account"}</value>
+    >Review next steps for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -119,12 +119,14 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">Contacts: {!rhcResult.foundValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Open Opportunities with Next Step: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunities: {!rhcResult.expectedValue} or more</value>
+    >All open Opportunities: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

@@ -162,7 +162,7 @@ for (const file of files("customMetadata", ".md-meta.xml")) {
   if (label.length > 40) {
     errors.push(
       `Custom Metadata label exceeds Salesforce's 40-character limit: ` +
-        `${path.relative(paths.root, file)} (${label.length} characters).`
+        `${path.relative(paths.repoRoot, file)} (${label.length} characters).`
     );
   }
 }

@@ -108,9 +108,9 @@ try {
   const checks = [...manifestMembers].filter((member) =>
     member.startsWith("Record_Health_Check.")
   );
-  if (checkSets.length !== 4 || checks.length !== 42) {
+  if (checkSets.length !== 4 || checks.length !== 50) {
     errors.push(
-      `Expected 4 Check Sets and 42 Checks; found ${checkSets.length} and ${checks.length}.`
+      `Expected 4 Check Sets and 50 Checks; found ${checkSets.length} and ${checks.length}.`
     );
   }
 
@@ -191,7 +191,7 @@ try {
   } else {
     console.log(
       `Package artifact audit passed: ${manifestMembers.size} Custom Metadata records ` +
-        `(4 Check Sets, 42 Checks) exist in both package.xml and the physical artifact.`
+        `(4 Check Sets, 50 Checks) exist in both package.xml and the physical artifact.`
     );
   }
 } finally {

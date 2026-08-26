@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Segregation of duties</label>
+    <label>Example: Strategic billing readiness</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Account Owner is not the record creator</value>
+    >Strategic Account has a complete billing address</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates Owner ID and Created By ID on Accounts with Annual Revenue above one million dollars. The formula passes when the two IDs are different; other Accounts are skipped.</value>
+    >For Accounts above the illustrative $1 million threshold, the formula passes when billing street, city, and country are present.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -32,7 +32,9 @@
     </values>
     <values>
         <field>PassConditionFormula__c</field>
-        <value xsi:type="xsd:string">OwnerId &lt;&gt; CreatedById</value>
+        <value
+      xsi:type="xsd:string"
+    >AND(NOT(ISBLANK(BillingStreet)), NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingCountry)))</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -42,7 +44,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"}: The Account Owner and record creator are the same user for this high-value Account.</value>
+    >{!record.Name fallback="This Account"} is above the example strategic-account threshold but lacks a complete billing address.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -74,13 +76,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, confirm the legal billing location and complete its address. Customize the threshold and fields for your contracting process.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Account Owner for {!record.Name fallback="Account"}</value>
+    >Review billing for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -107,10 +109,10 @@
         <field>DisplayFoundFormula__c</field>
         <value
       xsi:type="xsd:string"
-    >IF(OwnerId = CreatedById, "Same user", "Different users")</value>
+    >IF(AND(NOT(ISBLANK(BillingStreet)), NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingCountry))), "Complete billing address", "Incomplete billing address")</value>
     </values>
     <values>
         <field>DisplayExpectedFormula__c</field>
-        <value xsi:type="xsd:string">"Different users"</value>
+        <value xsi:type="xsd:string">"Complete billing address"</value>
     </values>
 </CustomMetadata>

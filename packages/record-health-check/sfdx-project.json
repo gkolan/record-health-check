@@ -7,7 +7,7 @@
       "default": true,
       "package": "Record Health Check",
       "ancestorVersion": "HIGHEST",
-      "versionDescription": "Add configurable, read-only health checks to Lightning record pages. Includes four starter Check Set records and 42 Check records, Apex and Flow APIs, diagnostic tools, and permission sets for users and administrators."
+      "versionDescription": "Add configurable, read-only health checks to Lightning record pages. Includes four starter Check Set records and 50 Check records, Apex and Flow APIs, diagnostic tools, and permission sets for users and administrators."
     }
   ],
   "name": "RecordHealthCheckPackaging",
