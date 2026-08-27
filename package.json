@@ -30,6 +30,7 @@
     "generate:agentforce-testing-center": "node scripts/contributor/generate-agentforce-testing-center.mjs",
     "predev:test-no-namespace": "npm run check:toolchain",
     "dev:test-no-namespace": "node scripts/contributor/test-no-namespace.mjs",
+    "demo:setup-source": "node scripts/contributor/setup-demo.mjs",
     "release:preflight": "node scripts/release/run_release_preflight.mjs",
     "prepackage:create": "npm run check:toolchain",
     "package:create": "node scripts/release/create-package-version.mjs",

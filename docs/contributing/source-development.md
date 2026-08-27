@@ -81,6 +81,26 @@ deploy unsaved source changes.
 npm run dev:test -- --alias rhc-dev
 ```
 
+## Seed the current-source Acme demo
+
+Contributor and portable-test orgs deploy source, so they do not run the installed-package demo
+setup automatically. Seed and verify the documented Acme hierarchy in either a namespaced or
+no-namespace source scratch org with:
+
+```bash
+npm run demo:setup-source -- --alias rhc-dev
+```
+
+The command detects the source namespace, runs the committed safe-to-rerun
+`scripts/subscriber/data/setupDemoData.apex` seed, and evaluates all 25 current-source Checks using
+`scripts/contributor/verifyDemoSource.apex`. For the 2.0.5 source, success reports **14 Passed, 10
+Failed, 1 Skipped, and 0 Unable to Check**. The data shape remains three Accounts, 44 Contacts, two
+Opportunities, three Opportunity Contact Roles, two Tasks, and 16 Cases.
+
+Rerunning the command replaces only the tagged Acme demo's related records. To remove the complete
+demo, delete the three Accounts whose Account Number begins with `RHC-DEMO-`, starting with Acme and
+then its parents so Salesforce relationship constraints are respected.
+
 ## Step 3: Prove portable (no-namespace) source deploy
 
 Before opening a pull request that changes package Apex, also prove that the same `force-app`
@@ -163,6 +183,7 @@ when both options exist.
 | Deploy fails on currency field planner tests | The org is multi-currency; see the [setup and troubleshooting FAQ](../faqs/setup-and-troubleshooting.md#why-did-source-deployment-fail-a-currency-planner-test) |
 | `sf` not found on Windows | Confirm the Salesforce CLI install and that your shell session can resolve `sf` |
 | Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../install/install-demo-in-a-scratch-org.md) |
+| Acme Corporation is missing from a source org | Run `npm run demo:setup-source -- --alias <source-org-alias>` |
 
 ## Next steps
 

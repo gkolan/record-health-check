@@ -69,6 +69,11 @@ The command creates a separate scratch org and prepares the entire experience:
 This uses the promoted installed package, the same way a sandbox or production org would. It does
 not replace the package with development source.
 
+If the org was created for source review instead, this installed-package setup did not run and Acme
+will not exist automatically. Follow
+[Seed the current-source Acme demo](../contributing/source-development.md#seed-the-current-source-acme-demo)
+to load and verify the same record hierarchy against namespaced or no-namespace source.
+
 ## What the demo prepares
 
 The setup creates the same Acme scenario every time. The record counts and relationships are

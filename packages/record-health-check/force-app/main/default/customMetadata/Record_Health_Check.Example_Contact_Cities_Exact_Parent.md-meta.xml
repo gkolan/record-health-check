@@ -20,7 +20,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when the open Opportunity ID list exactly matches the list represented by Opportunity Products.</value>
+    >The Compare Two Queries check passes when the number of open Opportunities with at least one Product equals the total number of open Opportunities.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,29 +34,25 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
+    >SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">Id</value>
+        <value xsi:type="xsd:string">coveredDeals</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT OpportunityId FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false</value>
-    </values>
-    <values>
-        <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">OpportunityId</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
-        <value xsi:type="xsd:string">COMPARE_AS_LISTS</value>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">LISTS_MATCH_EXACTLY</value>
+        <value xsi:type="xsd:string">EQUALS</value>
     </values>
     <values>
         <field>NoRowsResult__c</field>
@@ -129,7 +125,7 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">TEXT</value>
+        <value xsi:type="xsd:string">NUMBER</value>
     </values>
     <values>
         <field>ApplicabilityNotMetMessage__c</field>
@@ -149,12 +145,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunity IDs: {!rhcResult.foundValue}</value>
+    >Open Opportunities with Products: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Opportunity IDs with Products: {!rhcResult.expectedValue}</value>
+    >All open Opportunities: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

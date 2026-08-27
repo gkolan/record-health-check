@@ -66,14 +66,14 @@
     "strategy": "CHILD_DIRECT"
   },
   {
-    "aggregate": false,
-    "bareCount": false,
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_Contact_Cities_Exact_Parent",
     "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
+    "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1507,14 +1507,14 @@
     "strategy": "CHILD_DIRECT"
   },
   {
-    "aggregate": false,
-    "bareCount": false,
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_Contact_Cities_Exact_Parent",
     "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
+    "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2123,14 +2123,14 @@
     "strategy": "CHILD_DIRECT"
   },
   {
-    "aggregate": false,
+    "aggregate": true,
     "bareCount": false,
     "check": "Example_Contact_Cities_Exact_Parent",
     "correlation": "Opportunity.AccountId = record.Id",
-    "field": "ComparisonQuery__c",
+    "field": "SourceQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "force-app",
-    "soql": "SELECT OpportunityId FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "soql": "SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
     "strategy": "CHILD_PATH"
   },
   {
@@ -2189,14 +2189,14 @@
     "strategy": "CHILD_PATH"
   },
   {
-    "aggregate": false,
+    "aggregate": true,
     "bareCount": false,
     "check": "Example_Contact_Cities_Exact_Parent",
     "correlation": "Opportunity.AccountId = record.Id",
-    "field": "ComparisonQuery__c",
+    "field": "SourceQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "integration-tests",
-    "soql": "SELECT OpportunityId FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "soql": "SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
     "strategy": "CHILD_PATH"
   },
   {

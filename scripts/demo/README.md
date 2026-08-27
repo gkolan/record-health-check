@@ -51,3 +51,5 @@ For the full walkthrough, including Windows shell notes, see
 
 Contributors changing Framework source use
 [`npm run dev:setup`](../../docs/contributing/source-development.md) instead.
+After source deployment, run `npm run demo:setup-source -- --alias <source-org-alias>` to seed Acme
+and verify the current source in either namespace mode.

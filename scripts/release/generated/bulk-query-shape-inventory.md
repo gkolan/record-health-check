@@ -35,7 +35,7 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | force-app | `Example_Billing_State_In_Contacts` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Billing_State_In_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Exact_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Exact_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Overlap_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_Cities_Overlap_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | force-app | `Example_Contact_RR_Recent_Engagement` | `SourceQuery__c` | `WhoId = record.Id` | GROUP BY WhoId |
@@ -166,7 +166,7 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `Example_CTQ_ListContainsAll` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_CTQ_ListsOverlap` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `ApplicabilityCountQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Example_Contact_RR_Recent_Engagement` | `SourceQuery__c` | `WhoId = record.Id` | GROUP BY WhoId |
@@ -222,13 +222,13 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Compare_Missing` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Query_Max_Rows` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Negative_Row_Cap` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
-| `CHILD_PATH` | force-app | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | force-app | `Example_Contact_Cities_Exact_Parent` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Contact_Cities_Overlap_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Earliest_Vs_Latest_Close` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Executive_Sponsorship` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Open_Deals_Have_Contacts` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Parent_Covers_Contact_Cities` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
-| `CHILD_PATH` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
+| `CHILD_PATH` | integration-tests | `Example_Contact_Cities_Exact_Parent` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | integration-tests | `Example_Contact_Cities_Overlap_Parent` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | integration-tests | `Example_Earliest_Vs_Latest_Close` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | integration-tests | `Example_Executive_Sponsorship` | `SourceQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
