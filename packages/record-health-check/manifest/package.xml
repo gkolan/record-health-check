@@ -464,7 +464,11 @@
     </types>
     <types>
         <members>Record_Health_Check__mdt.All</members>
-        <members>Record_Health_Check__mdt.Examples</members>
+        <members>Record_Health_Check__mdt.Account_Check_Builder_Guide</members>
+        <members>Record_Health_Check__mdt.Account_Relationship_Risk</members>
+        <members
+    >Record_Health_Check__mdt.Contact_Relationship_Readiness</members>
+        <members>Record_Health_Check__mdt.Opportunity_Deal_Readiness</members>
         <members>Record_Health_Check_Set__mdt.All</members>
         <members>Record_Health_Check_Set__mdt.Examples</members>
         <name>ListView</name>

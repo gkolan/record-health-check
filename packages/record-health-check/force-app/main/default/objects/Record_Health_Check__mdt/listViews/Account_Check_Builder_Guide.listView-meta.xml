@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Account_Check_Builder_Guide</fullName>
+    <columns>MasterLabel</columns>
+    <columns>Record_Health_Check_Set__c</columns>
+    <columns>CheckTitle__c</columns>
+    <columns>EvaluationType__c</columns>
+    <columns>IsActive__c</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Record_Health_Check_Set__c</field>
+        <operation>equals</operation>
+        <value>Example_Account_Check_Builder_Guide</value>
+    </filters>
+    <label>Account Check Builder Guide</label>
+</ListView>
