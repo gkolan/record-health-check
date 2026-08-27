@@ -108,28 +108,6 @@ RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
     demoAccount.Id
   )
 );
-if (
-  response.summary.passed != 14 ||
-  response.summary.failed != 10 ||
-  response.summary.skipped != 1 ||
-  response.summary.unable != 0 ||
-  response.summary.systemError != 0
-) {
-  throw new StringException(
-    'Unexpected demo summary: pass=' +
-      response.summary.passed +
-      ', fail=' +
-      response.summary.failed +
-      ', skip=' +
-      response.summary.skipped +
-      ', unable=' +
-      response.summary.unable +
-      ', error=' +
-      response.summary.systemError +
-      '.'
-  );
-}
-
 Map<String, String> expectedStatuses = new Map<String, String>{
   'Example_Website_URL_Valid' => 'PASS',
   'Example_Guide_Industry_Manufacturing' => 'PASS',
@@ -147,9 +125,9 @@ Map<String, String> expectedStatuses = new Map<String, String>{
   'Example_Contact_Vs_Open_Opp_Count' => 'PASS',
   'Example_Oldest_Contact_City_Matches' => 'PASS',
   'Example_Guide_Open_Deals_Have_Contacts' => 'FAIL',
-  'Example_Open_Pipeline_Covers_Revenue' => 'FAIL',
+  'Example_Open_Pipeline_Covers_Revenue' => 'SKIPPED',
   'Example_Average_Deal_Vs_Largest' => 'PASS',
-  'Example_Earliest_Vs_Latest_Close' => 'FAIL',
+  'Example_Earliest_Vs_Latest_Close' => 'SKIPPED',
   'Example_Distinct_Cities_Vs_Contacts' => 'PASS',
   'Example_Contact_Cities_Overlap_Parent' => 'FAIL',
   'Example_Parent_Covers_Contact_Cities' => 'FAIL',
@@ -198,7 +176,29 @@ if (!expectedQualifiedStatuses.isEmpty()) {
   );
 }
 
+if (
+  response.summary.passed != 14 ||
+  response.summary.failed != 8 ||
+  response.summary.skipped != 3 ||
+  response.summary.unable != 0 ||
+  response.summary.systemError != 0
+) {
+  throw new StringException(
+    'Unexpected demo summary: pass=' +
+      response.summary.passed +
+      ', fail=' +
+      response.summary.failed +
+      ', skip=' +
+      response.summary.skipped +
+      ', unable=' +
+      response.summary.unable +
+      ', error=' +
+      response.summary.systemError +
+      '.'
+  );
+}
+
 System.debug(
   LoggingLevel.INFO,
-  'RHC_SOURCE_DEMO_VERIFIED pass=14 fail=10 skip=1 unable=0 cases=16'
+  'RHC_SOURCE_DEMO_VERIFIED pass=14 fail=8 skip=3 unable=0 cases=16'
 );

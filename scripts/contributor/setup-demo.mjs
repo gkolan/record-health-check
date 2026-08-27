@@ -95,5 +95,5 @@ try {
 }
 
 console.log(
-  `Current-source Acme demo is ready in '${alias}': 14 passed, 10 failed, 1 skipped, 0 unable.`
+  `Current-source Acme demo is ready in '${alias}': 14 passed, 8 failed, 3 skipped, 0 unable.`
 );

@@ -320,16 +320,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
         if (applies == null) {
           results.put(recordId, unavailableResult(check, 'INVALID_OPERATOR'));
         } else if (!applies) {
-          results.put(
-            recordId,
-            check.EvaluationType__c == 'COMPARE_TWO_QUERIES'
-              ? RecordHealthCheckQueryEvaluatorSupport.buildEmptyResult(
-                  check,
-                  new RecordHealthCheckInternalResult(),
-                  null
-                )
-              : skippedResult(check)
-          );
+          results.put(recordId, skippedResult(check));
         }
       }
       return results;
