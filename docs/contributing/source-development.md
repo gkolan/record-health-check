@@ -93,8 +93,8 @@ npm run demo:setup-source -- --alias rhc-dev
 
 The command detects the source namespace, runs the committed safe-to-rerun
 `scripts/subscriber/data/setupDemoData.apex` seed, and evaluates all 25 current-source Checks using
-`scripts/contributor/verifyDemoSource.apex`. For the 2.0.5 source, success reports **14 Passed, 10
-Failed, 1 Skipped, and 0 Unable to Check**. The data shape remains three Accounts, 44 Contacts, two
+`scripts/contributor/verifyDemoSource.apex`. For the 2.0.5 source, success reports **14 Passed, 8
+Failed, 3 Skipped, and 0 Unable to Check**. The data shape remains three Accounts, 44 Contacts, two
 Opportunities, three Opportunity Contact Roles, two Tasks, and 16 Cases.
 
 Rerunning the command replaces only the tagged Acme demo's related records. To remove the complete
