@@ -47,6 +47,10 @@
     >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
+        <field>ComparisonQueryField__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
         <field>QueryResultHandling__c</field>
         <value xsi:type="xsd:string">ONE_RESULT</value>
     </values>
