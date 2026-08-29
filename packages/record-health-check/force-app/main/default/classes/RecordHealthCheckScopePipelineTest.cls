@@ -13,13 +13,13 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Account first = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'First',
-        'Website' => 'https://first.example.com'
+        'SLAExpirationDate__c' => Date.today().addDays(90)
       }
     );
     Account second = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'Second',
-        'Website' => 'https://second.example.com'
+        'SLAExpirationDate__c' => Date.today().addDays(90)
       }
     );
     RecordHealthCheckTestDataFactory.createAccounts(
@@ -58,7 +58,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       2,
       response.summary.passed,
-      'Both valid Website records should pass.'
+      'Both Accounts with secured SLA renewals should pass.'
     );
     Assert.isNull(
       response.results[0].display,
@@ -70,8 +70,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   static void displayModeAddsDisplayWithoutChangingEnvelope() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
-        'Name' => 'Invalid Website',
-        'Website' => 'not-a-url'
+        'Name' => 'Renewal Risk',
+        'SLAExpirationDate__c' => Date.today().addDays(45)
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
@@ -91,7 +91,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       RecordHealthCheckStatus.FAIL,
       response.results[0].evaluation.status,
-      'An invalid Website should fail.'
+      'An SLA expiration inside the 60-day renewal window should fail.'
     );
     Assert.isNotNull(
       response.results[0].display,
@@ -107,8 +107,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   static void summaryModeOmitsPassingItemsButRetainsCounts() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
-        'Name' => 'Passing Website',
-        'Website' => 'https://passing.example.com'
+        'Name' => 'Secured Renewal',
+        'SLAExpirationDate__c' => Date.today().addDays(90)
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);

@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Open Case limit</label>
+    <label>Example: Priority service escalation</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Account has fewer than 10 open Cases</value>
+    >High-priority Cases stay within escalation capacity</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -32,7 +32,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false</value>
+    >SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -40,7 +40,7 @@
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">LESS_THAN</value>
+        <value xsi:type="xsd:string">LESS_THAN_OR_EQUAL</value>
     </values>
     <values>
         <field>ExpectedValueSource__c</field>
@@ -48,7 +48,7 @@
     </values>
     <values>
         <field>ExpectedFixedValue__c</field>
-        <value xsi:type="xsd:string">10</value>
+        <value xsi:type="xsd:string">1</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -62,7 +62,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has reached the example escalation threshold of 10 open Cases.</value>
+    >{!record.Name fallback="This Account"} has more than one high-priority open Case, exceeding the example escalation capacity.</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -78,7 +78,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review Case ownership and aging. Resolve the work and customize the threshold to match support capacity.</value>
+    >For {!record.Name fallback="this Account"}, review ownership, customer impact, and recovery plans. Escalate excess workload according to the support model; do not lower priority merely to clear the check.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -96,7 +96,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check uses an illustrative escalation threshold and passes when {!record.Name fallback="the Account"} has fewer than 10 open Cases.</value>
+    >The Query check counts open Cases with Priority High. It passes when no more than one high-priority Case requires Account-level escalation at the same time.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -121,10 +121,12 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >High-priority Cases: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">Maximum: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

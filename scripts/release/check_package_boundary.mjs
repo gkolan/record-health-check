@@ -330,7 +330,10 @@ for (const { fileName, values } of activeAccountGuideChecks) {
     ["APEX", "Apex"]
   ]).get(values.get("EvaluationType__c"));
   const description = values.get("CheckDescription__c") ?? "";
-  if (!evaluationTypeLabel || !description.includes(evaluationTypeLabel)) {
+  if (
+    !evaluationTypeLabel ||
+    !description.toLowerCase().includes(evaluationTypeLabel.toLowerCase())
+  ) {
     failures.push(
       `${fileName} CheckDescription__c must name its evaluation type`
     );
@@ -362,7 +365,7 @@ for (const { fileName, values } of activeAccountGuideChecks) {
         failures.push(`${fileName} must populate ${field}`);
       }
     }
-  } else {
+  } else if (values.get("EvaluationType__c") !== "APEX") {
     for (const field of ["DisplayFoundText__c", "DisplayExpectedText__c"]) {
       if (!values.get(field)?.includes("{!")) {
         failures.push(`${fileName} ${field} must demonstrate merge syntax`);

@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Open pipeline is not dependent on one deal</value>
+    >Proposal Amount matches the Opportunity Product total</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when total open pipeline is greater than the largest open Opportunity, exposing single-deal concentration risk.</value>
+    >The Compare Two Queries check compares total Amount from proposal-stage Opportunities with Total Price from their Opportunity Products. It passes when both totals match and returns Unable to Evaluate when no Product total exists.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT SUM(Amount) proposalAmount FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">pipelineTotal</value>
+        <value xsi:type="xsd:string">proposalAmount</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MAX(Amount) largestDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT SUM(TotalPrice) productTotal FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.StageName = 'Proposal/Price Quote'</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">largestDeal</value>
+        <value xsi:type="xsd:string">productTotal</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -56,7 +56,7 @@
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">GREATER_THAN</value>
+        <value xsi:type="xsd:string">EQUALS</value>
     </values>
     <values>
         <field>EmptyValueHandling__c</field>
@@ -70,13 +70,13 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >All measured open pipeline on {!record.Name fallback="this Account"} comes from one Opportunity, creating concentration risk.</value>
+    >Proposal Amount does not match the Opportunity Product total for {!record.Name fallback="this Account"}.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcCheck.checkTitle fallback="This check"} could not run for {!record.Name fallback="this Account"}. Review the check setup and the running user's access, then try again.</value>
+    >{!rhcCheck.checkTitle fallback="This check"} cannot compare totals because the proposal has no Opportunity Product total.</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -86,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -112,7 +112,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm the pipeline and amounts are current. Treat concentration as a planning signal, not a reason to invent deals.</value>
+    >For {!record.Name fallback="this Account"}, review the proposal Opportunity and its Opportunity Products. Correct the Amount or Product quantities and prices only from approved commercial terms.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -143,18 +143,18 @@
     </values>
     <values>
         <field>NoRowsResult__c</field>
-        <value xsi:type="xsd:string">FAIL</value>
+        <value xsi:type="xsd:string">UNABLE_TO_EVALUATE</value>
     </values>
     <values>
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Total open pipeline: {!rhcResult.foundValue}</value>
+    >Proposal Amount: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Largest open deal: {!rhcResult.expectedValue}</value>
+    >Opportunity Product total: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

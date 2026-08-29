@@ -57,10 +57,13 @@ division.Phone = '(312) 555-0150';
 division.Website = 'https://industrial.asteronglobal.example';
 division.AnnualRevenue = 24000000;
 division.NumberOfEmployees = 3200;
-division.BillingStreet = '1800 South Canal Street';
+// Acme uses its operating parent's centralized bill-to address. The example
+// Formula check surfaces both complete addresses so subscribers can see the
+// actual matched business values, not a generic "same/different" statement.
+division.BillingStreet = '2400 West Fulton Street';
 division.BillingCity = 'Chicago';
 division.BillingState = 'Illinois';
-division.BillingPostalCode = '60616';
+division.BillingPostalCode = '60612';
 division.BillingCountry = 'United States';
 division.Description = 'North American industrial systems division and parent of Acme Corporation.';
 Database.update(division, demoDml);
@@ -166,9 +169,12 @@ acme.OwnerId = UserInfo.getUserId();
 acme.ParentId = division.Id;
 acme.AccountNumber = 'RHC-DEMO-ACME';
 acme.Type = 'Customer';
-// Keep Acme realistic but intentionally out of alignment with its Parent Account so
-// the Formula example has a clear failing result in the demo.
+// Acme shares its operating parent's centralized bill-to location. The Formula
+// example deliberately passes and displays both complete addresses so the
+// comparison is useful rather than a generic same/different result.
 acme.Industry = 'Technology';
+acme.Rating = 'Hot';
+acme.SLAExpirationDate__c = Date.today().addDays(45);
 acme.AnnualRevenue = 500000;
 acme.NumberOfEmployees = 1250;
 acme.Phone = '(312) 555-0180';
@@ -364,7 +370,7 @@ for (Integer index = 0; index < firstNames.size(); index++) {
         ? 'Executive Leadership'
         : 'Operations & Transformation',
       Email = emailIsMissing ? null : emailLocalPart + '@acme.example',
-      Phone = '(312) 555-' + String.valueOf(1100 + index),
+      Phone = index == 34 ? null : '(312) 555-' + String.valueOf(1100 + index),
       MobilePhone = '(312) 555-' + String.valueOf(2100 + index),
       MailingStreet = String.valueOf(2400 + index) + ' West Fulton Street',
       MailingCity = mailingCities[Math.mod(index, mailingCities.size())],
@@ -382,16 +388,18 @@ Opportunity modernization = new Opportunity(
   Name = 'Acme Corporation Plant Modernization Expansion',
   StageName = 'Proposal/Price Quote',
   CloseDate = Date.today().addDays(75),
-  Amount = 40000,
-  NextStep = 'Complete executive value review and finalize implementation scope.',
+  Amount = 600000,
+  Probability = 65,
+  NextStep = null,
   Description = 'Expansion of connected plant operations and supply-chain modernization capabilities.'
 );
 Opportunity managedServices = new Opportunity(
   AccountId = acme.Id,
   Name = 'Acme Corporation Managed Services Add-On',
   StageName = 'Qualification',
-  CloseDate = Date.today().addDays(120),
-  Amount = 30000,
+  CloseDate = Date.today().addDays(-10),
+  Amount = 0,
+  Probability = 20,
   NextStep = 'Validate service coverage requirements with operations leadership.',
   Description = 'Managed services add-on for application operations, monitoring, and adoption.'
 );
@@ -400,12 +408,53 @@ Database.insert(
   demoDml
 );
 
+// Historical outcomes make the comparison examples concrete: recently lost
+// value exceeds newly created pipeline, and one won deal lacks both a retained
+// primary Contact and an Amount.
+Database.insert(
+  new List<Opportunity>{
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Retired Analytics Expansion',
+      StageName = 'Closed Lost',
+      CloseDate = Date.today().addDays(-20),
+      Amount = 250000,
+      Description = 'Customer deferred the analytics expansion after funding was withdrawn.'
+    ),
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Deferred Integration Program',
+      StageName = 'Closed Lost',
+      CloseDate = Date.today().addDays(-35),
+      Amount = 280000,
+      Description = 'Integration program was lost after the customer consolidated vendors.'
+    ),
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Paused Mobile Rollout',
+      StageName = 'Closed Lost',
+      CloseDate = Date.today().addDays(-50),
+      Amount = 230000,
+      Description = 'Mobile rollout was paused after the operating model changed.'
+    ),
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Legacy Plant Deployment',
+      StageName = 'Closed Won',
+      CloseDate = Date.today().addDays(-120),
+      Amount = null,
+      Description = 'Historical win retained without defensible value or primary buyer attribution.'
+    )
+  },
+  demoDml
+);
+
 Database.insert(
   new List<OpportunityContactRole>{
     new OpportunityContactRole(
       OpportunityId = modernization.Id,
       ContactId = contacts[0].Id,
-      Role = 'Executive Sponsor',
+      Role = 'Decision Maker',
       IsPrimary = true
     ),
     new OpportunityContactRole(
@@ -418,6 +467,12 @@ Database.insert(
       OpportunityId = modernization.Id,
       ContactId = contacts[2].Id,
       Role = 'Executive Sponsor',
+      IsPrimary = false
+    ),
+    new OpportunityContactRole(
+      OpportunityId = modernization.Id,
+      ContactId = contacts[34].Id,
+      Role = 'Business User',
       IsPrimary = false
     )
   },
@@ -457,11 +512,12 @@ Database.insert(
       Status = 'New',
       Priority = 'High',
       Origin = 'Phone',
-      Description = 'Intermittent integration latency is affecting production scheduling.'
+      IsEscalated = true,
+      Description = null
     ),
     new Case(
       AccountId = acme.Id,
-      ContactId = contacts[8].Id,
+      ContactId = contacts[35].Id,
       Subject = 'Distribution workflow interruption',
       Status = 'Working',
       Priority = 'High',
@@ -479,7 +535,6 @@ Database.insert(
     ),
     new Case(
       AccountId = acme.Id,
-      ContactId = contacts[10].Id,
       Subject = 'Plant maintenance alert escalation',
       Status = 'Working',
       Priority = 'High',

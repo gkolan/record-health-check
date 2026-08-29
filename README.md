@@ -2,7 +2,7 @@
 
 [![License: Apache 2.0](./assets/img/badge-license.svg)](./LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Namespaced Apex coverage: 99.70%](https://img.shields.io/badge/Namespaced_Apex_coverage-99.70%25-brightgreen)](./config/quality-metrics.json)
+[![Namespaced Apex coverage: 99.64%](https://img.shields.io/badge/Namespaced_Apex_coverage-99.64%25-brightgreen)](./config/quality-metrics.json)
 [![LWC line coverage: 98.73%](https://img.shields.io/badge/LWC_lines-98.73%25-brightgreen)](./config/quality-metrics.json)
 [![Salesforce API](./assets/img/badge-salesforce-api.svg)](./packages/record-health-check/sfdx-project.json)
 
@@ -41,7 +41,7 @@ When a record needs attention, the card explains what was **Found**, what was **
       <p>Administrators can inspect 25 working patterns on one Account and learn what each configuration does without leaving the record page.</p>
       <ul>
         <li><b>Review the whole relationship.</b> Checks evaluate the Account together with Opportunity Contact Roles, Contacts, Opportunities, Cases, Activities, ownership, and parent-account context.</li>
-        <li><b>Understand why.</b> Hover help teaches the pattern, while Found and Expected values explain results such as missing Contact emails, 12 open Cases across three priorities, uncovered Opportunities, and Account-versus-Parent comparisons.</li>
+        <li><b>Understand why.</b> Hover help teaches the pattern, while Found and Expected show concrete evidence such as matching Account and parent bill-to addresses, decision-maker and Technical Buyer roles, four priority Cases against a capacity of three, and $70,000 total pipeline against a $40,000 largest deal.</li>
         <li><b>Know what to do next.</b> Remediation guidance directs the account team toward the ownership, relationship, pipeline, or service action that closes the gap.</li>
       </ul>
       <p><b>Administrators control the experience</b></p>
@@ -59,14 +59,14 @@ When a record needs attention, the card explains what was **Found**, what was **
 
 ### What this demo shows
 
-- **Formula Checks** evaluate the Account and Parent Account fields, including URL format, Industry
-  alignment, and an applicability rule.
+- **Formula Checks** evaluate current engagement, full Account-versus-Parent bill-to alignment, and
+  conditional governance policies while showing the actual values compared.
 - **Query Checks** measure related records, row values, lists, and aggregates. The seeded Account has
   a realistic mix of High-, Medium-, and Low-priority Cases.
 - **Compare Two Queries Checks** teach number, currency, Date, text, aggregate, list-overlap,
   list-containment, exact-list, and no-row patterns.
-- **Custom Apex** evaluates recent Tasks and Events within a configurable 90-day window to
-  confirm customer engagement is current.
+- **Custom Apex** evaluates whether completed Tasks and Events meet a configurable engagement-volume
+  minimum within a 60-day window, separately from the Formula-based latest-activity SLA.
 - **Applicability conditions** skip a Check below its Annual Revenue threshold, and a deliberate
   no-row comparison demonstrates Unable to Check.
 
@@ -88,14 +88,14 @@ When a record needs attention, the card explains what was **Found**, what was **
 | Area                  | Details                                                                                                                                                                                                              |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Package               | Salesforce 2GP unlocked package with the `rhc` namespace                                                                                                                                                             |
-| Apex                  | 222 classes, including 113 test classes · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.70% namespaced package coverage · 99.59% subscriber-style coverage |
+| Apex                  | 224 classes, including 115 test classes · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.64% namespaced package coverage · 99.57% subscriber-style coverage |
 | LWC                   | 1 Lightning Web Component · 236 Jest tests · 98.73% line coverage · 91.81% branch coverage                                                                                                                           |
 | Packaged examples     | 4 active Example Check Set records containing 50 Check records; 49 Checks are active                                                                                                                                 |
 | Permission sets       | Card User, User, Admin, MCP Integration, and Error Log Publisher                                                                                                                                                     |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                                                                                                                     |
 | Custom Metadata Types | Record Health Check Set (18 fields) and Record Health Check (44 fields)                                                                                                                                              |
 | Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields)                                                                                             |
-| Documentation         | 126 maintained pages, including 19 documented Check examples                                                                                                                                                         |
+| Documentation         | 127 maintained pages, including 19 documented Check examples                                                                                                                                                         |
 
 </details>
 

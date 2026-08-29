@@ -31,15 +31,15 @@ The deterministic Acme data seeded by `setupDemoData.apex` includes:
 
 - `Asteron Global Holdings → Asteron Industrial Systems → Acme Corporation`
 - 38 realistic contacts, including six without email addresses
-- three Opportunity Contact Roles with `Executive Sponsor`, all on one of the two open Opportunities
-- two open opportunities totaling $70,000 against $500,000 annual revenue
-- two completed activities in the last 90 days
-- 16 Cases: 4 open High, 4 open Medium, 4 open Low, and 4 closed Cases; 5 of the 12 open Cases have no Contact
+- four Opportunity Contact Roles on one open Opportunity: one `Decision Maker`, two `Executive Sponsor` roles, and one unreachable `Business User`; no `Technical Buyer`
+- two open Opportunities, three recent Closed Lost Opportunities, and one historical Closed Won Opportunity without Amount or primary Contact
+- two completed activities in the last 60 days
+- 16 Cases: 4 open High, 4 open Medium, 4 open Low, and 4 closed Cases; 6 of the 12 open Cases have no Contact
 - six Parent Account Contacts across five cities for realistic list comparisons
 - 38 Acme Contacts across four different cities, with no city overlap with the Parent Account
 
-The deterministic Check Set result is 5 Passed, 18 Failed, 1 Skipped, and 1 Unable to Check. Failed
-rows include Critical, Warning, and Info examples. The full 25-Check outcome table is in
+The deterministic Check Set result is 5 Passed, 18 Failed, 1 Skipped, and 1 Unable. Failed rows
+include Critical, Warning, and Info examples. The full 25-Check outcome and quality-score tables are in
 [Install the demo in a scratch org](../../docs/install/install-demo-in-a-scratch-org.md#what-the-demo-prepares).
 
 `setupDemoData.apex` is safe to run again for the named Acme demo records. On rerun, it replaces

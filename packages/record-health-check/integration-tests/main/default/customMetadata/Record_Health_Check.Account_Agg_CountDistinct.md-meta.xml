@@ -18,7 +18,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >COUNT(DISTINCT field) returns how many different values exist. The query names the result distinctCities, so set Source Query Field to distinctCities.</value>
+    >COUNT_DISTINCT(field) returns how many different values exist. The query names the result distinctCities, so set Source Query Field to distinctCities.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -28,7 +28,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT(DISTINCT MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
+    >SELECT COUNT_DISTINCT(MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>

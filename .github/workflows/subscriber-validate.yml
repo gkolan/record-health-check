@@ -39,7 +39,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.148.3
+      - run: npm install --global @salesforce/cli@2.149.9
       - run: npm run check:toolchain
       - name: Resolve stable package version
         id: rhc-package
@@ -73,7 +73,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.148.3
+      - run: npm install --global @salesforce/cli@2.149.9
       - run: npm run check:toolchain
       - name: Resolve stable package version
         id: rhc-package

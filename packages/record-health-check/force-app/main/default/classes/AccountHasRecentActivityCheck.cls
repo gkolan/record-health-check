@@ -5,9 +5,10 @@
 
 /**
  * Example implementation of RecordHealthCheckPlugin: has the Account been touched
- * recently? At least one completed Task or logged Event inside a configurable
- * look-back window, tuned per Check through ApexParametersJson__c, for example
- * {"daysBack": 90}.
+ * recently and often enough? A configurable minimum number of completed Tasks
+ * or logged Events must fall inside a configurable look-back window, tuned per
+ * Check through ApexParametersJson__c, for example
+ * {"daysBack": 60, "minimumActivities": 2}.
  *
  * This is the reference implementation for the plugin contract, so it is
  * written the way every Check should be: all data loading happens ABOVE the
@@ -22,6 +23,9 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
   private static final Integer DEFAULT_DAYS_BACK = 30;
   private static final Integer MIN_DAYS_BACK = 1;
   private static final Integer MAX_DAYS_BACK = 3650;
+  private static final Integer DEFAULT_MINIMUM_ACTIVITIES = 1;
+  private static final Integer MINIMUM_ACTIVITIES = 1;
+  private static final Integer MAXIMUM_ACTIVITIES = 1000;
 
   /** Evaluates recent activity once for the complete requested scope. */
   global Map<Id, RecordHealthCheckOutcome> evaluate(
@@ -35,7 +39,8 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     Set<Id> queryRecordIds = new Set<Id>(recordIds);
 
     Integer daysBack = resolveDaysBack(scope.parameters);
-    if (daysBack == null) {
+    Integer minimumActivities = resolveMinimumActivities(scope.parameters);
+    if (daysBack == null || minimumActivities == null) {
       for (Id recordId : recordIds) {
         results.put(
           recordId,
@@ -87,10 +92,12 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       );
     }
 
-    RecordHealthCheckValue expected = RecordHealthCheckValue.ofCount(1);
+    RecordHealthCheckValue expected = RecordHealthCheckValue.ofCount(
+      minimumActivities
+    );
     for (Id recordId : recordIds) {
       Integer total = activityCounts.get(recordId);
-      RecordHealthCheckOutcome outcome = total > 0
+      RecordHealthCheckOutcome outcome = total >= minimumActivities
         ? RecordHealthCheckOutcome.pass('APEX_PASS')
         : RecordHealthCheckOutcome.fail('APEX_FAIL');
       results.put(
@@ -131,6 +138,30 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     if (raw == null) {
       return DEFAULT_DAYS_BACK;
     }
+    return resolveBoundedInteger(raw, MIN_DAYS_BACK, MAX_DAYS_BACK);
+  }
+
+  /**
+   * Resolves the minimum completed engagements required inside the window.
+   * Existing Check metadata remains backward-compatible because an omitted
+   * value defaults to one.
+   */
+  private Integer resolveMinimumActivities(Map<String, Object> parameters) {
+    Object raw = parameters == null
+      ? null
+      : parameters.get('minimumActivities');
+    if (raw == null) {
+      return DEFAULT_MINIMUM_ACTIVITIES;
+    }
+    return resolveBoundedInteger(raw, MINIMUM_ACTIVITIES, MAXIMUM_ACTIVITIES);
+  }
+
+  /** Converts supported parameter types and enforces an inclusive range. */
+  private Integer resolveBoundedInteger(
+    Object raw,
+    Integer minimum,
+    Integer maximum
+  ) {
     Integer parsed;
     if (raw instanceof Integer) {
       parsed = (Integer) raw;
@@ -145,6 +176,6 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     } else {
       return null;
     }
-    return (parsed < MIN_DAYS_BACK || parsed > MAX_DAYS_BACK) ? null : parsed;
+    return (parsed < minimum || parsed > maximum) ? null : parsed;
   }
 }

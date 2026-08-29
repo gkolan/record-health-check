@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Every open Opportunity has a current Close Date</value>
+    >Every open deal closes within the 180-day planning horizon</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when open Opportunities with current Close Dates equal all open Opportunities.</value>
+    >The Compare Two Queries check passes when every open Opportunity has a Close Date from today through the next 180 days, detecting both stale dates and dates outside the operating forecast horizon.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,7 +34,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CloseDate &gt;= TODAY</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CloseDate = NEXT_N_DAYS:180</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
@@ -70,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >One or more open Opportunities on {!record.Name fallback="this Account"} have a Close Date in the past.</value>
+    >One or more open Opportunities for {!record.Name fallback="this Account"} have a past Close Date or sit beyond the 180-day planning horizon.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunities with current dates: {!rhcResult.foundValue}</value>
+    >Open deals inside the 180-day planning horizon: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >All open Opportunities: {!rhcResult.expectedValue}</value>
+    >Open deals requiring a current planning date: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

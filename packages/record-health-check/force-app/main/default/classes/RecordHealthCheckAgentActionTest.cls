@@ -90,6 +90,49 @@ private with sharing class RecordHealthCheckAgentActionTest {
   }
 
   @IsTest
+  static void setActionReturnsFirstDiagnosisForUnableResult() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    RecordHealthCheckTestDataFactory.createOpportunity(
+      new Map<String, Object>{
+        'Name' => 'Proposal without products',
+        'AccountId' => accountRecord.Id,
+        'StageName' => 'Proposal/Price Quote',
+        'CloseDate' => Date.today().addDays(30),
+        'Amount' => 50000
+      }
+    );
+    RecordHealthCheckRunSetAgentAction.Request input = validSetInput();
+
+    Test.startTest();
+    RecordHealthCheckRunSetAgentAction.Response output = RecordHealthCheckRunSetAgentAction.runSet(
+      new List<RecordHealthCheckRunSetAgentAction.Request>{ input }
+    )[0];
+    Test.stopTest();
+
+    Assert.isTrue(output.success, 'The Check Set evaluation should complete.');
+    Assert.areNotEqual(
+      null,
+      output.diagnosticId,
+      'An Unable to Evaluate result should expose its safe diagnostic ID.'
+    );
+    Assert.areNotEqual(
+      null,
+      output.diagnosticCategory,
+      'The diagnosis should include a stable category.'
+    );
+    Assert.areNotEqual(
+      null,
+      output.diagnosticSummary,
+      'The diagnosis should include a safe summary.'
+    );
+    Assert.areNotEqual(
+      null,
+      output.recommendedAction,
+      'The diagnosis should include its first remediation action.'
+    );
+  }
+
+  @IsTest
   static void actionsRejectMissingRunPermissionBeforeEvaluation() {
     RecordHealthCheckRunCheckAgentAction.Request checkInput = validCheckInput();
     RecordHealthCheckRunSetAgentAction.Request setInput = validSetInput();

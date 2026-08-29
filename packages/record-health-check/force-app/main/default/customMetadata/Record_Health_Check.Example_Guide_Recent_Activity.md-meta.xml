@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Recent Account activity</label>
+    <label>Example: Verified engagement cadence</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Account has recent customer activity</value>
+    >Account activity meets the 60-day cadence</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates completed Tasks and Events related to the Account. Apex compares the most recent completed activity with a 90-day cutoff and passes when recent activity exists.</value>
+    >The Apex check counts completed Tasks and Events related to the Account during the last 60 days. It passes when at least two completed activities are recorded.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -36,7 +36,9 @@
     </values>
     <values>
         <field>ApexParametersJson__c</field>
-        <value xsi:type="xsd:string">{"daysBack": 90}</value>
+        <value
+      xsi:type="xsd:string"
+    >{"daysBack": 60, "minimumActivities": 2}</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -46,7 +48,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"}: No completed Task or Event was recorded for this Account in the last 90 days.</value>
+    >Fewer than two completed activities are recorded for {!record.Name fallback="this Account"} in the last 60 days.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -56,21 +58,17 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >{!rhcResult.foundValue} in the last 90 days</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >{!rhcResult.expectedValue} in the last 90 days</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, review completed Tasks and Events related to the Account. Record only genuine completed activity, or change the example cadence to the organization's approved standard.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>

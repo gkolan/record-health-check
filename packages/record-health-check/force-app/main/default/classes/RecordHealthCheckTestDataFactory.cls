@@ -173,11 +173,13 @@ public class RecordHealthCheckTestDataFactory {
       Rating = 'Hot',
       AnnualRevenue = 1000000,
       NumberOfEmployees = 25,
-      AccountNumber = token
+      AccountNumber = token,
+      SLAExpirationDate__c = Date.today().addDays(90)
     );
 
     populateRequiredFields(healthyAccount);
     insertAllowingDuplicates(new List<SObject>{ healthyAccount });
+    createCompletedTask(healthyAccount.Id);
   }
 
   public static void createCoverageTestRecords() {
@@ -207,7 +209,6 @@ public class RecordHealthCheckTestDataFactory {
       }
     );
     createOpportunity(accountRecord.Id, 'Coverage Opportunity', 50000);
-    createCompletedTask(accountRecord.Id);
   }
 
   public static Account createAccount(String name) {

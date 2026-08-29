@@ -77,16 +77,16 @@ to load and verify the same record hierarchy against namespaced or no-namespace 
 ## What the demo prepares
 
 The setup creates the same Acme scenario every time. The record counts and relationships are
-intentional. Five Checks pass, most Checks fail at different business severities, one is skipped,
-and one cannot run because the comparison data is intentionally absent.
+intentional. Five Checks pass, 18 expose business gaps, one skips because its policy does not
+apply, and one reports Unable because the data cannot support a defensible benchmark.
 
 | Salesforce object | Records created | Purpose |
 | --- | ---: | --- |
 | Account | 3 | Corporate parent, operating division, and Acme Corporation |
 | Contact | 44 | 38 Acme stakeholders and 6 Parent Account stakeholders used by the query examples |
-| Opportunity | 2 | Open pipeline totaling `$70,000` |
-| Opportunity Contact Role | 3 | Executive Sponsor relationships on one of the two Opportunities |
-| Task | 2 | Completed activity within the last 90 days |
+| Opportunity | 6 | 2 open deals, 3 recent losses, and 1 historical win without a defensible Amount |
+| Opportunity Contact Role | 4 | Buying-committee evidence plus one deliberately unreachable stakeholder |
+| Task | 2 | Completed customer engagement within the last 60 days |
 | Case | 16 | A realistic mix of open and closed High-, Medium-, and Low-priority issues |
 
 No Event records are created. Recent engagement comes from the two completed Tasks.
@@ -95,14 +95,15 @@ No Event records are created. Recent engagement comes from the two completed Tas
 | --- | --- |
 | Account hierarchy | `Asteron Global Holdings` → `Asteron Industrial Systems` → `Acme Corporation` |
 | Acme classification | Type `Customer`; Industry `Technology`; Annual Revenue `$500,000`; 1,250 employees |
-| Industry example | Acme uses Industry `Technology`; the Formula Check expects `Manufacturing` when a Parent Account exists |
+| Parent bill-to policy | Acme and its operating parent both use `2400 West Fulton Street, Chicago, Illinois 60612, United States` |
 | Owner | The user who runs setup owns Acme; the demo does not create or deactivate users |
 | Acme Contacts | 38 total; exactly 6 have no Email; addresses span Cleveland, Columbus, Indianapolis, and Madison |
 | Parent Account Contacts | 6 total across Chicago, Milwaukee, Detroit, Minneapolis, and St. Louis |
-| Open Opportunities | 2, totaling exactly `$70,000` |
-| Opportunity Contact Roles | Exactly 3 with Role `Executive Sponsor`, all on one open Opportunity |
-| Recent activity | Exactly 2 completed Tasks in the last 90 days |
-| Cases | 16 total: 4 open High, 4 open Medium, 4 open Low, and 4 closed; 5 of the 12 open Cases have no Contact |
+| Open Opportunities | 2: a `$600,000` proposal and a `$0` qualification-stage deal; valued pipeline is concentrated entirely in the proposal |
+| Historical Opportunities | 3 Closed Lost in the last 90 days and 1 Closed Won without Amount or a primary Contact |
+| Opportunity Contact Roles | Exactly 4 on the proposal: 1 Decision Maker, 2 Executive Sponsors, and 1 unreachable Business User; no Technical Buyer |
+| Recent activity | Exactly 2 completed Tasks in the last 60 days |
+| Cases | 16 total: 4 open High, 4 open Medium, 4 open Low, and 4 closed; 6 of 12 open Cases have no Contact; 1 named priority Contact has no email |
 
 The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
 relationships, and health-check outcomes remain predictable. It creates only the Asteron hierarchy
@@ -113,37 +114,88 @@ shown only when a Check fails.
 
 | Order | Check | Type | Expected outcome | Why the demo produces this result |
 | ---: | --- | --- | --- | --- |
-| 10 | Website uses a valid URL | Formula | Pass | Acme has an HTTPS website. |
-| 20 | Industry is Manufacturing | Formula | Fail (Info) | Acme uses Technology. The Check expects Manufacturing when the Account has a Parent. |
-| 30 | Account Owner is not the record creator | Formula | Skipped | The Check applies only above its Annual Revenue threshold. Acme is below that threshold. |
-| 40 | Account has at least one Contact | Query | Pass | Acme has 38 Contacts. |
-| 50 | Every open Case has a Contact | Query | Fail (Critical) | 5 of Acme's 12 open Cases have no Contact. |
-| 60 | Account has fewer than 10 open Cases | Query | Fail (Critical) | Acme has 12 open Cases across High, Medium, and Low priority. |
-| 70 | All Contacts have an email address | Query | Fail (Warning) | 6 of the 38 Acme Contacts have no Email. |
-| 80 | All open Opportunities have an Amount | Query | Pass | Both open Opportunities have an Amount. |
-| 90 | Account has a high-value open Opportunity | Query | Fail (Warning) | Neither open Opportunity is greater than `$50,000`. |
-| 100 | Open Opportunity is at least 10% of Annual Revenue | Query | Fail (Info) | Ten percent of `$500,000` is `$50,000`; neither deal is above it. |
-| 110 | Contact states match Account Billing State | Query | Fail (Info) | Acme bills in Illinois, while its Contacts use Ohio, Indiana, and Wisconsin. |
-| 120 | Billing State appears in Contact addresses | Query | Fail (Info) | No Acme Contact has Illinois as Mailing State. |
-| 130 | Contact count covers open Case count | Query | Pass | 38 Contacts is greater than 12 open Cases. |
-| 140 | Contact count does not exceed open Opportunity count | Compare Two Queries | Fail (Warning) | The two count queries return 38 Contacts and 2 open Opportunities. |
-| 150 | Oldest Contact city matches Billing City | Compare Two Queries | Fail (Info) | The oldest seeded Contact is in Cleveland; Acme bills in Chicago. |
-| 160 | Every open Opportunity has a Contact Role | Compare Two Queries | Fail (Critical) | All 3 Contact Roles belong to one deal, leaving the other deal uncovered. |
-| 170 | Open pipeline covers Annual Revenue | Compare Two Queries | Fail (Critical) | Open pipeline is `$70,000`; Annual Revenue is `$500,000`. |
-| 180 | Open deal amounts are consistent | Compare Two Queries | Fail (Warning) | Average open deal Amount is `$35,000`; the largest is `$40,000`. |
-| 190 | Open deals share one Close Date | Compare Two Queries | Fail (Warning) | The two open Opportunities close on different dates. |
-| 200 | Contact count matches Parent Account | Compare Two Queries | Fail (Info) | Acme has 38 Contacts and its Parent Account has 6. |
-| 210 | Contact cities overlap with Parent Account | Compare Two Queries | Fail (Warning) | The Acme and Parent Account Contact city lists do not overlap. |
-| 220 | Parent Account covers all Contact cities | Compare Two Queries | Fail (Warning) | The Parent Account list does not contain Acme's Contact cities. |
-| 230 | Contact cities exactly match Parent Account | Compare Two Queries | Fail (Warning) | The two Contact city lists contain different values. |
-| 240 | Grandparent Account city comparison requires data | Compare Two Queries | Unable to Check | The Grandparent Account intentionally has no Contacts, which demonstrates no-row handling. |
-| 250 | Account has recent customer activity | Apex | Pass | Acme has two completed Tasks within the last 90 days. |
+| 10 | Account activity is within the 60-day review window | Formula | Pass | Latest Account activity is 14 days ago; Found shows the recorded date and Expected shows the rolling cutoff. |
+| 20 | Billing address matches the parent bill-to account | Formula | Pass | Found and Expected show the same complete centralized bill-to address. |
+| 30 | Strategic Accounts are contract-ready for billing | Formula | Skipped | The policy applies above `$1 million`; Acme records `$500,000` Annual Revenue. |
+| 40 | Open pipeline has an identified decision maker | Query | Pass | The proposal has one explicitly verified Decision Maker role. |
+| 50 | Every open Case identifies an accountable customer Contact | Query | Fail (Critical) | 6 of 12 open Cases lack a customer Contact. |
+| 60 | High-priority service load stays within escalation capacity | Query | Fail (Critical) | 4 high-priority Cases exceed capacity of 3. |
+| 70 | Priority service Contacts have a reachable email channel | Query | Fail (Warning) | 1 of 3 named priority Contacts has no email. |
+| 80 | Proposal-stage deals meet the qualification floor | Query | Pass | The `$600,000` proposal exceeds the illustrative `$25,000` floor. |
+| 90 | Open deal size stays within the Account-scale review limit | Query | Fail (Warning) | The `$600,000` proposal exceeds Acme's `$500,000` Annual Revenue review ceiling. |
+| 100 | Account rating is supported by a mature open deal | Query | Fail (Info) | Acme is Hot, but the highest open-deal Probability is 65%, below the required above-70% evidence. |
+| 110 | Open-deal stakeholders have a verified contact channel | Query | Fail (Warning) | One Contact Role has neither email nor phone. |
+| 120 | Open-deal buying committee includes a technical evaluator | Query | Fail (Info) | Decision Maker, Executive Sponsor, and Business User are present; Technical Buyer is absent. |
+| 130 | Recent Case closures keep pace with intake | Query | Fail (Warning) | 4 Cases closed while 16 entered the queue during the rolling 30 days. |
+| 140 | Every proposal-stage deal has a documented mutual action | Compare Two Queries | Fail (Warning) | The proposal has no agreed Next Step. |
+| 150 | Every high-priority open Case identifies a Contact | Compare Two Queries | Fail (Critical) | 3 of 4 high-priority Cases identify a customer Contact. |
+| 160 | Every proposal-stage deal retains campaign attribution | Compare Two Queries | Fail (Warning) | The proposal has no Primary Campaign Source. |
+| 170 | New qualified pipeline replenishes recently lost deals | Compare Two Queries | Fail (Critical) | 2 new open deals do not replace 3 recent losses. |
+| 180 | Valued pipeline is not concentrated in one deal | Compare Two Queries | Fail (Warning) | Total valued pipeline and the largest deal are both `$600,000`. |
+| 190 | Every won deal retains its primary customer Contact | Compare Two Queries | Fail (Warning) | The historical win has no primary Contact Role. |
+| 200 | Every open deal closes within the 180-day planning horizon | Compare Two Queries | Fail (Warning) | 1 of 2 open deals is inside the horizon; the other Close Date is stale. |
+| 210 | Sales and service work share a customer Contact | Compare Two Queries | Fail (Warning) | Named service Contacts and open-deal Contacts do not overlap. |
+| 220 | Sales stakeholder map covers priority service Contacts | Compare Two Queries | Fail (Warning) | Priority service Contacts are absent from the open-deal stakeholder map. |
+| 230 | Every open Opportunity has at least one Product | Compare Two Queries | Fail (Critical) | Neither open Opportunity is represented by an Opportunity Product. |
+| 240 | Open-deal valuation has a won-deal benchmark | Compare Two Queries | Unable | The historical win has no defensible Amount, so the framework does not invent a benchmark. |
+| 250 | Customer engagement volume meets the 60-day operating cadence | Apex | Pass | Two completed Tasks meet the configured minimum of two. |
 
-The exact summary is **5 Passed, 18 Failed, 1 Skipped, and 1 Unable to Check**. The failed rows
-include Critical, Warning, and Info examples. These 25 Checks do not use categories, so the card
-shows one overall summary. Found and Expected values show the result of the comparison. Each title
-tooltip names the Evaluation Type, explains what Salesforce evaluates, identifies the two values
-being compared, and states what must be true for the Check to pass.
+The exact summary is **5 Passed, 18 Failed, 1 Skipped, and 1 Unable**. The design intentionally
+shows more problems than successes so adopters see meaningful detection and remediation behavior.
+
+### Passing checks are complete cloneable examples
+
+A green demo result is not shorthand for “this will pass everywhere.” Each passing Check includes
+the same operational documentation as a failing example: measured evidence, policy baseline,
+failure behavior, remediation, and the decisions an adopter must make before cloning it.
+
+| Order | Found in the demo | Expected policy | What failure means and how to respond | Before cloning |
+| ---: | --- | --- | --- | --- |
+| 10 | Latest completed Account activity date: 14 days ago | Date must be on or after the rolling 60-day cutoff | An older date fails because the Account activity record is stale. Review whether the latest activity represents qualifying customer work, correct supported evidence, and schedule the next accountable touchpoint. No activity currently skips. | `LastActivityDate` includes broad Account activity. Define qualifying evidence, replace 60 days with the approved review window, and decide whether missing activity should Skip or Fail. |
+| 20 | Acme's complete billing address | Parent Account's complete bill-to address; all five components match | Any street, city, state, postal-code, or country difference fails. Finance should confirm the legal bill-to location before either record is corrected. No parent currently skips. | Use only where centralized parent billing is policy; account for address normalization and legitimate legal-entity exceptions. |
+| 40 | 1 verified Decision Maker role across open Opportunities | At least 1 verified Decision Maker role | Zero roles fails because open pipeline lacks explicit buying-authority evidence. Confirm authority with the customer and add the appropriate Contact Role; never infer authority from title alone. | Align role values and qualifying stages to the sales process, then decide whether coverage is required once per Account or on every qualifying Opportunity. |
+| 80 | Proposal-stage Amounts: `$600,000` | Every proposal-stage Amount must be at least `$25,000` | Any proposal below the floor fails. Validate scope, pricing, and commercial fit; requalify or return the deal to an earlier stage instead of inflating Amount. No proposal-stage rows currently skip. | Replace the illustrative floor and currency with approved thresholds by segment, geography, product, or sales motion. |
+| 250 | 2 completed customer engagements in 60 days | At least 2 completed engagements | Fewer than two fails because the operating cadence lacks enough documented customer interaction. Verify genuine engagement evidence and its outcome before logging anything. | Define qualifying Task/Event types and completion states, then calibrate both the lookback window and minimum volume. |
+
+The same failure message, Unable guidance, fix instructions, and action link are stored on these
+five Check records even though Acme passes them. Cloning the metadata therefore preserves the
+failure experience; adopters still own the policy decisions identified above.
+
+### 25-check quality gate
+
+Each scenario is reviewed on three 10-point dimensions. No dimension may be below 9, and the
+combined acceptable score is 29/30 or higher. **Quality /10** is the combined score divided by three.
+
+| Order | Understandability | Business value | Logic depth | Total /30 | Quality /10 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 10 | 10 | 9 | 10 | **29** | **9.7** |
+| 20 | 10 | 10 | 9 | **29** | **9.7** |
+| 30 | 10 | 9 | 10 | **29** | **9.7** |
+| 40 | 10 | 10 | 10 | **30** | **10.0** |
+| 50 | 10 | 10 | 9 | **29** | **9.7** |
+| 60 | 10 | 10 | 9 | **29** | **9.7** |
+| 70 | 10 | 10 | 10 | **30** | **10.0** |
+| 80 | 10 | 10 | 9 | **29** | **9.7** |
+| 90 | 9 | 10 | 10 | **29** | **9.7** |
+| 100 | 9 | 10 | 10 | **29** | **9.7** |
+| 110 | 10 | 10 | 9 | **29** | **9.7** |
+| 120 | 10 | 10 | 10 | **30** | **10.0** |
+| 130 | 9 | 10 | 10 | **29** | **9.7** |
+| 140 | 10 | 10 | 9 | **29** | **9.7** |
+| 150 | 10 | 10 | 9 | **29** | **9.7** |
+| 160 | 10 | 9 | 10 | **29** | **9.7** |
+| 170 | 9 | 10 | 10 | **29** | **9.7** |
+| 180 | 10 | 10 | 10 | **30** | **10.0** |
+| 190 | 10 | 10 | 10 | **30** | **10.0** |
+| 200 | 10 | 10 | 9 | **29** | **9.7** |
+| 210 | 9 | 10 | 10 | **29** | **9.7** |
+| 220 | 9 | 10 | 10 | **29** | **9.7** |
+| 230 | 10 | 10 | 9 | **29** | **9.7** |
+| 240 | 9 | 10 | 10 | **29** | **9.7** |
+| 250 | 10 | 10 | 10 | **30** | **10.0** |
+
+These 25 Checks do not use categories, so the card shows one overall summary. Found and Expected
+values state the measured business evidence and the governing policy or comparison baseline.
 
 Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing,
 and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and

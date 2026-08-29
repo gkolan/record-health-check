@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Pipeline creation momentum</label>
+    <label>Example: Pipeline recovery after losses</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Opportunity creation keeps pace quarter over quarter</value>
+    >New pipeline value replaces recent losses</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when Opportunities created this quarter are greater than or equal to the previous quarter.</value>
+    >The Compare Two Queries check compares Amount from open Opportunities created in the last 90 days with Amount from Opportunities closed lost in the same period. It passes when new pipeline value equals or exceeds lost value.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() currentQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = THIS_QUARTER</value>
+    >SELECT SUM(Amount) newPipeline FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CreatedDate = LAST_N_DAYS:90 AND Amount != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">currentQuarter</value>
+        <value xsi:type="xsd:string">newPipeline</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() priorQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER</value>
+    >SELECT SUM(Amount) recentLosses FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = true AND IsWon = false AND CloseDate = LAST_N_DAYS:90 AND Amount != null</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">priorQuarter</value>
+        <value xsi:type="xsd:string">recentLosses</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -70,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Fewer Opportunities were created this quarter than last quarter for {!record.Name fallback="this Account"}.</value>
+    >New open pipeline value has not replaced recently lost Opportunity value for {!record.Name fallback="this Account"}.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -86,7 +86,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER</value>
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = true AND IsWon = false AND CloseDate = LAST_N_DAYS:90 AND Amount != null</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -112,7 +112,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review prospecting and account-plan execution. Create only qualified Opportunities and adapt for seasonality.</value>
+    >For {!record.Name fallback="this Account"}, inspect loss reasons and the account plan, then create only qualified replacement Opportunities supported by a real customer initiative.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -129,13 +129,13 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">NUMBER</value>
+        <value xsi:type="xsd:string">CURRENCY</value>
     </values>
     <values>
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} had no Opportunities created last quarter, so there is no prior-quarter baseline.</value>
+    >{!record.Name fallback="This Account"} has no closed-lost Opportunity in the last 90 days, so replenishment pressure does not apply.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Opportunities created this quarter: {!rhcResult.foundValue}</value>
+    >New open pipeline: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Opportunities created last quarter: {!rhcResult.expectedValue}</value>
+    >Recently lost value: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

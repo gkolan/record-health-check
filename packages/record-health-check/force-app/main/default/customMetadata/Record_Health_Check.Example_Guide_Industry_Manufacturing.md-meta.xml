@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Account Revenue Range</label>
+    <label>Example: Parent bill-to alignment</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Annual Revenue is within a plausible range</value>
+    >Billing address matches the parent bill-to account</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The formula passes when Annual Revenue is blank or between zero and the illustrative 100-billion typo-detection ceiling.</value>
+    >The formula passes only when all five billing-address components match the parent; any difference fails and no parent skips. Clone only when centralized parent billing is policy, with rules for normalization and legal-entity exceptions.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,15 +34,19 @@
         <field>PassConditionFormula__c</field>
         <value
       xsi:type="xsd:string"
-    >OR(ISBLANK(AnnualRevenue), AND(AnnualRevenue &gt;= 0, AnnualRevenue &lt;= 100000000000))</value>
+    >AND(BillingStreet = Parent.BillingStreet, BillingCity = Parent.BillingCity, BillingState = Parent.BillingState, BillingPostalCode = Parent.BillingPostalCode, BillingCountry = Parent.BillingCountry)</value>
     </values>
     <values>
         <field>DisplayFoundFormula__c</field>
-        <value xsi:type="xsd:string">AnnualRevenue</value>
+        <value
+      xsi:type="xsd:string"
+    >BillingStreet &amp; ", " &amp; BillingCity &amp; ", " &amp; BillingState &amp; " " &amp; BillingPostalCode &amp; ", " &amp; BillingCountry</value>
     </values>
     <values>
         <field>DisplayExpectedFormula__c</field>
-        <value xsi:type="xsd:string">100000000000</value>
+        <value
+      xsi:type="xsd:string"
+    >Parent.BillingStreet &amp; ", " &amp; Parent.BillingCity &amp; ", " &amp; Parent.BillingState &amp; " " &amp; Parent.BillingPostalCode &amp; ", " &amp; Parent.BillingCountry</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -52,19 +56,19 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Annual Revenue on {!record.Name fallback="this Account"} is negative or above the example typo-detection ceiling.</value>
+    >{!record.Name fallback="This Account"} does not match the parent Account’s complete bill-to address.</value>
     </values>
     <values>
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, verify the source and currency before correcting Annual Revenue. Adapt the bound to your customer profile.</value>
+    >For {!record.Name fallback="this Account"}, compare the complete child and parent addresses shown in Found and Expected. Confirm the legal bill-to location with finance before correcting either record.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review revenue for {!record.Name fallback="Account"}</value>
+    >Review bill-to address for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -76,11 +80,21 @@
         <field>UnableToEvaluateMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Annual Revenue on {!record.Name fallback="this Account"} could not be evaluated. Verify field access and retry.</value>
+    >The billing addresses for {!record.Name fallback="this Account"} and its parent could not be compared. Verify hierarchy and billing-field access, then retry.</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
-        <value xsi:type="xsd:string">ALL_RECORDS</value>
+        <value xsi:type="xsd:string">WHEN_FORMULA_TRUE</value>
+    </values>
+    <values>
+        <field>ApplicabilityFormula__c</field>
+        <value xsi:type="xsd:string">NOT(ISBLANK(ParentId))</value>
+    </values>
+    <values>
+        <field>ApplicabilityNotMetMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This Account"} has no parent bill-to account to compare.</value>
     </values>
     <values>
         <field>EvaluationOrder__c</field>
@@ -97,10 +111,10 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">CURRENCY</value>
+        <value xsi:type="xsd:string">TEXT</value>
     </values>
     <values>
         <field>FormulaResultType__c</field>
-        <value xsi:type="xsd:string">NUMBER</value>
+        <value xsi:type="xsd:string">TEXT</value>
     </values>
 </CustomMetadata>

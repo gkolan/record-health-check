@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Contact birthdate sanity</label>
+    <label>Example: Service-contact reachability</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Recorded Contact birthdates are not in the future</value>
+    >Escalated Cases document customer impact</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check passes only when every recorded Contact Birthdate is today or earlier, catching future-date entry errors without requiring Birthdate.</value>
+    >The Query check verifies Description on every open Case where Escalated is selected. It passes only when every escalated Case explains the customer impact.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,7 +34,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT Birthdate FROM Contact WHERE AccountId = {!record.Id} AND Birthdate != null</value>
+    >SELECT Description FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND IsEscalated = true</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
@@ -42,7 +42,7 @@
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">Birthdate</value>
+        <value xsi:type="xsd:string">Description</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -50,23 +50,15 @@
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">LESS_THAN_OR_EQUAL</value>
-    </values>
-    <values>
-        <field>ExpectedValueSource__c</field>
-        <value xsi:type="xsd:string">RECORD_FORMULA</value>
-    </values>
-    <values>
-        <field>ExpectedRecordFormula__c</field>
-        <value xsi:type="xsd:string">TODAY()</value>
+        <value xsi:type="xsd:string">IS_NOT_BLANK</value>
     </values>
     <values>
         <field>NoRowsResult__c</field>
-        <value xsi:type="xsd:string">PASS</value>
+        <value xsi:type="xsd:string">SKIP</value>
     </values>
     <values>
         <field>EmptyValueHandling__c</field>
-        <value xsi:type="xsd:string">SKIP_RECORD</value>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -76,7 +68,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >One or more Contacts on {!record.Name fallback="this Account"} have a Birthdate in the future.</value>
+    >One or more escalated open Cases for {!record.Name fallback="this Account"} do not document customer impact.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -88,31 +80,31 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} Contact birthdates are in the future</value>
+    >Missing descriptions: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Recorded birthdates are on or before {!rhcResult.expectedValue}</value>
+    >Required missing descriptions for {!record.Name fallback="this Account"}: 0</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review birthdates for {!record.Name fallback="Account"}</value>
+    >Review escalated Cases for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    >/lightning/r/Account/{!record.Id}/related/Cases/view</value>
     </values>
     <values>
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, verify the Birthdate from a reliable source and correct only confirmed entry errors.</value>
+    >For {!record.Name fallback="this Account"}, review the escalated Case with the Case owner and add a factual Description of customer impact. Do not add placeholder text.</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -137,10 +129,16 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">DATE</value>
+        <value xsi:type="xsd:string">TEXT</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
         <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>ApplicabilityNotMetMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This Account"} has no open escalated Case to review.</value>
     </values>
 </CustomMetadata>

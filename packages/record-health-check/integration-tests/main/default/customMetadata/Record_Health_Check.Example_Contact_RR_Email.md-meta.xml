@@ -11,16 +11,16 @@
     >Example_Contact_Relationship_Readiness</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Email Channel Has No Standard Suppression</value></values>
+    >Email Channel Has No Recorded Bounce</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A usable business email requires an address with no recorded bounce and no standard Email Opt Out flag.</value></values>
+    >A usable business email requires an address with no recorded bounce.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
     <values><field>SourceQuery__c</field><value
       xsi:type="xsd:string"
-    >SELECT COUNT() usableEmails FROM Contact WHERE Id = {!record.Id} AND Email != null AND EmailBouncedDate = null AND HasOptedOutOfEmail = false</value></values>
+    >SELECT COUNT() usableEmails FROM Contact WHERE Id = {!record.Id} AND Email != null AND EmailBouncedDate = null</value></values>
     <values><field>SourceQueryField__c</field><value
       xsi:type="xsd:string"
     >usableEmails</value></values>
@@ -47,16 +47,16 @@
     >{!rhcResult.foundValue} usable email channel</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >1 address without a recorded bounce or standard Email Opt Out</value></values>
+    >1 address without a recorded bounce</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This contact"} has no email channel available under the standard Email, Email Bounced, and Email Opt Out fields.</value></values>
+    >{!record.Name fallback="This contact"} has no email channel available under the standard Email and Email Bounced fields.</value></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
-    >Verify the address and bounce details. Respect Email Opt Out; use your organization's consent process before changing any communication preference.</value></values>
+    >Verify the address and bounce details, and follow your organization's consent process before contacting this person.</value></values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
     >Review email status</value></values>
@@ -65,7 +65,7 @@
     >/lightning/r/Contact/{!record.Id}/edit</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
-    >Email-channel readiness could not be evaluated. Verify Email, Email Bounced Date, and Email Opt Out access, then retry.</value></values>
+    >Email-channel readiness could not be evaluated. Verify Email and Email Bounced Date access, then retry.</value></values>
     <values><field>ApplicabilityMode__c</field><value
       xsi:type="xsd:string"
     >ALL_RECORDS</value></values>

@@ -20,7 +20,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when Contacts on open Cases overlap Contacts involved in open Opportunities.</value>
+    >The Compare Two Queries check passes when at least one named customer Contact connects unresolved service work with an open Opportunity, demonstrating cross-functional stakeholder continuity without exposing record IDs.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null</value>
+    >SELECT Contact.Name FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">ContactId</value>
+        <value xsi:type="xsd:string">Contact.Name</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null</value>
+    >SELECT Contact.Name FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">ContactId</value>
+        <value xsi:type="xsd:string">Contact.Name</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Case Contacts: {!rhcResult.foundValue}</value>
+    >Contacts involved in unresolved service work: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunity Contacts: {!rhcResult.expectedValue}</value>
+    >Contacts represented on open sales work: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

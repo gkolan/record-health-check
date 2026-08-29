@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Every won Opportunity retains a primary Contact</value>
+    >Every won deal retains its primary customer Contact</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when the count of won Opportunities with a primary Contact equals the count of all won Opportunities.</value>
+    >The Compare Two Queries check passes when every won Opportunity retains a primary Contact Role, preserving buyer history for implementation handoff, renewal planning, and expansion.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -70,7 +70,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >One or more won Opportunities on {!record.Name fallback="this Account"} have no primary Contact Role.</value>
+    >One or more won Opportunities for {!record.Name fallback="this Account"} have no retained primary customer Contact.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Won Opportunities with primary Contacts: {!rhcResult.foundValue}</value>
+    >Won deals retaining a primary Contact: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >All won Opportunities: {!rhcResult.expectedValue}</value>
+    >Won deals requiring buyer-history continuity: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

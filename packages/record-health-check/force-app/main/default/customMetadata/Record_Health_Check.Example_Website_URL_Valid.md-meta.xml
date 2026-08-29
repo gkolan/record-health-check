@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Website URL format</label>
+    <label>Example: Account activity recency</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,13 +12,15 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value xsi:type="xsd:string">Website uses a valid URL</value>
+        <value
+      xsi:type="xsd:string"
+    >SLA renewal is secured beyond 60 days</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Evaluates the Account Website with REGEX. The formula passes when the value starts with http:// or https:// and has a valid domain. Accounts with no Website are skipped.</value>
+    >The Formula check compares the Account SLA Expiration Date with the date 60 days from today. It passes when the renewed term extends beyond that date and fails when expiry is inside the renewal-risk window.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -32,7 +34,7 @@
         <field>PassConditionFormula__c</field>
         <value
       xsi:type="xsd:string"
-    >AND(NOT(ISBLANK(Website)), REGEX(Website, "https?://.+\\..+"))</value>
+    >SLAExpirationDate__c &gt; TODAY() + 60</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -42,7 +44,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >The Website on {!record.Name fallback="this Account"} is not a valid HTTP or HTTPS URL.</value>
+    >{!record.Name fallback="This Account"} has an SLA Expiration Date within the next 60 days and does not show a renewed term beyond the renewal-risk window.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -56,7 +58,7 @@
     </values>
     <values>
         <field>ApplicabilityFormula__c</field>
-        <value xsi:type="xsd:string">NOT(ISBLANK(Website))</value>
+        <value xsi:type="xsd:string">NOT(ISBLANK(SLAExpirationDate__c))</value>
     </values>
     <values>
         <field>EvaluationOrder__c</field>
@@ -74,13 +76,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, confirm renewal status with the Account owner and contracting team. If the renewal is signed, update SLA Expiration Date from the approved term. Otherwise, document the renewal plan. Do not move the date only to pass the Check.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Edit Website for {!record.Name fallback="Account"}</value>
+    >Review SLA renewal for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -97,18 +99,26 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Website, so URL format does not apply.</value>
+    >{!record.Name fallback="This Account"} has no SLA Expiration Date, so renewal timing cannot be checked.</value>
     </values>
     <values>
         <field>FormulaResultType__c</field>
-        <value xsi:type="xsd:string">TEXT</value>
+        <value xsi:type="xsd:string">AUTO</value>
     </values>
     <values>
         <field>DisplayFoundFormula__c</field>
-        <value xsi:type="xsd:string">BLANKVALUE(Website, "No Website")</value>
+        <value xsi:type="xsd:string">TEXT(SLAExpirationDate__c)</value>
     </values>
     <values>
         <field>DisplayExpectedFormula__c</field>
-        <value xsi:type="xsd:string">"A valid HTTP or HTTPS URL"</value>
+        <value xsi:type="xsd:string">"More than 60 days"</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

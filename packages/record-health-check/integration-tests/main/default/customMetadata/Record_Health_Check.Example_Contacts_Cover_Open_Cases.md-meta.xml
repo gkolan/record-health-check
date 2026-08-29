@@ -98,7 +98,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check compares the last 30 days of Case closures and intake and passes when closures are greater than or equal to new Cases.</value>
+    >The Query check compares 30-day Case resolution throughput with intake and passes when closures meet or exceed new demand, making backlog direction visible at the Account level.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -125,12 +125,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Cases closed in 30 days: {!rhcResult.foundValue}</value>
+    >Cases resolved during the last 30 days: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Cases created in 30 days: {!rhcResult.expectedValue}</value>
+    >Cases entering the queue during the last 30 days: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

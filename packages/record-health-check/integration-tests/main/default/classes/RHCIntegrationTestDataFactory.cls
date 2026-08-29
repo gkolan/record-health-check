@@ -33,6 +33,23 @@ public class RHCIntegrationTestDataFactory {
     return record;
   }
 
+  public static Contact contact(Id accountId, String lastName) {
+    Contact result = new Contact(AccountId = accountId, LastName = lastName);
+    insert result;
+    return result;
+  }
+
+  public static Opportunity opportunity(Id accountId, String name) {
+    Opportunity result = new Opportunity(
+      AccountId = accountId,
+      Name = name,
+      StageName = 'Prospecting',
+      CloseDate = Date.today().addDays(30)
+    );
+    insert result;
+    return result;
+  }
+
   public static RHC_Benchmark_Result__c benchmarkResult(
     Map<String, Object> fields
   ) {

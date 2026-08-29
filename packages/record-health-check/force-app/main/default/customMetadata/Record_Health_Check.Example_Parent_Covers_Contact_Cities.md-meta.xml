@@ -20,7 +20,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when open-Opportunity Contacts contain all Contacts from high-priority open Cases.</value>
+    >The Compare Two Queries check passes when the open-deal stakeholder map contains every named Contact from high-priority service work, surfacing coordination gaps before commercial conversations.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,21 +34,21 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null</value>
+    >SELECT Contact.Name FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">ContactId</value>
+        <value xsi:type="xsd:string">Contact.Name</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null</value>
+    >SELECT Contact.Name FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">ContactId</value>
+        <value xsi:type="xsd:string">Contact.Name</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -149,12 +149,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunity Contacts: {!rhcResult.foundValue}</value>
+    >Contacts represented in the open-deal stakeholder map: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Priority open Case Contacts: {!rhcResult.expectedValue}</value>
+    >Priority service Contacts requiring sales awareness: {!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

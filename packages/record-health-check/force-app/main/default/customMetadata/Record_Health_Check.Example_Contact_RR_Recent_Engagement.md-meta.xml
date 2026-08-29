@@ -14,13 +14,13 @@
     >Relationship Engagement Is Current</value></values>
   <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A completed activity in the last 90 days provides evidence that the relationship is being maintained.</value></values>
+    >A completed activity in the last 60 days provides evidence that the relationship is being maintained.</value></values>
   <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
   <values><field>SourceQuery__c</field><value
       xsi:type="xsd:string"
-    >SELECT COUNT() recentActivities FROM Task WHERE WhoId = {!record.Id} AND IsClosed = true AND ActivityDate = LAST_N_DAYS:90</value></values>
+    >SELECT COUNT() recentActivities FROM Task WHERE WhoId = {!record.Id} AND IsClosed = true AND ActivityDate = LAST_N_DAYS:60</value></values>
   <values><field>SourceQueryField__c</field><value
       xsi:type="xsd:string"
     >recentActivities</value></values>
@@ -44,7 +44,7 @@
     >AS_NO_MATCH</value></values>
   <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >{!rhcResult.foundValue} completed activities in the last 90 days</value></values>
+    >Completed relationship activities in 60 days: {!rhcResult.foundValue}</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
     >At least 1 recent completed activity</value></values>
@@ -53,7 +53,7 @@
     >WARNING</value></values>
   <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >No completed engagement has been recorded for {!record.Name fallback="this contact"} in the last 90 days.</value></values>
+    >No completed engagement has been recorded for {!record.Name fallback="this contact"} in the last 60 days.</value></values>
   <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
     >Confirm the relationship status, log a completed interaction when one occurred, or schedule a specific next outreach.</value></values>

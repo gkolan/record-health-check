@@ -325,7 +325,8 @@ private class RecordHealthCheckControllerTest {
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{
           'Name' => 'Controller user initiated',
-          'Website' => 'https://controller.example.com'
+          'Website' => 'https://controller.example.com',
+          'SLAExpirationDate__c' => Date.today().addDays(90)
         }
       )
     );

@@ -7,18 +7,7 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": false,
-    "check": "Example_Average_Deal_Vs_Largest",
-    "correlation": "AccountId = record.Id",
-    "field": "ComparisonQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "force-app",
-    "soql": "SELECT MAX(Amount) largestDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -29,29 +18,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
-    "check": "Example_Billing_State_In_Contacts",
-    "correlation": "AccountId = record.Id",
-    "field": "ApplicabilityCountQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "force-app",
-    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": false,
-    "bareCount": false,
-    "check": "Example_Billing_State_In_Contacts",
-    "correlation": "AccountId = record.Id",
-    "field": "ComparisonQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "force-app",
-    "soql": "SELECT MailingState FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
+    "soql": "SELECT SUM(Amount) proposalAmount FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -73,7 +40,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT Name FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -95,7 +62,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -106,18 +73,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY WhoId",
     "package": "force-app",
-    "soql": "SELECT COUNT() recentActivities FROM Task WHERE WhoId = {!record.Id} AND IsClosed = true AND ActivityDate = LAST_N_DAYS:90",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": false,
-    "bareCount": false,
-    "check": "Example_Contact_States_Match_Billing",
-    "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "force-app",
-    "soql": "SELECT OwnerId FROM Contact WHERE AccountId = {!record.Id}",
+    "soql": "SELECT COUNT() recentActivities FROM Task WHERE WhoId = {!record.Id} AND IsClosed = true AND ActivityDate = LAST_N_DAYS:60",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -128,7 +84,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -139,7 +95,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND NextStep != null",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND NextStep != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -205,7 +161,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CloseDate >= TODAY",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CloseDate = NEXT_N_DAYS:180",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -238,7 +194,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -249,7 +205,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT Birthdate FROM Contact WHERE AccountId = {!record.Id} AND Birthdate != null",
+    "soql": "SELECT Description FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND IsEscalated = true",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -271,7 +227,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -282,18 +238,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() coveredDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CampaignId != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
-    "check": "Example_Has_At_Least_One_Contact",
-    "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "force-app",
-    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "soql": "SELECT COUNT() coveredDeals FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND CampaignId != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -304,7 +249,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "soql": "SELECT Owner.IsActive FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -326,7 +271,7 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -337,18 +282,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() allCases FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
-    "check": "Example_Oldest_Contact_City_Matches",
-    "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "force-app",
-    "soql": "SELECT COUNT() coveredCases FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null",
+    "soql": "SELECT COUNT() allDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -392,7 +326,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT Name FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND (Amount = null OR Amount < 25000)",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -403,29 +337,29 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = true AND IsWon = false AND CloseDate = LAST_N_DAYS:90 AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
     "aggregate": true,
-    "bareCount": true,
+    "bareCount": false,
     "check": "Example_Open_Pipeline_Covers_Revenue",
     "correlation": "AccountId = record.Id",
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() priorQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER",
+    "soql": "SELECT SUM(Amount) recentLosses FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = true AND IsWon = false AND CloseDate = LAST_N_DAYS:90 AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
     "aggregate": true,
-    "bareCount": true,
+    "bareCount": false,
     "check": "Example_Open_Pipeline_Covers_Revenue",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() currentQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = THIS_QUARTER",
+    "soql": "SELECT SUM(Amount) newPipeline FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CreatedDate = LAST_N_DAYS:90 AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -458,18 +392,29 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsWon = true",
     "strategy": "CHILD_DIRECT"
   },
   {
-    "aggregate": false,
-    "bareCount": false,
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_Parent_Cities_Require_Data",
     "correlation": "AccountId = record.Id",
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT OwnerId FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() allDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsWon = true",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() valuedDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsWon = true AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -491,7 +436,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -517,14 +462,14 @@
     "strategy": "CHILD_DIRECT"
   },
   {
-    "aggregate": false,
-    "bareCount": false,
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_Significant_Open_Opp",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT Probability FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Probability != null",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND ForecastCategoryName = 'Commit'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -678,7 +623,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT(DISTINCT MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "soql": "SELECT COUNT_DISTINCT(MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -876,7 +821,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT(DISTINCT MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
+    "soql": "SELECT COUNT_DISTINCT(MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1030,7 +975,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND Email != null AND HasOptedOutOfEmail = false",
+    "soql": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND Email != null AND EmailBouncedDate = null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1371,18 +1316,7 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": false,
-    "check": "Example_Average_Deal_Vs_Largest",
-    "correlation": "AccountId = record.Id",
-    "field": "ComparisonQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "integration-tests",
-    "soql": "SELECT MAX(Amount) largestDeal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1393,7 +1327,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "soql": "SELECT SUM(Amount) proposalAmount FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1411,28 +1345,6 @@
     "aggregate": false,
     "bareCount": false,
     "check": "Example_BillState_In_Contact_States",
-    "correlation": "AccountId = record.Id",
-    "field": "ComparisonQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "integration-tests",
-    "soql": "SELECT MailingState FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
-    "check": "Example_Billing_State_In_Contacts",
-    "correlation": "AccountId = record.Id",
-    "field": "ApplicabilityCountQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": false,
-    "bareCount": false,
-    "check": "Example_Billing_State_In_Contacts",
     "correlation": "AccountId = record.Id",
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
@@ -1514,7 +1426,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Id FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT Name FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1536,7 +1448,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND ContactId != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1547,18 +1459,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY WhoId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() recentActivities FROM Task WHERE WhoId = {!record.Id} AND IsClosed = true AND ActivityDate = LAST_N_DAYS:90",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": false,
-    "bareCount": false,
-    "check": "Example_Contact_States_Match_Billing",
-    "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "integration-tests",
-    "soql": "SELECT OwnerId FROM Contact WHERE AccountId = {!record.Id}",
+    "soql": "SELECT COUNT() recentActivities FROM Task WHERE WhoId = {!record.Id} AND IsClosed = true AND ActivityDate = LAST_N_DAYS:60",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1569,7 +1470,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1580,7 +1481,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND NextStep != null",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND NextStep != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1646,7 +1547,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CloseDate >= TODAY",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CloseDate = NEXT_N_DAYS:180",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1679,7 +1580,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1690,7 +1591,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Birthdate FROM Contact WHERE AccountId = {!record.Id} AND Birthdate != null",
+    "soql": "SELECT Description FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND IsEscalated = true",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1712,7 +1613,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1723,18 +1624,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() coveredDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CampaignId != null",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
-    "check": "Example_Has_At_Least_One_Contact",
-    "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "soql": "SELECT COUNT() coveredDeals FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND CampaignId != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1789,7 +1679,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
+    "soql": "SELECT Owner.IsActive FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1822,7 +1712,7 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1833,18 +1723,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() allCases FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'",
-    "strategy": "CHILD_DIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
-    "check": "Example_Oldest_Contact_City_Matches",
-    "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
-    "note": "GROUP BY AccountId",
-    "package": "integration-tests",
-    "soql": "SELECT COUNT() coveredCases FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null",
+    "soql": "SELECT COUNT() allDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1910,7 +1789,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT Name FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND (Amount = null OR Amount < 25000)",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1921,29 +1800,29 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = true AND IsWon = false AND CloseDate = LAST_N_DAYS:90 AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
     "aggregate": true,
-    "bareCount": true,
+    "bareCount": false,
     "check": "Example_Open_Pipeline_Covers_Revenue",
     "correlation": "AccountId = record.Id",
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() priorQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = LAST_QUARTER",
+    "soql": "SELECT SUM(Amount) recentLosses FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = true AND IsWon = false AND CloseDate = LAST_N_DAYS:90 AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
     "aggregate": true,
-    "bareCount": true,
+    "bareCount": false,
     "check": "Example_Open_Pipeline_Covers_Revenue",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() currentQuarter FROM Opportunity WHERE AccountId = {!record.Id} AND CreatedDate = THIS_QUARTER",
+    "soql": "SELECT SUM(Amount) newPipeline FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND CreatedDate = LAST_N_DAYS:90 AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1976,18 +1855,29 @@
     "field": "ApplicabilityCountQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsWon = true",
     "strategy": "CHILD_DIRECT"
   },
   {
-    "aggregate": false,
-    "bareCount": false,
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_Parent_Cities_Require_Data",
     "correlation": "AccountId = record.Id",
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT OwnerId FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "soql": "SELECT COUNT() allDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsWon = true",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Parent_Cities_Require_Data",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() valuedDeals FROM Opportunity WHERE AccountId = {!record.Id} AND IsWon = true AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2009,7 +1899,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT ContactId FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High' AND ContactId != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2079,14 +1969,14 @@
     "strategy": "CHILD_DIRECT"
   },
   {
-    "aggregate": false,
-    "bareCount": false,
+    "aggregate": true,
+    "bareCount": true,
     "check": "Example_Significant_Open_Opp",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Probability FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Probability != null",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND ForecastCategoryName = 'Commit'",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2123,6 +2013,39 @@
     "strategy": "CHILD_DIRECT"
   },
   {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "soql": "SELECT SUM(TotalPrice) productTotal FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.StageName = 'Proposal/Price Quote'",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Billing_State_In_Contacts",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Billing_State_In_Contacts",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "soql": "SELECT Role FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND Role != null",
+    "strategy": "CHILD_PATH"
+  },
+  {
     "aggregate": false,
     "bareCount": false,
     "check": "Example_Contact_Cities_Exact_Parent",
@@ -2130,7 +2053,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "force-app",
-    "soql": "SELECT OpportunityId FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "soql": "SELECT Opportunity.Name FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
     "strategy": "CHILD_PATH"
   },
   {
@@ -2141,7 +2064,18 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "force-app",
-    "soql": "SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_States_Match_Billing",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() unreachableStakeholders FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null AND Contact.Email = null AND Contact.Phone = null",
     "strategy": "CHILD_PATH"
   },
   {
@@ -2168,6 +2102,28 @@
   },
   {
     "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Has_At_Least_One_Contact",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND Role = 'Decision Maker'",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Oldest_Contact_City_Matches",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "force-app",
+    "soql": "SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
     "bareCount": false,
     "check": "Example_Open_Deals_Have_Contacts",
     "correlation": "Opportunity.AccountId = record.Id",
@@ -2185,7 +2141,40 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "force-app",
-    "soql": "SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Average_Deal_Vs_Largest",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT SUM(TotalPrice) productTotal FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.StageName = 'Proposal/Price Quote'",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Billing_State_In_Contacts",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "ApplicabilityCountQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Example_Billing_State_In_Contacts",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Role FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND Role != null",
     "strategy": "CHILD_PATH"
   },
   {
@@ -2196,7 +2185,7 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "integration-tests",
-    "soql": "SELECT OpportunityId FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "soql": "SELECT Opportunity.Name FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
     "strategy": "CHILD_PATH"
   },
   {
@@ -2207,7 +2196,18 @@
     "field": "ComparisonQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "integration-tests",
-    "soql": "SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Contact_States_Match_Billing",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() unreachableStakeholders FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null AND Contact.Email = null AND Contact.Phone = null",
     "strategy": "CHILD_PATH"
   },
   {
@@ -2234,6 +2234,28 @@
   },
   {
     "aggregate": true,
+    "bareCount": true,
+    "check": "Example_Has_At_Least_One_Contact",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND Role = 'Decision Maker'",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Example_Oldest_Contact_City_Matches",
+    "correlation": "Opportunity.AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY Opportunity.AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT_DISTINCT(OpportunityId) coveredDeals FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false",
+    "strategy": "CHILD_PATH"
+  },
+  {
+    "aggregate": true,
     "bareCount": false,
     "check": "Example_Open_Deals_Have_Contacts",
     "correlation": "Opportunity.AccountId = record.Id",
@@ -2251,7 +2273,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY Opportunity.AccountId",
     "package": "integration-tests",
-    "soql": "SELECT ContactId FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
+    "soql": "SELECT Contact.Name FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null",
     "strategy": "CHILD_PATH"
   },
   {
@@ -2361,18 +2383,7 @@
     "field": "SourceQuery__c",
     "note": "Correlation column is Id; redundant LIMIT 1 dropped",
     "package": "force-app",
-    "soql": "SELECT COUNT() usableEmails FROM Contact WHERE Id = {!record.Id} AND Email != null AND EmailBouncedDate = null AND HasOptedOutOfEmail = false",
-    "strategy": "SELF"
-  },
-  {
-    "aggregate": false,
-    "bareCount": false,
-    "check": "Example_Parent_Cities_Require_Data",
-    "correlation": "Id = record.Id",
-    "field": "SourceQuery__c",
-    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
-    "package": "force-app",
-    "soql": "SELECT OwnerId FROM Account WHERE Id = {!record.Id}",
+    "soql": "SELECT COUNT() usableEmails FROM Contact WHERE Id = {!record.Id} AND Email != null AND EmailBouncedDate = null",
     "strategy": "SELF"
   },
   {
@@ -2614,7 +2625,7 @@
     "field": "SourceQuery__c",
     "note": "Correlation column is Id; redundant LIMIT 1 dropped",
     "package": "integration-tests",
-    "soql": "SELECT COUNT() usableEmails FROM Contact WHERE Id = {!record.Id} AND Email != null AND EmailBouncedDate = null AND HasOptedOutOfEmail = false",
+    "soql": "SELECT COUNT() usableEmails FROM Contact WHERE Id = {!record.Id} AND Email != null AND EmailBouncedDate = null",
     "strategy": "SELF"
   },
   {
@@ -2637,17 +2648,6 @@
     "note": "Correlation column is Id; redundant LIMIT 1 dropped",
     "package": "integration-tests",
     "soql": "SELECT BillingCity FROM Account WHERE Id = {!record.Id} LIMIT 1",
-    "strategy": "SELF"
-  },
-  {
-    "aggregate": false,
-    "bareCount": false,
-    "check": "Example_Parent_Cities_Require_Data",
-    "correlation": "Id = record.Id",
-    "field": "SourceQuery__c",
-    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
-    "package": "integration-tests",
-    "soql": "SELECT OwnerId FROM Account WHERE Id = {!record.Id}",
     "strategy": "SELF"
   },
   {

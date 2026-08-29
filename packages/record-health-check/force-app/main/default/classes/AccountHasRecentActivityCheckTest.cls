@@ -47,6 +47,89 @@ private class AccountHasRecentActivityCheckTest {
   }
 
   @IsTest
+  static void configuredMinimumPassesWhenEnoughEngagementsExist() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'RHC Engagement Volume Pass'
+    );
+    RecordHealthCheckTestDataFactory.createTask(
+      RecordHealthCheckTestDataFactory.task(
+        new Map<String, Object>{
+          'WhatId' => account.Id,
+          'Subject' => 'Executive review',
+          'Status' => 'Completed',
+          'ActivityDate' => Date.today()
+        }
+      )
+    );
+    RecordHealthCheckTestDataFactory.createEvent(
+      RecordHealthCheckTestDataFactory.event(
+        new Map<String, Object>{
+          'WhatId' => account.Id,
+          'Subject' => 'Operating review',
+          'ActivityDate' => Date.today(),
+          'StartDateTime' => Datetime.now(),
+          'EndDateTime' => Datetime.now().addHours(1)
+        }
+      )
+    );
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = evaluate(
+      account.Id,
+      new Map<String, Object>{ 'daysBack' => 60, 'minimumActivities' => 2 }
+    );
+    Test.stopTest();
+
+    Assert.areEqual('PASS', result.status, 'Two engagements should pass.');
+    Assert.areEqual('2', result.actualValue, 'Both activities should count.');
+    Assert.areEqual(
+      '2',
+      result.expectedValue,
+      'The configured minimum should display.'
+    );
+  }
+
+  @IsTest
+  static void configuredMinimumFailsWhenVolumeIsTooLow() {
+    Account account = RecordHealthCheckTestDataFactory.createAccount(
+      'RHC Engagement Volume Fail'
+    );
+    RecordHealthCheckTestDataFactory.createTask(
+      RecordHealthCheckTestDataFactory.task(
+        new Map<String, Object>{
+          'WhatId' => account.Id,
+          'Subject' => 'Only engagement',
+          'Status' => 'Completed',
+          'ActivityDate' => Date.today()
+        }
+      )
+    );
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = evaluate(
+      account.Id,
+      new Map<String, Object>{ 'minimumActivities' => 2 }
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'One engagement should miss a minimum of two.'
+    );
+    Assert.areEqual(
+      '1',
+      result.actualValue,
+      'The observed volume should display.'
+    );
+    Assert.areEqual(
+      '2',
+      result.expectedValue,
+      'The configured minimum should display.'
+    );
+  }
+
+  @IsTest
   static void whoOnlyContactTaskIsExplicitlyOutsideWhatIdContractRow22() {
     Account account = RecordHealthCheckTestDataFactory.createAccount(
       'RHC Who-only activity'
@@ -142,6 +225,21 @@ private class AccountHasRecentActivityCheckTest {
       'UNABLE_TO_EVALUATE',
       evaluate(account.Id, new Map<String, Object>{ 'daysBack' => 'abc' })
         .status
+    );
+    Assert.areEqual(
+      'INVALID_CONFIG',
+      evaluate(account.Id, new Map<String, Object>{ 'minimumActivities' => 0 })
+        .reasonCode,
+      'A zero engagement requirement is not a useful health policy.'
+    );
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      evaluate(
+          account.Id,
+          new Map<String, Object>{ 'minimumActivities' => true }
+        )
+        .status,
+      'Unsupported minimum types must be rejected.'
     );
   }
 

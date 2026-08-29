@@ -12,13 +12,15 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value xsi:type="xsd:string">Every open Case has a Contact</value>
+        <value
+      xsi:type="xsd:string"
+    >Every open Case identifies an accountable customer Contact</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Queries Contact on every open Case related to the Account. The Query check passes only when every returned Case has a Contact.</value>
+    >The Query check evaluates every open Case and passes only when each service issue identifies the customer Contact who can validate impact, decisions, and resolution.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -66,13 +68,13 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} open Cases have no Contact</value>
+    >Open Case contact gaps: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >All {!rhcResult.totalRecordCount} open Cases have a Contact</value>
+    >Service-triage standard: 0 of {!rhcResult.totalRecordCount} open Cases without a customer Contact</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -82,7 +84,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} open Cases on {!record.Name fallback="this Account"} have no Contact.</value>
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} open Cases for {!record.Name fallback="this Account"} lack an accountable customer Contact.</value>
     </values>
     <values>
         <field>FixMessage__c</field>

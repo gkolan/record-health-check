@@ -369,6 +369,7 @@
         <members>RecordHealthCheckReasonCodes</members>
         <members>RecordHealthCheckRunContext</members>
         <members>RecordHealthCheckAgentRestResource</members>
+        <members>RecordHealthCheckAgentRestDiagnosisTest</members>
         <members>RecordHealthCheckAgentRestResourceTest</members>
         <members>RecordHealthCheckRunCheckAgentAction</members>
         <members>RecordHealthCheckAgentActionTest</members>
@@ -408,6 +409,7 @@
         <members>RecordHealthCheckAdversarialBoundaryTest</members>
         <members>RecordHealthCheckApexResultFinalizerTest</members>
         <members>RecordHealthCheckDescribeCacheTest</members>
+        <members>RHCFieldPlannerNamespaceTest</members>
         <members>RecordHealthCheckFieldPlannerTest</members>
         <members>RHCPolymorphicOwnerAcceptanceTest</members>
         <members>RHCOwnershipHonestyTest</members>

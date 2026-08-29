@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Opportunity amount ceiling</label>
+    <label>Example: Deal-to-account value guardrail</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunity amounts are within a plausible range</value>
+    >Open Opportunities have active owners</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -32,7 +32,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
+    >SELECT Owner.IsActive FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -40,19 +40,15 @@
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">LESS_THAN_OR_EQUAL</value>
+        <value xsi:type="xsd:string">EQUALS</value>
     </values>
     <values>
         <field>ExpectedValueSource__c</field>
         <value xsi:type="xsd:string">FIXED_VALUE</value>
     </values>
     <values>
-        <field>ExpectedFixedValue__c</field>
-        <value xsi:type="xsd:string">100000000</value>
-    </values>
-    <values>
-        <field>ExpectedCurrencyIsoCode__c</field>
-        <value xsi:type="xsd:string">USD</value>
+        <field>ExpectedRecordFormula__c</field>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -66,11 +62,11 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >At least one open Opportunity for {!record.Name fallback="this Account"} exceeds the example $100 million plausibility ceiling.</value>
+    >One or more open Opportunities for {!record.Name fallback="this Account"} are assigned to inactive users.</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">Amount</value>
+        <value xsi:type="xsd:string">Owner.IsActive</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -86,7 +82,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm scope, quantity, currency, and pricing on the outlier. Correct entry mistakes and customize the ceiling for your market; do not reduce a legitimate deal.</value>
+    >For {!record.Name fallback="this Account"}, confirm the correct active sales owner, then transfer each open Opportunity through the approved ownership process.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -104,7 +100,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check evaluates each open Opportunity Amount and passes when every value is at or below an illustrative $100 million USD data-quality ceiling.</value>
+    >The Query check verifies Active on the owner of every open Opportunity. It passes only when every Opportunity owner is an active Salesforce user.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -125,14 +121,22 @@
     </values>
     <values>
         <field>EmptyValueHandling__c</field>
-        <value xsi:type="xsd:string">SKIP_RECORD</value>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Inactive owners: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Required inactive owners for {!record.Name fallback="this Account"}: 0</value>
+    </values>
+    <values>
+        <field>ExpectedFixedValue__c</field>
+        <value xsi:type="xsd:string">true</value>
     </values>
 </CustomMetadata>

@@ -64,7 +64,7 @@ jobs:
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts
         run: npm run check:permission-sets
-      - run: npm install --global @salesforce/cli@2.148.3
+      - run: npm install --global @salesforce/cli@2.149.9
       - run: npm run check:toolchain
       - run: echo y | sf plugins install code-analyzer@5.14.0
       - name: Record analyzer toolchain versions
@@ -94,6 +94,8 @@ jobs:
         run: sf org assign permset --name Record_Health_Check_Admin --target-org rhc-ci
       - name: Run production package Apex tests
         run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
+      - name: Run metadata validator against production metadata
+        run: sf apex run --target-org rhc-ci --file scripts/apex/validateMetadata.apex
       - name: Dry-run integration harness deployment
         working-directory: packages/record-health-check
         run: |
@@ -110,6 +112,8 @@ jobs:
             source_args+=(--source-dir "$directory")
           done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
           sf project deploy start "${source_args[@]}" --target-org rhc-ci --test-level NoTestRun --wait 30
+      - name: Assign integration harness permissions
+        run: sf org assign permset --name Record_Health_Check_Integration_Harness --target-org rhc-ci
       - name: Verify the live MCP-to-Apex REST contract
         run: npm run contract:org --prefix packages/record-health-check-mcp -- --target-org rhc-ci --namespace rhc
       - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
@@ -119,8 +123,6 @@ jobs:
         run: npm run test:unit:coverage && npm run check:quality-metrics -- --apex-org rhc-ci
       - name: Verify bounded query behavior against the accepted baseline
         run: npm run check:query-verdicts -- --target-org rhc-ci --namespace rhc
-      - name: Run metadata validator
-        run: sf apex run --target-org rhc-ci --file scripts/apex/validateMetadata.apex
       # Run static analysis last. The blocking release-policy profile documents
       # package-specific check decisions; every enabled finding fails CI. The
       # separate neutral audit runs every check as advisory debt evidence.
@@ -172,7 +174,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.148.3
+      - run: npm install --global @salesforce/cli@2.149.9
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:

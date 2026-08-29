@@ -20,10 +20,10 @@
     >FORMULA</value></values>
   <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >OR(AND(NOT(HasOptedOutOfEmail), NOT(ISBLANK(Email))), AND(NOT(DoNotCall), NOT(ISBLANK(Phone))))</value></values>
+    >OR(AND(ISBLANK(EmailBouncedDate), NOT(ISBLANK(Email))), AND(NOT(DoNotCall), NOT(ISBLANK(Phone))))</value></values>
   <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
-    >IF(AND(NOT(HasOptedOutOfEmail), NOT(ISBLANK(Email))), "Permitted email channel", IF(AND(NOT(DoNotCall), NOT(ISBLANK(Phone))), "Permitted phone channel", "No permitted channel"))</value></values>
+    >IF(AND(ISBLANK(EmailBouncedDate), NOT(ISBLANK(Email))), "Available email channel", IF(AND(NOT(DoNotCall), NOT(ISBLANK(Phone))), "Available phone channel", "No available channel"))</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
     >At least one recorded outreach channel allowed by standard Contact preferences</value></values>

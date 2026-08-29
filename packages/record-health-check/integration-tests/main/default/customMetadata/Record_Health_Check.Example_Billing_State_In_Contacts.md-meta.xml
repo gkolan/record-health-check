@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Local customer coverage</label>
+    <label>Example: Buying-committee breadth</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >A Contact represents the Account's billing region</value>
+    >Open-deal buying committee includes a technical evaluator</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -30,13 +30,13 @@
     </values>
     <values>
         <field>FindInListFormula__c</field>
-        <value xsi:type="xsd:string">BillingState</value>
+        <value xsi:type="xsd:string">"Technical Buyer"</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT MailingState FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null</value>
+    >SELECT Role FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND Role != null</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -54,7 +54,7 @@
         <field>ApplicabilityCountQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} AND MailingState != null</value>
+    >SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false</value>
     </values>
     <values>
         <field>ApplicabilityCountOperator__c</field>
@@ -72,11 +72,11 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >No Contact mailing address on {!record.Name fallback="this Account"} represents the Account's Billing State.</value>
+    >No Technical Buyer is identified across the open-deal buying committee for {!record.Name fallback="this Account"}.</value>
     </values>
     <values>
         <field>ComparisonQueryField__c</field>
-        <value xsi:type="xsd:string">MailingState</value>
+        <value xsi:type="xsd:string">Role</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -92,13 +92,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm whether a regional Contact is expected. Correct inaccurate data, or adapt this example when locations differ.</value>
+    >Validate the buying process for {!record.Name fallback="this Account"} and classify a Technical Buyer only when the customer's evaluation responsibility is confirmed.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Contact addresses for {!record.Name fallback="Account"}</value>
+    >Review buying committee for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -110,7 +110,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check passes when the Contact Mailing State list contains the Account Billing State, demonstrating a configurable regional-coverage rule.</value>
+    >The Query check passes when the Contact Role list across open Opportunities contains Technical Buyer, turning a reusable list-membership operator into an explicit solution-validation requirement.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -125,7 +125,7 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >No Contact on {!record.Name fallback="this Account"} has a Mailing State, so there is no list to search.</value>
+    >{!record.Name fallback="This Account"} has no Contact Roles on open Opportunities, so buying-committee breadth cannot be measured.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -143,12 +143,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Account Billing State: {!rhcResult.foundValue}</value>
+    >Capabilities represented on open deals: {!rhcResult.expectedValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Contact Mailing States: {!rhcResult.expectedValue}</value>
+    >Required buying-committee capability: {!rhcResult.foundValue}</value>
     </values>
 </CustomMetadata>

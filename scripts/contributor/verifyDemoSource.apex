@@ -10,8 +10,8 @@ Map<String, Integer> expectedCounts = new Map<String, Integer>{
   'accounts' => 3,
   'contacts' => 38,
   'parentContacts' => 6,
-  'opportunities' => 2,
-  'roles' => 3,
+  'opportunities' => 6,
+  'roles' => 4,
   'tasks' => 2,
   'events' => 0,
   'cases' => 16,
@@ -19,8 +19,8 @@ Map<String, Integer> expectedCounts = new Map<String, Integer>{
   'openMediumCases' => 4,
   'openLowCases' => 4,
   'closedCases' => 4,
-  'openCasesWithContacts' => 7,
-  'openCasesWithoutContacts' => 5
+  'openCasesWithContacts' => 6,
+  'openCasesWithoutContacts' => 6
 };
 Map<String, Integer> actualCounts = new Map<String, Integer>{
   'accounts' => [
@@ -104,35 +104,36 @@ String demoCheckSetQualifiedApiName = [
 .QualifiedApiName;
 RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
   RecordHealthCheckRequest.forCheckSet(
-    demoCheckSetQualifiedApiName,
-    demoAccount.Id
-  )
+      demoCheckSetQualifiedApiName,
+      demoAccount.Id
+    )
+    .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
 );
 Map<String, String> expectedStatuses = new Map<String, String>{
-  'Example_Website_URL_Valid' => 'PASS',
+  'Example_Website_URL_Valid' => 'FAIL',
   'Example_Guide_Industry_Manufacturing' => 'PASS',
   'Example_Segregation_Of_Duties' => 'SKIPPED',
   'Example_Has_At_Least_One_Contact' => 'PASS',
   'Example_Open_Cases_Have_Contacts' => 'FAIL',
   'Example_Fewer_Than_Ten_Open_Cases' => 'FAIL',
-  'Example_Guide_Contacts_Have_Email' => 'PASS',
+  'Example_Guide_Contacts_Have_Email' => 'FAIL',
   'Example_Open_Opps_Have_Amount' => 'PASS',
   'Example_High_Value_Open_Opp' => 'PASS',
-  'Example_Significant_Open_Opp' => 'PASS',
-  'Example_Contact_States_Match_Billing' => 'PASS',
+  'Example_Significant_Open_Opp' => 'FAIL',
+  'Example_Contact_States_Match_Billing' => 'FAIL',
   'Example_Billing_State_In_Contacts' => 'FAIL',
   'Example_Contacts_Cover_Open_Cases' => 'FAIL',
-  'Example_Contact_Vs_Open_Opp_Count' => 'PASS',
-  'Example_Oldest_Contact_City_Matches' => 'PASS',
+  'Example_Contact_Vs_Open_Opp_Count' => 'FAIL',
+  'Example_Oldest_Contact_City_Matches' => 'FAIL',
   'Example_Guide_Open_Deals_Have_Contacts' => 'FAIL',
-  'Example_Open_Pipeline_Covers_Revenue' => 'SKIPPED',
-  'Example_Average_Deal_Vs_Largest' => 'PASS',
-  'Example_Earliest_Vs_Latest_Close' => 'SKIPPED',
-  'Example_Distinct_Cities_Vs_Contacts' => 'PASS',
+  'Example_Open_Pipeline_Covers_Revenue' => 'FAIL',
+  'Example_Average_Deal_Vs_Largest' => 'UNABLE_TO_EVALUATE',
+  'Example_Earliest_Vs_Latest_Close' => 'FAIL',
+  'Example_Distinct_Cities_Vs_Contacts' => 'FAIL',
   'Example_Contact_Cities_Overlap_Parent' => 'FAIL',
   'Example_Parent_Covers_Contact_Cities' => 'FAIL',
   'Example_Contact_Cities_Exact_Parent' => 'FAIL',
-  'Example_Parent_Cities_Require_Data' => 'PASS',
+  'Example_Parent_Cities_Require_Data' => 'FAIL',
   'Example_Guide_Recent_Activity' => 'PASS'
 };
 Map<String, String> expectedQualifiedStatuses = new Map<String, String>();
@@ -166,6 +167,45 @@ for (RecordHealthCheckResultItem item : response.results) {
         '.'
     );
   }
+  if (checkName.endsWith('Example_Website_URL_Valid')) {
+    if (
+      item.evaluation.found == null ||
+      String.isBlank(item.evaluation.found.storedValue) ||
+      item.evaluation.expected == null ||
+      item.evaluation.expected.storedValue != 'More than 60 days'
+    ) {
+      throw new StringException(
+        'Unexpected SLA Formula values. Found=' +
+          JSON.serialize(item.evaluation.found) +
+          ', Expected=' +
+          JSON.serialize(item.evaluation.expected) +
+          '.'
+      );
+    }
+    if (
+      item.display == null ||
+      String.isBlank(item.display.foundDisplayValue) ||
+      String.isBlank(item.display.expectedDisplayValue) ||
+      item.display.renderedMessage.contains('{!') ||
+      item.display.renderedFix.contains('{!') ||
+      item.display.actionLabel.contains('{!') ||
+      item.display.actionUrl.contains('{!')
+    ) {
+      throw new StringException(
+        'The SLA Formula display values or merge fields did not render: ' +
+        JSON.serialize(item.display)
+      );
+    }
+    System.debug(
+      LoggingLevel.INFO,
+      'RHC_SLA_DISPLAY found=' +
+        item.display.foundDisplayValue +
+        ' expected=' +
+        item.display.expectedDisplayValue +
+        ' action=' +
+        item.display.actionLabel
+    );
+  }
   expectedQualifiedStatuses.remove(checkName);
 }
 if (!expectedQualifiedStatuses.isEmpty()) {
@@ -177,10 +217,10 @@ if (!expectedQualifiedStatuses.isEmpty()) {
 }
 
 if (
-  response.summary.passed != 14 ||
-  response.summary.failed != 8 ||
-  response.summary.skipped != 3 ||
-  response.summary.unable != 0 ||
+  response.summary.passed != 5 ||
+  response.summary.failed != 18 ||
+  response.summary.skipped != 1 ||
+  response.summary.unable != 1 ||
   response.summary.systemError != 0
 ) {
   throw new StringException(
@@ -200,5 +240,5 @@ if (
 
 System.debug(
   LoggingLevel.INFO,
-  'RHC_SOURCE_DEMO_VERIFIED pass=14 fail=8 skip=3 unable=0 cases=16'
+  'RHC_SOURCE_DEMO_VERIFIED pass=5 fail=18 skip=1 unable=1 cases=16'
 );

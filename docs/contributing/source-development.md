@@ -25,7 +25,7 @@ instead.
 Before you start:
 
 - Git
-- Salesforce CLI 2.148.3 (`sf`) installed and on your `PATH`
+- Salesforce CLI 2.149.9 (`sf`) installed and on your `PATH`
 - A Dev Hub org you can authenticate (example alias: `my-dev-hub`)
 - Node.js 22
 
@@ -40,7 +40,7 @@ sf org login web --set-default-dev-hub --alias my-dev-hub
 npm run check:toolchain
 ```
 
-The final command must report that the local and CI toolchains use Salesforce CLI 2.148.3. The
+The final command must report that the local and CI toolchains use Salesforce CLI 2.149.9. The
 repository intentionally stops contributor commands when another CLI version is installed.
 
 ## Step 1: Create the contributor org
@@ -93,9 +93,9 @@ npm run demo:setup-source -- --alias rhc-dev
 
 The command detects the source namespace, runs the committed safe-to-rerun
 `scripts/subscriber/data/setupDemoData.apex` seed, and evaluates all 25 current-source Checks using
-`scripts/contributor/verifyDemoSource.apex`. For the 2.0.5 source, success reports **14 Passed, 8
-Failed, 3 Skipped, and 0 Unable to Check**. The data shape remains three Accounts, 44 Contacts, two
-Opportunities, three Opportunity Contact Roles, two Tasks, and 16 Cases.
+`scripts/contributor/verifyDemoSource.apex`. For the 2.0.5 source, success reports **5 Passed, 18
+Failed, 1 Skipped, and 1 Unable to Check**. The data shape remains three Accounts, 44 Contacts, six
+Opportunities, four Opportunity Contact Roles, two Tasks, and 16 Cases.
 
 Rerunning the command replaces only the tagged Acme demo's related records. To remove the complete
 demo, delete the three Accounts whose Account Number begins with `RHC-DEMO-`, starting with Acme and

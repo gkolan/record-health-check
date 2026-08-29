@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Centralized Contact ownership</label>
+    <label>Example: Reachable deal stakeholders</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Contacts align with the Account owner</value>
+    >Open-deal stakeholders have a verified contact channel</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -32,11 +32,11 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT OwnerId FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT COUNT() unreachableStakeholders FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND ContactId != null AND Contact.Email = null AND Contact.Phone = null</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
-        <value xsi:type="xsd:string">ALL_ROWS_PASS</value>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
     </values>
     <values>
         <field>ComparisonOperator__c</field>
@@ -44,11 +44,11 @@
     </values>
     <values>
         <field>ExpectedValueSource__c</field>
-        <value xsi:type="xsd:string">RECORD_FORMULA</value>
+        <value xsi:type="xsd:string">FIXED_VALUE</value>
     </values>
     <values>
-        <field>ExpectedRecordFormula__c</field>
-        <value xsi:type="xsd:string">OwnerId</value>
+        <field>ExpectedFixedValue__c</field>
+        <value xsi:type="xsd:string">0</value>
     </values>
     <values>
         <field>NoRowsResult__c</field>
@@ -60,17 +60,17 @@
     </values>
     <values>
         <field>FailureSeverity__c</field>
-        <value xsi:type="xsd:string">INFO</value>
+        <value xsi:type="xsd:string">WARNING</value>
     </values>
     <values>
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contacts on {!record.Name fallback="this Account"} have a different owner.</value>
+    >One or more open-deal stakeholders for {!record.Name fallback="this Account"} have neither email nor phone.</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">OwnerId</value>
+        <value xsi:type="xsd:string">unreachableStakeholders</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -86,25 +86,25 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm the ownership model. Align legitimate owners, or adapt this example for team-based ownership.</value>
+    >For {!record.Name fallback="this Account"}, confirm a permitted email address or phone number directly with the stakeholder or an authorized source. Never add fabricated contact data.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review ownership for {!record.Name fallback="Account"}</value>
+    >Review buying contacts for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check passes only when every related Contact owner equals the Account owner, demonstrating a centralized-ownership model.</value>
+    >The Query check passes when no Contact attached to an open Opportunity lacks both email and phone, connecting buying-committee coverage to usable outreach evidence.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -113,7 +113,7 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">TEXT</value>
+        <value xsi:type="xsd:string">NUMBER</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -127,12 +127,12 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} Contact owners differ</value>
+    >Open-deal stakeholders without email or phone: {!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >Account owner: {!rhcResult.expectedValue}</value>
+    >Buyer-contact standard: {!rhcResult.expectedValue} unreachable stakeholders</value>
     </values>
 </CustomMetadata>

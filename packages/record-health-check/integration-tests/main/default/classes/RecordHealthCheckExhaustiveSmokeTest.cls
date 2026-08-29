@@ -154,6 +154,14 @@ private class RecordHealthCheckExhaustiveSmokeTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Exhaustive enqueue'
     );
+    RHCIntegrationTestDataFactory.contact(
+      accountRecord.Id,
+      'Exhaustive enqueue'
+    );
+    RHCIntegrationTestDataFactory.opportunity(
+      accountRecord.Id,
+      'Exhaustive enqueue'
+    );
     Integer checkCount = [SELECT COUNT() FROM Record_Health_Check__mdt];
     Integer finalCheckOffset = checkCount > 0 ? checkCount - 1 : 0;
 

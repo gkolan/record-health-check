@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Account has a Contact</label>
+    <label>Example: Decision-maker coverage</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -20,7 +20,9 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value xsi:type="xsd:string">Account has at least one Contact</value>
+        <value
+      xsi:type="xsd:string"
+    >Open pipeline has an identified decision maker</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -30,7 +32,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT COUNT() FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false AND Role = 'Decision Maker'</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>
@@ -38,7 +40,7 @@
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">GREATER_THAN</value>
+        <value xsi:type="xsd:string">GREATER_THAN_OR_EQUAL</value>
     </values>
     <values>
         <field>ExpectedValueSource__c</field>
@@ -46,7 +48,7 @@
     </values>
     <values>
         <field>ExpectedFixedValue__c</field>
-        <value xsi:type="xsd:string">0</value>
+        <value xsi:type="xsd:string">1</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -60,7 +62,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Contacts.</value>
+    >No decision-maker Contact Role is identified across the open pipeline for {!record.Name fallback="this Account"}.</value>
     </values>
     <values>
         <field>PublishUserResultEvent__c</field>
@@ -76,25 +78,25 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review the related Account data and update the records that do not meet this check.</value>
+    >For {!record.Name fallback="this Account"}, confirm final buying authority, then add the verified Contact as a Decision Maker on the appropriate open Opportunity. Do not infer authority from title alone.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Contacts for {!record.Name fallback="Account"}</value>
+    >Review buying roles for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Counts Contacts related to the Account. The Query check compares the Contact count with 0 and passes when the count is greater than 0.</value>
+    >The Query check passes when open pipeline has at least one explicit Decision Maker; zero roles fails. Before cloning, align roles and stages and decide whether authority is required once per Account or on every qualifying deal.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -119,10 +121,14 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Verified buying authority on open deals: {!rhcResult.foundValue} Decision Maker role{!rhcResult.foundValuePluralSuffix}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
+        <value
+      xsi:type="xsd:string"
+    >Minimum buying-authority evidence: {!rhcResult.expectedValue} verified Decision Maker</value>
     </values>
 </CustomMetadata>
