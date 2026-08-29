@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: npm install --global @salesforce/cli@2.149.9
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
       - run: npm run check:toolchain-policy

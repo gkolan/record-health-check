@@ -17,6 +17,7 @@ function fail(message) {
 }
 
 for (const workflow of [
+  ".github/workflows/ci.yml",
   ".github/workflows/salesforce-validate.yml",
   ".github/workflows/subscriber-validate.yml"
 ]) {
