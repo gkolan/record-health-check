@@ -138,6 +138,23 @@ const fixtureCoreExamples = fixtureExamples.filter((name) =>
 );
 const failures = [];
 
+for (const fileName of coreRecords) {
+  for (const [fieldName, value] of customMetadataValues(
+    coreDirectory,
+    fileName
+  )) {
+    const customFieldReferences = [
+      ...value.matchAll(/\b[A-Za-z][A-Za-z0-9_]*__c\b/g)
+    ].map((match) => match[0]);
+    if (customFieldReferences.length > 0) {
+      failures.push(
+        `${fileName} ${fieldName} must not depend on subscriber custom fields: ` +
+          [...new Set(customFieldReferences)].join(", ")
+      );
+    }
+  }
+}
+
 for (const directory of [coreDirectory, fixtureDirectory]) {
   for (const fileName of files(directory)) {
     const identity = fileName.replace(

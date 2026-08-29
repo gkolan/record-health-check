@@ -53,27 +53,27 @@ specific message. It is not repeated in every row.
 
 ## Formula Checks
 
-### Check 10: SLA renewal is secured beyond 60 days
+### Check 10: Annual revenue is at least $1 million
 
 | Check field | Proposed value |
 | --- | --- |
-| Check API name | `SLA_Renewal_Secured_Beyond_60_Days` |
+| Check API name | `Annual_Revenue_At_Least_One_Million` |
 | Evaluation Order | 10 |
 | Evaluation Type | Formula |
-| Description | Formula evaluation compares the Account **SLA Expiration Date** with the date 60 days from today. It passes when the renewed term extends beyond that date and fails when expiry is inside the renewal-risk window. |
-| Applies When | **SLA Expiration Date** has a value. |
-| Applicability Formula | `NOT(ISBLANK(SLAExpirationDate__c))` |
-| Pass Formula | `SLAExpirationDate__c > TODAY() + 60` |
+| Description | Formula evaluation compares Account **Annual Revenue** with $1,000,000. It passes when Annual Revenue is at least that threshold and fails when it is lower. |
+| Applies When | **Annual Revenue** has a value. |
+| Applicability Formula | `NOT(ISBLANK(AnnualRevenue))` |
+| Pass Formula | `AnnualRevenue >= 1000000` |
 | Found | `{!rhcResult.foundValue}` |
-| Found Formula | `TEXT(SLAExpirationDate__c)` |
+| Found Formula | `TEXT(AnnualRevenue)` |
 | Expected | `{!rhcResult.expectedValue}` |
-| Expected Formula | `"More than 60 days"` |
-| Demo result | Warning failure. The proposed demo SLA Expiration Date is 45 days from setup. |
+| Expected Formula | `"$1,000,000 or more"` |
+| Demo result | Warning failure. The demo Annual Revenue is $500,000. |
 | Failure Severity | Warning |
-| Failure Message | `{!record.Name fallback="This Account"} has an SLA Expiration Date within the next 60 days and does not show a renewed term beyond the renewal-risk window.` |
-| Skipped Message | `{!record.Name fallback="This Account"} has no SLA Expiration Date, so renewal timing cannot be checked.` |
-| Fix Instructions | Confirm renewal status with the Account owner and contracting team. If the renewal is signed, update **SLA Expiration Date** from the approved term. Otherwise, document the renewal plan. Do not move the date only to pass the Check. |
-| Action | **Review SLA renewal** → edit the Account |
+| Failure Message | `{!record.Name fallback="This Account"} has Annual Revenue below $1,000,000.` |
+| Skipped Message | `{!record.Name fallback="This Account"} has no Annual Revenue, so the threshold cannot be checked.` |
+| Fix Instructions | Confirm **Annual Revenue** with the Account owner and update it from an approved source. Do not change the value only to pass the Check. |
+| Action | **Review Annual Revenue** → edit the Account |
 | Rating | Understandability 10 · Business value 10 · Logic depth 10 · **30/30** |
 
 ### Check 20: Billing address matches the parent bill-to Account

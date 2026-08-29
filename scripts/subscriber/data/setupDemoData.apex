@@ -174,7 +174,6 @@ acme.Type = 'Customer';
 // comparison is useful rather than a generic same/different result.
 acme.Industry = 'Technology';
 acme.Rating = 'Hot';
-acme.SLAExpirationDate__c = Date.today().addDays(45);
 acme.AnnualRevenue = 500000;
 acme.NumberOfEmployees = 1250;
 acme.Phone = '(312) 555-0180';

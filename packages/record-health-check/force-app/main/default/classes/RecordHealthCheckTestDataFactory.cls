@@ -173,8 +173,7 @@ public class RecordHealthCheckTestDataFactory {
       Rating = 'Hot',
       AnnualRevenue = 1000000,
       NumberOfEmployees = 25,
-      AccountNumber = token,
-      SLAExpirationDate__c = Date.today().addDays(90)
+      AccountNumber = token
     );
 
     populateRequiredFields(healthyAccount);

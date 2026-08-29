@@ -326,7 +326,7 @@ private class RecordHealthCheckControllerTest {
         new Map<String, Object>{
           'Name' => 'Controller user initiated',
           'Website' => 'https://controller.example.com',
-          'SLAExpirationDate__c' => Date.today().addDays(90)
+          'AnnualRevenue' => 2000000
         }
       )
     );

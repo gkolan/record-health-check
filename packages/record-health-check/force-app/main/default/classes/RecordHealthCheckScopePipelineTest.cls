@@ -11,16 +11,10 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   @IsTest
   static void qualifiedCheckEvaluatesDeduplicatedScopeInInputOrder() {
     Account first = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{
-        'Name' => 'First',
-        'SLAExpirationDate__c' => Date.today().addDays(90)
-      }
+      new Map<String, Object>{ 'Name' => 'First', 'AnnualRevenue' => 2000000 }
     );
     Account second = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{
-        'Name' => 'Second',
-        'SLAExpirationDate__c' => Date.today().addDays(90)
-      }
+      new Map<String, Object>{ 'Name' => 'Second', 'AnnualRevenue' => 2000000 }
     );
     RecordHealthCheckTestDataFactory.createAccounts(
       new List<Account>{ first, second }
@@ -58,7 +52,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       2,
       response.summary.passed,
-      'Both Accounts with secured SLA renewals should pass.'
+      'Both Accounts above the annual-revenue threshold should pass.'
     );
     Assert.isNull(
       response.results[0].display,
@@ -70,8 +64,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   static void displayModeAddsDisplayWithoutChangingEnvelope() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
-        'Name' => 'Renewal Risk',
-        'SLAExpirationDate__c' => Date.today().addDays(45)
+        'Name' => 'Revenue Below Threshold',
+        'AnnualRevenue' => 500000
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
@@ -91,7 +85,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       RecordHealthCheckStatus.FAIL,
       response.results[0].evaluation.status,
-      'An SLA expiration inside the 60-day renewal window should fail.'
+      'Annual revenue below one million should fail.'
     );
     Assert.isNotNull(
       response.results[0].display,
@@ -107,8 +101,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   static void summaryModeOmitsPassingItemsButRetainsCounts() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
-        'Name' => 'Secured Renewal',
-        'SLAExpirationDate__c' => Date.today().addDays(90)
+        'Name' => 'Revenue Above Threshold',
+        'AnnualRevenue' => 2000000
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
