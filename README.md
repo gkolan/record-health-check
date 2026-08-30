@@ -52,7 +52,7 @@ When a record needs attention, the card explains what was **Found**, what was **
       </ul>
     </td>
     <td width="52%" valign="top">
-      <img src="assets/img/Example_Account_Relationship_Risk_Screenshot.png" alt="Account Relationship and Risk Health Check showing executive sponsorship, ownership, engagement, revenue coverage, customer issues, descriptive Found and Expected values, and an intentional business-specific skip" width="100%" />
+      <img src="assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png" alt="Account Relationship and Risk Health Check in SLDS 2 showing executive sponsorship, ownership, engagement, revenue coverage, customer issues, descriptive Found and Expected values, and an intentional business-specific skip" width="100%" />
     </td>
   </tr>
 </table>
