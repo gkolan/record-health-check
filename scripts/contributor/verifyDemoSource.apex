@@ -172,13 +172,13 @@ for (RecordHealthCheckResultItem item : response.results) {
       item.evaluation.found == null ||
       String.isBlank(item.evaluation.found.storedValue) ||
       item.evaluation.expected == null ||
-      item.evaluation.expected.storedValue != 'More than 60 days'
+      item.evaluation.expected.storedValue != '$1,000,000 or more'
     ) {
       throw new StringException(
-        'Unexpected SLA Formula values. Found=' +
-          JSON.serialize(item.evaluation.found) +
+        'Unexpected Annual Revenue Formula values. Found=' +
+          item.evaluation.found?.storedValue +
           ', Expected=' +
-          JSON.serialize(item.evaluation.expected) +
+          item.evaluation.expected?.storedValue +
           '.'
       );
     }
@@ -192,13 +192,12 @@ for (RecordHealthCheckResultItem item : response.results) {
       item.display.actionUrl.contains('{!')
     ) {
       throw new StringException(
-        'The SLA Formula display values or merge fields did not render: ' +
-        JSON.serialize(item.display)
+        'The Annual Revenue Formula display values or merge fields did not render.'
       );
     }
     System.debug(
       LoggingLevel.INFO,
-      'RHC_SLA_DISPLAY found=' +
+      'RHC_ANNUAL_REVENUE_DISPLAY found=' +
         item.display.foundDisplayValue +
         ' expected=' +
         item.display.expectedDisplayValue +

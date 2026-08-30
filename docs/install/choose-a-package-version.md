@@ -10,9 +10,8 @@ plan recovery. For a normal first installation, follow [Install and verify](./in
 Each Salesforce package version has a unique `04t` ID. The sandbox and production buttons for a row
 install the same immutable package; only the Salesforce login destination differs.
 
-In Salesforce packaging terms, **second-generation managed packaging (2GP)** creates released
-versions with fixed contents. **Immutable** means Salesforce does not edit a released version in
-place. **Ancestry** is the upgrade relationship Salesforce records between package versions.
+In Salesforce packaging terms, this is a **second-generation unlocked package (2GP)**. Released
+versions have fixed contents: Salesforce does not edit a released version in place.
 
 ## Before you start
 
@@ -25,12 +24,13 @@ read **Version Number**.
 
 ## Step 1: Choose a version
 
-Versions are listed newest first. The catalog retains Record Health Check 2.0.3.1 as the previous
-production release; earlier 2.0.1 development and release-candidate versions are intentionally not
+Versions are listed newest first. The catalog retains Record Health Check 2.0.4.2 as the previous
+production release; earlier development and release-candidate versions are intentionally not
 listed.
 
 | Version | Release name | Package version ID | Sandbox | Production or Developer Edition |
 | --- | --- | --- | --- | --- |
+| **2.0.5.1** | Version 2.0.5 | `04tak000000eIO1AAM` | [Install 2.0.5.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eIO1AAM) | [Install 2.0.5.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eIO1AAM) |
 | **2.0.4.2** | Version 2.0.4 | `04tak000000cZBFAA2` | [Install 2.0.4.2 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000cZBFAA2) | [Install 2.0.4.2 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000cZBFAA2) |
 | **2.0.3.1** | Version 2.0.3 | `04tak000000ajbJAAQ` | [Install 2.0.3.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) | [Install 2.0.3.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) |
 
@@ -48,7 +48,7 @@ Use the `04t` value from the table when an automated process must install a spec
 
 ```bash
 sf package install \
-  --package 04tak000000cZBFAA2 \
+  --package 04tak000000eIO1AAM \
   --target-org <org-alias> \
   --security-type AdminsOnly \
   --upgrade-type DeprecateOnly \
@@ -63,7 +63,7 @@ Lightning page, and user-verification steps in [Install and verify](./install-in
 ## Step 3: Roll back safely
 
 A released 2GP package version is immutable, but that does not make in-place downgrade a dependable
-rollback mechanism. Salesforce package upgrades follow version ancestry and dependency rules. Test
+rollback mechanism. Salesforce package upgrades follow version and dependency rules. Test
 the intended transition in a representative sandbox; do not assume an org can install a lower
 version over a higher one.
 

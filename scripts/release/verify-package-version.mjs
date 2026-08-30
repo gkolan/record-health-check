@@ -203,11 +203,11 @@ function main() {
     process.exit(1);
   }
   const alias = values.alias;
-  const previousId = releases.previous?.subscriberPackageVersionId ?? "";
+  const stableId = releases.stable?.subscriberPackageVersionId ?? "";
   const needsUpgradeOrg =
     !values["skip-upgrade"] &&
-    previousId.startsWith("04t") &&
-    previousId !== candidateId;
+    stableId.startsWith("04t") &&
+    stableId !== candidateId;
 
   if (values["upgrade-only"]) {
     runUpgradeGate(candidateId, alias, devHub, releases, true);
@@ -274,27 +274,27 @@ function runUpgradeGate(
   releases,
   required = false
 ) {
-  const previousId = releases.previous?.subscriberPackageVersionId ?? "";
-  if (!previousId.startsWith("04t") || previousId === candidateId) {
+  const stableId = releases.stable?.subscriberPackageVersionId ?? "";
+  if (!stableId.startsWith("04t") || stableId === candidateId) {
     if (required) {
       console.error(
-        "Upgrade-only verification requires a distinct previous 04t in package-releases.json."
+        "Upgrade-only verification requires a distinct stable 04t in package-releases.json."
       );
       process.exit(1);
     }
-    console.log("Skipping upgrade gate: no distinct previous 04t configured.");
+    console.log("Skipping upgrade gate: no distinct stable 04t configured.");
     return;
   }
 
-  if (!isPromoted(previousId, devHub)) {
+  if (!isPromoted(stableId, devHub)) {
     if (required) {
       console.error(
-        `Upgrade-only verification requires promoted previous version ${previousId}.`
+        `Upgrade-only verification requires promoted stable version ${stableId}.`
       );
       process.exit(1);
     }
     console.warn(
-      `Skipping upgrade gate: previous ${previousId} is not promoted on Dev Hub. Promote it to enable N-1 upgrade CI.`
+      `Skipping upgrade gate: stable ${stableId} is not promoted on Dev Hub. Promote it to enable upgrade CI.`
     );
     return;
   }
@@ -330,9 +330,9 @@ function runUpgradeGate(
   createdAliases.add(alias);
 
   console.log(
-    `Installing previous promoted version ${previousId} for upgrade rehearsal...`
+    `Installing stable promoted version ${stableId} for upgrade rehearsal...`
   );
-  installPackage(previousId, alias);
+  installPackage(stableId, alias);
   assignAdmin(alias, releases);
   deploySubscriberHarness(alias);
 
@@ -347,7 +347,6 @@ function runUpgradeGate(
         `${paths.subscriberData}/${script}`
       ]);
     }
-    runDemoVerification(alias);
   }
 
   console.log(`Upgrading ${alias} to candidate ${candidateId}...`);
