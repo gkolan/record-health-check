@@ -13,7 +13,7 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 > included in Run All Tests, or source-deployed into a customized org and subscriber validation
 > rules, triggers, or flows reject Framework fixture DML. Ordinary subscriber `RunLocalTests` skips
 > the installed package's namespaced tests. Confirm the failing stack before changing automation;
-> the next promoted fix removes business-object DML from packaged tests.
+> version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
 - Current released candidate: `Record Health Check@2.0.5-1` (`04tak000000eIO1AAM`).
@@ -77,6 +77,61 @@ For installation and verification, start with
 [Install and verify](./docs/install/install-in-a-sandbox.md). For the public contracts, use the
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
+
+## Version 2.0.6
+
+Package release pending. The package version ID and install URLs will be recorded after promotion.
+
+### Added
+
+- Lightning record pages now reevaluate visible results after a standard record save or
+  `RefreshView` notification. Automatic Check Sets refresh immediately; Manual Check Sets preserve
+  their initial user-run boundary and refresh only after the first completed Run.
+- Added a platform conformance gate for hierarchy paths, signed decimal and currency values, nulls,
+  current-versus-snapshot behavior, timestamps, and mixed-record bulk evaluation.
+- Added an isolated two-package conformance gate using the `rhc` and Salesforce CPQ `SBQQ`
+  namespaces. It proves a foreign namespaced field through Formula, Query, and record merge-token
+  evaluation without making CPQ a product dependency.
+
+### Changed
+
+- Packaged Apex tests no longer persist Account, Contact, Opportunity, Task, Event, or Case fixture
+  records. Persistence-dependent coverage remains in the clean-org integration harness, preventing
+  subscriber validation rules, triggers, and flows from breaking package installation or explicit
+  packaged-test runs.
+- Reviewed package upgrade commands now use Salesforce `Mixed` mode. Components that are safe to
+  remove do not remain behind and break compilation, while components Salesforce cannot safely
+  delete are deprecated.
+- Save-driven Lightning refreshes use the non-publishing browser lifecycle. They coalesce bursts,
+  replace stale in-flight results, and never publish Check Result or Check Set Run lifecycle events.
+
+### Fixed
+
+- Formula dependency planning no longer treats `$User`, `$Profile`, `$Setup`, `$Permission`, or
+  other FormulaEval globals as fields on the checked record. Unsupported globals fail closed with
+  `UNABLE_TO_EVALUATE` and `INVALID_FORMULA` instead of producing a caller-dependent verdict.
+- A result from a superseded Lightning run can no longer overwrite results started after a record
+  save or an in-place record change.
+
+### Documentation
+
+- Added an execution-context war room for differences between Lightning, Flow, Queueable, Batch,
+  and Scheduled Apex, including access, identity, timezone, and asynchronous transaction evidence.
+- Documented that fields owned by another installed package must retain their complete namespace
+  prefix in formulas, SOQL, Source Query Field, and record merge tokens. Record Health Check does
+  not infer or retry an unqualified API name.
+- Clarified that derived-value freshness is an organization-specific policy expressed with existing
+  Formula, Query, Compare Two Queries, or subscriber Apex evidence rather than a new core evaluator.
+- Documented record-save refresh behavior, lifecycle-event boundaries, platform conformance
+  evidence, and the separation between packaged tests and persistence-dependent integration tests.
+
+### Verification
+
+- The foreign-namespace gate passed all three focused Apex scenarios in a disposable namespaced
+  scratch org with Record Health Check and Salesforce CPQ installed.
+- The focused Code Analyzer scan reported zero violations. Local release checks cover package
+  conversion, manifests, boundaries, query shapes, permissions, XML, documentation, LWC tests, MCP
+  tests, and published quality metrics. Hosted Salesforce validation remains required after push.
 
 ## Version 2.0.5.1
 

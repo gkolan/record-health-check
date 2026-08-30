@@ -63,9 +63,22 @@ trigger, or integration is ready and the appropriate event permissions are assig
 
 ## Is refreshing the page the same as selecting Rerun?
 
-No. A refresh can start an automatic page-load evaluation, which never publishes lifecycle
-events. **Rerun** is an explicit user action and can publish when the Check Set enables publication.
-Both can show current results, but they have different event behavior.
+No. A page refresh or a standard Lightning record save can start a non-publishing evaluation.
+**Rerun** is an explicit user action and can publish when the Check Set enables publication. A
+manual Check Set still waits for its first **Run**; after results exist, later saves refresh them.
+These paths can show current results, but only the explicit action is eligible to publish lifecycle
+result events.
+
+## Why does a Check pass on the record page but differ in Flow or asynchronous Apex?
+
+Each Salesforce transaction uses its actual running user's authorization and user-mode data access.
+A Flow, Queueable, Batch, or scheduled transaction can therefore see a different permitted record
+scope than the interactive card. Timezone-sensitive formulas can also cross their cutoff at a
+different wall-clock time. Formula globals such as `$User` are not supported in record-context
+Formula Checks and fail closed rather than adapting to the caller. Use the
+[execution-context war room](../diagnostics/execution-context-war-room.md) to compare the execution
+user, permissions, visible rows, timezone, job ID, Run ID, and Reason Code before changing the
+Check.
 
 ## Should packaged test classes or the test factory be modified?
 

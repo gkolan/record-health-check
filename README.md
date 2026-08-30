@@ -3,7 +3,7 @@
 [![License: Apache 2.0](./assets/img/badge-license.svg)](./LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
 [![Namespaced Apex coverage: 99.64%](https://img.shields.io/badge/Namespaced_Apex_coverage-99.64%25-brightgreen)](./config/quality-metrics.json)
-[![LWC line coverage: 98.73%](https://img.shields.io/badge/LWC_lines-98.73%25-brightgreen)](./config/quality-metrics.json)
+[![LWC line coverage: 98.60%](https://img.shields.io/badge/LWC_lines-98.60%25-brightgreen)](./config/quality-metrics.json)
 [![Salesforce API](./assets/img/badge-salesforce-api.svg)](./packages/record-health-check/sfdx-project.json)
 
 [![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://recordhealthcheck.com/install/sandbox)
@@ -88,14 +88,14 @@ When a record needs attention, the card explains what was **Found**, what was **
 | Area                  | Details                                                                                                                                                                                                              |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Package               | Salesforce 2GP unlocked package with the `rhc` namespace                                                                                                                                                             |
-| Apex                  | 223 classes, including 114 test classes · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.64% namespaced package coverage · 99.57% subscriber-style coverage |
-| LWC                   | 1 Lightning Web Component · 236 Jest tests · 98.73% line coverage · 91.81% branch coverage                                                                                                                           |
+| Apex                  | 224 classes, including 115 test classes · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.64% namespaced package coverage · 99.57% subscriber-style coverage |
+| LWC                   | 1 Lightning Web Component · 242 Jest tests · 98.60% line coverage · 91.73% branch coverage                                                                                                                           |
 | Packaged examples     | 4 active Example Check Set records containing 50 Check records; 49 Checks are active                                                                                                                                 |
 | Permission sets       | Card User, User, Admin, MCP Integration, and Error Log Publisher                                                                                                                                                     |
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                                                                                                                     |
 | Custom Metadata Types | Record Health Check Set (18 fields) and Record Health Check (44 fields)                                                                                                                                              |
 | Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields)                                                                                             |
-| Documentation         | 127 maintained pages, including 19 documented Check examples                                                                                                                                                         |
+| Documentation         | 129 maintained pages, including 19 documented Check examples                                                                                                                                                         |
 
 </details>
 

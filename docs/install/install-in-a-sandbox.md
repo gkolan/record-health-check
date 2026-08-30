@@ -149,7 +149,8 @@ A Check can show **Pass**, **Failed**, **Warning**, **Info**, **Skipped**, **Una
 Info. Unable to Check and System Error mean Record Health Check could not give a reliable business answer.
 
 For one final confidence check, change a field used by an Example Check on a record you can safely edit.
-Save the record and select **Rerun**. The result should follow the saved Salesforce data. The
+Save the record. A completed card should refresh and follow the saved Salesforce data. Select
+**Rerun** if the editing surface does not send a standard RefreshView notification. The
 health check should not change the record itself.
 
 ## You are ready to continue when

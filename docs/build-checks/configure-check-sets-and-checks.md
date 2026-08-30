@@ -60,6 +60,13 @@ For each planned Check, record these answers:
 | What should the user do next? | Edit the Account and enter the verified country. |
 | Does it apply to every Account? | Yes. |
 
+Copy field and relationship API names from **Object Manager**, a schema describe, or another source
+retrieved directly from the target org. If a field belongs to an installed package, keep its full
+namespace prefix in formulas, SOQL, Source Query Field, and `{!record...}` merge tokens. For
+example, use `SBQQ__AssetQuantitiesCombined__c`, not `AssetQuantitiesCombined__c`. Review generated
+or AI-suggested configuration for dropped prefixes before activating it; Record Health Check never
+guesses which installed package an unqualified name belongs to.
+
 ## Step 2: Choose what it can check
 
 Choose the simplest Evaluation Type that can answer the business question.
@@ -283,7 +290,7 @@ query and formula behavior.
 | A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |
 | **Unable to Check** | Review the Reason Code, query or formula configuration, and the running user's object and field access. |
 | **System Error** | Review custom Apex, Salesforce debug logs, and the Reason Code. |
-| Results did not change after an edit | Save the record, then select **Rerun**. If the action is hidden, refresh the page. |
+| Results did not change after an edit | Confirm the edit surface sends a standard Lightning RefreshView notification. Otherwise select **Rerun** or refresh the page. A manual Check Set must be run once before save-driven refresh begins. |
 | A Platform Event was expected but not received | Confirm publication is enabled, the run source publishes events, the transaction committed, and receiving automation is active. |
 
 Use [Troubleshoot Record Health Check](../diagnostics/browser-console.md) for a complete,

@@ -67,6 +67,22 @@ result immediately. Leave event publication as `NONE` because this Flow already 
 12. Debug the Flow with a test Account. Use **Run flow as another user** when available, or test with
     a user who has equivalent access and **Record Health Check User**, before activation.
 
+## Formula and execution context
+
+The same saved record can produce a different result when the card and Flow run as different users.
+The Flow action does not elevate object, field, record, restriction-rule, or scoping-rule access.
+Its transaction must also pass the package's Run Custom Permission check.
+
+Do not use `$User`, `$Profile`, `$Setup`, `$Permission`, or `$CustomMetadata` in a record-context
+Formula Check. Salesforce FormulaEval rejects those globals in this context, so Record Health Check
+fails closed with `UNABLE_TO_EVALUATE` instead of producing a caller-dependent verdict. Use explicit
+record fields, a user-mode Query Check, or reviewed custom Apex with a documented identity contract.
+
+For `TODAY()` and `NOW()` conditions, verify the interactive, Flow, and scheduling users' timezones
+and document the intended cutoff. When a Flow result differs from the card, follow the
+[execution-context war room](../diagnostics/execution-context-war-room.md) before changing formula
+logic or permissions.
+
 See [Flow action inputs and outputs](./action-inputs-and-outputs.md#inputs-and-outputs) for every
 available field returned by each action.
 
@@ -127,6 +143,7 @@ delivered when the transaction rolls back.
 | A result is `UNABLE_TO_EVALUATE` | The reason code, record access, field access, and Check configuration |
 | A collection is rejected before evaluation | The 200-row limit, 10-group limit, and 2,000,000-character JSON result limit |
 | No Platform Event is received | The publication input, Check metadata event setting, and the Flow, Apex trigger, or integration that should receive it |
+| The card and Flow disagree for the same record | The actual execution user, Flow context, data access, timezone, and unsupported formula globals; use the execution-context war room |
 
 ## Related
 
@@ -135,3 +152,4 @@ delivered when the transaction rolls back.
 - [Apex API](../developer-guides/run-from-apex.md)
 - [Platform Event behavior](../save-results/when-to-use-platform-events.md)
 - [Platform Event subscriptions](../save-results/README.md)
+- [Execution-context war room](../diagnostics/execution-context-war-room.md)

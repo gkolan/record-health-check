@@ -71,6 +71,9 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
 - `RHC_Conformance_Record__c`, a product-neutral fixture for hierarchy, signed decimal, currency,
   null, snapshot/current, timestamp, and mixed-bulk evaluator conformance
+- `foreign-namespace/`: a separately deployed, CPQ-dependent gate that proves full `SBQQ__` field
+  API names through Formula, Query, and record merge surfaces in a namespaced `rhc` org; it is
+  excluded from ordinary integration deployments
 - Platform-event triggers used only in CI orgs
 - Apex classes that exercise the Framework against those samples
 

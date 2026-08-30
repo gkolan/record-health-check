@@ -132,6 +132,19 @@ package artifact contains every intended file.
 See [Releasing](../../.github/RELEASING.md) for commands, required evidence, and scratch-org
 cleanup rules.
 
+### Where release evidence belongs
+
+Keep evergreen requirements in this quality gate and in the tracked release workflow. Keep
+candidate-specific deploy IDs, test results, analyzer output, package-install results, upgrade
+results, approvals, and rollback evidence with the pull request or release artifacts for that exact
+source revision. Environment-dependent work that has not run remains in the tracked verification
+backlog until it is executed or explicitly removed from the supported release scope.
+
+Do not maintain a parallel local design spec as a release ledger. Its component counts, test counts,
+org aliases, findings, and pending boxes become stale as soon as the package changes. Missing
+candidate evidence still blocks that candidate; retiring a stale planning document never counts as
+proof that an install, upgrade, persona, asynchronous, or hosted validation passed.
+
 ## Related
 
 - [Install and verify](../install/install-in-a-sandbox.md)

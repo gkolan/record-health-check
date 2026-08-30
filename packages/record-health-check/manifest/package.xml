@@ -250,6 +250,7 @@
         <members>RHCTestNoopQueueable</members>
         <members>RHCOrgSafeCoverageTest</members>
         <members>RHCOwnershipHonestyTest</members>
+        <members>RHCPlatformDataShapeConformanceTest</members>
         <members>RHCPluginScopeIntegrityTest</members>
         <members>RHCPolymorphicQuerySafetyTest</members>
         <members>RHCProtocolBoundaryRegressionTest</members>

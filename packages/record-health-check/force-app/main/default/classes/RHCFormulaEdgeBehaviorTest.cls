@@ -89,6 +89,32 @@ private class RHCFormulaEdgeBehaviorTest {
     );
   }
 
+  @IsTest
+  static void globalUserReferenceFailsClosedBeforeCallerContextCanDrift() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    Record_Health_Check__mdt check = baseCheck(
+      'Unsupported_User_Global',
+      'FORMULA'
+    );
+    check.PassConditionFormula__c = 'OwnerId = $User.Id';
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckFormulaEvaluator()
+      .evaluate(check, accountRecord.Id, accountRecord);
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      result.status,
+      'A caller-sensitive global must fail closed instead of producing a context-dependent verdict.'
+    );
+    Assert.areEqual(
+      'INVALID_FORMULA',
+      result.reasonCode,
+      'FormulaEval rejection of $User must retain the stable invalid-formula reason.'
+    );
+  }
+
   private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType

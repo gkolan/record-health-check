@@ -11,7 +11,8 @@ Platform Events.
 
 The **Record Health Check** Lightning Web Component supports both experiences. Automatic page-load
 evaluation is read-only and never publishes. An explicit **Run** or **Rerun** is a deliberate user
-action and can publish when the Check Set and Checks enable publication.
+action and can publish when the Check Set and Checks enable publication. After a standard Lightning
+record save, the card also refreshes current results without publishing lifecycle events.
 
 The component is available only on Lightning record pages. App and Home pages do not provide the
 `recordId` required for evaluation, so the component intentionally does not appear in their App
@@ -86,6 +87,7 @@ Admin**, refresh App Builder after permission changes, and verify the package in
 | Component action | Source | Set event | Check events |
 | --- | --- | --- | --- |
 | Automatic page-load run | `RUN_ON_LOAD` | Never | Never |
+| Record-save or RefreshView rerun | `RUN_ON_LOAD` | Never | Never |
 | User clicks Run | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
 | User clicks Rerun | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
 
@@ -98,11 +100,13 @@ Error Log events use a separate default-off Check Set setting. `PublishErrorLogE
 Record Health Check `ERROR` details from automatic and deliberate runs; uncheck it to opt that Check Set
 out. This does not disable Salesforce debug-log output.
 
-An automatic run never publishes lifecycle events even when both lifecycle switches are enabled.
+An automatic page-load or record-refresh run never publishes lifecycle events even when both
+lifecycle switches are enabled.
 
 If no event follows Run or Rerun, confirm the visible action was used, the Check Set and relevant
 Check checkboxes are enabled, the transaction committed, the receiver has event access, and the
-receiver itself did not fail. Refresh is a page-load run and never publishes result events.
+receiver itself did not fail. Page and record-save refreshes use the non-publishing browser
+lifecycle source and never publish result events.
 It can still publish an Error Log event when the Set explicitly opts in and the user has publisher permission.
 
 The block is intentional. Opening or refreshing a record page is passive navigation, not a request
@@ -136,10 +140,15 @@ An automatic Check Set continues to show **Rerun** after it finishes unless its 
 This default preserves existing card behavior after an upgrade. A Check Set with no active Checks
 does not show Rerun because there is nothing to evaluate again.
 
-A browser refresh and **Rerun** can both obtain current results, but only Rerun is an explicit user
-action that can publish lifecycle events. Refreshing the page runs the automatic Check Set as part
-of page load and never publishes those events. When the action is hidden, refresh the page to
-reevaluate the card, or call the Check Set from Apex or Flow when another process needs an event.
+A record save, browser refresh, and **Rerun** can all obtain current results, but only Rerun is an
+explicit user action that can publish lifecycle events. A standard Lightning record save sends a
+RefreshView notification. The component coalesces a burst of those notifications and replaces any
+older in-flight run so stale results cannot overwrite the saved record's results.
+
+An automatic Check Set refreshes after a save. A manual Check Set preserves its initial deliberate
+boundary: it does not run merely because a record was saved before the user selected **Run**. After
+the first manual run completes, later saves refresh those visible results automatically. Save-driven
+refresh never publishes lifecycle result events, including when the Run action is hidden.
 
 The visible output is the completed row list and summary counts. **Summary Display** places the
 summary above or below the rows. If resolved Checks have categories, category summaries replace the

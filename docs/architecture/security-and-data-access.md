@@ -57,9 +57,12 @@ The user who starts each Salesforce transaction supplies the access used in that
 | How the run starts | Which user's access applies? |
 | --- | --- |
 | Person opens or runs the Lightning card | That person's access |
-| Record-triggered or autolaunched Flow | The user and execution context Salesforce gives that Flow transaction |
+| Screen Flow | The interactive user and execution context Salesforce gives that Flow transaction |
+| Record-triggered or autolaunched Flow | The user and execution context Salesforce gives that Flow transaction; do not assume system context bypasses package authorization or user-mode data reads |
 | Apex | The user running the Apex transaction |
-| Scheduled Apex or Batch Apex | The user under whom Salesforce executes that scheduled or Batch transaction |
+| Queueable Apex | The user under whom Salesforce executes the queued transaction; investigate its `AsyncApexJob` separately from submission |
+| Batch Apex | The user under whom Salesforce executes the Batch transaction |
+| Scheduled Apex | The scheduling user; the packaged scheduler rechecks authorization and starts Batch Apex |
 
 Record Health Check queries business records with `WITH USER_MODE`. Salesforce therefore enforces
 object access, field access, record sharing, restriction rules, scoping rules, and future user-mode
@@ -88,6 +91,11 @@ missing Run Custom Permission can stop the request before individual results exi
 
 Before rollout, test with a real user from each intended access group. An administrator's successful
 test does not prove that a sales or service user can read every field required by the Check.
+
+Formula globals such as `$User` are not a supported way to branch a Formula Check by caller. For a
+page-versus-automation incident, use the
+[execution-context war room](../diagnostics/execution-context-war-room.md) to distinguish access,
+identity, timezone, and asynchronous transaction boundaries before changing the Check.
 
 ## How stored SOQL is protected
 

@@ -9,6 +9,7 @@ released. Administrators who only configure Checks can skip it.
 | Reviewed static-analysis exceptions | [Code Analyzer suppressions](./code-analyzer-suppressions.md) |
 | Documentation requirements | [Documentation standard](./documentation-standard.md) |
 | Test-only Apex access and architecture enforcement | [Apex test-only access](./apex-test-only-access.md) |
+| Product-neutral data-shape and execution-context evidence | [Platform conformance](./platform-conformance.md) |
 
 ## Related
 
