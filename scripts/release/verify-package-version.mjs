@@ -100,7 +100,7 @@ function installPackage(packageVersionId, alias) {
     "--security-type",
     "AdminsOnly",
     "--upgrade-type",
-    "DeprecateOnly",
+    "Mixed",
     "--publish-wait",
     "10",
     "--wait",

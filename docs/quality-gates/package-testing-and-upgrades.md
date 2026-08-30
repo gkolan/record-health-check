@@ -59,7 +59,7 @@ Administrators who use Salesforce CLI can install the new promoted version over 
 sf package install \
   --package 04tNEW_VERSION_ID \
   --target-org customer-sandbox \
-  --upgrade-type DeprecateOnly \
+  --upgrade-type Mixed \
   --wait 30 \
   --publish-wait 10 \
   --no-prompt
@@ -69,9 +69,10 @@ Replace `04tNEW_VERSION_ID` with the promoted package version ID recorded as `st
 [`config/package-releases.json`](../../config/package-releases.json). Replace `customer-sandbox`
 with the alias for your sandbox.
 
-This repository uses `DeprecateOnly` as its reviewed default so an upgrade does not delete package
-components merely because they are absent from the newer version. Do not change the upgrade type
-without reviewing Salesforce's behavior and your rollback plan.
+This repository uses Salesforce's `Mixed` mode so removed components that are safe to delete do not
+remain behind and break compilation, while components that cannot be safely deleted are deprecated.
+Review removed metadata and the rollback plan before every release; use `Delete` only when its
+stronger deletion behavior and possible data loss have been explicitly approved.
 
 ## Which tests run where?
 

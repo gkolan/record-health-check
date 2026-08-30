@@ -31,7 +31,7 @@ run("sf", [
   "--target-org",
   values.alias,
   "--upgrade-type",
-  "DeprecateOnly",
+  "Mixed",
   "--publish-wait",
   "10",
   "--wait",
@@ -100,5 +100,5 @@ if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
 }
 
 console.log(
-  `Upgraded ${values.alias} to ${packageVersionId} with DeprecateOnly and reran subscriber smoke tests.`
+  `Upgraded ${values.alias} to ${packageVersionId} with Mixed removal handling and reran subscriber smoke tests.`
 );

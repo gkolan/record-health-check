@@ -51,7 +51,7 @@ sf package install \
   --package 04tak000000eIO1AAM \
   --target-org <org-alias> \
   --security-type AdminsOnly \
-  --upgrade-type DeprecateOnly \
+  --upgrade-type Mixed \
   --wait 30 \
   --publish-wait 10 \
   --no-prompt

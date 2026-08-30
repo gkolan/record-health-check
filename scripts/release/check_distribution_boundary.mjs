@@ -91,6 +91,35 @@ for (const forbidden of [
   }
 }
 
+for (const relativePath of [
+  "scripts/subscriber/setup.mjs",
+  "scripts/subscriber/upgrade.mjs",
+  "scripts/release/verify-package-version.mjs"
+]) {
+  const source = read(relativePath);
+  if (!/"--upgrade-type",\s*"Mixed"/.test(source)) {
+    fail(`${relativePath}: package installs must use Mixed upgrade handling`);
+  }
+  if (source.includes("DeprecateOnly")) {
+    fail(
+      `${relativePath}: DeprecateOnly leaves removed Apex behind and can break upgrades`
+    );
+  }
+}
+
+for (const relativePath of [
+  "docs/install/choose-a-package-version.md",
+  "docs/install/install-in-a-sandbox.md",
+  "docs/install/upgrade.md",
+  "docs/quality-gates/package-testing-and-upgrades.md"
+]) {
+  if (read(relativePath).includes("DeprecateOnly")) {
+    fail(
+      `${relativePath}: install guidance must use the reviewed Mixed upgrade policy`
+    );
+  }
+}
+
 const packageJson = JSON.parse(read("package.json"));
 // `setup` must invoke the subscriber script directly rather than delegating via
 // `npm run subscriber:setup`: npm consumes flags across a nested `npm run`, so

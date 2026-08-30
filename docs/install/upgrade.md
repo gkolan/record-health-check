@@ -104,7 +104,7 @@ Teams that automate upgrades can use the Salesforce CLI:
 
 ```bash
 sf org display --target-org <validation-org>
-sf package install --package <package-version-id> --target-org <validation-org> --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
+sf package install --package <package-version-id> --target-org <validation-org> --security-type AdminsOnly --upgrade-type Mixed --wait 30 --publish-wait 10 --no-prompt
 ```
 
 The package version ID is the value beginning with `04t` in

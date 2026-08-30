@@ -71,9 +71,12 @@ Both can show current results, but they have different event behavior.
 
 No. Subscribers must not edit packaged Apex, including `RecordHealthCheckTestDataFactory` and
 packaged test classes. Org-specific plugins and their tests belong in the subscriber’s repository.
-This product is a namespaced **unlocked** package, so its packaged tests are local tests:
-`RunLocalTests`, Setup **Run All Tests**, and subscriber validations that run local tests can execute
-them against subscriber validation rules, triggers, and flows.
+This product is a namespaced **unlocked** package. Ordinary subscriber `RunLocalTests` skips its
+installed namespaced tests, while Setup **Run All Tests**, namespace-qualified explicit test runs,
+and package-source deployments can execute them against subscriber validation rules, triggers, and
+flows.
+
+Package installation and upgrade also compile the packaged Apex test surface.
 
 Package contributors therefore use in-memory records, synthetic IDs, and seeded query caches in
 packaged tests. Tests that must insert Account, Contact, Opportunity, Task, Event, or Case records
@@ -85,13 +88,17 @@ this unlocked package. See
 ### Known issue for 2.0.0-* installs
 
 Customers on an unlocked `2.0.0-*` build can see Framework test setup fail with an Account or
-related-object validation, required-field, trigger, or flow error when their process runs packaged
-local tests. The error is raised by subscriber automation reacting to packaged test data setup.
-Until a fixing package version is published, confirm the failing stack is Framework fixture DML,
-use the Salesforce test level appropriate for the subscriber application deployment, and report
+related-object validation, required-field, trigger, or flow error when they explicitly run packaged
+tests, choose Run All Tests, or deploy package source into a customized org. The error is raised by
+subscriber automation reacting to packaged test data setup.
+
+Ordinary subscriber `RunLocalTests` does not select the installed namespaced package tests. Until a
+fixing package version is published, confirm the failing stack is Framework fixture DML and report
 unclear cases through the project support channel. Do not disable production automation merely to
-make the Framework test fixture pass. The fix removes subscriber-shaped business-object DML from
-packaged tests; this note will name the first fixed version when it is promoted.
+make the Framework test fixture pass.
+
+The fix removes subscriber-shaped business-object DML from packaged tests; this note will name the
+first fixed version when it is promoted.
 
 ## Why does the package contain so many Apex classes?
 
