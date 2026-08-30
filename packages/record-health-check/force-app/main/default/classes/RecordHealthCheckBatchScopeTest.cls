@@ -6,7 +6,7 @@ private with sharing class RecordHealthCheckBatchScopeTest {
 
   @IsTest
   static void batchRunUsesCallerSelectedScopeSize() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Framework Batch custom scope'
     );
 
@@ -53,7 +53,7 @@ private with sharing class RecordHealthCheckBatchScopeTest {
 
   @IsTest
   static void executeLogsAndRethrowsScopeFailure() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Framework Batch failure'
     );
     RecordHealthCheckBatch batch = new RecordHealthCheckBatch(

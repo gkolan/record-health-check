@@ -109,7 +109,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
 
   @IsTest
   static void duplicateQueueableIsRejectedButDifferentPublicationIsAccepted() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Duplicate Queueable defense'
     );
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -150,7 +150,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
 
   @IsTest
   static void queueableAcceptsAllPublicationAsDistinctContract() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Queueable all publication'
     );
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -168,47 +168,6 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
     Assert.isNotNull(
       jobId,
       'ALL publication must produce a valid queued request.'
-    );
-  }
-
-  @IsTest
-  static void equivalentQueueableRequestsAreScopedPerSubmittingUser() {
-    User otherUser = RecordHealthCheckPersonaTestDataFactory.createUserWithLocale(
-      'en_US',
-      'rhcqdif'
-    );
-    RecordHealthCheckTestDataFactory.assignPermissionSet(
-      otherUser,
-      RecordHealthCheckSchemaTestDataFactory.runnerPermissionSetName()
-    );
-    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      42
-    );
-    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Check_Builder_Guide'
-    );
-
-    Test.startTest();
-    Id firstJob = RecordHealthCheckQueueable.enqueue(
-      checkSetName,
-      new List<Id>{ accountId },
-      RecordHealthCheckEventPublication.NONE
-    );
-    Id secondJob;
-    System.runAs(otherUser) {
-      secondJob = RecordHealthCheckQueueable.enqueue(
-        checkSetName,
-        new List<Id>{ accountId },
-        RecordHealthCheckEventPublication.NONE
-      );
-    }
-    Test.stopTest();
-
-    Assert.areNotEqual(
-      firstJob,
-      secondJob,
-      'Equivalent requests from different submitting users must not share an org-wide duplicate signature.'
     );
   }
 
@@ -294,7 +253,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
     if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
       return;
     }
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Scheduled delegation'
     );
     RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(

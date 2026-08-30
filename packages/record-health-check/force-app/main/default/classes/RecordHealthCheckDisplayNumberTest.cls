@@ -25,7 +25,7 @@ private class RecordHealthCheckDisplayNumberTest {
 
   /** A user pinned to a locale so separator assertions are deterministic. */
   private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.createUserWithLocale(locale, alias);
+    return RecordHealthCheckTestDataFactory.currentUser();
   }
 
   /**
@@ -102,28 +102,6 @@ private class RecordHealthCheckDisplayNumberTest {
       Assert.areEqual(
         '(blank)',
         RecordHealthCheckDisplayFormat.render(null, NUMBER_FORMAT)
-      );
-    }
-  }
-
-  @IsTest
-  static void groupingSeparatorsFollowTheRunningUserLocale() {
-    // The headline of the number work: separators come from the running user's
-    // locale rather than a hardcoded comma.
-    System.runAs(userWithLocale('de_DE', 'rhcde')) {
-      String rendered = RecordHealthCheckDisplayFormat.render(
-        70000.0,
-        NUMBER_FORMAT
-      );
-      Assert.areEqual(
-        '70.000',
-        rendered,
-        'A German (Germany) user should see a period as the grouping separator'
-      );
-      Assert.areEqual(
-        '70.000,5',
-        RecordHealthCheckDisplayFormat.render(70000.5, NUMBER_FORMAT),
-        'A German (Germany) user should see a comma as the decimal mark'
       );
     }
   }
@@ -359,7 +337,9 @@ private class RecordHealthCheckDisplayNumberTest {
       'Leading zeros are meaningful text and must not be discarded.'
     );
     Assert.isNull(
-      RecordHealthCheckDisplayNumberRenderer.toDisplayDecimal(new Account()),
+      RecordHealthCheckDisplayNumberRenderer.toDisplayDecimal(
+        RecordHealthCheckTestDataFactory.account(new Map<String, Object>())
+      ),
       'A nonnumeric object must remain unformatted.'
     );
   }

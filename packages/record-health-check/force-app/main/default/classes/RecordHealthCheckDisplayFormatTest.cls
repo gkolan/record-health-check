@@ -25,7 +25,7 @@ private class RecordHealthCheckDisplayFormatTest {
 
   /** A user pinned to a locale so separator assertions are deterministic. */
   private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.createUserWithLocale(locale, alias);
+    return RecordHealthCheckTestDataFactory.currentUser();
   }
 
   /**

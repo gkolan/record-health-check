@@ -10,13 +10,13 @@ private with sharing class RecordHealthCheckAgentRestDiagnosisTest {
 
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
   static void postReturnsFirstDiagnosisForUnableSetResult() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    RecordHealthCheckTestDataFactory.createOpportunity(
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    RecordHealthCheckTestDataFactory.opportunityFixture(
       new Map<String, Object>{
         'Name' => 'Proposal without products',
         'AccountId' => accountRecord.Id,

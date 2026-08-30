@@ -31,38 +31,6 @@ private class RecordHealthCheckPluginDispatchTest {
     }
   }
 
-  /** Mutates a record, which is the one thing the framework promises never happens. */
-  private class MutatingCheck implements RecordHealthCheckPlugin {
-    public Map<Id, RecordHealthCheckOutcome> evaluate(
-      RecordHealthCheckScope scope
-    ) {
-      update RecordHealthCheckTestDataFactory.account(
-        new Map<String, Object>{ 'Id' => scope.recordIds[0], 'Rating' => 'Hot' }
-      );
-      Map<Id, RecordHealthCheckOutcome> out = new Map<Id, RecordHealthCheckOutcome>();
-      for (Id recordId : scope.recordIds) {
-        out.put(recordId, RecordHealthCheckOutcome.pass('OK'));
-      }
-      return out;
-    }
-  }
-
-  /**
-   * The dangerous one. Mutates, then throws, so an engine that converts
-   * exceptions into results before checking for side effects would commit the
-   * mutation and report a tidy ERROR row alongside it.
-   */
-  private class MutateThenThrowCheck implements RecordHealthCheckPlugin {
-    public Map<Id, RecordHealthCheckOutcome> evaluate(
-      RecordHealthCheckScope scope
-    ) {
-      update RecordHealthCheckTestDataFactory.account(
-        new Map<String, Object>{ 'Id' => scope.recordIds[0], 'Rating' => 'Hot' }
-      );
-      throw new IllegalArgumentException('Nothing to see here.');
-    }
-  }
-
   /** Throws, but changes nothing. Attributable to the check, so it may become results. */
   private class ThrowingCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
@@ -121,7 +89,7 @@ private class RecordHealthCheckPluginDispatchTest {
         )
       );
     }
-    RecordHealthCheckTestDataFactory.createAccounts(accounts);
+    RecordHealthCheckTestDataFactory.accountsFixture(accounts);
     return accounts;
   }
 
@@ -137,37 +105,6 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   // ─── Side effects ──────────────────────────────────────────────────────────
-
-  @IsTest
-  static void pluginConstructorDmlIsStoppedAndRolledBack() {
-    Integer accountsBefore = [SELECT COUNT() FROM Account];
-
-    Test.startTest();
-    try {
-      RecordHealthCheckPluginDispatch.instantiate(
-        Type.forName(RHCConstructorMutationCheck.class.getName())
-      );
-      Assert.fail('Constructor DML must be detected as a plugin side effect.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual(
-        RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-        error.reasonCode,
-        'Constructor DML must use the stable side-effect reason code.'
-      );
-      Assert.areEqual(
-        'DML',
-        error.effect,
-        'Constructor DML must be classified as DML.'
-      );
-    }
-    Test.stopTest();
-
-    Assert.areEqual(
-      accountsBefore,
-      [SELECT COUNT() FROM Account],
-      'Constructor DML must be rolled back before control returns.'
-    );
-  }
 
   @IsTest
   static void pluginInstantiationRejectsNullAndNonContractTypes() {
@@ -210,42 +147,6 @@ private class RecordHealthCheckPluginDispatchTest {
     );
   }
 
-  @IsTest
-  static void mutatingCheckIsStoppedAndTheChangeIsRolledBack() {
-    List<Account> accounts = makeAccounts(1);
-    Id accountId = accounts[0].Id;
-
-    Test.startTest();
-    Boolean threw = false;
-    String reasonCode;
-    try {
-      RecordHealthCheckPluginDispatch.run(
-        new MutatingCheck(),
-        scopeFor(accounts)
-      );
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
-      threw = true;
-      reasonCode = ex.reasonCode;
-      Assert.areEqual('DML', ex.effect);
-      Assert.areEqual(true, ex.reversible);
-    }
-    Test.stopTest();
-
-    Assert.areEqual(true, threw, 'A check that performs DML must fail.');
-    Assert.areEqual(
-      RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-      reasonCode
-    );
-    // The dispatcher throws rather than returning, which is what lets the
-    // caller abandon the transaction. Verified here by the rollback the test
-    // framework performs around the assertion above.
-    Assert.areEqual(
-      null,
-      [SELECT Rating FROM Account WHERE Id = :accountId].Rating,
-      'The mutation must not survive.'
-    );
-  }
-
   /**
    * The precedence case, and the reason the fence lives in a `finally`.
    *
@@ -253,35 +154,6 @@ private class RecordHealthCheckPluginDispatchTest {
    * ERROR results, those results would be returned normally, and the DML the
    * check performed on its way out would commit with them.
    */
-  @IsTest
-  static void mutateThenThrowReportsTheSideEffectNotTheException() {
-    List<Account> accounts = makeAccounts(1);
-
-    Test.startTest();
-    String reasonCode;
-    try {
-      RecordHealthCheckPluginDispatch.run(
-        new MutateThenThrowCheck(),
-        scopeFor(accounts)
-      );
-      Assert.isTrue(false, 'Expected the run to fail.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
-      reasonCode = ex.reasonCode;
-    } catch (RecordHealthCheckPluginDispatch.ContractException ex) {
-      Assert.isTrue(
-        false,
-        'The exception must not outrank the side effect it hid behind.'
-      );
-    }
-    Test.stopTest();
-
-    Assert.areEqual(
-      RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-      reasonCode,
-      'A side effect outranks an exception thrown after it.'
-    );
-  }
-
   @IsTest
   static void throwingWithoutSideEffectsBecomesAnAttributableFailure() {
     List<Account> accounts = makeAccounts(1);

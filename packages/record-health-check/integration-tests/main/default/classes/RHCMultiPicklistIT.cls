@@ -1,6 +1,6 @@
 /** Exercises schema-dependent multi-select display and SOQL binding behavior. */
 @IsTest
-private class RHCMultiPicklistIntegrationTest {
+private class RHCMultiPicklistIT {
   @IsTest
   static void resolvesLabelsAndBuildsIncludesClause() {
     RHC_Event_Export__c row = RHCIntegrationTestDataFactory.eventExport(

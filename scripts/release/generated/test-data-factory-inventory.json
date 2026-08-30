@@ -1,0 +1,724 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
+  "summary": {
+    "classes": 89,
+    "persistedCallSites": 0,
+    "userCallSites": 0,
+    "safeClasses": 89
+  },
+  "classes": [
+    {
+      "className": "AccountHasRecentActivityCheckTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCAbsentSchemaRedTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCComparisonDisplayEdgeBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCConfigCheckValidationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCCoverageBoundaryTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCCrossBoundaryCoverageTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCCurrencyAuthoringRedTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCCurrencyEvidenceBoundaryTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDefinitionDependencyIdentityTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDisplayCurrencyComparisonTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDisplayCurrencyRendererTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDisplayCurrencyResolutionTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDualQueryBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDualQueryEdgeBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCEnhancementPlannerTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCEvaluatorEdgeBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCFormulaEdgeBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCFormulaRelationshipPlanningTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCMetadataDependencyValidatorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCMetadataSetValidatorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCMetadataValidatorWarningTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCMixedCurrencyRedTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCOrgSafeCoverageTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCOwnershipHonestyTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCPluginScopeIntegrityTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCPolymorphicQuerySafetyTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCProtocolBoundaryRegressionTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCReleaseBoundaryCoverageTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCScopeEvaluatorFallbackTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCScopePipelineFailureTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCScopeQueryRowBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSoqlEvaluatorBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSoqlEvaluatorEdgeBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAccessTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAdversarialBoundaryTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAgentActionTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAgentRestDiagnosisTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAgentRestResourceTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckApexAdapterTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckApexResultFinalizerTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckApexScopeTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckApiTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAsyncTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAutomationAsyncTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckAutomationFlowTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckBatchScopeTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckBulkEvaluatorsTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckBulkQueryRewriteTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckBulkQuerySupportTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckCompareQuerySupportTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckConfigFindingMapperTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckConfigServiceTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckConfigValidationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckContractHarnessTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckContractTypesTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckControllerShellTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckControllerTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDefinitionLoaderTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDescribeCacheTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDiagnosticFactoryTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDiagnosticTraceTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDisplayCurrencyTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDisplayFieldTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDisplayFormatTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDisplayNumberTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckDisplayTemporalTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckEvaluatorBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckEvaluatorRegistryTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckFieldPlannerTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckFormulaDisplayTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckLifecyclePublisherTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckLoggerTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckMetadataIssueMapperTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckMetadataValidatorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckPluginDispatchTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckScopeApplicabilityTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckScopeDisplayTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckScopeEvaluationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckScopePipelineTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckScopePlannerTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckScopePrerequisiteTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckSecurityAndOpsTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckSoqlEdgeTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckSoqlEvaluationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckSoqlScopeEdgeTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckSoqlTokenBinderTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckTemplateParserTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckTemplateServiceTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckValueResolverTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    }
+  ]
+}

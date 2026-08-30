@@ -460,36 +460,4 @@ private class RecordHealthCheckFieldPlannerTest {
       fields
     );
   }
-
-  @IsTest
-  static void separatesFieldsDeniedByRunningUserFls() {
-    User minimumAccessUser = RecordHealthCheckPersonaTestDataFactory.createMinimumAccessUser(
-      'flsplan'
-    );
-    RecordHealthCheckFieldPlanner.FieldPlan plan;
-
-    Test.startTest();
-    System.runAs(minimumAccessUser) {
-      plan = new RecordHealthCheckFieldPlanner()
-        .planRecordFields(
-          RecordHealthCheckTestDataFactory.check(
-            new Map<String, Object>{
-              'EvaluationType__c' => 'FORMULA',
-              'PassConditionFormula__c' => 'AnnualRevenue > 0'
-            }
-          ),
-          Account.SObjectType
-        );
-    }
-    Test.stopTest();
-
-    Assert.isFalse(
-      plan.selectedFields.contains('AnnualRevenue'),
-      'A field denied by FLS must not enter the user-mode record query.'
-    );
-    Assert.isTrue(
-      plan.inaccessibleFields.contains('AnnualRevenue'),
-      'The denied field must be retained in the inaccessible-field plan for an aligned result.'
-    );
-  }
 }

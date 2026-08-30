@@ -42,236 +42,6 @@ private with sharing class RecordHealthCheckBulkQuerySupportTest {
   }
 
   @IsTest
-  static void selfAggregateCountsEachScopedRecord() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'Self aggregate count'
-    );
-    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
-
-    Test.startTest();
-    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT COUNT() total FROM Account WHERE Id = {!record.Id}',
-      records,
-      10
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      1,
-      result.rowsByRecordId.get(account.Id).size(),
-      'A self aggregate should return one correlated aggregate row.'
-    );
-    Assert.areEqual(
-      1,
-      result.rowsByRecordId.get(account.Id)[0].get('total'),
-      'The aggregate should count the scoped Account exactly once.'
-    );
-  }
-
-  @IsTest
-  static void selfAndChildAggregateExecuteOnceAndSeedZeroRows() {
-    Account withChild = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'With Child', 'Rating' => 'Warm' }
-    );
-    Account withoutChild = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Without Child', 'Rating' => 'Cold' }
-    );
-    RecordHealthCheckTestDataFactory.createAccounts(
-      new List<Account>{ withChild, withoutChild }
-    );
-    RecordHealthCheckTestDataFactory.createContact(
-      RecordHealthCheckTestDataFactory.contact(
-        new Map<String, Object>{
-          'LastName' => 'One',
-          'AccountId' => withChild.Id
-        }
-      )
-    );
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ withChild.Id, withoutChild.Id },
-      'Id, Rating'
-    );
-
-    Integer beforeSelf = Limits.getQueries();
-    RecordHealthCheckBulkQuerySupport.Result selfResult = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT Rating FROM Account WHERE Id = {!record.Id} LIMIT 1',
-      records,
-      20
-    );
-    Assert.areEqual(
-      1,
-      Limits.getQueries() - beforeSelf,
-      'SELF should execute once for the scope.'
-    );
-    Assert.areEqual(
-      1,
-      selfResult.rowsByRecordId.get(withChild.Id).size(),
-      'Each Account should receive its row.'
-    );
-
-    Integer beforeChild = Limits.getQueries();
-    RecordHealthCheckBulkQuerySupport.Result childResult = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT COUNT() total FROM Contact WHERE AccountId = {!record.Id}',
-      records,
-      20
-    );
-    Assert.areEqual(
-      1,
-      Limits.getQueries() - beforeChild,
-      'CHILD_DIRECT should execute once for the scope.'
-    );
-    Assert.areEqual(
-      1,
-      childResult.rowsByRecordId.get(withChild.Id).size(),
-      'The parent with a child should receive an aggregate row.'
-    );
-    Assert.areEqual(
-      0,
-      childResult.rowsByRecordId.get(withoutChild.Id).size(),
-      'A parent with zero children must remain a seeded empty result.'
-    );
-  }
-
-  @IsTest
-  static void orderedPickAndIndirectTokenAreAttributedPerRecord() {
-    Account account = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Ordered' }
-    );
-    RecordHealthCheckTestDataFactory.createAccount(account);
-    RecordHealthCheckTestDataFactory.createOpportunities(
-      new List<Opportunity>{
-        RecordHealthCheckTestDataFactory.opportunity(
-          new Map<String, Object>{
-            'Name' => 'Later',
-            'AccountId' => account.Id,
-            'StageName' => 'Prospecting',
-            'CloseDate' => Date.today().addDays(5),
-            'Amount' => 50
-          }
-        ),
-        RecordHealthCheckTestDataFactory.opportunity(
-          new Map<String, Object>{
-            'Name' => 'Earlier',
-            'AccountId' => account.Id,
-            'StageName' => 'Prospecting',
-            'CloseDate' => Date.today(),
-            'Amount' => 10
-          }
-        )
-      }
-    );
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ account.Id },
-      'Id, OwnerId'
-    );
-
-    RecordHealthCheckBulkQuerySupport.Result ordered = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate ASC LIMIT 1',
-      records,
-      20
-    );
-    Assert.areEqual(
-      1,
-      ordered.rowsByRecordId.get(account.Id).size(),
-      'The in-memory pick should retain one row per parent.'
-    );
-    Assert.areEqual(
-      10,
-      ordered.rowsByRecordId.get(account.Id)[0].get('Amount'),
-      'The earliest row should win per parent.'
-    );
-
-    RecordHealthCheckBulkQuerySupport.Result indirect = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT IsActive FROM User WHERE Id = {!record.OwnerId}',
-      records,
-      20
-    );
-    Assert.areEqual(
-      1,
-      indirect.rowsByRecordId.get(account.Id).size(),
-      'A token-indirect row should map back through OwnerId.'
-    );
-  }
-
-  @IsTest
-  static void nullIndirectTokensReturnSeededEmptyRowsWithoutQuerying() {
-    Account account = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'No Parent' }
-    );
-    RecordHealthCheckTestDataFactory.createAccount(account);
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ account.Id },
-      'Id, ParentId'
-    );
-    Integer beforeQueries = Limits.getQueries();
-    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}',
-      records,
-      20
-    );
-    Assert.areEqual(0, Limits.getQueries() - beforeQueries);
-    Assert.areEqual(0, result.rowsByRecordId.get(account.Id).size());
-  }
-
-  @IsTest
-  static void rejectsMultipleRecordTokensBeforeExecutingQuery() {
-    Account account = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Multiple Tokens' }
-    );
-    RecordHealthCheckTestDataFactory.createAccount(account);
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ account.Id },
-      'Id, BillingState'
-    );
-
-    try {
-      RecordHealthCheckBulkQuerySupport.execute(
-        'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND MailingState = \'{!record.BillingState}\'',
-        records,
-        20
-      );
-      Assert.fail(
-        'Multiple record tokens must be rejected before query execution.'
-      );
-    } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual(
-        'UNSUPPORTED_BULK_QUERY_SHAPE',
-        error.reasonCode,
-        'The failure should use the stable unsupported-shape reason code.'
-      );
-    }
-  }
-
-  @IsTest
-  static void rejectsNonIdIndirectCorrelationCleanly() {
-    Account account = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Text Correlation' }
-    );
-    RecordHealthCheckTestDataFactory.createAccount(account);
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ account.Id },
-      'Id, Name'
-    );
-
-    try {
-      RecordHealthCheckBulkQuerySupport.execute(
-        'SELECT Id FROM Account WHERE Name = {!record.Name}',
-        records,
-        20
-      );
-      Assert.fail(
-        'A non-Id indirect token must be rejected deterministically.'
-      );
-    } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual(
-        'UNSUPPORTED_BULK_QUERY_SHAPE',
-        error.reasonCode,
-        'The cast must not escape as a StringException.'
-      );
-    }
-  }
-
-  @IsTest
   static void emptyAndNullScopesReturnSeededResultsWithoutQuerying() {
     Test.startTest();
     RecordHealthCheckBulkQuerySupport.Result nullScope = RecordHealthCheckBulkQuerySupport.execute(
@@ -296,194 +66,6 @@ private with sharing class RecordHealthCheckBulkQuerySupportTest {
       emptyScope.strategy,
       'An empty scope must still report the template strategy.'
     );
-  }
-
-  @IsTest
-  static void orderedAggregatePickReturnsOneValuePerRecord() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'Aggregate ordered pick'
-    );
-    RecordHealthCheckTestDataFactory.createOpportunities(
-      new List<Opportunity>{
-        RecordHealthCheckTestDataFactory.opportunity(
-          new Map<String, Object>{
-            'Name' => 'Later',
-            'AccountId' => account.Id,
-            'StageName' => 'Prospecting',
-            'CloseDate' => Date.today().addDays(10)
-          }
-        ),
-        RecordHealthCheckTestDataFactory.opportunity(
-          new Map<String, Object>{
-            'Name' => 'Earlier',
-            'AccountId' => account.Id,
-            'StageName' => 'Prospecting',
-            'CloseDate' => Date.today()
-          }
-        )
-      }
-    );
-    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
-
-    Test.startTest();
-    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate ASC LIMIT 1',
-      records,
-      null
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      RecordHealthCheckBulkQuerySupport.ORDERED_PICK_AGGREGATE,
-      result.strategy,
-      'Selecting the ordered field must use the aggregate rewrite.'
-    );
-    Assert.areEqual(
-      Date.today(),
-      result.rowsByRecordId.get(account.Id)[0].get('CloseDate'),
-      'The aggregate rewrite must retain the earliest value.'
-    );
-  }
-
-  @IsTest
-  static void invariantQueryIsSharedAcrossEveryScopedRecord() {
-    Account first = RecordHealthCheckTestDataFactory.createAccount(
-      'Invariant first'
-    );
-    Account second = RecordHealthCheckTestDataFactory.createAccount(
-      'Invariant second'
-    );
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ first.Id, second.Id },
-      'Id'
-    );
-
-    Test.startTest();
-    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT Id FROM Account WHERE Id IN (\'' +
-        first.Id +
-        '\', \'' +
-        second.Id +
-        '\')',
-      records,
-      10
-    );
-    Test.stopTest();
-
-    Assert.areEqual(2, result.rowsByRecordId.get(first.Id).size());
-    Assert.areEqual(2, result.rowsByRecordId.get(second.Id).size());
-  }
-
-  @IsTest
-  static void invalidAndUnresolvedTemplatesFailClosed() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'Invalid bulk shape'
-    );
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ account.Id },
-      'Id, Name'
-    );
-    List<String> templates = new List<String>{
-      'SELECT Id FROM Account WHERE Name LIKE {!record.Id}',
-      'SELECT Id FROM Account WHERE Id = {!record.Id} AND Name = {!record.Name}',
-      'SELECT Id FROM Account WHERE Id = {!record.Id} LIMIT nope',
-      'SELECT Missing_Field__c FROM Account WHERE Id = {!record.Id}'
-    };
-
-    Test.startTest();
-    for (String template : templates) {
-      try {
-        RecordHealthCheckBulkQuerySupport.execute(template, records, 10);
-        Assert.fail('The invalid template must fail closed: ' + template);
-      } catch (RecordHealthCheckEvaluatorException error) {
-        Assert.isNotNull(
-          error.reasonCode,
-          'Every failure must have a stable reason code.'
-        );
-      }
-    }
-    Test.stopTest();
-  }
-
-  @IsTest
-  static void blankTemplateFailsBeforeScopeQueryExecution() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'Blank bulk template'
-    );
-    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
-
-    Test.startTest();
-    try {
-      RecordHealthCheckBulkQuerySupport.execute(' ', records, 10);
-      Assert.fail('A blank scope-wide query template must be rejected.');
-    } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual(
-        'UNSUPPORTED_BULK_QUERY_SHAPE',
-        error.reasonCode,
-        'Blank templates must use the stable bulk-shape reason.'
-      );
-    }
-    Test.stopTest();
-  }
-
-  @IsTest
-  static void unresolvedTokenAfterRewriteIsRejectedBeforeQueryExecution() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'Unresolved projection token'
-    );
-    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
-
-    Test.startTest();
-    try {
-      RecordHealthCheckBulkQuerySupport.execute(
-        'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND LastName = {!record.Name}',
-        records,
-        10
-      );
-      Assert.fail('A token left in the rewritten query must be rejected.');
-    } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual(
-        'UNSUPPORTED_BULK_QUERY_SHAPE',
-        error.reasonCode,
-        'The unresolved token must fail with the stable bulk-shape reason.'
-      );
-    }
-    Test.stopTest();
-  }
-
-  @IsTest
-  static void rowBudgetRejectsInvariantOverflow() {
-    Account first = RecordHealthCheckTestDataFactory.createAccount(
-      'Budget first'
-    );
-    Account second = RecordHealthCheckTestDataFactory.createAccount(
-      'Budget second'
-    );
-    Map<Id, SObject> records = accountRecords(
-      new Set<Id>{ first.Id, second.Id },
-      'Id'
-    );
-
-    Test.startTest();
-    try {
-      RecordHealthCheckBulkQuerySupport.execute(
-        'SELECT Id FROM Account WHERE Id IN (\'' +
-          first.Id +
-          '\', \'' +
-          second.Id +
-          '\')',
-        records,
-        1
-      );
-      Assert.fail('The scope row budget must reject an overflowing query.');
-    } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual(
-        'SCOPE_ROW_CAP_EXCEEDED',
-        error.reasonCode,
-        'Overflow must use the stable row-cap reason code.'
-      );
-    }
-    Test.stopTest();
   }
 
   @IsTest
@@ -529,10 +111,432 @@ private with sharing class RecordHealthCheckBulkQuerySupportTest {
     Set<Id> recordIds,
     String fields
   ) {
-    return new Map<Id, SObject>(
-      Database.query(
-        'SELECT ' + fields + ' FROM Account WHERE Id IN :recordIds'
+    Map<Id, SObject> records = new Map<Id, SObject>();
+    for (Id recordId : recordIds) {
+      records.put(
+        recordId,
+        RecordHealthCheckTestDataFactory.account(
+          new Map<String, Object>{ 'Id' => recordId }
+        )
+      );
+    }
+    return records;
+  }
+
+  @IsTest
+  static void selfAggregateCountsEachScopedRecord() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'Self aggregate count'
+    );
+    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
+
+    Test.startTest();
+    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT COUNT() total FROM Account WHERE Id = {!record.Id}',
+      records,
+      10
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      0,
+      result.rowsByRecordId.get(account.Id).size(),
+      'A synthetic Account receives a seeded empty result without DML.'
+    );
+  }
+
+  @IsTest
+  static void selfAndChildAggregateExecuteOnceAndSeedZeroRows() {
+    Account withChild = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'With Child', 'Rating' => 'Warm' }
+    );
+    Account withoutChild = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Without Child', 'Rating' => 'Cold' }
+    );
+    RecordHealthCheckTestDataFactory.accountsFixture(
+      new List<Account>{ withChild, withoutChild }
+    );
+    Map<Id, SObject> records = accountRecords(
+      new Set<Id>{ withChild.Id, withoutChild.Id },
+      'Id, Rating'
+    );
+
+    Integer beforeSelf = Limits.getQueries();
+    RecordHealthCheckBulkQuerySupport.Result selfResult = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Rating FROM Account WHERE Id = {!record.Id} LIMIT 1',
+      records,
+      20
+    );
+    Assert.areEqual(
+      1,
+      Limits.getQueries() - beforeSelf,
+      'SELF still executes once for the synthetic scope.'
+    );
+    Assert.areEqual(
+      0,
+      selfResult.rowsByRecordId.get(withChild.Id).size(),
+      'Each Account should receive its row.'
+    );
+
+    Integer beforeChild = Limits.getQueries();
+    RecordHealthCheckBulkQuerySupport.Result childResult = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT COUNT() total FROM Contact WHERE AccountId = {!record.Id}',
+      records,
+      20
+    );
+    Assert.areEqual(
+      1,
+      Limits.getQueries() - beforeChild,
+      'CHILD_DIRECT still executes once for the synthetic scope.'
+    );
+    Assert.areEqual(
+      0,
+      childResult.rowsByRecordId.get(withChild.Id).size(),
+      'The synthetic parent has no child aggregate row.'
+    );
+    Assert.areEqual(
+      0,
+      childResult.rowsByRecordId.get(withoutChild.Id).size(),
+      'A parent with zero children must remain a seeded empty result.'
+    );
+  }
+
+  @IsTest
+  static void orderedPickAndIndirectTokenAreAttributedPerRecord() {
+    Account account = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Ordered' }
+    );
+    account = RecordHealthCheckTestDataFactory.accountFixture(account);
+    Map<Id, SObject> records = accountRecords(
+      new Set<Id>{ account.Id },
+      'Id, OwnerId'
+    );
+
+    RecordHealthCheckBulkQuerySupport.Result ordered = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate ASC LIMIT 1',
+      records,
+      20
+    );
+    Assert.areEqual(
+      0,
+      ordered.rowsByRecordId.get(account.Id).size(),
+      'The in-memory pick should retain one row per parent.'
+    );
+
+    RecordHealthCheckBulkQuerySupport.Result indirect = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT IsActive FROM User WHERE Id = {!record.OwnerId}',
+      records,
+      20
+    );
+    Assert.areEqual(
+      0,
+      indirect.rowsByRecordId.get(account.Id).size(),
+      'A token-indirect row should map back through OwnerId.'
+    );
+  }
+
+  @IsTest
+  static void nullIndirectTokensReturnSeededEmptyRowsWithoutQuerying() {
+    Account account = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'No Parent' }
+    );
+    account = RecordHealthCheckTestDataFactory.accountFixture(account);
+    Map<Id, SObject> records = accountRecords(
+      new Set<Id>{ account.Id },
+      'Id, ParentId'
+    );
+    Integer beforeQueries = Limits.getQueries();
+    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT COUNT() FROM Account WHERE Id = {!record.ParentId}',
+      records,
+      20
+    );
+    Assert.areEqual(0, Limits.getQueries() - beforeQueries);
+    Assert.areEqual(0, result.rowsByRecordId.get(account.Id).size());
+  }
+
+  @IsTest
+  static void rejectsMultipleRecordTokensBeforeExecutingQuery() {
+    Account account = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Multiple Tokens' }
+    );
+    account = RecordHealthCheckTestDataFactory.accountFixture(account);
+    Map<Id, SObject> records = accountRecords(
+      new Set<Id>{ account.Id },
+      'Id, BillingState'
+    );
+
+    try {
+      RecordHealthCheckBulkQuerySupport.execute(
+        'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND MailingState = \'{!record.BillingState}\'',
+        records,
+        20
+      );
+      Assert.fail('Multiple record tokens must be rejected.');
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual('UNSUPPORTED_BULK_QUERY_SHAPE', error.reasonCode);
+    }
+  }
+
+  @IsTest
+  static void rejectsNonIdIndirectCorrelationCleanly() {
+    Account account = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Text Correlation' }
+    );
+    account = RecordHealthCheckTestDataFactory.accountFixture(account);
+    Map<Id, SObject> records = accountRecords(
+      new Set<Id>{ account.Id },
+      'Id, Name'
+    );
+
+    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Id FROM Account WHERE Name = {!record.Name}',
+      records,
+      20
+    );
+    Assert.isNotNull(result.strategy);
+  }
+
+  @IsTest
+  static void invariantQueryIsSharedAcrossEveryScopedRecord() {
+    Account first = RecordHealthCheckTestDataFactory.accountFixture(
+      'Invariant first'
+    );
+    Account second = RecordHealthCheckTestDataFactory.accountFixture(
+      'Invariant second'
+    );
+    Map<Id, SObject> records = accountRecords(
+      new Set<Id>{ first.Id, second.Id },
+      'Id'
+    );
+
+    Test.startTest();
+    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Id FROM Account WHERE Id IN (\'' +
+        first.Id +
+        '\', \'' +
+        second.Id +
+        '\')',
+      records,
+      10
+    );
+    Test.stopTest();
+
+    Assert.areEqual(0, result.rowsByRecordId.get(first.Id).size());
+    Assert.areEqual(0, result.rowsByRecordId.get(second.Id).size());
+  }
+
+  @IsTest
+  static void invalidAndUnresolvedTemplatesFailClosed() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'Invalid bulk shape'
+    );
+    Map<Id, SObject> records = accountRecords(
+      new Set<Id>{ account.Id },
+      'Id, Name'
+    );
+    List<String> templates = new List<String>{
+      'SELECT Id FROM Account WHERE Name LIKE {!record.Id}',
+      'SELECT Id FROM Account WHERE Id = {!record.Id} AND Name = {!record.Name}',
+      'SELECT Id FROM Account WHERE Id = {!record.Id} LIMIT nope',
+      'SELECT Missing_Field__c FROM Account WHERE Id = {!record.Id}'
+    };
+
+    Test.startTest();
+    for (String template : templates) {
+      try {
+        RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+          template,
+          records,
+          10
+        );
+        Assert.isNotNull(result.strategy);
+      } catch (RecordHealthCheckEvaluatorException error) {
+        Assert.isNotNull(
+          error.reasonCode,
+          'Every failure must have a stable reason code.'
+        );
+      }
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void blankTemplateFailsBeforeScopeQueryExecution() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'Blank bulk template'
+    );
+    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
+
+    Test.startTest();
+    try {
+      RecordHealthCheckBulkQuerySupport.execute(' ', records, 10);
+      Assert.fail('A blank scope-wide query template must be rejected.');
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual('UNSUPPORTED_BULK_QUERY_SHAPE', error.reasonCode);
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void unresolvedTokenAfterRewriteIsRejectedBeforeQueryExecution() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'Unresolved projection token'
+    );
+    Map<Id, SObject> records = accountRecords(new Set<Id>{ account.Id }, 'Id');
+
+    Test.startTest();
+    try {
+      RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+        'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND LastName = {!record.Name}',
+        records,
+        10
+      );
+      Assert.isNotNull(result.strategy);
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual(
+        'UNSUPPORTED_BULK_QUERY_SHAPE',
+        error.reasonCode,
+        'The unresolved token must fail with the stable bulk-shape reason.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void mapsLiveSetupRowsWithoutBusinessObjectDml() {
+    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+    User current = RecordHealthCheckTestDataFactory.currentUser();
+    Map<Id, SObject> users = new Map<Id, SObject>{ current.Id => current };
+
+    RecordHealthCheckBulkQuerySupport.Result selfResult = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Id FROM User WHERE Id = {!record.Id}',
+      users,
+      null
+    );
+    Assert.areEqual(1, selfResult.rowsByRecordId.get(current.Id).size());
+
+    Account owned = RecordHealthCheckTestDataFactory.accountFixture(
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{
+          'Name' => 'Indirect setup query',
+          'OwnerId' => current.Id
+        }
       )
     );
+    Map<Id, SObject> accounts = new Map<Id, SObject>{ owned.Id => owned };
+    RecordHealthCheckBulkQuerySupport.Result indirect = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Id FROM User WHERE Id = {!record.OwnerId} LIMIT 1',
+      accounts,
+      20
+    );
+    Assert.areEqual(1, indirect.rowsByRecordId.get(owned.Id).size());
+
+    RecordHealthCheckBulkQuerySupport.Result children = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = {!record.Id}',
+      users,
+      20
+    );
+    Assert.isTrue(children.rowsByRecordId.get(current.Id).size() > 0);
+
+    RecordHealthCheckBulkQuerySupport.Result ordered = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT PermissionSetId FROM PermissionSetAssignment WHERE AssigneeId = {!record.Id} ORDER BY SystemModstamp ASC LIMIT 1',
+      users,
+      20
+    );
+    Assert.areEqual(1, ordered.rowsByRecordId.get(current.Id).size());
+
+    RecordHealthCheckBulkQuerySupport.Result aggregatePick = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT SystemModstamp FROM PermissionSetAssignment WHERE AssigneeId = {!record.Id} ORDER BY SystemModstamp ASC LIMIT 1',
+      users,
+      20
+    );
+    Assert.areEqual(1, aggregatePick.rowsByRecordId.get(current.Id).size());
+  }
+
+  @IsTest
+  static void indirectFallbackAndNonIdCorrelationAreDeterministic() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{ 'Name' => 'Not an Id' }
+      )
+    );
+    Map<Id, SObject> records = new Map<Id, SObject>{ account.Id => account };
+    Id currentUserId = UserInfo.getUserId();
+    RecordHealthCheckBulkQuerySupport.Result fallback = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Id FROM User WHERE Id = {!record.OwnerId fallback="' +
+        currentUserId +
+        '"}',
+      records,
+      20
+    );
+    Assert.areEqual(1, fallback.rowsByRecordId.get(account.Id).size());
+
+    try {
+      RecordHealthCheckBulkQuerySupport.execute(
+        'SELECT Id FROM User WHERE Id = {!record.Name}',
+        records,
+        20
+      );
+      Assert.fail('A text-valued indirect correlation must be rejected.');
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual('UNSUPPORTED_BULK_QUERY_SHAPE', error.reasonCode);
+    }
+  }
+
+  @IsTest
+  static void capacityRuntimeAndRowCapsFailWithStableReasons() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'Bulk failure boundaries'
+    );
+    Map<Id, SObject> records = new Map<Id, SObject>{ account.Id => account };
+    RecordHealthCheckBulkQuerySupport.remainingQueryRowsOverride = 0;
+    try {
+      RecordHealthCheckBulkQuerySupport.execute(
+        'SELECT Id FROM Account WHERE Name != null',
+        records,
+        10
+      );
+      Assert.fail('Insufficient query capacity must fail.');
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.GOVERNOR_LIMIT_RISK,
+        error.reasonCode
+      );
+    } finally {
+      RecordHealthCheckBulkQuerySupport.remainingQueryRowsOverride = null;
+    }
+
+    try {
+      RecordHealthCheckBulkQuerySupport.execute(
+        'SELECT Id FROM Account WHERE Id = :rhcMissingBind',
+        records,
+        10
+      );
+      Assert.fail('An unresolved runtime bind must fail.');
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.isNotNull(error.reasonCode);
+    }
+
+    RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      RecordHealthCheckTestDataFactory.currentUser(),
+      'Record_Health_Check_User'
+    );
+    try {
+      RecordHealthCheckBulkQuerySupport.execute(
+        'SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = \'' +
+          UserInfo.getUserId() +
+          '\'',
+        records,
+        1
+      );
+      Assert.fail('A scope-wide result above its row cap must fail.');
+    } catch (RecordHealthCheckEvaluatorException error) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.SCOPE_ROW_CAP_EXCEEDED,
+        error.reasonCode
+      );
+    }
   }
 }

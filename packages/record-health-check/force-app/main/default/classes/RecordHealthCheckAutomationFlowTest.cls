@@ -65,48 +65,6 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
   }
 
   @IsTest
-  static void flowExecutorPropagatesFatalPluginSideEffects() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      'Flow fatal side-effect propagation'
-    );
-    String groupKey = RecordHealthCheckFlowGroupExecutor.key(
-      RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Guide_Recent_Activity'
-      ),
-      'NONE'
-    );
-
-    RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'SIDE_EFFECT';
-    Test.startTest();
-    try {
-      RecordHealthCheckFlowGroupExecutor.evaluate(
-        groupKey,
-        new List<Id>{ accountRecord.Id },
-        RecordHealthCheckFlowGroupExecutor.SelectionKind.CHECK
-      );
-      Assert.fail('A fatal plugin side effect must escape the Flow executor.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual(
-        RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-        error.reasonCode,
-        'The Flow executor must preserve the fatal side-effect reason.'
-      );
-      Assert.areEqual(
-        'DML',
-        error.effect,
-        'The Flow executor must preserve the detected effect.'
-      );
-      Assert.isTrue(
-        error.reversible,
-        'The Flow executor must preserve rollback semantics.'
-      );
-    } finally {
-      RecordHealthCheckScopePipeline.evaluatorFailureOverride = null;
-      Test.stopTest();
-    }
-  }
-
-  @IsTest
   static void flowActionsCanonicalizeAndBoundQualifiedIdentities() {
     Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
       Account.SObjectType,
@@ -147,7 +105,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
 
   @IsTest
   static void flowActionsMapAlignmentAndPayloadBoundaryFailures() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Flow boundary fixture'
     );
     RecordHealthCheckRunCheckFlowAction.Request checkRequest = new RecordHealthCheckRunCheckFlowAction.Request();
@@ -453,7 +411,7 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
 
   @IsTest
   static void bulkifiesDuplicateRowsBeyondOneScope() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Duplicate Flow rows beyond one scope'
     );
     List<RecordHealthCheckRunCheckFlowAction.Request> requests = new List<RecordHealthCheckRunCheckFlowAction.Request>();

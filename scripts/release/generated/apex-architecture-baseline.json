@@ -6,8 +6,16 @@
       "category": "focused asynchronous contract test suite no-growth ceiling"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckBulkQuerySupportTest.cls": {
-      "maximum": 538,
+      "maximum": 542,
       "category": "focused bulk-query contract test suite no-growth ceiling"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RHCDualQueryBehaviorTest.cls": {
+      "maximum": 564,
+      "category": "org-safe dual-query decision suite no-growth ceiling"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RHCSoqlEvaluatorBehaviorTest.cls": {
+      "maximum": 579,
+      "category": "org-safe SOQL decision suite no-growth ceiling"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckControllerTest.cls": {
       "maximum": 514,
@@ -16,6 +24,10 @@
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopeEvaluationTest.cls": {
       "maximum": 618,
       "category": "focused scope-evaluation contract test suite no-growth ceiling"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePipeline.cls": {
+      "maximum": 508,
+      "category": "scope pipeline fatal-boundary coverage no-growth ceiling"
     }
   },
   "testVisible": {

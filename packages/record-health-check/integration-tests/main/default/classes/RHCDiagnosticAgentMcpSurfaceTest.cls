@@ -6,7 +6,7 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
   @TestSetup
   static void setupRecord() {
     RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();
-    RecordHealthCheckTestDataFactory.createAccount(ACCOUNT_NAME);
+    RHCIntegrationTestDataFactory.createAccount(ACCOUNT_NAME);
   }
 
   @IsTest

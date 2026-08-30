@@ -6,12 +6,12 @@ private class RecordHealthCheckControllerTest {
 
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
   static void getCheckDefinitionsReturnsDefinitionResponse() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     String expectedTitle = [
       SELECT CardTitle__c
       FROM Record_Health_Check_Set__mdt
@@ -41,7 +41,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void getCheckDefinitionsWrapsConfigErrorsForAura() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     try {
       RecordHealthCheckController.getCheckDefinitions(
         'Missing_Config',
@@ -222,7 +222,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void completionResponseRejectsDuplicateCheckResults() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckEvaluationResult evaluation = new RecordHealthCheckEvaluationResult();
     evaluation.recordId = accountRecord.Id;
     evaluation.checkQualifiedApiName = 'Check_A';
@@ -275,7 +275,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void evaluateCheckDoesNotThrowForMissingCheck() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
 
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -293,7 +293,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void evaluateCheckReturnsPackagedCheckAndCompletesMembership() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Controller success'
     );
 
@@ -320,44 +320,6 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void evaluateCheckSupportsUserInitiatedOrigin() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      RecordHealthCheckTestDataFactory.account(
-        new Map<String, Object>{
-          'Name' => 'Controller user initiated',
-          'Website' => 'https://controller.example.com',
-          'AnnualRevenue' => 2000000
-        }
-      )
-    );
-
-    Test.startTest();
-    RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
-      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Check_Builder_Guide'
-      ),
-      RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Website_URL_Valid'
-      ),
-      accountRecord.Id,
-      'controller-user-initiated',
-      RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      RecordHealthCheckStatus.PASS,
-      result.evaluation.status,
-      'A valid user-initiated Check evaluation should retain its business verdict.'
-    );
-    Assert.areEqual(
-      accountRecord.Id,
-      result.evaluation.recordId,
-      'The user-initiated result must retain the requested record.'
-    );
-  }
-
-  @IsTest
   static void controllerRejectsUserWithoutRunPermission() {
     Test.startTest();
     RecordHealthCheckAccess.setRunPermissionForTest(false);
@@ -379,7 +341,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void evaluateCheckRejectsNamespaceRelativeCheckIdentity() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Controller namespace identity'
     );
     String developerName = 'Example_Website_URL_Valid';
@@ -416,7 +378,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void lwcPublicationRequiresUserInitiationAndMetadataOptIn() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     Integer beforeDml = Limits.getDmlStatements();
 
     RecordHealthCheckController.evaluateCheck(
@@ -479,7 +441,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void getCheckSetAvailabilityForRecordReflectsObjectScopedMetadata() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
 
     Test.startTest();
     RecordHealthCheckSetAvailability accountAvailability = RecordHealthCheckController.getCheckSetAvailabilityForRecord(

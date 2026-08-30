@@ -10,7 +10,7 @@ private class RecordHealthCheckSoqlEvaluationTest {
     Account record = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Evaluation account' }
     );
-    record = RecordHealthCheckTestDataFactory.createAccount(record);
+    record = RecordHealthCheckTestDataFactory.accountFixture(record);
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Soql_Evaluation_Unary',
@@ -24,13 +24,20 @@ private class RecordHealthCheckSoqlEvaluationTest {
     );
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
 
+    RecordHealthCheckSoqlEvaluator evaluator = new RecordHealthCheckSoqlEvaluator();
+    evaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>{
+      evaluator.bindTokens(check.SourceQuery__c, record) => new List<SObject>{
+        record
+      }
+    };
+
     Test.startTest();
     result = RecordHealthCheckSoqlEvaluation.evaluate(
       check,
       record.Id,
       record,
       result,
-      new RecordHealthCheckSoqlEvaluator()
+      evaluator
     );
     Test.stopTest();
 

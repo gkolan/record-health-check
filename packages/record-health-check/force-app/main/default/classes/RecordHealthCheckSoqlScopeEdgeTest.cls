@@ -3,7 +3,7 @@
 private with sharing class RecordHealthCheckSoqlScopeEdgeTest {
   @IsTest
   static void scopeDefaultsRowCapAndIgnoresBlankComparisonQuery() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Scope default cap'
     );
     Map<Id, SObject> loadedRecords = new Map<Id, SObject>{
@@ -37,7 +37,7 @@ private with sharing class RecordHealthCheckSoqlScopeEdgeTest {
 
   @IsTest
   static void emptyComparisonListUsesTheConfiguredNoRowsResult() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'No comparison rows'
     );
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(

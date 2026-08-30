@@ -15,7 +15,7 @@ private class AccountStrategicReadinessCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Readiness Bare' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
@@ -29,8 +29,8 @@ private class AccountStrategicReadinessCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Readiness One Criterion' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
-    RecordHealthCheckTestDataFactory.createContact(
+    RHCIntegrationTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createContact(
       new Map<String, Object>{
         'LastName' => 'Buyer',
         'AccountId' => account.Id
@@ -59,15 +59,15 @@ private class AccountStrategicReadinessCheckTest {
         'BillingCountry' => 'USA'
       }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
-    RecordHealthCheckTestDataFactory.createContact(
+    RHCIntegrationTestDataFactory.createContact(
       new Map<String, Object>{
         'LastName' => 'Buyer',
         'AccountId' => account.Id
       }
     );
-    RecordHealthCheckTestDataFactory.createOpportunity(
+    RHCIntegrationTestDataFactory.createOpportunity(
       new Map<String, Object>{
         'AccountId' => account.Id,
         'Name' => 'Open pipeline',
@@ -76,7 +76,7 @@ private class AccountStrategicReadinessCheckTest {
         'CloseDate' => Date.today().addMonths(1)
       }
     );
-    RecordHealthCheckTestDataFactory.createTask(
+    RHCIntegrationTestDataFactory.createTask(
       new Map<String, Object>{
         'WhatId' => account.Id,
         'Subject' => 'Recent QBR',
@@ -98,8 +98,8 @@ private class AccountStrategicReadinessCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Readiness Bad Params' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
-    RecordHealthCheckTestDataFactory.createContact(
+    RHCIntegrationTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createContact(
       new Map<String, Object>{
         'LastName' => 'Buyer',
         'AccountId' => account.Id
@@ -129,10 +129,10 @@ private class AccountStrategicReadinessCheckTest {
     Account deletedAccount = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Readiness Deleted' }
     );
-    RecordHealthCheckTestDataFactory.createAccounts(
+    RHCIntegrationTestDataFactory.createAccounts(
       new List<Account>{ eventAccount, deletedAccount }
     );
-    RecordHealthCheckTestDataFactory.createEvent(
+    RHCIntegrationTestDataFactory.createEvent(
       new Map<String, Object>{
         'WhatId' => eventAccount.Id,
         'Subject' => 'Recent strategy session',

@@ -6,7 +6,7 @@
 private class RHCComparisonDisplayEdgeBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
   }
 
   @IsTest

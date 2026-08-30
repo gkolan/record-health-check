@@ -9,6 +9,12 @@ interfaces and product-generation terminology.
 **Subscriber install:** promoted unlocked package `Record Health Check@2.0.5-1`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
 
+> **Known issue:** unlocked `2.0.0-*` package tests can fail during subscriber `RunLocalTests` or
+> Run All Tests when subscriber validation rules, triggers, or flows reject Framework fixture DML.
+> Confirm the failure is packaged test setup, use the deployment test level appropriate to the
+> subscriber application, and do not disable production automation solely for this fixture. The
+> next promoted fix removes business-object DML from packaged tests.
+
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
 - Current released candidate: `Record Health Check@2.0.5-1` (`04tak000000eIO1AAM`).
 

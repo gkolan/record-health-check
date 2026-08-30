@@ -101,7 +101,7 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
         'A missing field path is not Currency.'
       );
 
-      Account stored = RecordHealthCheckTestDataFactory.createAccount(
+      Account stored = RecordHealthCheckTestDataFactory.accountFixture(
         'Aggregate fallback'
       );
       AggregateResult unrelatedAlias = [
@@ -151,35 +151,80 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
   }
 
   @IsTest
-  static void readsAggregateAndRelationshipEvidence() {
-    Account stored = RecordHealthCheckTestDataFactory.createAccount('USD');
+  static void readsInMemoryAggregateAndRelationshipEvidence() {
     AggregateResult aggregateRow = [
-      SELECT MAX(Name) CurrencyIsoCode
-      FROM Account
-      WHERE Id = :stored.Id
+      SELECT MAX(LocaleSidKey) CurrencyIsoCode
+      FROM User
+      WHERE Id = :UserInfo.getUserId()
     ];
+    String aggregateUnit = String.valueOf(aggregateRow.get('CurrencyIsoCode'));
     RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     try {
       Assert.areEqual(
-        'USD',
+        aggregateUnit,
         RecordHealthCheckCurrencySupport.aggregateCurrencyUnit(
           'SELECT SUM(AnnualRevenue), CurrencyIsoCode FROM Account GROUP BY CurrencyIsoCode',
           aggregateRow
-        ),
-        'A root aggregate may read its direct ISO alias.'
+        )
       );
       Assert.areEqual(
-        'USD',
+        aggregateUnit,
         RecordHealthCheckCurrencySupport.aggregateCurrencyUnit(
-          'SELECT SUM(Account.AnnualRevenue), Account.CurrencyIsoCode ' +
-          'FROM Opportunity GROUP BY Account.CurrencyIsoCode',
+          'SELECT SUM(Account.AnnualRevenue), Account.CurrencyIsoCode FROM Opportunity GROUP BY Account.CurrencyIsoCode',
           aggregateRow
-        ),
-        'A relationship aggregate may read the returned leaf alias.'
+        )
       );
+
+      AggregateResult usd = [
+        SELECT MAX(Name) CurrencyIsoCode
+        FROM PermissionSet
+        WHERE Name = 'Record_Health_Check_User'
+      ];
+      AggregateResult cad = [
+        SELECT MAX(Name) CurrencyIsoCode
+        FROM PermissionSet
+        WHERE Name = 'Record_Health_Check_Admin'
+      ];
+      AggregateResult unitless = [
+        SELECT COUNT(Id) total
+        FROM User
+        WHERE Id = :UserInfo.getUserId()
+      ];
+      try {
+        RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+          'SELECT SUM(AnnualRevenue), CurrencyIsoCode FROM Account GROUP BY CurrencyIsoCode',
+          'AnnualRevenue',
+          new List<SObject>{ usd },
+          'SELECT SUM(AnnualRevenue), CurrencyIsoCode FROM Account GROUP BY CurrencyIsoCode',
+          'AnnualRevenue',
+          new List<SObject>{ cad },
+          null
+        );
+        Assert.fail('Different explicit currency units must be rejected.');
+      } catch (RecordHealthCheckEvaluatorException error) {
+        Assert.areEqual(
+          RecordHealthCheckReasonCodes.MIXED_CURRENCY,
+          error.reasonCode
+        );
+      }
+      try {
+        RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+          'SELECT SUM(AnnualRevenue) FROM Account',
+          'AnnualRevenue',
+          new List<SObject>{ unitless },
+          null,
+          null,
+          null,
+          null
+        );
+        Assert.fail('A currency value without unit evidence must be rejected.');
+      } catch (RecordHealthCheckEvaluatorException error) {
+        Assert.areEqual('CURRENCY_UNIT_UNKNOWN', error.reasonCode);
+      }
     } finally {
       RecordHealthCheckDisplayCurrencyResolver.multiCurrency = null;
     }
+
     Account parent = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Parent evidence' }
     );
@@ -189,12 +234,22 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
     child.putSObject('Parent', parent);
     Assert.areEqual(
       'Parent evidence',
-      RecordHealthCheckCurrencySupport.readPath(child, 'Parent.Name'),
-      'Relationship evidence must be traversed by path.'
+      RecordHealthCheckCurrencySupport.readPath(child, 'Parent.Name')
     );
     Assert.isNull(
-      RecordHealthCheckCurrencySupport.readPath(child, 'Parent.Parent.Name'),
-      'A missing intermediate relationship must return no evidence.'
+      RecordHealthCheckCurrencySupport.readPath(child, 'Parent.Parent.Name')
+    );
+    Assert.isNull(
+      RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
+        'SELECT Value__c FROM Missing_Object__c',
+        'Value__c'
+      )
+    );
+    Assert.isNull(
+      RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
+        'SELECT Owner.Profile FROM Account',
+        'Owner.Profile'
+      )
     );
   }
 }

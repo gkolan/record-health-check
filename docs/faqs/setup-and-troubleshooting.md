@@ -71,13 +71,31 @@ Both can show current results, but they have different event behavior.
 
 No. Subscribers must not edit packaged Apex, including `RecordHealthCheckTestDataFactory` and
 packaged test classes. Org-specific plugins and their tests belong in the subscriber’s repository.
-Normal subscriber deployments using `RunLocalTests` do not execute tests from the installed
-namespaced unlocked package. See
+This product is a namespaced **unlocked** package, so its packaged tests are local tests:
+`RunLocalTests`, Setup **Run All Tests**, and subscriber validations that run local tests can execute
+them against subscriber validation rules, triggers, and flows.
+
+Package contributors therefore use in-memory records, synthetic IDs, and seeded query caches in
+packaged tests. Tests that must insert Account, Contact, Opportunity, Task, Event, or Case records
+belong in `integration-tests/` and run on a clean scratch org. Do not extend the packaged factory to
+try to bypass customer automation, and do not apply managed-package test-exclusion guidance to
+this unlocked package. See
 [Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md).
+
+### Known issue for 2.0.0-* installs
+
+Customers on an unlocked `2.0.0-*` build can see Framework test setup fail with an Account or
+related-object validation, required-field, trigger, or flow error when their process runs packaged
+local tests. The error is raised by subscriber automation reacting to packaged test data setup.
+Until a fixing package version is published, confirm the failing stack is Framework fixture DML,
+use the Salesforce test level appropriate for the subscriber application deployment, and report
+unclear cases through the project support channel. Do not disable production automation merely to
+make the Framework test fixture pass. The fix removes subscriber-shaped business-object DML from
+packaged tests; this note will name the first fixed version when it is promoted.
 
 ## Why does the package contain so many Apex classes?
 
-The 2.0.5 source contains 222 packaged classes, including 113 test classes. Its verification
+The current source contains 223 packaged classes, including 114 test classes. Its verification
 surface covers dynamic SOQL, formulas, metadata, security boundaries, bulk and asynchronous
 execution, integrations, and failure diagnostics. See the
 [complete size breakdown](../architecture/apex-implementation/README.md#codebase-size-and-verification).

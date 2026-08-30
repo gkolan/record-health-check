@@ -6,20 +6,86 @@
 private class RHCDualQueryEdgeBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
+  }
+
+  private static Record_Health_Check__mdt baseCheck(
+    String developerName,
+    String checkType
+  ) {
+    return RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => developerName,
+        'MasterLabel' => developerName,
+        'CheckTitle__c' => developerName,
+        'EvaluationType__c' => checkType,
+        'FailureSeverity__c' => 'WARNING',
+        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
+        'FailureMessage__c' => 'Apex failure for {!record.Name}',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
+        'FormulaResultType__c' => 'AUTO',
+        'EvaluationOrder__c' => 10,
+        'ApplicabilityMode__c' => 'ALL_RECORDS',
+        'NoRowsResult__c' => 'FAIL',
+        'EmptyValueHandling__c' => 'SKIP_RECORD'
+      }
+    );
+  }
+
+  private static Record_Health_Check__mdt dualCheck(String developerName) {
+    return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
+  }
+
+  private static Record_Health_Check__mdt validDualCheck(String developerName) {
+    Record_Health_Check__mdt check = dualCheck(developerName);
+    check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.SourceQueryField__c = 'totalCount';
+    check.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.ComparisonQueryField__c = 'totalCount';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    return check;
+  }
+
+  private static void assertUnable(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected an unable result.');
+    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(reasonCode, result.reasonCode);
+  }
+
+  private static void assertStatus(
+    RecordHealthCheckInternalResult result,
+    String status
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      status,
+      result.status,
+      'Unexpected detail: ' + result.detailMessage
+    );
+  }
+
+  private static void assertReason(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    );
   }
 
   @IsTest
   static void dualQueryCoversRemainingEdgeBranches() {
     List<SObject> emptyRows = new List<SObject>();
-    List<SObject> accountRows = new List<SObject>();
-    accountRows.add(
-      [
-        SELECT Id, BillingCity, BillingState
-        FROM Account
-        LIMIT 1
-      ]
-    );
+    List<SObject> accountRows = new List<SObject>{
+      RecordHealthCheckTestDataFactory.healthyAccountFixture()
+    };
     List<SObject> duplicateRows = new List<SObject>{
       accountRows[0],
       accountRows[0]
@@ -252,7 +318,7 @@ private class RHCDualQueryEdgeBehaviorTest {
     Assert.areEqual(false, RecordHealthCheckValueResolver.isNumericObject('1'));
     try {
       RecordHealthCheckQueryEvaluatorSupport.runQuery(
-        'SELECT Id FROM Account',
+        'SELECT COUNT() FROM Account',
         0
       );
       Assert.isTrue(false, 'Expected compare-queries row cap exception.');
@@ -296,32 +362,11 @@ private class RHCDualQueryEdgeBehaviorTest {
     );
   }
 
-  private static Record_Health_Check__mdt baseCheck(
-    String developerName,
-    String checkType
-  ) {
-    return RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{
-        'DeveloperName' => developerName,
-        'MasterLabel' => developerName,
-        'CheckTitle__c' => developerName,
-        'EvaluationType__c' => checkType,
-        'FailureSeverity__c' => 'WARNING',
-        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
-        'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
-        'FormulaResultType__c' => 'AUTO',
-        'EvaluationOrder__c' => 10,
-        'ApplicabilityMode__c' => 'ALL_RECORDS',
-        'NoRowsResult__c' => 'FAIL',
-        'EmptyValueHandling__c' => 'SKIP_RECORD'
-      }
-    );
-  }
-
   @IsTest
   static void evaluatorMapsPlatformQueryFailuresToStableConfigurationResult() {
-    Account accountRecord = [SELECT Id, Name FROM Account LIMIT 1];
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
+      'Invalid dual query'
+    );
     Record_Health_Check__mdt check = validDualCheck('Invalid_Query');
     check.SourceQuery__c = 'SELECT DefinitelyMissing__c FROM Account';
 
@@ -340,7 +385,9 @@ private class RHCDualQueryEdgeBehaviorTest {
 
   @IsTest
   static void scopeEvaluatorMapsBlankAndUnexpectedCachedQueryFailures() {
-    Account accountRecord = [SELECT Id, Name FROM Account LIMIT 1];
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
+      'Cached dual query'
+    );
 
     Record_Health_Check__mdt blankCheck = validDualCheck('Blank_Scope_Query');
     blankCheck.SourceQuery__c = ' ';
@@ -377,53 +424,5 @@ private class RHCDualQueryEdgeBehaviorTest {
     );
     Assert.areEqual('ERROR', cachedResult.status);
     Assert.areEqual('APEX_EVALUATOR_ERROR', cachedResult.reasonCode);
-  }
-
-  private static Record_Health_Check__mdt dualCheck(String developerName) {
-    return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
-  }
-
-  private static Record_Health_Check__mdt validDualCheck(String developerName) {
-    Record_Health_Check__mdt check = dualCheck(developerName);
-    check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    check.SourceQueryField__c = 'totalCount';
-    check.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    check.ComparisonQueryField__c = 'totalCount';
-    check.QueryResultHandling__c = 'ONE_RESULT';
-    check.ComparisonOperator__c = 'EQUALS';
-    return check;
-  }
-
-  private static void assertUnable(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
-  }
-
-  private static void assertStatus(
-    RecordHealthCheckInternalResult result,
-    String status
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      status,
-      result.status,
-      'Unexpected detail: ' + result.detailMessage
-    );
-  }
-
-  private static void assertReason(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      reasonCode,
-      result.reasonCode,
-      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
-    );
   }
 }

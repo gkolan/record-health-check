@@ -58,64 +58,6 @@ private with sharing class RHCCoverageBoundaryTest {
   }
 
   @IsTest
-  static void multiCurrencyRewritePreservesNonCurrencySelection() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'Non-currency selection'
-    );
-    Map<Id, SObject> records = new Map<Id, SObject>{
-      account.Id => [SELECT Id FROM Account WHERE Id = :account.Id]
-    };
-    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
-
-    Test.startTest();
-    try {
-      RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
-        'SELECT Name FROM Account WHERE Id = {!record.Id}',
-        records,
-        10
-      );
-      Assert.areEqual(1, result.rowsByRecordId.get(account.Id).size());
-    } finally {
-      RecordHealthCheckDisplayCurrencyResolver.multiCurrency = null;
-    }
-    Test.stopTest();
-  }
-
-  @IsTest
-  static void controllerRethrowsFatalPluginSideEffect() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'Controller side effect'
-    );
-    RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'SIDE_EFFECT';
-
-    Test.startTest();
-    try {
-      RecordHealthCheckController.evaluateCheck(
-        RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-          'Example_Account_Check_Builder_Guide'
-        ),
-        RecordHealthCheckTestDataFactory.qualifiedCheckName(
-          'Example_Guide_Recent_Activity'
-        ),
-        account.Id,
-        'controller-side-effect',
-        RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
-      );
-      Assert.fail(
-        'A fatal plugin side effect must cross the controller boundary.'
-      );
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException expected) {
-      Assert.areEqual(
-        RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-        expected.reasonCode
-      );
-    } finally {
-      RecordHealthCheckScopePipeline.evaluatorFailureOverride = null;
-    }
-    Test.stopTest();
-  }
-
-  @IsTest
   static void formulaOverrideAcceptsUnqualifiedFieldKey() {
     RecordHealthCheckFieldPlanner planner = new RecordHealthCheckFieldPlanner();
     planner.calculatedFormulaOverrideByField = new Map<String, String>{
@@ -211,48 +153,6 @@ private with sharing class RHCCoverageBoundaryTest {
   }
 
   @IsTest
-  static void relationshipAggregateCurrencyRowsRetainUnitEvidence() {
-    if (!UserInfo.isMultiCurrencyOrganization()) {
-      return;
-    }
-    Account parent = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{
-        'AnnualRevenue' => 100,
-        'CurrencyIsoCode' => 'USD'
-      }
-    );
-    RecordHealthCheckTestDataFactory.createAccount(parent);
-    RecordHealthCheckTestDataFactory.createContact(
-      new Map<String, Object>{
-        'LastName' => 'Relationship aggregate',
-        'AccountId' => parent.Id
-      }
-    );
-    String query =
-      'SELECT SUM(Account.AnnualRevenue) totalValue, ' +
-      'Account.CurrencyIsoCode FROM Contact GROUP BY Account.CurrencyIsoCode';
-    List<SObject> rows = Database.query(query);
-
-    Test.startTest();
-    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
-      query,
-      'totalValue',
-      rows,
-      null,
-      null,
-      new List<SObject>(),
-      null
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      1,
-      rows.size(),
-      'The grouped relationship unit is retained.'
-    );
-  }
-
-  @IsTest
   static void constrainedCurrencyAggregateRetainsLiteralUnitEvidence() {
     RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
     List<SObject> rows = new List<SObject>{
@@ -332,38 +232,6 @@ private with sharing class RHCCoverageBoundaryTest {
       rows.size(),
       'Only the real outer predicate may supply currency evidence.'
     );
-  }
-
-  @IsTest
-  static void aggregateCurrencyRowsRejectMixedUnits() {
-    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
-    RecordHealthCheckTestDataFactory.createAccount('Currency coverage');
-    List<SObject> primaryRows = new List<SObject>{
-      [SELECT COUNT(Id) CurrencyIsoCode FROM Account]
-    };
-    List<SObject> comparisonRows = new List<SObject>{
-      [SELECT COUNT(Id) CurrencyIsoCode FROM Contact]
-    };
-
-    Test.startTest();
-    try {
-      RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
-        'SELECT SUM(AnnualRevenue), CurrencyIsoCode FROM Account GROUP BY CurrencyIsoCode',
-        'expr0',
-        primaryRows,
-        'SELECT SUM(Amount), CurrencyIsoCode FROM Opportunity GROUP BY CurrencyIsoCode',
-        'expr0',
-        comparisonRows,
-        null
-      );
-      Assert.fail('Different aggregate unit evidence must be rejected.');
-    } catch (RecordHealthCheckEvaluatorException expected) {
-      Assert.areEqual(
-        RecordHealthCheckReasonCodes.MIXED_CURRENCY,
-        expected.reasonCode
-      );
-    }
-    Test.stopTest();
   }
 
   @IsTest

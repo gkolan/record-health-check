@@ -61,49 +61,33 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       activityCounts.put(recordId, 0);
     }
 
-    for (AggregateResult row : [
-      SELECT WhatId whatId, COUNT(Id) total
-      FROM Task
-      WHERE
-        WhatId IN :queryRecordIds
-        AND IsClosed = TRUE
-        AND ActivityDate >= :cutoff
-      WITH USER_MODE
-      GROUP BY WhatId
-    ]) {
-      accumulate(
-        activityCounts,
-        (Id) row.get('whatId'),
-        (Integer) row.get('total')
-      );
-    }
-
-    for (AggregateResult row : [
-      SELECT WhatId whatId, COUNT(Id) total
-      FROM Event
-      WHERE WhatId IN :queryRecordIds AND ActivityDate >= :cutoff
-      WITH USER_MODE
-      GROUP BY WhatId
-    ]) {
-      accumulate(
-        activityCounts,
-        (Id) row.get('whatId'),
-        (Integer) row.get('total')
-      );
-    }
+    Map<String, Object> queryBinds = new Map<String, Object>{
+      'queryRecordIds' => queryRecordIds,
+      'cutoff' => cutoff
+    };
+    accumulateRows(
+      activityCounts,
+      RecordHealthCheckQueryEvaluatorSupport.runAggregateQuery(
+        'SELECT WhatId whatId, COUNT(Id) total FROM Task WHERE WhatId IN :queryRecordIds AND IsClosed = TRUE AND ActivityDate >= :cutoff GROUP BY WhatId',
+        queryBinds
+      )
+    );
+    accumulateRows(
+      activityCounts,
+      RecordHealthCheckQueryEvaluatorSupport.runAggregateQuery(
+        'SELECT WhatId whatId, COUNT(Id) total FROM Event WHERE WhatId IN :queryRecordIds AND ActivityDate >= :cutoff GROUP BY WhatId',
+        queryBinds
+      )
+    );
 
     RecordHealthCheckValue expected = RecordHealthCheckValue.ofCount(
       minimumActivities
     );
     for (Id recordId : recordIds) {
       Integer total = activityCounts.get(recordId);
-      RecordHealthCheckOutcome outcome = total >= minimumActivities
-        ? RecordHealthCheckOutcome.pass('APEX_PASS')
-        : RecordHealthCheckOutcome.fail('APEX_FAIL');
       results.put(
         recordId,
-        outcome
-          .withFound(RecordHealthCheckValue.ofCount(total))
+        outcomeFor(total, minimumActivities)
           .withComparison('GREATER_THAN_OR_EQUAL', expected)
       );
     }
@@ -111,11 +95,30 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     return results;
   }
 
+  public static RecordHealthCheckOutcome outcomeFor(
+    Integer total,
+    Integer minimumActivities
+  ) {
+    RecordHealthCheckOutcome outcome = total >= minimumActivities
+      ? RecordHealthCheckOutcome.pass('APEX_PASS')
+      : RecordHealthCheckOutcome.fail('APEX_FAIL');
+    return outcome.withFound(RecordHealthCheckValue.ofCount(total));
+  }
+
   /**
    * A WhatId can point at objects other than the ones in scope, so only seeded
    * keys are accumulated. Anything else would add a key the engine never asked
    * about, which fails the whole scope.
    */
+  public static void accumulateRows(
+    Map<Id, Integer> counts,
+    List<AggregateResult> rows
+  ) {
+    for (AggregateResult row : rows) {
+      accumulate(counts, (Id) row.get('whatId'), (Integer) row.get('total'));
+    }
+  }
+
   private static void accumulate(
     Map<Id, Integer> counts,
     Id whatId,
@@ -147,9 +150,10 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
    * value defaults to one.
    */
   private Integer resolveMinimumActivities(Map<String, Object> parameters) {
-    Object raw = parameters == null
-      ? null
-      : parameters.get('minimumActivities');
+    Object raw;
+    if (parameters != null) {
+      raw = parameters.get('minimumActivities');
+    }
     if (raw == null) {
       return DEFAULT_MINIMUM_ACTIVITIES;
     }

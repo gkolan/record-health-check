@@ -7,90 +7,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
 
   @TestSetup
   static void setupRecords() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
-  }
-
-  @IsTest
-  static void pluginScopeMutationIsRolledBackAndRemainsFatal() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    Integer accountCount = [SELECT COUNT() FROM Account];
-    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{
-        'DeveloperName' => 'Mutation_Attack',
-        'MasterLabel' => 'Mutation Attack',
-        'CheckTitle__c' => 'Mutation Attack',
-        'ApexClass__c' => 'RecordHealthCheckEvaluationMutationCheck',
-        'FailureSeverity__c' => 'ERROR',
-        'UnableToEvaluateMessage__c' => 'Unable.'
-      }
-    );
-
-    Test.startTest();
-    try {
-      new RecordHealthCheckApexEvaluator()
-        .evaluateScope(
-          check,
-          new List<Id>{ accountRecord.Id },
-          new Map<Id, SObject>{ accountRecord.Id => accountRecord },
-          'Account',
-          'Attack_Set',
-          'mutation-attack'
-        );
-      Assert.fail('A mutating plugin must terminate the scope.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual(
-        'DML',
-        error.effect,
-        'The fence should identify the prohibited DML effect.'
-      );
-      Assert.isTrue(
-        error.reversible,
-        'Database mutations should be rolled back by the fence.'
-      );
-    }
-    Test.stopTest();
-
-    Assert.areEqual(
-      accountCount,
-      [SELECT COUNT() FROM Account],
-      'The hostile plugin must leave no committed Account behind.'
-    );
-  }
-
-  @IsTest
-  static void pluginConstructorMutationIsFatalInScopeMode() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{
-        'DeveloperName' => 'Constructor_Mutation_Attack',
-        'MasterLabel' => 'Constructor Mutation Attack',
-        'CheckTitle__c' => 'Constructor Mutation Attack',
-        'ApexClass__c' => 'RHCConstructorMutationCheck',
-        'FailureSeverity__c' => 'ERROR',
-        'UnableToEvaluateMessage__c' => 'Unable.'
-      }
-    );
-
-    Test.startTest();
-    try {
-      new RecordHealthCheckApexEvaluator()
-        .evaluateScope(
-          check,
-          new List<Id>{ accountRecord.Id },
-          new Map<Id, SObject>{ accountRecord.Id => accountRecord },
-          'Account',
-          'Attack_Set',
-          'constructor-mutation-attack'
-        );
-      Assert.fail('Constructor DML must terminate scope evaluation.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual(
-        'DML',
-        error.effect,
-        'Constructor DML should be classified before invocation.'
-      );
-    }
-    Test.stopTest();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
@@ -98,7 +15,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     RecordHealthCheckCompareQueriesEvaluator evaluator = new RecordHealthCheckCompareQueriesEvaluator();
     evaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>();
     evaluator.scopeExecutionActive = true;
-    Account record = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account record = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'EvaluationType__c' => 'COMPARE_TWO_QUERIES',
@@ -125,7 +42,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
 
   @IsTest
   static void compareScopeUsesDefaultRowBudgetWhenUnconfigured() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Default_Row_Budget',
@@ -169,35 +86,6 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     Assert.isTrue(
       rewritten.contains('MAX(Amount)'),
       'Descending ordered picks must use MAX, never MIN.'
-    );
-  }
-
-  @IsTest
-  static void correlationOnlyAggregateReturnsNoBusinessValue() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    RecordHealthCheckTestDataFactory.createContact(
-      RecordHealthCheckTestDataFactory.contact(
-        new Map<String, Object>{
-          'LastName' => 'Correlation only',
-          'AccountId' => accountRecord.Id
-        }
-      )
-    );
-    AggregateResult row = [
-      SELECT AccountId rhcCorrelation
-      FROM Contact
-      WHERE AccountId = :accountRecord.Id
-      GROUP BY AccountId
-      LIMIT 1
-    ];
-
-    Test.startTest();
-    Object value = RecordHealthCheckValueResolver.singleValueFromRow(row, null);
-    Test.stopTest();
-
-    Assert.isNull(
-      value,
-      'A correlation alias must never be mistaken for the Check business value.'
     );
   }
 
@@ -254,7 +142,7 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
       return;
     }
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
 
     Test.startTest();
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(

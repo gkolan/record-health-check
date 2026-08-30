@@ -9,120 +9,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
   }
 
   @IsTest
-  static void queryCheckUsesOneScopeQueryAndPreservesPerRecordVerdicts() {
-    Account passing = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Passing Contacts' }
-    );
-    Account failing = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Failing Contacts' }
-    );
-    RecordHealthCheckTestDataFactory.createAccounts(
-      new List<Account>{ passing, failing }
-    );
-    RecordHealthCheckTestDataFactory.createContacts(
-      new List<Contact>{
-        RecordHealthCheckTestDataFactory.contact(
-          new Map<String, Object>{
-            'LastName' => 'Reachable',
-            'Email' => 'reachable@example.com',
-            'AccountId' => passing.Id
-          }
-        ),
-        RecordHealthCheckTestDataFactory.contact(
-          new Map<String, Object>{
-            'LastName' => 'Unreachable',
-            'AccountId' => failing.Id
-          }
-        )
-      }
-    );
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
-      RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Contacts_Have_Email'
-      ),
-      new List<Id>{ failing.Id, passing.Id }
-    );
-
-    Test.startTest();
-    Integer beforeQueries = Limits.getQueries();
-    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(request);
-    Integer queryDelta = Limits.getQueries() - beforeQueries;
-    Test.stopTest();
-    Assert.areEqual(
-      3,
-      queryDelta,
-      'The request should use one metadata query, one record load, and one scope query.'
-    );
-    Assert.areEqual(
-      failing.Id,
-      response.results[0].evaluation.recordId,
-      'Query results should retain input order.'
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.FAIL,
-      response.results[0].evaluation.status,
-      'A blank Contact email should fail its Account.'
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.PASS,
-      response.results[1].evaluation.status,
-      'A populated Contact email should pass its Account.'
-    );
-  }
-
-  @IsTest
-  static void apexPluginIsInvokedOnceForTheNarrowedScope() {
-    Account active = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Recent Activity' }
-    );
-    Account inactive = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'No Activity' }
-    );
-    RecordHealthCheckTestDataFactory.createAccounts(
-      new List<Account>{ active, inactive }
-    );
-    RecordHealthCheckTestDataFactory.createTask(
-      RecordHealthCheckTestDataFactory.task(
-        new Map<String, Object>{
-          'Subject' => 'Recent customer call',
-          'Status' => 'Completed',
-          'ActivityDate' => Date.today(),
-          'WhatId' => active.Id
-        }
-      )
-    );
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
-      RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Customer_Engagement_Current'
-      ),
-      new List<Id>{ inactive.Id, active.Id }
-    );
-
-    Test.startTest();
-    Integer beforeQueries = Limits.getQueries();
-    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(request);
-    Integer queryDelta = Limits.getQueries() - beforeQueries;
-    Test.stopTest();
-    Assert.areEqual(
-      4,
-      queryDelta,
-      'The request should use metadata, record load, and the plugin\'s two scope queries.'
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.FAIL,
-      response.results[0].evaluation.status,
-      'The inactive Account should fail first in input order.'
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.PASS,
-      response.results[1].evaluation.status,
-      'The Account with a recent Task should pass.'
-    );
-  }
-
-  @IsTest
   static void unsupportedEvaluatorReturnsAlignedUnavailableItem() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Unsupported evaluator' }
       )
@@ -168,7 +56,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void absentRecordReturnsAlignedUnavailableItem() {
-    Account deletedAccount = RecordHealthCheckTestDataFactory.createDeletedAccount(
+    Account deletedAccount = RecordHealthCheckTestDataFactory.deletedAccountFixture(
       'Absent scope record'
     );
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
@@ -215,7 +103,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void inaccessibleFieldReturnsAlignedResultForVisibleRecord() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Visible record with inaccessible field'
     );
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
@@ -249,7 +137,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void inaccessibleFieldPreservesMissingRecordReason() {
-    Account deletedAccount = RecordHealthCheckTestDataFactory.createDeletedAccount(
+    Account deletedAccount = RecordHealthCheckTestDataFactory.deletedAccountFixture(
       'Missing record with inaccessible field'
     );
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
@@ -283,7 +171,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void failedPrerequisiteSkipsEvaluationAndBuildsDisplay() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Blocked dependent check'
     );
     Record_Health_Check__mdt check = queryCountCheck(
@@ -343,12 +231,12 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void runtimeValidationRejectsHalfConfiguredChecksBeforeEvaluation() {
-    Account first = RecordHealthCheckTestDataFactory.createAccount(
+    Account first = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Half configured one' }
       )
     );
-    Account second = RecordHealthCheckTestDataFactory.createAccount(
+    Account second = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Half configured two' }
       )
@@ -392,7 +280,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void queryFailureMessageResolvesBraceDataExactlyOnce() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Acme {Labs}' }
       )
@@ -433,7 +321,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void unsupportedBulkShapeMapsToAlignedEvaluatorReason() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Unsupported bulk shape'
     );
     Record_Health_Check__mdt check = queryCountCheck(
@@ -469,7 +357,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void compareFailureMessageResolvesBraceDataExactlyOnce() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Compare {Brace}' }
       )

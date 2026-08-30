@@ -37,7 +37,7 @@ private class RHCPersonAccountFactoryTest {
     personAcct.put('FirstName', firstName);
     personAcct.put('LastName', lastName);
     personAcct.put('RecordTypeId', (Id) personRecordTypes[0].get('Id'));
-    RecordHealthCheckTestDataFactory.createAccounts(
+    RHCIntegrationTestDataFactory.createAccounts(
       new List<Account>{ personAcct }
     );
     return personAcct;

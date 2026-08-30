@@ -48,7 +48,7 @@ private class RecordHealthCheckScaleBenchmarkTest {
         }
       )
     );
-    RecordHealthCheckTestDataFactory.createAccounts(
+    RHCIntegrationTestDataFactory.createAccounts(
       new List<Account>{
         account('evaluate_3', 0),
         account('evaluate_3', 1),
@@ -122,7 +122,7 @@ private class RecordHealthCheckScaleBenchmarkTest {
         }
       )
     );
-    RecordHealthCheckTestDataFactory.createAccounts(
+    RHCIntegrationTestDataFactory.createAccounts(
       new List<Account>{ account('clean_me', 0), account('keep_me', 1) }
     );
 

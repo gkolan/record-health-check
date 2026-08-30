@@ -8,7 +8,7 @@ private with sharing class RHCScopePipelineFailureTest {
 
   @IsTest
   static void pipelineIsolatesPlanningAndUnexpectedEvaluatorFailures() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Pipeline defensive boundaries'
     );
     Record_Health_Check__mdt check = queryCountCheck();
@@ -105,6 +105,115 @@ private with sharing class RHCScopePipelineFailureTest {
     );
   }
 
+  @IsTest
+  static void unresolvedPlanningAndEvaluationStayRecordAligned() {
+    Account stored = RecordHealthCheckTestDataFactory.accountFixture(
+      'Unresolved scope boundary'
+    );
+    Record_Health_Check__mdt unresolvedFormula = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'QualifiedApiName' => 'Unresolved_Formula',
+        'EvaluationType__c' => 'FORMULA',
+        'PassConditionFormula__c' => 'RHC_Does_Not_Exist__c = 1'
+      }
+    );
+    new RecordHealthCheckScopePipeline()
+      .loadRecordsForTest(
+        'Account',
+        new List<Id>{ stored.Id },
+        new List<Record_Health_Check__mdt>{ unresolvedFormula },
+        new RecordHealthCheckFieldPlanner()
+      );
+    Id missingId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      78
+    );
+    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
+    new RecordHealthCheckScopePipeline()
+      .evaluateCheck(
+        queryCountCheck(),
+        evaluationContext(),
+        new List<Id>{ stored.Id, missingId },
+        new Map<Id, SObject>{ stored.Id => stored },
+        false,
+        'FIELD_NOT_RESOLVED',
+        false,
+        RecordHealthCheckResultMode.EVALUATION,
+        'unresolved-fields',
+        items
+      );
+    Assert.areEqual(
+      'FIELD_NOT_RESOLVED',
+      items.get(itemKey(stored.Id)).evaluation.reasonCode
+    );
+    Assert.areEqual(
+      'RECORD_NOT_VISIBLE',
+      items.get(itemKey(missingId)).evaluation.reasonCode
+    );
+  }
+
+  @IsTest
+  static void classifiedEvaluatorCapacityFailureBecomesAnAlignedIncident() {
+    Account stored = RecordHealthCheckTestDataFactory.accountFixture(
+      'Classified evaluator boundary'
+    );
+    Record_Health_Check__mdt check = queryCountCheck();
+    check.SourceQuery__c = 'SELECT Id FROM Account WHERE Name != null';
+    check.SourceQueryField__c = 'Id';
+    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
+    RecordHealthCheckBulkQuerySupport.remainingQueryRowsOverride = 0;
+    try {
+      new RecordHealthCheckScopePipeline()
+        .evaluateCheck(
+          check,
+          evaluationContext(),
+          new List<Id>{ stored.Id },
+          new Map<Id, SObject>{ stored.Id => stored },
+          false,
+          false,
+          RecordHealthCheckResultMode.EVALUATION,
+          'classified-evaluator',
+          items
+        );
+    } finally {
+      RecordHealthCheckBulkQuerySupport.remainingQueryRowsOverride = null;
+    }
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.GOVERNOR_LIMIT_RISK,
+      items.values()[0].evaluation.reasonCode
+    );
+  }
+
+  @IsTest
+  static void fatalSideEffectOverridePreservesFatalClassification() {
+    Account stored = RecordHealthCheckTestDataFactory.accountFixture(
+      'Fatal side effect boundary'
+    );
+    RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'SIDE_EFFECT';
+    try {
+      new RecordHealthCheckScopePipeline()
+        .evaluateCheck(
+          queryCountCheck(),
+          evaluationContext(),
+          new List<Id>{ stored.Id },
+          new Map<Id, SObject>{ stored.Id => stored },
+          false,
+          false,
+          RecordHealthCheckResultMode.EVALUATION,
+          'fatal-side-effect',
+          new Map<String, RecordHealthCheckResultItem>()
+        );
+      Assert.fail('A fatal side effect must escape the pipeline.');
+    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
+        error.reasonCode
+      );
+    } finally {
+      RecordHealthCheckScopePipeline.evaluatorFailureOverride = null;
+    }
+  }
+
   private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
     context.objectApiName = 'Account';
@@ -136,5 +245,9 @@ private with sharing class RHCScopePipelineFailureTest {
         'MaxQueryRows__c' => 100
       }
     );
+  }
+
+  private static String itemKey(Id recordId) {
+    return String.valueOf(recordId) + '|Pipeline_Defensive_Boundaries';
   }
 }

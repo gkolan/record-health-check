@@ -107,9 +107,7 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
 
   @IsTest
   static void flowPayloadExhaustionStopsLaterRows() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      'Flow payload boundary'
-    );
+    Account accountRecord = syntheticAccount(20, 'Flow payload boundary');
     RecordHealthCheckRunCheckFlowAction.Request checkRequest = checkFlowRequest(
       accountRecord.Id
     );
@@ -141,9 +139,7 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
 
   @IsTest
   static void flowMalformedCheckUsesGenericSafeMessage() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      'Malformed Check response'
-    );
+    Account accountRecord = syntheticAccount(21, 'Malformed Check response');
     RecordHealthCheckFlowSupport.itemsByRecordOverride = new Map<Id, List<RecordHealthCheckResultItem>>{
       accountRecord.Id => new List<RecordHealthCheckResultItem>{ null }
     };
@@ -232,89 +228,6 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
       'SyntheticPlugin',
       results.values()[0].diagnosticIncident.topFrameClass,
       'A class-only frame must remain usable without a method or line.'
-    );
-  }
-
-  @IsTest
-  static void scopePipelineMapsUnresolvedFieldsForVisibleAndMissingRecords() {
-    Account stored = RecordHealthCheckTestDataFactory.createAccount(
-      'Unresolved scope boundary'
-    );
-    Record_Health_Check__mdt unresolvedFormula = RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{
-        'QualifiedApiName' => 'Unresolved_Formula',
-        'EvaluationType__c' => 'FORMULA',
-        'PassConditionFormula__c' => 'RHC_Does_Not_Exist__c = 1'
-      }
-    );
-    Map<Id, SObject> loaded = new RecordHealthCheckScopePipeline()
-      .loadRecordsForTest(
-        'Account',
-        new List<Id>{ stored.Id },
-        new List<Record_Health_Check__mdt>{ unresolvedFormula },
-        new RecordHealthCheckFieldPlanner()
-      );
-    Assert.isTrue(
-      loaded.containsKey(stored.Id),
-      'Unresolved verdict fields must not prevent safe record hydration.'
-    );
-    Id missingId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      10
-    );
-    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
-    new RecordHealthCheckScopePipeline()
-      .evaluateCheck(
-        queryCountCheck(),
-        evaluationContext(),
-        new List<Id>{ stored.Id, missingId },
-        new Map<Id, SObject>{ stored.Id => stored },
-        false,
-        'FIELD_NOT_RESOLVED',
-        false,
-        RecordHealthCheckResultMode.EVALUATION,
-        'unresolved-fields',
-        items
-      );
-    Assert.areEqual(
-      'FIELD_NOT_RESOLVED',
-      items.get(itemKey(stored.Id)).evaluation.reasonCode
-    );
-    Assert.areEqual(
-      'RECORD_NOT_VISIBLE',
-      items.get(itemKey(missingId)).evaluation.reasonCode
-    );
-  }
-
-  @IsTest
-  static void scopePipelineRecordsClassifiedEvaluatorFailures() {
-    Account stored = RecordHealthCheckTestDataFactory.createAccount(
-      'Classified evaluator boundary one'
-    );
-    RecordHealthCheckTestDataFactory.createAccount(
-      'Classified evaluator boundary two'
-    );
-    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
-    Record_Health_Check__mdt check = queryCountCheck();
-    check.SourceQuery__c = 'SELECT Id FROM Account WHERE Name != null';
-    check.SourceQueryField__c = 'Id';
-    check.MaxQueryRows__c = 1;
-    new RecordHealthCheckScopePipeline()
-      .evaluateCheck(
-        check,
-        evaluationContext(),
-        new List<Id>{ stored.Id },
-        new Map<Id, SObject>{ stored.Id => stored },
-        false,
-        false,
-        RecordHealthCheckResultMode.EVALUATION,
-        'classified-evaluator',
-        items
-      );
-    Assert.areEqual(
-      RecordHealthCheckReasonCodes.SCOPE_ROW_CAP_EXCEEDED,
-      items.values()[0].evaluation.reasonCode,
-      'Classified failures must retain their reason.'
     );
   }
 

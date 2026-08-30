@@ -34,46 +34,8 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
   }
 
   @IsTest
-  static void displayItemHidesRawFormulaConditionWithoutEntitlement() {
-    User userWithoutPermission = RecordHealthCheckPersonaTestDataFactory.createMinimumAccessUser(
-      'rhchide'
-    );
-    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
-    result.status = RecordHealthCheckStatus.FAIL;
-    result.expectedValue = 'Name = "Acme"';
-    result.expectedValueLabel = RecordHealthCheckInternalResult.PASSES_WHEN_LABEL;
-    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{ 'QualifiedApiName' => 'Example.Check' }
-    );
-
-    Test.startTest();
-    RecordHealthCheckResultItem item;
-    System.runAs(userWithoutPermission) {
-      item = new RecordHealthCheckScopeResultSupport()
-        .toItem(
-          check,
-          userWithoutPermission.Id,
-          result,
-          RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
-        );
-    }
-    Test.stopTest();
-
-    Assert.isNull(
-      item.display.expectedDisplayValue,
-      'Raw Formula conditions require the diagnostics entitlement.'
-    );
-    Assert.isNull(
-      item.display.expectedValueLabel,
-      'The semantic label must be hidden with its restricted Formula text.'
-    );
-  }
-
-  @IsTest
   static void displayFinalizationBuildsDefaultActionAndAdminDetail() {
-    User diagnosticsUser = RecordHealthCheckPersonaTestDataFactory.createMinimumAccessUser(
-      'rhcdiag'
-    );
+    User diagnosticsUser = RecordHealthCheckTestDataFactory.currentUser();
     RecordHealthCheckTestDataFactory.assignPermissionSet(
       diagnosticsUser,
       'Record_Health_Check_Admin'
@@ -231,6 +193,11 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
       '{}',
       AggregateResult.class
     );
+    AggregateResult populatedAggregate = [
+      SELECT COUNT(Id) total
+      FROM User
+      WHERE Id = :UserInfo.getUserId()
+    ];
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>()
     );
@@ -238,6 +205,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
 
     Test.startTest();
     Integer emptyCount = resultSupport.aggregateCount(emptyAggregate);
+    Integer populatedCount = resultSupport.aggregateCount(populatedAggregate);
     String unsafeScheme = resultSupport.sanitizeActionUrl('http://example.com');
     RecordHealthCheckInternalResult skipped = resultSupport.skippedResult(
       check
@@ -245,6 +213,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     Test.stopTest();
 
     Assert.areEqual(0, emptyCount);
+    Assert.areEqual(1, populatedCount);
     Assert.isNull(
       unsafeScheme,
       'Only relative and HTTPS action URLs are allowed.'
@@ -253,6 +222,73 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
       skipped.message.contains('count threshold'),
       'The default count-applicability message must explain the threshold.'
     );
+  }
+
+  @IsTest
+  static void displayFinalizationResolvesFixAndExplicitActionLabel() {
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{ 'Name' => 'Acme' }
+      )
+    );
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'FixMessage__c' => 'Fix {!record.Name}',
+        'ActionUrl__c' => '/lightning/r/Account/{!record.Id}/view',
+        'ActionLabel__c' => 'Open {!record.Name}'
+      }
+    );
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.status = RecordHealthCheckStatus.FAIL;
+
+    new RecordHealthCheckScopeResultSupport()
+      .finalizeDisplay(check, record, result, false);
+
+    Assert.areEqual('Fix Acme', result.fixInstructions);
+    Assert.areEqual('Open Acme', result.actionLabel);
+    Assert.isTrue(result.actionUrl.endsWith('/view'));
+  }
+
+  @IsTest
+  static void itemConversionPrefersTypedEvidenceAndHidesRawFormulaCondition() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'QualifiedApiName' => 'Typed_Evidence',
+        'EvaluationType__c' => 'FORMULA'
+      }
+    );
+    RecordHealthCheckInternalResult internalResult = new RecordHealthCheckInternalResult();
+    internalResult.status = RecordHealthCheckStatus.FAIL;
+    internalResult.actualValue = 'raw found';
+    internalResult.expectedValue = 'raw condition';
+    internalResult.evaluationFound = RecordHealthCheckValue.ofString(
+      'typed found'
+    );
+    internalResult.evaluationExpected = RecordHealthCheckValue.ofString(
+      'typed expected'
+    );
+    internalResult.expectedValueLabel = RecordHealthCheckInternalResult.PASSES_WHEN_LABEL;
+
+    RecordHealthCheckResultItem item = new RecordHealthCheckScopeResultSupport()
+      .toItem(
+        check,
+        UserInfo.getUserId(),
+        internalResult,
+        RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
+      );
+
+    Assert.areEqual('typed found', item.evaluation.found.storedValue);
+    Assert.areEqual('typed expected', item.evaluation.expected.storedValue);
+    if (RecordHealthCheckAccess.canViewDetails()) {
+      Assert.areEqual('raw condition', item.display.expectedDisplayValue);
+      Assert.areEqual(
+        RecordHealthCheckInternalResult.PASSES_WHEN_LABEL,
+        item.display.expectedValueLabel
+      );
+    } else {
+      Assert.areEqual(null, item.display.expectedDisplayValue);
+      Assert.areEqual(null, item.display.expectedValueLabel);
+    }
   }
 
   private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {

@@ -2,6 +2,7 @@
  * @author Gautam Kolan (https://github.com/gkolan)
  * SPDX-License-Identifier: Apache-2.0
  */
+@SuppressWarnings('PMD.IfStmtsMustUseBraces,PMD.IfElseStmtsMustUseBraces')
 public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Boolean multiCurrencyOrganizationOverride;
@@ -33,12 +34,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
     String fieldPath
   ) {
     FieldPathDescribe info = describeFieldPath(objectType, fieldPath, null);
-    if (
-      info.inaccessible ||
-      (info.describe != null && !info.describe.isAccessible())
-    ) {
-      return RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE;
-    }
+    // prettier-ignore
+    if (info.inaccessible || (info.describe != null && !info.describe.isAccessible())) return RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE;
     return info.unresolvedReasonCode;
   }
   /** Returns the terminal describe type for a resolved field path. */
@@ -123,13 +120,13 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Boolean multiCurrency = multiCurrencyOrganizationOverride == null
       ? UserInfo.isMultiCurrencyOrganization()
       : multiCurrencyOrganizationOverride;
-    if (
+    fields.addAll(
       multiCurrency &&
-      RecordHealthCheckDescribeCache.fieldMap(objectType)
-        .containsKey('CurrencyIsoCode')
-    ) {
-      fields.add('CurrencyIsoCode');
-    }
+        RecordHealthCheckDescribeCache.fieldMap(objectType)
+          .containsKey('CurrencyIsoCode')
+        ? new Set<String>{ 'CurrencyIsoCode' }
+        : new Set<String>()
+    );
 
     FieldPlan result = new FieldPlan();
     result.selectedFields.addAll(fields);
@@ -259,14 +256,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
     FieldPathDescribe info = describeFieldPath(resolveType, token, reference);
     if (
       calculatedFormulaOverrideByField != null &&
-      (calculatedFormulaOverrideByField.containsKey(pathPrefix + token) ||
-      calculatedFormulaOverrideByField.containsKey(token))
+      calculatedFormulaOverrideByField.containsKey(pathPrefix + token)
     ) {
-      String overrideFormula = calculatedFormulaOverrideByField.containsKey(
-          pathPrefix + token
-        )
-        ? calculatedFormulaOverrideByField.get(pathPrefix + token)
-        : calculatedFormulaOverrideByField.get(token);
+      String overrideFormula = calculatedFormulaOverrideByField.get(
+        pathPrefix + token
+      );
       return buildCalculatedDependency(
         overrideFormula,
         info == null || info.describe == null ? resolveType : info.ownerType,
@@ -317,13 +311,12 @@ public with sharing class RecordHealthCheckFieldPlanner {
     );
     if (info != null && info.describe != null && info.describe.isAccessible()) {
       fields.add(fieldPath);
-    } else if (
-      info != null &&
-      (info.inaccessible || info.describe != null) &&
-      inaccessibleFieldsBeingPlanned != null
-    ) {
-      inaccessibleFieldsBeingPlanned.add(fieldPath);
-    } else if (
+      // prettier-ignore
+    } else {
+      addInaccessibleField(inaccessibleFieldsBeingPlanned, fieldPath, info);
+    }
+    if (
+      (info == null || (!info.inaccessible && info.describe == null)) &&
       info != null &&
       info.unresolvedReasonCode != null &&
       unresolvedReasonCodesBeingPlanned != null
@@ -332,6 +325,20 @@ public with sharing class RecordHealthCheckFieldPlanner {
         fieldPath,
         info.unresolvedReasonCode
       );
+    }
+  }
+
+  private static void addInaccessibleField(
+    Set<String> fields,
+    String fieldPath,
+    FieldPathDescribe info
+  ) {
+    if (
+      fields != null &&
+      info != null &&
+      (info.inaccessible || info.describe != null)
+    ) {
+      fields.add(fieldPath);
     }
   }
 
@@ -361,13 +368,9 @@ public with sharing class RecordHealthCheckFieldPlanner {
           RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED
         );
       }
-      if (
-        !RecordHealthCheckDescribeCache.describeField(relationshipField)
-          .isAccessible()
-      ) {
-        FieldPathDescribe inaccessible = new FieldPathDescribe();
-        inaccessible.inaccessible = true;
-        return inaccessible;
+      // prettier-ignore
+      if (!RecordHealthCheckDescribeCache.describeField(relationshipField).isAccessible()) {
+        FieldPathDescribe inaccessible = new FieldPathDescribe(); inaccessible.inaccessible = true; return inaccessible;
       }
       List<Schema.SObjectType> referenceTypes = RecordHealthCheckDescribeCache.describeField(
           relationshipField

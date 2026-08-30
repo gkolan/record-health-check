@@ -1,6 +1,6 @@
 /** Verifies planner expansion against deployed formula-field describe metadata. */
 @IsTest
-private class RHCFormulaMetadataPlannerIntegrationTest {
+private class RHCFormulaMetadataPlannerIT {
   @TestSetup
   static void grantFormulaFixtureAccess() {
     RecordHealthCheckTestDataFactory.assignPermissionSet(

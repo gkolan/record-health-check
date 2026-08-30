@@ -1,4 +1,5 @@
 /** Deterministic describe validation for the documented simple-query subset. */
+@SuppressWarnings('PMD.IfStmtsMustUseBraces,PMD.IfElseStmtsMustUseBraces')
 public with sharing class RecordHealthCheckQuerySchemaValidator {
   private static final Set<Schema.DisplayType> TEXT_TYPES = new Set<Schema.DisplayType>{
     Schema.DisplayType.EMAIL,
@@ -40,14 +41,8 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
         'Query root object did not resolve: ' + objectApiName
       );
     }
-    if (
-      !RecordHealthCheckDescribeCache.describeSObject(objectType).isAccessible()
-    ) {
-      throw failure(
-        RecordHealthCheckReasonCodes.RECORD_NOT_ACCESSIBLE,
-        'Query root object is not accessible in user mode.'
-      );
-    }
+    // prettier-ignore
+    if (!RecordHealthCheckDescribeCache.describeSObject(objectType).isAccessible()) throw failure(RecordHealthCheckReasonCodes.RECORD_NOT_ACCESSIBLE, 'Query root object is not accessible in user mode.');
 
     if (selectList.containsIgnoreCase('TYPEOF')) {
       return;

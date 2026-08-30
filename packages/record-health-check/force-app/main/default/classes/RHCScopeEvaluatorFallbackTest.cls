@@ -3,7 +3,7 @@
 private class RHCScopeEvaluatorFallbackTest {
   @IsTest
   static void unmigratedEvaluatorProducesAlignedUnableResult() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Unmigrated evaluator'
     );
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();

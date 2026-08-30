@@ -44,6 +44,20 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
     return rows;
   }
 
+  /** Runs a bind-aware aggregate query in user mode for bulk plugin loaders. */
+  public static List<AggregateResult> runAggregateQuery(
+    String soql,
+    Map<String, Object> binds
+  ) {
+    List<AggregateResult> results = new List<AggregateResult>();
+    for (
+      SObject row : Database.queryWithBinds(soql, binds, AccessLevel.USER_MODE)
+    ) {
+      results.add((AggregateResult) row);
+    }
+    return results;
+  }
+
   /** Returns the maximum query rows a prepared execution can consume. */
   public static Integer queryRowReservation(String soql, Integer rowBudget) {
     Integer cappedBudget = rowBudget == null ||

@@ -26,7 +26,7 @@ private class RecordHealthCheckIntegrationCoverageTest {
   @IsTest
   static void scheduledAdapterPublishesScheduledSource() {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Scheduled source fixture'
     );
     RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
@@ -61,7 +61,7 @@ private class RecordHealthCheckIntegrationCoverageTest {
   @IsTest
   static void oversizedCheckSetRetainsStableFlowLimitContract() {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Flow Check Set limit fixture'
     );
     RecordHealthCheckRunSetFlowAction.Request request = new RecordHealthCheckRunSetFlowAction.Request();
@@ -236,7 +236,7 @@ private class RecordHealthCheckIntegrationCoverageTest {
     );
     RHCIntegrationTestDataFactory.createRecord(telemetry);
     Account accountRecord = benchmarkAccount('direct_error', 0);
-    RecordHealthCheckTestDataFactory.createAccount(accountRecord);
+    RHCIntegrationTestDataFactory.createAccount(accountRecord);
     RecordHealthCheckBenchmarkEvaluator evaluator = new RecordHealthCheckBenchmarkEvaluator(
       telemetry.Id,
       'direct_error',

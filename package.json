@@ -49,6 +49,8 @@
     "check:agent-tool-contract": "node scripts/release/check_agent_tool_contract.mjs",
     "check:mcp": "npm run check --prefix packages/record-health-check-mcp",
     "check:test-data-factory": "node scripts/release/check_test_data_factory.mjs",
+    "generate:test-data-factory-inventory": "node scripts/release/generate_test_data_factory_inventory.mjs",
+    "check:test-data-factory-inventory": "node scripts/release/generate_test_data_factory_inventory.mjs --check",
     "check:apex-architecture": "node scripts/release/check_apex_architecture.mjs",
     "check:apex-surface": "node scripts/release/check_apex_surface.mjs",
     "check:code-analyzer-output-paths": "node scripts/release/check_code_analyzer_output_paths.mjs",

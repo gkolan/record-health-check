@@ -10,32 +10,8 @@
 @IsTest
 private class AccountHasRecentActivityCheckTest {
   @IsTest
-  static void completedTaskInsideWindowPasses() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'RHC Recent Activity Pass'
-    );
-
-    RecordHealthCheckTestDataFactory.createTask(
-      RecordHealthCheckTestDataFactory.task(
-        new Map<String, Object>{
-          'WhatId' => account.Id,
-          'Subject' => 'Recent call',
-          'Status' => 'Completed',
-          'ActivityDate' => Date.today()
-        }
-      )
-    );
-
-    RecordHealthCheckInternalResult result = evaluate(account.Id, null);
-
-    Assert.areEqual('PASS', result.status);
-    Assert.areEqual('1', result.actualValue);
-    Assert.areEqual('1', result.expectedValue);
-  }
-
-  @IsTest
   static void noActivityFails() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'RHC Recent Activity Fail'
     );
 
@@ -47,91 +23,8 @@ private class AccountHasRecentActivityCheckTest {
   }
 
   @IsTest
-  static void configuredMinimumPassesWhenEnoughEngagementsExist() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'RHC Engagement Volume Pass'
-    );
-    RecordHealthCheckTestDataFactory.createTask(
-      RecordHealthCheckTestDataFactory.task(
-        new Map<String, Object>{
-          'WhatId' => account.Id,
-          'Subject' => 'Executive review',
-          'Status' => 'Completed',
-          'ActivityDate' => Date.today()
-        }
-      )
-    );
-    RecordHealthCheckTestDataFactory.createEvent(
-      RecordHealthCheckTestDataFactory.event(
-        new Map<String, Object>{
-          'WhatId' => account.Id,
-          'Subject' => 'Operating review',
-          'ActivityDate' => Date.today(),
-          'StartDateTime' => Datetime.now(),
-          'EndDateTime' => Datetime.now().addHours(1)
-        }
-      )
-    );
-
-    Test.startTest();
-    RecordHealthCheckInternalResult result = evaluate(
-      account.Id,
-      new Map<String, Object>{ 'daysBack' => 60, 'minimumActivities' => 2 }
-    );
-    Test.stopTest();
-
-    Assert.areEqual('PASS', result.status, 'Two engagements should pass.');
-    Assert.areEqual('2', result.actualValue, 'Both activities should count.');
-    Assert.areEqual(
-      '2',
-      result.expectedValue,
-      'The configured minimum should display.'
-    );
-  }
-
-  @IsTest
-  static void configuredMinimumFailsWhenVolumeIsTooLow() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'RHC Engagement Volume Fail'
-    );
-    RecordHealthCheckTestDataFactory.createTask(
-      RecordHealthCheckTestDataFactory.task(
-        new Map<String, Object>{
-          'WhatId' => account.Id,
-          'Subject' => 'Only engagement',
-          'Status' => 'Completed',
-          'ActivityDate' => Date.today()
-        }
-      )
-    );
-
-    Test.startTest();
-    RecordHealthCheckInternalResult result = evaluate(
-      account.Id,
-      new Map<String, Object>{ 'minimumActivities' => 2 }
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      'FAIL',
-      result.status,
-      'One engagement should miss a minimum of two.'
-    );
-    Assert.areEqual(
-      '1',
-      result.actualValue,
-      'The observed volume should display.'
-    );
-    Assert.areEqual(
-      '2',
-      result.expectedValue,
-      'The configured minimum should display.'
-    );
-  }
-
-  @IsTest
   static void whoOnlyContactTaskIsExplicitlyOutsideWhatIdContractRow22() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'RHC Who-only activity'
     );
     Contact contact = RecordHealthCheckTestDataFactory.contact(
@@ -140,10 +33,10 @@ private class AccountHasRecentActivityCheckTest {
         'AccountId' => account.Id
       }
     );
-    RecordHealthCheckTestDataFactory.createContacts(
+    RecordHealthCheckTestDataFactory.contactsFixture(
       new List<Contact>{ contact }
     );
-    RecordHealthCheckTestDataFactory.createTask(
+    RecordHealthCheckTestDataFactory.taskFixture(
       RecordHealthCheckTestDataFactory.task(
         new Map<String, Object>{
           'WhoId' => contact.Id,
@@ -166,11 +59,11 @@ private class AccountHasRecentActivityCheckTest {
 
   @IsTest
   static void activityOutsideWindowFails() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'RHC Recent Activity Stale'
     );
 
-    RecordHealthCheckTestDataFactory.createTask(
+    RecordHealthCheckTestDataFactory.taskFixture(
       RecordHealthCheckTestDataFactory.task(
         new Map<String, Object>{
           'WhatId' => account.Id,
@@ -194,11 +87,11 @@ private class AccountHasRecentActivityCheckTest {
 
   @IsTest
   static void invalidDaysBackIsRejected() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'RHC Recent Activity Default'
     );
 
-    RecordHealthCheckTestDataFactory.createTask(
+    RecordHealthCheckTestDataFactory.taskFixture(
       RecordHealthCheckTestDataFactory.task(
         new Map<String, Object>{
           'WhatId' => account.Id,
@@ -240,51 +133,6 @@ private class AccountHasRecentActivityCheckTest {
         )
         .status,
       'Unsupported minimum types must be rejected.'
-    );
-  }
-
-  @IsTest
-  static void recentEventPassesAndUnsupportedParameterTypeIsRejected() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      'RHC Recent Event'
-    );
-    RecordHealthCheckTestDataFactory.createEvent(
-      RecordHealthCheckTestDataFactory.event(
-        new Map<String, Object>{
-          'WhatId' => account.Id,
-          'Subject' => 'Recent meeting',
-          'ActivityDate' => Date.today(),
-          'StartDateTime' => Datetime.now(),
-          'EndDateTime' => Datetime.now().addHours(1)
-        }
-      )
-    );
-
-    Test.startTest();
-    RecordHealthCheckInternalResult decimalResult = evaluate(
-      account.Id,
-      new Map<String, Object>{ 'daysBack' => Decimal.valueOf('30') }
-    );
-    RecordHealthCheckInternalResult unsupportedResult = evaluate(
-      account.Id,
-      new Map<String, Object>{ 'daysBack' => true }
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      RecordHealthCheckStatus.PASS,
-      decimalResult.status,
-      'A recent Event must satisfy the Check with a Decimal window.'
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
-      unsupportedResult.status,
-      'An unsupported parameter type must be rejected.'
-    );
-    Assert.areEqual(
-      'INVALID_CONFIG',
-      unsupportedResult.reasonCode,
-      'The result must explain the invalid configuration.'
     );
   }
 
@@ -344,7 +192,7 @@ private class AccountHasRecentActivityCheckTest {
         )
       );
     }
-    RecordHealthCheckTestDataFactory.createAccounts(accounts);
+    RecordHealthCheckTestDataFactory.accountsFixture(accounts);
     List<Id> accountIds = new List<Id>(new Map<Id, Account>(accounts).keySet());
 
     Test.startTest();
@@ -389,7 +237,7 @@ private class AccountHasRecentActivityCheckTest {
         new Map<String, Object>{ 'Name' => 'No Activity B' }
       )
     };
-    RecordHealthCheckTestDataFactory.createAccounts(accounts);
+    RecordHealthCheckTestDataFactory.accountsFixture(accounts);
     List<Id> accountIds = new List<Id>(new Map<Id, Account>(accounts).keySet());
 
     Test.startTest();
@@ -422,5 +270,37 @@ private class AccountHasRecentActivityCheckTest {
 
     Assert.areEqual(0, outcomes.size());
     Assert.areEqual(0, used, 'An empty scope must not issue activity queries.');
+  }
+
+  @IsTest
+  static void aggregateRowsAccumulateOnlySeededIds() {
+    List<AggregateResult> rows = RecordHealthCheckQueryEvaluatorSupport.runAggregateQuery(
+      'SELECT Id whatId, COUNT(Name) total FROM User WHERE Id = :currentUserId GROUP BY Id',
+      new Map<String, Object>{ 'currentUserId' => UserInfo.getUserId() }
+    );
+    Map<Id, Integer> counts = new Map<Id, Integer>{ UserInfo.getUserId() => 0 };
+
+    AccountHasRecentActivityCheck.accumulateRows(counts, rows);
+
+    Assert.areEqual(1, counts.get(UserInfo.getUserId()));
+
+    Assert.areEqual(
+      'PASS',
+      AccountHasRecentActivityCheck.outcomeFor(1, 1).status
+    );
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'Decimal'
+    );
+    Assert.areEqual(
+      'FAIL',
+      evaluateScope(
+          new List<Id>{ account.Id },
+          new Map<String, Object>{
+            'minimumActivities' => Decimal.valueOf('1.0')
+          }
+        )
+        .get(account.Id)
+        .status
+    );
   }
 }

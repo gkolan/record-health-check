@@ -216,6 +216,13 @@ public with sharing class RecordHealthCheckPluginDispatch {
     return null;
   }
 
+  /** Rethrows the one fatal plugin failure that recoverable adapters must not map. */
+  public static void preserveFatalSideEffect(Exception error) {
+    if (error instanceof SideEffectException) {
+      throw (SideEffectException) error;
+    }
+  }
+
   private static SideEffectException newSideEffect(
     String effect,
     Boolean reversible,

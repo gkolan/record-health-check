@@ -13,6 +13,35 @@ const inlineRecordPattern =
   /\bnew\s+(?:Account|Case|Contact|Event|Group|Opportunity|Task|User|Record_Health_Check_[A-Za-z0-9_]*__mdt|RHC_[A-Za-z0-9_]*__(?:c|e))\s*\(/g;
 const hardcodedNamespacePattern = /['"]rhc__/g;
 const failures = [];
+// Unlocked-package tests execute in subscriber orgs. Keep force-app factory use
+// explicit so a new persistence helper cannot silently reintroduce customer DML.
+const forceAppFactoryAllowlist = new Set([
+  "account",
+  "accountFixture",
+  "accountsFixture",
+  "assignPermissionSet",
+  "assignRunPermissionToCurrentUser",
+  "caseRecord",
+  "check",
+  "checkSet",
+  "contact",
+  "contactFixture",
+  "contactsFixture",
+  "currentUser",
+  "deletedAccountFixture",
+  "event",
+  "hasIntegrationFixtures",
+  "healthyAccountFixture",
+  "opportunity",
+  "opportunityFixture",
+  "prepareCoverageFixtures",
+  "prepareTestFixtures",
+  "qualifiedCheckName",
+  "qualifiedCheckSetName",
+  "syntheticId",
+  "task",
+  "taskFixture"
+]);
 
 function codeOnly(source) {
   return source
@@ -31,6 +60,23 @@ for (const classesDirectory of classDirectories) {
       "utf8"
     );
     const scannedSource = codeOnly(source);
+    if (classesDirectory === classDirectories[0]) {
+      for (const match of scannedSource.matchAll(
+        /RecordHealthCheck(?:Persona)?TestDataFactory\.([A-Za-z0-9_]+)\s*\(/g
+      )) {
+        if (!forceAppFactoryAllowlist.has(match[1])) {
+          const line = source.slice(0, match.index).split("\n").length;
+          failures.push(
+            `${fileName}:${line}: factory method ${match[1]} is not allowed in unlocked-package tests; use an in-memory builder/syntheticId or move live-DML coverage to integration-tests`
+          );
+        }
+      }
+      if (/RHCIntegrationTestDataFactory\s*\./.test(scannedSource)) {
+        failures.push(
+          `${fileName}: force-app tests must not reference the integration test factory`
+        );
+      }
+    }
     for (const match of scannedSource.matchAll(directDmlPattern)) {
       const line = source.slice(0, match.index).split("\n").length;
       failures.push(

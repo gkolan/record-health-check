@@ -4,6 +4,23 @@
 @IsTest
 private with sharing class RecordHealthCheckScopeApplicabilityTest {
   private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
+
+  @IsTest
+  static void personAccountExclusionIsAutomaticallyMetWhenFeatureIsAbsent() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'ApplicabilityMode__c' => 'WHEN_FORMULA_TRUE',
+        'ApplicabilityFormula__c' => 'NOT(IsPersonAccount)'
+      }
+    );
+    RecordHealthCheckInternalResult result = new RecordHealthCheckScopeResultSupport()
+      .applicabilityResult(
+        check,
+        RecordHealthCheckTestDataFactory.account(new Map<String, Object>())
+      );
+    Assert.areEqual(null, result);
+  }
+
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
@@ -92,74 +109,6 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
   }
 
   @IsTest
-  static void countApplicabilityQueriesOnceAndSkipsBeforeEvaluation() {
-    Account applicable = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Applicable', 'AnnualRevenue' => 100 }
-    );
-    Account skipped = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Skipped', 'AnnualRevenue' => 100 }
-    );
-    RecordHealthCheckTestDataFactory.createAccounts(
-      new List<Account>{ applicable, skipped }
-    );
-    Opportunity openOpportunity = RecordHealthCheckTestDataFactory.createOpportunity(
-      RecordHealthCheckTestDataFactory.opportunity(
-        new Map<String, Object>{
-          'Name' => 'Open Pipeline',
-          'AccountId' => applicable.Id,
-          'StageName' => 'Prospecting',
-          'CloseDate' => Date.today().addDays(30),
-          'Amount' => 100
-        }
-      )
-    );
-    Contact contactRecord = RecordHealthCheckTestDataFactory.createContact(
-      new Map<String, Object>{
-        'LastName' => 'Contacted',
-        'AccountId' => applicable.Id
-      }
-    );
-    RecordHealthCheckTestDataFactory.createRecords(
-      new List<SObject>{
-        new OpportunityContactRole(
-          OpportunityId = openOpportunity.Id,
-          ContactId = contactRecord.Id,
-          IsPrimary = true
-        )
-      }
-    );
-    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
-      RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Open_Deals_Have_Contacts'
-      ),
-      new List<Id>{ skipped.Id, applicable.Id }
-    );
-
-    RecordHealthCheckDisplayCurrencyResolver.corporateCurrency();
-    Test.startTest();
-    Integer beforeQueries = Limits.getQueries();
-    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(request);
-    Integer queryDelta = Limits.getQueries() - beforeQueries;
-    Test.stopTest();
-
-    Assert.areEqual(
-      5,
-      queryDelta,
-      'The request should use metadata, one record load, one applicability query, and two comparison queries.'
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.SKIPPED,
-      response.results[0].evaluation.status,
-      'A record below the count threshold should be skipped in place.'
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.PASS,
-      response.results[1].evaluation.status,
-      'Only the applicable record should reach the query evaluator.'
-    );
-  }
-
-  @IsTest
   static void defensiveHelpersPreserveStableResults() {
     RecordHealthCheckScopeResultSupport resultSupport = new RecordHealthCheckScopeResultSupport();
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
@@ -199,7 +148,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
   @IsTest
   static void malformedCountApplicabilityReturnsStableUnavailableResult() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Count applicability' }
       )
@@ -230,7 +179,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
   @IsTest
   static void unknownCountApplicabilityOperatorReturnsUnavailable() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Unknown count operator' }
       )
@@ -322,7 +271,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
   @IsTest
   static void compareCheckSkipsWhenCountThresholdIsNotMet() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Compare applicability below threshold'
     );
     Record_Health_Check__mdt check = countApplicabilityCheck(
@@ -358,7 +307,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
   @IsTest
   static void countApplicabilityPreservesBulkQueryFailureReason() {
     System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
-      Account account = RecordHealthCheckTestDataFactory.createAccount(
+      Account account = RecordHealthCheckTestDataFactory.accountFixture(
         'Unsupported applicability query'
       );
       Record_Health_Check__mdt check = countApplicabilityCheck(

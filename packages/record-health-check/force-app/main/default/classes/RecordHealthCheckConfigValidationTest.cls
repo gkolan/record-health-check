@@ -7,13 +7,13 @@
 private class RecordHealthCheckConfigValidationTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
   static void configServiceCoversRemainingValidationBranches() {
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
 
     Record_Health_Check_Set__mdt invalidObject = RecordHealthCheckTestDataFactory.checkSet(
       new Map<String, Object>{
@@ -153,7 +153,7 @@ private class RecordHealthCheckConfigValidationTest {
   @IsTest
   static void checkSetValidationRejectsEveryInvalidSetting() {
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
-    Account record = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account record = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     List<Record_Health_Check_Set__mdt> invalidSets = new List<Record_Health_Check_Set__mdt>{
       validSet('Inactive', false),
       validSet('Blank_Object', true),

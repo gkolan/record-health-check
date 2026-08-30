@@ -32,7 +32,7 @@ private class ApprovalInactiveApproverCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Approval Bad Field' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
     RecordHealthCheckOutcome outcome = evaluateOne(
       account.Id,
@@ -58,7 +58,7 @@ private class ApprovalInactiveApproverCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Approval Active Owner' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
     RecordHealthCheckOutcome outcome = evaluateOne(
       account.Id,

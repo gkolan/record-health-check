@@ -6,12 +6,12 @@
 private class RHCFormulaEdgeBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
   }
 
   @IsTest
   static void formulaEvaluatorCoversNullAndMergeFieldBranches() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
     String[] reasonCode = new List<String>{ null };
 
@@ -32,7 +32,7 @@ private class RHCFormulaEdgeBehaviorTest {
 
   @IsTest
   static void formulaEvaluationMapsNullBudgetAndFieldAccessFailures() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
     Record_Health_Check__mdt nullCheck = baseCheck('Null_Formula', 'FORMULA');
     nullCheck.PassConditionFormula__c = 'NULL';

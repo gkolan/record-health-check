@@ -6,12 +6,12 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
 
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
   static void postRunsOneExactCheckWithHttp200() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
       accountRecord.Id,
@@ -66,7 +66,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
 
   @IsTest
   static void postWireHandlerUsesExplicitNullFreeJson() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     initializeRequest(
       'application/json;charset=UTF-8',
       Blob.valueOf(
@@ -107,7 +107,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
 
   @IsTest
   static void postRunsOneExactCheckSetWithCounts() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     Map<String, Object> body = baseBody(
       'RUN_CHECK_SET',
       accountRecord.Id,
@@ -235,7 +235,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
 
   @IsTest
   static void postRejectsUnknownJsonFields() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     String body = JSON.serialize(
       baseBody(
         'RUN_CHECK',
@@ -262,7 +262,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   static void postRejectsUnknownOperation() {
     Map<String, Object> body = baseBody(
       'EXECUTE_APEX',
-      RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
+      RecordHealthCheckTestDataFactory.healthyAccountFixture().Id,
       'Example_Website_URL_Valid'
     );
 
@@ -301,7 +301,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   static void postRejectsInvalidQualifiedIdentity() {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
-      RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
+      RecordHealthCheckTestDataFactory.healthyAccountFixture().Id,
       'invalid.identity'
     );
 
@@ -318,7 +318,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   static void postRejectsBlankQualifiedIdentity() {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
-      RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
+      RecordHealthCheckTestDataFactory.healthyAccountFixture().Id,
       ' '
     );
 
@@ -360,7 +360,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   static void postDoesNotReflectUnsafeCorrelationId() {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
-      RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
+      RecordHealthCheckTestDataFactory.healthyAccountFixture().Id,
       'Example_Website_URL_Valid'
     );
     body.put('correlationId', 'unsafe correlation value');
@@ -382,7 +382,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   static void postMapsUnknownConfigurationToSafeValidationError() {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
-      RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
+      RecordHealthCheckTestDataFactory.healthyAccountFixture().Id,
       'Missing_Check'
     );
 
@@ -403,7 +403,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
   static void postMapsFatalEvaluatorSideEffectToSafeServerError() {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
-      RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
+      RecordHealthCheckTestDataFactory.healthyAccountFixture().Id,
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
         'Example_Website_URL_Valid'
       )

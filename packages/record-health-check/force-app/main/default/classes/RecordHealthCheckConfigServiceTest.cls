@@ -116,7 +116,7 @@ private class RecordHealthCheckConfigServiceTest {
   }
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
@@ -124,7 +124,7 @@ private class RecordHealthCheckConfigServiceTest {
     if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
       return;
     }
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
 
     Test.startTest();
@@ -354,9 +354,7 @@ private class RecordHealthCheckConfigServiceTest {
 
   @IsTest
   static void definitionHonorsDiagnosticsEntitlement() {
-    User diagnosticsUser = RecordHealthCheckPersonaTestDataFactory.createMinimumAccessUser(
-      'rhcdef'
-    );
+    User diagnosticsUser = RecordHealthCheckTestDataFactory.currentUser();
     RecordHealthCheckTestDataFactory.assignPermissionSet(
       diagnosticsUser,
       'Record_Health_Check_Admin'

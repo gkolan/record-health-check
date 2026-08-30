@@ -6,6 +6,10 @@
 
 This directory is **not** part of the Framework install.
 
+It owns tests that require live business-record persistence. The production package test suite and
+per-class coverage gate run before this harness is deployed, so integration coverage cannot mask
+packaged-only coverage. Final initiative evidence records the measured integration runtime.
+
 It holds sample Custom Metadata, a small custom object, Apex smoke coverage, and platform-event
 subscriber triggers used by the manual Salesforce release gate
 (`.github/workflows/salesforce-validate.yml`). Never deploy it to a customer sandbox or production

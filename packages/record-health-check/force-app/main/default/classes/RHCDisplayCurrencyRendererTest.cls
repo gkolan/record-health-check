@@ -3,10 +3,7 @@
 private class RHCDisplayCurrencyRendererTest {
   @IsTest
   static void rendersSymbolsIsoCodesAndMinorUnits() {
-    User localeUser = RecordHealthCheckTestDataFactory.createUserWithLocale(
-      'en_US',
-      'rhccur'
-    );
+    User localeUser = RecordHealthCheckTestDataFactory.currentUser();
 
     System.runAs(localeUser) {
       Assert.areEqual(
