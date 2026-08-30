@@ -20,4 +20,6 @@ public class RecordHealthCheckDefinition {
   public Decimal priority;
   @AuraEnabled
   public String dependsOnCheckDeveloperName; // null when no dependency
+  @AuraEnabled
+  public String dependsOnCheckQualifiedApiName; // namespace-safe dependency identity
 }

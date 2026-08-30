@@ -22,30 +22,34 @@ The setup installs the promoted **Record Health Check** package (`04t` from
 metadata from `subscriber-app`, seeds demo Account data from `scripts/subscriber/data/`, and runs
 `RHCSubscriberSmokeTest`.
 
-The seed lifecycle is intentionally three transactions and must stay in this order:
-
-1. `setupDemoUser.apex` creates or reactivates Jordan Blake.
-2. `setupDemoData.apex` creates Acme and assigns Jordan as owner.
-3. `deactivateDemoUser.apex` deactivates Jordan so the owner-health Check demonstrates a failure.
+`setupDemoData.apex` creates the complete Acme scenario in one repeatable seed step. The user who
+runs setup owns Acme; the examples do not create or deactivate Salesforce users.
 
 It does **not** deploy unpackaged Framework source or `integration-tests` samples.
 
 The deterministic Acme data seeded by `setupDemoData.apex` includes:
 
 - `Asteron Global Holdings → Asteron Industrial Systems → Acme Corporation`
-- Jordan Blake assigned as owner and then deactivated in a separate transaction
 - 38 realistic contacts, including six without email addresses
-- three reachable Opportunity Contact Roles with `Executive Sponsor`
-- two open opportunities totaling $70,000 against $500,000 annual revenue
-- two completed activities in the last 90 days
-- four open high-priority cases
+- four Opportunity Contact Roles on one open Opportunity: one `Decision Maker`, two `Executive Sponsor` roles, and one unreachable `Business User`; no `Technical Buyer`
+- two open Opportunities, three recent Closed Lost Opportunities, and one historical Closed Won Opportunity without Amount or primary Contact
+- two completed activities in the last 60 days
+- 16 Cases: 4 open High, 4 open Medium, 4 open Low, and 4 closed Cases; 6 of the 12 open Cases have no Contact
+- six Parent Account Contacts across five cities for realistic list comparisons
+- 38 Acme Contacts across four different cities, with no city overlap with the Parent Account
+
+The deterministic Check Set result is 5 Passed, 18 Failed, 1 Skipped, and 1 Unable. Failed rows
+include Critical, Warning, and Info examples. The full 25-Check outcome and quality-score tables are in
+[Install the demo in a scratch org](../../docs/install/install-demo-in-a-scratch-org.md#what-the-demo-prepares).
 
 `setupDemoData.apex` is safe to run again for the named Acme demo records. On rerun, it replaces
 Acme's Contacts, Opportunities, Opportunity Contact Roles, Tasks, Events, and Cases so the scenario
 does not get out of sync or accumulate duplicates.
 
 For the full walkthrough, including Windows shell notes, see
-[Create the demo scratch org](../../docs/installation/create-rhc-scratch-org.md).
+[Create the demo scratch org](../../docs/install/install-demo-in-a-scratch-org.md).
 
 Contributors changing Framework source use
 [`npm run dev:setup`](../../docs/contributing/source-development.md) instead.
+After source deployment, run `npm run demo:setup-source -- --alias <source-org-alias>` to seed Acme
+and verify the current source in either namespace mode.

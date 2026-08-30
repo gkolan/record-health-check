@@ -1,4 +1,6 @@
-# Develop Record Health Check Package Source
+# Develop the repository source
+
+Use this workflow when changing the package implementation.
 
 > [!NOTE]
 > On this page, create a scratch org for changing the Record Health Check package source. The setup
@@ -8,14 +10,14 @@
 > [!IMPORTANT]
 > This workflow deploys unpackaged package source into a development org. Do **not** use it to
 > install or upgrade Record Health Check in a subscriber sandbox or production org. Subscribers
-> install the promoted unlocked package (`04t`) from [Install and verify](../installation/install-and-verify.md).
+> install the promoted unlocked package (`04t`) from [Install and verify](../install/install-in-a-sandbox.md).
 
 `npm run setup` creates an installed-package demo. `npm run dev:setup` deploys unpackaged contributor
 source. They are different workflows; do not substitute one command for the other.
 
 Use this guide only when contributing changes to this repository. The package project is in
 `packages/record-health-check/`. If the goal is to evaluate the installed package as an
-administrator or user, follow [Create a demo scratch org](../installation/create-rhc-scratch-org.md)
+administrator or user, follow [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md)
 instead.
 
 ## Prerequisites
@@ -23,7 +25,7 @@ instead.
 Before you start:
 
 - Git
-- Salesforce CLI 2.148.3 (`sf`) installed and on your `PATH`
+- Salesforce CLI 2.149.9 (`sf`) installed and on your `PATH`
 - A Dev Hub org you can authenticate (example alias: `my-dev-hub`)
 - Node.js 22
 
@@ -38,7 +40,7 @@ sf org login web --set-default-dev-hub --alias my-dev-hub
 npm run check:toolchain
 ```
 
-The final command must report that the local and CI toolchains use Salesforce CLI 2.148.3. The
+The final command must report that the local and CI toolchains use Salesforce CLI 2.149.9. The
 repository intentionally stops contributor commands when another CLI version is installed.
 
 ## Step 1: Create the contributor org
@@ -78,6 +80,26 @@ deploy unsaved source changes.
 ```bash
 npm run dev:test -- --alias rhc-dev
 ```
+
+## Seed the current-source Acme demo
+
+Contributor and portable-test orgs deploy source, so they do not run the installed-package demo
+setup automatically. Seed and verify the documented Acme hierarchy in either a namespaced or
+no-namespace source scratch org with:
+
+```bash
+npm run demo:setup-source -- --alias rhc-dev
+```
+
+The command detects the source namespace, runs the committed safe-to-rerun
+`scripts/subscriber/data/setupDemoData.apex` seed, and evaluates all 25 current-source Checks using
+`scripts/contributor/verifyDemoSource.apex`. For the 2.0.5 source, success reports **5 Passed, 18
+Failed, 1 Skipped, and 1 Unable to Check**. The data shape remains three Accounts, 44 Contacts, six
+Opportunities, four Opportunity Contact Roles, two Tasks, and 16 Cases.
+
+Rerunning the command replaces only the tagged Acme demo's related records. To remove the complete
+demo, delete the three Accounts whose Account Number begins with `RHC-DEMO-`, starting with Acme and
+then its parents so Salesforce relationship constraints are respected.
 
 ## Step 3: Prove portable (no-namespace) source deploy
 
@@ -158,15 +180,16 @@ when both options exist.
 | `An org already uses alias '…'` | Confirm which org owns the alias. Choose a new `--alias`, or delete the old scratch org only when this work created it and it is no longer needed. |
 | Scratch-org capacity is insufficient | Reuse a suitable contributor org, delete an owned org that is no longer needed, or wait for the daily limit to reset |
 | Toolchain check reports another CLI version | Install the exact version shown in `config/toolchain.json`, then rerun `npm run check:toolchain` |
-| Deploy fails on currency field planner tests | The org is multi-currency; see the [FAQ](../guides/faq.md#why-did-contributor-source-deploy-fail-apex-tests-in-a-multi-currency-org) |
+| Deploy fails on currency field planner tests | The org is multi-currency; see the [setup and troubleshooting FAQ](../faqs/setup-and-troubleshooting.md#why-did-source-deployment-fail-a-currency-planner-test) |
 | `sf` not found on Windows | Confirm the Salesforce CLI install and that your shell session can resolve `sf` |
-| Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../installation/create-rhc-scratch-org.md) |
+| Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../install/install-demo-in-a-scratch-org.md) |
+| Acme Corporation is missing from a source org | Run `npm run demo:setup-source -- --alias <source-org-alias>` |
 
 ## Next steps
 
-- Follow the [documentation quality and accuracy standard](api-documentation-standard.md) when
+- Follow the [documentation quality and accuracy standard](../quality-gates/documentation-standard.md) when
   editing any page in `docs`
 - Review the local gates in [Contributing](../../.github/CONTRIBUTING.md) before you open a PR
-- Read [Package testing and upgrades](../reference/framework/package-testing-and-upgrades.md) for
+- Read [Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md) for
   test ownership and subscriber upgrade behavior
 - Follow [Releasing](../../.github/RELEASING.md) when you are ready to create a package version

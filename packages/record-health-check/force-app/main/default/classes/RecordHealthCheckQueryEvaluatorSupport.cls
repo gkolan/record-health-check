@@ -44,6 +44,31 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
     return rows;
   }
 
+  /** Returns the maximum query rows a prepared execution can consume. */
+  public static Integer queryRowReservation(String soql, Integer rowBudget) {
+    Integer cappedBudget = rowBudget == null ||
+      rowBudget <= 0
+      ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
+      : rowBudget;
+    Integer cappedReservation = cappedBudget + 1;
+    if (RecordHealthCheckSoqlTemplate.isSingleCountQuery(soql)) {
+      return cappedReservation;
+    }
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
+    Matcher matcher = Pattern.compile('(?i)\\bLIMIT\\s+(\\d+)').matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0) {
+        continue;
+      }
+      try {
+        return Math.min(Integer.valueOf(matcher.group(1)), cappedReservation);
+      } catch (Exception ignored) {
+        return cappedReservation;
+      }
+    }
+    return cappedReservation;
+  }
+
   public static RecordHealthCheckInternalResult buildEmptyResult(
     Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult result,

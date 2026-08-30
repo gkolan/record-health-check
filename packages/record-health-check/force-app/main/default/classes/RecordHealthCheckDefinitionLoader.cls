@@ -20,22 +20,25 @@ public with sharing class RecordHealthCheckDefinitionLoader {
 
   /**
    * Loads and validates a Check Set and its active checks.
-   * Throws ConfigException for component-level failures (CONFIG_NOT_FOUND,
-   * CONFIG_INACTIVE, OBJECT_MISMATCH, NO_RECORD_CONTEXT, NO_ACTIVE_CHECKS).
-   * Returns a fully filled-in RecordHealthCheckDefinitionResponse on success.
+   *
+   * @param service Service that loads the selected Custom Metadata.
+   * @param checkSetQualifiedApiName Exact selected Check Set identity.
+   * @param recordId Record page context used to enforce the configured object.
+   * @return Complete definition response within the Check limit.
+   * @throws RecordHealthCheckConfigService.ConfigException for missing, inactive, mismatched, empty, or invalid configuration.
    */
   public static RecordHealthCheckDefinitionResponse getDefinitionResponse(
     RecordHealthCheckConfigService service,
-    String checkSetDeveloperName,
+    String checkSetQualifiedApiName,
     Id recordId
   ) {
     // Normalize at the service boundary so whitespace/blank is rejected before SOQL;
     // blank → CONFIG_NOT_FOUND.
-    checkSetDeveloperName = RecordHealthCheckLogger.normalizeIdentifier(
-      checkSetDeveloperName,
+    checkSetQualifiedApiName = RecordHealthCheckLogger.normalizeIdentifier(
+      checkSetQualifiedApiName,
       80
     );
-    if (String.isBlank(checkSetDeveloperName)) {
+    if (String.isBlank(checkSetQualifiedApiName)) {
       throw new RecordHealthCheckConfigService.ConfigException(
         'No Check Set is selected for this Record Health Check component.',
         RC_CONFIG_NOT_FOUND
@@ -73,13 +76,13 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         StopOnSystemError__c,
         ShowDiagnostics__c
       FROM Record_Health_Check_Set__mdt
-      WHERE QualifiedApiName = :checkSetDeveloperName
+      WHERE QualifiedApiName = :checkSetQualifiedApiName
       LIMIT 1
     ];
 
     if (checkSets.isEmpty()) {
       throw new RecordHealthCheckConfigService.ConfigException(
-        'Check Set "' + checkSetDeveloperName + '" was not found.',
+        'Check Set "' + checkSetQualifiedApiName + '" was not found.',
         RC_CONFIG_NOT_FOUND
       );
     }
@@ -102,17 +105,17 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         PrerequisiteCheck__c
       FROM Record_Health_Check__mdt
       WHERE
-        Record_Health_Check_Set__r.QualifiedApiName = :checkSetDeveloperName
+        Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
         AND IsActive__c = TRUE
       ORDER BY EvaluationOrder__c ASC NULLS LAST, DeveloperName ASC
     ];
 
-    validateActiveChecksForDefinition(allChecks, resolvedDeveloperName);
+    validateActiveChecksForDefinition(allChecks, checkSet.QualifiedApiName);
 
     Integer totalAvailable = allChecks.size();
     Boolean checksOmitted = totalAvailable > FRAMEWORK_MAX_CHECKS;
     List<Record_Health_Check__mdt> checksForRun = selectChecksForRun(allChecks);
-    Integer inactiveCheckCount = countInactiveChecks(resolvedDeveloperName);
+    Integer inactiveCheckCount = countInactiveChecks(checkSet.QualifiedApiName);
 
     // Build response
     RecordHealthCheckDefinitionResponse response = new RecordHealthCheckDefinitionResponse();
@@ -155,7 +158,7 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     response.inactiveCheckLabels = inactiveCheckLabelsForDiagnostics(
       response.showDiagnostics,
       inactiveCheckCount,
-      resolvedDeveloperName
+      checkSet.QualifiedApiName
     );
 
     // Log WARN when active checks exceed FRAMEWORK_MAX_CHECKS, so truncation is
@@ -181,6 +184,10 @@ public with sharing class RecordHealthCheckDefinitionLoader {
       def.dependsOnCheckDeveloperName = normalizedPrerequisite(
         check.PrerequisiteCheck__c
       );
+      def.dependsOnCheckQualifiedApiName = RHCDefinitionDependencyIdentity.resolve(
+        check,
+        allChecks
+      );
       response.checks.add(def);
     }
 
@@ -202,11 +209,11 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   private static List<String> inactiveCheckLabelsForDiagnostics(
     Boolean showDiagnostics,
     Integer inactiveCheckCount,
-    String checkSetDeveloperName
+    String checkSetQualifiedApiName
   ) {
     return showDiagnostics == true &&
       inactiveCheckCount > 0
-      ? inactiveCheckLabels(checkSetDeveloperName)
+      ? inactiveCheckLabels(checkSetQualifiedApiName)
       : new List<String>();
   }
 
@@ -395,16 +402,16 @@ public with sharing class RecordHealthCheckDefinitionLoader {
 
   public static void validateActiveChecksForDefinition(
     List<Record_Health_Check__mdt> checks,
-    String checkSetDeveloperName
+    String checkSetQualifiedApiName
   ) {
     if (checks.isEmpty()) {
-      Integer inactiveCount = countInactiveChecks(checkSetDeveloperName);
+      Integer inactiveCount = countInactiveChecks(checkSetQualifiedApiName);
       String detail = inactiveCount > 0
         ? ' (' + inactiveCount + ' inactive)'
         : '';
       throw new RecordHealthCheckConfigService.ConfigException(
         'Check Set "' +
-          checkSetDeveloperName +
+          checkSetQualifiedApiName +
           '" has no active checks' +
           detail +
           '.',
@@ -414,13 +421,13 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   }
 
   /** Inactive Checks on the Check Set — omitted from the run, useful for admin UX. */
-  public static Integer countInactiveChecks(String checkSetDeveloperName) {
+  public static Integer countInactiveChecks(String checkSetQualifiedApiName) {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by RecordHealthCheckAccess before definitions are exposed.
     return [
       SELECT COUNT()
       FROM Record_Health_Check__mdt
       WHERE
-        Record_Health_Check_Set__r.DeveloperName = :checkSetDeveloperName
+        Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
         AND IsActive__c = FALSE
     ];
   }
@@ -428,15 +435,17 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   /**
    * Display names of the inactive Checks, for the diagnostics "N Inactive"
    * tooltip. Capped at the framework check limit so a long-neglected Check Set
-   * cannot grow an unbounded tooltip; the pill still shows the exact count.
+   * cannot make the tooltip too long; the pill still shows the exact count.
    */
-  public static List<String> inactiveCheckLabels(String checkSetDeveloperName) {
+  public static List<String> inactiveCheckLabels(
+    String checkSetQualifiedApiName
+  ) {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by RecordHealthCheckAccess before definitions are exposed.
     List<Record_Health_Check__mdt> inactiveChecks = [
       SELECT DeveloperName, MasterLabel, CheckTitle__c
       FROM Record_Health_Check__mdt
       WHERE
-        Record_Health_Check_Set__r.DeveloperName = :checkSetDeveloperName
+        Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
         AND IsActive__c = FALSE
       ORDER BY EvaluationOrder__c ASC NULLS LAST, DeveloperName ASC
       LIMIT :FRAMEWORK_MAX_CHECKS

@@ -51,6 +51,30 @@ private with sharing class RecordHealthCheckApexScopeTest {
     }
   }
 
+  private class CapturingScopeCheck implements RecordHealthCheckPlugin {
+    public String capturedCheckDeveloperName;
+    public String capturedCheckQualifiedApiName;
+    public String capturedCheckSetDeveloperName;
+    public String capturedCheckSetQualifiedApiName;
+
+    public Map<Id, RecordHealthCheckOutcome> evaluate(
+      RecordHealthCheckScope scope
+    ) {
+      capturedCheckDeveloperName = scope.checkDeveloperName;
+      capturedCheckQualifiedApiName = scope.checkQualifiedApiName;
+      capturedCheckSetDeveloperName = scope.checkSetDeveloperName;
+      capturedCheckSetQualifiedApiName = scope.checkSetQualifiedApiName;
+      Map<Id, RecordHealthCheckOutcome> outcomes = new Map<Id, RecordHealthCheckOutcome>();
+      for (Id recordId : scope.recordIds) {
+        outcomes.put(
+          recordId,
+          RecordHealthCheckOutcome.skipped('NOT_APPLICABLE')
+        );
+      }
+      return outcomes;
+    }
+  }
+
   @IsTest
   static void evaluateScopeRejectsInvalidClassConfigurations() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
@@ -319,6 +343,57 @@ private with sharing class RecordHealthCheckApexScopeTest {
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING,
       missing.reasonCode,
       'An omitted scope result must map to the stable missing-result outcome.'
+    );
+  }
+
+  @IsTest
+  static void pluginScopeReceivesUnqualifiedAndQualifiedIdentities() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Qualified plugin scope'
+    );
+    Record_Health_Check__mdt check = checkFor(
+      'AccountHasRecentActivityCheck',
+      null
+    );
+    check.QualifiedApiName = 'managed__Apex_Scope_Test';
+    CapturingScopeCheck plugin = new CapturingScopeCheck();
+
+    Test.startTest();
+    RecordHealthCheckConfigValidator.cachePluginForTest(
+      check.ApexClass__c,
+      plugin
+    );
+    new RecordHealthCheckApexEvaluator()
+      .evaluateScope(
+        check,
+        new List<Id>{ accountRecord.Id },
+        new Map<Id, SObject>{ accountRecord.Id => accountRecord },
+        'Account',
+        'Set_A',
+        'subscriber__Set_A',
+        'qualified-plugin-scope'
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      check.DeveloperName,
+      plugin.capturedCheckDeveloperName,
+      'The DeveloperName property must expose the unqualified Check identity.'
+    );
+    Assert.areEqual(
+      'managed__Apex_Scope_Test',
+      plugin.capturedCheckQualifiedApiName,
+      'The qualified property must distinguish managed and subscriber Checks with the same DeveloperName.'
+    );
+    Assert.areEqual(
+      'Set_A',
+      plugin.capturedCheckSetDeveloperName,
+      'The Set DeveloperName property must expose the unqualified Set identity.'
+    );
+    Assert.areEqual(
+      'subscriber__Set_A',
+      plugin.capturedCheckSetQualifiedApiName,
+      'The qualified Set property must preserve its namespace.'
     );
   }
 

@@ -10,58 +10,67 @@ const commaList = z.string().transform((value) =>
     .filter(Boolean)
 );
 
+const environmentShape = {
+  NODE_ENV: z.enum(["development", "test", "production"]),
+  HOST: z.string().default("127.0.0.1"),
+  PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+  ALLOWED_HOSTS: commaList.default(["localhost", "127.0.0.1", "[::1]"]),
+  ALLOWED_ORIGINS: commaList.default(["localhost", "127.0.0.1", "[::1]"]),
+  AUTH_MODE: z.enum(["jwt", "none"]).default("jwt"),
+  MCP_SERVER_URL: z.string().url(),
+  MCP_AUTH_ISSUER: z.string().url().optional(),
+  MCP_AUTH_AUDIENCE: z.string().min(1).optional(),
+  MCP_AUTH_JWKS_URL: z.string().url().optional(),
+  MCP_AUTH_REQUIRED_SCOPE: z.string().min(1).default("rhc.run"),
+  SALESFORCE_LOGIN_URL: z.string().url(),
+  SALESFORCE_CLIENT_ID: z.string().min(1),
+  SALESFORCE_CLIENT_SECRET: z.string().min(1),
+  SALESFORCE_ALLOWED_HOSTS: commaList,
+  SALESFORCE_REST_PATH: z
+    .string()
+    .regex(/^\/services\/apexrest\/[a-zA-Z0-9_/-]+$/)
+    .default(
+      "/services/apexrest/rhc/record-health-check/contract-1/evaluations"
+    ),
+  SALESFORCE_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(100)
+    .max(30000)
+    .default(10000),
+  SALESFORCE_MAX_RESPONSE_BYTES: z.coerce
+    .number()
+    .int()
+    .min(1024)
+    .max(1048576)
+    .default(65536),
+  SALESFORCE_MAX_RETRIES: z.coerce.number().int().min(0).max(2).default(1),
+  MAX_CONCURRENT_SALESFORCE_CALLS: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(10),
+  KILL_SWITCH: booleanString.default(false),
+  BUILD_ID: z
+    .string()
+    .min(1)
+    .max(120)
+    .regex(/^[a-zA-Z0-9._:-]+$/)
+    .default("local")
+};
+const environmentKeys = new Set(Object.keys(environmentShape));
+const serviceEnvironmentPrefixes = [
+  "MCP_",
+  "SALESFORCE_",
+  "MAX_CONCURRENT_SALESFORCE_",
+  "AUTH_",
+  "ALLOWED_",
+  "KILL_"
+] as const;
+
 const environmentSchema = z
-  .object({
-    NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
-    HOST: z.string().default("127.0.0.1"),
-    PORT: z.coerce.number().int().min(1).max(65535).default(3000),
-    ALLOWED_HOSTS: commaList.default(["localhost", "127.0.0.1", "[::1]"]),
-    ALLOWED_ORIGINS: commaList.default(["localhost", "127.0.0.1", "[::1]"]),
-    AUTH_MODE: z.enum(["jwt", "none"]).default("jwt"),
-    MCP_SERVER_URL: z.string().url(),
-    MCP_AUTH_ISSUER: z.string().url().optional(),
-    MCP_AUTH_AUDIENCE: z.string().min(1).optional(),
-    MCP_AUTH_JWKS_URL: z.string().url().optional(),
-    MCP_AUTH_REQUIRED_SCOPE: z.string().min(1).default("rhc.run"),
-    SALESFORCE_LOGIN_URL: z.string().url(),
-    SALESFORCE_CLIENT_ID: z.string().min(1),
-    SALESFORCE_CLIENT_SECRET: z.string().min(1),
-    SALESFORCE_ALLOWED_HOSTS: commaList,
-    SALESFORCE_REST_PATH: z
-      .string()
-      .regex(/^\/services\/apexrest\/[a-zA-Z0-9_/-]+$/)
-      .default(
-        "/services/apexrest/rhc/record-health-check/contract-1/evaluations"
-      ),
-    SALESFORCE_TIMEOUT_MS: z.coerce
-      .number()
-      .int()
-      .min(100)
-      .max(30000)
-      .default(10000),
-    SALESFORCE_MAX_RESPONSE_BYTES: z.coerce
-      .number()
-      .int()
-      .min(1024)
-      .max(1048576)
-      .default(65536),
-    SALESFORCE_MAX_RETRIES: z.coerce.number().int().min(0).max(2).default(1),
-    MAX_CONCURRENT_SALESFORCE_CALLS: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(100)
-      .default(10),
-    KILL_SWITCH: booleanString.default(false),
-    BUILD_ID: z
-      .string()
-      .min(1)
-      .max(120)
-      .regex(/^[a-zA-Z0-9._:-]+$/)
-      .default("local")
-  })
+  .object(environmentShape)
   .strict()
   .superRefine((value, context) => {
     if (value.AUTH_MODE === "none" && value.NODE_ENV === "production") {
@@ -164,7 +173,14 @@ export type ServiceConfig = {
 export function loadConfig(
   environment: NodeJS.ProcessEnv = process.env
 ): ServiceConfig {
-  const parsed = environmentSchema.parse(environment);
+  const serviceEnvironment = Object.fromEntries(
+    Object.entries(environment).filter(
+      ([key]) =>
+        environmentKeys.has(key) ||
+        serviceEnvironmentPrefixes.some((prefix) => key.startsWith(prefix))
+    )
+  );
+  const parsed = environmentSchema.parse(serviceEnvironment);
   return {
     nodeEnv: parsed.NODE_ENV,
     host: parsed.HOST,

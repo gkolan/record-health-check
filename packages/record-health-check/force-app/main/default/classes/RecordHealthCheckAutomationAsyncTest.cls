@@ -66,7 +66,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       1
     );
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
 
     try {
@@ -113,7 +113,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       'Duplicate Queueable defense'
     );
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
 
     Test.startTest();
@@ -154,7 +154,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       'Queueable all publication'
     );
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
 
     Test.startTest();
@@ -186,7 +186,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       42
     );
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
 
     Test.startTest();
@@ -220,7 +220,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
     );
     String jobName = 'RHC duplicate schedule test';
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     Test.startTest();
     String firstJobId = RecordHealthCheckScheduled.scheduleDaily(
@@ -258,7 +258,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       RecordHealthCheckConstants.MAX_ASYNC_RECORDS
     );
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     RecordHealthCheckBatch batch = new RecordHealthCheckBatch(
       checkSetName,
@@ -299,7 +299,7 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
     );
     RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.NONE

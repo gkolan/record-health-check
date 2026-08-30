@@ -4,6 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RecordHealthCheckSoqlBindValueResolver {
+  /**
+   * Checks the final field in a current-record or parent relationship path.
+   *
+   * @param record Record that establishes the starting object.
+   * @param fieldPath Field or parent relationship path used by the SOQL merge value.
+   * @return True when the final field is a multi-select picklist.
+   */
   public static Boolean isMultiSelectPicklist(
     SObject record,
     String fieldPath
@@ -39,7 +46,15 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
     return false;
   }
 
-  /** Converts an explicit SOQL-token fallback to the terminal field's native type. */
+  /**
+   * Converts a configured fallback from text to the final Salesforce field's data type.
+   *
+   * @param record Record that establishes the starting object.
+   * @param fieldPath Field or parent relationship path used by the SOQL merge value.
+   * @param fallbackValue Administrator-configured fallback text.
+   * @return Value converted to the field's Salesforce data type, or null when blank.
+   * @throws RecordHealthCheckEvaluatorException when the fallback does not match the field type.
+   */
   public static Object coerceFallbackValue(
     SObject record,
     String fieldPath,
@@ -77,6 +92,12 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
         return Integer.valueOf(trimmed);
       }
       if (
+        fieldType == Schema.DisplayType.ID ||
+        fieldType == Schema.DisplayType.REFERENCE
+      ) {
+        return Id.valueOf(trimmed);
+      }
+      if (
         fieldType == Schema.DisplayType.CURRENCY ||
         fieldType == Schema.DisplayType.DOUBLE ||
         fieldType == Schema.DisplayType.PERCENT
@@ -84,6 +105,8 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
         return Decimal.valueOf(trimmed);
       }
       return fallbackValue;
+    } catch (RecordHealthCheckEvaluatorException ex) {
+      throw ex;
     } catch (Exception ex) {
       throw new RecordHealthCheckEvaluatorException(
         'MISSING_BIND_VALUE',
@@ -96,6 +119,13 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
     }
   }
 
+  /**
+   * Converts an administrator-entered time in `HH:mm:ss` or `HH:mm:ss.SSS` form.
+   *
+   * @param value Time text, optionally ending in `Z`.
+   * @return Salesforce Time value.
+   * @throws RecordHealthCheckEvaluatorException when the time does not use a supported form.
+   */
   public static Time parseTimeFallback(String value) {
     String normalized = value.endsWith('Z')
       ? value.substring(0, value.length() - 1)
@@ -127,6 +157,14 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
     );
   }
 
+  /**
+   * Finds the Salesforce data type of the last field in a relationship path.
+   * Unknown or unsupported paths return String instead of guessing a field type.
+   *
+   * @param record Record that establishes the starting object.
+   * @param fieldPath Field or parent relationship path.
+   * @return Salesforce display type for the final field, or String when it cannot be resolved.
+   */
   public static Schema.DisplayType terminalFieldType(
     SObject record,
     String fieldPath
@@ -162,7 +200,13 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
     return Schema.DisplayType.STRING;
   }
 
-  /** Resolves a relationship field path, returning null for a null parent. */
+  /**
+   * Reads a field or parent relationship path from an already loaded record.
+   *
+   * @param record Record containing the requested fields.
+   * @param fieldPath Field or parent relationship path.
+   * @return Loaded field value, or null when a parent relationship is blank.
+   */
   public static Object resolveFieldPath(SObject record, String fieldPath) {
     if (!fieldPath.contains('.')) {
       return record.get(fieldPath);

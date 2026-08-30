@@ -6,6 +6,9 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
 
   @IsTest
   static void shouldContainFieldDenialWhenSiblingCheckIsAccessible() {
+    if (assertNamespacedFixtureOrReturn()) {
+      return;
+    }
     PersonaFixture fixture = createFixture('rhcpfls', true, false);
 
     System.runAs(fixture.userRecord) {
@@ -52,6 +55,9 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
 
   @IsTest
   static void shouldReturnRecordNotVisibleWhenSharingOmitsRecord() {
+    if (assertNamespacedFixtureOrReturn()) {
+      return;
+    }
     PersonaFixture fixture = createFixture('rhcphid', true, false);
 
     System.runAs(fixture.userRecord) {
@@ -126,6 +132,9 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
 
   @IsTest
   static void shouldDriveControllerAndFlowWhenUserPermissionAssigned() {
+    if (assertNamespacedFixtureOrReturn()) {
+      return;
+    }
     PersonaFixture fixture = createFixture('rhcpbnd', true, false);
 
     System.runAs(fixture.userRecord) {
@@ -258,6 +267,9 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
 
   @IsTest
   static void shouldExposeDiagnosticReasonOnlyWhenAdminPermissionAssigned() {
+    if (assertNamespacedFixtureOrReturn()) {
+      return;
+    }
     PersonaFixture fixture = createFixture('rhcpadm', false, true);
 
     System.runAs(fixture.userRecord) {
@@ -287,6 +299,67 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
         'Diagnostics must not contain the restricted value.'
       );
     }
+  }
+
+  @IsTest
+  static void shouldKeepMcpPersonaOutsideLifecycleEventChannels() {
+    User integrationUser = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
+      'rhcmcp'
+    );
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      integrationUser,
+      'Record_Health_Check_MCP_Integration'
+    );
+
+    System.runAs(integrationUser) {
+      Test.startTest();
+      Boolean canRun = RecordHealthCheckAccess.canRunChecks();
+      Boolean canPublishSetRuns = Schema.SObjectType.Record_Health_Check_Set_Run__e.isCreateable();
+      Boolean canSubscribeSetRuns = Schema.SObjectType.Record_Health_Check_Set_Run__e.isAccessible();
+      Boolean canPublishResults = Schema.SObjectType.Record_Health_Check_Result__e.isCreateable();
+      Boolean canSubscribeResults = Schema.SObjectType.Record_Health_Check_Result__e.isAccessible();
+      Boolean canPublishLogs = Schema.SObjectType.Record_Health_Check_Log__e.isCreateable();
+      Boolean canSubscribeLogs = Schema.SObjectType.Record_Health_Check_Log__e.isAccessible();
+      Test.stopTest();
+
+      Assert.isTrue(
+        canRun,
+        'The dedicated MCP persona must retain the packaged run entitlement.'
+      );
+      Assert.isFalse(
+        canPublishSetRuns,
+        'The MCP persona must not publish Set Run lifecycle events directly.'
+      );
+      Assert.isFalse(
+        canSubscribeSetRuns,
+        'The MCP persona must not subscribe to Set Run lifecycle events.'
+      );
+      Assert.isFalse(
+        canPublishResults,
+        'The MCP persona must not publish Result lifecycle events directly.'
+      );
+      Assert.isFalse(
+        canSubscribeResults,
+        'The MCP persona must not subscribe to Result lifecycle events.'
+      );
+      Assert.isFalse(
+        canPublishLogs,
+        'Restricted error telemetry must require its separate publisher Permission Set.'
+      );
+      Assert.isFalse(
+        canSubscribeLogs,
+        'The base MCP persona must not receive restricted error telemetry.'
+      );
+    }
+  }
+
+  /** @return True when this namespaced-only fixture is unavailable. */
+  private static Boolean assertNamespacedFixtureOrReturn() {
+    if (Schema.getGlobalDescribe().containsKey('rhc__RHC_Persona_Record__c')) {
+      return false;
+    }
+    // Portable no-namespace orgs do not install the namespaced persona fixture.
+    return true;
   }
 
   private static PersonaFixture createFixture(

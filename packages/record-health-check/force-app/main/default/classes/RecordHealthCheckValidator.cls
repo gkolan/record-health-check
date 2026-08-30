@@ -180,9 +180,7 @@ public with sharing class RecordHealthCheckValidator {
     List<Finding> out = new List<Finding>();
     if (String.isBlank(check.ApexClass__c)) {
       out.add(f(FindingCode.APEX_CLASS_MISSING));
-    } else if (
-      !RecordHealthCheckConfigValidator.isValidApexPlugin(check.ApexClass__c)
-    ) {
+    } else if (!RecordHealthCheckConfigValidator.isValidApexPlugin(check)) {
       out.add(f(FindingCode.APEX_CLASS_INVALID));
     }
     if (

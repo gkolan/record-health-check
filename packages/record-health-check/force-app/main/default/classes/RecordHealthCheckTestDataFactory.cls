@@ -178,6 +178,7 @@ public class RecordHealthCheckTestDataFactory {
 
     populateRequiredFields(healthyAccount);
     insertAllowingDuplicates(new List<SObject>{ healthyAccount });
+    createCompletedTask(healthyAccount.Id);
   }
 
   public static void createCoverageTestRecords() {
@@ -207,7 +208,6 @@ public class RecordHealthCheckTestDataFactory {
       }
     );
     createOpportunity(accountRecord.Id, 'Coverage Opportunity', 50000);
-    createCompletedTask(accountRecord.Id);
   }
 
   public static Account createAccount(String name) {

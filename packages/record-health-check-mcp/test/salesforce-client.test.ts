@@ -75,6 +75,100 @@ describe("Salesforce client", () => {
     expect(fetcher).toHaveBeenCalledTimes(4);
   });
 
+  it("refreshes an expired token even when transient retries are disabled", async () => {
+    const config = testConfig();
+    config.salesforce.maxRetries = 0;
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        json({
+          access_token: "one",
+          instance_url: "https://instance.salesforce.test"
+        })
+      )
+      .mockResolvedValueOnce(json({ error: "expired" }, 401))
+      .mockResolvedValueOnce(
+        json({
+          access_token: "two",
+          instance_url: "https://instance.salesforce.test"
+        })
+      )
+      .mockResolvedValueOnce(json(success));
+
+    await expect(
+      new SalesforceClient(config, logger, fetcher).evaluate({
+        operation: "RUN_CHECK",
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "Check_One"
+      })
+    ).resolves.toMatchObject({ status: "PASS" });
+  });
+
+  it("keeps an authentication refresh available after a transient retry", async () => {
+    const config = testConfig();
+    config.salesforce.maxRetries = 1;
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        json({
+          access_token: "one",
+          instance_url: "https://instance.salesforce.test"
+        })
+      )
+      .mockResolvedValueOnce(json({ error: "busy" }, 503))
+      .mockResolvedValueOnce(json({ error: "expired" }, 401))
+      .mockResolvedValueOnce(
+        json({
+          access_token: "two",
+          instance_url: "https://instance.salesforce.test"
+        })
+      )
+      .mockResolvedValueOnce(json(success));
+
+    await expect(
+      new SalesforceClient(config, logger, fetcher).evaluate({
+        operation: "RUN_CHECK",
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "Check_One"
+      })
+    ).resolves.toMatchObject({ status: "PASS" });
+  });
+
+  it("single-flights a forced refresh across concurrent expired-token responses", async () => {
+    let tokenCalls = 0;
+    const fetcher = vi.fn<typeof fetch>((url, init) => {
+      const target =
+        typeof url === "string" ? url : url instanceof URL ? url.href : url.url;
+      if (target.endsWith("/services/oauth2/token")) {
+        tokenCalls += 1;
+        return Promise.resolve(
+          json({
+            access_token: tokenCalls === 1 ? "stale" : "fresh",
+            instance_url: "https://instance.salesforce.test"
+          })
+        );
+      }
+      const authorization = (init?.headers as Record<string, string>)
+        .authorization;
+      return Promise.resolve(
+        authorization === "Bearer stale"
+          ? json({ error: "expired" }, 401)
+          : json(success)
+      );
+    });
+    const client = new SalesforceClient(testConfig(), logger, fetcher);
+    const input = {
+      operation: "RUN_CHECK" as const,
+      recordId: "001000000000001AAA",
+      qualifiedApiName: "Check_One"
+    };
+
+    await expect(
+      Promise.all([client.evaluate(input), client.evaluate(input)])
+    ).resolves.toHaveLength(2);
+    expect(tokenCalls).toBe(2);
+  });
+
   it("maps an exhausted 401 refresh and request limit safely", async () => {
     const input = {
       operation: "RUN_CHECK" as const,
@@ -103,6 +197,57 @@ describe("Salesforce client", () => {
     await expect(
       new SalesforceClient(testConfig(), logger, limitFetcher).evaluate(input)
     ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
+  });
+
+  it("distinguishes Salesforce API exhaustion from a normal 403 permission failure", async () => {
+    const input = {
+      operation: "RUN_CHECK" as const,
+      recordId: "001000000000001AAA",
+      qualifiedApiName: "Check_One"
+    };
+    const token = {
+      access_token: "token",
+      instance_url: "https://instance.salesforce.test"
+    };
+    const limitFetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(token))
+      .mockResolvedValueOnce(
+        json(
+          [
+            {
+              message: "TotalRequests Limit exceeded.",
+              errorCode: "REQUEST_LIMIT_EXCEEDED"
+            }
+          ],
+          403
+        )
+      );
+
+    await expect(
+      new SalesforceClient(testConfig(), logger, limitFetcher).evaluate(input)
+    ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
+
+    const permissionFetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(token))
+      .mockResolvedValueOnce(
+        json(
+          [
+            {
+              message: "You do not have access to the Apex class.",
+              errorCode: "INSUFFICIENT_ACCESS"
+            }
+          ],
+          403
+        )
+      );
+
+    await expect(
+      new SalesforceClient(testConfig(), logger, permissionFetcher).evaluate(
+        input
+      )
+    ).rejects.toMatchObject({ code: "SALESFORCE_AUTH" });
   });
 
   it("rejects an unapproved Salesforce instance host", async () => {
@@ -142,6 +287,42 @@ describe("Salesforce client", () => {
         qualifiedApiName: "Check_One"
       })
     ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
+  });
+
+  it("cancels an oversized response stream as soon as the bound is crossed", async () => {
+    const config = testConfig();
+    config.salesforce.maxResponseBytes = 256;
+    const cancel = vi.fn();
+    let sent = false;
+    const oversized = new Response(
+      new ReadableStream<Uint8Array>({
+        pull(controller) {
+          if (!sent) {
+            sent = true;
+            controller.enqueue(new TextEncoder().encode("x".repeat(257)));
+          }
+        },
+        cancel
+      })
+    );
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        json({
+          access_token: "token",
+          instance_url: "https://instance.salesforce.test"
+        })
+      )
+      .mockResolvedValueOnce(oversized);
+
+    await expect(
+      new SalesforceClient(config, logger, fetcher).evaluate({
+        operation: "RUN_CHECK",
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "Check_One"
+      })
+    ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
+    expect(cancel).toHaveBeenCalledOnce();
   });
 
   it("accepts completed diagnostic results returned by the Salesforce boundary", async () => {

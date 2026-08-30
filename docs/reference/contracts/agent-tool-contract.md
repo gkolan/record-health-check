@@ -1,8 +1,12 @@
 # Agent tool contract
 
+This contract defines the versioned Agentforce, REST, and MCP boundary.
+
+This page defines the versioned boundary used by Agentforce, REST, and MCP.
+
 Audience: Agentforce, REST, and MCP integrators. If you are not connecting an agent or MCP client,
 you can ignore this contract. Administrators enabling native actions should use
-[Agentforce actions](../../integration/agentforce-actions.md).
+[Agentforce actions](../../developer-guides/agentforce-and-mcp/agentforce-actions.md).
 
 > [!NOTE]
 > Use this contract when a native Agentforce action, Apex REST adapter, or MCP tool evaluates one
@@ -18,7 +22,8 @@ Version 1 supports two read-only operations:
 | `RUN_CHECK_SET` | One exact Check Set `QualifiedApiName` | 1 |
 
 The contract excludes record updates, arbitrary SOQL, arbitrary Apex, metadata changes, batch
-evaluation, diagnostics, event-publication choice, MCP prompts, and MCP resources. Its schemas are
+evaluation, raw administrator diagnostics, event-publication choice, MCP prompts, and MCP resources.
+Its schemas are
 [`request.schema.json`](../../../contracts/agent-tool/1/request.schema.json) and
 [`response.schema.json`](../../../contracts/agent-tool/1/response.schema.json).
 
@@ -47,9 +52,14 @@ finding. `UNABLE_TO_EVALUATE` and `ERROR` do not prove that a record is healthy.
 | `success`, `operation`, `status` | Yes | Yes | Fixed schema values |
 | `reasonCode` | Optional | No | 80 characters |
 | `passed`, `failed`, `skipped`, `unable`, `systemError` | No | Yes | Each is 0 through 25 |
+| `diagnosticId` | Optional | Optional | 255 characters |
+| `diagnosticCategory` | Optional | Optional | 80 characters |
+| `diagnosticSummary` | Optional | Optional | 1,000 characters |
+| `recommendedAction` | Optional | Optional | 1,000 characters |
 
 Structured fields are the source of truth. Transport-specific prose cannot change or conceal their
-meaning.
+meaning. The four diagnosis fields are bounded, disclosure-safe guidance for a completed evaluation;
+they are not raw logs or administrator-only diagnostics.
 
 ## Adapter failure
 
@@ -62,8 +72,9 @@ An adapter failure returns `success=false`, a safe message of at most 1,000 char
 | `LIMIT` | The request or response exceeds an enforced boundary |
 | `EXECUTION` | An unexpected adapter or platform problem prevented completion |
 
-An adapter failure has no health status. It cannot include a stack trace, query, formula, token,
-session ID, unrestricted exception, record field value, or administrator diagnostic.
+An adapter failure has no health status or completed-evaluation diagnosis. It cannot include a stack
+trace, query, formula, token, session ID, unrestricted exception, record field value, or
+administrator diagnostic.
 
 ## Identity and sensitivity
 
@@ -72,9 +83,10 @@ Salesforce integration principal. MCP client credentials do not delegate the con
 identity, so results can differ when principals have different object, field, sharing, restriction-
 rule, or scoping-rule access.
 
-Version 1 returns only contract version, correlation ID, success, operation, status, reason code,
-Check Set counts, error type, and safe error message. It excludes found and expected values, display
-messages, action URLs, serialized Apex results, queries, formulas, user IDs, and diagnostics.
+Version 1 can return contract version, correlation ID, success, operation, status, reason code, Check
+Set counts, the four optional bounded diagnosis fields, error type, and a safe error message. It
+excludes found and expected values, display messages, action URLs, serialized Apex results, queries,
+formulas, user IDs, raw logs, and administrator diagnostics.
 
 ## Compatibility and verification
 
@@ -89,7 +101,7 @@ npm run check:agent-tool-contract
 
 ## Related
 
-- [Configuration identity](../framework/configuration-identity.md)
-- [Security and data access](../framework/security.md)
-- [Reason Codes](reason-codes.md)
-- [Apex API](../../api/apex-api.md)
+- [Configuration identity](../configuration/names-and-api-identities.md)
+- [Security and data access](../../architecture/security-and-data-access.md)
+- [Reason Codes](../results/reason-codes.md)
+- [Apex API](../../developer-guides/run-from-apex.md)

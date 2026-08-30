@@ -16,7 +16,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
       'RUN_CHECK',
       accountRecord.Id,
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Website_URL_Valid'
       )
     );
     body.put('correlationId', 'rest-check-1');
@@ -75,7 +75,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
             'RUN_CHECK',
             accountRecord.Id,
             RecordHealthCheckTestDataFactory.qualifiedCheckName(
-              'Example_Profile_Phone_Available'
+              'Example_Website_URL_Valid'
             )
           )
         )
@@ -112,7 +112,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
       'RUN_CHECK_SET',
       accountRecord.Id,
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       )
     );
 
@@ -241,7 +241,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
         'RUN_CHECK',
         accountRecord.Id,
         RecordHealthCheckTestDataFactory.qualifiedCheckName(
-          'Example_Profile_Phone_Available'
+          'Example_Website_URL_Valid'
         )
       )
     );
@@ -263,7 +263,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     Map<String, Object> body = baseBody(
       'EXECUTE_APEX',
       RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
 
     Test.startTest();
@@ -285,7 +285,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
       'not-an-id',
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
 
     Test.startTest();
@@ -340,7 +340,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
       ''.leftPad(15, '0'),
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
 
     Test.startTest();
@@ -361,7 +361,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
     Map<String, Object> body = baseBody(
       'RUN_CHECK',
       RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
     body.put('correlationId', 'unsafe correlation value');
 
@@ -405,7 +405,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
       'RUN_CHECK',
       RecordHealthCheckTestDataFactory.getHealthyAccount().Id,
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Website_URL_Valid'
       )
     );
     RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'SIDE_EFFECT';

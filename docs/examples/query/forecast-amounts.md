@@ -1,7 +1,7 @@
-# 04 · Open Pipeline Is Ready for Forecast Review
+# Proposal-Stage Deals Meet the Qualification Floor
 
 > [!NOTE]
-> On this page, require every open Opportunity to carry a positive Amount and use result-summary merge tokens to tell users how much pipeline passed the forecast check.
+> On this page, require every proposal-stage Opportunity to meet an illustrative $25,000 qualification floor and show the observed deal values beside the policy threshold.
 >
 > **Setup reference**
 >
@@ -9,59 +9,59 @@
 
 ## Scenario
 
-A seller is preparing an Account for forecast review.
+A sales leader is reviewing deals that have advanced to proposal.
 
-- Every open Opportunity must have a positive Amount so pipeline totals do not include placeholder deals with no value.
-- One incomplete Opportunity is enough to make the Account's pipeline unreliable.
-- Accounts with no open Opportunities have no pipeline to prepare for forecast review.
+- Every Opportunity in **Proposal/Price Quote** must meet the organization's minimum commercial-review threshold.
+- A deal below the threshold may need requalification, consolidation, or a different sales motion before proposal resources are committed.
+- Accounts with no proposal-stage Opportunities have nothing to evaluate against this policy.
 
 > [!TIP]
 > **Why use Record Health Check**
 >
-> Record Health Check shows how many open Opportunities still need Amount, so the seller can correct the incomplete deals before forecast review.
+> Record Health Check evaluates the policy only when a deal reaches the governed stage. The result shows the actual proposal values beside the qualification floor, so reviewers can investigate exceptions without treating early pipeline as defective.
 
 ## What you will learn
 
 | Skill | How this example teaches it |
 | --- | --- |
-| Evaluate numeric query values | The Check reads Amount from open Opportunities. |
-| Handle empty values deliberately | A blank Amount is treated as incomplete forecast data. |
-| Require clean results across all rows | Every returned Opportunity must have an Amount above zero. |
+| Evaluate numeric query values | The Check reads Amount from proposal-stage Opportunities. |
+| Scope a policy to the relevant lifecycle stage | Early pipeline is excluded; only **Proposal/Price Quote** is governed. |
+| Require clean results across all rows | Every returned proposal must meet the qualification floor. |
 
 ## Why use Verify with a query
 
 | Evaluation Type | Why it fits |
 | --- | --- |
-| **Verify with a query** | Best fit. The query reviews Amount on every open Opportunity related to the Account. |
-| **Verify with a query** using **Any record passes** | Would pass when only one Opportunity has an Amount and could hide other incomplete Opportunities. |
+| **Verify with a query** | Best fit. The query reviews Amount on every proposal-stage Opportunity related to the Account. |
+| **Verify with a query** using **Any record passes** | Would pass when only one proposal meets the floor and could hide undersized proposals. |
 | **Verify with Apex** | Would require an Apex class for a field check the Verify with a query already handles. |
 
 ## Why not use a Validation Rule or Report
 
-- **Validation Rule:** A Validation Rule would require Amount during every Opportunity save, even when early pipeline records may not have an amount yet.
+- **Validation Rule:** A Validation Rule would block the save. This health check supports an account-level review and can identify policy exceptions without preventing an authorized exception from progressing.
 
-- **Report:** A report can find missing Amounts across the pipeline. It does not place the summary directly on the Account being prepared for forecast review.
+- **Report:** A report can find proposal-stage deals below the floor. It does not place the policy result and remediation directly on the Account under review.
 
 ## Before you start
 
 - Install Record Health Check.
 - Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
-- Confirm that intended users can read Opportunity, `AccountId`, `IsClosed`, and `Amount` and can
-  see every open Opportunity included in forecast review.
+- Confirm that intended users can read Opportunity, `AccountId`, `StageName`, and `Amount` and can
+  see every proposal-stage Opportunity included in the review.
 
 ## Read the result and prepare test data
 
-`{!rhcResult.failedRecordCount}` is a Record Health Check result merge token. It inserts the number
-of query rows that did not match; it is not a Flow or Apex expression. Test an open Opportunity
-with Amount blank, zero, negative, and positive. At 201 returned rows with **Max Query Rows** 200,
+`{!rhcResult.foundValue fallback="No proposal values found"}` is a Record Health Check result merge
+token. It inserts the evaluated proposal values; it is not a Flow or Apex expression. Test
+proposal-stage Opportunities below, at, and above the approved floor. At 201 returned rows with **Max Query Rows** 200,
 the Check returns Unable to Check with `ROW_LIMIT_EXCEEDED` instead of evaluating a partial set.
 
-Decide whether zero is valid, whether Amount is already enforced at save time, and whether the
-business rule should use Amount or Expected Revenue. In a multi-currency org, review the documented
-currency rules before comparing values.
+Replace $25,000 with the threshold approved for the relevant segment, region, currency, and sales
+motion. Decide whether the policy should use Amount, Expected Revenue, or another governed measure.
+In a multi-currency org, review the documented currency rules before comparing values.
 
 Create the Opportunities from the Account related list, add the card to the Account Lightning
-page, activate the intended assignment, and test as a user with **Record Health Check User**.
+page, activate the intended assignment, and test as a user with **Record Health Check Card User**.
 
 ## Step 1: Create the Check Set
 
@@ -74,7 +74,7 @@ create this Check Set:
 | **Record Health Check Set Name** | `Account_Related_Record_Review` |
 | **Object** | `Account` |
 | **Card Title** | Related Record Review |
-| **Card Subtitle** | Confirm every open Opportunity has a positive Amount. |
+| **Card Subtitle** | Confirm proposal-stage deals meet the approved qualification floor. |
 | **When Checks Run** | When the user clicks Run |
 | **Summary Display** | Below Checks |
 | **Reveal Mode** | One by one |
@@ -92,46 +92,40 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Open_Opps_Have_Positive_Amount` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | All Open Opportunities Have Positive Amount |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | All Open Opportunities Have Positive Amount |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../metadata/fields-check.md#source-query-sourcequery__c) | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Source Query Field** | [`SourceQueryField__c`](../../metadata/fields-check.md#source-query-field-sourcequeryfield__c) | `Amount` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../metadata/fields-check.md#how-to-read-query-results-queryresulthandling__c) | Every record passes |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../metadata/fields-check.md#comparison-operator-comparisonoperator__c) | Greater than |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../metadata/fields-check.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../metadata/fields-check.md#expected-value-fixed-expectedfixedvalue__c) | `0` |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../metadata/fields-check.md#if-query-finds-no-records-norowsresult__c) | Skip |
-| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../metadata/fields-check.md#if-field-value-is-empty-emptyvaluehandling__c) | Treat as not matching |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../metadata/fields-check.md#max-query-rows-1-2000-maxqueryrows__c) | `200`; raise only after confirming Accounts can exceed this many open Opportunities |
-| **Display: Found Text** | [`DisplayFoundText__c`](../../metadata/fields-check.md#display-found-text-displayfoundtext__c) | Count of open opportunities missing Amount out of the total: copy it from below the table |
-| **Display: Expected Text** | [`DisplayExpectedText__c`](../../metadata/fields-check.md#display-expected-text-displayexpectedtext__c) | `Every open opportunity has Amount greater than zero` |
-
-Copy this value into **Display: Found Text**:
-
-```text
-{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount fallback="0"} open opportunities need Amount
-```
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Proposal_Deals_Meet_Qualification_Floor` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Proposal Deals Meet Qualification Floor |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Proposal-stage deals meet the qualification floor |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a query |
+| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote'` |
+| **Source Query Field** | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | `Amount` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Every record passes |
+| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Greater than or equal |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
+| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) | `25000`; replace with the approved threshold |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Skip |
+| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../reference/custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Treat as not matching |
+| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200`; raise only after confirming Accounts can exceed this many proposal-stage Opportunities |
+| **Display: Found Text** | [`DisplayFoundText__c`](../../reference/custom-metadata/check-fields.md#display-found-text-displayfoundtext__c) | `Proposal-stage deal values: {!rhcResult.foundValue}` |
+| **Display: Expected Text** | [`DisplayExpectedText__c`](../../reference/custom-metadata/check-fields.md#display-expected-text-displayexpectedtext__c) | `Qualification floor per proposal-stage deal: {!rhcResult.expectedValue}` |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Checks every visible open Opportunity for an Amount greater than zero; skips Accounts with none. |
-| **Category** | [`Category__c`](../../metadata/fields-check.md#category-category__c) | Readiness |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | One or more open Opportunities have Amount zero or blank. Enter a positive Amount on every open Opportunity. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check open Opportunity Amounts. Confirm the user can read the queried fields. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | All records; empty-query handling creates the skip |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Use Found to see how many open Opportunities need Amount, then correct each one. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | `Review open opportunities` |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `70` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Applies an illustrative $25,000 qualification floor to every visible proposal-stage Opportunity; skips Accounts with none. |
+| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Readiness |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | One or more proposal-stage Opportunities fall below the approved qualification floor. Review commercial fit before committing proposal resources. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to evaluate proposal-stage deal values. Confirm the user can read the queried fields. |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records; empty-query handling creates the skip |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Validate scope, pricing, and commercial fit. Requalify or return undersized deals to an earlier stage; do not inflate Amount to clear the check. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review proposal-stage opportunities` |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Opportunities/view` |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `70` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 Comparison Query, list, Formula, and Apex fields do not apply.
 
@@ -141,17 +135,17 @@ The query rows and no-record behavior produce these health results and card valu
 
 | Health result or card value | What the user sees |
 | --- | --- |
-| **`PASS`** | Every visible open Opportunity has Amount greater than zero. |
-| **`FAIL`** | At least one visible open Opportunity has blank, zero, or negative Amount, so the card shows Needs attention with Warning severity. |
-| **`SKIPPED`** | An Account with no open Opportunities is skipped because **No rows result** is **Skipped**. |
-| **Found** | Found summarizes how many returned Opportunities need an Amount, using the configured result-count merge tokens. |
-| **Expected** | The configured display text shows `Every open opportunity has Amount greater than zero`. |
+| **`PASS`** | Every visible proposal-stage Opportunity meets or exceeds the qualification floor. |
+| **`FAIL`** | At least one visible proposal-stage Opportunity falls below the floor, so the card shows Needs attention with Warning severity. |
+| **`SKIPPED`** | An Account with no proposal-stage Opportunities is skipped because **No rows result** is **Skipped**. |
+| **Found** | Found shows the proposal-stage deal values evaluated by the policy. |
+| **Expected** | Expected shows the qualification floor applied to each returned deal. |
 
 ## Security and access
 
-Record Health Check reads Amount on open Opportunities with the running user's Salesforce access.
+Record Health Check reads Amount and Stage on Opportunities with the running user's Salesforce access.
 
-- **Every record passes** applies only to visible open Opportunities. A hidden deal with blank Amount cannot be reported to the user.
+- **Every record passes** applies only to visible proposal-stage Opportunities. A hidden deal below the floor cannot be reported to the user.
 
 - Missing Opportunity or Amount permission can show **Unable to evaluate**.
 
@@ -159,10 +153,10 @@ Before activation, test as a forecast user with restricted Opportunity sharing a
 
 ## Step 3: Test the Check
 
-1. Add an open Opportunity with Amount zero. Confirm Warning.
-2. Set all open Amounts above zero, rerun, and confirm a pass.
-3. Remove open Opportunities and confirm skip.
-4. Keep a zero-Amount Opportunity that an administrator can see but a forecast user cannot. Run as
+1. Add a proposal-stage Opportunity below the qualification floor. Confirm Warning.
+2. Set every proposal-stage Amount at or above the floor, rerun, and confirm a pass.
+3. Move all Opportunities out of the proposal stage and confirm skip.
+4. Keep an undersized proposal-stage Opportunity that an administrator can see but a forecast user cannot. Run as
    the forecast user and confirm the hidden Opportunity is not counted.
 5. In a sandbox-only permission test, remove Read access to Amount and confirm
    `UNABLE_TO_EVALUATE`. Restore access after the test.
@@ -177,5 +171,5 @@ Before activation, test as a forecast user with restricted Opportunity sharing a
 
 ## Related
 
-- [← Prev: Meaningful pipeline](significant-opportunity.md) · [Next: Placeholder email cleanup →](placeholder-contact-emails.md)
-- [Browse Query examples](README.md)
+- [← Prev: Meaningful pipeline](./significant-opportunity.md) · [Next: Placeholder email cleanup →](./placeholder-contact-emails.md)
+- [Browse Query examples](./README.md)

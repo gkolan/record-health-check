@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Example: Open pipeline concentration</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Example_Account_Check_Builder_Guide</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Proposal Amount matches the Opportunity Product total</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The Compare Two Queries check compares total Amount from proposal-stage Opportunities with Total Price from their Opportunity Products. It passes when both totals match and returns Unable to Evaluate when no Product total exists.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">COMPARE_TWO_QUERIES</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT SUM(Amount) proposalAmount FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">proposalAmount</value>
+    </values>
+    <values>
+        <field>ComparisonQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT SUM(TotalPrice) productTotal FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.StageName = 'Proposal/Price Quote'</value>
+    </values>
+    <values>
+        <field>ComparisonQueryField__c</field>
+        <value xsi:type="xsd:string">productTotal</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">EQUALS</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">SKIP_RECORD</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Proposal Amount does not match the Opportunity Product total for {!record.Name fallback="this Account"}.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!rhcCheck.checkTitle fallback="This check"} cannot compare totals because the proposal has no Opportunity Product total.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">WHEN_COUNT_QUERY_MATCHES</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND StageName = 'Proposal/Price Quote' AND Amount != null</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountOperator__c</field>
+        <value xsi:type="xsd:string">GREATER_THAN</value>
+    </values>
+    <values>
+        <field>ApplicabilityCountThreshold__c</field>
+        <value xsi:type="xsd:double">0</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">180</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >For {!record.Name fallback="this Account"}, review the proposal Opportunity and its Opportunity Products. Correct the Amount or Product quantities and prices only from approved commercial terms.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review concentration for {!record.Name fallback="Account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
+    </values>
+
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">CURRENCY</value>
+    </values>
+    <values>
+        <field>ApplicabilityNotMetMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name fallback="This Account"} has no open Opportunity with an Amount, so deal-size comparison does not apply.</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">UNABLE_TO_EVALUATE</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Proposal Amount: {!rhcResult.foundValue}</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Opportunity Product total: {!rhcResult.expectedValue}</value>
+    </values>
+</CustomMetadata>

@@ -20,9 +20,49 @@ describe("configuration", () => {
     expect(config.killSwitch).toBe(false);
   });
 
-  it("rejects unauthenticated production and unknown values", () => {
+  it("rejects unauthenticated production", () => {
     expect(() => loadConfig({ ...base, NODE_ENV: "production" })).toThrow();
-    expect(() => loadConfig({ ...base, UNEXPECTED_SECRET: "value" })).toThrow();
+  });
+
+  it("accepts ambient runtime variables but rejects unknown service settings", () => {
+    const config = loadConfig({
+      ...base,
+      PATH: "/usr/local/bin:/usr/bin",
+      HOME: "/home/node",
+      HOSTNAME: "record-health-check-pod",
+      CI: "true"
+    });
+
+    expect(config.serverUrl.href).toBe("https://mcp.example.test/mcp");
+    expect(() =>
+      loadConfig({ ...base, MCP_UNEXPECTED_SETTING: "value" })
+    ).toThrow();
+    expect(() =>
+      loadConfig({ ...base, SALESFORCE_UNEXPECTED_SETTING: "value" })
+    ).toThrow();
+    expect(() =>
+      loadConfig({ ...base, MAX_CONCURRENT_SALESFORCE_CALL: "50" })
+    ).toThrow();
+    expect(() => loadConfig({ ...base, KILL_SWICH: "true" })).toThrow();
+    expect(() => loadConfig({ ...base, AUTH_MOD: "none" })).toThrow();
+    expect(() =>
+      loadConfig({ ...base, ALLOWED_HOST: "mcp.example.test" })
+    ).toThrow();
+  });
+
+  it("requires an explicit deployment mode so a typo cannot weaken production gates", () => {
+    const { NODE_ENV: removedNodeEnv, ...withoutNodeEnv } = base;
+    expect(removedNodeEnv).toBe("test");
+
+    expect(() =>
+      loadConfig({
+        ...withoutNodeEnv,
+        NODE_EN: "production",
+        HOST: "0.0.0.0",
+        ALLOWED_HOSTS: "mcp.example.test",
+        AUTH_MODE: "none"
+      })
+    ).toThrow("NODE_ENV");
   });
 
   it("rejects insecure endpoints, an unlisted login host, and a mutable production build", () => {

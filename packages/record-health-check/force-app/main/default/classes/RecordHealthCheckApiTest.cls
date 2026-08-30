@@ -28,7 +28,7 @@ private class RecordHealthCheckApiTest {
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
         RecordHealthCheckTestDataFactory.qualifiedCheckName(
-          'Example_Profile_Phone_Available'
+          'Example_Website_URL_Valid'
         ),
         accountRecord.Id
       )
@@ -36,7 +36,7 @@ private class RecordHealthCheckApiTest {
     Assert.areEqual(1, response.results.size());
     Assert.areEqual(
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Website_URL_Valid'
       ),
       response.results[0].evaluation.checkQualifiedApiName
     );
@@ -49,7 +49,7 @@ private class RecordHealthCheckApiTest {
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
           RecordHealthCheckTestDataFactory.qualifiedCheckName(
-            'Example_Profile_Phone_Available'
+            'Example_Website_URL_Valid'
           ),
           accountRecord.Id
         )
@@ -117,7 +117,7 @@ private class RecordHealthCheckApiTest {
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheckSet(
           RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-            'Example_Account_Profile_Readiness'
+            'Example_Account_Check_Builder_Guide'
           ),
           accountRecord.Id
         )
@@ -144,7 +144,7 @@ private class RecordHealthCheckApiTest {
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
         RecordHealthCheckTestDataFactory.qualifiedCheckName(
-          'Example_Profile_Phone_Available'
+          'Example_Website_URL_Valid'
         ),
         new List<Id>{ first.Id, second.Id }
       )
@@ -155,27 +155,31 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void scopeLimitNamesCeilingAndSuppliedCount() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     List<Id> ids = new List<Id>();
     for (
       Integer index = 0;
       index <= RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
       index++
     ) {
-      ids.add(accountRecord.Id);
+      ids.add(
+        RecordHealthCheckTestDataFactory.syntheticId(
+          Account.SObjectType,
+          index + 1
+        )
+      );
     }
     try {
       RecordHealthCheck.evaluate(
         RecordHealthCheckRequest.forCheck(
           RecordHealthCheckTestDataFactory.qualifiedCheckName(
-            'Example_Profile_Phone_Available'
+            'Example_Website_URL_Valid'
           ),
           ids
         )
       );
       Assert.isTrue(false, 'Expected record scope limit.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException expected) {
-      Assert.isTrue(expected.getMessage().contains('suppliedCount=201'));
+      Assert.isTrue(expected.getMessage().contains('uniqueCount=201'));
       Assert.isTrue(expected.getMessage().contains('ceiling=200'));
     }
   }
@@ -185,7 +189,7 @@ private class RecordHealthCheckApiTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckRunCheckFlowAction.Request input = new RecordHealthCheckRunCheckFlowAction.Request();
     input.checkQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
     input.recordId = accountRecord.Id;
     input.eventPublication = 'NONE';
@@ -203,7 +207,7 @@ private class RecordHealthCheckApiTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
     RecordHealthCheckRunSetFlowAction.Request input = new RecordHealthCheckRunSetFlowAction.Request();
     input.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     input.recordId = accountRecord.Id;
     input.eventPublication = 'NONE';
@@ -268,8 +272,8 @@ private class RecordHealthCheckApiTest {
     );
     assertCheckFlowError(
       RecordHealthCheckRunCheckFlowAction.runCheck(excessive),
-      'LIMIT',
-      'MAX_RECORDS_PER_SCOPE_EXCEEDED'
+      'VALIDATION',
+      'required'
     );
     try {
       RecordHealthCheckFlowSupport.publication('INVALID');
@@ -351,8 +355,8 @@ private class RecordHealthCheckApiTest {
     );
     assertSetFlowError(
       RecordHealthCheckRunSetFlowAction.runSet(excessive),
-      'LIMIT',
-      'MAX_RECORDS_PER_SCOPE_EXCEEDED'
+      'VALIDATION',
+      'required'
     );
     Assert.areEqual(
       RecordHealthCheckEventPublication.ACTIONABLE,

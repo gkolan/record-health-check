@@ -1,6 +1,6 @@
 @IsTest
 private class RecordHealthCheckSandboxAsyncTest {
-  private static final String CHECK_SET = 'Example_Account_Profile_Readiness';
+  private static final String CHECK_SET = 'Example_Account_Check_Builder_Guide';
 
   @IsTest
   static void synchronousRunnerReturnsResults() {

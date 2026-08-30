@@ -100,9 +100,10 @@ function classify(relative) {
   if (relative === "docs/examples/README.md") return "Examples home";
   if (/docs\/examples\/[^/]+\/README\.md$/.test(relative))
     return "Evaluation Type examples home";
-  if (relative === "docs/installation/README.md") return "Installation home";
-  if (relative === "docs/integration/README.md") return "Integration home";
-  if (relative === "docs/guides/README.md") return "Guides home";
+  if (relative === "docs/start-here/README.md") return "Task home";
+  if (relative === "docs/developer-guides/integration-options.md")
+    return "Integration home";
+  if (relative === "docs/build-checks/README.md") return "Guides home";
   if (relative === "docs/reference/README.md")
     return "Technical reference home";
   if (
@@ -111,26 +112,93 @@ function classify(relative) {
   )
     return "Worked example";
   if (
-    /docs\/reference\/evaluation\/(?:formula|query|compare-two-queries|apex-check-contract)\.md$/.test(
+    /docs\/(?:reference\/evaluation\/(?:formula|query|compare-two-queries)|developer-guides\/write-an-apex-check)\.md$/.test(
       relative
     )
   )
     return "Evaluation reference";
-  if (/docs\/(?:api|platform-events)\//.test(relative))
-    return "Integration reference";
-  if (/docs\/installation\/how-it-works\.md$/.test(relative))
-    return "Concept guide";
-  if (/docs\/contributing\//.test(relative)) return "Installation task";
-  if (/docs\/installation\//.test(relative)) return "Installation task";
-  if (/docs\/integration\/apex-api\/README\.md$/.test(relative))
-    return "Navigation page";
+  if (relative === "docs/reference/merge-syntax/README.md")
+    return "Technical reference";
   if (
-    /docs\/(?:integration|flow|lwc)\//.test(relative) ||
-    /lifecycle-events\.md$/.test(relative)
+    /docs\/(?:flow-guides|save-results|developer-guides\/(?:async-apex|agentforce-and-mcp))\/README\.md$/.test(
+      relative
+    )
+  )
+    return "Integration area home";
+  if (
+    /docs\/reference\/(?:custom-metadata|platform-event-metadata)\/README\.md$/.test(
+      relative
+    )
+  )
+    return "Metadata area home";
+  if (
+    /docs\/(?:architecture(?:\/apex-implementation)?|quality-gates|reference\/(?:configuration|contracts|evaluation|platform|results))\/README\.md$/.test(
+      relative
+    )
+  )
+    return "Technical area home";
+  if (
+    /docs\/(?:contributing|developer-guides|faqs|lightning-record-page|production-operations)\/README\.md$/.test(
+      relative
+    )
+  )
+    return "Guide area home";
+  if (
+    /docs\/reference\/(?:contracts\/agent-tool-contract|architecture\/agentforce-and-mcp-threat-model)\.md$/.test(
+      relative
+    )
+  )
+    return "Technical reference";
+  if (
+    /docs\/(?:flow-guides|save-results|developer-guides\/(?:async-apex|agentforce-and-mcp))\//.test(
+      relative
+    ) ||
+    /docs\/developer-guides\/(?:run-from-apex|receive-events-with-pub-sub)\.md$/.test(
+      relative
+    )
   )
     return "Integration reference";
-  if (/docs\/metadata\//.test(relative)) return "Metadata reference";
-  if (/docs\/guides\//.test(relative)) return "Guide";
+  if (/docs\/start-here\/what-it-does\.md$/.test(relative))
+    return "Concept guide";
+  if (
+    /docs\/(?:install\/install-demo-in-a-scratch-org|contributing\/source-development|step-by-step-guide\/create-your-first-check)\.md$/.test(
+      relative
+    )
+  )
+    return "Installation task";
+  if (
+    /docs\/start-here\/(?:choose-how-checks-run|choose-where-results-go|faq(?:\/.*)?)\.md$/.test(
+      relative
+    ) ||
+    /docs\/step-by-step-guide\/README\.md$/.test(relative)
+  )
+    return relative.endsWith("/README.md") ? "Task home" : "Guide";
+  if (/docs\/(?:start-here|install)\/README\.md$/.test(relative))
+    return "Task home";
+  if (/docs\/start-here\/when-to-use-record-health-check\.md$/.test(relative))
+    return "Guide";
+  if (/docs\/(?:start-here|install)\//.test(relative))
+    return "Installation task";
+  if (
+    /docs\/reference\/(?:custom-metadata|platform-event-metadata)\//.test(
+      relative
+    )
+  )
+    return "Metadata reference";
+  if (
+    /docs\/(?:build-checks|production-operations|diagnostics|lightning-record-page)\//.test(
+      relative
+    )
+  )
+    return "Guide";
+  if (/docs\/developer-guides\/verify-an-apex-check\.md$/.test(relative))
+    return "Technical reference";
+  if (/docs\/architecture(?:\/apex-implementation)?\//.test(relative))
+    return "Technical reference";
+  if (/docs\/quality-gates\/documentation-standard\.md$/.test(relative))
+    return "Documentation standard";
+  if (/docs\/quality-gates\//.test(relative)) return "Technical reference";
+  if (/docs\/faqs\//.test(relative)) return "Guide";
   if (/docs\/reference\//.test(relative)) return "Technical reference";
   return "Documentation standard";
 }
@@ -139,14 +207,26 @@ function hasAll(markdown, patterns) {
   return patterns.every((pattern) => pattern.test(markdown));
 }
 
+function areaHomeMatches(markdown, vocabulary) {
+  const localLinkCount = [
+    ...markdown.matchAll(/\[[^\]]+\]\((?!https?:|mailto:)[^)]+\)/g)
+  ].length;
+  return (
+    vocabulary.test(markdown) &&
+    localLinkCount >= 3 &&
+    (/^\|.*\|$/m.test(markdown) || /^\d+\.\s+/m.test(markdown)) &&
+    /^## Related$/m.test(markdown)
+  );
+}
+
 function structureMatches(type, markdown) {
   switch (type) {
     case "Documentation home":
       return hasAll(markdown, [
-        /^## What do you want to do\?$/m,
-        /^## Recommended path for new users$/m,
-        /^## Learn by example$/m,
-        /\| I want to… \| Start here \| What you will learn \|/
+        /^## New here\? Follow these steps$/m,
+        /^## Pick your task$/m,
+        /^## Choose how to build a Check$/m,
+        /\| Folder \| Go here when you want to… \|/
       ]);
     case "Examples home":
       return hasAll(markdown, [
@@ -189,12 +269,36 @@ function structureMatches(type, markdown) {
       ]);
     case "Technical reference home":
       return hasAll(markdown, [
-        /^## Recommended path/m,
-        /^## Evaluation Types$/m,
-        /^## Contracts$/m,
-        /\| Step \| Reference \| What it provides \|/,
+        /^## Choose a reference area$/m,
+        /^## Common lookups$/m,
+        /\| Folder \| What you can find there \|/,
         /^## Related$/m
       ]);
+    case "Integration area home":
+      return areaHomeMatches(
+        markdown,
+        /Flow|Apex|Agentforce|MCP|integration|result|event/i
+      );
+    case "Metadata area home":
+      return areaHomeMatches(
+        markdown,
+        /metadata|field|API name|Platform Event/i
+      );
+    case "Technical area home":
+      return areaHomeMatches(
+        markdown,
+        /architecture|contract|configuration|evaluation|platform|quality|result|Apex/i
+      );
+    case "Guide area home":
+      return areaHomeMatches(
+        markdown,
+        /guide|configure|developer|operation|troubleshoot|Lightning/i
+      );
+    case "Task home":
+      return (
+        /\b(use|choose|start|folder)\b/i.test(markdown) &&
+        (/^\d+\.\s+/m.test(markdown) || /^\|.*\|$/m.test(markdown))
+      );
     case "Worked example":
       return hasAll(markdown, [
         /^> On this page,/m,
@@ -324,7 +428,12 @@ const results = files.sort().map((file) => {
     [
       "final navigation is easy to find",
       file === path.join(docsRoot, "README.md") ||
-        Boolean(navigation && navigation.index >= markdown.length * 0.7)
+        Boolean(
+          navigation &&
+          (type === "Task home" ||
+            type.endsWith("area home") ||
+            navigation.index >= markdown.length * 0.7)
+        )
     ]
   ];
   const score = checks.filter(([, passed]) => passed).length;

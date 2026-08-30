@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopeDisplayTest {
-  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
+  private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
 
   @IsTest
   static void displayFinalizationHandlesActionTemplateFailure() {

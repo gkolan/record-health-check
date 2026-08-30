@@ -241,6 +241,80 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
   }
 
   @IsTest
+  static void formulaEvaluatorCachesUnresolvableAutoFormula() {
+    RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
+    List<Account> accounts = new List<Account>();
+    for (Integer index = 0; index < 12; index++) {
+      accounts.add(
+        RecordHealthCheckTestDataFactory.account(
+          new Map<String, Object>{ 'Name' => 'Unresolvable ' + index }
+        )
+      );
+    }
+    RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = 0;
+    RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.clear();
+
+    Test.startTest();
+    for (Account accountRecord : accounts) {
+      try {
+        evaluator.resolveFormulaSingleValue(
+          'Definitely_Not_A_Field__c',
+          accountRecord,
+          'AUTO'
+        );
+        Assert.fail('An inaccessible AUTO formula must not resolve.');
+      } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException error) {
+        Assert.areEqual(
+          'FIELD_NOT_ACCESSIBLE',
+          error.reasonCode,
+          'Every record must retain the original classified failure.'
+        );
+      }
+    }
+    Test.stopTest();
+
+    Assert.areEqual(
+      8,
+      RecordHealthCheckFormulaEvaluator.formulaEvalCallCount,
+      'Only the first record may perform the eight-type AUTO probe.'
+    );
+  }
+
+  @IsTest
+  static void formulaBudgetFailureKeepsResolvedAutoType() {
+    RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
+    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    String cacheKey = String.valueOf(Account.SObjectType) + '|BillingCity';
+    RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.clear();
+    RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.put(
+      cacheKey,
+      formulaeval.FormulaReturnType.STRING
+    );
+    RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET;
+
+    Test.startTest();
+    try {
+      evaluator.resolveFormulaSingleValue('BillingCity', accountRecord, 'AUTO');
+      Assert.fail('An exhausted FormulaEval budget must stop immediately.');
+    } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException error) {
+      Assert.areEqual(
+        'FORMULA_EVAL_LIMIT',
+        error.reasonCode,
+        'The budget guard must remain the reported failure.'
+      );
+    }
+    Test.stopTest();
+
+    Assert.areEqual(
+      formulaeval.FormulaReturnType.STRING,
+      RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.get(
+        cacheKey
+      ),
+      'A budget failure is not evidence that the cached return type is wrong.'
+    );
+  }
+
+  @IsTest
   static void formulaEvaluatorResolvesUrlWithRunContext() {
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator()
       .withRunContext(new RecordHealthCheckRunContext('url-run', 'TEST'));

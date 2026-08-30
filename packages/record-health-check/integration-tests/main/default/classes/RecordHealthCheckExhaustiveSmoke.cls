@@ -33,18 +33,23 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
 
   public static List<Id> startChecks(Id recordId, Integer batchOffset) {
     List<Id> jobs = new List<Id>();
+    Map<String, Id> recordIdsByObject = fixtureRecordIds(recordId);
     for (Record_Health_Check__mdt item : [
-      SELECT QualifiedApiName
+      SELECT QualifiedApiName, Record_Health_Check_Set__r.ObjectApiName__c
       FROM Record_Health_Check__mdt
       ORDER BY DeveloperName
       LIMIT 50
       OFFSET :batchOffset
     ]) {
+      String objectApiName = item.Record_Health_Check_Set__r.ObjectApiName__c;
+      Id compatibleRecordId = recordIdsByObject.containsKey(objectApiName)
+        ? recordIdsByObject.get(objectApiName)
+        : recordId;
       // code-analyzer-suppress-next-line OperationWithLimitsInLoop: Queueable Apex exposes only a single-job enqueue API; this query caps the scratch-org harness at 50 jobs.
       jobs.add(
         System.enqueueJob(
           new RecordHealthCheckExhaustiveSmoke(
-            recordId,
+            compatibleRecordId,
             item.QualifiedApiName,
             'CHECK'
           )
@@ -52,6 +57,31 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
       );
     }
     return jobs;
+  }
+
+  private static Map<String, Id> fixtureRecordIds(Id accountId) {
+    Map<String, Id> recordIds = new Map<String, Id>{ 'Account' => accountId };
+    List<Contact> contacts = [
+      SELECT Id
+      FROM Contact
+      WHERE AccountId = :accountId
+      ORDER BY CreatedDate, Id
+      LIMIT 1
+    ];
+    if (!contacts.isEmpty()) {
+      recordIds.put('Contact', contacts[0].Id);
+    }
+    List<Opportunity> opportunities = [
+      SELECT Id
+      FROM Opportunity
+      WHERE AccountId = :accountId
+      ORDER BY CreatedDate, Id
+      LIMIT 1
+    ];
+    if (!opportunities.isEmpty()) {
+      recordIds.put('Opportunity', opportunities[0].Id);
+    }
+    return recordIds;
   }
 
   @TestVisible

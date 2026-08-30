@@ -1,4 +1,6 @@
-# Record Health Check glossary
+# Glossary
+
+Use this page to look up Record Health Check and Salesforce terms.
 
 > [!NOTE]
 > Use this page when a term in Setup, Apex, Flow, a result, or a Platform Event needs a plain-language
@@ -11,7 +13,7 @@ beside **Record Health Check Set** or **Record Health Check**.
 
 A group of Checks for one Salesforce object. A Check Set also controls how its Lightning record-page
 card runs and displays results. In Setup, its Custom Metadata Type is **Record Health Check Set**
-(`Record_Health_Check_Set__mdt`). See [Check Set fields](../metadata/fields-check-set.md).
+(`Record_Health_Check_Set__mdt`). See [Check Set fields](./custom-metadata/check-set-fields.md).
 
 Example: an administrator might create an Account Check Set named **My Account Checks** and add
 Checks for Billing Country, Active Owner, and recent activity.
@@ -21,7 +23,7 @@ Checks for Billing Country, Active Owner, and recent activity.
 One data-quality question inside a Check Set. A Check defines what Salesforce evaluates, what counts
 as passing, its failure severity, and the messages shown to a user. In Setup, its Custom Metadata
 Type is **Record Health Check** (`Record_Health_Check__mdt`). See
-[Check fields](../metadata/fields-check.md).
+[Check fields](./custom-metadata/check-fields.md).
 
 ## Check Title
 
@@ -41,10 +43,10 @@ Events. Copy it from the **Qualified API Name** field in Setup.
 
 - A Check Set created by an administrator in your org might be `My_Account_Checks`.
 - A Check Set included with the installed package might be
-  `rhc__Example_Account_Profile_Readiness`.
+  `rhc__Example_Account_Check_Builder_Guide`.
 
 Do not add or remove `rhc__`. See
-[Use the correct Check Set and Check API names](framework/configuration-identity.md).
+[Use the correct Check Set and Check API names](./configuration/names-and-api-identities.md).
 
 ## Evaluation Type
 
@@ -52,10 +54,10 @@ The method a Check uses to answer its question.
 
 | Setup label (API value) | What it does | Reference |
 | --- | --- | --- |
-| Verify with a formula (`FORMULA`) | Evaluates a Salesforce formula against the checked record | [Formula](evaluation/formula.md) |
-| Verify with a query (`QUERY`) | Runs one SOQL query and compares its result with an expected value | [Query](evaluation/query.md) |
-| Compare two queries (`COMPARE_TWO_QUERIES`) | Runs two SOQL queries and compares their results | [Compare two queries](evaluation/compare-two-queries.md) |
-| Verify with Apex (`APEX`) | Calls a developer-owned class that implements `rhc.RecordHealthCheckPlugin` | [Custom Apex Check](evaluation/apex-check-contract.md) |
+| Verify with a formula (`FORMULA`) | Evaluates a Salesforce formula against the checked record | [Formula](./evaluation/formula.md) |
+| Verify with a query (`QUERY`) | Runs one SOQL query and compares its result with an expected value | [Query](./evaluation/query.md) |
+| Compare two queries (`COMPARE_TWO_QUERIES`) | Runs two SOQL queries and compares their results | [Compare two queries](./evaluation/compare-two-queries.md) |
+| Verify with Apex (`APEX`) | Calls a developer-owned class that implements `rhc.RecordHealthCheckPlugin` | [Custom Apex Check](../developer-guides/write-an-apex-check.md) |
 
 ## Found and Expected
 
@@ -64,7 +66,7 @@ Check to pass.
 
 Example: a Check might find `25` open Cases and expect a value less than `10`. The displayed values
 can be formatted as numbers, money, percentages, dates, picklist labels, or lists without changing
-the comparison. See [Display value format](contracts/display-value-format.md).
+the comparison. See [Display value format](./configuration/display-found-and-expected.md).
 
 ## Status
 
@@ -101,7 +103,7 @@ encountered an error. Examples include `PREREQUISITE_NOT_MET`, `RECORD_NOT_VISIB
 Use Status and Reason Code in Flow, Apex, or integration decisions. Do not make automation depend on
 a message an administrator can edit. Normal card results emphasize the user-facing message; an
 administrator can temporarily enable **Show Diagnostics** on the Check Set to see authorized detail.
-Flow and Apex responses expose Reason Code directly. See [Reason Codes](contracts/reason-codes.md).
+Flow and Apex responses expose Reason Code directly. See [Reason Codes](./results/reason-codes.md).
 
 ## Prerequisite Check
 
@@ -127,20 +129,30 @@ Review {!record.Name fallback="this record"} before approval.
 ```
 
 The optional quoted `fallback` is used when the value is blank. See
-[Merge tokens](contracts/merge-tokens.md).
+[Merge tokens](./merge-syntax/README.md).
 
 ## Custom Apex Check
 
 An Apex class created by your team for a Check that cannot be expressed with Formula or Query. The
 class implements `rhc.RecordHealthCheckPlugin`, receives the records to check, and returns one result
 for every record ID. It must use the running user's access and must not change data or start other
-work. See [Custom Apex Check contract](evaluation/apex-check-contract.md).
+work. See [Custom Apex Check contract](../developer-guides/write-an-apex-check.md).
 
 ## Record Health Check Run
 
 The Custom Permission required to start a health check:
-`rhc__Record_Health_Check_Run`. It is included in both installed Permission Sets. It is not itself a
-Permission Set. See [Security and data access](framework/security.md#choose-the-correct-permission-set).
+`rhc__Record_Health_Check_Run`. It is included in the four installed runner Permission Sets: Card
+User, User, Admin, and MCP Integration. Error Log Publisher does not include it. The Custom
+Permission is not itself a Permission Set. See
+[Security and data access](../architecture/security-and-data-access.md#choose-the-correct-permission-set).
+
+## Record Health Check Error Log Publisher
+
+The fifth packaged Permission Set grants Create and Read access only to the restricted
+`rhc__Record_Health_Check_Log__e` Platform Event. It does not include **Record Health Check Run** and
+does not let its assignee start a Check. Assign it separately and narrowly only when a Check Set's
+default-off **Publish Error Log Event** setting is deliberately enabled. See
+[Save restricted errors](../save-results/save-restricted-errors.md).
 
 ## Show Diagnostics
 
@@ -148,7 +160,7 @@ A Check Set setting that allows troubleshooting detail to be returned. Detail ap
 running user also has the **Record Health Check View Diagnostics**
 (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission. The Admin Permission Set includes
 that permission; the User Permission Set does not. See
-[Security and data access](framework/security.md#the-diagnostics-custom-permission).
+[Security and data access](../architecture/security-and-data-access.md#the-diagnostics-custom-permission).
 
 ## Platform Event publication
 
@@ -160,12 +172,12 @@ and **Publish User Result Event** on each Check. Apex and Flow instead choose on
 | Value | Events published |
 | --- | --- |
 | `NONE` | No health-result events |
-| `ACTIONABLE` | Only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` results |
+| `ACTIONABLE` | Check Result events only for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus one completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs |
 | `ALL` | Every result, including `PASS` and `SKIPPED` |
 
 Publishing an event does not save a result-history record. A receiving Flow, Apex trigger, or
 external integration must save the event if the org needs a permanent record. See
-[Lifecycle events](../integration/lifecycle-events.md).
+[Lifecycle events](../save-results/when-to-use-platform-events.md).
 
 ## Installed examples
 
@@ -173,11 +185,11 @@ The package includes four Check Sets whose Developer Names begin with `Example_`
 Titles begin with `Example:`. They demonstrate configuration for Account, Contact, and Opportunity.
 Create separate Check Sets for your org's business rules instead of renaming an installed example.
 See
-[Keep Example starter configuration explicit](framework/configuration-identity.md#keep-example-starter-configuration-explicit).
+[Keep Example starter configuration explicit](./configuration/names-and-api-identities.md#keep-example-starter-configuration-explicit).
 
 ## Related
 
-- [How Record Health Check works](../installation/how-it-works.md)
-- [Configure Check Sets and Checks](../guides/configure-check-sets-and-checks.md)
-- [Reason Codes](contracts/reason-codes.md)
-- [Metadata reference](../metadata/README.md)
+- [How Record Health Check works](../start-here/what-it-does.md)
+- [Configure Check Sets and Checks](../build-checks/configure-check-sets-and-checks.md)
+- [Reason Codes](./results/reason-codes.md)
+- [Metadata reference](./custom-metadata/README.md)

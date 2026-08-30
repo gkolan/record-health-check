@@ -106,6 +106,7 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
           recordIds,
           recordsById,
           context.objectApiName,
+          context.checkSetDeveloperName,
           context.checkSetQualifiedApiName,
           runId
         );

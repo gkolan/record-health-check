@@ -3,29 +3,44 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members
-    >Record_Health_Check_Set.Example_Account_Profile_Readiness</members>
+    >Record_Health_Check_Set.Example_Account_Check_Builder_Guide</members>
         <members
     >Record_Health_Check_Set.Example_Account_Relationship_Risk</members>
         <members
     >Record_Health_Check_Set.Example_Contact_Relationship_Readiness</members>
         <members
     >Record_Health_Check_Set.Example_Opportunity_Deal_Readiness</members>
-        <members>Record_Health_Check.Example_Profile_Phone_Available</members>
-        <members>Record_Health_Check.Example_Profile_Website_Available</members>
-        <members
-    >Record_Health_Check.Example_Profile_Industry_Classified</members>
-        <members>Record_Health_Check.Example_Profile_Billing_Address</members>
+        <members>Record_Health_Check.Example_Contact_RR_Account</members>
         <members>Record_Health_Check.Example_Contact_RR_Email</members>
+        <members
+    >Record_Health_Check.Example_Contact_RR_Recent_Engagement</members>
+        <members
+    >Record_Health_Check.Example_Contact_RR_Reachable_Channel</members>
+        <members>Record_Health_Check.Example_Contact_RR_Owner_Active</members>
         <members>Record_Health_Check.Example_Contact_RR_Phone</members>
         <members>Record_Health_Check.Example_Contact_RR_Title</members>
         <members>Record_Health_Check.Example_Contact_RR_Mailing_City</members>
+        <members>Record_Health_Check.Example_Opportunity_DR_Account</members>
         <members>Record_Health_Check.Example_Opportunity_DR_Amount</members>
+        <members
+    >Record_Health_Check.Example_Opportunity_DR_Buyer_Contact</members>
         <members>Record_Health_Check.Example_Opportunity_DR_Close_Date</members>
         <members>Record_Health_Check.Example_Opportunity_DR_Next_Step</members>
         <members
+    >Record_Health_Check.Example_Opportunity_DR_Owner_Active</members>
+        <members
     >Record_Health_Check.Example_Opportunity_DR_Probability</members>
+        <members
+    >Record_Health_Check.Example_Opportunity_DR_Recent_Activity</members>
         <members>Record_Health_Check.Example_Executive_Sponsorship</members>
+        <members>Record_Health_Check.Example_Guide_Contacts_Have_Email</members>
+        <members>Record_Health_Check.Example_Guide_Recent_Activity</members>
+        <members
+    >Record_Health_Check.Example_Guide_Industry_Manufacturing</members>
+        <members
+    >Record_Health_Check.Example_Guide_Open_Deals_Have_Contacts</members>
         <members>Record_Health_Check.Example_Account_Owner_Active</members>
+        <members>Record_Health_Check.Example_Open_Cases_Have_Contacts</members>
         <members
     >Record_Health_Check.Example_Industry_Aligns_With_Parent</members>
         <members>Record_Health_Check.Example_Open_Deals_Have_Contacts</members>
@@ -36,6 +51,34 @@
         <members>Record_Health_Check.Example_No_High_Priority_Issues</members>
         <members
     >Record_Health_Check.Example_Channel_Partner_Governance</members>
+        <members>Record_Health_Check.Example_Website_URL_Valid</members>
+        <members>Record_Health_Check.Example_Segregation_Of_Duties</members>
+        <members>Record_Health_Check.Example_Has_At_Least_One_Contact</members>
+        <members>Record_Health_Check.Example_Fewer_Than_Ten_Open_Cases</members>
+        <members>Record_Health_Check.Example_Open_Opps_Have_Amount</members>
+        <members>Record_Health_Check.Example_High_Value_Open_Opp</members>
+        <members>Record_Health_Check.Example_Significant_Open_Opp</members>
+        <members
+    >Record_Health_Check.Example_Contact_States_Match_Billing</members>
+        <members>Record_Health_Check.Example_Billing_State_In_Contacts</members>
+        <members>Record_Health_Check.Example_Contacts_Cover_Open_Cases</members>
+        <members>Record_Health_Check.Example_Contact_Vs_Open_Opp_Count</members>
+        <members
+    >Record_Health_Check.Example_Oldest_Contact_City_Matches</members>
+        <members
+    >Record_Health_Check.Example_Open_Pipeline_Covers_Revenue</members>
+        <members>Record_Health_Check.Example_Average_Deal_Vs_Largest</members>
+        <members>Record_Health_Check.Example_Earliest_Vs_Latest_Close</members>
+        <members
+    >Record_Health_Check.Example_Distinct_Cities_Vs_Contacts</members>
+        <members
+    >Record_Health_Check.Example_Contact_Cities_Overlap_Parent</members>
+        <members
+    >Record_Health_Check.Example_Parent_Covers_Contact_Cities</members>
+        <members
+    >Record_Health_Check.Example_Contact_Cities_Exact_Parent</members>
+        <members
+    >Record_Health_Check.Example_Parent_Cities_Require_Data</members>
         <name>CustomMetadata</name>
     </types>
     <types>
@@ -175,7 +218,9 @@
         <members>AccountHasRecentActivityCheckTest</members>
         <members>RHCAbsentSchemaRedTest</members>
         <members>RHCBase64FieldRedTest</members>
+        <members>RHCBulkQueryRuntimeRegressionTest</members>
         <members>RHCCoverageBoundaryTest</members>
+        <members>RHCCrossBoundaryCoverageTest</members>
         <members>RHCCurrencyAuthoringRedTest</members>
         <members>RHCMixedCurrencyRedTest</members>
         <members>RHCQueryClassificationRedTest</members>
@@ -195,8 +240,12 @@
         <members>RecordHealthCheckBatchScopeTest</members>
         <members>RHCEvaluatorEdgeBehaviorTest</members>
         <members>RHCComparisonDisplayEdgeBehaviorTest</members>
+        <members>RHCDefinitionDependencyIdentity</members>
+        <members>RHCDefinitionDependencyIdentityTest</members>
         <members>RHCDualQueryEdgeBehaviorTest</members>
         <members>RHCFormulaEdgeBehaviorTest</members>
+        <members>RHCFormulaRelationshipPlanningTest</members>
+        <members>RHCScopeQueryRowBudgetTest</members>
         <members>RHCSoqlEvaluatorEdgeBehaviorTest</members>
         <members>RecordHealthCheckAdminDetail</members>
         <members>RecordHealthCheckBulkQueryDepthTest</members>
@@ -320,6 +369,7 @@
         <members>RecordHealthCheckReasonCodes</members>
         <members>RecordHealthCheckRunContext</members>
         <members>RecordHealthCheckAgentRestResource</members>
+        <members>RecordHealthCheckAgentRestDiagnosisTest</members>
         <members>RecordHealthCheckAgentRestResourceTest</members>
         <members>RecordHealthCheckRunCheckAgentAction</members>
         <members>RecordHealthCheckAgentActionTest</members>
@@ -359,6 +409,7 @@
         <members>RecordHealthCheckAdversarialBoundaryTest</members>
         <members>RecordHealthCheckApexResultFinalizerTest</members>
         <members>RecordHealthCheckDescribeCacheTest</members>
+        <members>RHCFieldPlannerNamespaceTest</members>
         <members>RecordHealthCheckFieldPlannerTest</members>
         <members>RHCPolymorphicOwnerAcceptanceTest</members>
         <members>RHCOwnershipHonestyTest</members>
@@ -374,6 +425,9 @@
         <members>RHCMetadataValidatorSmokeTest</members>
         <members>RecordHealthCheckMetadataValidatorTest</members>
         <members>RecordHealthCheckSecurityAndOpsTest</members>
+        <members>RHCProtocolBoundaryRegressionTest</members>
+        <members>RHCCurrencyEvidenceBoundaryTest</members>
+        <members>RHCReleaseBoundaryCoverageTest</members>
         <members>RHCScopePipelineFailureTest</members>
         <members>RecordHealthCheckSetPicklistTest</members>
         <members>RecordHealthCheckValueSourceTest</members>
@@ -400,6 +454,7 @@
         <members>Record_Health_Check_Admin</members>
         <members>Record_Health_Check_Card_User</members>
         <members>Record_Health_Check_Error_Log_Publisher</members>
+        <members>Record_Health_Check_MCP_Integration</members>
         <members>Record_Health_Check_User</members>
         <name>PermissionSet</name>
     </types>
@@ -411,7 +466,11 @@
     </types>
     <types>
         <members>Record_Health_Check__mdt.All</members>
-        <members>Record_Health_Check__mdt.Examples</members>
+        <members>Record_Health_Check__mdt.Account_Check_Builder_Guide</members>
+        <members>Record_Health_Check__mdt.Account_Relationship_Risk</members>
+        <members
+    >Record_Health_Check__mdt.Contact_Relationship_Readiness</members>
+        <members>Record_Health_Check__mdt.Opportunity_Deal_Readiness</members>
         <members>Record_Health_Check_Set__mdt.All</members>
         <members>Record_Health_Check_Set__mdt.Examples</members>
         <name>ListView</name>

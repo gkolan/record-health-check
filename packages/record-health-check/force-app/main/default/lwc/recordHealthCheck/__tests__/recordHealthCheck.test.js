@@ -17,9 +17,11 @@ import {
   resetPageEvaluationSchedulerForTest
 } from "../healthCheckRunner";
 import {
+  checkNamespace,
   detectDependencyCycles,
   normalizeResult,
   parseAuraError,
+  prerequisiteIdentity,
   synthesizeResult,
   toCompletionResult
 } from "../healthCheckModel";
@@ -139,6 +141,17 @@ const PASS_RESULT = (developerName) => ({
   message: null,
   priority: 1,
   evaluatorType: "Formula"
+});
+
+const NESTED_PASS_RESULT = (qualifiedApiName) => ({
+  evaluation: {
+    checkQualifiedApiName: qualifiedApiName,
+    recordId: "001000000000001AAA",
+    status: "PASS",
+    severity: null,
+    reasonCode: null
+  },
+  display: {}
 });
 
 const FAIL_RESULT = (developerName) => ({
@@ -793,7 +806,7 @@ describe("c-record-health-check — load and error states", () => {
     ).toBeNull();
   });
 
-  it("shows a load error when a definition has a duplicate developerName", async () => {
+  it("shows a load error when a definition has a duplicate qualifiedApiName", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         checks: [
@@ -824,6 +837,48 @@ describe("c-record-health-check — load and error states", () => {
     expect(
       element.shadowRoot.querySelector(".rhc-row--system-error")
     ).not.toBeNull();
+  });
+
+  it("keeps same-DeveloperName checks separate by qualified API name", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        successDisplayMode: "Show",
+        checks: [
+          {
+            developerName: "Shared_Check",
+            qualifiedApiName: "package__Shared_Check",
+            label: "Packaged shared check",
+            description: "Packaged",
+            priority: 1,
+            dependsOnCheckDeveloperName: null
+          },
+          {
+            developerName: "Shared_Check",
+            qualifiedApiName: "Shared_Check",
+            label: "Subscriber shared check",
+            description: "Subscriber",
+            priority: 2,
+            dependsOnCheckDeveloperName: null
+          }
+        ]
+      })
+    );
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
+    );
+
+    await appendAndLoad(element);
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    await clickRun(element);
+
+    expect(
+      evaluateCheck.mock.calls.map(([request]) => request.checkQualifiedApiName)
+    ).toEqual(["package__Shared_Check", "Shared_Check"]);
+    expect(element.shadowRoot.querySelectorAll("li.rhc-row")).toHaveLength(2);
+    const completed = JSON.parse(completeRun.mock.calls[0][0].resultsJson);
+    expect(
+      completed.map((item) => item.evaluation.checkQualifiedApiName)
+    ).toEqual(["package__Shared_Check", "Shared_Check"]);
   });
 
   it("shows a load error when a definition is missing its developerName", async () => {
@@ -1087,8 +1142,8 @@ describe("c-record-health-check — run orchestration", () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ summaryDisplay: "TOP" })
     );
-    evaluateCheck.mockImplementation(({ checkDeveloperName }) =>
-      Promise.resolve(PASS_RESULT(checkDeveloperName))
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
     );
     await appendAndLoad(element);
     await clickRun(element);
@@ -1131,8 +1186,8 @@ describe("c-record-health-check — run orchestration", () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ summaryDisplay: "TOP", checks })
     );
-    evaluateCheck.mockImplementation(({ checkDeveloperName }) =>
-      Promise.resolve(PASS_RESULT(checkDeveloperName))
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
     );
     await appendAndLoad(element);
     await clickRun(element);
@@ -1182,7 +1237,9 @@ describe("c-record-health-check — run orchestration", () => {
 
   it("calls evaluateCheck for every check in the set", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
-    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
+    );
     await appendAndLoad(element);
 
     await clickRun(element);
@@ -1202,7 +1259,9 @@ describe("c-record-health-check — run orchestration", () => {
 
   it("sends completion results in the nested Apex result-item contract", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
-    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
+    );
     await appendAndLoad(element);
 
     await clickRun(element);
@@ -1218,6 +1277,7 @@ describe("c-record-health-check — run orchestration", () => {
         })
       })
     );
+    expect(completed[1].evaluation.checkQualifiedApiName).toBe("Check_B");
   });
 
   it("keeps qualified names for synthesized completion results", () => {
@@ -1958,7 +2018,7 @@ describe("c-record-health-check — success display modes", () => {
     expect(pill.getAttribute("data-tooltip")).toContain("Check B");
   });
 
-  it("shows hidden passed rows when showDiagnostics authorizes the overlay", async () => {
+  it("keeps configured passed rows hidden when diagnostics is enabled", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ successDisplayMode: "Hide", showDiagnostics: true })
     );
@@ -1967,9 +2027,8 @@ describe("c-record-health-check — success display modes", () => {
 
     await clickRun(element);
 
-    // Diagnostics overrides count-only: every passed row is expanded (§2.11).
     const rows = element.shadowRoot.querySelectorAll(".rhc-row--pass");
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(0);
   });
 
   it("explains when a mix of passed and skipped rows is hidden", async () => {
@@ -2051,7 +2110,7 @@ describe("c-record-health-check — skipped display modes", () => {
     expect(pill.getAttribute("data-tooltip")).toContain("Check B");
   });
 
-  it("shows hidden skipped rows when showDiagnostics authorizes the overlay", async () => {
+  it("keeps configured skipped rows hidden when diagnostics is enabled", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ skippedDisplayMode: "Hide", showDiagnostics: true })
     );
@@ -2060,9 +2119,8 @@ describe("c-record-health-check — skipped display modes", () => {
 
     await clickRun(element);
 
-    // Diagnostics overrides count-only: every skipped row is expanded (§2.11).
     const rows = element.shadowRoot.querySelectorAll(".rhc-row--skipped");
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(0);
   });
 });
 
@@ -2177,6 +2235,65 @@ describe("c-record-health-check — Prerequisite Check enforcement", () => {
     expect(evaluateCheck).toHaveBeenCalledTimes(2);
   });
 
+  it("resolves an unqualified prerequisite within the dependent Check namespace", async () => {
+    const packagedPrerequisite = deferred();
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        checks: [
+          {
+            developerName: "Shared_Prerequisite",
+            qualifiedApiName: "package__Shared_Prerequisite",
+            label: "Packaged prerequisite",
+            description: "",
+            priority: 1,
+            dependsOnCheckDeveloperName: null
+          },
+          {
+            developerName: "Shared_Prerequisite",
+            qualifiedApiName: "Shared_Prerequisite",
+            label: "Subscriber prerequisite",
+            description: "",
+            priority: 2,
+            dependsOnCheckDeveloperName: null
+          },
+          {
+            developerName: "Dependent",
+            qualifiedApiName: "package__Dependent",
+            label: "Packaged dependent",
+            description: "",
+            priority: 3,
+            dependsOnCheckDeveloperName: "Shared_Prerequisite"
+          }
+        ]
+      })
+    );
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) => {
+      if (checkQualifiedApiName === "package__Shared_Prerequisite") {
+        return packagedPrerequisite.promise;
+      }
+      return Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName));
+    });
+    await appendAndLoad(element);
+
+    await clickRun(element);
+    expect(evaluateCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ checkQualifiedApiName: "Shared_Prerequisite" })
+    );
+    expect(evaluateCheck).not.toHaveBeenCalledWith(
+      expect.objectContaining({ checkQualifiedApiName: "package__Dependent" })
+    );
+
+    packagedPrerequisite.resolve(
+      NESTED_PASS_RESULT("package__Shared_Prerequisite")
+    );
+    await flushPromises();
+    await flushPromises();
+
+    expect(evaluateCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ checkQualifiedApiName: "package__Dependent" })
+    );
+  });
+
   it("reports circular dependencies without calling Apex", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
@@ -2210,6 +2327,44 @@ describe("c-record-health-check — Prerequisite Check enforcement", () => {
     );
     expect(element.shadowRoot.textContent).toContain(
       'Circular dependency with "Check_A".'
+    );
+  });
+
+  it("reports a cycle when one prerequisite edge has only an unqualified identity", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        skippedDisplayMode: "Show",
+        checks: [
+          {
+            developerName: "A",
+            qualifiedApiName: "rhc__A",
+            label: "A",
+            description: "",
+            priority: 1,
+            dependsOnCheckQualifiedApiName: "rhc__B",
+            dependsOnCheckDeveloperName: "B"
+          },
+          {
+            developerName: "B",
+            qualifiedApiName: "rhc__B",
+            label: "B",
+            description: "",
+            priority: 2,
+            dependsOnCheckQualifiedApiName: null,
+            dependsOnCheckDeveloperName: "A"
+          }
+        ]
+      })
+    );
+    await appendAndLoad(element);
+
+    await clickRun(element);
+
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).toHaveBeenCalledTimes(1);
+    expect(element.shadowRoot.textContent).toContain("Circular dependency");
+    expect(element.shadowRoot.textContent).not.toContain(
+      "was not included in the Framework run"
     );
   });
 });
@@ -2836,7 +2991,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     expect(rows[1].getAttribute("tabindex")).toBe("-1");
   });
 
-  it("logs a console summary and diagnostics group when showDiagnostics completes a run", async () => {
+  it("keeps an all-pass diagnostics run concise and warning-free", async () => {
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const groupCollapsed = jest
       .spyOn(console, "groupCollapsed")
@@ -2879,29 +3034,13 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
       expect.stringContaining("Next: Every Check passed")
     );
     expect(table).not.toHaveBeenCalled();
-    expect(group).toHaveBeenCalledWith("[RHC] Checks (1)");
-    expect(groupCollapsed).toHaveBeenCalledWith("1. Check A · PASS");
-    expect(groupCollapsed).toHaveBeenCalledWith("Advanced diagnostics");
-    expect(groupCollapsed).toHaveBeenCalledWith(
-      "Support report for this check"
+    expect(info).toHaveBeenCalledWith(
+      expect.stringContaining("No diagnostic issues were found")
     );
-    expect(log).toHaveBeenCalledWith(
-      expect.objectContaining({
-        configuration: expect.objectContaining({ evaluationType: "QUERY" }),
-        resolution: expect.objectContaining({
-          sourceQueryAfterMerge: expect.any(String)
-        })
-      })
-    );
-    expect(log).toHaveBeenCalledWith(
-      expect.objectContaining({
-        runId: expect.stringMatching(/^rhc-/),
-        check: expect.objectContaining({ check: "Check_A", status: "PASS" })
-      })
-    );
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("Review and redact customer data")
-    );
+    expect(group).not.toHaveBeenCalledWith(expect.stringContaining("review"));
+    expect(groupCollapsed).not.toHaveBeenCalled();
+    expect(log).not.toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
     expect(groupEnd).toHaveBeenCalled();
     group.mockRestore();
     groupCollapsed.mockRestore();
@@ -2913,7 +3052,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     groupEnd.mockRestore();
   });
 
-  it("logs every check even when optional diagnostic fields are absent", async () => {
+  it("does not create per-check console noise for a plain pass", async () => {
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const groupCollapsed = jest
       .spyOn(console, "groupCollapsed")
@@ -2938,8 +3077,9 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     await flushPromises();
     await flushPromises();
 
-    expect(group).toHaveBeenCalledWith("[RHC] Checks (1)");
-    expect(groupCollapsed).toHaveBeenCalledWith("1. Check A · PASS");
+    expect(group).not.toHaveBeenCalledWith(expect.stringContaining("review"));
+    expect(groupCollapsed).not.toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
     group.mockRestore();
     groupCollapsed.mockRestore();
     log.mockRestore();
@@ -2950,12 +3090,42 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     groupEnd.mockRestore();
   });
 
-  it("warns when a diagnostics check carries a server message or restricted detail", async () => {
+  it("keeps a business failure separate from technical support evidence", async () => {
+    const groupCollapsed = jest
+      .spyOn(console, "groupCollapsed")
+      .mockImplementation(() => {});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        showDiagnostics: true,
+        checks: [makeDefinitions().checks[0]]
+      })
+    );
+    evaluateCheck.mockResolvedValue(FAIL_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+    await clickRun(element);
+    await flushPromises();
+
+    expect(groupCollapsed).toHaveBeenCalledWith(
+      expect.stringContaining("Check A · FAIL")
+    );
+    expect(groupCollapsed).not.toHaveBeenCalledWith("Advanced diagnostics");
+    expect(groupCollapsed).not.toHaveBeenCalledWith(
+      "Support report for this check"
+    );
+    expect(warn).not.toHaveBeenCalled();
+    groupCollapsed.mockRestore();
+    warn.mockRestore();
+  });
+
+  it("logs support detail only for a result needing review", async () => {
     const group = jest.spyOn(console, "group").mockImplementation(() => {});
     const groupCollapsed = jest
       .spyOn(console, "groupCollapsed")
       .mockImplementation(() => {});
     const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const info = jest.spyOn(console, "info").mockImplementation(() => {});
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
     const table = jest.spyOn(console, "table").mockImplementation(() => {});
     const debug = jest.spyOn(console, "debug").mockImplementation(() => {});
@@ -2970,6 +3140,9 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     );
     evaluateCheck.mockResolvedValue({
       ...PASS_RESULT("Check_A"),
+      status: "ERROR",
+      reasonCode: "FORMULA_RUNTIME_ERROR",
+      message: "This Check encountered a system problem.",
       adminDetail: {
         message: "Formula timed out on the server",
         containsRestrictedDetail: true
@@ -2984,12 +3157,14 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     expect(log).toHaveBeenCalledWith(
       expect.objectContaining({ containsRestrictedDetail: true })
     );
+    expect(group).toHaveBeenCalledWith("[RHC] Results needing review (1)");
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("Review and redact customer data")
     );
     group.mockRestore();
     groupCollapsed.mockRestore();
     log.mockRestore();
+    info.mockRestore();
     warn.mockRestore();
     table.mockRestore();
     debug.mockRestore();
@@ -3624,6 +3799,39 @@ describe("c-record-health-check — comparison disclosure (integration)", () => 
     expect(element.shadowRoot.querySelector(".rhc-row__detail")).toBeNull();
   });
 
+  it("keeps disclosure state prototype-safe for a Check named constructor", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      onePassCheck({
+        checks: [
+          {
+            ...makeDefinitions().checks[0],
+            developerName: "constructor",
+            qualifiedApiName: "constructor",
+            label: "Constructor check"
+          }
+        ]
+      })
+    );
+    evaluateCheck.mockResolvedValue({
+      ...PASS_WITH_VALUES,
+      checkDeveloperName: "constructor"
+    });
+    await appendAndLoad(element);
+    await clickRun(element);
+
+    const caret = element.shadowRoot.querySelector(".rhc-caret");
+    caret.click();
+    await flushPromises();
+    expect(caret.getAttribute("aria-expanded")).toBe("true");
+
+    await clickRun(element);
+    expect(
+      element.shadowRoot
+        .querySelector(".rhc-caret")
+        .getAttribute("aria-expanded")
+    ).toBe("false");
+  });
+
   it("keeps source notes off the card when expanded details are null", async () => {
     getCheckDefinitions.mockResolvedValue(onePassCheck());
     evaluateCheck.mockResolvedValue({
@@ -4174,6 +4382,38 @@ describe("safeActionUrl — client-side scheme guard (HI-3)", () => {
 });
 
 describe("HealthCheckRunner — defensive orchestration branches", () => {
+  it.each(["constructor", "toString", "valueOf", "hasOwnProperty"])(
+    "runs and cleans up a valid Object.prototype-like Check name: %s",
+    async (developerName) => {
+      const check = {
+        developerName,
+        qualifiedApiName: developerName,
+        label: developerName,
+        dependsOnCheckDeveloperName: null
+      };
+      const host = makeRunnerHost([check]);
+      const runner = makeRunner(host);
+      evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+        Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
+      );
+
+      runner.run();
+      await flushPromises();
+      await flushPromises();
+
+      expect(evaluateCheck).toHaveBeenCalledWith(
+        expect.objectContaining({ checkQualifiedApiName: developerName })
+      );
+      expect(host.runComplete).toBe(true);
+      expect(runner.isRunning).toBe(false);
+      expect(runner._resultBuffer.get(developerName)?.status).toBe("PASS");
+
+      runner.invalidate();
+      expect(runner._resultBuffer.size).toBe(0);
+      expect(runner.isRunning).toBe(false);
+    }
+  );
+
   it("does not start a second run while one is already active", () => {
     const host = makeRunnerHost([
       { developerName: "A", dependsOnCheckDeveloperName: null }
@@ -4194,12 +4434,12 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
       dependsOnCheckDeveloperName: null
     };
     const runner = makeRunner(makeRunnerHost([prerequisite]));
-    const taskMap = {};
+    const taskMap = new Map();
     runner._runToken = 1;
     runner._runOneCheck = jest.fn().mockResolvedValue();
     const runCheck = runner._makeRunCheck(
       taskMap,
-      { Prerequisite: prerequisite },
+      new Map([["Prerequisite", prerequisite]]),
       new Set(),
       1
     );
@@ -4233,10 +4473,13 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
       Promise.resolve(PASS_RESULT(checkQualifiedApiName))
     );
-    const taskMap = {};
+    const taskMap = new Map();
     const runCheck = runner._makeRunCheck(
       taskMap,
-      { Dependent: dependent, Prerequisite: dependency },
+      new Map([
+        ["Dependent", dependent],
+        ["Prerequisite", dependency]
+      ]),
       new Set(),
       1
     );
@@ -4295,7 +4538,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     runner._runInProgress = true;
     runner._makeRunCheck = jest.fn(() => jest.fn().mockResolvedValue());
 
-    await runner._runChecksSequentially({ A: check }, new Set(), 7);
+    await runner._runChecksSequentially(new Map([["A", check]]), new Set(), 7);
 
     expect(runner.isRunning).toBe(false);
   });
@@ -4312,7 +4555,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
           return Promise.reject(new Error("unexpected check failure"));
         }
         return secondGate.promise.then(() => {
-          runner._resultBuffer.B = PASS_RESULT("B");
+          runner._resultBuffer.set("B", PASS_RESULT("B"));
           runner._drain(token);
         });
       }
@@ -4338,9 +4581,9 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     runner._runToken = 2;
     runner._stopped = true;
 
-    await runner._runOneCheck(check, {}, {}, jest.fn(), 2);
+    await runner._runOneCheck(check, new Map(), new Map(), jest.fn(), 2);
     runner._stopped = false;
-    await runner._runOneCheck(check, {}, {}, jest.fn(), 1);
+    await runner._runOneCheck(check, new Map(), new Map(), jest.fn(), 1);
 
     expect(evaluateCheck).not.toHaveBeenCalled();
   });
@@ -4355,11 +4598,14 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     const gate = deferred();
     const runner = makeRunner(makeRunnerHost([prerequisite, dependent]));
     runner._runToken = 1;
-    const taskMap = { P: gate.promise };
+    const taskMap = new Map([["P", gate.promise]]);
     const pending = runner._runOneCheck(
       dependent,
       taskMap,
-      { P: prerequisite, D: dependent },
+      new Map([
+        ["P", prerequisite],
+        ["D", dependent]
+      ]),
       jest.fn(),
       1
     );
@@ -4381,7 +4627,13 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     );
     const release = jest.spyOn(runner, "_releaseEvaluationSlot");
 
-    const pending = runner._runOneCheck(check, {}, {}, jest.fn(), 1);
+    const pending = runner._runOneCheck(
+      check,
+      new Map(),
+      new Map(),
+      jest.fn(),
+      1
+    );
     runner._runToken = 2;
     runner._releaseEvaluationSlot(held[0]);
     await pending;
@@ -4415,7 +4667,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
 
     runner._source = "USER_INITIATED";
     runner._runId = "run-coverage";
-    runner._resultBuffer = { A: PASS_RESULT("A") };
+    runner._resultBuffer = new Map([["A", PASS_RESULT("A")]]);
     completeRun.mockRejectedValueOnce(new Error("publication unavailable"));
     runner._drain(2);
     await flushPromises();
@@ -4431,7 +4683,7 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     runner._runToken = 4;
     runner._source = "USER_INITIATED";
     runner._runId = "stale-completion";
-    runner._resultBuffer = { A: PASS_RESULT("A") };
+    runner._resultBuffer = new Map([["A", PASS_RESULT("A")]]);
     completeRun.mockReturnValueOnce(completion.promise);
 
     runner._drain(4);
@@ -4522,6 +4774,8 @@ describe("healthCheckModel — complete response contracts", () => {
 
     expect(result.actualValue).toBe("rendered found");
     expect(result.expectedValue).toBe("rendered expected");
+    expect(result.checkDeveloperName).toBe("Check_A");
+    expect(result.checkQualifiedApiName).toBe("namespace__Check_A");
   });
 
   it("uses null values when evaluation-only values are absent", () => {
@@ -4557,6 +4811,60 @@ describe("healthCheckModel — complete response contracts", () => {
     ]);
 
     expect([...members].sort()).toEqual(["Check_A", "Check_B"]);
+  });
+
+  it("detects a qualified cycle with one unqualified prerequisite edge", () => {
+    const members = detectDependencyCycles([
+      {
+        developerName: "A",
+        qualifiedApiName: "rhc__A",
+        dependsOnCheckQualifiedApiName: "rhc__B",
+        dependsOnCheckDeveloperName: "B"
+      },
+      {
+        developerName: "B",
+        qualifiedApiName: "rhc__B",
+        dependsOnCheckQualifiedApiName: null,
+        dependsOnCheckDeveloperName: "A"
+      }
+    ]);
+
+    expect([...members].sort()).toEqual(["rhc__A", "rhc__B"]);
+  });
+
+  it("parses namespaces only from aligned qualified identities", () => {
+    expect(
+      checkNamespace({
+        developerName: "Check_A",
+        qualifiedApiName: "rhc__Check_A"
+      })
+    ).toBe("rhc");
+    expect(
+      checkNamespace({
+        developerName: "Check_A",
+        qualifiedApiName: "rhc__Different_Name"
+      })
+    ).toBeNull();
+  });
+
+  it("does not invent a namespace match from a misaligned identity", () => {
+    const checks = [
+      {
+        developerName: "Shared",
+        qualifiedApiName: "alpha__Shared"
+      },
+      {
+        developerName: "Shared",
+        qualifiedApiName: "beta__Shared"
+      }
+    ];
+    const dependent = {
+      developerName: "Dependent",
+      qualifiedApiName: "alpha__Different",
+      dependsOnCheckDeveloperName: "Shared"
+    };
+
+    expect(prerequisiteIdentity(dependent, checks)).toBe("Shared");
   });
 });
 
@@ -4609,6 +4917,20 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
     expect(presentation.retryable).toBe(true);
     expect(presentation.technicalDetail).toBeNull();
   });
+
+  it.each(["constructor", "toString", "valueOf", "hasOwnProperty"])(
+    "uses the safe fallback for prototype reason code %s",
+    (reasonCode) => {
+      const presentation = componentErrorPresentation(
+        reasonCode,
+        "Internal exception"
+      );
+
+      expect(presentation.title).toBe("Health Check Unavailable");
+      expect(presentation.message).toBe("We couldn't load this health check.");
+      expect(presentation.retryable).toBe(true);
+    }
+  );
 
   it("distinguishes inaccessible and deleted records", () => {
     expect(

@@ -75,6 +75,36 @@ private with sharing class RHCScopePipelineFailureTest {
     );
   }
 
+  @IsTest
+  static void incompleteFormulaPlanningPreservesMissingRecordAlignment() {
+    Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      77
+    );
+    Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
+
+    Test.startTest();
+    new RecordHealthCheckScopePipeline()
+      .evaluateCheck(
+        queryCountCheck(),
+        evaluationContext(),
+        new List<Id>{ recordId },
+        new Map<Id, SObject>(),
+        false,
+        true,
+        RecordHealthCheckResultMode.EVALUATION,
+        'missing-record-planning',
+        items
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'RECORD_NOT_VISIBLE',
+      items.values()[0].evaluation.reasonCode,
+      'A missing record must stay aligned when formula planning is incomplete.'
+    );
+  }
+
   private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
     context.objectApiName = 'Account';

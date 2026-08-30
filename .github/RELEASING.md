@@ -81,7 +81,7 @@ packages/record-health-check/force-app/main/default/
 │   └── Record_Health_Check__mdt/
 │       └── Record_Health_Check__mdt.object-meta.xml
 └── customMetadata/
-    ├── Record_Health_Check_Set.Example_Account_Profile_Readiness.md-meta.xml
+    ├── Record_Health_Check_Set.Example_Account_Check_Builder_Guide.md-meta.xml
     └── Record_Health_Check.Example_Account_Billing_Address.md-meta.xml
 ```
 
@@ -92,8 +92,8 @@ The type directory and object definition retain the `__mdt` suffix. A record fil
 ```
 
 For example, use
-`Record_Health_Check_Set.Example_Account_Profile_Readiness.md-meta.xml`, not
-`Record_Health_Check_Set__mdt.Example_Account_Profile_Readiness.md-meta.xml`. The second segment is
+`Record_Health_Check_Set.Example_Account_Check_Builder_Guide.md-meta.xml`, not
+`Record_Health_Check_Set__mdt.Example_Account_Check_Builder_Guide.md-meta.xml`. The second segment is
 the record's Developer Name, not its displayed Master Label. Package source also stays unprefixed;
 Salesforce applies the package's `rhc` namespace while building the namespaced artifact.
 
@@ -132,7 +132,7 @@ sf project retrieve start \
 Use a new, empty directory outside the tracked package source so retrieval cannot silently overwrite
 the files being audited. Confirm all of the following before continuing:
 
-1. The retrieve returns 25 records: four Check Sets and 21 Checks.
+1. The retrieve returns 54 records: four Check Sets and 50 Checks.
 2. Each manifest member has one physical record file with the same metadata full name.
 3. Record filenames omit `__mdt` and the `rhc__` namespace.
 4. Record XML field names remain unprefixed in package source.
@@ -150,7 +150,7 @@ exact release source first; the command refuses a dirty worktree, `main`, a deta
 missing explicit release-ready acknowledgement. The command runs the complete local release
 preflight before consuming package-version capacity. That preflight converts the package to
 Metadata API format and proves that every Custom Metadata member named in `package.xml` has a
-physical file, including exactly four Check Sets and 21 Checks.
+physical file, including exactly four Check Sets and 50 Checks.
 
 The command permits only one candidate attempt in a Dev Hub package-create limit window by default.
 If any package-create capacity has already been consumed, wait for the limit to reset. An additional
@@ -175,9 +175,19 @@ npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 
 Run the commands from a clean, committed release branch. `package:create` repeats the release
 preflight, checks Dev Hub capacity, requests code coverage, and records redacted creation evidence.
+The Salesforce package-version Branch field records the stable Git release branch; it does not
+include a commit suffix. Exact commit provenance lives in the ignored creation evidence, while 2GP
+upgrade ancestry remains linear through `"ancestorVersion": "HIGHEST"` in `sfdx-project.json`.
 `package:verify` treats installation into a clean subscriber org as the authoritative validation of
 the immutable server artifact. ZIP retrieval can be retained as optional diagnostic evidence, but
 Salesforce reporting a generated ZIP as unretrievable does not block install verification.
+
+Preserve the ignored
+`packages/record-health-check/.package-evidence/<04t>-create.json` file written by
+`package:create`. The promotion command requires that local file and verifies that it binds the
+candidate to the configured package and the current `HEAD`. Promote from the same working copy at
+the exact creation commit; promotion intentionally fails after advancing or merging the branch, or
+from another machine without the creation evidence.
 
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
 on the bash-only `VAR=value command` prefix.
@@ -211,7 +221,7 @@ This runs:
 - Clean no-namespace install of the candidate
 - Verification that all packaged Custom Metadata types and records are installed
 - Subscriber verification metadata deployment and `RHCSubscriberSmokeTest`
-- Previous-to-candidate upgrade rehearsal when `previous` is a promoted `04t`
+- Stable-to-candidate upgrade rehearsal when `stable` is a promoted `04t`
 
 ## Promote and publish
 
@@ -244,9 +254,9 @@ Current promoted subscriber package version ID: see `config/package-releases.jso
 
 ## Packaged Example Check Sets and Checks
 
-The 25 `Example_` Check Sets and Checks ship **inside** the package, from
+The 54 `Example_` Check Sets and Checks ship **inside** the package, from
 `packages/record-health-check/force-app/main/default/customMetadata`. A subscriber gets four Example
-Check Sets and 21 Checks on install, with no extra step. `check:package-boundary` enforces that they
+Check Sets and 50 Checks on install, with no extra step. `check:package-boundary` enforces that they
 stay there and stay byte-identical to their `integration-tests` copies.
 
 Do not move them to an unpackaged directory and do not add `unpackagedMetadata` to

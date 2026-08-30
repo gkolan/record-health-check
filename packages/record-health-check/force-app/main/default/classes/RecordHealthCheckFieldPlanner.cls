@@ -385,8 +385,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
         );
       }
     }
-    Schema.SObjectField terminal = getFieldCaseInsensitive(
-      RecordHealthCheckDescribeCache.fieldMap(currentType),
+    Schema.SObjectField terminal = RecordHealthCheckDescribeCache.resolveField(
+      currentType,
       parts[parts.size() - 1]
     );
     if (terminal == null) {
@@ -405,20 +405,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     FieldPathDescribe unresolved = new FieldPathDescribe();
     unresolved.unresolvedReasonCode = reasonCode;
     return unresolved;
-  }
-
-  /**
-   * Uses Salesforce's native case-insensitive describe map; copying it would require explicit key
-   * normalization and could make behavior depend on authored casing.
-   */
-  private Schema.SObjectField getFieldCaseInsensitive(
-    Map<String, Schema.SObjectField> fieldMap,
-    String name
-  ) {
-    // Schema.DescribeSObjectResult.fields.getMap() is natively
-    // case-insensitive. DescribeCache deliberately returns that native map;
-    // replacing it with a copied map would require explicit key normalization.
-    return fieldMap.get(name);
   }
 
   /**

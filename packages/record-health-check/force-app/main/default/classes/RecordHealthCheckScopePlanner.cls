@@ -62,9 +62,11 @@ public with sharing class RecordHealthCheckScopePlanner {
     context.objectApiName = checkSet.ObjectApiName__c;
     context.showDiagnostics = checkSet.ShowDiagnostics__c == true;
     context.fullCheckSetSelection = true;
-    context.checks = queryChecks(
-      'Record_Health_Check_Set__r.QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
-      qualifiedApiName
+    context.checks = RHCDefinitionDependencyIdentity.orderForEvaluation(
+      queryChecks(
+        'Record_Health_Check_Set__r.QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
+        qualifiedApiName
+      )
     );
     return context;
   }
@@ -274,21 +276,57 @@ public with sharing class RecordHealthCheckScopePlanner {
     RecordHealthCheckEventPublication publication
   ) {
     Integer requiredQueries = recordCount > 0 ? 1 : 0;
+    Integer preloadQueryRows = recordCount > 0 ? recordCount : 0;
+    Integer largestQueryRows = 0;
     Integer requiredDml = 0;
     for (Record_Health_Check__mdt check : checks) {
+      Integer checkQueryRows = 0;
       if (check.ApplicabilityMode__c == 'WHEN_COUNT_QUERY_MATCHES') {
         requiredQueries++;
+        checkQueryRows += plannedQueryRows(
+          check.ApplicabilityCountQuery__c,
+          RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS,
+          recordCount
+        );
       }
       if (check.EvaluationType__c == 'QUERY') {
         requiredQueries++;
-        if (check.ExpectedValueSource__c == 'COMPARISON_QUERY') {
+        Integer maxRows = configuredMaxRows(check);
+        Boolean isListOperator = RecordHealthCheckValidator.isListOperator(
+          check.ComparisonOperator__c
+        );
+        checkQueryRows += plannedQueryRows(
+          isListOperator ? check.ComparisonQuery__c : check.SourceQuery__c,
+          maxRows,
+          recordCount
+        );
+        if (
+          !isListOperator && check.ExpectedValueSource__c == 'COMPARISON_QUERY'
+        ) {
           requiredQueries++;
+          checkQueryRows += plannedQueryRows(
+            check.ComparisonQuery__c,
+            maxRows,
+            recordCount
+          );
         }
       } else if (check.EvaluationType__c == 'COMPARE_TWO_QUERIES') {
         requiredQueries += 2;
+        Integer maxRows = configuredMaxRows(check);
+        checkQueryRows += plannedQueryRows(
+          check.SourceQuery__c,
+          maxRows,
+          recordCount
+        );
+        checkQueryRows += plannedQueryRows(
+          check.ComparisonQuery__c,
+          maxRows,
+          recordCount
+        );
       } else if (check.EvaluationType__c == 'APEX') {
         requiredDml += 2;
       }
+      largestQueryRows = Math.max(largestQueryRows, checkQueryRows);
     }
     if (
       publication != null &&
@@ -298,14 +336,25 @@ public with sharing class RecordHealthCheckScopePlanner {
       requiredDml += ceilingDivide(recordCount, 100);
     }
     Integer remainingQueries = Limits.getLimitQueries() - Limits.getQueries();
+    Integer requiredQueryRows = preloadQueryRows + largestQueryRows;
+    Integer remainingQueryRows =
+      Limits.getLimitQueryRows() - Limits.getQueryRows();
     Integer remainingDml =
       Limits.getLimitDmlStatements() - Limits.getDmlStatements();
-    if (requiredQueries > remainingQueries || requiredDml > remainingDml) {
+    if (
+      requiredQueries > remainingQueries ||
+      requiredQueryRows > remainingQueryRows ||
+      requiredDml > remainingDml
+    ) {
       throw new RecordHealthCheckScopePipeline.ScopePipelineException(
         'TRANSACTION_BUDGET_EXCEEDED: queriesRequired=' +
           requiredQueries +
           ', queriesRemaining=' +
           remainingQueries +
+          ', queryRowsRequired=' +
+          requiredQueryRows +
+          ', queryRowsRemaining=' +
+          remainingQueryRows +
           ', dmlRequired=' +
           requiredDml +
           ', dmlRemaining=' +
@@ -324,6 +373,49 @@ public with sharing class RecordHealthCheckScopePlanner {
     }
   }
 
+  private Integer configuredMaxRows(Record_Health_Check__mdt check) {
+    return check.MaxQueryRows__c == null ||
+      check.MaxQueryRows__c <= 0
+      ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
+      : (Integer) check.MaxQueryRows__c;
+  }
+
+  /**
+   * Reserves the largest next result set a scope-wide rewrite can materialize.
+   * Runtime checks repeat this reservation before every query, using the rows
+   * actually consumed by earlier Checks instead of summing every configured cap.
+   * Aggregate queries keep their full reservation because Salesforce counts
+   * contributing rows against the transaction query-row limit.
+   */
+  @TestVisible
+  private Integer plannedQueryRows(
+    String soql,
+    Integer maxRows,
+    Integer recordCount
+  ) {
+    if (String.isBlank(soql) || recordCount <= 0) {
+      return 0;
+    }
+    Integer rowCap = maxRows == null ||
+      maxRows <= 0
+      ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
+      : maxRows;
+    String strategy = RecordHealthCheckBulkQuerySupport.classify(soql);
+    if (strategy == RecordHealthCheckBulkQuerySupport.SCOPE_INVARIANT) {
+      if (RecordHealthCheckSoqlTemplate.isSingleCountQuery(soql)) {
+        return rowCap + 1;
+      }
+      return RecordHealthCheckQueryEvaluatorSupport.queryRowReservation(
+        soql,
+        rowCap
+      );
+    }
+    if (strategy == RecordHealthCheckBulkQuerySupport.SELF) {
+      return Math.min(recordCount, rowCap + 1);
+    }
+    return rowCap + 1;
+  }
+
   private Integer ceilingDivide(Integer value, Integer divisor) {
     return value == 0 ? 0 : ((value - 1) / divisor) + 1;
   }
@@ -336,6 +428,8 @@ public with sharing class RecordHealthCheckScopePlanner {
     if (String.isBlank(expression) || recordCount == 0) {
       return 0;
     }
+    // AUTO probes at most eight types once, then uses either the resolved type
+    // or the evaluator's negative cache for later records in the transaction.
     return String.isBlank(declaredType) || declaredType == 'AUTO'
       ? recordCount + 7
       : recordCount;

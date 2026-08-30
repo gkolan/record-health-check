@@ -39,8 +39,8 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   `npm run generate:agentforce-testing-center -- --record-id <real-account-id> --second-record-id <real-account-id> --output /tmp/record-health-testing-center.yaml`; the generator rejects synthetic IDs and existing output files.
 - `agentforce/record-health-agent-spec.md`: reviewable Agent Spec source draft; it is not generated
   or deployed without the explicit approval required by the Agentforce generation workflow
-- Sample Check Sets and Checks, including a retained copy of the four `Example_` Check Sets
-  that also ship in `force-app`
+- Sample Check Sets and Checks, including matching copies of the four shipped Example Check Set
+  records and 50 shipped Example Check records. All four sets and 49 Checks are active.
 - `Example_Account_Over_25_Checks`: an integration-only Account card with 30 active Checks for
   verifying the LWC's 25-Check display ceiling, omitted-count notice, and diagnostics output
 - `Review_Summary_Above_Checks`: a permanent integration-only Account card with two uncategorized
@@ -48,17 +48,20 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   rows. Because contributor and release workflows deploy this directory, the fixture is included
   in every integration-test deployment.
 - `RHC_Negative_Runtime`: an integration-only Account card for row-cap testing plus inactive,
-  opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](negative-scenarios.md)
+  opt-in malformed-schema and unsafe-query Checks; see [negative-scenarios.md](./negative-scenarios.md)
 - `RHC_Diagnostic_Bad_Formula`, `RHC_Diagnostic_Bad_Query`, and `RHC_Diagnostic_Bad_Apex`:
   persistent diagnosis-first negative catalogs with 15 direct fixtures plus 36 paired Agentforce
   and MCP Check/Check Set evaluations; see
-  [bad-configuration-diagnostic-fixtures.md](bad-configuration-diagnostic-fixtures.md)
+  [bad-configuration-diagnostic-fixtures.md](./bad-configuration-diagnostic-fixtures.md)
 - `RHC_Negative_Conformance`: an Apex test suite that gathers the deterministic schema, query,
   currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
   `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
 - `npm run test:war-room -- --alias <alias>`: cross-platform deploy-optional runner for the negative
   suite, row-cap data lifecycle, combined Person Account/currency gate, and optional full Apex run
+- `npm run contract:org --prefix packages/record-health-check-mcp -- --target-org <alias>`: drives
+  the real MCP Salesforce client across HTTPS into the deployed Apex REST resource for both public
+  operations, validates the strict response schemas, and removes its temporary Account fixture
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
@@ -162,11 +165,11 @@ exist so integration runs can deploy the same configurations alongside broader s
 ## Example test data
 
 Subscriber demo orgs use `npm run setup` and seed data from `scripts/subscriber/data/`. See the
-[scratch-org setup guide](../../../docs/installation/create-rhc-scratch-org.md) for the complete
+[scratch-org setup guide](../../../docs/install/install-demo-in-a-scratch-org.md) for the complete
 subscriber demo scenario.
 
 ## Related
 
 - [Source development](../../../docs/contributing/source-development.md)
-- [Package testing and upgrades](../../../docs/reference/framework/package-testing-and-upgrades.md)
-- [Create the demo scratch org](../../../docs/installation/create-rhc-scratch-org.md)
+- [Package testing and upgrades](../../../docs/quality-gates/package-testing-and-upgrades.md)
+- [Create the demo scratch org](../../../docs/install/install-demo-in-a-scratch-org.md)

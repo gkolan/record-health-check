@@ -52,27 +52,27 @@ includes(
   "README must not link to GitHubSFDeploy"
 );
 includes(
-  "docs/installation/install-and-verify.md",
+  "docs/install/install-in-a-sandbox.md",
   /sf project deploy start/i,
   "installation guide must not document source deploy"
 );
 includes(
-  "docs/installation/install-and-verify.md",
+  "docs/install/install-in-a-sandbox.md",
   /Option B/i,
   "installation guide must not expose Option B source deploy"
 );
 includes(
-  "docs/installation/upgrading.md",
+  "docs/install/upgrade.md",
   /Option B/i,
   "upgrade guide must not expose Option B source deploy"
 );
 includes(
-  "docs/installation/upgrading.md",
+  "docs/install/upgrade.md",
   /sf project deploy start/i,
   "upgrade guide must not document source deploy"
 );
 includes(
-  "docs/installation/README.md",
+  "docs/start-here/README.md",
   /source-deploy|Option B/i,
   "installation index must not document source deploy"
 );
@@ -145,7 +145,7 @@ const trackedProductionUrl = "https://recordhealthcheck.com/install/production";
 const trackedSandboxUrl = "https://recordhealthcheck.com/install/sandbox";
 for (const relativePath of [
   "README.md",
-  "docs/installation/install-and-verify.md"
+  "docs/install/install-in-a-sandbox.md"
 ]) {
   const contents = read(path.join(paths.repoRoot, relativePath));
   const linked = new Set(contents.match(/04t[A-Za-z0-9]{12,15}/g) ?? []);

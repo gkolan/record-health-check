@@ -43,6 +43,10 @@
       "maximum": 4,
       "category": "currency cache state and corporate-currency query test-only access"
     },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckCurrencySupport.cls": {
+      "maximum": 2,
+      "category": "cross-shape currency evidence test-only access"
+    },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFieldPlanner.cls": {
       "maximum": 2,
       "category": "multi-currency and calculated-formula platform test-only access"
@@ -67,6 +71,10 @@
       "maximum": 1,
       "category": "submission-boundary test-only access"
     },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckBulkQuerySupport.cls": {
+      "maximum": 1,
+      "category": "query-row capacity failure-boundary test-only access"
+    },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScheduled.cls": {
       "maximum": 1,
       "category": "submission-boundary test-only access"
@@ -87,13 +95,25 @@
       "maximum": 3,
       "category": "aligned response and response-budget test-only access"
     },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFlowGroupExecutor.cls": {
+      "maximum": 1,
+      "category": "Flow failure-classification test-only access"
+    },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePipeline.cls": {
-      "maximum": 4,
+      "maximum": 5,
       "category": "planning, record-load, and evaluator failure test-only access"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePlanner.cls": {
+      "maximum": 1,
+      "category": "query-row reservation calculation test-only access"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckSoqlEvaluator.cls": {
       "maximum": 3,
       "category": "scope-query test-only access"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckValidateMetadataAction.cls": {
+      "maximum": 1,
+      "category": "metadata-validation Flow summary test-only access"
     },
     "packages/record-health-check/integration-tests/main/default/classes/AccountOpenOpportunityHealthCheck.cls": {
       "maximum": 3,

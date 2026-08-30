@@ -1,4 +1,4 @@
-# 04 · Stalled Approval Identifies Inactive Approvers
+# Stalled Approval Identifies Inactive Approvers
 
 > [!NOTE]
 > On this page, build an Apex Check that identifies inactive users on pending approval steps, names
@@ -6,7 +6,7 @@
 >
 > **Setup reference**
 >
-> Use the [Apex reference](../../reference/evaluation/apex-check-contract.md) for the complete setup fields and behavior.
+> Use the [Apex reference](../../developer-guides/write-an-apex-check.md) for the complete setup fields and behavior.
 
 > [!IMPORTANT]
 > The supporting Apex class lives under `integration-tests/` and does not install with the package.
@@ -63,7 +63,7 @@ A Salesforce administrator opens a record whose approval has stopped moving.
 ## What Record Health Check passes to Apex
 
 Shared scope inputs are documented once in the
-[Apex examples README](README.md#what-record-health-check-passes-to-apex). This Check receives the
+[Apex examples README](./README.md#what-record-health-check-passes-to-apex). This Check receives the
 evaluated record Ids and package-specific object/field names in JSON.
 
 ```apex
@@ -89,7 +89,7 @@ messages and tests must refer to Opportunities, not Accounts.
 
 Review access to the optional approval objects and User Name for the intended user. Add the card to
 the Opportunity Lightning page in App Builder, activate the intended assignment, and test as a
-user with **Record Health Check User**. If your team does not use Salesforce CLI, the developer can
+user with **Record Health Check Card User**. If your team does not use Salesforce CLI, the developer can
 move the reviewed class and tests through an approved change set or the organization's release
 tool; do not author untested production Apex from this page.
 
@@ -113,7 +113,7 @@ the Opportunity Check Set shown later. Replace every illustrative value that dif
 
 Record Health Check parses the JSON and supplies the named settings as `scope.parameters`.
 Blank settings use the class defaults, and an empty status list uses `Requested`. See
-[Parameter parsing patterns](../../reference/evaluation/apex-check-contract.md#scope)
+[Parameter parsing patterns](../../developer-guides/write-an-apex-check.md#scope)
 for validation and type-conversion guidance.
 
 ## Implementation summary
@@ -392,7 +392,7 @@ no assigned user, an active assigned user, an inactive assigned user, the config
 200 target record IDs, and constant SOQL usage as the number of target records increases. The
 repository's
 [`ApprovalInactiveApproverCheckTest`](../../../packages/record-health-check/integration-tests/main/default/classes/ApprovalInactiveApproverCheckTest.cls)
-is a package-development reference; a subscriber test must use the public `rhc.*` types.
+is a package implementation reference; a subscriber test must use the public `rhc.*` types.
 
 ## Context and result contract
 
@@ -409,8 +409,10 @@ The context contains:
 | `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
 | `objectApiName` | `String` | API name shared by every ID in the scope |
 | `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `checkDeveloperName` | `String` | Qualified Check identity (property name is historical; value is the Check QualifiedApiName) |
-| `checkSetDeveloperName` | `String` | Qualified Check Set identity (property name is historical; value is the Check Set QualifiedApiName) |
+| `checkQualifiedApiName` | `String` | Qualified Check identity |
+| `checkSetQualifiedApiName` | `String` | Qualified Check Set identity |
+| `checkDeveloperName` | `String` | Unqualified Check `DeveloperName` |
+| `checkSetDeveloperName` | `String` | Unqualified parent Check Set `DeveloperName` |
 | `runId` | `String` | Correlation identifier for the evaluation run |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a
@@ -428,7 +430,7 @@ For applicability, configure **Applies To** on the Check so Record Health Check 
 runs. Record Health Check supplies identity, label, severity, messages, display values, and diagnostics.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
-[Returning an outcome](../../reference/evaluation/apex-check-contract.md#outcome).
+[Returning an outcome](../../developer-guides/write-an-apex-check.md#outcome).
 
 
 ## Step 3: Create the Check Set
@@ -466,30 +468,30 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../metadata/fields-check.md#developer-name-developername) | `Approval_No_Inactive_Approvers` |
-| **Label** | [`MasterLabel`](../../metadata/fields-check.md#label-masterlabel) | No Inactive Approvers In Chain |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../metadata/fields-check.md#check-set-record_health_check_set__c) | `Opportunity_Approval_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../metadata/fields-check.md#check-title-checktitle__c) | No Inactive Approvers In Chain |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../metadata/fields-check.md#apex-class-apexclass__c) | `ApprovalInactiveApproverCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../metadata/fields-check.md#apex-parameters-json-apexparametersjson__c) | `{"approvalObject":"sbaa__Approval__c","targetField":"sbaa__TargetRecordId__c","userField":"sbaa__User__c","statusField":"sbaa__Status__c","pendingStatuses":["Requested"]}` (**Confirm in your org**) |
+| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Approval_No_Inactive_Approvers` |
+| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | No Inactive Approvers In Chain |
+| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Opportunity_Approval_Readiness` |
+| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | No Inactive Approvers In Chain |
+| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with Apex |
+| **Apex Class** | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c) | `ApprovalInactiveApproverCheck` |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c) | `{"approvalObject":"sbaa__Approval__c","targetField":"sbaa__TargetRecordId__c","userField":"sbaa__User__c","statusField":"sbaa__Status__c","pendingStatuses":["Requested"]}` (**Confirm in your org**) |
 
 ## Optional configuration
 
 | Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
 | --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../metadata/fields-check.md#check-description-checkdescription__c) | Fails when a pending Advanced Approvals step is assigned to an inactive user. Confirm all object and class API names before activation. |
-| **Failure Severity** | [`FailureSeverity__c`](../../metadata/fields-check.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../metadata/fields-check.md#message-when-failed-failuremessage__c) | One or more pending approval steps are assigned to an inactive user. Reassign the approver before submitting for approval. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../metadata/fields-check.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Could not check approvers: confirm Advanced Approvals is installed and the object and field API names in Apex Parameters (JSON) are correct for this org. |
-| **Applies To** | [`ApplicabilityMode__c`](../../metadata/fields-check.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../metadata/fields-check.md#prerequisite-check-prerequisitecheck__c) | Leave blank unless another Check first proves an approval request exists. |
-| **Fix Message** | [`FixMessage__c`](../../metadata/fields-check.md#fix-message-fixmessage__c) | Reassign each inactive approver named in the failure message to an active user. |
-| **Action Label** | [`ActionLabel__c`](../../metadata/fields-check.md#action-label-actionlabel__c) | Leave blank until the org's approval-management destination is verified. |
-| **Action URL** | [`ActionUrl__c`](../../metadata/fields-check.md#action-url-actionurl__c) | Leave blank; managed-package pages and URLs can vary by installed version. |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../metadata/fields-check.md#evaluation-order-evaluationorder__c) | `40` |
-| **Active** | [`IsActive__c`](../../metadata/fields-check.md#active-isactive__c) | Unchecked: activate only after confirming object and class API names and tests. |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../metadata/fields-check.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Fails when a pending Advanced Approvals step is assigned to an inactive user. Confirm all object and class API names before activation. |
+| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Critical |
+| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | One or more pending approval steps are assigned to an inactive user. Reassign the approver before submitting for approval. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Could not check approvers: confirm Advanced Approvals is installed and the object and field API names in Apex Parameters (JSON) are correct for this org. |
+| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records |
+| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank unless another Check first proves an approval request exists. |
+| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Reassign each inactive approver named in the failure message to an active user. |
+| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | Leave blank until the org's approval-management destination is verified. |
+| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | Leave blank; managed-package pages and URLs can vary by installed version. |
+| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `40` |
+| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Unchecked: activate only after confirming object and class API names and tests. |
+| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
 
 > [!IMPORTANT]
 > Leave the Check **inactive** while you configure and test this example. Before activation, verify
@@ -578,5 +580,5 @@ before activation.
 
 ## Related
 
-- [← Prev: Strategic readiness](strategic-readiness.md)
-- [Browse Apex examples](README.md)
+- [← Prev: Strategic readiness](./strategic-readiness.md)
+- [Browse Apex examples](./README.md)

@@ -73,13 +73,6 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
         'You do not have permission to run Record Health Checks.'
       );
     }
-    if (requests.size() > RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE) {
-      return errorResponses(
-        requests.size(),
-        'LIMIT',
-        countError(requests.size())
-      );
-    }
     RecordHealthCheckFlowGroupExecutor.Plan plan = prepare(requests);
     if (RecordHealthCheckFlowGroupExecutor.exceedsGroupLimit(plan)) {
       return groupLimitResponses(requests.size(), plan.failuresByIndex);
@@ -97,7 +90,7 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
     RecordHealthCheckFlowGroupExecutor.Plan plan = new RecordHealthCheckFlowGroupExecutor.Plan();
     for (Integer index = 0; index < requests.size(); index++) {
       Request input = requests[index];
-      String normalizedIdentity = RecordHealthCheckFlowGroupExecutor.add(
+      RecordHealthCheckFlowGroupExecutor.add(
         plan,
         index,
         input?.checkSetQualifiedApiName,
@@ -105,9 +98,6 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
         input?.recordId,
         input?.eventPublication
       );
-      if (normalizedIdentity != null) {
-        input.checkSetQualifiedApiName = normalizedIdentity;
-      }
     }
     return plan;
   }
@@ -118,6 +108,7 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
   ) {
     List<Response> outputs = new List<Response>();
     Integer responseChars = RecordHealthCheckFlowSupport.initialPayloadChars();
+    Boolean payloadExhausted = false;
     for (Integer index = 0; index < requests.size(); index++) {
       if (plan.failuresByIndex.containsKey(index)) {
         RecordHealthCheckFlowGroupExecutor.Failure failure = plan.failuresByIndex.get(
@@ -127,10 +118,7 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
         continue;
       }
       Request input = requests[index];
-      String key = RecordHealthCheckFlowGroupExecutor.key(
-        input.checkSetQualifiedApiName,
-        input.eventPublication
-      );
+      String key = plan.groupKeyByIndex.get(index);
       RecordHealthCheckFlowGroupExecutor.Result grouped = plan.resultByGroup.get(
         key
       );
@@ -139,6 +127,15 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
           errorResponse(
             String.isBlank(grouped.errorType) ? 'EXECUTION' : grouped.errorType,
             grouped.errorMessage
+          )
+        );
+        continue;
+      }
+      if (payloadExhausted) {
+        outputs.add(
+          errorResponse(
+            'LIMIT',
+            RecordHealthCheckFlowSupport.payloadBudgetMessage()
           )
         );
         continue;
@@ -160,6 +157,9 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
         output.skippedCount = individual.summary.skipped;
         output.unableCount = individual.summary.unable;
         output.systemErrorCount = individual.summary.systemError;
+        RecordHealthCheckFlowSupport.requirePayloadSerializationCapacity(
+          responseChars
+        );
         String resultJson = JSON.serialize(individual);
         responseChars = RecordHealthCheckFlowSupport.consumePayloadBudget(
           responseChars,
@@ -168,10 +168,17 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
         output.resultJson = resultJson;
         outputs.add(output);
       } catch (RecordHealthCheckFlowSupport.PayloadBudgetException ex) {
+        payloadExhausted = true;
         outputs.add(errorResponse('LIMIT', ex.getMessage()));
+      } catch (RecordHealthCheckFlowSupport.FlowSupportException ex) {
+        outputs.add(errorResponse('EXECUTION', ex.getMessage()));
       } catch (Exception ex) {
-        // prettier-ignore
-        outputs.add(errorResponse('EXECUTION', 'No aligned Check Set result was returned.'));
+        outputs.add(
+          errorResponse(
+            'EXECUTION',
+            'The Check Set response could not be prepared.'
+          )
+        );
       }
     }
     return outputs;
@@ -201,13 +208,6 @@ public with sharing class RecordHealthCheckRunSetFlowAction {
       result.summary.add(item.evaluation.status);
     }
     return result;
-  }
-
-  private static String countError(Integer count) {
-    return 'MAX_RECORDS_PER_SCOPE_EXCEEDED: suppliedCount=' +
-      count +
-      ', ceiling=' +
-      RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
   }
 
   private static List<Response> groupLimitResponses(

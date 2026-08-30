@@ -19,7 +19,11 @@
         "success": { "const": true },
         "operation": { "const": "RUN_CHECK" },
         "status": { "$ref": "#/$defs/status" },
-        "reasonCode": { "type": "string", "minLength": 1, "maxLength": 80 }
+        "reasonCode": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "diagnosticId": { "$ref": "#/$defs/diagnosticId" },
+        "diagnosticCategory": { "$ref": "#/$defs/diagnosticCategory" },
+        "diagnosticSummary": { "$ref": "#/$defs/diagnosticSummary" },
+        "recommendedAction": { "$ref": "#/$defs/recommendedAction" }
       }
     },
     {
@@ -47,7 +51,11 @@
         "failed": { "$ref": "#/$defs/count" },
         "skipped": { "$ref": "#/$defs/count" },
         "unable": { "$ref": "#/$defs/count" },
-        "systemError": { "$ref": "#/$defs/count" }
+        "systemError": { "$ref": "#/$defs/count" },
+        "diagnosticId": { "$ref": "#/$defs/diagnosticId" },
+        "diagnosticCategory": { "$ref": "#/$defs/diagnosticCategory" },
+        "diagnosticSummary": { "$ref": "#/$defs/diagnosticSummary" },
+        "recommendedAction": { "$ref": "#/$defs/recommendedAction" }
       }
     },
     {
@@ -81,6 +89,26 @@
     "status": {
       "enum": ["PASS", "FAIL", "SKIPPED", "UNABLE_TO_EVALUATE", "ERROR"]
     },
-    "count": { "type": "integer", "minimum": 0, "maximum": 25 }
+    "count": { "type": "integer", "minimum": 0, "maximum": 25 },
+    "diagnosticId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "diagnosticCategory": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "diagnosticSummary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "recommendedAction": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    }
   }
 }

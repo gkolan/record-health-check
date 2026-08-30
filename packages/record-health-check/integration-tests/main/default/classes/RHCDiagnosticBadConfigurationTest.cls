@@ -29,7 +29,7 @@ private class RHCDiagnosticBadConfigurationTest {
   }
 
   @IsTest
-  static void nullRelationshipFormulaIsDiagnosed() {
+  static void missingRelationshipFieldIsDiagnosed() {
     assertDiagnostic(
       'RHC_Diag_Formula_Null_Rel',
       'UNABLE_TO_EVALUATE',

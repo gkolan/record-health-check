@@ -37,16 +37,14 @@ private class RecordHealthCheckConfigServiceTest {
   static void metadataLookupAndLimitLoggingCoverConfiguredPaths() {
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
     String checkName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
 
     Test.startTest();
-    String parentName = service.findCheckSetDeveloperName(
-      'Example_Profile_Phone_Available'
-    );
+    String parentName = service.findCheckSetQualifiedApiName(checkName);
     Record_Health_Check__mdt activeCheck = service.loadCheck(
-      'Example_Profile_Phone_Available',
-      'Example_Account_Profile_Readiness'
+      'Example_Website_URL_Valid',
+      'Example_Account_Check_Builder_Guide'
     );
     Assert.isNull(
       activeCheck.ExpectedCurrencyIsoCode__c,
@@ -211,7 +209,7 @@ private class RecordHealthCheckConfigServiceTest {
     try {
       service.getDefinitionResponse(
         RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-          'Example_Account_Profile_Readiness'
+          'Example_Account_Check_Builder_Guide'
         ),
         UserInfo.getUserId()
       );

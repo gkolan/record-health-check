@@ -191,8 +191,10 @@ private class RecordHealthCheckConfigValidationTest {
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
 
     Test.startTest();
-    String blankParent = service.findCheckSetDeveloperName(' ');
-    String missingParent = service.findCheckSetDeveloperName('No_Such_Check');
+    String blankParent = service.findCheckSetQualifiedApiName(' ');
+    String missingParent = service.findCheckSetQualifiedApiName(
+      'No_Such_Check'
+    );
     RecordHealthCheckSetAvailability blankAvailability = service.getCheckSetAvailabilityForObject(
       ' '
     );

@@ -56,8 +56,8 @@ private class RHCDualQueryBehaviorTest {
     );
 
     Record_Health_Check__mdt numericOrder = validDualCheck('D_Numeric_Order');
-    numericOrder.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
-    numericOrder.SourceQueryField__c = 'AnnualRevenue';
+    numericOrder.SourceQuery__c = 'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}';
+    numericOrder.SourceQueryField__c = 'NumberOfEmployees';
     numericOrder.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
     numericOrder.ComparisonOperator__c = 'GREATER_THAN';
     assertStatus(
@@ -247,10 +247,10 @@ private class RHCDualQueryBehaviorTest {
 
     // OneResult FAIL with a blank MessageWhenFailed falls back to the default text.
     Record_Health_Check__mdt blankMsgFail = validDualCheck('D_Blank_Msg_Fail');
-    blankMsgFail.SourceQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
-    blankMsgFail.SourceQueryField__c = 'AnnualRevenue';
-    blankMsgFail.ComparisonQuery__c = 'SELECT AnnualRevenue FROM Account WHERE Id = {!record.Id}';
-    blankMsgFail.ComparisonQueryField__c = 'AnnualRevenue';
+    blankMsgFail.SourceQuery__c = 'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}';
+    blankMsgFail.SourceQueryField__c = 'NumberOfEmployees';
+    blankMsgFail.ComparisonQuery__c = 'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}';
+    blankMsgFail.ComparisonQueryField__c = 'NumberOfEmployees';
     blankMsgFail.ComparisonOperator__c = 'GREATER_THAN';
     blankMsgFail.FailureMessage__c = null;
     RecordHealthCheckInternalResult blankMsgResult = evaluator.evaluate(

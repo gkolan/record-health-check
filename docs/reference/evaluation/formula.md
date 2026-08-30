@@ -1,4 +1,4 @@
-# Verify a record with a Formula
+# Formula Checks
 
 > [!NOTE]
 > On this page, configure a Formula Check for a question Salesforce can answer from the current
@@ -8,7 +8,7 @@
 >
 > - This page explains every Formula setting, result, access rule, transaction limit, and failure
 >   path.
-> - For every field's size, default, help text, and example, use the [Check field reference](../../metadata/fields-check.md).
+> - For every field's size, default, help text, and example, use the [Check field reference](../custom-metadata/check-fields.md).
 
 For a common owner check, use `Owner.IsActive` on Account. On Lead, where Owner is polymorphic, use
 `Owner:User.IsActive` when the rule applies to user-owned Leads and handle queue ownership through
@@ -18,17 +18,17 @@ applicability or a Query Check.
 
 | Setup field | API name | Requirement |
 | --- | --- | --- |
-| **Evaluation Type** | [`EvaluationType__c`](../../metadata/fields-check.md#evaluation-type-evaluationtype__c) | **Verify with a formula**: `FORMULA` |
-| **Pass Condition** | [`PassConditionFormula__c`](../../metadata/fields-check.md#pass-condition-passconditionformula__c) | Required Boolean formula; `true` returns `PASS`, `false` returns `FAIL` |
-| **Display: Found Formula** | [`DisplayFoundFormula__c`](../../metadata/fields-check.md#display-found-formula-displayfoundformula__c) | Optional display-only Found value |
-| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../../metadata/fields-check.md#display-expected-formula-displayexpectedformula__c) | Optional display-only Expected value |
-| **Formula Result Type** | [`FormulaResultType__c`](../../metadata/fields-check.md#formula-result-type-formularesulttype__c) | Optional type hint; defaults to **Auto**: `AUTO` |
+| **Evaluation Type** | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | **Verify with a formula**: `FORMULA` |
+| **Pass Condition** | [`PassConditionFormula__c`](../custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | Required Boolean formula; `true` returns `PASS`, `false` returns `FAIL` |
+| **Display: Found Formula** | [`DisplayFoundFormula__c`](../custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c) | Optional display-only Found value |
+| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | Optional display-only Expected value |
+| **Formula Result Type** | [`FormulaResultType__c`](../custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Optional type hint; defaults to **Auto**: `AUTO` |
 
 Query and custom Apex fields are not used by a Formula Check. Applicability runs before the Pass
 Condition and can return `SKIPPED` without running that formula.
 
 For dependency-depth, numeric-null, timezone, currency, global-variable, and polymorphic boundaries,
-see [Platform limitations and safe patterns](../framework/platform-limitations.md#formula-planning-and-evaluation).
+see [Platform limitations and safe patterns](../platform/limitations.md#formula-planning-and-evaluation).
 
 For example:
 
@@ -92,7 +92,7 @@ non-User owners:
 | Pattern | Example | Queue/Group owner | Missing/inaccessible User |
 | --- | --- | --- | --- |
 | Formula `Owner:User.IsActive` | Custom Formula Check | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason |
-| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Example_Account_Owner_Active`, `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
+| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
 
 Both patterns are fail-closed in the sense that neither produces a false `PASS` for a non-User or
 inactive owner. They differ in **how** they fail: the Formula path reports "I could not determine
@@ -125,7 +125,7 @@ When an optional relationship is used in message text, provide a fallback, for e
 | `PASS` | Pass Condition resolves to `true` | No action required |
 | `FAIL` | Pass Condition resolves to `false` | Review Found, Expected, and the configured failure guidance |
 | `SKIPPED` | Applicability or a prerequisite prevents evaluation | Review Applies To and Prerequisite Check |
-| `UNABLE_TO_EVALUATE` | Formula configuration, access, missing relationship data, or a null/invalid result prevents a conclusion | Review the stable [Reason Code](../contracts/reason-codes.md) and authorized diagnostics |
+| `UNABLE_TO_EVALUATE` | Formula configuration, access, missing relationship data, or a null/invalid result prevents a conclusion | Review the stable [Reason Code](../results/reason-codes.md) and authorized diagnostics |
 | `ERROR` | An unexpected Apex or Salesforce problem occurs | Review authorized diagnostics and Apex debug logs |
 
 A null or non-Boolean Pass Condition result does not become `FAIL`; Record Health Check returns
@@ -144,13 +144,13 @@ A null or non-Boolean Pass Condition result does not become `FAIL`; Record Healt
   formulas in one Check Set.
 - A formula can require extra attempts when **Formula Result Type** is **Auto** and the first result
   type tried is not correct.
-- Saved-field and completed-text limits are documented in [Field limits](../contracts/field-limits.md).
+- Saved-field and completed-text limits are documented in [Field limits](../configuration/field-limits.md).
 
 ## Additional Check configuration
 
 The same Check can configure titles, category, severity, messages, applicability, prerequisites,
 action links, display behavior, and Platform Event publication. Those fields apply consistently
-across Evaluation Types; use the [Check field reference](../../metadata/fields-check.md) rather than
+across Evaluation Types; use the [Check field reference](../custom-metadata/check-fields.md) rather than
 copying their definitions into each check-type reference.
 
 ## Test coverage
@@ -175,6 +175,6 @@ deprecated.
 ## Related
 
 - [Seller research readiness](../../examples/formula/account-research-ready.md)
-- [Check fields](../../metadata/fields-check.md)
-- [Reason Codes](../contracts/reason-codes.md)
-- [Configure Check Sets and Checks](../../guides/configure-check-sets-and-checks.md)
+- [Check fields](../custom-metadata/check-fields.md)
+- [Reason Codes](../results/reason-codes.md)
+- [Configure Check Sets and Checks](../../build-checks/configure-check-sets-and-checks.md)

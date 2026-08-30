@@ -6,7 +6,7 @@ public with sharing class RecordHealthCheckApexPluginResolver {
   ) {
     Type evaluatorType = configuredType(check.ApexClass__c);
     Object instance = RecordHealthCheckConfigValidator.takeValidatedPlugin(
-      check.ApexClass__c
+      check
     );
     if (instance == null) {
       instance = instantiatePlugin(evaluatorType);

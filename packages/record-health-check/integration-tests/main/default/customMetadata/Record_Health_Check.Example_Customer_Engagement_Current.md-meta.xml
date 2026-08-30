@@ -18,7 +18,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Confirms that meaningful customer activity has been recorded within the last 90 days.</value>
+    >Confirms that meaningful customer activity has been recorded within the last 60 days.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -30,7 +30,7 @@
     </values>
     <values>
         <field>ApexParametersJson__c</field>
-        <value xsi:type="xsd:string">{"daysBack": 90}</value>
+        <value xsi:type="xsd:string">{"daysBack": 60}</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -40,7 +40,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >No meaningful activity has been logged for {!record.Name fallback="this account"} in the last 90 days.</value>
+    >No meaningful activity has been logged for {!record.Name fallback="this account"} in the last 60 days.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -48,12 +48,10 @@
       xsi:type="xsd:string"
     >{!rhcCheck.checkTitle} could not run for {!record.Name fallback="this account"}. Verify activity access and retry.</value>
     </values>
-    <values><field>DisplayFoundText__c</field><value
-      xsi:type="xsd:string"
-    >{!rhcResult.foundValue} in the last 90 days</value></values>
+    <values><field>DisplayFoundText__c</field><value xsi:nil="true" /></values>
     <values><field>DisplayExpectedText__c</field><value
-      xsi:type="xsd:string"
-    >{!rhcResult.expectedValue} in the last 90 days</value></values>
+      xsi:nil="true"
+    /></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
     >Log the latest customer interaction or schedule a concrete follow-up for {!record.Name fallback="this account"}.</value></values>

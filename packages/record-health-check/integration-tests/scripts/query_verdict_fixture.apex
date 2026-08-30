@@ -21,4 +21,11 @@ if (!activeFixtures.isEmpty()) {
 
 Account fixture = new Account(Name = fixtureName);
 insert fixture;
+insert new Contact(LastName = fixtureName, AccountId = fixture.Id);
+insert new Opportunity(
+  Name = fixtureName,
+  AccountId = fixture.Id,
+  StageName = 'Prospecting',
+  CloseDate = Date.today().addDays(30)
+);
 System.debug(LoggingLevel.INFO, 'RHC_QUERY_VERDICT_FIXTURE_ID=' + fixture.Id);

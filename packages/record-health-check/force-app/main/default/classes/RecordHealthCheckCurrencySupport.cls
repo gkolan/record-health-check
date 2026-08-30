@@ -7,8 +7,11 @@ public with sharing class RecordHealthCheckCurrencySupport {
   private static final Pattern CURRENCY_AGGREGATE_PATTERN = Pattern.compile(
     '(?is)\\b(?:SUM|AVG|MIN|MAX)\\s*\\(\\s*([A-Za-z0-9_.]+)\\s*\\)'
   );
-  private static final Pattern ISO_GROUP_PATTERN = Pattern.compile(
-    '(?is)\\bGROUP\\s+BY\\s+[^;]*\\bCurrencyIsoCode\\b'
+  private static final Pattern OUTER_GROUP_BY_PATTERN = Pattern.compile(
+    '(?i)\\bGROUP\\s+BY\\b'
+  );
+  private static final Pattern OUTER_GROUP_TAIL_PATTERN = Pattern.compile(
+    '(?i)\\b(?:HAVING|ORDER\\s+BY|LIMIT|OFFSET|WITH)\\b'
   );
 
   /**
@@ -93,18 +96,17 @@ public with sharing class RecordHealthCheckCurrencySupport {
     ) {
       return false;
     }
-    Matcher aggregateMatcher = CURRENCY_AGGREGATE_PATTERN.matcher(query);
-    if (
-      ISO_GROUP_PATTERN.matcher(query).find() ||
-      RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(
-        query,
-        'CurrencyIsoCode'
-      )
-    ) {
-      return false;
-    }
+    Matcher aggregateMatcher = CURRENCY_AGGREGATE_PATTERN.matcher(
+      RecordHealthCheckSoqlTemplate.maskStringLiterals(query)
+    );
     while (aggregateMatcher.find()) {
-      if (isCurrencyField(query, aggregateMatcher.group(1))) {
+      String aggregateFieldPath = aggregateMatcher.group(1);
+      String requiredIsoFieldPath = isoFieldPath(aggregateFieldPath);
+      if (
+        isCurrencyField(query, aggregateFieldPath) &&
+        !hasOuterGroupByField(query, requiredIsoFieldPath) &&
+        !hasConjunctiveEqualityFilter(query, requiredIsoFieldPath)
+      ) {
         return true;
       }
     }
@@ -142,6 +144,60 @@ public with sharing class RecordHealthCheckCurrencySupport {
     return isoFieldPath(fieldPath);
   }
 
+  /** Adds unit fields required to interpret scalar and aggregate query values. */
+  public static String injectUnitEvidence(String query) {
+    if (!RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()) {
+      return query;
+    }
+    String prepared = query;
+    for (String isoField : aggregateCurrencyIsoFieldPaths(prepared)) {
+      prepared = RecordHealthCheckBulkQueryRewriter.injectSelectField(
+        prepared,
+        isoField
+      );
+    }
+    for (
+      String selectedField : RecordHealthCheckBulkQueryRewriter.selectedFields(
+        prepared
+      )
+    ) {
+      String isoField = currencyIsoFieldPath(prepared, selectedField);
+      if (String.isNotBlank(isoField)) {
+        prepared = RecordHealthCheckBulkQueryRewriter.injectSelectField(
+          prepared,
+          isoField
+        );
+      }
+    }
+    return prepared;
+  }
+
+  /** Returns ISO grouping fields that must be selected as runtime evidence. */
+  public static Set<String> aggregateCurrencyIsoFieldPaths(String query) {
+    Set<String> isoFieldPaths = new Set<String>();
+    if (
+      String.isBlank(query) ||
+      !RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()
+    ) {
+      return isoFieldPaths;
+    }
+    Matcher aggregateMatcher = CURRENCY_AGGREGATE_PATTERN.matcher(
+      RecordHealthCheckSoqlTemplate.maskStringLiterals(query)
+    );
+    while (aggregateMatcher.find()) {
+      String aggregateFieldPath = aggregateMatcher.group(1);
+      String requiredIsoFieldPath = isoFieldPath(aggregateFieldPath);
+      if (
+        isCurrencyField(query, aggregateFieldPath) &&
+        hasOuterGroupByField(query, requiredIsoFieldPath) &&
+        String.isBlank(constrainedCurrencyIsoCode(query, requiredIsoFieldPath))
+      ) {
+        isoFieldPaths.add(requiredIsoFieldPath);
+      }
+    }
+    return isoFieldPaths;
+  }
+
   private static String isoFieldPath(String fieldPath) {
     Integer separator = fieldPath.lastIndexOf('.');
     return separator < 0
@@ -164,9 +220,17 @@ public with sharing class RecordHealthCheckCurrencySupport {
     ) {
       return isoCodes;
     }
+    String constrainedIsoCode = constrainedCurrencyIsoCode(
+      query,
+      currencyIsoFieldPathForValue(query, fieldPath)
+    );
+    if (String.isNotBlank(constrainedIsoCode)) {
+      isoCodes.add(constrainedIsoCode);
+      return isoCodes;
+    }
     for (SObject row : rows) {
       Object unit = RecordHealthCheckSoqlTemplate.isAggregateQuery(query)
-        ? row.get('CurrencyIsoCode')
+        ? aggregateCurrencyUnit(query, row)
         : readPath(row, isoFieldPath(fieldPath));
       String isoCode = unit == null ? null : String.valueOf(unit);
       if (String.isNotBlank(isoCode)) {
@@ -193,11 +257,22 @@ public with sharing class RecordHealthCheckCurrencySupport {
     Boolean aggregateQuery = RecordHealthCheckSoqlTemplate.isAggregateQuery(
       query
     );
+    if (
+      aggregateQuery &&
+      String.isNotBlank(
+        constrainedCurrencyIsoCode(
+          query,
+          currencyIsoFieldPathForValue(query, fieldPath)
+        )
+      )
+    ) {
+      return false;
+    }
     String unitFieldPath = aggregateQuery ? null : isoFieldPath(fieldPath);
     for (SObject row : rows) {
       if (
         (aggregateQuery
-          ? row.get('CurrencyIsoCode')
+          ? aggregateCurrencyUnit(query, row)
           : readPath(row, unitFieldPath)) == null
       ) {
         return true;
@@ -206,10 +281,143 @@ public with sharing class RecordHealthCheckCurrencySupport {
     return false;
   }
 
-  private static Object readPath(SObject row, String fieldPath) {
-    if (row == null || String.isBlank(fieldPath)) {
+  @TestVisible
+  private static Object aggregateCurrencyUnit(String query, SObject row) {
+    Set<String> requiredPaths = aggregateCurrencyIsoFieldPaths(query);
+    if (requiredPaths.size() != 1 || row == null) {
       return null;
     }
+    String requiredPath = new List<String>(requiredPaths)[0];
+    Map<String, Object> populated = row.getPopulatedFieldsAsMap();
+    if (populated.containsKey(requiredPath)) {
+      return populated.get(requiredPath);
+    }
+    Integer separator = requiredPath.lastIndexOf('.');
+    String leafField = separator < 0
+      ? requiredPath
+      : requiredPath.substring(separator + 1);
+    if (separator >= 0 && hasOuterGroupByField(query, leafField)) {
+      return null;
+    }
+    return populated.get(leafField);
+  }
+
+  private static String constrainedCurrencyIsoCode(
+    String query,
+    String isoFieldPath
+  ) {
+    if (
+      String.isBlank(isoFieldPath) ||
+      !hasConjunctiveEqualityFilter(query, isoFieldPath)
+    ) {
+      return null;
+    }
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(query);
+    Pattern equalityPattern = Pattern.compile(
+      '(?i)(?<![A-Za-z0-9_.])' +
+        isoFieldPath.replace('.', '\\.') +
+        '\\s*=\\s*\'\\s*\''
+    );
+    Set<String> literals = new Set<String>();
+    Matcher matcher = equalityPattern.matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0) {
+        continue;
+      }
+      Integer openingQuote = masked.indexOf('\'', matcher.start());
+      Integer closingQuote = masked.indexOf('\'', openingQuote + 1);
+      String literal = query.substring(openingQuote + 1, closingQuote);
+      if (Pattern.matches('(?i)[A-Z]{3}', literal)) {
+        literals.add(literal.toUpperCase());
+      }
+    }
+    return literals.size() == 1 ? new List<String>(literals)[0] : null;
+  }
+
+  private static String currencyIsoFieldPathForValue(
+    String query,
+    String fieldPath
+  ) {
+    if (!RecordHealthCheckSoqlTemplate.isAggregateQuery(query)) {
+      return isoFieldPath(fieldPath);
+    }
+    Set<String> isoFieldPaths = new Set<String>();
+    Matcher aggregateMatcher = CURRENCY_AGGREGATE_PATTERN.matcher(
+      RecordHealthCheckSoqlTemplate.maskStringLiterals(query)
+    );
+    while (aggregateMatcher.find()) {
+      String aggregateFieldPath = aggregateMatcher.group(1);
+      if (isCurrencyField(query, aggregateFieldPath)) {
+        isoFieldPaths.add(isoFieldPath(aggregateFieldPath));
+      }
+    }
+    return isoFieldPaths.size() == 1
+      ? new List<String>(isoFieldPaths)[0]
+      : null;
+  }
+
+  private static Boolean hasOuterGroupByField(String query, String fieldPath) {
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(query);
+    Matcher groupMatcher = OUTER_GROUP_BY_PATTERN.matcher(masked);
+    while (groupMatcher.find()) {
+      if (
+        RecordHealthCheckSoqlTemplate.depthAt(masked, groupMatcher.start()) != 0
+      ) {
+        continue;
+      }
+      Integer groupEnd = masked.length();
+      Matcher tailMatcher = OUTER_GROUP_TAIL_PATTERN.matcher(masked);
+      tailMatcher.region(groupMatcher.end(), masked.length());
+      while (tailMatcher.find()) {
+        if (
+          RecordHealthCheckSoqlTemplate.depthAt(masked, tailMatcher.start()) ==
+          0
+        ) {
+          groupEnd = tailMatcher.start();
+          break;
+        }
+      }
+      String groupClause = masked.substring(groupMatcher.end(), groupEnd);
+      return Pattern.compile(
+          '(?i)(?<![A-Za-z0-9_.])' +
+            fieldPath.replace('.', '\\.') +
+            '(?![A-Za-z0-9_.])'
+        )
+        .matcher(groupClause)
+        .find();
+    }
+    return false;
+  }
+
+  private static Boolean hasConjunctiveEqualityFilter(
+    String query,
+    String fieldPath
+  ) {
+    if (
+      !RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(
+        query,
+        fieldPath
+      )
+    ) {
+      return false;
+    }
+    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(query);
+    Matcher matcher = Pattern.compile(
+        '(?i)(?<![A-Za-z0-9_.])' +
+          fieldPath.replace('.', '\\.') +
+          '\\s*=\\s*\'\\s*\''
+      )
+      .matcher(masked);
+    while (matcher.find()) {
+      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @TestVisible
+  private static Object readPath(SObject row, String fieldPath) {
     List<String> segments = fieldPath.split('\\.');
     SObject current = row;
     for (Integer index = 0; index < segments.size() - 1; index++) {

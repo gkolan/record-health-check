@@ -18,7 +18,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Tests qualified open pipeline against a dynamic target of 75% of this account's annual revenue, exposing renewal and growth risk before the forecast review.</value>
+    >Tests open pipeline against an illustrative target of 75% of Account Annual Revenue. Pipeline-coverage reviews are common, but the ratio must be calibrated to your sales cycle and qualification rules.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -102,7 +102,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Add or advance qualified opportunities for {!record.Name fallback="this account"} to close the coverage gap.</value>
+    >Review the account plan and add or advance only qualified opportunities. Customize the 75% target to your organization's historical conversion and coverage model.</value>
     </values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"

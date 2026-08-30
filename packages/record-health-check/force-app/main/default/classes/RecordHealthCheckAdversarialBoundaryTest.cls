@@ -259,10 +259,10 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
     Test.startTest();
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Website_URL_Valid'
       ),
       accountRecord.Id,
       'user-controller-boundary',

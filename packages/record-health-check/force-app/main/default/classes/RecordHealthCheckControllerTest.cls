@@ -300,10 +300,10 @@ private class RecordHealthCheckControllerTest {
     Test.startTest();
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Website_URL_Valid'
       ),
       accountRecord.Id,
       'controller-success',
@@ -325,7 +325,8 @@ private class RecordHealthCheckControllerTest {
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{
           'Name' => 'Controller user initiated',
-          'Phone' => '312-555-0199'
+          'Website' => 'https://controller.example.com',
+          'AnnualRevenue' => 2000000
         }
       )
     );
@@ -333,10 +334,10 @@ private class RecordHealthCheckControllerTest {
     Test.startTest();
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       RecordHealthCheckTestDataFactory.qualifiedCheckName(
-        'Example_Profile_Phone_Available'
+        'Example_Website_URL_Valid'
       ),
       accountRecord.Id,
       'controller-user-initiated',
@@ -381,7 +382,7 @@ private class RecordHealthCheckControllerTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
       'Controller namespace identity'
     );
-    String developerName = 'Example_Profile_Phone_Available';
+    String developerName = 'Example_Website_URL_Valid';
     String exactQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       developerName
     );
@@ -392,7 +393,7 @@ private class RecordHealthCheckControllerTest {
     Test.startTest();
     RecordHealthCheckResultItem result = RecordHealthCheckController.evaluateCheck(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-        'Example_Account_Profile_Readiness'
+        'Example_Account_Check_Builder_Guide'
       ),
       invalidQualifiedApiName,
       accountRecord.Id,

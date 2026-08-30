@@ -13,7 +13,7 @@ contributing, you agree that your contributions are licensed under the
 [Apache License, Version 2.0](../LICENSE).
 
 Subscribers should install the promoted unlocked package (see the root README install link and
-[Install and verify](../docs/installation/install-and-verify.md)). Contributors deploy unpackaged
+[Install and verify](../docs/install/install-in-a-sandbox.md)). Contributors deploy unpackaged
 Framework source for development; do not point new users at GitHub source deploy as the primary install
 path.
 
@@ -41,7 +41,7 @@ subscriber install path.
    - The **Check Set Qualified API Name** and **Check Developer Name** involved (not screenshots of labels only).
    - The object and a sketch of the field/query values that triggered it.
    - A redacted screenshot or screen recording when the problem appears on the card.
-   - The redacted `[RHC]` console report after reproducing with **Show Diagnostics** enabled. If diagnostics cannot be enabled or do not apply, explain why (see [Troubleshoot with Show Diagnostics](../docs/guides/troubleshoot-with-show-diagnostics.md)).
+   - The redacted `[RHC]` console report after reproducing with **Show Diagnostics** enabled. If diagnostics cannot be enabled or do not apply, explain why (see [Browser console diagnostics](../docs/diagnostics/browser-console.md)).
    - Package version or installed `04t`, installation type, org type, API version, and browser or device when relevant.
 4. Submit. A maintainer will triage and may ask for a minimal reproduction.
 
@@ -103,7 +103,7 @@ feedback by pushing more commits to the same branch.
   validation, reason-code documentation, and both positive and misconfiguration
   tests. Prefer extending the shared modules over adding another parser or comparison operator copy.
 
-See [`docs/reference/framework/architecture.md`](../docs/reference/framework/architecture.md)
+See [`docs/architecture/framework.md`](../docs/architecture/framework.md)
 for the published Framework architecture and to find where things live.
 
 ## Configuration identity and package boundary
@@ -120,13 +120,13 @@ When changing packaged `Example_` Check Sets/Checks or any public identity bound
 
 Every public input must accept the exact Custom Metadata `QualifiedApiName` Salesforce returns. Do
 not guess namespaces or retry alternate name forms. See
-[Configuration identity](../docs/reference/framework/configuration-identity.md).
+[Configuration identity](../docs/reference/configuration/names-and-api-identities.md).
 
 ## Apex test-only access policy
 
 `@TestVisible` and `Test.isRunningTest()` are temporary workarounds. Do not add test-only access without
 updating the architecture baseline. The full policy lives in
-[Contributor policy: Apex test-only access](../docs/reference/apex/test-only-access.md). Run
+[Contributor policy: Apex test-only access](../docs/quality-gates/apex-test-only-access.md). Run
 `npm run check:apex-architecture` before opening a PR that touches Apex.
 
 ## Integration-test sample data
@@ -159,6 +159,6 @@ Docs must match the code at the same commit. Follow these authoring standards:
 - **Code blocks**: introduce every block with a sentence ending in a colon; use fenced blocks with a language identifier (`bash`, `apex`, `sql`, `json`).
 - **No em-dashes**: replace each em-dash by hand with a period, comma, or parentheses, never a blanket swap to a colon.
 
-The public [architecture document](../docs/reference/framework/architecture.md) is the
+The public [architecture document](../docs/architecture/framework.md) is the
 contributor-facing source of truth for Framework architecture and where code and docs live.
 Maintainer release steps are in [`RELEASING.md`](RELEASING.md).

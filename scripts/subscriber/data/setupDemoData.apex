@@ -1,15 +1,8 @@
-// Deterministic, idempotent Account demo data for Example_Account_Relationship_Risk.
+// Deterministic, idempotent Account demo data for Example_Account_Check_Builder_Guide.
 Database.DMLOptions demoDml = new Database.DMLOptions();
 demoDml.DuplicateRuleHeader.allowSave = true;
 demoDml.DuplicateRuleHeader.runAsCurrentUser = true;
 demoDml.OptAllOrNone = true;
-
-User inactiveOwner = [
-  SELECT Id
-  FROM User
-  WHERE FederationIdentifier = 'rhc-demo-owner-jordan-blake' AND IsActive = TRUE
-  LIMIT 1
-];
 
 Account corporateParent;
 List<Account> corporateParents = [
@@ -64,13 +57,97 @@ division.Phone = '(312) 555-0150';
 division.Website = 'https://industrial.asteronglobal.example';
 division.AnnualRevenue = 24000000;
 division.NumberOfEmployees = 3200;
-division.BillingStreet = '1800 South Canal Street';
+// Acme uses its operating parent's centralized bill-to address. The example
+// Formula check surfaces both complete addresses so subscribers can see the
+// actual matched business values, not a generic "same/different" statement.
+division.BillingStreet = '2400 West Fulton Street';
 division.BillingCity = 'Chicago';
 division.BillingState = 'Illinois';
-division.BillingPostalCode = '60616';
+division.BillingPostalCode = '60612';
 division.BillingCountry = 'United States';
 division.Description = 'North American industrial systems division and parent of Acme Corporation.';
 Database.update(division, demoDml);
+
+// Give the Parent Account a realistic stakeholder footprint so the list-based
+// Compare Two Queries examples have meaningful overlap, containment, and exact-match results.
+List<Contact> priorDivisionContacts = [
+  SELECT Id
+  FROM Contact
+  WHERE AccountId = :division.Id AND Email LIKE '%@asteron-industrial.example'
+];
+if (!priorDivisionContacts.isEmpty())
+  delete priorDivisionContacts;
+Database.insert(
+  new List<Contact>{
+    new Contact(
+      AccountId = division.Id,
+      FirstName = 'Lena',
+      LastName = 'Morris',
+      Title = 'VP, Industrial Operations',
+      Email = 'lena.morris@asteron-industrial.example',
+      Phone = '(312) 555-0211',
+      MailingCity = 'Chicago',
+      MailingState = 'Illinois',
+      MailingCountry = 'United States'
+    ),
+    new Contact(
+      AccountId = division.Id,
+      FirstName = 'Malcolm',
+      LastName = 'Reed',
+      Title = 'Director, Plant Systems',
+      Email = 'malcolm.reed@asteron-industrial.example',
+      Phone = '(414) 555-0144',
+      MailingCity = 'Milwaukee',
+      MailingState = 'Wisconsin',
+      MailingCountry = 'United States'
+    ),
+    new Contact(
+      AccountId = division.Id,
+      FirstName = 'Avery',
+      LastName = 'Campbell',
+      Title = 'Regional Service Leader',
+      Email = 'avery.campbell@asteron-industrial.example',
+      Phone = '(313) 555-0168',
+      MailingCity = 'Detroit',
+      MailingState = 'Michigan',
+      MailingCountry = 'United States'
+    ),
+    new Contact(
+      AccountId = division.Id,
+      FirstName = 'Simone',
+      LastName = 'Walker',
+      Title = 'Supply Chain Program Manager',
+      Email = 'simone.walker@asteron-industrial.example',
+      Phone = '(612) 555-0182',
+      MailingCity = 'Minneapolis',
+      MailingState = 'Minnesota',
+      MailingCountry = 'United States'
+    ),
+    new Contact(
+      AccountId = division.Id,
+      FirstName = 'Victor',
+      LastName = 'Nguyen',
+      Title = 'Director, Customer Support',
+      Email = 'victor.nguyen@asteron-industrial.example',
+      Phone = '(314) 555-0196',
+      MailingCity = 'St. Louis',
+      MailingState = 'Missouri',
+      MailingCountry = 'United States'
+    ),
+    new Contact(
+      AccountId = division.Id,
+      FirstName = 'Rina',
+      LastName = 'Patel',
+      Title = 'Finance Transformation Lead',
+      Email = 'rina.patel@asteron-industrial.example',
+      Phone = '(312) 555-0234',
+      MailingCity = 'Chicago',
+      MailingState = 'Illinois',
+      MailingCountry = 'United States'
+    )
+  },
+  demoDml
+);
 
 Account acme;
 List<Account> acmeAccounts = [
@@ -88,11 +165,15 @@ if (acmeAccounts.isEmpty()) {
 } else {
   acme = acmeAccounts[0];
 }
-acme.OwnerId = inactiveOwner.Id;
+acme.OwnerId = UserInfo.getUserId();
 acme.ParentId = division.Id;
 acme.AccountNumber = 'RHC-DEMO-ACME';
 acme.Type = 'Customer';
-acme.Industry = 'Manufacturing';
+// Acme shares its operating parent's centralized bill-to location. The Formula
+// example deliberately passes and displays both complete addresses so the
+// comparison is useful rather than a generic same/different result.
+acme.Industry = 'Technology';
+acme.Rating = 'Hot';
 acme.AnnualRevenue = 500000;
 acme.NumberOfEmployees = 1250;
 acme.Phone = '(312) 555-0180';
@@ -258,6 +339,18 @@ List<String> titles = new List<String>{
   'Operations Analyst',
   'Service Delivery Manager'
 };
+List<String> mailingCities = new List<String>{
+  'Cleveland',
+  'Columbus',
+  'Indianapolis',
+  'Madison'
+};
+List<String> mailingStates = new List<String>{
+  'Ohio',
+  'Ohio',
+  'Indiana',
+  'Wisconsin'
+};
 
 List<Contact> contacts = new List<Contact>();
 for (Integer index = 0; index < firstNames.size(); index++) {
@@ -276,11 +369,11 @@ for (Integer index = 0; index < firstNames.size(); index++) {
         ? 'Executive Leadership'
         : 'Operations & Transformation',
       Email = emailIsMissing ? null : emailLocalPart + '@acme.example',
-      Phone = '(312) 555-' + String.valueOf(1100 + index),
+      Phone = index == 34 ? null : '(312) 555-' + String.valueOf(1100 + index),
       MobilePhone = '(312) 555-' + String.valueOf(2100 + index),
       MailingStreet = String.valueOf(2400 + index) + ' West Fulton Street',
-      MailingCity = 'Chicago',
-      MailingState = 'Illinois',
+      MailingCity = mailingCities[Math.mod(index, mailingCities.size())],
+      MailingState = mailingStates[Math.mod(index, mailingStates.size())],
       MailingPostalCode = '60612',
       MailingCountry = 'United States',
       Description = 'Stakeholder in Acme Corporation\'s plant modernization and customer success program.'
@@ -294,16 +387,18 @@ Opportunity modernization = new Opportunity(
   Name = 'Acme Corporation Plant Modernization Expansion',
   StageName = 'Proposal/Price Quote',
   CloseDate = Date.today().addDays(75),
-  Amount = 40000,
-  NextStep = 'Complete executive value review and finalize implementation scope.',
+  Amount = 600000,
+  Probability = 65,
+  NextStep = null,
   Description = 'Expansion of connected plant operations and supply-chain modernization capabilities.'
 );
 Opportunity managedServices = new Opportunity(
   AccountId = acme.Id,
   Name = 'Acme Corporation Managed Services Add-On',
   StageName = 'Qualification',
-  CloseDate = Date.today().addDays(120),
-  Amount = 30000,
+  CloseDate = Date.today().addDays(-10),
+  Amount = 0,
+  Probability = 20,
   NextStep = 'Validate service coverage requirements with operations leadership.',
   Description = 'Managed services add-on for application operations, monitoring, and adoption.'
 );
@@ -312,24 +407,71 @@ Database.insert(
   demoDml
 );
 
+// Historical outcomes make the comparison examples concrete: recently lost
+// value exceeds newly created pipeline, and one won deal lacks both a retained
+// primary Contact and an Amount.
+Database.insert(
+  new List<Opportunity>{
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Retired Analytics Expansion',
+      StageName = 'Closed Lost',
+      CloseDate = Date.today().addDays(-20),
+      Amount = 250000,
+      Description = 'Customer deferred the analytics expansion after funding was withdrawn.'
+    ),
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Deferred Integration Program',
+      StageName = 'Closed Lost',
+      CloseDate = Date.today().addDays(-35),
+      Amount = 280000,
+      Description = 'Integration program was lost after the customer consolidated vendors.'
+    ),
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Paused Mobile Rollout',
+      StageName = 'Closed Lost',
+      CloseDate = Date.today().addDays(-50),
+      Amount = 230000,
+      Description = 'Mobile rollout was paused after the operating model changed.'
+    ),
+    new Opportunity(
+      AccountId = acme.Id,
+      Name = 'Acme Corporation Legacy Plant Deployment',
+      StageName = 'Closed Won',
+      CloseDate = Date.today().addDays(-120),
+      Amount = null,
+      Description = 'Historical win retained without defensible value or primary buyer attribution.'
+    )
+  },
+  demoDml
+);
+
 Database.insert(
   new List<OpportunityContactRole>{
     new OpportunityContactRole(
       OpportunityId = modernization.Id,
       ContactId = contacts[0].Id,
-      Role = 'Executive Sponsor',
+      Role = 'Decision Maker',
       IsPrimary = true
     ),
     new OpportunityContactRole(
-      OpportunityId = managedServices.Id,
+      OpportunityId = modernization.Id,
       ContactId = contacts[1].Id,
       Role = 'Executive Sponsor',
-      IsPrimary = true
+      IsPrimary = false
     ),
     new OpportunityContactRole(
       OpportunityId = modernization.Id,
       ContactId = contacts[2].Id,
       Role = 'Executive Sponsor',
+      IsPrimary = false
+    ),
+    new OpportunityContactRole(
+      OpportunityId = modernization.Id,
+      ContactId = contacts[34].Id,
+      Role = 'Business User',
       IsPrimary = false
     )
   },
@@ -369,11 +511,12 @@ Database.insert(
       Status = 'New',
       Priority = 'High',
       Origin = 'Phone',
-      Description = 'Intermittent integration latency is affecting production scheduling.'
+      IsEscalated = true,
+      Description = null
     ),
     new Case(
       AccountId = acme.Id,
-      ContactId = contacts[8].Id,
+      ContactId = contacts[35].Id,
       Subject = 'Distribution workflow interruption',
       Status = 'Working',
       Priority = 'High',
@@ -391,12 +534,114 @@ Database.insert(
     ),
     new Case(
       AccountId = acme.Id,
-      ContactId = contacts[10].Id,
       Subject = 'Plant maintenance alert escalation',
       Status = 'Working',
       Priority = 'High',
       Origin = 'Phone',
       Description = 'Critical maintenance alerts require escalation and a documented recovery plan.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      ContactId = contacts[12].Id,
+      Subject = 'Mobile inspection form field mapping',
+      Status = 'Working',
+      Priority = 'Medium',
+      Origin = 'Web',
+      Description = 'The quality team is reviewing two field mappings before the next mobile inspection release.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      Subject = 'Supplier dashboard refresh delay',
+      Status = 'New',
+      Priority = 'Medium',
+      Origin = 'Email',
+      Description = 'Supplier scorecard totals are updating later than the operations team expects.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      Subject = 'Training access for new plant supervisors',
+      Status = 'Working',
+      Priority = 'Medium',
+      Origin = 'Phone',
+      Description = 'Three new supervisors need the correct training assignments before their first production shift.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      ContactId = contacts[18].Id,
+      Subject = 'Quarterly report layout request',
+      Status = 'Closed',
+      Priority = 'Medium',
+      Origin = 'Email',
+      Description = 'Finance requested a clearer regional breakdown in the quarterly operating report.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      ContactId = contacts[20].Id,
+      Subject = 'Warehouse dashboard filter update',
+      Status = 'Closed',
+      Priority = 'Medium',
+      Origin = 'Web',
+      Description = 'A saved filter was updated to include the new west distribution location.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      ContactId = contacts[22].Id,
+      Subject = 'Monthly export column labels',
+      Status = 'New',
+      Priority = 'Low',
+      Origin = 'Email',
+      Description = 'Operations asked to align export labels with the monthly planning workbook.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      Subject = 'Knowledge article link update',
+      Status = 'Working',
+      Priority = 'Low',
+      Origin = 'Web',
+      Description = 'A plant onboarding guide contains a link to a retired knowledge article.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      ContactId = contacts[26].Id,
+      Subject = 'Meeting notes template request',
+      Status = 'Closed',
+      Priority = 'Low',
+      Origin = 'Email',
+      Description = 'The customer success team requested a standard template for quarterly review notes.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      ContactId = contacts[28].Id,
+      Subject = 'Regional forecast dashboard access',
+      Status = 'New',
+      Priority = 'Medium',
+      Origin = 'Web',
+      Description = 'A regional operations manager needs access to the shared forecast dashboard.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      Subject = 'Saved list sorting preference',
+      Status = 'Working',
+      Priority = 'Low',
+      Origin = 'Email',
+      Description = 'The service team wants a saved list to sort the newest plant requests first.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      Subject = 'Customer success calendar color',
+      Status = 'New',
+      Priority = 'Low',
+      Origin = 'Phone',
+      Description = 'The customer success team asked how to make planning meetings easier to identify.'
+    ),
+    new Case(
+      AccountId = acme.Id,
+      ContactId = contacts[34].Id,
+      Subject = 'Archived onboarding checklist',
+      Status = 'Closed',
+      Priority = 'Low',
+      Origin = 'Web',
+      Description = 'An outdated onboarding checklist was archived after the replacement was published.'
     )
   },
   demoDml

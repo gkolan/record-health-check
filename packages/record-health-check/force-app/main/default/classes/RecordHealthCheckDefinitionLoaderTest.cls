@@ -60,7 +60,9 @@ private class RecordHealthCheckDefinitionLoaderTest {
       try {
         RecordHealthCheckDefinitionLoader.validateActiveChecksForDefinition(
           new List<Record_Health_Check__mdt>(),
-          'Example_Account_Relationship_Risk'
+          RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+            'Example_Account_Relationship_Risk'
+          )
         );
         Assert.fail('A Set without active Checks must be rejected.');
       } catch (RecordHealthCheckConfigService.ConfigException error) {
@@ -116,7 +118,9 @@ private class RecordHealthCheckDefinitionLoaderTest {
       List<String> inactiveLabels = RecordHealthCheckDefinitionLoader.inactiveCheckLabelsForDiagnostics(
         true,
         1,
-        'Example_Account_Relationship_Risk'
+        RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+          'Example_Account_Relationship_Risk'
+        )
       );
 
       Assert.areEqual(
@@ -133,7 +137,9 @@ private class RecordHealthCheckDefinitionLoaderTest {
         RecordHealthCheckDefinitionLoader.inactiveCheckLabelsForDiagnostics(
             false,
             1,
-            'Example_Account_Relationship_Risk'
+            RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+              'Example_Account_Relationship_Risk'
+            )
           )
           .size(),
         'Check labels are configuration detail and must stay hidden without diagnostics.'

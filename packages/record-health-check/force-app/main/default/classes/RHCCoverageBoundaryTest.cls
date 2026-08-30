@@ -92,10 +92,10 @@ private with sharing class RHCCoverageBoundaryTest {
     try {
       RecordHealthCheckController.evaluateCheck(
         RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-          'Example_Account_Profile_Readiness'
+          'Example_Account_Check_Builder_Guide'
         ),
         RecordHealthCheckTestDataFactory.qualifiedCheckName(
-          'Example_Profile_Phone_Available'
+          'Example_Guide_Recent_Activity'
         ),
         account.Id,
         'controller-side-effect',
@@ -207,8 +207,131 @@ private with sharing class RHCCoverageBoundaryTest {
       null
     );
     Test.stopTest();
+    // Successful completion proves the matching ISO constraint supplies unit evidence.
+  }
+
+  @IsTest
+  static void relationshipAggregateCurrencyRowsRetainUnitEvidence() {
+    if (!UserInfo.isMultiCurrencyOrganization()) {
+      return;
+    }
+    Account parent = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{
+        'AnnualRevenue' => 100,
+        'CurrencyIsoCode' => 'USD'
+      }
+    );
+    RecordHealthCheckTestDataFactory.createAccount(parent);
+    RecordHealthCheckTestDataFactory.createContact(
+      new Map<String, Object>{
+        'LastName' => 'Relationship aggregate',
+        'AccountId' => parent.Id
+      }
+    );
+    String query =
+      'SELECT SUM(Account.AnnualRevenue) totalValue, ' +
+      'Account.CurrencyIsoCode FROM Contact GROUP BY Account.CurrencyIsoCode';
+    List<SObject> rows = Database.query(query);
+
+    Test.startTest();
+    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+      query,
+      'totalValue',
+      rows,
+      null,
+      null,
+      new List<SObject>(),
+      null
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      1,
+      rows.size(),
+      'The grouped relationship unit is retained.'
+    );
+  }
+
+  @IsTest
+  static void constrainedCurrencyAggregateRetainsLiteralUnitEvidence() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    List<SObject> rows = new List<SObject>{
+      [SELECT SUM(AnnualRevenue) totalValue FROM Account]
+    };
+
+    Test.startTest();
+    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+      'SELECT SUM(AnnualRevenue) totalValue FROM Account WHERE CurrencyIsoCode = \'USD\'',
+      'totalValue',
+      rows,
+      null,
+      null,
+      new List<SObject>(),
+      null
+    );
+    Test.stopTest();
 
     Assert.areEqual(1, rows.size());
+  }
+
+  @IsTest
+  static void unrelatedCurrencyLiteralDoesNotSupplyAggregateUnitEvidence() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    List<SObject> rows = new List<SObject>{
+      [SELECT SUM(Amount) totalValue FROM Opportunity]
+    };
+
+    Test.startTest();
+    try {
+      RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+        'SELECT SUM(Amount) totalValue FROM Opportunity ' +
+        'WHERE Account.CurrencyIsoCode = \'USD\'',
+        'totalValue',
+        rows,
+        null,
+        null,
+        new List<SObject>(),
+        null
+      );
+      Assert.fail(
+        'A parent ISO predicate must not supply the aggregate currency unit.'
+      );
+    } catch (RecordHealthCheckEvaluatorException expected) {
+      Assert.areEqual(
+        'CURRENCY_UNIT_UNKNOWN',
+        expected.reasonCode,
+        'The aggregate must fail closed when its own currency unit is absent.'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @IsTest
+  static void currencyTextInsideLiteralDoesNotOverrideOuterIsoEvidence() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    List<SObject> rows = new List<SObject>{
+      [SELECT SUM(AnnualRevenue) totalValue FROM Account]
+    };
+
+    Test.startTest();
+    RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+      'SELECT SUM(AnnualRevenue) totalValue FROM Account ' +
+        'WHERE Name = \'CurrencyIsoCode = \\\'CAD\\\'\' ' +
+        'AND CurrencyIsoCode = \'USD\'',
+      'totalValue',
+      rows,
+      null,
+      null,
+      new List<SObject>(),
+      'USD'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      1,
+      rows.size(),
+      'Only the real outer predicate may supply currency evidence.'
+    );
   }
 
   @IsTest

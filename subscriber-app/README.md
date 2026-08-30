@@ -29,7 +29,7 @@ the promoted or candidate package is installed.
 
 ## Related
 
-- [Create the demo scratch org](../docs/installation/create-rhc-scratch-org.md)
-- [Package testing and upgrades](../docs/reference/framework/package-testing-and-upgrades.md)
+- [Create the demo scratch org](../docs/install/install-demo-in-a-scratch-org.md)
+- [Package testing and upgrades](../docs/quality-gates/package-testing-and-upgrades.md)
 - [Integration tests](../packages/record-health-check/integration-tests/README.md)
-- [Configuration identity](../docs/reference/framework/configuration-identity.md)
+- [Configuration identity](../docs/reference/configuration/names-and-api-identities.md)

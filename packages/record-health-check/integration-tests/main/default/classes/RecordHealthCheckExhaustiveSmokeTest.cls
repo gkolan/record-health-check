@@ -12,10 +12,10 @@ private class RecordHealthCheckExhaustiveSmokeTest {
       'Exhaustive execution'
     );
     String setName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     String checkName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
-      'Example_Profile_Phone_Available'
+      'Example_Website_URL_Valid'
     );
 
     Test.startTest();
@@ -152,6 +152,14 @@ private class RecordHealthCheckExhaustiveSmokeTest {
   @IsTest
   static void enqueueEntryPointsReturnTraceableJobs() {
     Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+      'Exhaustive enqueue'
+    );
+    RHCIntegrationTestDataFactory.contact(
+      accountRecord.Id,
+      'Exhaustive enqueue'
+    );
+    RHCIntegrationTestDataFactory.opportunity(
+      accountRecord.Id,
       'Exhaustive enqueue'
     );
     Integer checkCount = [SELECT COUNT() FROM Record_Health_Check__mdt];

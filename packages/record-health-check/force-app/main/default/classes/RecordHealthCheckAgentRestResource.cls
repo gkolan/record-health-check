@@ -103,7 +103,7 @@ global with sharing class RecordHealthCheckAgentRestResource {
         'REQUEST_BODY_TOO_LARGE: the request must not exceed 16384 bytes.'
       );
     }
-    String contentType = request.headers.get('Content-Type');
+    String contentType = headerValue(request, 'Content-Type');
     if (
       String.isBlank(contentType) ||
       !contentType.toLowerCase().startsWith('application/json')
@@ -317,6 +317,8 @@ global with sharing class RecordHealthCheckAgentRestResource {
     RestResponse response,
     AgentToolResponse output
   ) {
+    // Response variants share one DTO, while downstream schemas reject unknown
+    // properties. Null suppression keeps each wire shape contract-exact.
     response.responseBody = Blob.valueOf(JSON.serialize(output, true));
   }
 
@@ -332,6 +334,18 @@ global with sharing class RecordHealthCheckAgentRestResource {
       Pattern.matches('^[a-zA-Z0-9._:-]+$', value);
   }
 
+  private static String headerValue(RestRequest request, String headerName) {
+    if (request?.headers == null || String.isBlank(headerName)) {
+      return null;
+    }
+    for (String candidate : request.headers.keySet()) {
+      if (candidate != null && candidate.equalsIgnoreCase(headerName)) {
+        return request.headers.get(candidate);
+      }
+    }
+    return null;
+  }
+
   private static String safeCorrelationId(String value) {
     return !String.isBlank(value) && isValidCorrelationId(value.trim())
       ? value.trim()
@@ -339,7 +353,12 @@ global with sharing class RecordHealthCheckAgentRestResource {
   }
 
   private static String generatedCorrelationId() {
-    return 'agent-' + String.valueOf(DateTime.now().getTime());
+    String randomSuffix = EncodingUtil.convertToHex(Crypto.generateAesKey(128))
+      .substring(0, 8);
+    return 'agent-' +
+      String.valueOf(DateTime.now().getTime()) +
+      '-' +
+      randomSuffix;
   }
 
   private class AgentRestException extends Exception {

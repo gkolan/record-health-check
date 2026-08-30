@@ -10,7 +10,7 @@ This page explains where to get help with Record Health Check, based on what you
 
 | I need…                                 | Do this                                                                                                                                                                                                                           |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **To read the documentation**           | Start at the [documentation home](docs/README.md). It routes you to installation, configuration, examples, integration, and reference pages by task.                                                                              |
+| **To read the documentation**           | Start at the [documentation home](./docs/README.md). It routes you to installation, configuration, examples, integration, and reference pages by task.                                                                            |
 | **To ask a question or share feedback** | Start a [GitHub discussion](https://github.com/gkolan/record-health-check/discussions), or join the [community Slack](https://recordhealthcheck.com/slack-invite) for faster back-and-forth with maintainers and other users.     |
 | **To report a bug**                     | Open a [Bug report](https://github.com/gkolan/record-health-check/issues/new?template=bug_report.yml) issue. Search [existing issues](https://github.com/gkolan/record-health-check/issues) first so you do not file a duplicate. |
 | **To request a feature**                | Open a [Feature request](https://github.com/gkolan/record-health-check/issues/new?template=feature_request.yml) issue.                                                                                                            |
@@ -23,21 +23,22 @@ Complete reports are easier to reproduce and resolve. Before reporting a bug:
 
 - Record the expected behavior, actual behavior, and exact steps to reproduce it.
 - Include the **Check Set Qualified API Name** and **Check Developer Name**, not only the labels shown on the card.
-- Temporarily enable **Show Diagnostics**, reproduce the issue, and capture the `[RHC]` report from the browser console. If diagnostics cannot be enabled or do not apply, explain why. See [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md).
+- Temporarily enable **Show Diagnostics** and reproduce the issue. Capture the concise `[RHC]` summary. For **Unable to Check** or **System Error**, also capture the affected Check's support report. Ordinary Pass, Fail, and Skipped results intentionally do not produce a technical support bundle. If diagnostics cannot be enabled or do not apply, explain why. See [Troubleshoot with Show Diagnostics](./docs/diagnostics/browser-console.md).
 - Attach a screenshot or screen recording when the problem appears on the card.
 - Include the package version or installed `04t`, installation type, org type, Salesforce API version, and browser or device when relevant.
 - Redact customer data, record IDs, Org IDs, session IDs, access tokens, screenshots, and console output before sharing anything.
 
 ## Where to start in the docs
 
-| Situation                             | Start here                                                                                            |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| New to Record Health Check            | [How Record Health Check works](docs/installation/how-it-works.md)                                    |
-| Installing for the first time         | [Install and verify](docs/installation/install-and-verify.md)                                         |
-| A Check is not behaving as expected   | [Troubleshoot with Show Diagnostics](docs/guides/troubleshoot-with-show-diagnostics.md)               |
-| A result code needs explaining        | [Reason Codes](docs/reference/contracts/reason-codes.md)                                              |
-| Comparing to Validation Rules or Flow | [Compare Record Health Check to native Salesforce tools](docs/guides/compare-to-native-salesforce.md) |
-| Quick answers to common questions     | [FAQ](docs/guides/faq.md)                                                                             |
+| Situation                             | Start here                                                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| New to Record Health Check            | [How Record Health Check works](./docs/start-here/what-it-does.md)                                             |
+| Installing for the first time         | [Install and verify](./docs/install/install-in-a-sandbox.md)                                                   |
+| A Check is not behaving as expected   | [Troubleshoot with Show Diagnostics](./docs/diagnostics/browser-console.md)                                    |
+| A result code needs explaining        | [Reason Codes](./docs/reference/results/reason-codes.md)                                                       |
+| Comparing to Validation Rules or Flow | [Compare Record Health Check to native Salesforce tools](./docs/start-here/when-to-use-record-health-check.md) |
+| Purpose, fit, rollout, and use        | [Using Record Health Check FAQ](./docs/faqs/using-record-health-check.md)                                      |
+| Setup, security, operations, and code | [Setup and troubleshooting FAQ](./docs/faqs/setup-and-troubleshooting.md)                                      |
 
 ## Community Slack
 
@@ -48,7 +49,7 @@ for those.
 
 ## Related
 
-- [Documentation home](docs/README.md)
+- [Documentation home](./docs/README.md)
 - [Contributing](.github/CONTRIBUTING.md)
 - [Security policy](.github/SECURITY.md)
 - [Code of Conduct](.github/CODE_OF_CONDUCT.md)

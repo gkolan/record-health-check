@@ -25,10 +25,11 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
     public Map<String, List<Id>> idsByGroup = new Map<String, List<Id>>();
     public Map<String, Result> resultByGroup = new Map<String, Result>();
     public Map<Integer, Failure> failuresByIndex = new Map<Integer, Failure>();
+    public Map<Integer, String> groupKeyByIndex = new Map<Integer, String>();
   }
 
   /** Validates and adds one request row while preserving recoverable failures. */
-  public static String add(
+  public static void add(
     Plan plan,
     Integer index,
     String identity,
@@ -57,13 +58,12 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
         plan.idsByGroup.put(groupKey, new List<Id>());
       }
       plan.idsByGroup.get(groupKey).add(recordId);
-      return normalizedIdentity;
+      plan.groupKeyByIndex.put(index, groupKey);
     } catch (Exception error) {
       Failure failure = new Failure();
       failure.errorType = 'VALIDATION';
       failure.errorMessage = error.getMessage();
       plan.failuresByIndex.put(index, failure);
-      return normalizedIdentity;
     }
   }
 
@@ -123,6 +123,7 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
     return result;
   }
 
+  @TestVisible
   private static Result stableFailure(
     Exception error,
     SelectionKind selectionKind

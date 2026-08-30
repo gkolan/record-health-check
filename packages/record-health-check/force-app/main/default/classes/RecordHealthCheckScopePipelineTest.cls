@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopePipelineTest {
-  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
+  private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
@@ -11,17 +11,17 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   @IsTest
   static void qualifiedCheckEvaluatesDeduplicatedScopeInInputOrder() {
     Account first = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'First', 'Phone' => '312-555-0100' }
+      new Map<String, Object>{ 'Name' => 'First', 'AnnualRevenue' => 2000000 }
     );
     Account second = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Second', 'Phone' => '312-555-0200' }
+      new Map<String, Object>{ 'Name' => 'Second', 'AnnualRevenue' => 2000000 }
     );
     RecordHealthCheckTestDataFactory.createAccounts(
       new List<Account>{ first, second }
     );
 
     RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
-      RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
       new List<Id>{ second.Id, first.Id, second.Id }
     );
 
@@ -52,7 +52,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       2,
       response.summary.passed,
-      'Both populated phone records should pass.'
+      'Both Accounts above the annual-revenue threshold should pass.'
     );
     Assert.isNull(
       response.results[0].display,
@@ -63,11 +63,14 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   @IsTest
   static void displayModeAddsDisplayWithoutChangingEnvelope() {
     Account account = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Missing Phone' }
+      new Map<String, Object>{
+        'Name' => 'Revenue Below Threshold',
+        'AnnualRevenue' => 500000
+      }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
     RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
-        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
         account.Id
       )
       .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY);
@@ -82,7 +85,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Assert.areEqual(
       RecordHealthCheckStatus.FAIL,
       response.results[0].evaluation.status,
-      'A blank phone should fail.'
+      'Annual revenue below one million should fail.'
     );
     Assert.isNotNull(
       response.results[0].display,
@@ -98,13 +101,13 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   static void summaryModeOmitsPassingItemsButRetainsCounts() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
-        'Name' => 'Passing Phone',
-        'Phone' => '312-555-0300'
+        'Name' => 'Revenue Above Threshold',
+        'AnnualRevenue' => 2000000
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
     RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
-        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
         account.Id
       )
       .withResultMode(RecordHealthCheckResultMode.SUMMARY);
@@ -128,14 +131,15 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'Silent Default',
-        'Phone' => '312-555-0400'
+        'Website' => 'https://silent.example.com',
+        'AnnualRevenue' => 2000000
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);
     Integer beforeDefault = Limits.getDmlStatements();
     RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
-        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
         account.Id
       )
     );
@@ -148,7 +152,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Integer beforeActionable = Limits.getDmlStatements();
     RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
-          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
           account.Id
         )
         .withEventPublication(RecordHealthCheckEventPublication.ACTIONABLE)
@@ -162,7 +166,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Integer beforeAll = Limits.getDmlStatements();
     RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
-          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
           account.Id
         )
         .withEventPublication(RecordHealthCheckEventPublication.ALL)
@@ -197,7 +201,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     try {
       RecordHealthCheck.evaluate(
         RecordHealthCheckRequest.forCheck(
-          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
           contact.Id
         )
       );
@@ -225,24 +229,25 @@ private with sharing class RecordHealthCheckScopePipelineTest {
 
   @IsTest
   static void rejectsScopeLargerThanFrameworkCeilingBeforeEvaluation() {
-    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      1
-    );
     List<Id> oversizedScope = new List<Id>();
     for (
       Integer index = 0;
       index <= RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE;
       index++
     ) {
-      oversizedScope.add(accountId);
+      oversizedScope.add(
+        RecordHealthCheckTestDataFactory.syntheticId(
+          Account.SObjectType,
+          index + 1
+        )
+      );
     }
 
     Test.startTest();
     try {
       RecordHealthCheck.evaluate(
         RecordHealthCheckRequest.forCheck(
-          RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+          RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
           oversizedScope
         )
       );
@@ -254,8 +259,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
       );
       Assert.isTrue(
         error.getMessage()
-          .contains('suppliedCount=' + String.valueOf(oversizedScope.size())),
-        'The error should report the exact supplied record count.'
+          .contains('uniqueCount=' + String.valueOf(oversizedScope.size())),
+        'The error should distinguish the unique workload from the supplied count.'
       );
     }
     Test.stopTest();
@@ -265,7 +270,7 @@ private with sharing class RecordHealthCheckScopePipelineTest {
   static void callerRunIdIsPreservedForEmptyScope() {
     String callerRunId = 'caller-correlation-id';
     RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
-        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
         new List<Id>()
       )
       .withRunId(callerRunId);

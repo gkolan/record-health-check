@@ -16,6 +16,7 @@ public class RecordHealthCheckReasonCodes {
   public static final String FIXED_CURRENCY_BASIS_MISSING = 'FIXED_CURRENCY_BASIS_MISSING';
   public static final String ROW_LIMIT_EXCEEDED = 'ROW_LIMIT_EXCEEDED';
   public static final String SCOPE_ROW_CAP_EXCEEDED = 'SCOPE_ROW_CAP_EXCEEDED';
+  public static final String GOVERNOR_LIMIT_RISK = 'GOVERNOR_LIMIT_RISK';
   public static final String NO_ROWS_RETURNED = 'NO_ROWS_RETURNED';
   public static final String VALUE_IS_EMPTY = 'VALUE_IS_EMPTY';
   public static final String APPLICABILITY_NOT_MET = 'APPLICABILITY_NOT_MET';
@@ -43,6 +44,7 @@ public class RecordHealthCheckReasonCodes {
   public static final String PLUGIN_CONSTRUCTOR_FAILED = 'PLUGIN_CONSTRUCTOR_FAILED';
   public static final String PLUGIN_INTERFACE_INVALID = 'PLUGIN_INTERFACE_INVALID';
   public static final String PLUGIN_STATUS_INVALID = 'PLUGIN_STATUS_INVALID';
+  public static final String PLUGIN_REASON_CODE_INVALID = 'PLUGIN_REASON_CODE_INVALID';
   public static final String PLUGIN_VALUES_MISSING = 'PLUGIN_VALUES_MISSING';
   public static final String PLUGIN_DISPLAY_INVALID = 'PLUGIN_DISPLAY_INVALID';
   public static final String FRAMEWORK_UNEXPECTED = 'FRAMEWORK_UNEXPECTED';

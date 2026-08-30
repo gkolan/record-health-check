@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
+    "contract:org": "npm run build && node ../../scripts/release/verify_mcp_salesforce_contract.mjs",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,md,yaml,yml}\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,md,yaml,yml}\"",
     "lint": "eslint src test",

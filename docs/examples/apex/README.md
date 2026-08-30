@@ -1,4 +1,4 @@
-# Apex examples
+# Apex Check examples
 
 > [!NOTE]
 > On this page, choose an Apex example when a Formula or Query Check cannot express the Salesforce
@@ -18,10 +18,10 @@ It must return one result for every record ID.
 
 | Example | Salesforce question | What the Apex demonstrates | Availability |
 | --- | --- | --- | --- |
-| [Recent Account activity](recent-activity.md) | Does the Account have a recent completed Task or Event? | Reads two objects and accepts a configurable number of days | Included with the installed package |
-| [Open Opportunity health](open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Applies several conditions to each related record | Source example for package development and testing; not installed |
-| [Strategic Account readiness](strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Calculates a score using several configurable values | Source example for package development and testing; not installed |
-| [Inactive approval participants](inactive-approver.md) | Is a pending approval assigned to an inactive user? | Checks optional product objects and reports when they are unavailable | Source example for package development and testing; not installed |
+| [Recent Account activity](./recent-activity.md) | Does the Account have a recent completed Task or Event? | Reads two objects and accepts a configurable number of days | Included with the installed package |
+| [Open Opportunity health](./open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Applies several conditions to each related record | Source example for package development and testing; not installed |
+| [Strategic Account readiness](./strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Calculates a score using several configurable values | Source example for package development and testing; not installed |
+| [Inactive approval participants](./inactive-approver.md) | Is a pending approval assigned to an inactive user? | Checks optional product objects and reports when they are unavailable | Source example for package development and testing; not installed |
 
 Only **Recent Account activity** is ready to use after package installation. The other classes live
 under `packages/record-health-check/integration-tests` and are not installed. Their pages explain
@@ -61,7 +61,7 @@ List<Account> accounts = [
 
 The Apex class must not run SOQL once per record. It also must not perform DML, make callouts, start
 another background job, or publish events. Record Health Check rejects those side effects. The
-[Apex Check contract](../../reference/evaluation/apex-check-contract.md) explains the complete
+[Apex Check contract](../../developer-guides/write-an-apex-check.md) explains the complete
 interface, security rules, result values, and tests.
 
 ## When Apex is the right choice
@@ -71,11 +71,11 @@ requirement clearly. Apex is useful for calculations, reading several Salesforce
 handling an optional installed product. It also requires a developer to create, secure, test, and
 deploy the class.
 
-Start with [Recent Account activity](recent-activity.md) for the complete, installed example. It
+Start with [Recent Account activity](./recent-activity.md) for the complete, installed example. It
 shows the class, its test behavior, every Check field, and what an administrator sees.
 
 ## Related
 
 - [All practical examples](../README.md)
-- [Reference: Apex](../../reference/evaluation/apex-check-contract.md)
-- [Check fields](../../metadata/fields-check.md)
+- [Reference: Apex](../../developer-guides/write-an-apex-check.md)
+- [Check fields](../../reference/custom-metadata/check-fields.md)

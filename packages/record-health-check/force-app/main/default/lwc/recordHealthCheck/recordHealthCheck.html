@@ -202,7 +202,7 @@
           <ul class="rhc-list" role="list">
             <template for:each={visibleChecks} for:item="check">
               <li
-                key={check.developerName}
+                key={check.qualifiedApiName}
                 class={check.rowClass}
                 aria-label={check.accessibleLabel}
                 data-tooltip={check.description}
@@ -239,7 +239,7 @@
                         type="button"
                         class={check.caretClass}
                         onclick={handleToggleDetail}
-                        data-check={check.developerName}
+                        data-check={check.qualifiedApiName}
                         aria-expanded={check.caretExpanded}
                         aria-label={check.caretLabel}
                         title={check.caretLabel}

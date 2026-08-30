@@ -4,29 +4,28 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-  <label>Diagnostic - Formula Null Relationship</label><protected
-  >false</protected>
+  <label>Diagnostic - Missing Parent Field</label><protected>false</protected>
   <values><field>Record_Health_Check_Set__c</field><value
       xsi:type="xsd:string"
     >RHC_Diagnostic_Bad_Formula</value></values>
   <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Null Parent Relationship</value></values>
+    >Missing Parent Relationship Field</value></values>
   <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >Run against an Account without ParentId to exercise null relationship diagnosis.</value></values>
+    >References a missing field through Parent to exercise relationship-field diagnosis.</value></values>
   <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>
   <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >Parent.Name = &quot;Required Parent&quot;</value></values>
+    >Parent.RHC_Missing_Field__c = &quot;Required Parent&quot;</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
   <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >This fixture must not produce a business verdict.</value></values>
+    >This broken relationship-field fixture must not produce a business verdict.</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
     >30</value></values>

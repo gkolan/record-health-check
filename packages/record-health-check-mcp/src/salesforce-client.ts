@@ -22,8 +22,24 @@ const tokenSchema = z
     expires_in: z.coerce.number().int().positive().optional()
   })
   .passthrough();
+const salesforceRestErrorSchema = z
+  .array(
+    z
+      .object({
+        errorCode: z.string().min(1).max(120),
+        message: z.string().min(1).max(1000)
+      })
+      .passthrough()
+  )
+  .min(1)
+  .max(25);
 
-type Token = { accessToken: string; instanceUrl: URL; expiresAt: number };
+type Token = {
+  accessToken: string;
+  instanceUrl: URL;
+  expiresAt: number;
+  generation: number;
+};
 type EvaluationRequest = {
   operation: Operation;
   recordId: string;
@@ -34,6 +50,7 @@ type EvaluationRequest = {
 export class SalesforceClient {
   private token: Token | undefined;
   private tokenPromise: Promise<Token> | undefined;
+  private tokenGeneration = 0;
   private readonly limiter: ConcurrencyLimiter;
 
   constructor(
@@ -59,13 +76,10 @@ export class SalesforceClient {
   }
 
   private async execute(input: EvaluationRequest): Promise<AgentToolResponse> {
-    let refreshed = false;
-    for (
-      let attempt = 0;
-      attempt <= this.config.salesforce.maxRetries;
-      attempt += 1
-    ) {
-      const token = await this.getToken(refreshed);
+    let authRefreshed = false;
+    let retryCount = 0;
+    while (true) {
+      const token = await this.getToken();
       const target = new URL(
         this.config.salesforce.restPath,
         token.instanceUrl
@@ -81,27 +95,43 @@ export class SalesforceClient {
         },
         body: JSON.stringify(input)
       });
-      if (response.status === 401 && !refreshed) {
-        this.token = undefined;
-        refreshed = true;
+      if (response.status === 401 && !authRefreshed) {
+        await this.discardResponse(response);
+        await this.refreshToken(token.generation);
+        authRefreshed = true;
         continue;
       }
       if (
         [429, 502, 503, 504].includes(response.status) &&
-        attempt < this.config.salesforce.maxRetries
+        retryCount < this.config.salesforce.maxRetries
       ) {
+        await this.discardResponse(response);
+        retryCount += 1;
         this.logger.log("warn", "Salesforce request will be retried.", {
           httpStatus: response.status,
-          retryCount: attempt + 1,
+          retryCount,
           operation: input.operation,
           ...(input.correlationId ? { correlationId: input.correlationId } : {})
         });
-        await delay(Math.min(100 * 2 ** attempt, 500));
+        await delay(Math.min(100 * 2 ** (retryCount - 1), 500));
         continue;
       }
       const body = await this.readBoundedJson(response);
       const parsed = agentToolResponseSchema.safeParse(body);
       if (!parsed.success) {
+        const salesforceErrors = salesforceRestErrorSchema.safeParse(body);
+        if (
+          salesforceErrors.success &&
+          salesforceErrors.data.some(
+            (error) => error.errorCode === "REQUEST_LIMIT_EXCEEDED"
+          )
+        ) {
+          throw new ServiceError(
+            "UPSTREAM_LIMIT",
+            "Salesforce is at its request limit.",
+            503
+          );
+        }
         if ([401, 403].includes(response.status)) {
           throw new ServiceError(
             "SALESFORCE_AUTH",
@@ -138,21 +168,12 @@ export class SalesforceClient {
       }
       return parsed.data;
     }
-    throw new ServiceError(
-      "UPSTREAM_UNAVAILABLE",
-      "Salesforce is temporarily unavailable.",
-      503
-    );
   }
 
-  private async getToken(forceRefresh: boolean): Promise<Token> {
-    if (
-      !forceRefresh &&
-      this.token &&
-      this.token.expiresAt - 60_000 > Date.now()
-    )
+  private async getToken(): Promise<Token> {
+    if (this.token && this.token.expiresAt - 60_000 > Date.now())
       return this.token;
-    if (!forceRefresh && this.tokenPromise) return this.tokenPromise;
+    if (this.tokenPromise) return this.tokenPromise;
     this.tokenPromise = this.fetchToken();
     try {
       this.token = await this.tokenPromise;
@@ -160,6 +181,14 @@ export class SalesforceClient {
     } finally {
       this.tokenPromise = undefined;
     }
+  }
+
+  private async refreshToken(staleGeneration: number): Promise<Token> {
+    if (this.token && this.token.generation !== staleGeneration) {
+      return this.token;
+    }
+    this.token = undefined;
+    return this.getToken();
   }
 
   private async fetchToken(): Promise<Token> {
@@ -202,7 +231,8 @@ export class SalesforceClient {
     return {
       accessToken: parsed.data.access_token,
       instanceUrl,
-      expiresAt: Date.now() + (parsed.data.expires_in ?? 900) * 1000
+      expiresAt: Date.now() + (parsed.data.expires_in ?? 900) * 1000,
+      generation: ++this.tokenGeneration
     };
   }
 
@@ -230,13 +260,30 @@ export class SalesforceClient {
         502
       );
     }
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength > this.config.salesforce.maxResponseBytes) {
-      throw new ServiceError(
-        "UPSTREAM_LIMIT",
-        "Salesforce response exceeded the size limit.",
-        502
-      );
+    const reader = response.body?.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        if (total > this.config.salesforce.maxResponseBytes) {
+          await reader.cancel();
+          throw new ServiceError(
+            "UPSTREAM_LIMIT",
+            "Salesforce response exceeded the size limit.",
+            502
+          );
+        }
+        chunks.push(value);
+      }
+    }
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
     }
     try {
       return JSON.parse(new TextDecoder().decode(bytes));
@@ -246,6 +293,14 @@ export class SalesforceClient {
         "Salesforce returned invalid JSON.",
         502
       );
+    }
+  }
+
+  private async discardResponse(response: Response): Promise<void> {
+    try {
+      await response.body?.cancel();
+    } catch {
+      // Response cleanup must never hide the upstream status being handled.
     }
   }
 

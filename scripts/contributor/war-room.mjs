@@ -35,6 +35,38 @@ const integrationMetadataDirectories = fs
 
 console.log(`Record Health Check war room: ${values.alias}`);
 
+if (values.deploy) {
+  sf(
+    "project",
+    "deploy",
+    "start",
+    "--source-dir",
+    "force-app",
+    "--target-org",
+    values.alias,
+    "--ignore-conflicts",
+    "--wait",
+    "30"
+  );
+  sf(
+    "project",
+    "deploy",
+    "start",
+    ...integrationMetadataDirectories.flatMap((directory) => [
+      "--source-dir",
+      directory
+    ]),
+    "--target-org",
+    values.alias,
+    "--ignore-conflicts",
+    "--wait",
+    "30"
+  );
+}
+
+// Detect packaging only after an optional deploy. A fresh namespaced org has
+// no ApexClass row before deployment and would otherwise silently skip the
+// restricted-persona gate.
 const deployedCoreClass = runJson(
   "sf",
   [
@@ -57,33 +89,6 @@ const negativeClasses = configuredNegativeClasses.filter(
 if (!namespacePrefix) {
   console.log(
     "No namespace detected; the namespaced-only restricted-persona fixture is skipped."
-  );
-}
-
-if (values.deploy) {
-  sf(
-    "project",
-    "deploy",
-    "start",
-    "--source-dir",
-    "force-app",
-    "--target-org",
-    values.alias,
-    "--wait",
-    "30"
-  );
-  sf(
-    "project",
-    "deploy",
-    "start",
-    ...integrationMetadataDirectories.flatMap((directory) => [
-      "--source-dir",
-      directory
-    ]),
-    "--target-org",
-    values.alias,
-    "--wait",
-    "30"
   );
 }
 

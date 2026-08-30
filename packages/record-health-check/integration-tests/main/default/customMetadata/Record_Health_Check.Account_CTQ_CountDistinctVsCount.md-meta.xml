@@ -20,7 +20,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Compare two queries with COUNT(DISTINCT MailingCity) on the source side and COUNT() on the comparison side. Distinct values can never exceed total row count.</value>
+    >Compare two queries with COUNT_DISTINCT(MailingCity) on the source side and COUNT() on the comparison side. Distinct values can never exceed total row count.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -30,7 +30,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT COUNT(DISTINCT MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
+    >SELECT COUNT_DISTINCT(MailingCity) distinctCities FROM Contact WHERE AccountId = {!record.Id} AND MailingCity != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>

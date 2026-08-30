@@ -9,7 +9,7 @@ configuration. Every Check is intentionally broken. Never deploy this directory 
 | ---------------------------- | ------------------------------- | --------------- | ------------------------- | -------------------- |
 | `RHC_Diagnostic_Bad_Formula` | `RHC_Diag_Formula_Missing`      | Unable          | `INVALID_FORMULA`         | `FORMULA`            |
 |                              | `RHC_Diag_Formula_Syntax`       | Unable          | `INVALID_FORMULA`         | `FORMULA`            |
-|                              | `RHC_Diag_Formula_Null_Rel`     | Unable          | `FIELD_NOT_RESOLVED`      | `FORMULA`            |
+|                              | `RHC_Diag_Formula_Null_Rel`¹    | Unable          | `FIELD_NOT_RESOLVED`      | `FORMULA`            |
 | `RHC_Diagnostic_Bad_Query`   | `RHC_Diag_Query_Missing_Object` | Unable          | `OBJECT_NOT_RESOLVED`     | `QUERY`              |
 |                              | `RHC_Diag_Query_Missing_Field`  | Unable          | `FIELD_NOT_RESOLVED`      | `QUERY`              |
 |                              | `RHC_Diag_Query_Bad_Token`      | Unable          | `INVALID_CONFIG`          | `QUERY`              |
@@ -17,16 +17,19 @@ configuration. Every Check is intentionally broken. Never deploy this directory 
 |                              | `RHC_Diag_Query_Max_Rows`       | Unable          | `GOVERNOR_LIMIT_RISK`     | `QUERY`              |
 |                              | `RHC_Diag_Compare_Missing`      | Unable          | `INVALID_SOQL_TEMPLATE`   | `QUERY`              |
 | `RHC_Diagnostic_Bad_Apex`    | `RHC_Diag_Apex_Missing_Class`   | Unable          | `APEX_CLASS_NOT_FOUND`    | `APEX_CONFIGURATION` |
-|                              | `RHC_Diag_Apex_Wrong_Interface` | Unable          | `APEX_CLASS_NOT_FOUND`¹   | `APEX_CONFIGURATION` |
+|                              | `RHC_Diag_Apex_Wrong_Interface` | Unable          | `APEX_CLASS_NOT_FOUND`²   | `APEX_CONFIGURATION` |
 |                              | `RHC_Diag_Apex_Bad_Json`        | Unable          | `INVALID_APEX_PARAMETERS` | `APEX_CONFIGURATION` |
-|                              | `RHC_Diag_Apex_Constructor`     | Unable          | `APEX_CLASS_NOT_FOUND`¹   | `APEX_CONFIGURATION` |
+|                              | `RHC_Diag_Apex_Constructor`     | Unable          | `APEX_CLASS_NOT_FOUND`²   | `APEX_CONFIGURATION` |
 |                              | `RHC_Diag_Apex_Throws`          | System Error    | `PLUGIN_THREW`            | `APEX_EXCEPTION`     |
 |                              | `RHC_Diag_Apex_Missing_Result`  | System Error    | `PLUGIN_RESULT_MISSING`   | `APEX_CONTRACT`      |
 
 `RHCDiagnosticBadConfigurationTest` asserts every row above, including a nonblank Diagnostic ID,
 plain-language summary, and recommended action. It is included in `RHC_Negative_Conformance`.
 
-¹ Current configuration preflight collapses wrong-interface and constructor-failure classes to
+¹ The retained API name predates relationship-field planning. The fixture now references a missing
+field through `Parent` so it remains a deterministic relationship-path configuration failure.
+
+² Current configuration preflight collapses wrong-interface and constructor-failure classes to
 `APEX_CLASS_NOT_FOUND` before the plugin resolver can return `PLUGIN_INTERFACE_INVALID` or
 `PLUGIN_CONSTRUCTOR_FAILED`. These fixtures lock down that limitation so a future classification
 fix can update the test and runbook together.

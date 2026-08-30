@@ -30,7 +30,7 @@ private class RHCSubscriberSmokeTest {
     );
 
     String checkSetName = RHCSubscriberTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
     Account accountRecord = RHCSubscriberTestDataFactory.createAccount(
       'Subscriber Smoke Account'
@@ -91,7 +91,8 @@ private class RHCSubscriberSmokeTest {
       FROM rhc__Record_Health_Check_Set__mdt
       WHERE
         DeveloperName IN (
-          'Example_Account_Profile_Readiness',
+          'Example_Account_Check_Builder_Guide',
+          'Example_Account_Relationship_Risk',
           'Subscriber_Smoke_Extension'
         )
     ];
@@ -101,8 +102,12 @@ private class RHCSubscriberSmokeTest {
     }
 
     System.assert(
-      checkSetsByName.containsKey('Example_Account_Profile_Readiness'),
-      'Packaged Demo Check Sets must remain available after subscriber metadata deploy.'
+      checkSetsByName.containsKey('Example_Account_Check_Builder_Guide'),
+      'The packaged Account Check Builder Guide must remain available after subscriber metadata deploy.'
+    );
+    System.assert(
+      checkSetsByName.containsKey('Example_Account_Relationship_Risk'),
+      'The original Account Relationship & Risk Check Set must remain available after subscriber metadata deploy.'
     );
     System.assert(
       checkSetsByName.containsKey('Subscriber_Smoke_Extension'),

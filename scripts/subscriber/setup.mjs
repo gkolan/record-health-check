@@ -68,8 +68,8 @@ function main() {
 
   const releases = readPackageReleases();
   const packageVersionId = stablePackageVersionId(releases);
-  const adminPermset = namespacedPermissionSet(
-    releases.permissionSets.admin,
+  const cardUserPermset = namespacedPermissionSet(
+    releases.permissionSets.card,
     releases
   );
 
@@ -141,13 +141,13 @@ function main() {
     process.exit(1);
   }
 
-  console.log(`Assigning ${adminPermset}...`);
+  console.log(`Assigning ${cardUserPermset} for the everyday-user demo...`);
   run("sf", [
     "org",
     "assign",
     "permset",
     "--name",
-    adminPermset,
+    cardUserPermset,
     "--target-org",
     options.alias
   ]);
@@ -179,11 +179,7 @@ function main() {
   ]);
 
   if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
-    for (const script of [
-      "setupDemoUser.apex",
-      "setupDemoData.apex",
-      "deactivateDemoUser.apex"
-    ]) {
+    for (const script of ["setupDemoData.apex"]) {
       console.log(`Running demo lifecycle step ${script}...`);
       run("sf", [
         "apex",
@@ -194,6 +190,15 @@ function main() {
         `${paths.subscriberData}/${script}`
       ]);
     }
+    console.log("Verifying deterministic demo data and Check outcomes...");
+    run("sf", [
+      "apex",
+      "run",
+      "--target-org",
+      options.alias,
+      "--file",
+      `${paths.subscriberData}/verifyDemo.apex`
+    ]);
   }
 
   console.log("Running subscriber smoke tests...");

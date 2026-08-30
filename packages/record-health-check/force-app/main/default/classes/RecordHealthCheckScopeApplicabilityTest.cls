@@ -3,7 +3,7 @@
  */
 @IsTest
 private with sharing class RecordHealthCheckScopeApplicabilityTest {
-  private static final String PHONE_CHECK = 'Example_Profile_Phone_Available';
+  private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
@@ -34,7 +34,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.startTest();
     RecordHealthCheckResponse emptyResponse = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
-        RecordHealthCheckTestDataFactory.qualifiedCheckName(PHONE_CHECK),
+        RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
         new List<Id>()
       )
     );
@@ -321,7 +321,7 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
   }
 
   @IsTest
-  static void compareCheckUsesNoRowsBehaviorWhenCountThresholdIsNotMet() {
+  static void compareCheckSkipsWhenCountThresholdIsNotMet() {
     Account account = RecordHealthCheckTestDataFactory.createAccount(
       'Compare applicability below threshold'
     );
@@ -344,14 +344,14 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     Test.stopTest();
 
     Assert.areEqual(
-      RecordHealthCheckStatus.FAIL,
+      RecordHealthCheckStatus.SKIPPED,
       results.get(account.Id).status,
-      'A compare Check should apply its configured no-rows behavior when the threshold is not met.'
+      'A compare Check should skip when its applicability threshold is not met.'
     );
     Assert.areEqual(
-      'No applicable rows.',
-      results.get(account.Id).message,
-      'The configured no-rows failure message should be preserved.'
+      RecordHealthCheckReasonCodes.NOT_APPLICABLE_BY_COUNT,
+      results.get(account.Id).reasonCode,
+      'Count applicability should use the documented not-applicable reason.'
     );
   }
 

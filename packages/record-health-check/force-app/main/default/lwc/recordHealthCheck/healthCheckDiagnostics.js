@@ -110,8 +110,12 @@ export function componentErrorPresentation(
   canViewDiagnostics = false,
   diagnosticCode = null
 ) {
-  const presentation =
-    COMPONENT_ERROR_PRESENTATIONS[reasonCode] || DEFAULT_COMPONENT_ERROR;
+  const presentation = Object.prototype.hasOwnProperty.call(
+    COMPONENT_ERROR_PRESENTATIONS,
+    reasonCode
+  )
+    ? COMPONENT_ERROR_PRESENTATIONS[reasonCode]
+    : DEFAULT_COMPONENT_ERROR;
   return {
     reasonCode: reasonCode || "LOAD_FAILED",
     title: presentation.title,

@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Compliance - Consented Reachable Contact</label>
+    <label>Compliance - Reachable Contact</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -18,7 +18,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Marketing consent audit: at least one contact with email and HasOptedOutOfEmail=false. SOQL applicability skips accounts with no contacts.</value>
+    >Reachability audit: at least one contact has an email address without a recorded bounce. SOQL applicability skips accounts with no contacts.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -28,7 +28,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND Email != null AND HasOptedOutOfEmail = false</value>
+    >SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND Email != null AND EmailBouncedDate = null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
@@ -54,13 +54,13 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name} has contacts, but none have a valid email with marketing consent. Do not include this account in email campaigns.</value>
+    >{!record.Name} has contacts, but none have an email address without a recorded bounce.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Could not verify marketing consent on contacts. Contact your administrator.</value>
+    >Could not verify contact email reachability. Contact your administrator.</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>

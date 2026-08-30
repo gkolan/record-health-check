@@ -77,6 +77,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
     List<Record_Health_Check__mdt> allChecks = [
       SELECT
         DeveloperName,
+        QualifiedApiName,
         MasterLabel,
         CheckTitle__c,
         EvaluationOrder__c,
@@ -171,15 +172,12 @@ public with sharing class RecordHealthCheckMetadataValidator {
 
     // Group checks by Check Set for dependency validation
     Map<String, List<Record_Health_Check__mdt>> checksByCheckSet = new Map<String, List<Record_Health_Check__mdt>>();
-    Map<String, Record_Health_Check__mdt> checksByDevName = new Map<String, Record_Health_Check__mdt>();
-
     for (Record_Health_Check__mdt check : allChecks) {
       String csName = String.valueOf(check.Record_Health_Check_Set__c);
       if (!checksByCheckSet.containsKey(csName)) {
         checksByCheckSet.put(csName, new List<Record_Health_Check__mdt>());
       }
       checksByCheckSet.get(csName).add(check);
-      checksByDevName.put(check.DeveloperName, check);
       issues.addAll(validateCheck(check));
       if (
         check.PublishUserResultEvent__c == true &&
@@ -218,7 +216,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
           i < RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
           i++
         ) {
-          included.add(setChecks[i].DeveloperName);
+          included.add(identityOf(setChecks[i]));
         }
         for (
           Integer i = 0;
@@ -228,7 +226,9 @@ public with sharing class RecordHealthCheckMetadataValidator {
           Record_Health_Check__mdt includedCheck = setChecks[i];
           if (
             String.isNotBlank(includedCheck.PrerequisiteCheck__c) &&
-            !included.contains(includedCheck.PrerequisiteCheck__c.trim())
+            !included.contains(
+              RHCDefinitionDependencyIdentity.resolve(includedCheck, setChecks)
+            )
           ) {
             issues.add(
               new ValidationIssue(
@@ -244,13 +244,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
           }
         }
       }
-      issues.addAll(
-        RHCMetadataDependencyValidator.validate(
-          csName,
-          setChecks,
-          checksByDevName
-        )
-      );
+      issues.addAll(RHCMetadataDependencyValidator.validate(csName, setChecks));
     }
 
     return issues;
@@ -438,6 +432,12 @@ public with sharing class RecordHealthCheckMetadataValidator {
     );
 
     return issues;
+  }
+
+  private static String identityOf(Record_Health_Check__mdt check) {
+    return String.isBlank(check.QualifiedApiName)
+      ? check.DeveloperName
+      : check.QualifiedApiName;
   }
 
   // ─── Dependency graph validation is delegated to RHCMetadataDependencyValidator. ───

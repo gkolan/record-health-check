@@ -91,6 +91,147 @@ const projectMarkdownFiles = [
     .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
     .map((entry) => path.join(root, entry.name))
 ];
+const supplementalDocumentationFiles = [
+  path.join(root, ".github/CONTRIBUTING.md"),
+  path.join(root, ".github/ISSUE_TEMPLATE/bug_report.yml"),
+  path.join(root, "packages/record-health-check-mcp/README.md"),
+  path.join(root, "packages/record-health-check/integration-tests/README.md")
+];
+
+const documentationContractSources = [
+  ...projectMarkdownFiles,
+  ...supplementalDocumentationFiles
+];
+for (const file of documentationContractSources) {
+  const source = fs.readFileSync(file, "utf8");
+  const relativeFile = path.relative(root, file);
+  for (const [obsolete, replacement] of [
+    [
+      "docs/guides/troubleshoot-with-show-diagnostics.md",
+      "docs/diagnostics/browser-console.md"
+    ],
+    ["rhc__Account_Data_Quality", "rhc__Example_Account_Check_Builder_Guide"],
+    ["VALUE_MISSING", "VALUE_IS_EMPTY"],
+    ["retained for compatibility", "the exact day-one contract meaning"],
+    ["retained for existing plugins", "the exact day-one contract meaning"],
+    ["legacy DeveloperName", "unqualified DeveloperName"]
+  ]) {
+    if (source.includes(obsolete)) {
+      failures.push(
+        `${relativeFile}: replace obsolete documentation value ${obsolete} with ${replacement}`
+      );
+    }
+  }
+}
+
+const packagedMetadataIdentities = new Set();
+for (const directory of [
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/customMetadata"
+  )
+]) {
+  for (const name of fs.readdirSync(directory)) {
+    const developerName = name.match(
+      /^Record_Health_Check(?:_Set)?\.([^.]+)\.md-meta\.xml$/
+    )?.[1];
+    if (developerName) packagedMetadataIdentities.add(`rhc__${developerName}`);
+  }
+}
+for (const file of documentationContractSources) {
+  const source = fs.readFileSync(file, "utf8");
+  for (const match of source.matchAll(/\brhc__Example_[A-Za-z0-9_]+\b/g)) {
+    if (!packagedMetadataIdentities.has(match[0])) {
+      failures.push(
+        `${path.relative(root, file)}: ${match[0]} is not shipped package metadata`
+      );
+    }
+  }
+}
+
+const permissionSetDirectory = path.join(
+  root,
+  "packages/record-health-check/force-app/main/default/permissionsets"
+);
+const permissionSetCount = fs
+  .readdirSync(permissionSetDirectory)
+  .filter((name) => name.endsWith(".permissionset-meta.xml")).length;
+const countWords = [
+  "Zero",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten"
+];
+const frameworkDocumentation = fs.readFileSync(
+  path.join(docsRoot, "architecture/framework.md"),
+  "utf8"
+);
+if (
+  !frameworkDocumentation.includes(
+    `${countWords[permissionSetCount] || permissionSetCount} Permission Sets`
+  )
+) {
+  failures.push(
+    `docs/architecture/framework.md: permission-set inventory must report ${permissionSetCount}`
+  );
+}
+
+const reasonCodeSource = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckReasonCodes.cls"
+  ),
+  "utf8"
+);
+const reasonCodeReference = fs.readFileSync(
+  path.join(docsRoot, "reference/results/reason-codes.md"),
+  "utf8"
+);
+const restApiReference = fs.readFileSync(
+  path.join(
+    docsRoot,
+    "developer-guides/agentforce-and-mcp/agent-tool-rest-api.md"
+  ),
+  "utf8"
+);
+for (const match of restApiReference.matchAll(
+  /"reasonCode":\s*"([A-Z0-9_]+)"/g
+)) {
+  if (!reasonCodeSource.includes(`= '${match[1]}'`)) {
+    failures.push(
+      `docs/developer-guides/agentforce-and-mcp/agent-tool-rest-api.md: sample reason code ${match[1]} is not a runtime constant`
+    );
+  }
+}
+for (const match of reasonCodeSource.matchAll(
+  /public static final String ([A-Z0-9_]+)\s*=/g
+)) {
+  if (!reasonCodeReference.includes(`\`${match[1]}\``)) {
+    failures.push(
+      `docs/reference/results/reason-codes.md: missing runtime reason code ${match[1]}`
+    );
+  }
+}
+
+for (const relativeFile of [
+  "packages/record-health-check-mcp/README.md",
+  "docs/developer-guides/agentforce-and-mcp/agent-tool-rest-api.md",
+  "docs/developer-guides/agentforce-and-mcp/deploy-mcp-service.md"
+]) {
+  const source = fs.readFileSync(path.join(root, relativeFile), "utf8");
+  if (!source.includes("Record Health Check MCP Integration")) {
+    failures.push(
+      `${relativeFile}: dedicated MCP access must name Record Health Check MCP Integration`
+    );
+  }
+}
 
 // The README framework snapshot is intentionally concise, but its inventory
 // values must remain derived from the shipped source. Structural and link
@@ -208,9 +349,15 @@ for (const file of projectMarkdownFiles) {
       );
     }
   }
+  const isFieldReference = [
+    path.join(docsRoot, "reference/custom-metadata/check-fields.md"),
+    path.join(docsRoot, "reference/custom-metadata/check-set-fields.md"),
+    path.join(docsRoot, "reference/platform-event-metadata/check-result.md"),
+    path.join(docsRoot, "reference/platform-event-metadata/error-log.md"),
+    path.join(docsRoot, "reference/platform-event-metadata/check-set-run.md")
+  ].includes(file);
   const isPlainLanguageSource =
-    file.startsWith(`${docsRoot}${path.sep}`) &&
-    !file.startsWith(path.join(docsRoot, "metadata") + path.sep);
+    file.startsWith(`${docsRoot}${path.sep}`) && !isFieldReference;
   if (isPlainLanguageSource) {
     for (const avoided of plainLanguageAvoidList) {
       const pattern = new RegExp(
@@ -228,8 +375,8 @@ for (const file of projectMarkdownFiles) {
 
 const canonicalFieldAnchors = new Map();
 for (const reference of [
-  path.join(docsRoot, "metadata/fields-check.md"),
-  path.join(docsRoot, "metadata/fields-check-set.md")
+  path.join(docsRoot, "reference/custom-metadata/check-fields.md"),
+  path.join(docsRoot, "reference/custom-metadata/check-set-fields.md")
 ]) {
   const markdown = fs.readFileSync(reference, "utf8");
   for (const match of markdown.matchAll(/^###\s+.+\s+\(`([^`]+)`\)$/gm)) {
@@ -242,20 +389,19 @@ for (const reference of [
 
 for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
   const examplesDirectory = path.join(docsRoot, "examples", folder);
-  const evaluationReferenceName =
-    folder === "formula"
-      ? "formula.md"
-      : folder === "query"
-        ? "query.md"
-        : folder === "compare-two-queries"
-          ? "compare-two-queries.md"
-          : "apex-check-contract.md";
-  const reference = path.join(
-    docsRoot,
-    "reference",
-    "evaluation",
-    evaluationReferenceName
-  );
+  const reference =
+    folder === "apex"
+      ? path.join(docsRoot, "developer-guides/write-an-apex-check.md")
+      : path.join(
+          docsRoot,
+          "reference",
+          "evaluation",
+          folder === "formula"
+            ? "formula.md"
+            : folder === "query"
+              ? "query.md"
+              : "compare-two-queries.md"
+        );
   if (!fs.existsSync(reference))
     failures.push(`missing ${folder} reference page`);
 
@@ -267,10 +413,15 @@ for (const folder of ["formula", "query", "compare-two-queries", "apex"]) {
 }
 
 for (const [objectName, referenceName] of [
-  ["Record_Health_Check__mdt", "fields-check.md"],
-  ["Record_Health_Check_Set__mdt", "fields-check-set.md"]
+  ["Record_Health_Check__mdt", "check-fields.md"],
+  ["Record_Health_Check_Set__mdt", "check-set-fields.md"]
 ]) {
-  const reference = path.join(docsRoot, "metadata", referenceName);
+  const reference = path.join(
+    docsRoot,
+    "reference",
+    "custom-metadata",
+    referenceName
+  );
   const fieldsDirectory = path.join(
     root,
     "packages/record-health-check/force-app/main/default/objects",
@@ -286,12 +437,12 @@ for (const [objectName, referenceName] of [
 }
 
 for (const [eventName, referenceName] of [
-  ["Record_Health_Check_Set_Run__e", "event-set-run.md"],
-  ["Record_Health_Check_Result__e", "event-check-result.md"],
-  ["Record_Health_Check_Log__e", "event-log.md"]
+  ["Record_Health_Check_Set_Run__e", "check-set-run.md"],
+  ["Record_Health_Check_Result__e", "check-result.md"],
+  ["Record_Health_Check_Log__e", "error-log.md"]
 ]) {
   const eventReference = fs.readFileSync(
-    path.join(docsRoot, "metadata", referenceName),
+    path.join(docsRoot, "reference", "platform-event-metadata", referenceName),
     "utf8"
   );
   const fieldsDirectory = path.join(
@@ -334,7 +485,11 @@ const productionApexClasses = fs
     return !/@IsTest\b/i.test(source);
   })
   .map((name) => name.replace(/\.cls$/, ""));
-const apexReferenceDirectory = path.join(docsRoot, "reference", "apex");
+const apexReferenceDirectory = path.join(
+  docsRoot,
+  "architecture",
+  "apex-implementation"
+);
 const apexReferenceHeadings = fs
   .readdirSync(apexReferenceDirectory)
   .filter((name) => name.endsWith(".md"))
@@ -351,7 +506,7 @@ for (const apexClass of productionApexClasses) {
     )
   ) {
     failures.push(
-      `reference/apex/: missing detailed production Apex class entry ${apexClass}`
+      `architecture/apex-implementation/: missing detailed production Apex class entry ${apexClass}`
     );
   }
 }
@@ -411,73 +566,37 @@ for (const file of markdownFiles) {
     }
   }
 
-  if (/metadata\/(check-fields|check-set)\.md$/.test(file)) {
+  if (
+    /reference\/custom-metadata\/(check-fields|check-set-fields)\.md$/.test(
+      file
+    )
+  ) {
     const sections = markdown.split(/^###\s+/m).slice(1);
-    const requiredAttributes = [
-      "Setup label",
-      "API name",
-      "Type",
-      "Capacity",
-      "Always required",
-      "Default",
-      "Used when",
-      "Description",
-      "Help text",
-      "Allowed values"
-    ];
     for (const section of sections) {
       const heading = section.split(/\r?\n/, 1)[0];
-      for (const attribute of requiredAttributes) {
-        if (
-          !new RegExp(
-            `^\\| ${attribute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\|`,
-            "m"
-          ).test(section)
-        ) {
-          failures.push(`${relativeFile}: ${heading} missing ${attribute}`);
-        }
+      const api = heading.match(/\(`([^`]+)`\)$/)?.[1];
+      if (!api && heading !== "Label and Developer Name") {
+        failures.push(`${relativeFile}: ${heading} missing API name`);
       }
-      const type = section.match(/^\| Type \| ([^|]+) \|/m)?.[1]?.trim();
-      if (
-        /^(Picklist|Checkbox)$/.test(type || "") &&
-        /^\| Examples? \|/m.test(section)
-      ) {
+      const fieldWordCount = section
+        .replace(/```[\s\S]*?```/g, "")
+        .replace(/[`*_>#\[\]()]/g, " ")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+      if (fieldWordCount < 12) {
         failures.push(
-          `${relativeFile}: ${heading} duplicates allowed values as an example`
+          `${relativeFile}: ${heading} needs substantive field guidance`
         );
       }
-      if (type === "Picklist") {
-        const allowed =
-          section.match(/^\| Allowed values \| (.+) \|/m)?.[1] || "";
-        if (!/\*\*.+\*\*: `.+`/.test(allowed))
-          failures.push(
-            `${relativeFile}: ${heading} picklist values need labels and API values`
-          );
-        const defaultValue =
-          section.match(/^\| Default \| (.+) \|/m)?.[1] || "";
-        if (
-          defaultValue !== "No default" &&
-          !/\*\*.+\*\*: `.+`/.test(defaultValue)
+      if (
+        !/\b(?:required|optional|default|select|choose|enter|use|leave|clear|controls?|identifies?|stores?|shows?|publishes?)\b/i.test(
+          section
         )
-          failures.push(
-            `${relativeFile}: ${heading} picklist default needs label and API value`
-          );
-      }
-      if (type === "Checkbox") {
-        const allowed =
-          section.match(/^\| Allowed values \| (.+) \|/m)?.[1] || "";
-        if (
-          !/\*\*Checked\*\*: `true`.*\*\*Unchecked\*\*: `false`/.test(allowed)
-        )
-          failures.push(
-            `${relativeFile}: ${heading} checkbox values need labels and Boolean values`
-          );
-        const defaultValue =
-          section.match(/^\| Default \| (.+) \|/m)?.[1] || "";
-        if (!/\*\*(Checked|Unchecked)\*\*: `(true|false)`/.test(defaultValue))
-          failures.push(
-            `${relativeFile}: ${heading} checkbox default needs label and Boolean value`
-          );
+      ) {
+        failures.push(
+          `${relativeFile}: ${heading} needs usage or default guidance`
+        );
       }
     }
   }
@@ -587,6 +706,46 @@ for (const file of markdownFiles) {
       if (!targetHeadings.has(anchor.toLowerCase())) {
         failures.push(`${relativeFile}: missing heading anchor ${link}`);
       }
+    }
+  }
+}
+
+for (const file of supplementalDocumentationFiles.filter((candidate) =>
+  candidate.endsWith(".md")
+)) {
+  const markdown = fs.readFileSync(file, "utf8");
+  const relativeFile = path.relative(root, file);
+  for (const match of markdown.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
+    const link = match[1];
+    if (/^(https?:|mailto:)/.test(link)) continue;
+    const [relativeTarget, anchor] = link.split("#");
+    const target = path.resolve(
+      path.dirname(file),
+      relativeTarget || path.basename(file)
+    );
+    if (!fs.existsSync(target)) {
+      failures.push(`${relativeFile}: missing local target ${link}`);
+      continue;
+    }
+    if (anchor && target.endsWith(".md")) {
+      const targetHeadings = headings(fs.readFileSync(target, "utf8"));
+      if (!targetHeadings.has(anchor.toLowerCase())) {
+        failures.push(`${relativeFile}: missing heading anchor ${link}`);
+      }
+    }
+  }
+}
+
+for (const file of supplementalDocumentationFiles) {
+  const source = fs.readFileSync(file, "utf8");
+  for (const match of source.matchAll(
+    /https:\/\/github\.com\/gkolan\/record-health-check\/blob\/main\/([^\s)]+)/g
+  )) {
+    const target = path.join(root, decodeURIComponent(match[1]));
+    if (!fs.existsSync(target)) {
+      failures.push(
+        `${path.relative(root, file)}: missing repository target ${match[0]}`
+      );
     }
   }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate docs/reference/contracts/field-limits.md from shipped CMDT XML.
+"""Generate docs/reference/configuration/field-limits.md from shipped CMDT XML.
 
 Run from the repository root with:
   python3 scripts/release/generate_field_size_registry.py
@@ -18,7 +18,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 OBJECTS = ROOT / "packages/record-health-check/force-app/main/default/objects"
-OUTPUT = ROOT / "docs/reference/contracts/field-limits.md"
+OUTPUT = ROOT / "docs/reference/configuration/field-limits.md"
 NS = {"m": "http://soap.sforce.com/2006/04/metadata"}
 
 
@@ -54,9 +54,9 @@ def github_anchor(value):
 
 def field_link(object_name, label, field):
     page = (
-        "../../metadata/fields-check-set.md"
+        "../custom-metadata/check-set-fields.md"
         if object_name == "Record_Health_Check_Set__mdt"
-        else "../../metadata/fields-check.md"
+        else "../custom-metadata/check-fields.md"
     )
     anchor = github_anchor(f"{label} ({field})")
     return f"[`{field}`]({page}#{anchor})"
@@ -132,7 +132,7 @@ def append_non_text_groups(lines, selected_rows):
         lines.append(f"| {owner} | {display_type} | {constraint} | {', '.join(links)} |")
 
 lines = [
-    "# Custom Metadata field and completed-text limits",
+    "# Field and completed-text limits",
     "",
     "> [!NOTE]",
     "> Use this page when Salesforce rejects a Check Set or Check value, a Check returns `RESOLVED_TEMPLATE_TOO_LONG`, or a failed Check does not show its action link.",
@@ -198,10 +198,10 @@ lines += [
     "",
     "## Related",
     "",
-    "- [Check Set fields](../../metadata/fields-check-set.md)",
-    "- [Check fields](../../metadata/fields-check.md)",
-    "- [Configuration guide](../../guides/configure-check-sets-and-checks.md)",
-    "- [Architecture](../framework/architecture.md)",
+    "- [Check Set fields](../custom-metadata/check-set-fields.md)",
+    "- [Check fields](../custom-metadata/check-fields.md)",
+    "- [Configuration guide](../../build-checks/configure-check-sets-and-checks.md)",
+    "- [Architecture](../../architecture/framework.md)",
     "",
 ]
 content = "\n".join(lines)

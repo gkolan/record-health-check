@@ -25,6 +25,32 @@ afterEach(async () => {
 });
 
 describe("MCP Streamable HTTP", () => {
+  it("rejects request bodies above the service limit before tool dispatch", async () => {
+    const evaluate = vi.fn();
+    const app = createApp(
+      testConfig(),
+      { evaluate } as unknown as SalesforceClient,
+      { log: vi.fn() }
+    );
+    const httpServer = createServer(app);
+    servers.push(httpServer);
+    await new Promise<void>((resolve) =>
+      httpServer.listen(0, "127.0.0.1", resolve)
+    );
+    const address = httpServer.address();
+    if (!address || typeof address === "string")
+      throw new Error("Test server did not bind.");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/mcp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ value: "x".repeat(33 * 1024) })
+    });
+
+    expect(response.status).toBe(413);
+    expect(evaluate).not.toHaveBeenCalled();
+  });
+
   it("returns a structured LIMIT response for local concurrency exhaustion", async () => {
     const evaluate = vi.fn().mockRejectedValue(new ConcurrencyLimitError());
     const app = createApp(

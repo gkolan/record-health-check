@@ -8,6 +8,7 @@ const maxMethodLines = 416;
 const maxDecisionPoints = 51;
 const approvedProductionRhcNames = new Set([
   "RHCConstructorMutationCheck",
+  "RHCDefinitionDependencyIdentity",
   "RHCMetadataDependencyValidator"
 ]);
 const failures = [];
@@ -17,6 +18,12 @@ let methods = 0;
 for (const file of fs
   .readdirSync(classRoot)
   .filter((name) => name.endsWith(".cls"))) {
+  const className = path.basename(file, ".cls");
+  if (className.length > 40) {
+    failures.push(
+      `${path.join(classRoot, file)}: Apex class name is ${className.length} characters; Salesforce permits at most 40.`
+    );
+  }
   if (file.includes("Test")) continue;
   const relative = path.join(classRoot, file);
   const source = fs.readFileSync(relative, "utf8");

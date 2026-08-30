@@ -10,7 +10,7 @@ optional safe correlation ID. The service does not expose generic SOQL, generic 
 MCP prompts, record mutation, or event-publication controls.
 
 For an administrator-friendly deployment walkthrough with a successful and rejection test for every
-security gate, use [Deploy the MCP service one security gate at a time](../../docs/integration/deploy-mcp-service.md).
+security gate, use [Deploy the MCP service one security gate at a time](../../docs/developer-guides/agentforce-and-mcp/deploy-mcp-service.md).
 
 ## Security model
 
@@ -29,20 +29,20 @@ does not reproduce the conversational user's Salesforce permissions.
 
 Authorization is intentionally layered. Passing an outer gate never bypasses a later one.
 
-| Gate                         | Enforced decision                                                                                                                                                    |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HTTP host and origin         | Reject requests whose `Host` or `Origin` is not explicitly allowed.                                                                                                  |
-| Transport and operating mode | Require HTTPS destinations and prohibit unauthenticated mode in production.                                                                                          |
-| JWT cryptography             | Verify the bearer-token signature against remote JWKS and accept only RS256 or ES256.                                                                                |
-| JWT claims                   | Require the configured issuer, audience, expiration, subject, and `rhc.run` scope.                                                                                   |
-| MCP capability allowlist     | Expose only `run_record_health_check` and `run_record_health_check_set`; do not expose generic query, Apex, mutation, resource, prompt, or publication capabilities. |
-| Request contract             | Require one valid record ID and one exact Custom Metadata `QualifiedApiName`; reject unknown fields, oversized bodies, and unsafe correlation IDs.                   |
-| Operational containment      | Apply the kill switch, concurrency and retry ceilings, timeouts, and response-size limits before or around downstream work.                                          |
-| Salesforce destination       | Allow only configured Salesforce login and instance hosts; deny redirects and non-HTTPS destinations.                                                                |
-| Salesforce authentication    | Use OAuth client credentials for a dedicated integration principal, with bounded token caching and one refresh after a 401.                                          |
-| Package entitlement          | Require the Salesforce principal to hold the package's run custom permission through `Record_Health_Check_User` or an equivalent least-privilege permission set.     |
-| Salesforce data access       | Execute `with sharing` and `WITH USER_MODE`, so the integration principal's object, field, sharing, restriction-rule, and scoping-rule access applies.               |
-| Diagnostic separation        | Do not grant diagnostic-detail permissions to the integration principal unless the integration contract explicitly requires them.                                    |
+| Gate                         | Enforced decision                                                                                                                                                                                                |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP host and origin         | Reject requests whose `Host` or `Origin` is not explicitly allowed.                                                                                                                                              |
+| Transport and operating mode | Require HTTPS destinations and prohibit unauthenticated mode in production.                                                                                                                                      |
+| JWT cryptography             | Verify the bearer-token signature against remote JWKS and accept only RS256 or ES256.                                                                                                                            |
+| JWT claims                   | Require the configured issuer, audience, expiration, subject, and `rhc.run` scope.                                                                                                                               |
+| MCP capability allowlist     | Expose only `run_record_health_check` and `run_record_health_check_set`; do not expose generic query, Apex, mutation, resource, prompt, or publication capabilities.                                             |
+| Request contract             | Require one valid record ID and one exact Custom Metadata `QualifiedApiName`; reject unknown fields, oversized bodies, and unsafe correlation IDs.                                                               |
+| Operational containment      | Apply the kill switch, concurrency and retry ceilings, timeouts, and response-size limits before or around downstream work.                                                                                      |
+| Salesforce destination       | Allow only configured Salesforce login and instance hosts; deny redirects and non-HTTPS destinations.                                                                                                            |
+| Salesforce authentication    | Use OAuth client credentials for a dedicated integration principal, with bounded token caching and one refresh after a 401.                                                                                      |
+| Package entitlement          | Assign the dedicated Salesforce principal **Record Health Check MCP Integration** (`Record_Health_Check_MCP_Integration`), which grants only the run permission, REST adapter, and metadata reads needed by MCP. |
+| Salesforce data access       | Execute `with sharing` and `WITH USER_MODE`, so the integration principal's object, field, sharing, restriction-rule, and scoping-rule access applies.                                                           |
+| Diagnostic separation        | Do not grant diagnostic-detail permissions to the integration principal unless the integration contract explicitly requires them.                                                                                |
 
 The current service has one shared MCP scope (`rhc.run`) and one Salesforce integration principal.
 It does not delegate the conversational user's Salesforce identity, implement per-record MCP

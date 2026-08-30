@@ -337,7 +337,7 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       when MAX_ROWS_INVALID {
         return buildUnableResult(
           check,
-          'GOVERNOR_LIMIT_RISK',
+          RecordHealthCheckReasonCodes.GOVERNOR_LIMIT_RISK,
           'Max Rows Override must be a whole number between 1 and ' +
             FRAMEWORK_MAX_ROWS +
             '.'

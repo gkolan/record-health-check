@@ -56,11 +56,19 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
     scannable = String.join(maskedParts, '');
 
     Matcher dotMatcher = PATTERN_DOT_PATH.matcher(scannable);
+    maskedParts = new List<String>();
+    lastEnd = 0;
     while (dotMatcher.find()) {
+      maskedParts.add(scannable.substring(lastEnd, dotMatcher.start()));
+      maskedParts.add(''.rightPad(dotMatcher.end() - dotMatcher.start(), ' '));
+      lastEnd = dotMatcher.end();
       if (seen.add(dotMatcher.group(1))) {
         tokens.add(new FieldReference(dotMatcher.group(1), null, null));
       }
     }
+    maskedParts.add(scannable.substring(lastEnd));
+    scannable = String.join(maskedParts, '');
+
     Matcher wordMatcher = PATTERN_WORD.matcher(scannable);
     while (wordMatcher.find()) {
       String word = wordMatcher.group(0);

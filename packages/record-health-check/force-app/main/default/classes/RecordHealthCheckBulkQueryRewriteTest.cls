@@ -16,6 +16,31 @@ private with sharing class RecordHealthCheckBulkQueryRewriteTest {
   }
 
   @IsTest
+  static void appendGroupByKeepsUserModeBeforeGrouping() {
+    Test.startTest();
+    String createdGroup = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
+      'SELECT COUNT(Id) FROM Contact WHERE AccountId = {!record.Id} WITH USER_MODE',
+      'AccountId'
+    );
+    String extendedGroup = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
+      'SELECT Industry, COUNT(Id) FROM Account WHERE ParentId = {!record.Id} WITH USER_MODE GROUP BY Industry ORDER BY Industry',
+      'ParentId'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'SELECT COUNT(Id) FROM Contact WHERE AccountId = {!record.Id} WITH USER_MODE GROUP BY AccountId',
+      createdGroup,
+      'A new GROUP BY must follow the query access-level clause.'
+    );
+    Assert.areEqual(
+      'SELECT Industry, COUNT(Id) FROM Account WHERE ParentId = {!record.Id} WITH USER_MODE GROUP BY Industry, ParentId ORDER BY Industry',
+      extendedGroup,
+      'An existing GROUP BY must be extended without treating WITH USER_MODE as its tail.'
+    );
+  }
+
+  @IsTest
   static void selfQueryDoesNotDuplicateAnExistingCorrelationField() {
     Account account = RecordHealthCheckTestDataFactory.createAccount(
       RecordHealthCheckTestDataFactory.account(

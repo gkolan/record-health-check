@@ -357,7 +357,7 @@ private class RecordHealthCheckLoggerTest {
   @IsTest
   static void settingsProviderReturnsConfiguredPublicationChecks() {
     String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
-      'Example_Account_Profile_Readiness'
+      'Example_Account_Check_Builder_Guide'
     );
 
     Test.startTest();

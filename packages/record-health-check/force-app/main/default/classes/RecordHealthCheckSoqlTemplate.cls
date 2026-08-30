@@ -1,9 +1,6 @@
-/**
- * @author Gautam Kolan (https://github.com/gkolan)
- * SPDX-License-Identifier: Apache-2.0
- */
+/** @author Gautam Kolan (https://github.com/gkolan); SPDX-License-Identifier: Apache-2.0 */
 
-/** Parenthesis-depth-aware authority for administrator-authored SOQL shapes. */
+/** Validates admin-written SOQL, user access, and row limits. */
 public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_DML_KEYWORD = Pattern.compile(
     '(?i)\\b(DELETE|INSERT|UPDATE|UNDELETE)\\b'
@@ -102,21 +99,23 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       return;
     }
     String masked = maskStringLiterals(soql);
+    Matcher disallowedPhrase = Pattern.compile(
+        '(?i)\\b(FOR\\s+UPDATE|ALL\\s+ROWS)\\b'
+      )
+      .matcher(masked);
+    if (disallowedPhrase.find()) {
+      throw new TemplateException(
+        'INVALID_SOQL_TEMPLATE',
+        'SOQL contains disallowed phrase: ' +
+        disallowedPhrase.group(1).replaceAll('\\s+', ' ').toUpperCase()
+      );
+    }
     Matcher dml = PATTERN_DML_KEYWORD.matcher(masked);
     if (dml.find()) {
       throw new TemplateException(
         'INVALID_SOQL_TEMPLATE',
         'SOQL contains disallowed keyword: ' + dml.group(1).toUpperCase()
       );
-    }
-    String upper = masked.toUpperCase();
-    for (String phrase : new List<String>{ 'FOR UPDATE', 'ALL ROWS' }) {
-      if (upper.contains(phrase)) {
-        throw new TemplateException(
-          'INVALID_SOQL_TEMPLATE',
-          'SOQL contains disallowed phrase: ' + phrase
-        );
-      }
     }
     rejectSystemMode(soql);
   }
@@ -138,9 +137,9 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   }
 
   /**
-   * Injects WITH USER_MODE after the WHERE clause and before any depth-0 tail
-   * clause (GROUP BY / ORDER BY / LIMIT / OFFSET). No-ops if a depth-0 WITH clause
-   * already exists. Clauses inside subqueries (depth > 0) are ignored.
+   * Adds WITH USER_MODE after the main WHERE clause and before GROUP BY, ORDER BY,
+   * LIMIT, or OFFSET. Leaves existing user mode unchanged. Query parts inside a
+   * related-record subquery are ignored.
    */
   public static String injectUserMode(String soql) {
     if (String.isBlank(soql)) {
@@ -334,8 +333,8 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   }
 
   /**
-   * True when an outer WHERE requires a field equality for every contributing row.
-   * This intentionally supports only conjunctive predicates; OR and NOT fail closed.
+   * True when the main WHERE clause requires the field to equal one value for every row.
+   * Only AND conditions are accepted; OR and NOT return false.
    */
   public static Boolean hasConjunctiveEqualityFilter(
     String soql,
