@@ -37,11 +37,11 @@ When a record needs attention, the card explains what was **Found**, what was **
 <table>
   <tr>
     <td width="48%" valign="top">
-      <p><b>Example:</b><br /><b>Account Check Builder Guide</b></p>
-      <p>Administrators can inspect 25 working patterns on one Account and learn what each configuration does without leaving the record page.</p>
+      <p><b>Example:</b><br /><b>Account Relationship &amp; Risk Health Check</b></p>
+      <p>An account team can review relationship strength, ownership, engagement, revenue coverage, and customer risk without leaving the record page.</p>
       <ul>
         <li><b>Review the whole relationship.</b> Checks evaluate the Account together with Opportunity Contact Roles, Contacts, Opportunities, Cases, Activities, ownership, and parent-account context.</li>
-        <li><b>Understand why.</b> Hover help teaches the pattern, while Found and Expected show concrete evidence such as matching Account and parent bill-to addresses, decision-maker and Technical Buyer roles, four priority Cases against a capacity of three, and $70,000 total pipeline against a $40,000 largest deal.</li>
+        <li><b>Understand why.</b> Found and Expected values explain results such as three reachable Executive Sponsors, six contacts missing email, four high-priority Cases, and a dynamically calculated 75% revenue-coverage target.</li>
         <li><b>Know what to do next.</b> Remediation guidance directs the account team toward the ownership, relationship, pipeline, or service action that closes the gap.</li>
       </ul>
       <p><b>Administrators control the experience</b></p>
@@ -52,23 +52,22 @@ When a record needs attention, the card explains what was **Found**, what was **
       </ul>
     </td>
     <td width="52%" valign="top">
-      <img src="assets/img/Example_Account_Relationship_Risk_Screenshot.png" alt="Account Check Builder Guide showing Account results, Found and Expected values, remediation guidance, and a summary on the existing demo Lightning page" width="100%" />
+      <img src="assets/img/Example_Account_Relationship_Risk_Screenshot.png" alt="Account Relationship and Risk Health Check showing executive sponsorship, ownership, engagement, revenue coverage, customer issues, descriptive Found and Expected values, and an intentional business-specific skip" width="100%" />
     </td>
   </tr>
 </table>
 
 ### What this demo shows
 
-- **Formula Checks** evaluate current engagement, full Account-versus-Parent bill-to alignment, and
-  conditional governance policies while showing the actual values compared.
-- **Query Checks** measure related records, row values, lists, and aggregates. The seeded Account has
-  a realistic mix of High-, Medium-, and Low-priority Cases.
-- **Compare Two Queries Checks** teach number, currency, Date, text, aggregate, list-overlap,
-  list-containment, exact-list, and no-row patterns.
-- **Custom Apex** evaluates whether completed Tasks and Events meet a configurable engagement-volume
-  minimum within a 60-day window, separately from the Formula-based latest-activity SLA.
-- **Applicability conditions** skip a Check below its Annual Revenue threshold, and a deliberate
-  no-row comparison demonstrates Unable to Check.
+- **Formula Checks** evaluate fields on the current Account, such as whether the owner is still
+  an active user.
+- **Query Checks** measure related records and aggregates. Found and Expected values explain
+  results such as reachable Executive Sponsors, contacts missing email, open pipeline against a
+  75% revenue target, and high-priority Cases.
+- **Custom Apex** evaluates recent Tasks and Events within a configurable 60-day window to
+  confirm customer engagement is current.
+- **Applicability conditions** skip Checks that do not apply to this Account. Channel-partner
+  governance is skipped for a direct Customer, and the card explains why.
 
 ## Framework capabilities
 
