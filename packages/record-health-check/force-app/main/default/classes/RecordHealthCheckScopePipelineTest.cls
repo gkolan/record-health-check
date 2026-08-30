@@ -131,7 +131,8 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'Silent Default',
-        'Website' => 'https://silent.example.com'
+        'Website' => 'https://silent.example.com',
+        'AnnualRevenue' => 2000000
       }
     );
     RecordHealthCheckTestDataFactory.createAccount(account);

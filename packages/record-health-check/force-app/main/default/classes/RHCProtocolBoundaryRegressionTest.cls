@@ -1,6 +1,10 @@
 /** Regression coverage for REST, controller, and plugin-cache protocol boundaries. */
 @IsTest
 private with sharing class RHCProtocolBoundaryRegressionTest {
+  static {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+  }
+
   @IsTest
   static void restAcceptsLowercaseContentTypeHeader() {
     RestRequest request = new RestRequest();

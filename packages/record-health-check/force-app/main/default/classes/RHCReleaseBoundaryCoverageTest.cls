@@ -8,6 +8,10 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
 
   @IsTest
   static void dependencyIdentityHandlesNullsAndCycles() {
+    Assert.isNotNull(
+      RecordHealthCheckAccess.canRunChecks(),
+      'The runtime permission boundary must always return a Boolean result.'
+    );
     Record_Health_Check__mdt blank = dependencyCheck('Blank', 'Blank', null);
     Assert.isNull(
       RHCDefinitionDependencyIdentity.resolveQualified(blank, null),
@@ -112,6 +116,7 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
     RecordHealthCheckRunSetFlowAction.Request setRequest = setFlowRequest(
       accountRecord.Id
     );
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
     RecordHealthCheckFlowSupport.payloadBudgetStartOverride = RecordHealthCheckConstants.MAX_FLOW_RESPONSE_CHARS;
     try {
       List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
@@ -130,6 +135,7 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
       Assert.areEqual('LIMIT', setOutputs[1].errorType);
     } finally {
       RecordHealthCheckFlowSupport.payloadBudgetStartOverride = null;
+      RecordHealthCheckAccess.setRunPermissionForTest(null);
     }
   }
 
@@ -141,6 +147,7 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
     RecordHealthCheckFlowSupport.itemsByRecordOverride = new Map<Id, List<RecordHealthCheckResultItem>>{
       accountRecord.Id => new List<RecordHealthCheckResultItem>{ null }
     };
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
     try {
       RecordHealthCheckRunCheckFlowAction.Response output = RecordHealthCheckRunCheckFlowAction.runCheck(
         new List<RecordHealthCheckRunCheckFlowAction.Request>{
@@ -155,6 +162,7 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
       );
     } finally {
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
+      RecordHealthCheckAccess.setRunPermissionForTest(null);
     }
   }
 
