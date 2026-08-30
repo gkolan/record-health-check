@@ -221,7 +221,7 @@ This runs:
 - Clean no-namespace install of the candidate
 - Verification that all packaged Custom Metadata types and records are installed
 - Subscriber verification metadata deployment and `RHCSubscriberSmokeTest`
-- Previous-to-candidate upgrade rehearsal when `previous` is a promoted `04t`
+- Stable-to-candidate upgrade rehearsal when `stable` is a promoted `04t`
 
 ## Promote and publish
 
