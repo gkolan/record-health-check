@@ -16,7 +16,10 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 > version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current released candidate: `Record Health Check@2.0.5-1` (`04tak000000eIO1AAM`).
+- Current stable release: `Record Health Check@2.0.5-1` (`04tak000000eIO1AAM`).
+- Candidate package version 2.0.6: `Record Health Check@2.0.6-1` (`04tak000000eKCvAAM`). Its N-1
+  upgrade rehearsal passed; it remains a Salesforce beta package until the clean-install, hosted
+  validation, and promotion gates pass.
 
 ### Evaluation and integration
 
@@ -80,7 +83,11 @@ For installation and verification, start with
 
 ## Version 2.0.6
 
-Package release pending. The package version ID and install URLs will be recorded after promotion.
+Candidate package version: **2.0.6.1** (`04tak000000eKCvAAM`). Salesforce reports 99% package coverage and
+no skipped validation, but the candidate is not promoted yet. It can be evaluated in a sandbox
+with the [2.0.6.1 sandbox install
+link](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eKCvAAM). Production
+installation remains unavailable until promotion.
 
 ### Added
 
@@ -107,9 +114,6 @@ Package release pending. The package version ID and install URLs will be recorde
 
 ### Fixed
 
-- Formula dependency planning no longer treats `$User`, `$Profile`, `$Setup`, `$Permission`, or
-  other FormulaEval globals as fields on the checked record. Unsupported globals fail closed with
-  `UNABLE_TO_EVALUATE` and `INVALID_FORMULA` instead of producing a caller-dependent verdict.
 - A result from a superseded Lightning run can no longer overwrite results started after a record
   save or an in-place record change.
 
@@ -127,8 +131,21 @@ Package release pending. The package version ID and install URLs will be recorde
 
 ### Verification
 
+- Added regression coverage confirming that existing Formula-global masking keeps `$User`,
+  `$Profile`, `$Setup`, `$Permission`, and other FormulaEval globals out of the checked-record field
+  plan. Unsupported globals continue to fail closed with `UNABLE_TO_EVALUATE` and
+  `INVALID_FORMULA`.
 - The foreign-namespace gate passed all three focused Apex scenarios in a disposable namespaced
   scratch org with Record Health Check and Salesforce CPQ installed.
+- The exact working-tree package source passed a check-only deployment to an `rhc` namespaced
+  scratch org. All 695 local Apex tests passed with no component errors. The 2.0.6.1 candidate
+  creation reported 99% package coverage, and the published Framework coverage gate reports 99.57%
+  with every executable production class above 98%.
+- Package-version creation completed without skipped validation. Salesforce reports 99% package
+  coverage and confirms that the package is org independent.
+- The immutable-package upgrade rehearsal installed stable 2.0.5.1 and then candidate 2.0.6.1 in a
+  no-namespace subscriber scratch org. All six subscriber smoke tests passed, and the
+  subscriber-owned Check Set and Check Custom Metadata records remained available after upgrade.
 - The focused Code Analyzer scan reported zero violations. Local release checks cover package
   conversion, manifests, boundaries, query shapes, permissions, XML, documentation, LWC tests, MCP
   tests, and published quality metrics. Hosted Salesforce validation remains required after push.

@@ -140,6 +140,8 @@ An automatic Check Set continues to show **Rerun** after it finishes unless its 
 This default preserves existing card behavior after an upgrade. A Check Set with no active Checks
 does not show Rerun because there is nothing to evaluate again.
 
+### Record-save refresh
+
 A record save, browser refresh, and **Rerun** can all obtain current results, but only Rerun is an
 explicit user action that can publish lifecycle events. A standard Lightning record save sends a
 RefreshView notification. The component coalesces a burst of those notifications and replaces any

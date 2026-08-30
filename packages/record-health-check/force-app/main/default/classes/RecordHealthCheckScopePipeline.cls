@@ -17,7 +17,7 @@ public with sharing class RecordHealthCheckScopePipeline {
         'A Record Health Check request is required.'
       );
     }
-    if (evaluatorFailureOverride == 'SIDE_EFFECT') {
+    if (evaluatorFailureOverride == 'REST_SIDE_EFFECT') {
       RecordHealthCheckPluginDispatch.SideEffectException sideEffect = new RecordHealthCheckPluginDispatch.SideEffectException(
         'Synthetic plugin side effect.'
       );

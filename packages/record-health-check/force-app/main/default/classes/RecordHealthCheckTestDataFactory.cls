@@ -204,10 +204,6 @@ public class RecordHealthCheckTestDataFactory {
     recordsFixture(values);
   }
 
-  public static Account deletedAccountFixture(String name) {
-    return accountFixture(name);
-  }
-
   public static Contact contactFixture(Contact contactRecord) {
     assignSyntheticId(contactRecord);
     return contactRecord;

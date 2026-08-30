@@ -11,10 +11,10 @@
     "subscriberPackageVersionId": "04tak000000cZBFAA2"
   },
   "candidate": {
-    "version": "2.0.5.1",
-    "subscriberPackageVersionId": "04tak000000eIO1AAM",
-    "status": "released",
-    "sandboxInstallUrl": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eIO1AAM"
+    "version": "2.0.6.1",
+    "subscriberPackageVersionId": "04tak000000eKCvAAM",
+    "status": "beta",
+    "sandboxInstallUrl": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eKCvAAM"
   },
   "permissionSets": {
     "card": "Record_Health_Check_Card_User",

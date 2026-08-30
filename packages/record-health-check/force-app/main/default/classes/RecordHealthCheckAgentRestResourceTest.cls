@@ -408,7 +408,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
         'Example_Website_URL_Valid'
       )
     );
-    RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'SIDE_EFFECT';
+    RecordHealthCheckScopePipeline.evaluatorFailureOverride = 'REST_SIDE_EFFECT';
     try {
       Test.startTest();
       RecordHealthCheckAgentRestResource.AgentToolResponse output = postJson(

@@ -134,7 +134,7 @@ If the Check Set picker is empty, confirm the Check Set is active and its **Obje
 When an Example Check Set is already installed, the card can look like this example (Pass, Fail, and
 Skipped outcomes with Found and Expected values):
 
-![Example Account Relationship and Risk health check card](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+![Example Account Relationship and Risk health check card](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
 
 ## Step 5: Test both results
 

@@ -130,7 +130,7 @@ The packaged component is supported on Lightning record pages in Lightning Exper
 treat this guide as verification for Salesforce Classic, an App or Home page, Experience Cloud, or
 Salesforce mobile; validate any additional surface separately before promising support.
 
-![Account Check Builder Guide on the existing demo Account record page](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+![Account Check Builder Guide on the existing demo Account record page](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
 
 ## Step 4: Verify the experience as a user
 

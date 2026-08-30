@@ -56,7 +56,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void absentRecordReturnsAlignedUnavailableItem() {
-    Account deletedAccount = RecordHealthCheckTestDataFactory.deletedAccountFixture(
+    Account missingAccount = RecordHealthCheckTestDataFactory.accountFixture(
       'Absent scope record'
     );
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
@@ -85,7 +85,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
       .evaluateCheck(
         check,
         context,
-        new List<Id>{ deletedAccount.Id },
+        new List<Id>{ missingAccount.Id },
         new Map<Id, SObject>(),
         false,
         false,
@@ -137,7 +137,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
   @IsTest
   static void inaccessibleFieldPreservesMissingRecordReason() {
-    Account deletedAccount = RecordHealthCheckTestDataFactory.deletedAccountFixture(
+    Account missingAccount = RecordHealthCheckTestDataFactory.accountFixture(
       'Missing record with inaccessible field'
     );
     Map<String, RecordHealthCheckResultItem> items = new Map<String, RecordHealthCheckResultItem>();
@@ -147,7 +147,7 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
       .evaluateCheck(
         queryCountCheck('Missing_Inaccessible_Field', 'Unable to read record.'),
         evaluationContext(),
-        new List<Id>{ deletedAccount.Id },
+        new List<Id>{ missingAccount.Id },
         new Map<Id, SObject>(),
         true,
         false,

@@ -35,10 +35,10 @@ records.
 
 ## Codebase size and verification
 
-The current source contains 223 packaged Apex classes, including 114 test classes. Tests and contract
-support cover dynamic SOQL, formulas, metadata validation, security boundaries, bulk execution,
-asynchronous entry points, integrations, and failure diagnostics; those classes are verification
-surface rather than ordinary health-check runtime behavior.
+The current source contains 224 packaged Apex classes, including 114 `@IsTest` classes and one
+global contract-test support class. Tests and contract support cover dynamic SOQL, formulas,
+metadata validation, security boundaries, bulk execution, asynchronous entry points, integrations,
+and failure diagnostics; those classes verify behavior rather than run ordinary health checks.
 
 The class and test counts are checked automatically by `npm run check:docs`. Physical line counts
 are intentionally omitted because they change with implementation and documentation comments and

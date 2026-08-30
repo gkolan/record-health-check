@@ -29,7 +29,7 @@ Want the complete learning sequence? Open the [step-by-step guide](./step-by-ste
 | [Diagnostics](./diagnostics/browser-console.md) | Investigate browser-console evidence or Salesforce debug logs |
 | [Production operations](./production-operations/README.md) | Back up configuration and operate the package after go-live |
 | [Architecture](./architecture/README.md) | Understand framework structure, security boundaries, data relationships, and Apex implementation |
-| [Reference](./reference/README.md) | Find statuses, contracts, limits, merge syntax, and exact evaluation rules |
+| [Reference](./reference/README.md) | Find the complete feature catalog, statuses, contracts, limits, merge syntax, and exact evaluation rules |
 | [Developer guides](./developer-guides/README.md) | Use Apex, asynchronous execution, Agentforce, MCP, or Pub/Sub |
 | [Quality gates](./quality-gates/README.md) | Understand the checks required for code, packages, and documentation |
 | [Contributing](./contributing/README.md) | Change, test, document, or review the package source |

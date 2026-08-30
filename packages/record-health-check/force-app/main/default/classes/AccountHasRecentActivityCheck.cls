@@ -54,7 +54,7 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     // Seed every Id with zero BEFORE overlaying the aggregates. An aggregate
     // returns no row at all for an Account with no activity, so a map built
     // only from query results would leave exactly those Accounts missing, and
-    // "no recent activity" is precisely the population this check exists to
+    // "no recent activity" is precisely the Accounts this check exists to
     // find. Zero is a real answer here, not an absent one.
     Map<Id, Integer> activityCounts = new Map<Id, Integer>();
     for (Id recordId : recordIds) {

@@ -22,11 +22,20 @@ changing versions and follow the full [upgrade and revalidation procedure](./upg
 To see the current version, open **Setup → Installed Packages**, select **Record Health Check**, and
 read **Version Number**.
 
+## Candidate package version 2.0.6
+
+Version **2.0.6.1** (`04tak000000eKCvAAM`) is the current beta candidate. Release owners can use the
+[2.0.6.1 sandbox install
+link](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eKCvAAM) for release
+verification. Do not install it in production: Salesforce does not permit production installation
+until the candidate is promoted, and the stable public install links intentionally remain on
+2.0.5.1 until that promotion succeeds.
+
 ## Step 1: Choose a version
 
 Versions are listed newest first. The catalog retains Record Health Check 2.0.4.2 as the previous
-production release; earlier development and release-candidate versions are intentionally not
-listed.
+production release. Beta candidates are documented separately above and are intentionally absent
+from the released-version table.
 
 | Version | Release name | Package version ID | Sandbox | Production or Developer Edition |
 | --- | --- | --- | --- | --- |
