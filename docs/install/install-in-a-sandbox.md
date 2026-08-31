@@ -190,7 +190,7 @@ macOS, and Linux after the Salesforce CLI is installed.
 ```bash
 sf org login web --instance-url https://test.salesforce.com --alias rhc-sandbox
 sf org display --target-org rhc-sandbox
-sf package install --package 04tak000000eIO1AAM --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type Mixed --wait 30 --publish-wait 10 --no-prompt
+sf package install --package 04tak000000eM53AAE --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type Mixed --wait 30 --publish-wait 10 --no-prompt
 sf org assign permset --name rhc__Record_Health_Check_Card_User --target-org rhc-sandbox
 ```
 

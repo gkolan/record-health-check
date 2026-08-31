@@ -22,23 +22,14 @@ changing versions and follow the full [upgrade and revalidation procedure](./upg
 To see the current version, open **Setup → Installed Packages**, select **Record Health Check**, and
 read **Version Number**.
 
-## Candidate package version 2.0.6
-
-Version **2.0.6.1** (`04tak000000eKCvAAM`) is the current beta candidate. Release owners can use the
-[2.0.6.1 sandbox install
-link](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eKCvAAM) for release
-verification. Do not install it in production: Salesforce does not permit production installation
-until the candidate is promoted, and the stable public install links intentionally remain on
-2.0.5.1 until that promotion succeeds.
-
 ## Step 1: Choose a version
 
-Versions are listed newest first. The catalog retains Record Health Check 2.0.4.2 as the previous
-production release. Beta candidates are documented separately above and are intentionally absent
-from the released-version table.
+Versions are listed newest first. The catalog retains earlier promoted versions for release-owner
+verification and recovery planning.
 
 | Version | Release name | Package version ID | Sandbox | Production or Developer Edition |
 | --- | --- | --- | --- | --- |
+| **2.0.6.2** | Version 2.0.6 | `04tak000000eM53AAE` | [Install 2.0.6.2 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eM53AAE) | [Install 2.0.6.2 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eM53AAE) |
 | **2.0.5.1** | Version 2.0.5 | `04tak000000eIO1AAM` | [Install 2.0.5.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eIO1AAM) | [Install 2.0.5.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eIO1AAM) |
 | **2.0.4.2** | Version 2.0.4 | `04tak000000cZBFAA2` | [Install 2.0.4.2 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000cZBFAA2) | [Install 2.0.4.2 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000cZBFAA2) |
 | **2.0.3.1** | Version 2.0.3 | `04tak000000ajbJAAQ` | [Install 2.0.3.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) | [Install 2.0.3.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) |
@@ -57,7 +48,7 @@ Use the `04t` value from the table when an automated process must install a spec
 
 ```bash
 sf package install \
-  --package 04tak000000eIO1AAM \
+  --package 04tak000000eM53AAE \
   --target-org <org-alias> \
   --security-type AdminsOnly \
   --upgrade-type Mixed \
