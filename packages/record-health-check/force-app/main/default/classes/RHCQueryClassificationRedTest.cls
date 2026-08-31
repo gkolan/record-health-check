@@ -57,51 +57,6 @@ private class RHCQueryClassificationRedTest {
   }
 
   @IsTest
-  static void shouldCoverNeutralClassifierBoundaries() {
-    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(null);
-    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
-      'not a query'
-    );
-    RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
-      'SELECT Id alias FROM Account'
-    );
-    RecordHealthCheckQuerySchemaValidator.validateConfiguredField(
-      'not a query',
-      'Id'
-    );
-    RecordHealthCheckQuerySchemaValidator.validateConfiguredField(
-      'SELECT Id FROM RHC_Absent_Object__c',
-      'Id'
-    );
-
-    User minimumAccess = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
-      'rhcqcls'
-    );
-    System.runAs(minimumAccess) {
-      Assert.areEqual(
-        'RECORD_NOT_ACCESSIBLE',
-        validate('SELECT Id FROM ApexClass'),
-        'An inaccessible root must remain distinct from absent schema.'
-      );
-      Assert.areEqual(
-        'FIELD_NOT_ACCESSIBLE',
-        validate('SELECT SUM(AnnualRevenue) totalValue FROM Account'),
-        'Aggregate operands must be describe-classified before user-mode execution.'
-      );
-    }
-
-    try {
-      RecordHealthCheckQueryEvaluatorSupport.runQuery(
-        'SELECT COUNT() FROM Account WHERE Name =',
-        1
-      );
-      Assert.fail('Malformed runtime SOQL must be classified.');
-    } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
-    }
-  }
-
-  @IsTest
   static void shouldFallThroughForAChildRelationshipSubquery() {
     RecordHealthCheckQuerySchemaValidator.validateSupportedSubset(
       'SELECT Id, (SELECT Id FROM Contacts) FROM Account'

@@ -4,7 +4,7 @@ private class RecordHealthCheckSandboxAsyncTest {
 
   @IsTest
   static void synchronousRunnerReturnsResults() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Sandbox synchronous test'
     );
 
@@ -34,7 +34,7 @@ private class RecordHealthCheckSandboxAsyncTest {
 
   @IsTest
   static void synchronousRunnerBrandsGeneratedRunId() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Sandbox generated run ID test'
     );
 
@@ -73,7 +73,7 @@ private class RecordHealthCheckSandboxAsyncTest {
 
   @IsTest
   static void queueableCompletes() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Sandbox Queueable test'
     );
 
@@ -142,7 +142,7 @@ private class RecordHealthCheckSandboxAsyncTest {
 
   @IsTest
   static void batchCompletes() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Sandbox Batch test'
     );
 

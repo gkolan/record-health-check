@@ -43,32 +43,6 @@ private class RecordHealthCheckValueResolverTest {
   }
 
   @IsTest
-  static void singleValueFromRowIgnoresBulkCorrelationAlias() {
-    Account account = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Grouped' }
-    );
-    RecordHealthCheckTestDataFactory.createAccount(account);
-    RecordHealthCheckTestDataFactory.createContact(
-      RecordHealthCheckTestDataFactory.contact(
-        new Map<String, Object>{
-          'LastName' => 'One',
-          'AccountId' => account.Id
-        }
-      )
-    );
-    AggregateResult grouped = [
-      SELECT AccountId rhcCorrelation, COUNT(Id) total
-      FROM Contact
-      WHERE AccountId = :account.Id
-      GROUP BY AccountId
-    ];
-    Assert.areEqual(
-      grouped.get('total'),
-      RecordHealthCheckValueResolver.singleValueFromRow(grouped, null)
-    );
-  }
-
-  @IsTest
   static void multipleAggregatesRequireAnExplicitFieldAlias() {
     AggregateResult multiple = [
       SELECT COUNT(Id) recordCount, MAX(CreatedDate) newestRecord
@@ -329,5 +303,19 @@ private class RecordHealthCheckValueResolverTest {
 
   // Lets us construct a QueryException with a controlled message.
   private class TestQueryException extends Exception {
+  }
+
+  @IsTest
+  static void singleValueFromRowIgnoresBulkCorrelationAlias() {
+    AggregateResult grouped = [
+      SELECT ProfileId rhcCorrelation, COUNT(Id) total
+      FROM User
+      WHERE Id = :UserInfo.getUserId()
+      GROUP BY ProfileId
+    ];
+    Assert.areEqual(
+      grouped.get('total'),
+      RecordHealthCheckValueResolver.singleValueFromRow(grouped, null)
+    );
   }
 }

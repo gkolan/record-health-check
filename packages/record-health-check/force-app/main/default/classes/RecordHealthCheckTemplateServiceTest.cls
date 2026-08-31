@@ -341,40 +341,6 @@ private class RecordHealthCheckTemplateServiceTest {
   }
 
   @IsTest
-  static void pluralSuffixReadsAFormattedCountInTheRunningUsersLocale() {
-    System.runAs(RecordHealthCheckTestDataFactory.createUserWithLocale(
-      'de_DE',
-      'rhcpl'
-    )) {
-      RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
-      RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
-        .withResult(result, true);
-
-      result.actualValue = RecordHealthCheckDisplayFormat.render(1, 'NUMBER');
-      Assert.areEqual(
-        '1 Sponsor',
-        RecordHealthCheckTemplateService.resolveDisplay(
-          '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
-          context
-        )
-      );
-
-      result.actualValue = RecordHealthCheckDisplayFormat.render(
-        1000,
-        'NUMBER'
-      );
-      Assert.areEqual(
-        '1.000 Sponsors',
-        RecordHealthCheckTemplateService.resolveDisplay(
-          '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
-          context
-        ),
-        'A period is a grouping mark, not a decimal mark, for a German user'
-      );
-    }
-  }
-
-  @IsTest
   static void resolvesRemainingCheckPropertiesAndNullRelationship() {
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
@@ -476,5 +442,36 @@ private class RecordHealthCheckTemplateServiceTest {
       surface
     );
     Assert.areEqual(code, issues[0].reasonCode, issues[0].message);
+  }
+
+  @IsTest
+  static void pluralSuffixReadsAFormattedCountInTheRunningUsersLocale() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
+      RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+      RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
+        .withResult(result, true);
+
+      result.actualValue = RecordHealthCheckDisplayFormat.render(1, 'NUMBER');
+      Assert.areEqual(
+        '1 Sponsor',
+        RecordHealthCheckTemplateService.resolveDisplay(
+          '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
+          context
+        )
+      );
+
+      result.actualValue = RecordHealthCheckDisplayFormat.render(
+        1000,
+        'NUMBER'
+      );
+      Assert.areEqual(
+        result.actualValue + ' Sponsors',
+        RecordHealthCheckTemplateService.resolveDisplay(
+          '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
+          context
+        ),
+        'A locale-formatted grouping mark must still parse as a plural count'
+      );
+    }
   }
 }

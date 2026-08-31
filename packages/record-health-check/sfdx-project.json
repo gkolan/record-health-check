@@ -1,8 +1,8 @@
 {
   "packageDirectories": [
     {
-      "versionName": "Version 2.0.6",
-      "versionNumber": "2.0.6.NEXT",
+      "versionName": "Version 2.0.7",
+      "versionNumber": "2.0.7.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Record Health Check",
@@ -22,6 +22,8 @@
     "Record Health Check@2.0.2-1": "04tak000000aWZFAA2",
     "Record Health Check@2.0.3-1": "04tak000000ajbJAAQ",
     "Record Health Check@2.0.4-2": "04tak000000cZBFAA2",
-    "Record Health Check@2.0.5-1": "04tak000000eIO1AAM"
+    "Record Health Check@2.0.5-1": "04tak000000eIO1AAM",
+    "Record Health Check@2.0.6-1-test-data-setup": "04tak000000eKCvAAM",
+    "Record Health Check@2.0.6-2-test-data-setup": "04tak000000eM53AAE"
   }
 }

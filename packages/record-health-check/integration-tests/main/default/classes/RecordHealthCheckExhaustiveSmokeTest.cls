@@ -8,7 +8,7 @@ private class RecordHealthCheckExhaustiveSmokeTest {
 
   @IsTest
   static void setAndCheckExecutionsPersistOutcomes() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Exhaustive execution'
     );
     String setName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -49,7 +49,7 @@ private class RecordHealthCheckExhaustiveSmokeTest {
 
   @IsTest
   static void invalidCheckPersistsExceptionInsteadOfThrowing() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Exhaustive exception'
     );
 
@@ -151,7 +151,7 @@ private class RecordHealthCheckExhaustiveSmokeTest {
 
   @IsTest
   static void enqueueEntryPointsReturnTraceableJobs() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Exhaustive enqueue'
     );
     RHCIntegrationTestDataFactory.contact(

@@ -29,6 +29,7 @@ jobs:
       - run: npm run check:agent-tool-contract
       - run: npm run check:mcp
       - run: npm run check:test-data-factory
+      - run: npm run check:test-data-factory-inventory
       - run: npm run check:apex-architecture
       - run: npm run check:apex-surface
       - run: npm run check:code-analyzer-output-paths

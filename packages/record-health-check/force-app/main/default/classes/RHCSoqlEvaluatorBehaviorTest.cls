@@ -6,13 +6,95 @@
 private class RHCSoqlEvaluatorBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
+  }
+
+  @IsTest
+  static void queryEvaluatorRejectsAllRowsAcrossLineBreaks() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    Record_Health_Check__mdt check = queryCheck('Q_All_Rows_Line_Break');
+    check.SourceQuery__c = 'SELECT Id FROM Account ALL\nROWS';
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
+      .evaluate(check, accountRecord.Id, accountRecord);
+    Test.stopTest();
+
+    assertReason(result, 'INVALID_SOQL_TEMPLATE');
+  }
+
+  private static Record_Health_Check__mdt baseCheck(
+    String developerName,
+    String checkType
+  ) {
+    return RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => developerName,
+        'MasterLabel' => developerName,
+        'CheckTitle__c' => developerName,
+        'EvaluationType__c' => checkType,
+        'FailureSeverity__c' => 'WARNING',
+        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
+        'FailureMessage__c' => 'Apex failure for {!record.Name}',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
+        'FormulaResultType__c' => 'AUTO',
+        'EvaluationOrder__c' => 10,
+        'ApplicabilityMode__c' => 'ALL_RECORDS',
+        'NoRowsResult__c' => 'FAIL',
+        'EmptyValueHandling__c' => 'SKIP_RECORD'
+      }
+    );
+  }
+
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
+  }
+
+  private static void assertUnable(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected an unable result.');
+    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(reasonCode, result.reasonCode);
+  }
+
+  private static void assertStatus(
+    RecordHealthCheckInternalResult result,
+    String status
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      status,
+      result.status,
+      'Unexpected detail: ' + result.detailMessage
+    );
+  }
+
+  private static void assertReason(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    );
   }
 
   @IsTest
   static void soqlEvaluatorCoversOperatorAndQueryBranches() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckSoqlEvaluator evaluator = new RecordHealthCheckSoqlEvaluator();
+    seedQueryRows(evaluator, accountRecord);
 
     String bound = evaluator.bindTokens(
       'SELECT Id FROM Account WHERE Name = {!record.Name} AND AnnualRevenue >= {!record.AnnualRevenue}',
@@ -206,14 +288,6 @@ private class RHCSoqlEvaluatorBehaviorTest {
     // least one Contact email is blank. The shared factory gives every seeded
     // Contact an email, so add a deterministic blank-email Contact for this
     // assertion and remove it afterward so later checks see the original data.
-    Contact blankEmailContact = RecordHealthCheckTestDataFactory.createContact(
-      RecordHealthCheckTestDataFactory.contact(
-        new Map<String, Object>{
-          'LastName' => 'Blank Email Coverage',
-          'AccountId' => accountRecord.Id
-        }
-      )
-    );
     Record_Health_Check__mdt allBlankFail = queryCheck('Q_All_Blank_Fail');
     allBlankFail.SourceQuery__c = 'SELECT Email FROM Contact WHERE AccountId = {!record.Id}';
     allBlankFail.SourceQueryField__c = 'Email';
@@ -225,7 +299,6 @@ private class RHCSoqlEvaluatorBehaviorTest {
       evaluator.evaluate(allBlankFail, accountRecord.Id, accountRecord),
       'FAIL'
     );
-    delete blankEmailContact;
 
     Record_Health_Check__mdt anyAllSkipped = queryCheck('Q_Any_All_Skipped');
     anyAllSkipped.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
@@ -401,96 +474,106 @@ private class RHCSoqlEvaluatorBehaviorTest {
       evaluator.evaluate(badPhrase, accountRecord.Id, accountRecord),
       'INVALID_SOQL_TEMPLATE'
     );
-
-    Record_Health_Check__mdt maxRows = queryCheck('Q_Max_Rows');
-    maxRows.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId = {!record.Id}';
-    maxRows.SourceQueryField__c = 'Id';
-    maxRows.QueryResultHandling__c = 'ANY_ROW_PASSES';
-    maxRows.MaxQueryRows__c = 1;
-    assertReason(
-      evaluator.evaluate(maxRows, accountRecord.Id, accountRecord),
-      'ROW_LIMIT_EXCEEDED'
-    );
   }
 
-  @IsTest
-  static void queryEvaluatorRejectsAllRowsAcrossLineBreaks() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    Record_Health_Check__mdt check = queryCheck('Q_All_Rows_Line_Break');
-    check.SourceQuery__c = 'SELECT Id FROM Account ALL\nROWS';
-
-    Test.startTest();
-    RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
-      .evaluate(check, accountRecord.Id, accountRecord);
-    Test.stopTest();
-
-    assertReason(result, 'INVALID_SOQL_TEMPLATE');
-  }
-
-  private static Record_Health_Check__mdt baseCheck(
-    String developerName,
-    String checkType
+  private static void seedQueryRows(
+    RecordHealthCheckSoqlEvaluator evaluator,
+    Account accountRecord
   ) {
-    return RecordHealthCheckTestDataFactory.check(
+    Contact withEmail = RecordHealthCheckTestDataFactory.contactFixture(
       new Map<String, Object>{
-        'DeveloperName' => developerName,
-        'MasterLabel' => developerName,
-        'CheckTitle__c' => developerName,
-        'EvaluationType__c' => checkType,
-        'FailureSeverity__c' => 'WARNING',
-        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
-        'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
-        'FormulaResultType__c' => 'AUTO',
-        'EvaluationOrder__c' => 10,
-        'ApplicabilityMode__c' => 'ALL_RECORDS',
-        'NoRowsResult__c' => 'FAIL',
-        'EmptyValueHandling__c' => 'SKIP_RECORD'
+        'LastName' => 'With Email',
+        'AccountId' => accountRecord.Id,
+        'Email' => 'alpha@example.com',
+        'MailingCity' => 'Chicago'
       }
     );
-  }
-
-  private static Record_Health_Check__mdt queryCheck(String developerName) {
-    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
-    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    check.SourceQueryField__c = 'BillingCity';
-    check.QueryResultHandling__c = 'ONE_RESULT';
-    check.ComparisonOperator__c = 'EQUALS';
-    check.ExpectedValueSource__c = 'FIXED_VALUE';
-    check.ExpectedFixedValue__c = 'Chicago';
-    return check;
-  }
-
-  private static void assertUnable(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
-  }
-
-  private static void assertStatus(
-    RecordHealthCheckInternalResult result,
-    String status
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      status,
-      result.status,
-      'Unexpected detail: ' + result.detailMessage
+    Contact blankEmail = RecordHealthCheckTestDataFactory.contactFixture(
+      new Map<String, Object>{
+        'LastName' => 'Blank Email',
+        'AccountId' => accountRecord.Id,
+        'MailingCity' => 'Evanston'
+      }
+    );
+    Opportunity opportunity = RecordHealthCheckTestDataFactory.opportunityFixture(
+      accountRecord.Id,
+      'Portable query coverage',
+      100
+    );
+    opportunity.CloseDate = Date.today().addDays(30);
+    AggregateResult countRow = [
+      SELECT COUNT(Id) total
+      FROM User
+      WHERE Id = :UserInfo.getUserId()
+    ];
+    evaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>();
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT BillingCity FROM Account WHERE Id = {!record.Id}',
+      new List<SObject>{ accountRecord }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}',
+      new List<SObject>{ accountRecord }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT Description FROM Account WHERE Id = {!record.Id}',
+      new List<SObject>{ accountRecord }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}',
+      new List<SObject>{ countRow }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} LIMIT 1',
+      new List<SObject>{ opportunity }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT Email FROM Contact WHERE AccountId = {!record.Id}',
+      new List<SObject>{ withEmail, blankEmail }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id}',
+      new List<SObject>{ withEmail, blankEmail }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT Id FROM Contact WHERE AccountId = {!record.Id}',
+      new List<SObject>{ withEmail, blankEmail }
+    );
+    evaluator.scopeRowsByBoundSoql.put(
+      'SELECT Id FROM Contact WHERE AccountId = null',
+      new List<SObject>()
+    );
+    evaluator.scopeRowsByBoundSoql.put(
+      'SELECT MailingCity FROM Contact WHERE AccountId = null',
+      new List<SObject>()
     );
   }
 
-  private static void assertReason(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
+  private static void seed(
+    RecordHealthCheckSoqlEvaluator evaluator,
+    SObject record,
+    String template,
+    List<SObject> rows
   ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      reasonCode,
-      result.reasonCode,
-      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    evaluator.scopeRowsByBoundSoql.put(
+      evaluator.bindTokens(template, record),
+      rows
     );
   }
 }

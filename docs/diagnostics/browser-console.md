@@ -27,7 +27,7 @@ developer or automation owner needs that surface. If you use only the Lightning 
 non-card and Platform Event sections.
 
 For what a normal (non-diagnostics) card looks like with Pass, Fail, and Skipped outcomes, see the
-[Demo Account Relationship and Risk screenshot](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+[Demo Account Relationship and Risk screenshot](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
 on [Install and verify](../install/install-in-a-sandbox.md).
 
 ## What you will learn

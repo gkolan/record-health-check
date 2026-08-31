@@ -124,6 +124,12 @@ document the timezone and test users on both sides of the boundary.
 
 ## Derived values, snapshots, and freshness
 
+> [!IMPORTANT]
+> **Core design decision:** Record Health Check does not add a generic freshness field or evaluator.
+> Freshness is a policy expressed with existing Checks and evidence exposed by the data model.
+> Product-specific watermark, job, and provenance semantics belong in extension recipes or reviewed
+> subscriber Apex.
+
 Core does not infer when a stored or derived field was computed. Make freshness an explicit part of
 the Check when the data model exposes evidence for it:
 
@@ -138,6 +144,19 @@ whether the values differ, but it cannot establish which value should govern the
 watermark cannot prove freshness. These cases are expressible without a core freshness field, and
 core does not inspect product jobs, trigger recalculation, or attach hidden semantics to copied
 values.
+
+Use the smallest existing mechanism that can prove the policy:
+
+| Available evidence | Recommended Check design | Safe stale or unknown outcome |
+| --- | --- | --- |
+| Stored calculation timestamp and source `LastModifiedDate` | Formula or Compare Two Queries compares the two timestamps | `FAIL` when the source is newer; never infer freshness from the derived value alone |
+| Stored watermark and maximum permitted age | Formula compares the watermark with `NOW()` or `TODAY()` using the intended timezone/date boundary | `FAIL` outside the threshold; missing watermark follows an explicit applicability or prerequisite policy |
+| Child or aggregate source changes | Query or Compare Two Queries obtains a source maximum/change signal and compares it with the watermark | A cap, inaccessible source, or unprovable unit returns unable rather than a partial `PASS` |
+| Processing job history or external provenance | Reviewed subscriber Apex reads the authorized evidence and returns one bounded outcome per root | Missing, failed, inaccessible, or never-run evidence cannot default to `PASS` |
+
+The same derived field can legitimately have different freshness policies in different
+organizations. Keeping those thresholds and evidence paths in Check configuration makes the policy
+reviewable without adding product assumptions to the core metadata contract.
 
 ## Query and data-model boundaries
 

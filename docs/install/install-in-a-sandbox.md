@@ -130,7 +130,7 @@ The packaged component is supported on Lightning record pages in Lightning Exper
 treat this guide as verification for Salesforce Classic, an App or Home page, Experience Cloud, or
 Salesforce mobile; validate any additional surface separately before promising support.
 
-![Account Check Builder Guide on the existing demo Account record page](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+![Account Check Builder Guide on the existing demo Account record page](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
 
 ## Step 4: Verify the experience as a user
 
@@ -149,7 +149,8 @@ A Check can show **Pass**, **Failed**, **Warning**, **Info**, **Skipped**, **Una
 Info. Unable to Check and System Error mean Record Health Check could not give a reliable business answer.
 
 For one final confidence check, change a field used by an Example Check on a record you can safely edit.
-Save the record and select **Rerun**. The result should follow the saved Salesforce data. The
+Save the record. A completed card should refresh and follow the saved Salesforce data. Select
+**Rerun** if the editing surface does not send a standard RefreshView notification. The
 health check should not change the record itself.
 
 ## You are ready to continue when
@@ -189,7 +190,7 @@ macOS, and Linux after the Salesforce CLI is installed.
 ```bash
 sf org login web --instance-url https://test.salesforce.com --alias rhc-sandbox
 sf org display --target-org rhc-sandbox
-sf package install --package 04tak000000eIO1AAM --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type DeprecateOnly --wait 30 --publish-wait 10 --no-prompt
+sf package install --package 04tak000000eM53AAE --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type Mixed --wait 30 --publish-wait 10 --no-prompt
 sf org assign permset --name rhc__Record_Health_Check_Card_User --target-org rhc-sandbox
 ```
 

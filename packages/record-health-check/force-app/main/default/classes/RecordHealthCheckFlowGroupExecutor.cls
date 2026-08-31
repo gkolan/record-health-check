@@ -115,9 +115,8 @@ public with sharing class RecordHealthCheckFlowGroupExecutor {
       result.itemsByRecord = RecordHealthCheckFlowSupport.itemsByRecord(
         result.response
       );
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
-      throw ex;
     } catch (Exception ex) {
+      RecordHealthCheckPluginDispatch.preserveFatalSideEffect(ex);
       return stableFailure(ex, selectionKind);
     }
     return result;

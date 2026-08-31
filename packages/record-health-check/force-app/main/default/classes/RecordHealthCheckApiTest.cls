@@ -19,12 +19,12 @@ private class RecordHealthCheckApiTest {
 
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
   static void evaluateCheckReturnsStableEnvelope() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
         RecordHealthCheckTestDataFactory.qualifiedCheckName(
@@ -45,7 +45,7 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void explicitRunIdIsPreserved() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheck(
           RecordHealthCheckTestDataFactory.qualifiedCheckName(
@@ -100,7 +100,7 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void unknownQualifiedIdentityThrows() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     try {
       RecordHealthCheck.evaluate(
         RecordHealthCheckRequest.forCheck('No_Such_Check', accountRecord.Id)
@@ -113,7 +113,7 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void evaluateSetReturnsCountsAndResults() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
       RecordHealthCheckRequest.forCheckSet(
           RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -137,8 +137,8 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void scopePreservesInputOrder() {
-    Account first = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    Account second = RecordHealthCheckTestDataFactory.createAccount(
+    Account first = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    Account second = RecordHealthCheckTestDataFactory.accountFixture(
       'Second account'
     );
     RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
@@ -186,7 +186,7 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void checkFlowAdapterReturnsAlignedV2Response() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckRunCheckFlowAction.Request input = new RecordHealthCheckRunCheckFlowAction.Request();
     input.checkQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       'Example_Website_URL_Valid'
@@ -204,7 +204,7 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void setFlowAdapterReturnsPerRecordCounts() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckRunSetFlowAction.Request input = new RecordHealthCheckRunSetFlowAction.Request();
     input.checkSetQualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
       'Example_Account_Check_Builder_Guide'
@@ -222,7 +222,7 @@ private class RecordHealthCheckApiTest {
 
   @IsTest
   static void flowAdaptersReturnValidationErrorsForUnknownSelections() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckRunCheckFlowAction.Request checkInput = new RecordHealthCheckRunCheckFlowAction.Request();
     checkInput.checkQualifiedApiName = 'Unknown.Check';
     checkInput.recordId = accountRecord.Id;

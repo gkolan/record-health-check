@@ -17,6 +17,15 @@ public with sharing class RecordHealthCheckScopePipeline {
         'A Record Health Check request is required.'
       );
     }
+    if (evaluatorFailureOverride == 'REST_SIDE_EFFECT') {
+      RecordHealthCheckPluginDispatch.SideEffectException sideEffect = new RecordHealthCheckPluginDispatch.SideEffectException(
+        'Synthetic plugin side effect.'
+      );
+      sideEffect.reasonCode = RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED;
+      sideEffect.effect = 'DML';
+      sideEffect.reversible = true;
+      throw sideEffect;
+    }
 
     List<Id> recordIds = dedupeRecordIds(request.recordIds);
     Integer dedupedCount = recordIds.size();

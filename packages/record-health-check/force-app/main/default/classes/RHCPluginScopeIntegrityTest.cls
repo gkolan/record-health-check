@@ -27,7 +27,7 @@ private class RHCPluginScopeIntegrityTest {
         )
       );
     }
-    RecordHealthCheckTestDataFactory.createAccounts(accounts);
+    RecordHealthCheckTestDataFactory.accountsFixture(accounts);
     return accounts;
   }
 
@@ -108,11 +108,11 @@ private class RHCPluginScopeIntegrityTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Mixed' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RecordHealthCheckTestDataFactory.accountFixture(account);
     Contact contact = RecordHealthCheckTestDataFactory.contact(
       new Map<String, Object>{ 'LastName' => 'Mixed' }
     );
-    RecordHealthCheckTestDataFactory.createContact(contact);
+    RecordHealthCheckTestDataFactory.contactFixture(contact);
 
     Test.startTest();
     Boolean threw = false;

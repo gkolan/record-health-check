@@ -6,16 +6,79 @@
 private class RHCEvaluatorEdgeBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
+  }
+
+  private static Record_Health_Check__mdt baseCheck(
+    String developerName,
+    String checkType
+  ) {
+    return RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => developerName,
+        'MasterLabel' => developerName,
+        'CheckTitle__c' => developerName,
+        'EvaluationType__c' => checkType,
+        'FailureSeverity__c' => 'WARNING',
+        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
+        'FailureMessage__c' => 'Apex failure for {!record.Name}',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
+        'FormulaResultType__c' => 'AUTO',
+        'EvaluationOrder__c' => 10,
+        'ApplicabilityMode__c' => 'ALL_RECORDS',
+        'NoRowsResult__c' => 'FAIL',
+        'EmptyValueHandling__c' => 'SKIP_RECORD'
+      }
+    );
+  }
+
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
+  }
+
+  private static void assertUnable(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected an unable result.');
+    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(reasonCode, result.reasonCode);
+  }
+
+  private static void assertStatus(
+    RecordHealthCheckInternalResult result,
+    String status
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      status,
+      result.status,
+      'Unexpected detail: ' + result.detailMessage
+    );
+  }
+
+  private static void assertReason(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    );
   }
 
   @IsTest
   static void comparisonOperatorsCoverRemainingEdgeBranches() {
-    Account accountRecord = [
-      SELECT Id, Name, BillingCity, BillingState, Description, AnnualRevenue
-      FROM Account
-      WHERE Id = :RecordHealthCheckTestDataFactory.getHealthyAccount().Id
-    ];
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     List<SObject> accountRows = new List<SObject>{ accountRecord };
     List<SObject> emptyRows = new List<SObject>();
 
@@ -45,7 +108,7 @@ private class RHCEvaluatorEdgeBehaviorTest {
         .size()
     );
     try {
-      soql.runQueryForEvaluation('SELECT Id FROM Account', 0);
+      soql.runQueryForEvaluation('SELECT COUNT() FROM Account', 0);
       Assert.isTrue(false, 'Expected row cap exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
       Assert.areEqual('ROW_LIMIT_EXCEEDED', ex.reasonCode);
@@ -294,73 +357,6 @@ private class RHCEvaluatorEdgeBehaviorTest {
     Assert.areEqual(
       false,
       RecordHealthCheckValueResolver.isNumericObject('1.5')
-    );
-  }
-
-  private static Record_Health_Check__mdt baseCheck(
-    String developerName,
-    String checkType
-  ) {
-    return RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{
-        'DeveloperName' => developerName,
-        'MasterLabel' => developerName,
-        'CheckTitle__c' => developerName,
-        'EvaluationType__c' => checkType,
-        'FailureSeverity__c' => 'WARNING',
-        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
-        'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
-        'FormulaResultType__c' => 'AUTO',
-        'EvaluationOrder__c' => 10,
-        'ApplicabilityMode__c' => 'ALL_RECORDS',
-        'NoRowsResult__c' => 'FAIL',
-        'EmptyValueHandling__c' => 'SKIP_RECORD'
-      }
-    );
-  }
-
-  private static Record_Health_Check__mdt queryCheck(String developerName) {
-    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
-    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    check.SourceQueryField__c = 'BillingCity';
-    check.QueryResultHandling__c = 'ONE_RESULT';
-    check.ComparisonOperator__c = 'EQUALS';
-    check.ExpectedValueSource__c = 'FIXED_VALUE';
-    check.ExpectedFixedValue__c = 'Chicago';
-    return check;
-  }
-
-  private static void assertUnable(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
-  }
-
-  private static void assertStatus(
-    RecordHealthCheckInternalResult result,
-    String status
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      status,
-      result.status,
-      'Unexpected detail: ' + result.detailMessage
-    );
-  }
-
-  private static void assertReason(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      reasonCode,
-      result.reasonCode,
-      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
     );
   }
 }

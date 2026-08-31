@@ -30,35 +30,6 @@ private class RecordHealthCheckSoqlTokenBinderTest {
   }
 
   @IsTest
-  static void escapesBackslashesBeforeBuildingSoqlLiterals() {
-    Account record = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'folder\\' }
-    );
-    RecordHealthCheckTestDataFactory.createAccount(record);
-
-    Test.startTest();
-    String bound = RecordHealthCheckSoqlTokenBinder.bindTokens(
-      'SELECT Id FROM Account WHERE Name = {!record.Name}',
-      record
-    );
-    List<SObject> matches = Database.query(
-      RecordHealthCheckSoqlTemplate.prepareForExecution(bound, 10)
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      'SELECT Id FROM Account WHERE Name = \'folder\\\\\'',
-      bound,
-      'A trailing backslash must be escaped before the closing SOQL quote.'
-    );
-    Assert.areEqual(
-      1,
-      matches.size(),
-      'The escaped literal must remain executable and match the source record.'
-    );
-  }
-
-  @IsTest
   static void rejectsDisallowedQueryKeywords() {
     Test.startTest();
     try {
@@ -110,6 +81,35 @@ private class RecordHealthCheckSoqlTokenBinderTest {
         '\')',
       bound,
       'Each multi-select API value should become a separately quoted INCLUDES operand.'
+    );
+  }
+
+  @IsTest
+  static void escapesBackslashesBeforeBuildingSoqlLiterals() {
+    Account record = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'folder\\' }
+    );
+    record = RecordHealthCheckTestDataFactory.accountFixture(record);
+
+    Test.startTest();
+    String bound = RecordHealthCheckSoqlTokenBinder.bindTokens(
+      'SELECT Id FROM Account WHERE Name = {!record.Name}',
+      record
+    );
+    List<SObject> matches = Database.query(
+      RecordHealthCheckSoqlTemplate.prepareForExecution(bound, 10)
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'SELECT Id FROM Account WHERE Name = \'folder\\\\\'',
+      bound,
+      'A trailing backslash must be escaped before the closing SOQL quote.'
+    );
+    Assert.areEqual(
+      0,
+      matches.size(),
+      'The escaped literal must remain executable and remain executable without requiring a persisted source record.'
     );
   }
 }

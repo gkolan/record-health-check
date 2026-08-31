@@ -134,7 +134,7 @@ If the Check Set picker is empty, confirm the Check Set is active and its **Obje
 When an Example Check Set is already installed, the card can look like this example (Pass, Fail, and
 Skipped outcomes with Found and Expected values):
 
-![Example Account Relationship and Risk health check card](../../assets/img/Example_Account_Relationship_Risk_Screenshot.png)
+![Example Account Relationship and Risk health check card](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
 
 ## Step 5: Test both results
 
@@ -143,11 +143,12 @@ Use an Account you can safely edit.
 | Test | What to do | Expected result |
 | --- | --- | --- |
 | Failing record | Clear Billing City, save the Account, and select **Run** | **Warning** (`FAIL`) with the failure message, fix message, and **Edit account** link |
-| Passing record | Add Billing City, save, and select **Rerun** | **Pass** |
+| Passing record | Add Billing City and save the Account | The completed card refreshes to **Pass** |
 
-The card does not rerun automatically after a record edit. This manual example should use
-**Rerun**. For an automatic Check Set whose action is hidden, refresh reevaluates the saved data,
-but that refresh does not publish user-run lifecycle events.
+The first manual evaluation still requires **Run**. After that result exists, a standard Lightning
+record save refreshes the card automatically. Use **Rerun** when you need a deliberate run or when a
+custom editing surface does not send a RefreshView notification. Automatic and save-driven refresh
+do not publish user-run lifecycle events.
 
 User-run lifecycle events are optional Platform Events emitted only after a person selects Run or
 Rerun and the Check Set or Check publication settings are enabled. Page-load evaluation never

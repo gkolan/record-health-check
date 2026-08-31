@@ -6,6 +6,10 @@
 
 This directory is **not** part of the Framework install.
 
+It owns tests that require live business-record persistence. The production package test suite and
+per-class coverage gate run before this harness is deployed, so integration coverage cannot mask
+packaged-only coverage. Final initiative evidence records the measured integration runtime.
+
 It holds sample Custom Metadata, a small custom object, Apex smoke coverage, and platform-event
 subscriber triggers used by the manual Salesforce release gate
 (`.github/workflows/salesforce-validate.yml`). Never deploy it to a customer sandbox or production
@@ -67,6 +71,9 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
 - `RHC_Conformance_Record__c`, a product-neutral fixture for hierarchy, signed decimal, currency,
   null, snapshot/current, timestamp, and mixed-bulk evaluator conformance
+- `foreign-namespace/`: a separately deployed, CPQ-dependent gate that proves full `SBQQ__` field
+  API names through Formula, Query, and record merge surfaces in a namespaced `rhc` org; it is
+  excluded from ordinary integration deployments
 - Platform-event triggers used only in CI orgs
 - Apex classes that exercise the Framework against those samples
 

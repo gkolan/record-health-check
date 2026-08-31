@@ -6,13 +6,85 @@
 private class RHCDualQueryBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
+  }
+
+  private static Record_Health_Check__mdt baseCheck(
+    String developerName,
+    String checkType
+  ) {
+    return RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => developerName,
+        'MasterLabel' => developerName,
+        'CheckTitle__c' => developerName,
+        'EvaluationType__c' => checkType,
+        'FailureSeverity__c' => 'WARNING',
+        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
+        'FailureMessage__c' => 'Apex failure for {!record.Name}',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
+        'FormulaResultType__c' => 'AUTO',
+        'EvaluationOrder__c' => 10,
+        'ApplicabilityMode__c' => 'ALL_RECORDS',
+        'NoRowsResult__c' => 'FAIL',
+        'EmptyValueHandling__c' => 'SKIP_RECORD'
+      }
+    );
+  }
+
+  private static Record_Health_Check__mdt dualCheck(String developerName) {
+    return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
+  }
+
+  private static Record_Health_Check__mdt validDualCheck(String developerName) {
+    Record_Health_Check__mdt check = dualCheck(developerName);
+    check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.SourceQueryField__c = 'totalCount';
+    check.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
+    check.ComparisonQueryField__c = 'totalCount';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    return check;
+  }
+
+  private static void assertUnable(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected an unable result.');
+    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(reasonCode, result.reasonCode);
+  }
+
+  private static void assertStatus(
+    RecordHealthCheckInternalResult result,
+    String status
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      status,
+      result.status,
+      'Unexpected detail: ' + result.detailMessage
+    );
+  }
+
+  private static void assertReason(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    );
   }
 
   @IsTest
   static void dualSoqlEvaluatorCoversSingleValueListAndErrorBranches() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckCompareQueriesEvaluator evaluator = new RecordHealthCheckCompareQueriesEvaluator();
+    seedQueryRows(evaluator, accountRecord);
 
     assertStatus(
       evaluator.evaluate(
@@ -368,85 +440,125 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(incompatible, accountRecord.Id, accountRecord),
       'INCOMPATIBLE_COMPARISON_TYPES'
     );
-
-    Record_Health_Check__mdt maxRows = validDualCheck('D_Max_Rows');
-    maxRows.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId = {!record.Id}';
-    maxRows.SourceQueryField__c = 'Id';
-    maxRows.MaxQueryRows__c = 1;
-    assertReason(
-      evaluator.evaluate(maxRows, accountRecord.Id, accountRecord),
-      'ROW_LIMIT_EXCEEDED'
-    );
   }
 
-  private static Record_Health_Check__mdt baseCheck(
-    String developerName,
-    String checkType
+  private static void seedQueryRows(
+    RecordHealthCheckCompareQueriesEvaluator evaluator,
+    Account accountRecord
   ) {
-    return RecordHealthCheckTestDataFactory.check(
+    Contact chicago = RecordHealthCheckTestDataFactory.contactFixture(
       new Map<String, Object>{
-        'DeveloperName' => developerName,
-        'MasterLabel' => developerName,
-        'CheckTitle__c' => developerName,
-        'EvaluationType__c' => checkType,
-        'FailureSeverity__c' => 'WARNING',
-        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
-        'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
-        'FormulaResultType__c' => 'AUTO',
-        'EvaluationOrder__c' => 10,
-        'ApplicabilityMode__c' => 'ALL_RECORDS',
-        'NoRowsResult__c' => 'FAIL',
-        'EmptyValueHandling__c' => 'SKIP_RECORD'
+        'LastName' => 'Chicago',
+        'AccountId' => accountRecord.Id,
+        'MailingCity' => 'Chicago'
       }
     );
-  }
-
-  private static Record_Health_Check__mdt dualCheck(String developerName) {
-    return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
-  }
-
-  private static Record_Health_Check__mdt validDualCheck(String developerName) {
-    Record_Health_Check__mdt check = dualCheck(developerName);
-    check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    check.SourceQueryField__c = 'totalCount';
-    check.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
-    check.ComparisonQueryField__c = 'totalCount';
-    check.QueryResultHandling__c = 'ONE_RESULT';
-    check.ComparisonOperator__c = 'EQUALS';
-    return check;
-  }
-
-  private static void assertUnable(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
-  }
-
-  private static void assertStatus(
-    RecordHealthCheckInternalResult result,
-    String status
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      status,
-      result.status,
-      'Unexpected detail: ' + result.detailMessage
+    Contact evanston = RecordHealthCheckTestDataFactory.contactFixture(
+      new Map<String, Object>{
+        'LastName' => 'Evanston',
+        'AccountId' => accountRecord.Id,
+        'MailingCity' => 'Evanston'
+      }
+    );
+    Opportunity opportunity = RecordHealthCheckTestDataFactory.opportunityFixture(
+      accountRecord.Id,
+      'Portable dual-query coverage',
+      100
+    );
+    opportunity.CloseDate = Date.today().addDays(30);
+    AggregateResult oneCount = [
+      SELECT COUNT(Id) totalCount
+      FROM User
+      WHERE Id = :UserInfo.getUserId()
+    ];
+    AggregateResult zeroCount = [
+      SELECT COUNT(Id) totalCount
+      FROM User
+      WHERE Id = NULL
+    ];
+    evaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>();
+    evaluator.scopeZeroCountSoql = new Set<String>();
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}',
+      new List<SObject>{ oneCount }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT COUNT(Id) totalCount FROM Opportunity WHERE AccountId = {!record.Id}',
+      new List<SObject>{ zeroCount }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT BillingCity FROM Account WHERE Id = {!record.Id}',
+      new List<SObject>{ accountRecord }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT BillingState FROM Account WHERE Id = {!record.Id}',
+      new List<SObject>{ accountRecord }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}',
+      new List<SObject>{ accountRecord }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT Description FROM Account WHERE Id = {!record.Id}',
+      new List<SObject>{ accountRecord }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} LIMIT 1',
+      new List<SObject>{ opportunity }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id}',
+      new List<SObject>{ chicago, evanston }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT Id FROM Contact WHERE AccountId = {!record.Id}',
+      new List<SObject>{ chicago, evanston }
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT BillingCity FROM Account WHERE Id = {!record.Id} AND Name = \'__rhc_no_match__\'',
+      new List<SObject>()
+    );
+    seed(
+      evaluator,
+      accountRecord,
+      'SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} AND LastName = \'__rhc_no_match__\'',
+      new List<SObject>()
+    );
+    evaluator.scopeRowsByBoundSoql.put(
+      'SELECT MailingCity FROM Contact WHERE AccountId = null',
+      new List<SObject>()
     );
   }
 
-  private static void assertReason(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
+  private static void seed(
+    RecordHealthCheckCompareQueriesEvaluator evaluator,
+    SObject record,
+    String template,
+    List<SObject> rows
   ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      reasonCode,
-      result.reasonCode,
-      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    evaluator.scopeRowsByBoundSoql.put(
+      new RecordHealthCheckSoqlEvaluator().bindTokens(template, record),
+      rows
     );
   }
 }

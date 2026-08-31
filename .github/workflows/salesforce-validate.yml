@@ -94,6 +94,8 @@ jobs:
         run: sf org assign permset --name Record_Health_Check_Admin --target-org rhc-ci
       - name: Run production package Apex tests
         run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
+      - name: Enforce packaged-only Apex coverage class by class
+        run: npm run check:apex-coverage -- rhc-ci --list
       - name: Run metadata validator against production metadata
         run: sf apex run --target-org rhc-ci --file scripts/apex/validateMetadata.apex
       - name: Dry-run integration harness deployment
@@ -117,8 +119,6 @@ jobs:
       - name: Verify the live MCP-to-Apex REST contract
         run: npm run contract:org --prefix packages/record-health-check-mcp -- --target-org rhc-ci --namespace rhc
       - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
-      - name: Enforce production Apex coverage class by class
-        run: npm run check:apex-coverage -- rhc-ci --list
       - name: Verify published Apex and LWC coverage statistics
         run: npm run test:unit:coverage && npm run check:quality-metrics -- --apex-org rhc-ci
       - name: Verify bounded query behavior against the accepted baseline

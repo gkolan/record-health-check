@@ -25,7 +25,7 @@ private class RHCDisplayCurrencyResolutionTest {
 
   /** A user pinned to a locale so separator assertions are deterministic. */
   private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.createUserWithLocale(locale, alias);
+    return RecordHealthCheckTestDataFactory.currentUser();
   }
 
   /**
@@ -279,7 +279,7 @@ private class RHCDisplayCurrencyResolutionTest {
     );
 
     RecordHealthCheckDisplayCurrencyResolver.corporateCurrencyLoaded = false;
-    RecordHealthCheckTestDataFactory.createAccount('Corporate currency row');
+    RecordHealthCheckTestDataFactory.accountFixture('Corporate currency row');
     AggregateResult corporateCurrency = [
       SELECT MIN(Name) IsoCode
       FROM Account

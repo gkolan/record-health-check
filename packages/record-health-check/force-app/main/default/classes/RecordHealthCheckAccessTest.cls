@@ -2,9 +2,7 @@
 private class RecordHealthCheckAccessTest {
   @IsTest
   static void explicitDenyRejectsAnUnentitledTestUser() {
-    User userRecord = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
-      'rhcdeny'
-    );
+    User userRecord = RecordHealthCheckTestDataFactory.currentUser();
 
     RecordHealthCheckAccess.setRunPermissionForTest(false);
     System.runAs(userRecord) {

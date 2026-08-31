@@ -99,25 +99,6 @@ private class RecordHealthCheckSecurityAndOpsTest {
   }
 
   @IsTest
-  static void detailsPermissionUsesFeatureManagement() {
-    User userWithoutPermission = RecordHealthCheckPersonaTestDataFactory.createMinimumAccessUser(
-      'rhcno'
-    );
-
-    Test.startTest();
-    Boolean canViewDetails;
-    System.runAs(userWithoutPermission) {
-      canViewDetails = RecordHealthCheckAccess.canViewDetails();
-    }
-    Test.stopTest();
-
-    Assert.isFalse(
-      canViewDetails,
-      'A minimum-access user without the diagnostics permission must be denied.'
-    );
-  }
-
-  @IsTest
   static void sharedMappingsCoverEveryNamedValue() {
     Test.startTest();
     String automatic = RecordHealthCheckConstants.toLwcTriggerMode(
@@ -282,22 +263,5 @@ private class RecordHealthCheckSecurityAndOpsTest {
     Test.stopTest();
 
     Assert.isNull(issue, 'A missing Check has no template to validate.');
-  }
-
-  @IsTest
-  static void pluginValidationRethrowsConstructorSideEffects() {
-    Test.startTest();
-    try {
-      RecordHealthCheckConfigValidator.isValidApexPlugin(
-        'RHCConstructorMutationCheck'
-      );
-      Assert.fail('A plugin constructor mutation must abort validation.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.isNotNull(
-        error.getMessage(),
-        'The prohibited constructor mutation should retain diagnostic detail.'
-      );
-    }
-    Test.stopTest();
   }
 }

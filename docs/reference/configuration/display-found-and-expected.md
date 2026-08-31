@@ -1,7 +1,5 @@
 # Display Found and Expected values
 
-Use this reference while configuring card display values.
-
 Use this reference while configuring how values appear on the card.
 
 > [!NOTE]

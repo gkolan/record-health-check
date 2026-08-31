@@ -245,7 +245,7 @@ const apexClassFiles = fs
     )
   )
   .filter((name) => name.endsWith(".cls"));
-const apexTestClassCount = apexClassFiles.filter((name) => {
+const apexAnnotatedTestClassCount = apexClassFiles.filter((name) => {
   const source = fs.readFileSync(
     path.join(
       root,
@@ -254,7 +254,18 @@ const apexTestClassCount = apexClassFiles.filter((name) => {
     ),
     "utf8"
   );
-  return name.endsWith("Test.cls") || /@IsTest\b/i.test(source);
+  return /@IsTest\b/i.test(source);
+}).length;
+const apexContractTestSupportCount = apexClassFiles.filter((name) => {
+  const source = fs.readFileSync(
+    path.join(
+      root,
+      "packages/record-health-check/force-app/main/default/classes",
+      name
+    ),
+    "utf8"
+  );
+  return name.endsWith("Test.cls") && !/@IsTest\b/i.test(source);
 }).length;
 const customMetadataFieldCount = (objectName) =>
   fs
@@ -281,7 +292,7 @@ const practicalExampleCount = [
   0
 );
 const expectedSnapshotClaims = [
-  `${apexClassFiles.length} classes, including ${apexTestClassCount} test classes`,
+  `${apexClassFiles.length} classes, including ${apexAnnotatedTestClassCount} \`@IsTest\` classes and ${apexContractTestSupportCount} global contract-test support class`,
   `Record Health Check Set (${customMetadataFieldCount("Record_Health_Check_Set__mdt")} fields) and Record Health Check (${customMetadataFieldCount("Record_Health_Check__mdt")} fields)`,
   `${markdownFiles.length} maintained pages, including ${practicalExampleCount} documented Check examples`
 ];
@@ -289,6 +300,66 @@ for (const claim of expectedSnapshotClaims) {
   if (!readme.includes(claim)) {
     failures.push(
       `README.md: stale or missing framework snapshot claim: ${claim}`
+    );
+  }
+}
+
+const architectureImplementation = fs.readFileSync(
+  path.join(root, "docs/architecture/apex-implementation/README.md"),
+  "utf8"
+);
+const architectureSupportCount =
+  apexContractTestSupportCount === 1
+    ? "one"
+    : String(apexContractTestSupportCount);
+const architectureInventoryClaim = `${apexClassFiles.length} packaged Apex classes, including ${apexAnnotatedTestClassCount} \`@IsTest\` classes and ${architectureSupportCount} global contract-test support class`;
+if (
+  !architectureImplementation
+    .replace(/\s+/g, " ")
+    .includes(architectureInventoryClaim)
+) {
+  failures.push(
+    `docs/architecture/apex-implementation/README.md: stale Apex inventory; expected '${architectureInventoryClaim}'`
+  );
+}
+
+const featureCatalog = fs.readFileSync(
+  path.join(root, "docs/reference/feature-catalog.md"),
+  "utf8"
+);
+const requiredFeatureCatalogTerms = [
+  "RUN_ON_LOAD",
+  "RUN_ON_REQUEST",
+  "FORMULA",
+  "QUERY",
+  "COMPARE_TWO_QUERIES",
+  "APEX",
+  "Validate Record Health Check Configuration",
+  "RecordHealthCheck.evaluate",
+  "EVALUATION_WITH_DISPLAY",
+  "SUMMARY",
+  "Merge tokens",
+  "Queueable Apex",
+  "Batch Apex",
+  "Scheduled Apex",
+  "Agentforce",
+  "REST agent tool",
+  "MCP service",
+  "Record_Health_Check_Result__e",
+  "Record_Health_Check_Set_Run__e",
+  "Record_Health_Check_Log__e",
+  "Record Health Check Card User",
+  "Record Health Check User",
+  "Record Health Check Admin",
+  "MCP Integration",
+  "Error Log Publisher",
+  "Record Health Check Run",
+  "Record Health Check View Diagnostics"
+];
+for (const term of requiredFeatureCatalogTerms) {
+  if (!featureCatalog.includes(term)) {
+    failures.push(
+      `docs/reference/feature-catalog.md: missing shipped feature inventory term '${term}'`
     );
   }
 }

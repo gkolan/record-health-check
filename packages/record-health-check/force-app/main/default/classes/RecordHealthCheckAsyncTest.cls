@@ -99,7 +99,7 @@ private with sharing class RecordHealthCheckAsyncTest {
 
   @IsTest
   static void shouldRegisterDailySchedule() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Scheduled authorization'
     );
     Test.startTest();
@@ -126,7 +126,7 @@ private with sharing class RecordHealthCheckAsyncTest {
 
   @IsTest
   static void shouldExecuteScheduledRequestThroughBatchAdapter() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Scheduled execution contract'
     );
     RecordHealthCheckScheduled scheduled = new RecordHealthCheckScheduled(
@@ -167,7 +167,7 @@ private with sharing class RecordHealthCheckAsyncTest {
 
   @IsTest
   static void frameworkQueueableCompletesAgainstARealCheckSet() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Framework Queueable happy path'
     );
 
@@ -196,7 +196,7 @@ private with sharing class RecordHealthCheckAsyncTest {
 
   @IsTest
   static void frameworkBatchCompletesAgainstARealCheckSet() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Framework Batch happy path'
     );
 

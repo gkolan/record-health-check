@@ -1,11 +1,13 @@
 # Flow action inputs and outputs
 
 > [!NOTE]
-> On this page, build a Flow that runs one Check Set or Check, branches on the returned Status, and
-> keeps an unhealthy record separate from a Flow input, access, or transaction problem.
+> On this page, build a Flow that runs one Check Set or Check, branches on the returned Status, or
+> validates every Check definition before activation.
 
-Use the packaged Flow actions to evaluate a Salesforce record without writing Apex. A Flow can run
-one Check or a complete Check Set, then use a Decision element to respond to the result.
+Use the packaged Flow actions to evaluate a Salesforce record or validate Record Health Check
+configuration without writing Apex. A Flow can run one Check or a complete Check Set, then use a
+Decision element to respond to the result. An administrator Flow can also audit every active
+definition and inactive draft before activation.
 
 Start with the Check Set action unless your Flow intentionally needs only one specific Check.
 
@@ -25,6 +27,7 @@ partial first page.
 | --- | --- | --- |
 | The complete health assessment configured for a record | **Run Record Health Check Set** | Overall status, outcome counts, and every Check result as JSON |
 | One specific health decision | **Run Record Health Check** | Check Status, Reason Code, and the complete result as JSON |
+| A pre-activation audit of all Check Sets and Checks | **Validate Record Health Check Configuration** | Valid flag, error and warning counts, and the complete validation report as JSON |
 
 > [!TIP]
 > A Check Set is the normal starting point because it keeps the Flow aligned with the same ordered
@@ -112,7 +115,7 @@ and access model that the activated Flow will use.
 
 ## Inputs and outputs
 
-Both actions appear under the **Record Health Check** category in Flow Builder.
+All three actions appear under the **Record Health Check** category in Flow Builder.
 
 ### Run Record Health Check Set
 
@@ -182,6 +185,28 @@ This action runs one Check. Its Apex implementation is `RecordHealthCheckRunChec
 | **Contract Version** | Version carried by the returned response | Preserve and inspect it when a long-lived integration stores or forwards the response |
 
 The success value is `PASS`, not `SUCCESS`.
+
+### Validate Record Health Check Configuration
+
+This administrator action audits every Check Set and Check, including inactive drafts. Its Apex
+implementation is `RecordHealthCheckValidateMetadataAction`.
+
+The action has no inputs. Add it to an administrator-only autolaunched or screen Flow and run it
+after Custom Metadata changes and before activation. The running user needs access to the packaged
+action; **Record Health Check Admin** provides that access.
+
+#### Outputs
+
+| Output | What it tells you | Typical Flow use |
+| --- | --- | --- |
+| **Configuration Is Valid** | `true` when the audit found no errors | Block an activation or deployment handoff while false |
+| **Error Count** | Number of findings that make configuration invalid | Require correction before activation |
+| **Warning Count** | Number of advisory findings that need review | Route for administrator review without treating the configuration as invalid |
+| **Validation Report JSON** | Structured list of every finding, including severity, component, field, Reason Code, and message | Display, log, or pass the detailed report to an approved review process |
+
+The validator uses the same required-field, query-shape, identity, dependency, and compatibility
+checks used by runtime configuration loading. Correct every error and review every warning before
+users or automation rely on the affected Check Set.
 
 ## Understand the returned statuses
 

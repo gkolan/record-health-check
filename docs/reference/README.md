@@ -8,6 +8,7 @@ outcome, return to the [documentation home](../README.md) and choose a task-base
 
 | Folder | What you can find there |
 | --- | --- |
+| [Feature catalog](./feature-catalog.md) | Every shipped capability, its supported behavior, and the detailed guide that owns it |
 | [Configuration](./configuration/README.md) | Names, display formatting, and field limits |
 | [Merge syntax](./merge-syntax/README.md) | Token namespaces, properties, fallbacks, and SOQL usage |
 | [Evaluation](./evaluation/README.md) | Exact Formula, Query, Compare Two Queries, and bulk-query behavior |
@@ -23,6 +24,7 @@ Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term 
 
 | I need to know… | Reference |
 | --- | --- |
+| What the package supports | [Complete feature catalog](./feature-catalog.md) |
 | Which field to use in Setup | [Custom Metadata](./custom-metadata/README.md) |
 | Which fields a Platform Event publishes | [Platform Event metadata](./platform-event-metadata/README.md) |
 | Why a result says `FAIL`, `ERROR`, or `UNABLE_TO_EVALUATE` | [Result statuses and card labels](./results/statuses-and-labels.md) |

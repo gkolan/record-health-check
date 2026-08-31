@@ -15,7 +15,7 @@ private class AccountOpenOpportunityHealthCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Opp Health None' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
@@ -29,12 +29,12 @@ private class AccountOpenOpportunityHealthCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Opp Health Healthy' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
     Date inQuarter = AccountOpenOpportunityHealthCheck.getQuarterStart(
       Date.today()
     );
-    RecordHealthCheckTestDataFactory.createOpportunity(
+    RHCIntegrationTestDataFactory.createOpportunity(
       new Map<String, Object>{
         'AccountId' => account.Id,
         'Name' => 'Healthy deal',
@@ -60,11 +60,11 @@ private class AccountOpenOpportunityHealthCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Opp Health Unhealthy' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
     // No Next Step, closing far in the future, and (by default) no activity
     // stale, so the deal is unhealthy.
-    RecordHealthCheckTestDataFactory.createOpportunity(
+    RHCIntegrationTestDataFactory.createOpportunity(
       new Map<String, Object>{
         'AccountId' => account.Id,
         'Name' => 'Neglected deal',
@@ -85,7 +85,7 @@ private class AccountOpenOpportunityHealthCheckTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'RHC Opp Health Parameters' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RHCIntegrationTestDataFactory.createAccount(account);
 
     for (
       Map<String, Object> parameters : new List<Map<String, Object>>{

@@ -79,6 +79,26 @@ when the job starts, how many records run in one transaction, and where results 
 complete example combines those choices, list the selected values and state that they are example
 choices rather than universal recommendations.
 
+## Give every user task one owner
+
+Each supported user job must have one primary maintained page. Update that page when behavior
+changes instead of adding a second end-to-end procedure elsewhere. Folder indexes and the
+[documentation home](../README.md) route readers to the owner; reference pages can supply exact
+field, API, event, or reason-code contracts without becoming competing walkthroughs.
+
+Before publishing a new task guide or materially changing an existing one:
+
+1. identify the current owner page and reconcile overlapping procedures;
+2. verify the complete path with the permissions and environment named by the guide;
+3. prove the expected outcome and at least one relevant negative, fault, or access outcome;
+4. exercise the documented troubleshooting and recovery or cleanup path; and
+5. update the owning folder index and primary navigation when discoverability changes.
+
+Production installation, upgrade, uninstall, external event delivery, Agentforce, and hosted MCP
+procedures require an approved representative environment and owner. A desk review or passing link
+check does not replace that runtime walkthrough. Record any unverified environment-specific claim
+as a limitation instead of presenting it as completed evidence.
+
 ## Make Salesforce names unmistakable
 
 Label names by their purpose:

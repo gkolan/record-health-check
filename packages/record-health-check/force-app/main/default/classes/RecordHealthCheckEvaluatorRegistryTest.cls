@@ -67,4 +67,36 @@ private with sharing class RecordHealthCheckEvaluatorRegistryTest {
     }
     Test.stopTest();
   }
+
+  @IsTest
+  static void apexAdapterPreservesAutomationNeutralFatalSideEffects() {
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
+      'Apex adapter side effect'
+    );
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'EvaluationType__c' => 'APEX',
+        'ApexClass__c' => 'RHCTestEvaluationQueueableCheck'
+      }
+    );
+    RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
+    context.objectApiName = 'Account';
+    context.checkSetDeveloperName = 'Safe_Set';
+    context.checkSetQualifiedApiName = 'Safe_Set';
+    context.executionOrigin = 'APEX_API';
+
+    try {
+      new RecordHealthCheckEvaluatorRegistry()
+        .evaluateScope(
+          check,
+          new List<Id>{ record.Id },
+          new Map<Id, SObject>{ record.Id => record },
+          context,
+          'registry-side-effect'
+        );
+      Assert.fail('The Apex adapter must preserve fatal side effects.');
+    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
+      Assert.areEqual('QUEUEABLE', error.effect);
+    }
+  }
 }

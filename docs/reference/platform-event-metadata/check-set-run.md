@@ -120,7 +120,7 @@ Setup; do not add or remove a namespace prefix.
 ```json
 {
   "ContractVersion__c": "1.0",
-  "FrameworkVersion__c": "2.0.5",
+  "FrameworkVersion__c": "2.0.6",
   "EventId__c": "rhc-run-001-0123456789abcdef",
   "RunId__c": "rhc-run-001",
   "Phase__c": "COMPLETED",

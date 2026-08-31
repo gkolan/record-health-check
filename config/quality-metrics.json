@@ -16,10 +16,10 @@
     "testRunId": "707Rt00002DroD1"
   },
   "lwc": {
-    "testCount": 236,
-    "linesPercent": 98.73,
-    "statementsPercent": 98.22,
-    "functionsPercent": 98.59,
-    "branchesPercent": 91.81
+    "testCount": 242,
+    "linesPercent": 98.6,
+    "statementsPercent": 98.1,
+    "functionsPercent": 98.63,
+    "branchesPercent": 91.73
   }
 }

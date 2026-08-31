@@ -111,7 +111,7 @@ private class RecordHealthCheckDescribeCacheTest {
   @IsTest
   static void objectApiNameFromRecordIdUsesCachedDescribe() {
     RecordHealthCheckDescribeCache.clearForTest();
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Cache Test Account'
     );
 

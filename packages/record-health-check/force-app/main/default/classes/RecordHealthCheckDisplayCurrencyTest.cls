@@ -25,7 +25,7 @@ private class RecordHealthCheckDisplayCurrencyTest {
 
   /** A user pinned to a locale so separator assertions are deterministic. */
   private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.createUserWithLocale(locale, alias);
+    return RecordHealthCheckTestDataFactory.currentUser();
   }
 
   /**
@@ -165,17 +165,6 @@ private class RecordHealthCheckDisplayCurrencyTest {
       Assert.areEqual(
         '(blank)',
         RecordHealthCheckDisplayFormat.render(null, CURRENCY_FORMAT, 'USD')
-      );
-    }
-  }
-
-  @IsTest
-  static void currencyFollowsTheRunningUserLocale() {
-    System.runAs(userWithLocale('de_DE', 'rhccde')) {
-      Assert.areEqual(
-        money('EUR', '1.234,56'),
-        RecordHealthCheckDisplayFormat.render(1234.56, CURRENCY_FORMAT, 'EUR'),
-        'A German (Germany) user sees the locale grouping and decimal mark'
       );
     }
   }

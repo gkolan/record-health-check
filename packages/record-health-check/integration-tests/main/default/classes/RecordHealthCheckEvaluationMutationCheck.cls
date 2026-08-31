@@ -4,7 +4,7 @@ public class RecordHealthCheckEvaluationMutationCheck implements RecordHealthChe
   public Map<Id, RecordHealthCheckOutcome> evaluate(
     RecordHealthCheckScope scope
   ) {
-    RecordHealthCheckTestDataFactory.createAccount('Evaluation mutation');
+    RHCIntegrationTestDataFactory.createAccount('Evaluation mutation');
     return new Map<Id, RecordHealthCheckOutcome>();
   }
 }

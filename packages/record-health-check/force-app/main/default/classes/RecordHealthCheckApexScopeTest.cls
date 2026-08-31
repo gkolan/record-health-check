@@ -77,7 +77,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
 
   @IsTest
   static void evaluateScopeRejectsInvalidClassConfigurations() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Apex scope validation'
     );
     List<Id> recordIds = new List<Id>{ accountRecord.Id };
@@ -131,7 +131,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
 
   @IsTest
   static void evaluateScopeRejectsNonObjectParameterJson() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Apex parameters array'
     );
     assertParameterFailure(accountRecord, '[1,2]');
@@ -139,7 +139,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
 
   @IsTest
   static void evaluateScopeRejectsMalformedParameterJson() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Apex malformed parameters'
     );
     assertParameterFailure(accountRecord, '{broken');
@@ -179,7 +179,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
 
   @IsTest
   static void invalidExpectedFormatFailsSafely() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Missing plugin outcome'
     );
     Record_Health_Check__mdt check = checkFor(
@@ -212,7 +212,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
 
   @IsTest
   static void pluginExceptionsBecomeStableEvaluatorResults() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Plugin exception'
     );
     RecordHealthCheckApexEvaluator evaluator = new RecordHealthCheckApexEvaluator();
@@ -245,55 +245,8 @@ private with sharing class RecordHealthCheckApexScopeTest {
   }
 
   @IsTest
-  static void constructorSideEffectsRemainFatal() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      'Fatal constructor side effect'
-    );
-
-    Test.startTest();
-    try {
-      new RecordHealthCheckApexEvaluator()
-        .evaluate(
-          checkFor('RHCConstructorMutationCheck', null),
-          accountRecord.Id,
-          accountRecord
-        );
-      Assert.fail('A plugin constructor mutation must remain fatal.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.isNotNull(
-        error.getMessage(),
-        'The fatal error should explain the constructor side effect.'
-      );
-    }
-    Test.stopTest();
-  }
-
-  @IsTest
-  static void evaluationSideEffectsRemainFatal() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
-      'Fatal plugin side effect'
-    );
-    Record_Health_Check__mdt check = checkFor(
-      'RecordHealthCheckEvaluationMutationCheck',
-      null
-    );
-    Test.startTest();
-    try {
-      new RecordHealthCheckApexEvaluator()
-        .evaluate(check, accountRecord.Id, accountRecord);
-      Assert.fail('A plugin database mutation must remain fatal.');
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.isNotNull(
-        error.getMessage(),
-        'The fatal error should explain the side effect.'
-      );
-    }
-    Test.stopTest();
-  }
-
-  @IsTest
   static void evaluateScopeMapsContractAndMissingOutcomeFailures() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Apex contract mapping'
     );
     List<Id> recordIds = new List<Id>{ accountRecord.Id };
@@ -348,7 +301,7 @@ private with sharing class RecordHealthCheckApexScopeTest {
 
   @IsTest
   static void pluginScopeReceivesUnqualifiedAndQualifiedIdentities() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Qualified plugin scope'
     );
     Record_Health_Check__mdt check = checkFor(
@@ -398,8 +351,8 @@ private with sharing class RecordHealthCheckApexScopeTest {
   }
 
   @IsTest
-  static void everyInvalidPluginOutcomeReceivesAClassifiedIncident() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+  static void invalidPluginStatusAndMissingValuesReceiveClassifiedIncidents() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Invalid plugin outcomes'
     );
     Record_Health_Check__mdt check = checkFor(
@@ -414,13 +367,6 @@ private with sharing class RecordHealthCheckApexScopeTest {
       )
     );
     invalidOutcomes.add(RecordHealthCheckOutcome.pass('MISSING_VALUES'));
-    invalidOutcomes.add(
-      (RecordHealthCheckOutcome) JSON.deserialize(
-        '{"status":"PASS","reasonCode":"INVALID_DISPLAY","actualDisplayValue":0.75,"actualDisplayFormat":"ratio_percent","expectedValue":"80%"}',
-        RecordHealthCheckOutcome.class
-      )
-    );
-
     Test.startTest();
     for (RecordHealthCheckOutcome outcome : invalidOutcomes) {
       RecordHealthCheckConfigValidator.cachePluginForTest(

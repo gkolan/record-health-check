@@ -117,7 +117,7 @@ function main() {
     "--security-type",
     "AdminsOnly",
     "--upgrade-type",
-    "DeprecateOnly",
+    "Mixed",
     "--publish-wait",
     "10",
     "--wait",

@@ -6,12 +6,12 @@ private with sharing class RecordHealthCheckAgentActionTest {
 
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createTestRecords();
+    RecordHealthCheckTestDataFactory.prepareTestFixtures();
   }
 
   @IsTest
   static void checkActionReturnsStructuredResultForExactIdentity() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
     input.recordId = accountRecord.Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
@@ -56,7 +56,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
 
   @IsTest
   static void setActionReturnsCountsForExactIdentity() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckRunSetAgentAction.Request input = new RecordHealthCheckRunSetAgentAction.Request();
     input.recordId = accountRecord.Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -91,8 +91,8 @@ private with sharing class RecordHealthCheckAgentActionTest {
 
   @IsTest
   static void setActionReturnsFirstDiagnosisForUnableResult() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    RecordHealthCheckTestDataFactory.createOpportunity(
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    RecordHealthCheckTestDataFactory.opportunityFixture(
       new Map<String, Object>{
         'Name' => 'Proposal without products',
         'AccountId' => accountRecord.Id,
@@ -426,7 +426,8 @@ private with sharing class RecordHealthCheckAgentActionTest {
 
   private static RecordHealthCheckRunCheckAgentAction.Request validCheckInput() {
     RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
-    input.recordId = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;
+    input.recordId = RecordHealthCheckTestDataFactory.healthyAccountFixture()
+      .Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       'Example_Website_URL_Valid'
     );
@@ -436,7 +437,8 @@ private with sharing class RecordHealthCheckAgentActionTest {
 
   private static RecordHealthCheckRunSetAgentAction.Request validSetInput() {
     RecordHealthCheckRunSetAgentAction.Request input = new RecordHealthCheckRunSetAgentAction.Request();
-    input.recordId = RecordHealthCheckTestDataFactory.getHealthyAccount().Id;
+    input.recordId = RecordHealthCheckTestDataFactory.healthyAccountFixture()
+      .Id;
     input.qualifiedApiName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
       'Example_Account_Check_Builder_Guide'
     );

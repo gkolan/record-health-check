@@ -16,7 +16,7 @@ private with sharing class RHCCrossBoundaryCoverageTest {
   @IsTest
   static void mapsMissingControllerIdentitiesToSafeError() {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Missing controller identities'
     );
     Test.startTest();

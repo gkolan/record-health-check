@@ -6,11 +6,24 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
   private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
 
   @IsTest
+  static void blankPrerequisiteNeedsNoHistory() {
+    Assert.areEqual(
+      null,
+      new RecordHealthCheckScopeResultSupport()
+        .findPrerequisiteBlock(
+          RecordHealthCheckTestDataFactory.check(new Map<String, Object>()),
+          UserInfo.getUserId(),
+          new Map<String, RecordHealthCheckResultItem>()
+        )
+    );
+  }
+
+  @IsTest
   static void missingPrerequisiteDoesNotBlockSingleCheckSelection() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Missing Prerequisite' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RecordHealthCheckTestDataFactory.accountFixture(account);
     Record_Health_Check__mdt checkWithPrerequisite = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
         'DeveloperName' => 'Check_B',
@@ -38,7 +51,7 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Passing Prerequisite' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RecordHealthCheckTestDataFactory.accountFixture(account);
     RecordHealthCheckResultItem prerequisiteResult = buildPrerequisiteResultItem(
       account.Id,
       'Check_A',
@@ -64,7 +77,7 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
 
   @IsTest
   static void missingPrerequisiteBlocksFullCheckSetSelection() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Missing prerequisite in full set'
     );
 
@@ -91,7 +104,7 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Non-Passing Prerequisite' }
     );
-    RecordHealthCheckTestDataFactory.createAccount(account);
+    RecordHealthCheckTestDataFactory.accountFixture(account);
     List<String> terminalStatuses = new List<String>{
       RecordHealthCheckStatus.FAIL,
       RecordHealthCheckStatus.SKIPPED,
@@ -137,7 +150,7 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
     Account second = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => 'Second Scope Record' }
     );
-    RecordHealthCheckTestDataFactory.createAccounts(
+    RecordHealthCheckTestDataFactory.accountsFixture(
       new List<Account>{ first, second }
     );
     Map<String, RecordHealthCheckResultItem> priorItems = new Map<String, RecordHealthCheckResultItem>{
@@ -180,7 +193,7 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
 
   @IsTest
   static void prerequisiteLookupIgnoresSpoofedMapIdentity() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'Spoofed prerequisite identity' }
       )
@@ -210,7 +223,7 @@ private with sharing class RecordHealthCheckScopePrerequisiteTest {
 
   @IsTest
   static void managedPrerequisiteWinsOverSubscriberNameCollision() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Namespace-safe prerequisite'
     );
     Map<String, RecordHealthCheckResultItem> priorItems = new Map<String, RecordHealthCheckResultItem>{

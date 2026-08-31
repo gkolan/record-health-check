@@ -148,6 +148,9 @@ describe-validated before execution. This preserves locale-independent `FIELD_NO
 - Use `{!record.Id}` and supported `{!record.FieldName}` tokens for current-record values. Add a
   fallback that matches the Salesforce field's data type when an empty value needs a substitute,
   such as `{!record.AnnualRevenue fallback="0"}`.
+- Use complete API names for fields and relationships owned by another installed package. For
+  example, select and enter `SBQQ__AssetQuantitiesCombined__c` in both **Source Query** and
+  **Source Query Field**. Record Health Check does not add, remove, or guess namespace prefixes.
 - Use field API names, not labels, in SOQL.
 - Queries run in user mode and enforce the running user's record, object, and field access.
 - A zero-row result means no rows were visible to that user-mode transaction. It does not establish

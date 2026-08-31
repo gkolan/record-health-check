@@ -41,6 +41,10 @@ import getCheckSetShellConfig from "@salesforce/apex/RecordHealthCheckController
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
 import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheck";
 import completeRun from "@salesforce/apex/RecordHealthCheckController.completeRun";
+import {
+  registerRefreshHandler,
+  unregisterRefreshHandler
+} from "lightning/refresh";
 
 // The LWC jest transformer rewrites `import foo from '@salesforce/apex/...'`
 // to `require('@salesforce/apex/...').default`, so the factory must return
@@ -2498,6 +2502,193 @@ describe("c-record-health-check — _parseAuraError", () => {
     expect(
       element.shadowRoot.querySelector(".rhc-error-banner")
     ).not.toBeNull();
+  });
+});
+
+describe("c-record-health-check — record save refresh", () => {
+  let element;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getCheckSetShellConfig.mockResolvedValue(null);
+    element = createComponent();
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+  });
+
+  function refreshHandler() {
+    const registration = registerRefreshHandler.mock.calls.at(-1);
+    expect(registration[0]).toBeTruthy();
+    expect(registration[1]).toEqual(expect.any(Function));
+    return registration[1];
+  }
+
+  it("registers with RefreshView and unregisters on disconnect", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardTitle: "Account Health",
+      activeCheckCount: "1"
+    });
+
+    await appendAndLoad(element);
+
+    const registrationId = registerRefreshHandler.mock.results.at(-1).value;
+    expect(registerRefreshHandler).toHaveBeenCalledTimes(1);
+    expect(registerRefreshHandler.mock.calls[0][0]).toBeTruthy();
+    expect(registerRefreshHandler.mock.calls[0][1]).toEqual(
+      expect.any(Function)
+    );
+
+    element.remove();
+
+    expect(unregisterRefreshHandler).toHaveBeenCalledWith(registrationId);
+  });
+
+  it("preserves Manual intent before the first user-initiated run", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardTitle: "Account Health",
+      activeCheckCount: "1"
+    });
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+
+    await appendAndLoad(element);
+    await expect(refreshHandler()()).resolves.toBe(true);
+    jest.advanceTimersByTime(250);
+    await flushPromises();
+
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+  });
+
+  it("reruns completed Manual results without publishing lifecycle events", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardTitle: "Account Health",
+      activeCheckCount: "2"
+    });
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(PASS_RESULT(checkQualifiedApiName))
+    );
+
+    await appendAndLoad(element);
+    await clickRun(element);
+    await flushPromises();
+    await flushPromises();
+
+    getCheckDefinitions.mockClear();
+    evaluateCheck.mockClear();
+    completeRun.mockClear();
+
+    await expect(refreshHandler()()).resolves.toBe(true);
+    jest.advanceTimersByTime(250);
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+    expect(evaluateCheck).toHaveBeenCalledTimes(2);
+    expect(evaluateCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "RUN_ON_LOAD" })
+    );
+    expect(completeRun).not.toHaveBeenCalled();
+  });
+
+  it("coalesces an Automatic RefreshView burst into one replacement run", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(PASS_RESULT(checkQualifiedApiName))
+    );
+
+    await appendAndLoad(element);
+    getCheckDefinitions.mockClear();
+    evaluateCheck.mockClear();
+    completeRun.mockClear();
+
+    const handler = refreshHandler();
+    await Promise.all([handler(), handler(), handler()]);
+    jest.advanceTimersByTime(249);
+    await flushPromises();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+    expect(evaluateCheck).toHaveBeenCalledTimes(2);
+    expect(
+      evaluateCheck.mock.calls.every(
+        ([request]) => request.source === "RUN_ON_LOAD"
+      )
+    ).toBe(true);
+    expect(completeRun).not.toHaveBeenCalled();
+  });
+
+  it("discards results from a run replaced by record refresh", async () => {
+    const staleRun = deferred();
+    let replacementStarted = false;
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        successDisplayMode: "Show"
+      })
+    );
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) => {
+      if (!replacementStarted) {
+        return staleRun.promise;
+      }
+      return Promise.resolve(PASS_RESULT(checkQualifiedApiName));
+    });
+
+    await appendAndLoad(element);
+    expect(evaluateCheck).toHaveBeenCalledTimes(2);
+
+    replacementStarted = true;
+    await refreshHandler()();
+    jest.advanceTimersByTime(250);
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+
+    expect(evaluateCheck).toHaveBeenCalledTimes(4);
+    staleRun.resolve({
+      ...FAIL_RESULT("Check_A"),
+      message: "STALE RESULT FROM REPLACED RUN"
+    });
+    await flushPromises();
+    await flushPromises();
+
+    expect(element.shadowRoot.textContent).not.toContain(
+      "STALE RESULT FROM REPLACED RUN"
+    );
+  });
+
+  it("cancels a pending refresh when the component disconnects", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+    getCheckDefinitions.mockClear();
+    evaluateCheck.mockClear();
+
+    await refreshHandler()();
+    element.remove();
+    jest.advanceTimersByTime(250);
+    await flushPromises();
+
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
   });
 });
 

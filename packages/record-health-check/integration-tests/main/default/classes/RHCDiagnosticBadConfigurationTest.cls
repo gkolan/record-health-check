@@ -5,7 +5,7 @@ private class RHCDiagnosticBadConfigurationTest {
 
   @TestSetup
   static void setupRecord() {
-    RecordHealthCheckTestDataFactory.createAccount(ACCOUNT_NAME);
+    RHCIntegrationTestDataFactory.createAccount(ACCOUNT_NAME);
   }
 
   @IsTest

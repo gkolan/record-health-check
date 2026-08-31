@@ -41,33 +41,6 @@ private with sharing class RecordHealthCheckBulkQueryRewriteTest {
   }
 
   @IsTest
-  static void selfQueryDoesNotDuplicateAnExistingCorrelationField() {
-    Account account = RecordHealthCheckTestDataFactory.createAccount(
-      RecordHealthCheckTestDataFactory.account(
-        new Map<String, Object>{ 'Name' => 'Existing correlation field' }
-      )
-    );
-
-    Test.startTest();
-    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
-      'SELECT Id FROM Account WHERE Id = {!record.Id}',
-      new Map<Id, SObject>{ account.Id => account },
-      10
-    );
-    Test.stopTest();
-
-    Assert.isFalse(
-      result.executedSoql.toLowerCase().contains('select id, id'),
-      'Scope rewriting must not emit a duplicate Id selection.'
-    );
-    Assert.areEqual(
-      1,
-      result.rowsByRecordId.get(account.Id).size(),
-      'The rewritten SELF query must still attribute its row to the record.'
-    );
-  }
-
-  @IsTest
   static void rewriteHelpersFailClosedAndPreserveTailClauses() {
     Test.startTest();
     String missingSelect = RecordHealthCheckBulkQueryRewriter.injectSelectField(
@@ -158,10 +131,10 @@ private with sharing class RecordHealthCheckBulkQueryRewriteTest {
     if (!UserInfo.isMultiCurrencyOrganization()) {
       return;
     }
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Currency evidence account'
     );
-    RecordHealthCheckTestDataFactory.createOpportunity(
+    RecordHealthCheckTestDataFactory.opportunityFixture(
       new Map<String, Object>{
         'Name' => 'Currency evidence opportunity',
         'AccountId' => accountRecord.Id,
@@ -188,6 +161,33 @@ private with sharing class RecordHealthCheckBulkQueryRewriteTest {
       UserInfo.getDefaultCurrency(),
       result.rowsByRecordId.get(accountRecord.Id)[0].get('CurrencyIsoCode'),
       'The returned row must retain the unit needed for a safe comparison.'
+    );
+  }
+
+  @IsTest
+  static void selfQueryDoesNotDuplicateAnExistingCorrelationField() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{ 'Name' => 'Existing correlation field' }
+      )
+    );
+
+    Test.startTest();
+    RecordHealthCheckBulkQuerySupport.Result result = RecordHealthCheckBulkQuerySupport.execute(
+      'SELECT Id FROM Account WHERE Id = {!record.Id}',
+      new Map<Id, SObject>{ account.Id => account },
+      10
+    );
+    Test.stopTest();
+
+    Assert.isFalse(
+      result.executedSoql.toLowerCase().contains('select id, id'),
+      'Scope rewriting must not emit a duplicate Id selection.'
+    );
+    Assert.areEqual(
+      0,
+      result.rowsByRecordId.get(account.Id).size(),
+      'The rewritten SELF query must seed an empty result for an unpersisted record.'
     );
   }
 }

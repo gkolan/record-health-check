@@ -40,7 +40,7 @@ private class RHCPolymorphicOwnerAcceptanceTest {
 
     Id activeOwnerId = UserInfo.getUserId();
 
-    RecordHealthCheckTestDataFactory.createRecords(
+    RHCIntegrationTestDataFactory.createRecords(
       new List<SObject>{
         RecordHealthCheckTestDataFactory.lead(
           new Map<String, Object>{
@@ -231,7 +231,7 @@ private class RHCPolymorphicOwnerAcceptanceTest {
         'Company' => 'RHC Test'
       }
     );
-    RecordHealthCheckTestDataFactory.createRecords(
+    RHCIntegrationTestDataFactory.createRecords(
       new List<SObject>{ bareRecord }
     );
     Lead queried = [SELECT Id FROM Lead WHERE Id = :bareRecord.Id];

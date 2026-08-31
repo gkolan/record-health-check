@@ -6,12 +6,12 @@
 private class RecordHealthCheckEvaluatorBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
   }
 
   @IsTest
   static void formulaEvaluatorCoversPassFailUnableAndMergeFields() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
 
     Record_Health_Check__mdt passCheck = baseCheck('F_Pass', 'FORMULA');
@@ -113,7 +113,7 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
   static void formulaEvaluatorHonorsDeclaredReturnType() {
     // a declared single-value return type (FormulaResultType__c) resolves
     // the formula in a single FormulaEval call instead of trying up to eight types.
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
 
     // Each picklist value maps to its FormulaReturnType; only Auto enables
@@ -283,7 +283,7 @@ private class RecordHealthCheckEvaluatorBehaviorTest {
   @IsTest
   static void formulaBudgetFailureKeepsResolvedAutoType() {
     RecordHealthCheckFormulaEvaluator evaluator = new RecordHealthCheckFormulaEvaluator();
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     String cacheKey = String.valueOf(Account.SObjectType) + '|BillingCity';
     RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.clear();
     RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.put(

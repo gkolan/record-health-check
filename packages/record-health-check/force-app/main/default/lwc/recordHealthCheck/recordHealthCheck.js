@@ -4,6 +4,10 @@
  */
 
 import { LightningElement, api, track } from "lwc";
+import {
+  registerRefreshHandler,
+  unregisterRefreshHandler
+} from "lightning/refresh";
 import themeStyles from "./recordHealthCheckTheme.css";
 import USER_ID from "@salesforce/user/Id";
 import CAN_VIEW_DIAGNOSTICS from "@salesforce/customPermission/Record_Health_Check_View_Diagnostics";
@@ -33,6 +37,7 @@ import {
 // Pointer hover waits before the tooltip fades in so quick row scans do not flash
 // popovers. Keyboard focus keeps a shorter CSS dwell (see recordHealthCheck.css).
 const TOOLTIP_HOVER_DWELL_MS = 1000;
+const RECORD_REFRESH_DEBOUNCE_MS = 250;
 const ESTIMATED_TOOLTIP_HEIGHT = 180;
 const DEFAULT_RUN_BUTTON_DISPLAY = "LABEL_AND_ICON";
 const RUN_BUTTON_DISPLAYS = [
@@ -186,6 +191,8 @@ export default class RecordHealthCheck extends LightningElement {
   _resizeFrame;
   _cancelAutomaticRun = null;
   _definitionLoadInProgress = false;
+  _refreshHandlerRegistration = null;
+  _recordRefreshTimer = null;
 
   _clearComponentError() {
     this.componentError = null;
@@ -216,6 +223,10 @@ export default class RecordHealthCheck extends LightningElement {
   connectedCallback() {
     this._connected = true;
     window.addEventListener("resize", this._handleViewportResize);
+    this._refreshHandlerRegistration = registerRefreshHandler(
+      this,
+      this._handleRefreshView
+    );
     this._restartConfiguredLifecycle(true, true);
   }
 
@@ -229,6 +240,7 @@ export default class RecordHealthCheck extends LightningElement {
       cancelAnimationFrame(this._initialLoadFrame);
       this._initialLoadFrame = null;
     }
+    this._cancelScheduledRecordRefresh();
     this._cancelScheduledAutomaticRun();
     this._runner.invalidate();
     this._definitionLoadInProgress = false;
@@ -350,6 +362,11 @@ export default class RecordHealthCheck extends LightningElement {
   disconnectedCallback() {
     this._connected = false;
     window.removeEventListener("resize", this._handleViewportResize);
+    if (this._refreshHandlerRegistration !== null) {
+      unregisterRefreshHandler(this._refreshHandlerRegistration);
+      this._refreshHandlerRegistration = null;
+    }
+    this._cancelScheduledRecordRefresh();
     if (this._resizeFrame) {
       cancelAnimationFrame(this._resizeFrame);
       this._resizeFrame = null;
@@ -383,6 +400,59 @@ export default class RecordHealthCheck extends LightningElement {
       this._tooltipListenersBound = false;
     }
     this._clearAllTooltipDwells();
+  }
+
+  _handleRefreshView = () => {
+    this._scheduleRecordRefresh();
+    return Promise.resolve(true);
+  };
+
+  _shouldRefreshCurrentResults() {
+    if (!this.checkSetName || !this.recordId) {
+      return false;
+    }
+    if (this.triggerMode === "Automatic") {
+      return true;
+    }
+    return (
+      this.triggerMode === "Manual" &&
+      (this.hasCompletedRunOnce ||
+        this._runner.isRunning ||
+        this._definitionLoadInProgress)
+    );
+  }
+
+  _scheduleRecordRefresh() {
+    this._cancelScheduledRecordRefresh();
+    if (!this._shouldRefreshCurrentResults()) {
+      return;
+    }
+    const checkSetName = this.checkSetName;
+    const recordId = this.recordId;
+    // RefreshView can notify several page participants for one save. Coalesce
+    // the burst so this component performs at most one replacement run.
+    // eslint-disable-next-line @lwc/lwc/no-async-operation
+    this._recordRefreshTimer = setTimeout(() => {
+      this._recordRefreshTimer = null;
+      if (
+        !this._connected ||
+        checkSetName !== this.checkSetName ||
+        recordId !== this.recordId ||
+        !this._shouldRefreshCurrentResults()
+      ) {
+        return;
+      }
+      // RUN_ON_LOAD is the existing non-publishing browser lifecycle source.
+      // _loadDefinitions invalidates any older run before starting this one.
+      this._loadDefinitions("RUN_ON_LOAD");
+    }, RECORD_REFRESH_DEBOUNCE_MS);
+  }
+
+  _cancelScheduledRecordRefresh() {
+    if (this._recordRefreshTimer !== null) {
+      clearTimeout(this._recordRefreshTimer);
+      this._recordRefreshTimer = null;
+    }
   }
 
   _syncDesignTheme = () => {
@@ -548,6 +618,7 @@ export default class RecordHealthCheck extends LightningElement {
       cancelAnimationFrame(this._initialLoadFrame);
       this._initialLoadFrame = null;
     }
+    this._cancelScheduledRecordRefresh();
     this._cancelScheduledAutomaticRun();
     // Invalidate any run still in flight from a previously-viewed record. This
     // method is the entry point for both the first load AND the in-place record

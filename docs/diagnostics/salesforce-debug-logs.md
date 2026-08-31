@@ -18,6 +18,10 @@ Collect these values before enabling a trace:
 Start with [browser-console diagnostics](./browser-console.md) when the problem occurs on the
 Lightning record page.
 
+When the card, Flow, and asynchronous results disagree for the same saved record, use the
+[execution-context war room](./execution-context-war-room.md) to identify the correct execution
+user and job before enabling trace flags.
+
 ## Capture the correct log
 
 1. In **Setup**, open **Debug Logs**.

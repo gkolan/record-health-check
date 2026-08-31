@@ -63,21 +63,59 @@ trigger, or integration is ready and the appropriate event permissions are assig
 
 ## Is refreshing the page the same as selecting Rerun?
 
-No. A refresh can start an automatic page-load evaluation, which never publishes lifecycle
-events. **Rerun** is an explicit user action and can publish when the Check Set enables publication.
-Both can show current results, but they have different event behavior.
+No. A page refresh or a standard Lightning record save can start a non-publishing evaluation.
+**Rerun** is an explicit user action and can publish when the Check Set enables publication. A
+manual Check Set still waits for its first **Run**; after results exist, later saves refresh them.
+These paths can show current results, but only the explicit action is eligible to publish lifecycle
+result events.
+
+## Why does a Check pass on the record page but differ in Flow or asynchronous Apex?
+
+Each Salesforce transaction uses its actual running user's authorization and user-mode data access.
+A Flow, Queueable, Batch, or scheduled transaction can therefore see a different permitted record
+scope than the interactive card. Timezone-sensitive formulas can also cross their cutoff at a
+different wall-clock time. Formula globals such as `$User` are not supported in record-context
+Formula Checks and fail closed rather than adapting to the caller. Use the
+[execution-context war room](../diagnostics/execution-context-war-room.md) to compare the execution
+user, permissions, visible rows, timezone, job ID, Run ID, and Reason Code before changing the
+Check.
 
 ## Should packaged test classes or the test factory be modified?
 
 No. Subscribers must not edit packaged Apex, including `RecordHealthCheckTestDataFactory` and
 packaged test classes. Org-specific plugins and their tests belong in the subscriber’s repository.
-Normal subscriber deployments using `RunLocalTests` do not execute tests from the installed
-namespaced unlocked package. See
+This product is a namespaced **unlocked** package. Ordinary subscriber `RunLocalTests` skips its
+installed namespaced tests, while Setup **Run All Tests**, namespace-qualified explicit test runs,
+and package-source deployments can execute them against subscriber validation rules, triggers, and
+flows.
+
+Package installation and upgrade also compile the packaged Apex test surface.
+
+Package contributors therefore use in-memory records, synthetic IDs, and seeded query caches in
+packaged tests. Tests that must insert Account, Contact, Opportunity, Task, Event, or Case records
+belong in `integration-tests/` and run on a clean scratch org. Do not extend the packaged factory to
+try to bypass customer automation, and do not apply managed-package test-exclusion guidance to
+this unlocked package. See
 [Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md).
+
+### Known issue for 2.0.0-* installs
+
+Customers on an unlocked `2.0.0-*` build can see Framework test setup fail with an Account or
+related-object validation, required-field, trigger, or flow error when they explicitly run packaged
+tests, choose Run All Tests, or deploy package source into a customized org. The error is raised by
+subscriber automation reacting to packaged test data setup.
+
+Ordinary subscriber `RunLocalTests` does not select the installed namespaced package tests. Until a
+fixing package version is published, confirm the failing stack is Framework fixture DML and report
+unclear cases through the project support channel. Do not disable production automation merely to
+make the Framework test fixture pass.
+
+The fix removes subscriber-shaped business-object DML from packaged tests; this note will name the
+first fixed version when it is promoted.
 
 ## Why does the package contain so many Apex classes?
 
-The 2.0.5 source contains 222 packaged classes, including 113 test classes. Its verification
+The current source contains 223 packaged classes, including 114 test classes. Its verification
 surface covers dynamic SOQL, formulas, metadata, security boundaries, bulk and asynchronous
 execution, integrations, and failure diagnostics. See the
 [complete size breakdown](../architecture/apex-implementation/README.md#codebase-size-and-verification).

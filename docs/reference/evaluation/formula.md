@@ -43,6 +43,9 @@ zero.
 
 - Write Salesforce formula syntax without a leading `=`.
 - Reference current-record fields by API name, such as `AnnualRevenue` or `Custom_Score__c`.
+- For a field owned by another installed package, preserve its complete API name, including the
+  namespace, such as `SBQQ__AssetQuantitiesCombined__c`. Record Health Check resolves the name as
+  authored and never retries an unqualified variant.
 - Traverse supported parent relationships, such as `Parent.Parent.AnnualRevenue`.
 - Formula fields and roll-up summary fields can be used in the formula; Record Health Check evaluates their
   current values.
@@ -67,7 +70,10 @@ zero.
   `Owner.LastName` are not portable and can return `FIELD_NOT_RESOLVED`.
 - `$User`, `$Profile`, `$Setup`, `$Permission`, and other global merge references are never treated
   as record fields; a formula that reads `$User.Id` never adds a bogus `User.Id` path to the record
-  query.
+  query. FormulaEval rejects these globals in record context, and Record Health Check returns
+  `UNABLE_TO_EVALUATE` with `INVALID_FORMULA` rather than producing an execution-user-dependent
+  verdict. For a page-versus-automation incident, use the
+  [execution-context war room](../../diagnostics/execution-context-war-room.md).
 
 The Pass Condition must return a Checkbox value (`true` or `false`). Display formulas can return
 Checkbox, Number, Date, Date/Time, or Text. **Auto** tries supported result types until one works.

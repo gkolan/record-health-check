@@ -174,8 +174,8 @@ The control depends on what starts the run.
 | Check Set **Publish User Run Event** (`PublishUserRunEvent__c`) | Off | One Check Set Run event for the evaluated record after the explicit card run completes. |
 | Check **Publish User Result Event** (`PublishUserResultEvent__c`) | Off | One Check Result event for that Check after the explicit card run completes, regardless of whether its result is `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`. |
 
-Automatic page load and browser refresh never publish these result events. If **Run Button
-Display** is **Hide**, the user has no Run or Rerun action to publish them.
+Automatic page load, browser refresh, and save-driven RefreshView reruns never publish these result
+events. If **Run Button Display** is **Hide**, the user has no Run or Rerun action to publish them.
 
 ### Flow, Apex, Queueable, Batch, or Scheduled Apex starts the run
 
@@ -259,6 +259,7 @@ Salesforce data using their own Salesforce access, the Record ID, metadata Quali
 | Symptom | Likely cause | What to investigate |
 | --- | --- | --- |
 | No event after page open | Automatic runs are blocked from publishing | Click Run/Rerun or invoke Apex/Flow deliberately |
+| No event after a record-save refresh | Save-driven refresh deliberately uses the non-publishing browser lifecycle | Select Run/Rerun or invoke Apex/Flow when publication is required |
 | No event after refreshing a hidden automatic card | Page refresh reevaluates the Check Set but never publishes user-run lifecycle events | Show Run and Rerun, or call the Check Set from Apex or Flow; metadata validation warns when publication is enabled for a hidden automatic Check Set |
 | No event after selecting Run or Rerun on the card | The Check Set or Check publication field is off, the transaction rolled back, or publication failed | Check the relevant metadata field, source, logs, and commit outcome. |
 | No event after Flow or Apex | Event Publication is `NONE`, `ACTIONABLE` found no actionable result, the transaction rolled back, or publication failed | Check the caller's Event Publication choice, returned statuses, logs, and commit outcome. |

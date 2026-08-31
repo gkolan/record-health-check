@@ -21,7 +21,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void evaluateReturnsClassNotFoundWhenClassNameBlank() {
-    Account record = RecordHealthCheckTestDataFactory.createAccount(
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Blank class'
     );
 
@@ -35,7 +35,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void evaluateReturnsClassNotFoundWhenClassMissing() {
-    Account record = RecordHealthCheckTestDataFactory.createAccount(
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Missing class'
     );
 
@@ -49,7 +49,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void evaluateReturnsClassNotFoundWhenClassViolatesContract() {
-    Account record = RecordHealthCheckTestDataFactory.createAccount(
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Wrong contract'
     );
 
@@ -67,7 +67,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void evaluateReturnsInvalidParametersWhenJsonIsArray() {
-    Account record = RecordHealthCheckTestDataFactory.createAccount(
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Array parameters'
     );
 
@@ -85,7 +85,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void evaluateReturnsInvalidParametersWhenJsonMalformed() {
-    Account record = RecordHealthCheckTestDataFactory.createAccount(
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Malformed parameters'
     );
 
@@ -117,7 +117,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void evaluateInvokesPluginWhenConfigurationValid() {
-    Account record = RecordHealthCheckTestDataFactory.createAccount(
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Valid plugin'
     );
     RecordHealthCheckApexEvaluator evaluator = new RecordHealthCheckApexEvaluator()
@@ -145,7 +145,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void evaluateMapsConstructorFailureWithoutAConfiguredMessage() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Constructor failure'
     );
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
@@ -222,7 +222,7 @@ private with sharing class RecordHealthCheckApexAdapterTest {
 
   @IsTest
   static void apexDispatcherCoversCorePluginBranches() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.createAccount(
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Apex finalization behavior'
     );
     RecordHealthCheckApexEvaluator evaluator = new RecordHealthCheckApexEvaluator();

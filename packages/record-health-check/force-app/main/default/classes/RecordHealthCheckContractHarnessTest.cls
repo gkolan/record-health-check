@@ -48,56 +48,9 @@ global with sharing class RecordHealthCheckContractHarnessTest extends RecordHea
   }
 
   @IsTest
-  static void controlledFixtureDistinguishesSystemAndUserModeBehavior() {
-    User leastPrivilege = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
-      'rhcmin'
-    );
-    Account restricted = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{
-        'Name' => 'Permission Evidence',
-        'AnnualRevenue' => 987654
-      }
-    );
-    System.runAs(RecordHealthCheckTestDataFactory.user(
-      new Map<String, Object>{ 'Id' => UserInfo.getUserId() }
-    )) {
-      RecordHealthCheckTestDataFactory.createAccount(restricted);
-    }
-    RecordHealthCheckScope scope = new RecordHealthCheckScope(
-      'Account',
-      new List<Id>{ restricted.Id },
-      new Map<String, Object>(),
-      'Permission_Check',
-      'Permission_Set',
-      'permission-evidence'
-    );
-    RecordHealthCheckContractTestData.PermissionFixture fixture = new RecordHealthCheckContractTestData.PermissionFixture();
-    fixture.leastPrivilegeUser = leastPrivilege;
-    fixture.scope = scope;
-    fixture.assertedRecordId = restricted.Id;
-
-    Assert.isFalse(
-      RecordHealthCheckContractTest.hasPermissionEvidence(
-        new SystemModePermissionCheck(),
-        fixture
-      ),
-      'System-mode access must fail the controlled permission evidence.'
-    );
-    Assert.isTrue(
-      RecordHealthCheckContractTest.hasPermissionEvidence(
-        new UserModePermissionCheck(),
-        fixture
-      ),
-      'User-mode access must return an unable result without values.'
-    );
-  }
-
-  @IsTest
   static void permissionEvidenceRejectsAPluginThatThrows() {
     RecordHealthCheckContractTestData.PermissionFixture fixture = new RecordHealthCheckContractTestData.PermissionFixture();
-    fixture.leastPrivilegeUser = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
-      'rhcthr'
-    );
+    fixture.leastPrivilegeUser = RecordHealthCheckTestDataFactory.currentUser();
     fixture.scope = new HarnessData().createScope(1);
     fixture.assertedRecordId = fixture.scope.recordIds[0];
 
@@ -107,6 +60,22 @@ global with sharing class RecordHealthCheckContractHarnessTest extends RecordHea
         fixture
       ),
       'A plugin exception cannot count as least-privilege evidence.'
+    );
+  }
+
+  @IsTest
+  static void permissionEvidenceAcceptsAStableLeastPrivilegeOutcome() {
+    RecordHealthCheckContractTestData.PermissionFixture fixture = new RecordHealthCheckContractTestData.PermissionFixture();
+    fixture.leastPrivilegeUser = RecordHealthCheckTestDataFactory.currentUser();
+    fixture.scope = new HarnessData().createScope(1);
+    fixture.assertedRecordId = fixture.scope.recordIds[0];
+    fixture.expectedStatus = RecordHealthCheckStatus.PASS;
+
+    Assert.isTrue(
+      RecordHealthCheckContractTest.hasPermissionEvidence(
+        new PermissionSafeCheck(),
+        fixture
+      )
     );
   }
 
@@ -120,7 +89,7 @@ global with sharing class RecordHealthCheckContractHarnessTest extends RecordHea
           )
         );
       }
-      RecordHealthCheckTestDataFactory.createAccounts(accounts);
+      RecordHealthCheckTestDataFactory.accountsFixture(accounts);
       List<Id> recordIds = new List<Id>();
       for (Account account : accounts) {
         recordIds.add(account.Id);
@@ -168,6 +137,16 @@ global with sharing class RecordHealthCheckContractHarnessTest extends RecordHea
         'EXPECTED_TEST_FAILURE',
         'Contract harness exception path.'
       );
+    }
+  }
+
+  global class PermissionSafeCheck implements RecordHealthCheckPlugin {
+    global Map<Id, RecordHealthCheckOutcome> evaluate(
+      RecordHealthCheckScope scope
+    ) {
+      return new Map<Id, RecordHealthCheckOutcome>{
+        scope.recordIds[0] => RecordHealthCheckOutcome.pass('SAFE')
+      };
     }
   }
 

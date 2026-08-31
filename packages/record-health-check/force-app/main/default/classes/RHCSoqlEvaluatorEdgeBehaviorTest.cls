@@ -6,14 +6,91 @@
 private class RHCSoqlEvaluatorEdgeBehaviorTest {
   @TestSetup
   static void setup() {
-    RecordHealthCheckTestDataFactory.createCoverageTestRecords();
+    RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
+  }
+
+  private static Record_Health_Check__mdt baseCheck(
+    String developerName,
+    String checkType
+  ) {
+    return RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => developerName,
+        'MasterLabel' => developerName,
+        'CheckTitle__c' => developerName,
+        'EvaluationType__c' => checkType,
+        'FailureSeverity__c' => 'WARNING',
+        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
+        'FailureMessage__c' => 'Apex failure for {!record.Name}',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
+        'FormulaResultType__c' => 'AUTO',
+        'EvaluationOrder__c' => 10,
+        'ApplicabilityMode__c' => 'ALL_RECORDS',
+        'NoRowsResult__c' => 'FAIL',
+        'EmptyValueHandling__c' => 'SKIP_RECORD'
+      }
+    );
+  }
+
+  private static Record_Health_Check__mdt queryCheck(String developerName) {
+    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
+    check.SourceQueryField__c = 'BillingCity';
+    check.QueryResultHandling__c = 'ONE_RESULT';
+    check.ComparisonOperator__c = 'EQUALS';
+    check.ExpectedValueSource__c = 'FIXED_VALUE';
+    check.ExpectedFixedValue__c = 'Chicago';
+    return check;
+  }
+
+  private static void assertUnable(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected an unable result.');
+    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(reasonCode, result.reasonCode);
+  }
+
+  private static void assertStatus(
+    RecordHealthCheckInternalResult result,
+    String status
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      status,
+      result.status,
+      'Unexpected detail: ' + result.detailMessage
+    );
+  }
+
+  private static void assertReason(
+    RecordHealthCheckInternalResult result,
+    String reasonCode
+  ) {
+    Assert.areNotEqual(null, result, 'Expected a result.');
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    );
   }
 
   @IsTest
   static void soqlEvaluatorCoversRemainingDefensiveBranches() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.getHealthyAccount();
-    RecordHealthCheckTestDataFactory.createAccount('Second Query Account');
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckSoqlEvaluator soql = new RecordHealthCheckSoqlEvaluator();
+    Account second = RecordHealthCheckTestDataFactory.accountFixture(
+      'Second Query Account'
+    );
+    soql.scopeRowsByBoundSoql = new Map<String, List<SObject>>{
+      'SELECT Name FROM Account' => new List<SObject>{ accountRecord, second },
+      soql.bindTokens(
+        'SELECT BillingCity FROM Account WHERE Id = {!record.Id}',
+        accountRecord
+      ) => new List<SObject>{ accountRecord },
+      'SELECT BillingCity FROM Account WHERE Name = \'does not exist\'' => new List<SObject>()
+    };
     Record_Health_Check__mdt invalidListFormula = queryCheck(
       'Soql_Invalid_List_Formula'
     );
@@ -132,32 +209,11 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
     );
   }
 
-  private static Record_Health_Check__mdt baseCheck(
-    String developerName,
-    String checkType
-  ) {
-    return RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{
-        'DeveloperName' => developerName,
-        'MasterLabel' => developerName,
-        'CheckTitle__c' => developerName,
-        'EvaluationType__c' => checkType,
-        'FailureSeverity__c' => 'WARNING',
-        'PassConditionFormula__c' => checkType == 'FORMULA' ? 'TRUE' : null,
-        'FailureMessage__c' => 'Apex failure for {!record.Name}',
-        'UnableToEvaluateMessage__c' => 'Cannot evaluate test check.',
-        'FormulaResultType__c' => 'AUTO',
-        'EvaluationOrder__c' => 10,
-        'ApplicabilityMode__c' => 'ALL_RECORDS',
-        'NoRowsResult__c' => 'FAIL',
-        'EmptyValueHandling__c' => 'SKIP_RECORD'
-      }
-    );
-  }
-
   @IsTest
   static void evaluatorMapsPlatformQueryFailuresToStableConfigurationResult() {
-    Account accountRecord = [SELECT Id, Name FROM Account LIMIT 1];
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
+      'Invalid query'
+    );
     Record_Health_Check__mdt check = queryCheck('Invalid_Query');
     check.SourceQuery__c = 'SELECT DefinitelyMissing__c FROM Account';
 
@@ -184,7 +240,7 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
         new Map<String, Object>{ 'Name' => 'Unary Blank Beta' }
       )
     };
-    RecordHealthCheckTestDataFactory.createAccounts(accounts);
+    RecordHealthCheckTestDataFactory.accountsFixture(accounts);
     Record_Health_Check__mdt check = queryCheck('Multi_Row_Is_Blank');
     check.SourceQuery__c = 'SELECT Description FROM Account WHERE Name LIKE \'Unary Blank %\'';
     check.SourceQueryField__c = 'Description';
@@ -193,9 +249,17 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
     check.ExpectedValueSource__c = null;
     check.EmptyValueHandling__c = 'SKIP_RECORD';
 
+    RecordHealthCheckSoqlEvaluator evaluator = new RecordHealthCheckSoqlEvaluator();
+    evaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>{
+      check.SourceQuery__c => new List<SObject>{ accounts[0], accounts[1] }
+    };
+
     Test.startTest();
-    RecordHealthCheckInternalResult result = new RecordHealthCheckSoqlEvaluator()
-      .evaluate(check, accounts[0].Id, accounts[0]);
+    RecordHealthCheckInternalResult result = evaluator.evaluate(
+      check,
+      accounts[0].Id,
+      accounts[0]
+    );
     Integer failingRows = RecordHealthCheckComparisonEngine.countFailingRows(
       check,
       new List<Object>{ null, null },
@@ -212,50 +276,6 @@ private class RHCSoqlEvaluatorEdgeBehaviorTest {
       0,
       failingRows,
       'The multi-row summary must agree that both blank rows pass.'
-    );
-  }
-
-  private static Record_Health_Check__mdt queryCheck(String developerName) {
-    Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
-    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
-    check.SourceQueryField__c = 'BillingCity';
-    check.QueryResultHandling__c = 'ONE_RESULT';
-    check.ComparisonOperator__c = 'EQUALS';
-    check.ExpectedValueSource__c = 'FIXED_VALUE';
-    check.ExpectedFixedValue__c = 'Chicago';
-    return check;
-  }
-
-  private static void assertUnable(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
-  }
-
-  private static void assertStatus(
-    RecordHealthCheckInternalResult result,
-    String status
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      status,
-      result.status,
-      'Unexpected detail: ' + result.detailMessage
-    );
-  }
-
-  private static void assertReason(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      reasonCode,
-      result.reasonCode,
-      'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
     );
   }
 }

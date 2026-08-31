@@ -88,7 +88,7 @@ particular Salesforce feature is licensed in an org.
 
 | Shape | Compatibility status |
 | --- | --- |
-| Standard/custom/namespaced objects and plain or relationship fields | Supported when global describe and user-mode SOQL expose them |
+| Standard/custom/namespaced objects and plain or relationship fields | Supported when global describe and user-mode SOQL expose the complete authored API name; foreign package prefixes are never inferred |
 | Number, Currency, Percent, ID, URL, Email, Phone, Date, Date/Time, and Time | Supported within the documented comparison/display boundaries |
 | Compound Address or Location | Select scalar components or use supported SOQL functions; no compound typed value is published |
 | Base64/Blob fields | Deliberately unsupported for Query comparison; a plain selected Base64 field is refused before execution with `FIELD_TYPE_NOT_SUPPORTED`, and binary values must not enter result or diagnostic contracts |
@@ -103,6 +103,13 @@ aggregate shapes when Salesforce accepts them under user mode. `ALL ROWS`, syste
 Knowledge `WITH DATA CATEGORY` are deliberately rejected. Polymorphic paths are limited to
 explicit or flat Name-entity-safe fields; paths that require `TYPEOF` use a purpose-built Query or
 Apex Check.
+
+Foreign-package field resolution is measured in a two-package namespaced gate using RHC (`rhc`)
+and Salesforce CPQ (`SBQQ`). The gate evaluates `SBQQ__AssetQuantitiesCombined__c` through Formula,
+Query, and `{!record.SBQQ__AssetQuantitiesCombined__c fallback="not set"}` merge surfaces. This
+proves API-name handling only; it does not make CPQ a dependency or claim support for CPQ business
+semantics. See the
+[foreign-namespace fixture](../../../packages/record-health-check/integration-tests/foreign-namespace/README.md).
 
 ## Person Accounts
 

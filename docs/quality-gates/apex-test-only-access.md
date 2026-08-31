@@ -64,5 +64,7 @@ can still see those findings.
 ## Related
 
 - [Contributing](../../.github/CONTRIBUTING.md)
+- [Unlocked-package test-data FAQ](../faqs/setup-and-troubleshooting.md#should-packaged-test-classes-or-the-test-factory-be-modified)
+- [Generated test-data factory inventory](../../scripts/release/generated/test-data-factory-inventory.json)
 - [Architecture](../architecture/framework.md)
 - [Apex class reference](../architecture/apex-implementation/README.md)

@@ -2,7 +2,7 @@
 @IsTest
 public class RHCConstructorMutationCheck implements RecordHealthCheckPlugin {
   public RHCConstructorMutationCheck() {
-    RecordHealthCheckTestDataFactory.createAccount('Constructor mutation');
+    RHCIntegrationTestDataFactory.createAccount('Constructor mutation');
   }
 
   public Map<Id, RecordHealthCheckOutcome> evaluate(

@@ -201,10 +201,7 @@ public with sharing class RecordHealthCheckApexEvaluator {
         RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID ||
         result.reasonCode ==
         RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID ||
-        result.reasonCode ==
-        RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING ||
-        result.reasonCode ==
-        RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID)
+        result.reasonCode == RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING)
       ) {
         RecordHealthCheckDiagnosticContext contractContext = diagnosticContext(
           check,
