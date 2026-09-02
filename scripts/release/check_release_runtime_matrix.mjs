@@ -305,12 +305,20 @@ for (const workflow of [
 }
 requireSecureDevHubAuthentication(
   ".github/workflows/salesforce-validate.yml",
-  3
+  4
 );
 requireSecureDevHubAuthentication(
   ".github/workflows/subscriber-validate.yml",
-  2
+  3
 );
+requireText(".github/workflows/salesforce-validate.yml", [
+  "Reserve release-matrix scratch-org capacity",
+  "npm run check:scratch-capacity -- --dev-hub devhub --required 4"
+]);
+requireText(".github/workflows/subscriber-validate.yml", [
+  "Reserve subscriber-matrix scratch-org capacity",
+  "npm run check:scratch-capacity -- --dev-hub devhub --required 4"
+]);
 requireText("scripts/release/create-package-version.mjs", [
   '"salesforce-validate.yml"',
   "runtimeMatrix.candidateVersion",

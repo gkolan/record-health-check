@@ -20,6 +20,10 @@ jobs:
   require-dev-hub-secret:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
       - name: Require hosted Salesforce credentials
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
@@ -28,6 +32,19 @@ jobs:
             echo "::error::SFDX_AUTH_URL is required. Subscriber validation must fail, never pass by skipping live package tests."
             exit 1
           fi
+      - name: Install pinned Salesforce CLI for Dev Hub preflight
+        run: npm install --global @salesforce/cli@2.149.9
+      - name: Authenticate Dev Hub
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
+      - name: Reserve subscriber-matrix scratch-org capacity
+        run: npm run check:scratch-capacity -- --dev-hub devhub --required 4
 
   subscriber-clean-install:
     needs: require-dev-hub-secret

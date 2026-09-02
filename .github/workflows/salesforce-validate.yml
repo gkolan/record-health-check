@@ -32,6 +32,28 @@ jobs:
             exit 1
           fi
           echo "available=true" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v5
+        if: steps.credentials.outputs.available == 'true'
+      - uses: actions/setup-node@v5
+        if: steps.credentials.outputs.available == 'true'
+        with:
+          node-version: 22
+      - name: Install pinned Salesforce CLI for Dev Hub preflight
+        if: steps.credentials.outputs.available == 'true'
+        run: npm install --global @salesforce/cli@2.149.9
+      - name: Authenticate Dev Hub
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
+      - name: Reserve release-matrix scratch-org capacity
+        if: steps.credentials.outputs.available == 'true'
+        run: npm run check:scratch-capacity -- --dev-hub devhub --required 4
 
   package-source-tests:
     needs: require-dev-hub-secret
@@ -87,8 +109,6 @@ jobs:
           printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
           chmod 600 "$auth_file"
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Check scratch-org capacity
-        run: npm run check:scratch-capacity -- --dev-hub devhub
       - name: Create namespaced package-source scratch org
         working-directory: packages/record-health-check
         run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
@@ -247,8 +267,6 @@ jobs:
           printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
           chmod 600 "$auth_file"
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Check scratch-org capacity
-        run: npm run check:scratch-capacity -- --dev-hub devhub
       - name: Create clean no-namespace scratch org
         working-directory: packages/record-health-check
         run: sf org create scratch --definition-file ../../config/subscriber-scratch-def.json --alias rhc-ci-portable --target-dev-hub devhub --duration-days 30 --no-namespace --wait 15
@@ -372,8 +390,6 @@ jobs:
           printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
           chmod 600 "$auth_file"
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Check scratch-org capacity
-        run: npm run check:scratch-capacity -- --dev-hub devhub
       - name: Create ${{ matrix.topology }} Lightning Locker org
         working-directory: packages/record-health-check
         env:

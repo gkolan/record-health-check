@@ -57,12 +57,24 @@ the release owner may create or replace this secret.
 1. Obtain the value locally:
 
    ```bash
-   sf org display --target-org <dev-hub-alias> --verbose
+   sf org display --target-org <dev-hub-alias> --json
+   SF_DISABLE_LOG_FILE=true sf org auth show-sfdx-auth-url \
+     --target-org <dev-hub-alias> \
+     --json | jq -r '.result.sfdxAuthUrl' | pbcopy
    ```
+
+   Continue only when `sf org display` returns `"status": 0`. The second command copies the actual
+   `force://` credential directly to the macOS clipboard. The redacted `Sfdx Auth Url` row from
+   `sf org display` is a safety notice, not a usable credential.
 
 2. In GitHub, open **Settings → Secrets and variables → Actions**.
 3. Create or replace the repository secret named `SFDX_AUTH_URL`.
-4. Paste the **Sfdx Auth Url** directly into the secret value.
+4. Paste the clipboard value directly into the secret. Do not print or inspect it.
+
+The secret-presence job proves only that the value is nonempty. The `Authenticate Dev Hub` step
+must also pass. Hosted workflows use a mode-`600` temporary file because pinned CLI versions can
+change stdin-flag parsing; a tracked structural gate rejects the previously broken stdin/alias
+command shape.
 
 Treat this value like a password. Never paste it into an issue, pull request, chat, terminal log, or
 tracked file.
@@ -73,13 +85,20 @@ tracked file.
 2. Select **Run workflow**.
 3. Select the release branch, not `main` and not a stale branch.
 4. Run the workflow.
-5. Open the completed run and confirm that all of these jobs executed and passed:
+5. Before fan-out, confirm `Reserve release-matrix scratch-org capacity` passes with four daily and
+   active slots available. The complete source matrix creates four scratch orgs. Deleting an org
+   restores an active slot but does not restore a daily creation. Do not run unrelated scratch-org
+   creation concurrently with the release gate.
+6. Open the completed run and confirm that all of these jobs executed and passed:
    - `require-dev-hub-secret`
    - `package-source-tests`
    - `portable-source-tests`
    - `locker-browser-tests`
-6. Confirm the run's head SHA is the recorded release commit.
-7. Retain the workflow URL and uploaded evidence.
+7. Confirm the run's head SHA is the recorded release commit.
+8. Retain the workflow URL and uploaded evidence.
+
+After any workflow-source fix, commit and push it and start a new workflow run. Rerunning an older
+run keeps the older commit and workflow definition, so it cannot validate the fix.
 
 Stop if any job is skipped, cancelled, timed out, pending, inconclusive, or failing. The green
 wrapper result from a credential-skipped pull-request run does not qualify. Package creation accepts
@@ -108,14 +127,15 @@ candidate requires the documented reviewed override and is not a normal retry me
 3. Select the unchanged release branch.
 4. Enter the exact candidate `04t` in `package_version_id`.
 5. Run the workflow.
-6. Confirm all four matrix jobs execute and pass:
+6. Confirm `Reserve subscriber-matrix scratch-org capacity` passes before the four jobs fan out.
+7. Confirm all four matrix jobs execute and pass:
    - clean install under Lightning Web Security;
    - clean install under Lightning Locker;
    - upgrade from the tracked stable version under Lightning Web Security;
    - upgrade from the tracked stable version under Lightning Locker.
-7. Confirm the workflow title identifies the exact candidate and the run's head SHA is the release
+8. Confirm the workflow title identifies the exact candidate and the run's head SHA is the release
    commit.
-8. Retain install requests, Apex results, browser traces, and upgrade-preservation snapshots.
+9. Retain install requests, Apex results, browser traces, and upgrade-preservation snapshots.
 
 Successful source deployment or clean installation cannot replace the upgrade gate. Successful job
 completion without the required retained artifacts is also a failure.
@@ -153,6 +173,11 @@ After promotion:
    promoted `04t`.
 
 Do not announce a candidate as released before promotion and publication are complete.
+
+The release registry, changelog, package chooser, and public production/sandbox redirects must name
+the same promoted `04t`. An emergency redirect to an older release is a documented rollback action,
+not a package downgrade: existing subscribers cannot install an older unlocked-package version over
+a newer installed version.
 
 ## Stop conditions
 
