@@ -2,8 +2,8 @@
  * @author Gautam Kolan (https://github.com/gkolan)
  * SPDX-License-Identifier: Apache-2.0
  *
- * SLDS 1 keeps familiar Lightning card chrome. The `rhc-theme_slds2` modifier
- * removes that chrome for the flatter SLDS 2 / Cosmos presentation.
+ * Global SLDS styling hooks adapt the component without inspecting page-owned
+ * DOM, which Lightning Locker intentionally prevents managed LWCs from doing.
  */
 .rhc-theme {
   --rhc-theme-card-background: var(
@@ -41,16 +41,4 @@
   --rhc-layer-tooltip: 100;
   --rhc-layer-tooltip-nubbin: 101;
   font-family: var(--slds-g-font-family, "Salesforce Sans", Arial, sans-serif);
-}
-
-.rhc-theme_slds2 {
-  --rhc-theme-card-border: transparent;
-  --rhc-theme-card-border-width: 0;
-  --rhc-theme-card-radius: var(--slds-g-radius-border-4, 1.25rem);
-  --rhc-theme-card-shadow: none;
-  --rhc-theme-header-background: transparent;
-  --rhc-theme-title-text: var(
-    --slds-g-color-on-surface-3,
-    var(--slds-g-color-neutral-base-10, #181818)
-  );
 }

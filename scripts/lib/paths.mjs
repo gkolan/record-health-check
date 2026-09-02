@@ -26,6 +26,7 @@ export const paths = {
     repoRoot,
     "config/subscriber-scratch-def.json"
   ),
+  lockerScratchDef: path.join(repoRoot, "config/locker-scratch-def.json"),
   packageScratchDef: path.join(
     repoRoot,
     "packages/record-health-check/config/project-scratch-def.json"

@@ -120,8 +120,8 @@ Rerun provide the deliberate boundary required before publication is eligible.
 | --- | --- |
 | Check Set selected in App Builder | One active Check Set whose Object matches the record page. The dropdown shows its Label and stores its exact Qualified API Name. |
 | Current record ID | Record evaluated |
-| **When the page opens** (`RUN_ON_LOAD`) | Load the lightweight Check Set shell configuration during initial rendering. At browser idle, load definitions and evaluate; publication remains blocked. |
-| **When the user clicks Run** (`RUN_ON_REQUEST`) | Load the lightweight Check Set shell configuration during initial rendering, then defer definitions and evaluation until the user selects Run. |
+| **When the page opens** (`RUN_ON_LOAD`) | Render a quiet local shell first. At browser idle, resolve the lightweight Check Set configuration; a later idle turn loads definitions and evaluates. Publication remains blocked. |
+| **When the user clicks Run** (`RUN_ON_REQUEST`) | Render a quiet local shell first. At browser idle, resolve the lightweight Check Set configuration, then defer definitions and evaluation until the user selects Run. |
 | Check Set **Run Button Display** | Show label and icon, label only, a compact icon, or hide the action on automatic Check Sets only |
 | Run or Rerun button | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank. |
 
@@ -130,8 +130,9 @@ can use that space. **Icon only** uses a compact square button and retains an ac
 Rerun name for assistive technology. An invalid custom icon name falls back to the built-in play
 icon. A limit notice still reserves the space it needs in the header.
 
-The selected Check Set is the single source of truth for scheduling. The component calls the
-lightweight `getCheckSetShellConfig` Apex method on load to obtain its run mode, title, subtitle,
+The selected Check Set is the single source of truth for scheduling. On a real record page, the
+component calls the lightweight `getCheckSetShellConfig` Apex method after the initial browser-idle
+boundary to obtain its run mode, title, subtitle,
 active Check count, and Run-button presentation. A manual Check Set combined with an effective
 **Hide** value is invalid and the card explains the configuration error instead of leaving users
 with no way to start the run.

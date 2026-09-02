@@ -178,6 +178,53 @@ private with sharing class RecordHealthCheckScopePipelineIT {
   }
 
   @IsTest
+  static void releaseMatrixEventsContainEveryEvaluationType() {
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
+      'Platform event four-type matrix'
+    );
+    RHCIntegrationEventReceipt.reset();
+
+    Test.startTest();
+    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
+      RecordHealthCheckRequest.forCheckSet(
+          RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+            'Example_Account_Check_Builder_Guide'
+          ),
+          accountRecord.Id
+        )
+        .withEventPublication(RecordHealthCheckEventPublication.ALL)
+    );
+    Test.getEventBus().deliver();
+    Test.stopTest();
+
+    Assert.areEqual(
+      25,
+      response.results.size(),
+      'The platform-event run must execute every Check in the release set.'
+    );
+    Assert.areEqual(
+      25,
+      RHCIntegrationEventReceipt.checkQualifiedNames.size(),
+      'ALL publication must deliver one result event for every executed Check.'
+    );
+    Assert.areEqual(
+      1,
+      RHCIntegrationEventReceipt.setRunCount,
+      'The synchronous Apex API run must deliver one Set Run event.'
+    );
+    Assert.areEqual(
+      new Set<String>{ 'APEX', 'COMPARE_TWO_QUERIES', 'FORMULA', 'QUERY' },
+      RHCIntegrationEventReceipt.receivedEvaluationTypes(),
+      'Platform Event identities must prove every evaluator type executed.'
+    );
+    Assert.areEqual(
+      new Set<String>{ 'APEX_API' },
+      new Set<String>(RHCIntegrationEventReceipt.checkSources),
+      'Platform Event results must retain the public Apex API origin.'
+    );
+  }
+
+  @IsTest
   static void rejectsUnknownIdentityAndWrongRecordType() {
     try {
       RecordHealthCheck.evaluate(

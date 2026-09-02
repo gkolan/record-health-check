@@ -14,6 +14,9 @@ const searchableExtensions = new Set([
 ]);
 const analyzerArtifactPattern =
   /(?:^|\/)(?:code-analyzer(?:-results)?|sfca)[^/]*\.(?:html|json|log|sarif)$/i;
+const analyzerPolicyFiles = new Set([
+  "config/code-analyzer-inline-suppressions.json"
+]);
 const violations = [];
 
 function relative(filePath) {
@@ -33,7 +36,10 @@ function walk(directory) {
       continue;
     }
 
-    if (analyzerArtifactPattern.test(relativePath)) {
+    if (
+      analyzerArtifactPattern.test(relativePath) &&
+      !analyzerPolicyFiles.has(relativePath)
+    ) {
       violations.push(
         `${relativePath}: Code Analyzer artifacts belong under ${allowedRoot}`
       );

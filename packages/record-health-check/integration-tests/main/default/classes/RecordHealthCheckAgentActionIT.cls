@@ -87,6 +87,29 @@ private with sharing class RecordHealthCheckAgentActionIT {
       output.systemError > 0,
       'The response counts must cover the selected active Checks.'
     );
+    Assert.areEqual(
+      25,
+      output.passed +
+        output.failed +
+        output.skipped +
+        output.unable +
+        output.systemError,
+      'The native Agent action must account for every Check in the four-evaluator release set.'
+    );
+    Set<String> evaluationTypes = new Set<String>();
+    for (Record_Health_Check__mdt configuredCheck : [
+      SELECT EvaluationType__c
+      FROM Record_Health_Check__mdt
+      WHERE
+        Record_Health_Check_Set__r.DeveloperName = 'Example_Account_Check_Builder_Guide'
+    ]) {
+      evaluationTypes.add(configuredCheck.EvaluationType__c);
+    }
+    Assert.areEqual(
+      new Set<String>{ 'APEX', 'COMPARE_TWO_QUERIES', 'FORMULA', 'QUERY' },
+      evaluationTypes,
+      'The native Agent action release set must contain every evaluator type.'
+    );
   }
 
   @IsTest

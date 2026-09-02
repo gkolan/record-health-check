@@ -151,6 +151,15 @@ async function main() {
     assert.equal(checkSet.success, true);
     assert.equal(checkSet.operation, "RUN_CHECK_SET");
     assert.equal(checkSet.correlationId, "org-contract-set");
+    assert.equal(
+      checkSet.passed +
+        checkSet.failed +
+        checkSet.skipped +
+        checkSet.unable +
+        checkSet.systemError,
+      25,
+      "RUN_CHECK_SET must account for every Check in the four-type release set."
+    );
 
     process.stdout.write(
       "Live MCP-to-Apex contract passed for RUN_CHECK and RUN_CHECK_SET.\n"

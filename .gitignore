@@ -13,6 +13,11 @@ deploy-options.json
 !/config/subscriber-scratch-def.json
 !/config/quality-metrics.json
 !/config/toolchain.json
+!/config/release-runtime-matrix.json
+!/config/apex-test-overlays.json
+!/config/code-analyzer-inline-suppressions.json
+!/config/locker-scratch-def.json
+!/config/lws-scratch-def.json
 .claude/
 .playwright-mcp/
 

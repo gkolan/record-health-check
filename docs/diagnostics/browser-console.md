@@ -115,9 +115,10 @@ testing as the intended user because administrators can see records and fields o
 3. Treat a hidden Run button as configuration until proven otherwise. Check **When Checks Run**,
    **Run Button Display** on the selected Check Set. Hidden and icon-only controls intentionally
    release their unused header space to the title.
-4. Remember that the card loads lightweight shell configuration immediately. An inactive or missing
-   Check Set can therefore fail before a Manual user selects Run; definitions and evaluation still
-   remain deferred until Run.
+4. Remember that a real record page loads lightweight shell configuration after the initial quiet
+   render. An inactive or missing Check Set can therefore fail before a Manual user selects Run;
+   definitions and evaluation still remain deferred until Run. App Builder can provide a sample record ID, but
+   performs no component Apex request; it shows only local configuration guidance.
 5. Refresh the record page after metadata, permission, or Lightning-page changes.
 6. If definition loading still fails, capture the card's Diagnostic ID and copied diagnostic
    report. Use a debug log only if the diagnosis reports incomplete telemetry.

@@ -80,10 +80,10 @@ const latestReleasedVersion = releasedVersions.sort(compareVersions).at(-1);
 if (
   latestReleasedVersion &&
   /^\d+\.\d+\.\d+$/.test(productVersion) &&
-  compareVersions(productVersion, latestReleasedVersion) <= 0
+  compareVersions(productVersion, latestReleasedVersion) < 0
 ) {
   failures.push(
-    `development version ${productVersion} must be newer than released version ${latestReleasedVersion}.`
+    `development version ${productVersion} must not be older than released version ${latestReleasedVersion}. A matching semantic version is permitted for a higher 2GP hotfix build.`
   );
 }
 if (packageDirectory.versionNumber !== expectedVersionNumber) {

@@ -268,7 +268,7 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
   const accessibleMessage = showMessage
     ? previewForSpeech(
         joinForSpeech(
-          messageLines.filter((line) => !line.isBlank).map((line) => line.text)
+          messageLines.filter((line) => !line.isBlank).map(({ text }) => text)
         )
       )
     : null;

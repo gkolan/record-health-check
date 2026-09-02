@@ -9,6 +9,24 @@ ignores:
     - "test-results/**"
     - "playwright-report/**"
 
+suppressions:
+  "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Set__mdt/fields/PassedChecksDisplay__c.field-meta.xml":
+    - rule_selector: "pmd:ProtectSensitiveData"
+      max_suppressed_violations: 1
+      reason: "This public Custom Metadata field controls passed-result display; it never stores a password, token, credential, or authentication material."
+  "packages/record-health-check/force-app/main/default/objects/Record_Health_Check__mdt/fields/PassConditionFormula__c.field-meta.xml":
+    - rule_selector: "pmd:ProtectSensitiveData"
+      max_suppressed_violations: 1
+      reason: "This public Custom Metadata field stores a Salesforce formula whose name begins with Pass; it never stores authentication material."
+  "packages/record-health-check/integration-tests/main/default/objects/RHC_Benchmark_Result__c/fields/Passed__c.field-meta.xml":
+    - rule_selector: "pmd:ProtectSensitiveData"
+      max_suppressed_violations: 1
+      reason: "This integration-only numeric benchmark count records passed checks; it is not packaged and contains no authentication material."
+  "packages/record-health-check/integration-tests/main/default/objects/RHC_Persona_Record__c/fields/Accessible_Value__c.field-meta.xml":
+    - rule_selector: "pmd:ProtectSensitiveData"
+      max_suppressed_violations: 1
+      reason: "This integration-only synthetic accessible-value fixture exists to test FLS boundaries; it is not packaged or secret-bearing."
+
 engines:
   eslint:
     eslint_config_file: eslint.config.js
@@ -21,11 +39,6 @@ rules:
     # Subscriber-facing Apex in a managed package must be global. Public would
     # make these contracts inaccessible outside the package namespace.
     AvoidGlobalModifier:
-      disabled: true
-    # This name-only heuristic mistakes health-check fields beginning with
-    # "Pass" (formulas, display settings, and benchmark counts) for passwords.
-    # None of these fields stores authentication or secret material.
-    ProtectSensitiveData:
       disabled: true
     # The neutral audit remains visible in the release evidence. PMD cannot
     # distinguish subscriber-facing contracts from internal/test helpers, so

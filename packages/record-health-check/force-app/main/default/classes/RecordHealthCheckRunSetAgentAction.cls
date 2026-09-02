@@ -1,69 +1,69 @@
 /**
  * Runs one Record Health Check Set as a native Agentforce action.
  */
-public with sharing class RecordHealthCheckRunSetAgentAction {
+global with sharing class RecordHealthCheckRunSetAgentAction {
   private static final String CONTRACT_VERSION = '1.0';
   private static final String OPERATION = 'RUN_CHECK_SET';
   private static final String PERMISSION_DENIED_MESSAGE = 'You do not have permission to run Record Health Checks.';
   private static final String EXECUTION_MESSAGE = 'The Check Set request could not be evaluated.';
 
   /** One native Agentforce Check Set request. */
-  public class Request {
+  global class Request {
     @InvocableVariable(
       required=true
       label='Record ID'
       description='ID of the single Salesforce record to evaluate.'
     )
-    public Id recordId;
+    global Id recordId;
 
     @InvocableVariable(
       required=true
       label='Check Set Qualified API Name'
       description='Exact QualifiedApiName of the Record Health Check Set. Never add or remove a namespace.'
     )
-    public String qualifiedApiName;
+    global String qualifiedApiName;
 
     @InvocableVariable(
       label='Correlation ID'
       description='Optional safe identifier of at most 120 characters for operational correlation.'
     )
-    public String correlationId;
+    global String correlationId;
   }
 
   /** One structured native Agentforce Check Set response. */
-  public class Response {
+  global class Response {
     @InvocableVariable(label='Contract Version')
-    public String contractVersion;
+    global String contractVersion;
     @InvocableVariable(label='Correlation ID')
-    public String correlationId;
+    global String correlationId;
     @InvocableVariable(label='Success')
-    public Boolean success;
+    global Boolean success;
     @InvocableVariable(label='Operation')
-    public String operation;
+    global String operation;
     @InvocableVariable(label='Status')
-    public String status;
+    global String status;
     @InvocableVariable(label='Passed Count')
-    public Integer passed;
+    global Integer passed;
     @InvocableVariable(label='Failed Count')
-    public Integer failed;
+    global Integer failed;
     @InvocableVariable(label='Skipped Count')
-    public Integer skipped;
+    global Integer skipped;
     @InvocableVariable(label='Unable Count')
-    public Integer unable;
+    global Integer unable;
     @InvocableVariable(label='System Error Count')
-    public Integer systemError;
+    global Integer systemError;
     @InvocableVariable(label='Error Type')
-    public String errorType;
+    global String errorType;
     @InvocableVariable(label='Error Message')
-    public String errorMessage;
+    global String errorMessage;
     @InvocableVariable(label='Diagnostic ID')
-    public String diagnosticId;
+    global String diagnosticId;
     @InvocableVariable(label='Diagnostic Category')
-    public String diagnosticCategory;
+    global String diagnosticCategory;
     @InvocableVariable(label='Diagnostic Summary')
-    public String diagnosticSummary;
+    global String diagnosticSummary;
     @InvocableVariable(label='Recommended Action')
-    public String recommendedAction;
+    global String recommendedAction;
   }
 
   /**
@@ -77,7 +77,7 @@ public with sharing class RecordHealthCheckRunSetAgentAction {
     description='Use when a user asks for the actual health of one Salesforce record under one named Record Health Check Set. FAIL is a completed business finding. UNABLE_TO_EVALUATE and ERROR are not PASS.'
     category='Record Health Check'
   )
-  public static List<Response> runSet(List<Request> requests) {
+  global static List<Response> runSet(List<Request> requests) {
     if (requests == null || requests.isEmpty()) {
       return new List<Response>();
     }

@@ -20,12 +20,19 @@ jobs:
       - run: npm install --global @salesforce/cli@2.149.9
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
+      - name: Audit shipped Node dependencies
+        run: npm audit --omit=dev --audit-level=high
       - run: npm run check:toolchain-policy
       - run: npm run prettier:verify
       - run: npm run lint
       - run: npm run lint:slds
       - run: npm run check:namespaced-tokens
       - run: npm run check:configuration-identity
+      - run: npm run check:lightning-runtime-compatibility
+      - run: npm run check:hosted-validation:self-test
+      - run: npm run check:release-gate-parity
+      - run: npm run check:release-runtime-matrix
+      - run: npm run check:dependency-security
       - run: npm run check:agent-tool-contract
       - run: npm run check:mcp
       - run: npm run check:test-data-factory
@@ -33,6 +40,8 @@ jobs:
       - run: npm run check:apex-architecture
       - run: npm run check:apex-surface
       - run: npm run check:code-analyzer-output-paths
+      - run: npm run check:code-analyzer-suppressions
+      - run: npm run check:code-analyzer-inline-suppressions
       - run: npm run check:plugin-sharing
       - run: npm run check:version-sync
       - run: npm run check:product-version-language
@@ -44,8 +53,7 @@ jobs:
       - run: npm run check:query-shapes
       - run: npm run check:distribution-boundary
       - run: npm run check:permission-sets
+      - run: npm run check:xml
       - run: npm run test:scripts
       - run: npm run test:unit:coverage
       - run: npm run check:quality-metrics
-      - name: Validate XML
-        run: python3 -c "import pathlib,xml.etree.ElementTree as ET; [ET.parse(p) for root in ('packages/record-health-check/force-app','packages/record-health-check/integration-tests','packages/record-health-check/manifest','subscriber-app') for p in pathlib.Path(root).rglob('*.xml')]"

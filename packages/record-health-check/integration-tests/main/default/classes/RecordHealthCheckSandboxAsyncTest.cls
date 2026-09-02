@@ -25,6 +25,11 @@ private class RecordHealthCheckSandboxAsyncTest {
       response.results.isEmpty(),
       'The Check Set should return Check results.'
     );
+    Assert.areEqual(
+      new Set<String>{ 'APEX', 'COMPARE_TWO_QUERIES', 'FORMULA', 'QUERY' },
+      evaluationTypes(response),
+      'The release-matrix Check Set must execute every supported Check type.'
+    );
     Assert.isTrue(
       RecordHealthCheckSandboxRunner.summarize(response)
         .contains('sandbox-sync-test'),
@@ -166,5 +171,34 @@ private class RecordHealthCheckSandboxAsyncTest {
     public Id getJobId() {
       return UserInfo.getUserId();
     }
+  }
+
+  private static Set<String> evaluationTypes(
+    RecordHealthCheckResponse response
+  ) {
+    Map<String, Record_Health_Check__mdt> configuredByQualifiedName = new Map<String, Record_Health_Check__mdt>();
+    for (Record_Health_Check__mdt configuredCheck : [
+      SELECT QualifiedApiName, EvaluationType__c
+      FROM Record_Health_Check__mdt
+      WHERE Record_Health_Check_Set__r.DeveloperName = :CHECK_SET
+    ]) {
+      configuredByQualifiedName.put(
+        configuredCheck.QualifiedApiName,
+        configuredCheck
+      );
+    }
+
+    Set<String> types = new Set<String>();
+    for (RecordHealthCheckResultItem item : response.results) {
+      Record_Health_Check__mdt configuredCheck = configuredByQualifiedName.get(
+        item.evaluation.checkQualifiedApiName
+      );
+      Assert.isNotNull(
+        configuredCheck,
+        'Every returned Check must resolve to Custom Metadata.'
+      );
+      types.add(configuredCheck.EvaluationType__c);
+    }
+    return types;
   }
 }

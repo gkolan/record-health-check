@@ -5,7 +5,12 @@ import { resolve } from "node:path";
 
 const result = spawnSync(
   resolve("node_modules/.bin/slds-linter"),
-  ["lint", ".", "--config-eslint", "slds-eslint.config.mjs"],
+  [
+    "lint",
+    "packages/record-health-check/force-app/main/default/lwc",
+    "--config-eslint",
+    "slds-eslint.config.mjs"
+  ],
   {
     encoding: "utf8"
   }

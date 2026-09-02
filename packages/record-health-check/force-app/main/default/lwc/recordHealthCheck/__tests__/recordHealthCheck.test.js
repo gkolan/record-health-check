@@ -100,6 +100,12 @@ async function appendAndLoad(element) {
   await flushPromises();
   jest.runOnlyPendingTimers();
   await flushPromises();
+  // Initial configuration and Automatic execution each own a separate idle
+  // boundary so the Lightning page can finish painting before any Apex work.
+  jest.runOnlyPendingTimers();
+  await flushPromises();
+  await flushPromises();
+  jest.runOnlyPendingTimers();
   await flushPromises();
   await flushPromises();
 }
@@ -135,6 +141,7 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.useRealTimers();
+  window.history.replaceState({}, "", "/");
 });
 
 const PASS_RESULT = (developerName) => ({
@@ -259,7 +266,7 @@ function makeRunner(host) {
   return new HealthCheckRunner(host, { evaluateCheck, completeRun });
 }
 
-describe("c-record-health-check — adaptive design theme", () => {
+describe("c-record-health-check — security-runtime-safe design theme", () => {
   let element;
 
   afterEach(() => {
@@ -273,50 +280,11 @@ describe("c-record-health-check — adaptive design theme", () => {
     document.body.appendChild(element);
 
     expect(element.shadowRoot.querySelector(".rhc-theme")).not.toBeNull();
-  });
-
-  it("adds the SLDS 2 modifier when a Cosmos color-scheme class is present", async () => {
-    document.body.classList.add("slds-color-scheme--light");
-    element = createComponent();
-    document.body.appendChild(element);
-    await Promise.resolve();
-
-    const theme = element.shadowRoot.querySelector(".rhc-theme");
-    expect(theme).not.toBeNull();
-    expect(theme.classList.contains("rhc-theme_slds2")).toBe(true);
-
-    document.body.classList.remove("slds-color-scheme--light");
-  });
-
-  it("keeps SLDS 1 chrome when no Cosmos signals are present", () => {
-    document.body.classList.remove(
-      "slds-color-scheme--light",
-      "slds-color-scheme--dark",
-      "slds-color-scheme--system"
-    );
-    element = createComponent();
-    document.body.appendChild(element);
-
     expect(
       element.shadowRoot
         .querySelector(".rhc-theme")
         .classList.contains("rhc-theme_slds2")
     ).toBe(false);
-  });
-
-  it("detects a Cosmos class on the document element", async () => {
-    document.documentElement.classList.add("slds-color-scheme--dark");
-    element = createComponent();
-    document.body.appendChild(element);
-    await Promise.resolve();
-
-    expect(
-      element.shadowRoot
-        .querySelector(".rhc-theme")
-        .classList.contains("rhc-theme_slds2")
-    ).toBe(true);
-
-    document.documentElement.classList.remove("slds-color-scheme--dark");
   });
 });
 
@@ -658,12 +626,12 @@ describe("c-record-health-check — load and error states", () => {
   });
 
   it("defers all Salesforce server work in configured Automatic mode until idle", async () => {
-    let idleCallback;
+    const idleCallbacks = [];
     Object.defineProperty(window, "requestIdleCallback", {
       configurable: true,
       value: jest.fn((callback) => {
-        idleCallback = callback;
-        return 40;
+        idleCallbacks.push(callback);
+        return 40 + idleCallbacks.length;
       })
     });
     Object.defineProperty(window, "cancelIdleCallback", {
@@ -683,12 +651,25 @@ describe("c-record-health-check — load and error states", () => {
 
     await appendAndLoad(element);
 
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
     expect(getCheckDefinitions).not.toHaveBeenCalled();
     expect(getCheckSetAvailabilityForRecord).not.toHaveBeenCalled();
     expect(evaluateCheck).not.toHaveBeenCalled();
     expect(completeRun).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__title").textContent
+    ).toBe("Record Health Check");
 
-    idleCallback({ didTimeout: false, timeRemaining: () => 10 });
+    idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
+    await flushPromises();
+    await flushPromises();
+
+    expect(getCheckSetShellConfig).toHaveBeenCalledTimes(1);
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+
+    idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
     await flushPromises();
     await flushPromises();
 
@@ -702,12 +683,12 @@ describe("c-record-health-check — load and error states", () => {
   });
 
   it("waits for browser idle before an Automatic run", async () => {
-    let idleCallback;
+    const idleCallbacks = [];
     Object.defineProperty(window, "requestIdleCallback", {
       configurable: true,
       value: jest.fn((callback) => {
-        idleCallback = callback;
-        return 41;
+        idleCallbacks.push(callback);
+        return 41 + idleCallbacks.length;
       })
     });
     Object.defineProperty(window, "cancelIdleCallback", {
@@ -721,11 +702,19 @@ describe("c-record-health-check — load and error states", () => {
 
     await appendAndLoad(element);
 
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+
+    idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
+    await flushPromises();
+    await flushPromises();
+
     expect(getCheckDefinitions).toHaveBeenCalled();
     expect(evaluateCheck).not.toHaveBeenCalled();
-    expect(idleCallback).toEqual(expect.any(Function));
+    expect(idleCallbacks[0]).toEqual(expect.any(Function));
 
-    idleCallback({ didTimeout: false, timeRemaining: () => 10 });
+    idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
     await flushPromises();
     expect(evaluateCheck).toHaveBeenCalledWith(
       expect.objectContaining({ source: "RUN_ON_LOAD" })
@@ -733,6 +722,73 @@ describe("c-record-health-check — load and error states", () => {
 
     delete window.requestIdleCallback;
     delete window.cancelIdleCallback;
+  });
+
+  it("keeps the App Builder preview quiet without a record context", async () => {
+    element = createElement("c-record-health-check", {
+      is: RecordHealthCheck
+    });
+    element.checkSetName = "Account_Data_Quality";
+    await appendAndLoad(element);
+
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    expect(element.shadowRoot.textContent).toContain(
+      "The configured health check will run when a record is available."
+    );
+  });
+
+  it("keeps the App Builder preview quiet when Salesforce supplies a sample record", async () => {
+    window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+    element = createElement("c-record-health-check", {
+      is: RecordHealthCheck
+    });
+    element.checkSetName = "Account_Data_Quality";
+    element.recordId = "001000000000001AAA";
+    await appendAndLoad(element);
+
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(completeRun).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(element.shadowRoot.textContent).toContain(
+      "The configured health check will run when a record is available."
+    );
+  });
+
+  it("does not render runtime actions in a configured Builder preview", async () => {
+    element = createElement("c-record-health-check", {
+      is: RecordHealthCheck
+    });
+    element.checkSetName = "Account_Data_Quality";
+    await appendAndLoad(element);
+
+    const button = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(button).toBeNull();
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+  });
+
+  it("shows Builder guidance without Apex when no Check Set is selected", async () => {
+    element = createElement("c-record-health-check", {
+      is: RecordHealthCheck
+    });
+
+    await appendAndLoad(element);
+
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    expect(element.shadowRoot.textContent).toContain(
+      "Select a Check Set in the component properties."
+    );
   });
 
   it("cancels a pending Automatic idle run when disconnected", async () => {
@@ -2510,6 +2566,7 @@ describe("c-record-health-check — record save refresh", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    registerRefreshHandler.mockImplementation(() => 101);
     getCheckSetShellConfig.mockResolvedValue(null);
     element = createComponent();
   });
@@ -2546,6 +2603,63 @@ describe("c-record-health-check — record save refresh", () => {
     element.remove();
 
     expect(unregisterRefreshHandler).toHaveBeenCalledWith(registrationId);
+  });
+
+  it("uses the Lightning Locker registration protocol when LWS registration is rejected", async () => {
+    registerRefreshHandler
+      .mockImplementationOnce(() => {
+        throw new TypeError(
+          "Invalid contextElement. Must be an HTMLElement or LightningElement."
+        );
+      })
+      .mockImplementationOnce(() => 202);
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardTitle: "Account Health",
+      activeCheckCount: "1"
+    });
+
+    await appendAndLoad(element);
+
+    expect(registerRefreshHandler).toHaveBeenCalledTimes(2);
+    expect(
+      Object.is(
+        registerRefreshHandler.mock.calls[0][0],
+        registerRefreshHandler.mock.calls[1][0]
+      )
+    ).toBe(false);
+    expect(
+      Object.is(
+        registerRefreshHandler.mock.calls[1][0],
+        element.shadowRoot.host
+      )
+    ).toBe(true);
+    expect(registerRefreshHandler.mock.calls[1][1]).toEqual(
+      expect.any(Function)
+    );
+    await expect(registerRefreshHandler.mock.calls[1][1]()).resolves.toBe(true);
+
+    element.remove();
+    expect(unregisterRefreshHandler).toHaveBeenCalledWith(202);
+  });
+
+  it("continues rendering when RefreshView registration is unavailable", async () => {
+    registerRefreshHandler.mockImplementation(() => {
+      throw new TypeError("RefreshView registration unavailable");
+    });
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardTitle: "Account Health",
+      activeCheckCount: "1"
+    });
+
+    await appendAndLoad(element);
+
+    expect(registerRefreshHandler).toHaveBeenCalledTimes(2);
+    expect(element.shadowRoot.textContent).toContain("Account Health");
+
+    element.remove();
+    expect(unregisterRefreshHandler).not.toHaveBeenCalled();
   });
 
   it("preserves Manual intent before the first user-initiated run", async () => {

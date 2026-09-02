@@ -132,6 +132,10 @@ package artifact contains every intended file.
 See [Releasing](../../.github/RELEASING.md) for commands, required evidence, and scratch-org
 cleanup rules.
 
+The complete fail-closed environment, entry-point, lifecycle, server-side, upgrade, and evidence
+requirements are defined in the [Release runtime matrix](./release-runtime-matrix.md). That matrix
+is additive to this lifecycle summary and applies to every release build.
+
 ### Where release evidence belongs
 
 Keep evergreen requirements in this quality gate and in the tracked release workflow. Keep

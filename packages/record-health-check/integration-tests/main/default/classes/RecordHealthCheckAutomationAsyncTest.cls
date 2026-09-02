@@ -172,6 +172,21 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
   }
 
   @IsTest
+  static void queueableExecutesEveryEvaluationType() {
+    assertAsyncAdapterExecutesEveryEvaluationType('QUEUEABLE');
+  }
+
+  @IsTest
+  static void batchExecutesEveryEvaluationType() {
+    assertAsyncAdapterExecutesEveryEvaluationType('BATCH');
+  }
+
+  @IsTest
+  static void scheduledExecutesEveryEvaluationType() {
+    assertAsyncAdapterExecutesEveryEvaluationType('SCHEDULED');
+  }
+
+  @IsTest
   static void equivalentQueueableRequestsAreScopedPerSubmittingUser() {
     User otherUser = RecordHealthCheckPersonaTestDataFactory.createUserWithLocale(
       'en_US',
@@ -394,6 +409,81 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
         adapter + ' must explain the invalid state.'
       );
     }
+  }
+
+  private static void assertAsyncAdapterExecutesEveryEvaluationType(
+    String adapter
+  ) {
+    if (!RecordHealthCheckTestDataFactory.hasIntegrationFixtures()) {
+      Assert.fail(
+        'The release-matrix async test requires integration fixtures and must never skip.'
+      );
+    }
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
+      adapter + ' four-type matrix'
+    );
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Check_Builder_Guide'
+    );
+    RHCIntegrationEventReceipt.reset();
+
+    Test.startTest();
+    Id jobId;
+    if (adapter == 'QUEUEABLE') {
+      jobId = RecordHealthCheckQueueable.enqueue(
+        checkSetName,
+        new List<Id>{ accountRecord.Id },
+        RecordHealthCheckEventPublication.ALL
+      );
+    } else if (adapter == 'BATCH') {
+      jobId = RecordHealthCheckBatch.run(
+        checkSetName,
+        new List<Id>{ accountRecord.Id },
+        RecordHealthCheckEventPublication.ALL
+      );
+    } else {
+      new RecordHealthCheckScheduled(
+          checkSetName,
+          new List<Id>{ accountRecord.Id },
+          RecordHealthCheckEventPublication.ALL
+        )
+        .execute(null);
+    }
+    Test.stopTest();
+    Test.getEventBus().deliver();
+
+    if (jobId != null) {
+      AsyncApexJob job = [
+        SELECT Status, NumberOfErrors
+        FROM AsyncApexJob
+        WHERE Id = :jobId
+      ];
+      Assert.areEqual('Completed', job.Status, adapter + ' must complete.');
+      Assert.areEqual(0, job.NumberOfErrors, adapter + ' must have no errors.');
+    }
+    Set<String> uniqueCheckNames = new Set<String>(
+      RHCIntegrationEventReceipt.checkQualifiedNames
+    );
+    Assert.areEqual(
+      25,
+      uniqueCheckNames.size(),
+      adapter + ' must publish one result for every Check in the matrix set.'
+    );
+    Assert.areEqual(
+      new Set<String>{ 'APEX', 'COMPARE_TWO_QUERIES', 'FORMULA', 'QUERY' },
+      RHCIntegrationEventReceipt.receivedEvaluationTypes(),
+      adapter + ' must execute every evaluator type.'
+    );
+    Assert.areEqual(
+      new Set<String>{ adapter },
+      new Set<String>(RHCIntegrationEventReceipt.checkSources),
+      adapter + ' result events must retain their execution origin.'
+    );
+    Assert.areEqual(
+      2,
+      RHCIntegrationEventReceipt.setRunCount,
+      adapter + ' must publish the record and terminal async envelopes.'
+    );
   }
 
   private static List<Id> syntheticAccountIds(Integer count) {

@@ -79,6 +79,14 @@ For installation and verification, start with
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
+## Version 2.0.6.3 hotfix
+
+### Fixed
+
+- Record Health Check now registers its save-driven RefreshView handler with the protocol required
+  by either Lightning Web Security or Lightning Locker. A RefreshView registration failure no
+  longer prevents the component from loading.
+
 ## Version 2.0.6
 
 Released package version: **2.0.6.2** (`04tak000000eM53AAE`). Salesforce reports 99% package

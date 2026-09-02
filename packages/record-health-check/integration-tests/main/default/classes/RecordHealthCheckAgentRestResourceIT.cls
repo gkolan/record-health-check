@@ -141,10 +141,28 @@ private with sharing class RecordHealthCheckAgentRestResourceIT {
       output.status,
       'A completed Check Set must return a status.'
     );
-    Assert.isTrue(
-      output.passed + output.failed + output.skipped + output.unable +
-      output.systemError > 0,
-      'The explicit counts must cover selected active Checks.'
+    Assert.areEqual(
+      25,
+      output.passed +
+        output.failed +
+        output.skipped +
+        output.unable +
+        output.systemError,
+      'REST must account for every Check in the four-evaluator release set.'
+    );
+    Set<String> evaluationTypes = new Set<String>();
+    for (Record_Health_Check__mdt configuredCheck : [
+      SELECT EvaluationType__c
+      FROM Record_Health_Check__mdt
+      WHERE
+        Record_Health_Check_Set__r.DeveloperName = 'Example_Account_Check_Builder_Guide'
+    ]) {
+      evaluationTypes.add(configuredCheck.EvaluationType__c);
+    }
+    Assert.areEqual(
+      new Set<String>{ 'APEX', 'COMPARE_TWO_QUERIES', 'FORMULA', 'QUERY' },
+      evaluationTypes,
+      'The REST release set must contain every evaluator type.'
     );
   }
 

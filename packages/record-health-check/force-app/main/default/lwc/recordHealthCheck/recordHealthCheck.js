@@ -48,6 +48,15 @@ const RUN_BUTTON_DISPLAYS = [
 ];
 const SLDS_ICON_NAME = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/;
 
+function isLightningAppBuilderContext() {
+  try {
+    return window.location.pathname.includes("/flexipageEditor/");
+  } catch {
+    // If a container blocks location access, retain normal record-page behavior.
+    return false;
+  }
+}
+
 function emptyExpandedState() {
   return Object.create(null);
 }
@@ -64,34 +73,13 @@ const SETUP_ERROR_CODES = new Set([
   "INVALID_CONFIG"
 ]);
 
-/** SLDS 2 / Cosmos pages expose one of these classes; SLDS 1 pages do not. */
-const SLDS2_COLOR_SCHEME_CLASSES = [
-  "slds-color-scheme--light",
-  "slds-color-scheme--dark",
-  "slds-color-scheme--system"
-];
-
-function elementHasSlds2ColorScheme(element) {
-  return SLDS2_COLOR_SCHEME_CLASSES.some((name) =>
-    element.classList.contains(name)
-  );
-}
-
-function detectSlds2Theme() {
-  return (
-    elementHasSlds2ColorScheme(document.body) ||
-    elementHasSlds2ColorScheme(document.documentElement)
-  );
-}
-
 export default class RecordHealthCheck extends LightningElement {
   static stylesheets = [themeStyles];
 
   _checkSetName;
-  @track _isSlds2 = false;
 
   get themeClass() {
-    return this._isSlds2 ? "rhc-theme rhc-theme_slds2" : "rhc-theme";
+    return "rhc-theme";
   }
 
   @api
@@ -121,13 +109,13 @@ export default class RecordHealthCheck extends LightningElement {
     const changed = value !== this._recordId;
     this._recordId = value;
     // Only reload on a genuine change after the initial connectedCallback load;
-    // the first load is owned by connectedCallback so it can defer one macrotask.
+    // the first load is owned by connectedCallback so it can wait for page idle.
     if (this._connected && changed) {
       this._restartConfiguredLifecycle();
     }
   }
 
-  @track displayTitle;
+  @track displayTitle = "Record Health Check";
   @track displayDescription;
   @track triggerMode;
   @track checkSetRunButtonDisplay = DEFAULT_RUN_BUTTON_DISPLAY;
@@ -162,7 +150,10 @@ export default class RecordHealthCheck extends LightningElement {
   @track completionWarning = null;
   @track completionWarningDiagnosticCode = null;
   @track checksOmittedByLimit = false;
-  @track isLoading = true;
+  // The record-page shell must paint without a component loading indicator.
+  // Automatic work starts only after browser idle; row-level progress appears
+  // once checks are actually evaluating.
+  @track isLoading = false;
 
   @track checks = [];
 
@@ -177,7 +168,7 @@ export default class RecordHealthCheck extends LightningElement {
   // the component owns lifecycle, definition loading, display, and diagnostics.
   _runner = new HealthCheckRunner(this, { evaluateCheck, completeRun });
   _loadToken = 0;
-  _initialLoadFrame;
+  _cancelInitialLoad = null;
   _tooltipListenersBound = false;
   _tooltipDwellTimers = new WeakMap();
   _pendingTooltipAnchors = new Set();
@@ -223,11 +214,31 @@ export default class RecordHealthCheck extends LightningElement {
   connectedCallback() {
     this._connected = true;
     window.addEventListener("resize", this._handleViewportResize);
-    this._refreshHandlerRegistration = registerRefreshHandler(
-      this,
-      this._handleRefreshView
-    );
+    this._registerRefreshViewHandler();
     this._restartConfiguredLifecycle(true, true);
+  }
+
+  _registerRefreshViewHandler() {
+    try {
+      // Lightning Web Security registration protocol.
+      this._refreshHandlerRegistration = registerRefreshHandler(
+        this,
+        this._handleRefreshView
+      );
+    } catch {
+      try {
+        // Lightning Locker requires the rendered host HTMLElement and an
+        // explicitly-bound callback instead of the LightningElement instance.
+        this._refreshHandlerRegistration = registerRefreshHandler(
+          this.template.host,
+          this._handleRefreshView.bind(this)
+        );
+      } catch {
+        // RefreshView is progressive enhancement. A registration failure must
+        // never prevent the health-check card itself from connecting.
+        this._refreshHandlerRegistration = null;
+      }
+    }
   }
 
   _restartConfiguredLifecycle(
@@ -235,15 +246,20 @@ export default class RecordHealthCheck extends LightningElement {
     deferInitialLoad = false
   ) {
     const loadToken = ++this._loadToken;
-    /* istanbul ignore next -- the browser owns this deferred frame handle */
-    if (this._initialLoadFrame) {
-      cancelAnimationFrame(this._initialLoadFrame);
-      this._initialLoadFrame = null;
-    }
+    this._cancelScheduledInitialLoad();
     this._cancelScheduledRecordRefresh();
     this._cancelScheduledAutomaticRun();
     this._runner.invalidate();
     this._definitionLoadInProgress = false;
+
+    // Current Lightning App Builder versions can supply a sample recordId to
+    // record-page previews. Detect the supported Builder container itself so a
+    // preview never calls Apex, evaluates checks, exposes runtime actions, or
+    // contributes to Builder's page-level loading treatment.
+    if (isLightningAppBuilderContext()) {
+      this._prepareNoRecordShell();
+      return;
+    }
 
     if (!resolveRunMode && this.triggerMode === "Manual") {
       this._prepareQuietManualShell({
@@ -272,9 +288,11 @@ export default class RecordHealthCheck extends LightningElement {
     }
 
     if (deferInitialLoad) {
-      // eslint-disable-next-line @lwc/lwc/no-async-operation
-      this._initialLoadFrame = requestAnimationFrame(() => {
-        this._initialLoadFrame = null;
+      // Do not enqueue Apex while the Lightning record page is still painting.
+      // This keeps both the Salesforce page-level busy treatment and RHC's own
+      // evaluation progress out of the initial page-load experience.
+      this._cancelInitialLoad = this._scheduleIdleWork(() => {
+        this._cancelInitialLoad = null;
         this._resolveConfiguredLifecycle(loadToken, this.checkSetName);
       });
       return;
@@ -283,6 +301,13 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   async _resolveConfiguredLifecycle(loadToken, checkSetName) {
+    // Keep every design-time preview fully local. App Builder can supply a
+    // sample recordId, so the container check is required in addition to the
+    // ordinary missing-record guard.
+    if (isLightningAppBuilderContext() || !this.recordId) {
+      this._prepareNoRecordShell();
+      return;
+    }
     let shellConfig = null;
     try {
       shellConfig = await getCheckSetShellConfig({
@@ -315,6 +340,19 @@ export default class RecordHealthCheck extends LightningElement {
       return;
     }
     this._loadDefinitions();
+  }
+
+  _prepareNoRecordShell() {
+    this.triggerMode = null;
+    this.displayTitle = "Record Health Check";
+    this.displayDescription = this.checkSetName
+      ? "The configured health check will run when a record is available."
+      : "Select a Check Set in the component properties.";
+    this.isLoading = false;
+    this._clearComponentError();
+    this.checks = [];
+    this.runComplete = false;
+    this.hasCompletedRunOnce = false;
   }
 
   _prepareQuietManualShell(shellConfig = {}) {
@@ -372,10 +410,7 @@ export default class RecordHealthCheck extends LightningElement {
       this._resizeFrame = null;
     }
     this._loadToken++;
-    if (this._initialLoadFrame) {
-      cancelAnimationFrame(this._initialLoadFrame);
-      this._initialLoadFrame = null;
-    }
+    this._cancelScheduledInitialLoad();
     this._cancelScheduledAutomaticRun();
     // Bump the run token and clear the concurrency pool so any in-flight
     // evaluation resolves to a discarded result instead of changing a dead component.
@@ -431,7 +466,8 @@ export default class RecordHealthCheck extends LightningElement {
     const recordId = this.recordId;
     // RefreshView can notify several page participants for one save. Coalesce
     // the burst so this component performs at most one replacement run.
-    // eslint-disable-next-line @lwc/lwc/no-async-operation
+    // LWS safely virtualizes this component-owned coalescing timer.
+    // eslint-disable-next-line @lwc/lwc/no-async-operation, @locker/locker/distorted-window-set-timeout
     this._recordRefreshTimer = setTimeout(() => {
       this._recordRefreshTimer = null;
       if (
@@ -455,18 +491,7 @@ export default class RecordHealthCheck extends LightningElement {
     }
   }
 
-  _syncDesignTheme = () => {
-    if (!this._connected) {
-      return;
-    }
-    const next = detectSlds2Theme();
-    if (next !== this._isSlds2) {
-      this._isSlds2 = next;
-    }
-  };
-
   renderedCallback() {
-    this._syncDesignTheme();
     // Content grows as checks resolve, so re-measure every clampable region and
     // reveal its +/- toggle only when the rendered text actually overflows.
     this._measureClampedContent();
@@ -516,9 +541,10 @@ export default class RecordHealthCheck extends LightningElement {
     if (!anchor) {
       return;
     }
+    // anchor is an HTMLElement owned by this template, not a cross-boundary Range.
+    // eslint-disable-next-line @locker/locker/distorted-range-get-bounding-client-rect
     const rect = anchor.getBoundingClientRect();
-    const viewportHeight =
-      window.innerHeight || document.documentElement.clientHeight || 0;
+    const viewportHeight = window.innerHeight || 0;
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
     // Roomy enough for the multi-line summary/check bubbles; below this we flip.
@@ -569,7 +595,8 @@ export default class RecordHealthCheck extends LightningElement {
 
   _scheduleTooltipDwell(anchor, delayMs) {
     this._clearTooltipDwell(anchor);
-    // eslint-disable-next-line @lwc/lwc/no-async-operation
+    // LWS safely virtualizes this component-owned dwell timer.
+    // eslint-disable-next-line @lwc/lwc/no-async-operation, @locker/locker/distorted-window-set-timeout
     const timer = setTimeout(() => {
       this._tooltipDwellTimers.delete(anchor);
       this._pendingTooltipAnchors.delete(anchor);
@@ -614,10 +641,7 @@ export default class RecordHealthCheck extends LightningElement {
     const loadToken = ++this._loadToken;
     const requestedCheckSetName = this.checkSetName;
     const requestedRecordId = this.recordId;
-    if (this._initialLoadFrame) {
-      cancelAnimationFrame(this._initialLoadFrame);
-      this._initialLoadFrame = null;
-    }
+    this._cancelScheduledInitialLoad();
     this._cancelScheduledRecordRefresh();
     this._cancelScheduledAutomaticRun();
     // Invalidate any run still in flight from a previously-viewed record. This
@@ -825,7 +849,14 @@ export default class RecordHealthCheck extends LightningElement {
       }
       this._loadDefinitions("RUN_ON_LOAD");
     };
-    this._scheduleIdleWork(runWhenIdle);
+    this._cancelAutomaticRun = this._scheduleIdleWork(runWhenIdle);
+  }
+
+  _cancelScheduledInitialLoad() {
+    if (this._cancelInitialLoad) {
+      this._cancelInitialLoad();
+      this._cancelInitialLoad = null;
+    }
   }
 
   _cancelScheduledAutomaticRun() {
@@ -851,25 +882,31 @@ export default class RecordHealthCheck extends LightningElement {
       this._runner.run(true, "RUN_ON_LOAD");
     };
 
-    this._scheduleIdleWork(runWhenIdle);
+    this._cancelAutomaticRun = this._scheduleIdleWork(runWhenIdle);
   }
 
   _scheduleIdleWork(runWhenIdle) {
     if (typeof window.requestIdleCallback === "function") {
       const idleId = window.requestIdleCallback(runWhenIdle);
-      this._cancelAutomaticRun = () => window.cancelIdleCallback(idleId);
-      return;
+      return () => window.cancelIdleCallback(idleId);
     }
 
-    // Older browsers do not expose requestIdleCallback. Yield another paint and
-    // a macrotask so record-page components finish rendering before evaluation.
+    // Older browsers and Lightning security runtimes that don't expose
+    // requestIdleCallback use a paint-and-macrotask fallback.
+    let timerId = null;
+    let cancelled = false;
     // eslint-disable-next-line @lwc/lwc/no-async-operation
     const frameId = requestAnimationFrame(() => {
-      // eslint-disable-next-line @lwc/lwc/no-async-operation
-      const timerId = setTimeout(runWhenIdle, 0);
-      this._cancelAutomaticRun = () => clearTimeout(timerId);
+      if (cancelled) return;
+      // LWS safely virtualizes this component-owned fallback timer.
+      // eslint-disable-next-line @lwc/lwc/no-async-operation, @locker/locker/distorted-window-set-timeout
+      timerId = setTimeout(runWhenIdle, 0);
     });
-    this._cancelAutomaticRun = () => cancelAnimationFrame(frameId);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frameId);
+      if (timerId !== null) clearTimeout(timerId);
+    };
   }
 
   get hasComponentError() {
@@ -1221,11 +1258,8 @@ export default class RecordHealthCheck extends LightningElement {
     );
     const label = toggle.dataset.expandLabel || "content";
     toggle.dataset.symbol = expanded ? "−" : "+";
-    toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-    toggle.setAttribute(
-      "aria-label",
-      `${expanded ? "Collapse" : "Expand"} ${label}`
-    );
+    toggle.ariaExpanded = expanded ? "true" : "false";
+    toggle.ariaLabel = `${expanded ? "Collapse" : "Expand"} ${label}`;
   }
 
   get checkCountLabel() {
@@ -1291,15 +1325,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get showHeaderActions() {
-    return this.isLoading || this.showActionButton;
-  }
-
-  get showHeaderLoadingSpinner() {
-    return this.isLoading && !this._definitionLoadInProgress;
-  }
-
-  get showHeaderActionButton() {
-    return !this.isLoading || this._definitionLoadInProgress;
+    return this.showActionButton;
   }
 
   get showPreRunHint() {
@@ -1408,11 +1434,17 @@ export default class RecordHealthCheck extends LightningElement {
   // While a run is in flight the button stays put but is disabled, so it reads
   // as busy instead of vanishing.
   get actionButtonDisabled() {
-    return this._definitionLoadInProgress || this._runner.isRunning;
+    return (
+      !this.recordId || this._definitionLoadInProgress || this._runner.isRunning
+    );
   }
 
   async handleAction() {
-    if (this._definitionLoadInProgress || this._runner.isRunning) {
+    if (
+      !this.recordId ||
+      this._definitionLoadInProgress ||
+      this._runner.isRunning
+    ) {
       return;
     }
     this.completionWarning = null;

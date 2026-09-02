@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Subscriber On-Load Formula</label>
+    <protected>false</protected>
+    <values><field>rhc__Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Subscriber_On_Load</value></values>
+    <values><field>rhc__CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Account name is available</value></values>
+    <values><field>rhc__EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>rhc__PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(ISBLANK(Name))</value></values>
+    <values><field>rhc__FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>rhc__FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >The Account name is missing.</value></values>
+    <values><field>rhc__UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The installed-package on-load formula could not be evaluated.</value></values>
+    <values><field>rhc__ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>rhc__EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >10</value></values>
+    <values><field>rhc__IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>
