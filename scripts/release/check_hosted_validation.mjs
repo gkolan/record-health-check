@@ -8,6 +8,7 @@ export function selectSuccessfulRun(runs, { commit, candidate = "" }) {
   return runs.find((run) => {
     if (run.head_sha !== commit || run.status !== "completed") return false;
     if (run.conclusion !== "success") return false;
+    if (run.event !== "workflow_dispatch") return false;
     if (
       candidate &&
       String(run.display_title ?? "") !== `Subscriber validation · ${candidate}`
@@ -60,6 +61,7 @@ if (values["self-test"]) {
         head_sha: "abc",
         status: "completed",
         conclusion: "success",
+        event: "workflow_dispatch",
         display_title: "Subscriber validation · 04tPASS"
       }
     ],
@@ -76,6 +78,7 @@ if (values["self-test"]) {
           head_sha: "other",
           status: "completed",
           conclusion: "success",
+          event: "workflow_dispatch",
           display_title: "Subscriber validation · 04tPASS"
         }
       ],
@@ -92,6 +95,7 @@ if (values["self-test"]) {
           head_sha: "abc",
           status: "completed",
           conclusion: "success",
+          event: "workflow_dispatch",
           display_title: "Subscriber validation · 04tPASS-extra"
         }
       ],
@@ -100,6 +104,25 @@ if (values["self-test"]) {
   ) {
     throw new Error(
       "Hosted validation must require the exact candidate dispatch title."
+    );
+  }
+  if (
+    selectSuccessfulRun(
+      [
+        {
+          id: 5,
+          head_sha: "abc",
+          status: "completed",
+          conclusion: "success",
+          event: "pull_request",
+          display_title: "Subscriber validation · 04tPASS"
+        }
+      ],
+      { commit: "abc", candidate: "04tPASS" }
+    )
+  ) {
+    throw new Error(
+      "Hosted validation must reject credential-skipped pull request runs."
     );
   }
   console.log("Hosted Salesforce validation selector self-test passed.");
