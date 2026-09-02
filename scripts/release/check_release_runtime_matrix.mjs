@@ -119,6 +119,39 @@ function requireFailClosedArtifactUploads(file) {
   }
 }
 
+function requireSecureDevHubAuthentication(file, expectedStepCount) {
+  const text = fs.readFileSync(path.join(root, file), "utf8");
+  const stepBlocks = text.split(/(?=^      - (?:name:|uses:))/m);
+  const authSteps = stepBlocks.filter((block) =>
+    block.includes("name: Authenticate Dev Hub")
+  );
+  if (authSteps.length !== expectedStepCount) {
+    errors.push(
+      `${file} must contain exactly ${expectedStepCount} Dev Hub authentication steps; found ${authSteps.length}.`
+    );
+  }
+  for (const authStep of authSteps) {
+    for (const marker of [
+      'auth_file="$RUNNER_TEMP/devhub-auth-url.txt"',
+      `trap 'rm -f "$auth_file"' EXIT`,
+      `printf '%s' "$SFDX_AUTH_URL" > "$auth_file"`,
+      'chmod 600 "$auth_file"',
+      'sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub'
+    ]) {
+      if (!authStep.includes(marker)) {
+        errors.push(
+          `${file} Dev Hub authentication must retain secure file-based CLI marker: ${marker}`
+        );
+      }
+    }
+    if (authStep.includes("--sfdx-url-stdin")) {
+      errors.push(
+        `${file} Dev Hub authentication must not use --sfdx-url-stdin because the pinned CLI parses the following alias flag as its value.`
+      );
+    }
+  }
+}
+
 function requireUniqueXmlValues(file, elementName) {
   const text = fs.readFileSync(path.join(root, file), "utf8");
   const values = [
@@ -270,6 +303,14 @@ for (const workflow of [
 ]) {
   requireFailClosedArtifactUploads(workflow);
 }
+requireSecureDevHubAuthentication(
+  ".github/workflows/salesforce-validate.yml",
+  3
+);
+requireSecureDevHubAuthentication(
+  ".github/workflows/subscriber-validate.yml",
+  2
+);
 requireText("scripts/release/create-package-version.mjs", [
   '"salesforce-validate.yml"',
   "runtimeMatrix.candidateVersion",
