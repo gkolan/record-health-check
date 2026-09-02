@@ -7,6 +7,11 @@
 Record Health Check ships primarily as the namespaced unlocked package `Record Health Check`.
 Source deployment is a contributor workflow and is not the supported subscriber installation path.
 
+The authorized maintainer should follow the
+[manual release-owner checklist](../docs/quality-gates/manual-release-owner-checklist.md) for the
+exact GitHub Desktop, workflow-dispatch, package-creation, subscriber-validation, promotion, merge,
+tag, and publication sequence. That checklist does not replace the detailed contracts on this page.
+
 ## Version model
 
 The Framework follows Semantic Versioning. `package.json` carries the Framework version and

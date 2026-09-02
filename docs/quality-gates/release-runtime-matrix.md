@@ -264,6 +264,7 @@ it must not be done to make a failing candidate pass.
 
 ## Related
 
+- [Manual release-owner checklist](./manual-release-owner-checklist.md)
 - [Package testing and upgrades](./package-testing-and-upgrades.md)
 - [Platform conformance](./platform-conformance.md)
 - [Releasing](../../.github/RELEASING.md)

@@ -94,7 +94,7 @@ When a record needs attention, the card explains what was **Found**, what was **
 | Custom permissions    | Record Health Check Run and Record Health Check View Diagnostics                                                                                                                                                                                                   |
 | Custom Metadata Types | Record Health Check Set (18 fields) and Record Health Check (44 fields)                                                                                                                                                                                            |
 | Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields)                                                                                                                                           |
-| Documentation         | 131 maintained pages, including 19 documented Check examples                                                                                                                                                                                                       |
+| Documentation         | 132 maintained pages, including 19 documented Check examples                                                                                                                                                                                                       |
 
 </details>
 
