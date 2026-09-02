@@ -79,7 +79,7 @@ For installation and verification, start with
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
-## Version 2.0.6.3 hotfix
+## Version 2.0.7
 
 ### Fixed
 

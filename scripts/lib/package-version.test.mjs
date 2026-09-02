@@ -3,8 +3,8 @@ import test from "node:test";
 import { packageVersionString } from "./package-version.mjs";
 
 test("reads direct package-list version fields", () => {
-  assert.equal(packageVersionString({ Version: "2.0.6.3" }), "2.0.6.3");
-  assert.equal(packageVersionString({ version: "2.0.6.3" }), "2.0.6.3");
+  assert.equal(packageVersionString({ Version: "2.0.7.1" }), "2.0.7.1");
+  assert.equal(packageVersionString({ version: "2.0.7.1" }), "2.0.7.1");
 });
 
 test("assembles a package-report four-part version", () => {
@@ -12,10 +12,10 @@ test("assembles a package-report four-part version", () => {
     packageVersionString({
       MajorVersion: 2,
       MinorVersion: 0,
-      PatchVersion: 6,
-      BuildNumber: 3
+      PatchVersion: 7,
+      BuildNumber: 1
     }),
-    "2.0.6.3"
+    "2.0.7.1"
   );
 });
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "candidateVersion": "2.0.6.3",
+  "candidateVersion": "2.0.7.1",
   "upgradeFromVersion": "2.0.6.2",
   "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
   "sourceTopologies": ["namespaced", "no-namespace"],
@@ -126,7 +126,7 @@
     "record-navigation",
     "component-disconnect-reconnect",
     "fresh-package-install",
-    "upgrade-2.0.6.2-to-2.0.6.3",
+    "upgrade-2.0.6.2-to-2.0.7.1",
     "post-install-lwc",
     "post-upgrade-lwc",
     "post-install-apex-api",
@@ -178,7 +178,7 @@
       "tests/browser/lifecycle.mjs"
     ],
     "fresh-package-install": ["scripts/release/verify-package-version.mjs"],
-    "upgrade-2.0.6.2-to-2.0.6.3": [
+    "upgrade-2.0.6.2-to-2.0.7.1": [
       "scripts/release/verify-package-version.mjs"
     ],
     "post-install-lwc": [

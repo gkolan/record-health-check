@@ -11,8 +11,8 @@ workflow wiring, or incomplete package-install verification.
 
 ## Version identity
 
-The package version is `major.minor.patch.build`. The corrective build after `2.0.6.2` is therefore
-`2.0.6.3`. A package candidate is identified by its exact `04t` version ID and Git commit SHA.
+The package version is `major.minor.patch.build`. This corrective release is `2.0.7.1`, upgrading
+from the stable `2.0.6.2` package. A package candidate is identified by its exact `04t` version ID and Git commit SHA.
 Evidence from another build, branch head, pull-request merge commit, or package ID cannot satisfy a
 candidate's gate.
 
@@ -220,7 +220,7 @@ subscriber-owned Check Sets and Checks and records their identities and values. 
 
 1. deploys only the subscriber-owned preservation fixture and proves the stable `2.0.6.2` global
    Apex API can execute it;
-2. installs the exact `2.0.6.3` candidate using the tracked upgrade mode;
+2. installs the exact `2.0.7.1` candidate using the tracked upgrade mode;
 3. verifies the installed package version ID;
 4. proves the subscriber-owned metadata is unchanged;
 5. reassigns and verifies permissions;

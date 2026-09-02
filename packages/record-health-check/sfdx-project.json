@@ -1,8 +1,8 @@
 {
   "packageDirectories": [
     {
-      "versionName": "Version 2.0.6",
-      "versionNumber": "2.0.6.NEXT",
+      "versionName": "Version 2.0.7",
+      "versionNumber": "2.0.7.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Record Health Check",
