@@ -1,17 +1,6 @@
 # Bulk query grammar
 
-This reference defines the supported grammar for advanced Query Checks.
-
-This is the exact supported grammar for advanced Query Checks.
-
-> [!NOTE]
-> On this page, maintainers can compare the supported query strategies used by the Apex runtime
-> with the release inventory that prevents unsupported query shapes from entering the package.
-
-This contract defines how a query authored for one record is classified for one scope-wide query.
-The Apex runtime in `RecordHealthCheckBulkQuerySupport` is the source of truth. The release inventory in
-`scripts/release/inventory_bulk_query_shapes.py` mirrors these rules and pins changed shapes with
-self-tests so CI cannot approve a strategy the runtime would not use.
+Use this reference when a Query Check must run for several records in one request. Record Health Check groups supported queries so that it can evaluate the records together. Unsupported or ambiguous query shapes return a configuration error.
 
 | Strategy | Authored shape | Scope behavior |
 | --- | --- | --- |
@@ -34,11 +23,7 @@ For example, `WHERE Id = {!record.OwnerId fallback="005000000000001"}` remains
 fallback value that is valid for the referenced field; the synthetic ID here documents grammar
 only.
 
-The generated [bulk query shape inventory](../../../scripts/release/generated/bulk-query-shape-inventory.md)
-records the strategy selected for every shipped and integration-fixture query template.
-
 ## Related
 
 - [Framework architecture](../../architecture/framework.md)
 - [Query evaluation](./query.md)
-- [Bulk query shape inventory](../../../scripts/release/generated/bulk-query-shape-inventory.md)

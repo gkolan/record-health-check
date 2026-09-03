@@ -1,9 +1,5 @@
 # Operate Record Health Check in production
 
-Use this maintenance guide after Record Health Check is available to real users.
-
-Use this guide after the first Check Set is ready for real users.
-
 > [!NOTE]
 > On this page, keep Record Health Check reliable after go-live by reviewing Platform Event usage,
 > limiting diagnostics, backing up Check configuration, monitoring receiving automation, and
@@ -54,7 +50,8 @@ missing event as an automation incident, not as proof that the Check did not run
 administrator's current browser session:
 
 1. Enable **Show Diagnostics** on the specific Check Set being investigated, not broadly.
-2. Confirm only users holding **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) (via **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`))
+2. Confirm only users holding **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) through an org-owned Permission Set, **Record Health Check Admin**, or **Record Health Check Diagnostics Viewer**
+   when available
    can see the resulting detail; everyone else still sees the standard card.
 3. Turn it back off when the investigation ends.
 4. Periodically audit which Check Sets currently have **Show Diagnostics** checked; a forgotten

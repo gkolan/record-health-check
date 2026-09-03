@@ -1,9 +1,5 @@
 # Code Analyzer suppressions
 
-Maintainer reference for reviewed static-analysis exceptions.
-
-This page is for package contributors and reviewers.
-
 Audience: package contributors reviewing pull-request security evidence. This page is never needed
 to configure or run a Check. Administrators should use [Security and data access](../architecture/security-and-data-access.md).
 

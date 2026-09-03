@@ -8,6 +8,7 @@ import { paths } from "../lib/paths.mjs";
 import { packageVersionString } from "../lib/package-version.mjs";
 import { readPackageReleases } from "../lib/package-releases.mjs";
 import { run, runJson } from "../lib/run.mjs";
+import { assertReleaseAcceptance } from "../lib/release-acceptance.mjs";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -76,6 +77,22 @@ if (
   );
   process.exit(1);
 }
+
+const acceptancePath = path.join(
+  paths.packageRoot,
+  ".package-evidence",
+  `${packageVersionId}-acceptance.json`
+);
+if (!fs.existsSync(acceptancePath)) {
+  throw new Error(
+    `Missing representative-sandbox acceptance: ${acceptancePath}. Complete the release-owner checklist; do not fabricate pass evidence.`
+  );
+}
+assertReleaseAcceptance(
+  JSON.parse(fs.readFileSync(acceptancePath, "utf8")),
+  packageVersionId,
+  gitCommit
+);
 
 run("node", [
   "scripts/release/check_hosted_validation.mjs",

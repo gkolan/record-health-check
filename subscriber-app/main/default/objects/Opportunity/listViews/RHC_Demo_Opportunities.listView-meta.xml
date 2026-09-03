@@ -7,10 +7,13 @@
     <columns>OPPORTUNITY.AMOUNT</columns>
     <columns>OPPORTUNITY.CLOSE_DATE</columns>
     <filterScope>Everything</filterScope>
+    <booleanFilter>1 OR 2</booleanFilter>
     <filters>
         <field>ACCOUNT.NAME</field>
         <operation>equals</operation>
         <value>Acme Corporation</value>
     </filters>
+    <filters><field>OPPORTUNITY.NAME</field><operation
+    >contains</operation><value>RHC Demo</value></filters>
     <label>RHC Demo Opportunities</label>
 </ListView>

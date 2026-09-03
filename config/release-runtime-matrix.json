@@ -2,6 +2,13 @@
   "schemaVersion": 1,
   "candidateVersion": "2.0.7.1",
   "upgradeFromVersion": "2.0.6.2",
+  "upgradeBases": [
+    {
+      "version": "2.0.6.2",
+      "subscriberPackageVersionId": "04tak000000eM53AAE"
+    },
+    { "version": "2.0.4.2", "subscriberPackageVersionId": "04tak000000cZBFAA2" }
+  ],
   "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
   "sourceTopologies": ["namespaced", "no-namespace"],
   "lightningSecurityModes": ["LWS", "Locker"],

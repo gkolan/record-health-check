@@ -53,7 +53,7 @@ Before creating a release candidate:
 After creating the single candidate and before promotion:
 
 1. Run `npm run package:verify` against its explicit `04t`.
-2. Confirm clean install, N-1 upgrade, and subscriber-owned Custom Metadata preservation gates.
+2. Confirm clean install, every reviewed upgrade base, and subscriber-owned Custom Metadata preservation gates.
 3. Run `npm run release:preflight` again from the final committed release source.
 4. Confirm the pull request's complete GitHub Actions **CI** workflow is green. Do not promote while
    CI is absent, pending, cancelled, or failing.
@@ -181,8 +181,9 @@ npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 Run the commands from a clean, committed release branch. `package:create` repeats the release
 preflight, checks Dev Hub capacity, requests code coverage, and records redacted creation evidence.
 The Salesforce package-version Branch field records the stable Git release branch; it does not
-include a commit suffix. Exact commit provenance lives in the ignored creation evidence, while 2GP
-upgrade ancestry remains linear through `"ancestorVersion": "HIGHEST"` in `sfdx-project.json`.
+include a commit suffix. Exact commit provenance lives in the ignored creation evidence. This
+unlocked-package project does not declare managed-package `ancestorVersion` metadata; supported
+upgrade paths are verified by installing the exact released base IDs from the runtime matrix.
 `package:verify` treats installation into a clean subscriber org as the authoritative validation of
 the immutable server artifact. ZIP retrieval can be retained as optional diagnostic evidence, but
 Salesforce reporting a generated ZIP as unretrievable does not block install verification.
@@ -197,20 +198,8 @@ from another machine without the creation evidence.
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
 on the bash-only `VAR=value command` prefix.
 
-Or manually from the nested package project:
-
-```bash
-cd packages/record-health-check
-
-sf package version create \
-  --package 0Hoak0000004kKPCAY \
-  --definition-file config/project-scratch-def.json \
-  --code-coverage \
-  --generate-pkg-zip \
-  --installation-key-bypass \
-  --wait 120 \
-  --target-dev-hub <dev-hub>
-```
+Do not substitute a raw `sf package version create` command. It bypasses the guarded workflow's
+hosted-evidence checks and does not create the provenance file required for promotion.
 
 Record the resulting `04t` ID. Verify the immutable candidate, attach the redacted evidence to the
 pull request, and do not promote it until subscriber verification gates pass.
@@ -225,8 +214,16 @@ This runs:
 
 - Clean no-namespace install of the candidate
 - Verification that all packaged Custom Metadata types and records are installed
-- Subscriber verification metadata deployment and `RHCSubscriberSmokeTest`
-- Stable-to-candidate upgrade rehearsal when `stable` is a promoted `04t`
+- Subscriber verification metadata deployment and every executable subscriber Apex test, including
+  `RHCSubscriberFlowSmokeTest`
+- Upgrade rehearsal from the explicitly selected reviewed base
+
+The command alone is not the hosted release matrix. Follow the
+[manual release-owner checklist](../docs/quality-gates/manual-release-owner-checklist.md) to dispatch
+all three subscriber stages (`clean-install`, `upgrade-2.0.6.2`, `upgrade-2.0.4.2`) on the unchanged
+release commit and candidate. Each stage requires both LWS and Locker. Complete and retain the
+representative-sandbox acceptance file before promotion. Do not skip a stage because daily
+scratch-org quota is exhausted.
 
 ## Promote and publish
 

@@ -102,7 +102,7 @@ create this Check Set:
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Open_Pipeline_Uses_Purchased_Product` |
 | **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Open Pipeline Uses Purchased Product |
@@ -125,7 +125,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 These values improve presentation. Change them for your process, or leave an optional field blank.
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Info |
 | **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | On `{!record.Name fallback="this record"}`, open pipeline products do not overlap the products recorded on closed-won Opportunities. Confirm whether the proposal should include an existing product. |

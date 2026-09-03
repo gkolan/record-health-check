@@ -410,7 +410,7 @@ describe("c-record-health-check — load and error states", () => {
     expect(banner).not.toBeNull();
     expect(banner.classList).toContain("rhc-row--system-error");
     expect(banner.textContent).toContain(
-      "This health check is currently inactive."
+      "This Record Health Check is currently inactive."
     );
     expect(banner.textContent).not.toContain("The config is inactive.");
     expect(
@@ -458,13 +458,13 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner.classList).not.toContain("rhc-error-banner--access");
     expect(element.shadowRoot.textContent).toContain(
-      "Health Check Unavailable"
+      "Record Health Check Unavailable"
     );
     expect(banner.textContent).toContain(
-      "You don't have access to view or run this health check."
+      "You don't have access to view or run Record Health Check."
     );
     expect(banner.getAttribute("aria-label")).toContain(
-      "Health Check Unavailable"
+      "Record Health Check Unavailable"
     );
     expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
     expect(
@@ -485,7 +485,7 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner.classList).not.toContain("rhc-error-banner--access");
     expect(element.shadowRoot.textContent).toContain(
-      "Health Check Unavailable"
+      "Record Health Check Unavailable"
     );
     expect(banner.textContent).not.toContain("RecordHealthCheckController");
     expect(banner.textContent).not.toContain("Please try again");
@@ -737,12 +737,18 @@ describe("c-record-health-check — load and error states", () => {
     expect(completeRun).not.toHaveBeenCalled();
     expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
     expect(element.shadowRoot.textContent).toContain(
-      "The configured health check will run when a record is available."
+      "Runs when a record is available."
     );
   });
 
-  it("keeps the App Builder preview quiet when Salesforce supplies a sample record", async () => {
+  it("identifies the Check Set and summarizes counts in App Builder", async () => {
     window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+    getCheckSetShellConfig.mockResolvedValue({
+      checkSetLabel: "Account Data Quality",
+      cardTitle: "Account Health",
+      activeCheckCount: "17",
+      inactiveCheckCount: "2"
+    });
     element = createElement("c-record-health-check", {
       is: RecordHealthCheck
     });
@@ -750,18 +756,149 @@ describe("c-record-health-check — load and error states", () => {
     element.recordId = "001000000000001AAA";
     await appendAndLoad(element);
 
-    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    expect(getCheckSetShellConfig).toHaveBeenCalledWith({
+      checkSetQualifiedApiName: "Account_Data_Quality"
+    });
     expect(getCheckDefinitions).not.toHaveBeenCalled();
     expect(evaluateCheck).not.toHaveBeenCalled();
     expect(completeRun).not.toHaveBeenCalled();
     expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
     expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__title").textContent
+    ).toBe("Account Data Quality");
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__desc").textContent
+    ).toBe("Record Health Check");
     expect(element.shadowRoot.textContent).toContain(
-      "The configured health check will run when a record is available."
+      "Runs when a record is available. Includes 17 active checks and 2 inactive checks."
     );
   });
 
+  it.each([
+    ["1", "0", "Includes 1 active check."],
+    ["2", "0", "Includes 2 active checks."],
+    ["1", "1", "Includes 1 active check and 1 inactive check."]
+  ])(
+    "pluralizes Builder counts and omits zero inactive checks (%s active, %s inactive)",
+    async (activeCheckCount, inactiveCheckCount, expectedCountText) => {
+      window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+      getCheckSetShellConfig.mockResolvedValue({
+        checkSetLabel: "Account Data Quality",
+        activeCheckCount,
+        inactiveCheckCount
+      });
+      element = createElement("c-record-health-check", {
+        is: RecordHealthCheck
+      });
+      element.checkSetName = "Account_Data_Quality";
+
+      await appendAndLoad(element);
+
+      const preview = element.shadowRoot.querySelector(".rhc-builder-preview");
+      expect(preview.textContent).toContain(expectedCountText);
+      expect(preview.textContent.includes("inactive")).toBe(
+        inactiveCheckCount !== "0"
+      );
+    }
+  );
+
+  it.each([null, {}, "rejected"])(
+    "keeps Builder quiet when its optional summary is unavailable: %s",
+    async (response) => {
+      window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+      if (response === "rejected")
+        getCheckSetShellConfig.mockRejectedValue(new Error("not allowed"));
+      else getCheckSetShellConfig.mockResolvedValue(response);
+      element = createElement("c-record-health-check", {
+        is: RecordHealthCheck
+      });
+      element.checkSetName = "Account_Data_Quality";
+      await appendAndLoad(element);
+      expect(element.shadowRoot.textContent).toContain("Account_Data_Quality");
+      expect(element.shadowRoot.textContent).toContain(
+        "Runs when a record is available."
+      );
+      expect(element.shadowRoot.textContent).not.toContain("Includes");
+      expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+      expect(getCheckDefinitions).not.toHaveBeenCalled();
+      expect(evaluateCheck).not.toHaveBeenCalled();
+    }
+  );
+
+  it("uses Builder-only metadata when the container changes before deferred loading", async () => {
+    element = createElement("c-record-health-check", { is: RecordHealthCheck });
+    element.checkSetName = "Account_Data_Quality";
+    element.recordId = "001000000000001AAA";
+    getCheckSetShellConfig.mockResolvedValue({
+      checkSetLabel: "Builder selection",
+      activeCheckCount: 1
+    });
+    document.body.appendChild(element);
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+    expect(element.shadowRoot.textContent).toContain("Builder selection");
+    expect(element.shadowRoot.textContent).toContain(
+      "Includes 1 active check."
+    );
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+  });
+
+  it("ignores a Builder summary delivered after disconnection", async () => {
+    window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+    const pending = deferred();
+    getCheckSetShellConfig.mockReturnValue(pending.promise);
+    element = createElement("c-record-health-check", { is: RecordHealthCheck });
+    element.checkSetName = "Account_Data_Quality";
+    await appendAndLoad(element);
+    document.body.removeChild(element);
+    pending.resolve({ checkSetLabel: "Stale response", activeCheckCount: 17 });
+    await flushPromises();
+    expect(element.shadowRoot.textContent).not.toContain("Stale response");
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [{ cardTitle: "Fallback title" }, "Fallback title"],
+    [{ activeCheckCount: 0 }, "Account_Data_Quality"]
+  ])(
+    "uses safe Builder label and count defaults: %s",
+    async (response, title) => {
+      window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+      getCheckSetShellConfig.mockResolvedValue(response);
+      element = createElement("c-record-health-check", {
+        is: RecordHealthCheck
+      });
+      element.checkSetName = "Account_Data_Quality";
+      await appendAndLoad(element);
+      expect(
+        element.shadowRoot.querySelector(".rhc-header__title").textContent
+      ).toBe(title);
+      expect(element.shadowRoot.textContent).toContain(
+        "Includes 0 active checks."
+      );
+      expect(evaluateCheck).not.toHaveBeenCalled();
+    }
+  );
+
   it("does not render runtime actions in a configured Builder preview", async () => {
+    window.history.replaceState({}, "", "/flexipageEditor/surface.app");
+    getCheckSetShellConfig.mockResolvedValue({
+      checkSetLabel: "Account Data Quality",
+      activeCheckCount: "1",
+      inactiveCheckCount: "0"
+    });
     element = createElement("c-record-health-check", {
       is: RecordHealthCheck
     });
@@ -770,12 +907,13 @@ describe("c-record-health-check — load and error states", () => {
 
     const button = element.shadowRoot.querySelector(".rhc-action-button");
     expect(button).toBeNull();
-    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+    expect(getCheckSetShellConfig).toHaveBeenCalledTimes(1);
     expect(getCheckDefinitions).not.toHaveBeenCalled();
     expect(evaluateCheck).not.toHaveBeenCalled();
   });
 
   it("shows Builder guidance without Apex when no Check Set is selected", async () => {
+    window.history.replaceState({}, "", "/flexipageEditor/surface.app");
     element = createElement("c-record-health-check", {
       is: RecordHealthCheck
     });
@@ -1025,7 +1163,7 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner.classList).toContain("rhc-row--system-error");
     expect(banner.getAttribute("aria-label")).toContain(
-      "Health Check Needs Setup"
+      "Record Health Check Needs Setup"
     );
     expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
   });
@@ -1041,10 +1179,10 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner).not.toBeNull();
     expect(element.shadowRoot.textContent).toContain(
-      "Health Check Needs Setup"
+      "Record Health Check Needs Setup"
     );
     expect(banner.textContent).toContain(
-      "This health check hasn't been configured for this page"
+      "This Record Health Check hasn't been configured for this page"
     );
     expect(banner.textContent).toContain("Ask your Salesforce admin");
     expect(banner.textContent).toContain("select an existing active Check Set");
@@ -1069,7 +1207,7 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner.classList).not.toContain("rhc-error-banner--access");
     expect(element.shadowRoot.textContent).toContain(
-      "Health Check Unavailable"
+      "Record Health Check Unavailable"
     );
     expect(banner.textContent).not.toContain("verify its setup");
     expect(getCheckDefinitions).not.toHaveBeenCalled();
@@ -1086,7 +1224,7 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner).not.toBeNull();
     expect(banner.textContent).toContain(
-      "Health checks exist for this record type, but none are active"
+      "Record Health Check has Check Sets for this record type, but none are active"
     );
     expect(banner.textContent).toContain(
       "activate a Check Set for this object"
@@ -1105,7 +1243,7 @@ describe("c-record-health-check — load and error states", () => {
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(banner).not.toBeNull();
     expect(banner.textContent).toContain(
-      "No health check has been created for this record type"
+      "No Record Health Check has been created for this record type"
     );
     expect(banner.textContent).toContain(
       "create and activate a Check Set for this object"
@@ -1127,7 +1265,7 @@ describe("c-record-health-check — load and error states", () => {
 
     const banner = element.shadowRoot.querySelector(".rhc-error-banner");
     expect(element.shadowRoot.textContent).toContain(
-      "Health Check Needs Setup"
+      "Record Health Check Needs Setup"
     );
     expect(banner.textContent).toContain("doesn't contain any active Checks");
     expect(banner.textContent).toContain("Ask your Salesforce admin");
@@ -1136,8 +1274,11 @@ describe("c-record-health-check — load and error states", () => {
   });
 
   it.each([
-    ["CONFIG_NOT_FOUND", "The configured health check is no longer available."],
-    ["CONFIG_INACTIVE", "This health check is currently inactive."],
+    [
+      "CONFIG_NOT_FOUND",
+      "The selected Record Health Check is no longer available."
+    ],
+    ["CONFIG_INACTIVE", "This Record Health Check is currently inactive."],
     ["OBJECT_MISMATCH", "isn't configured for this type of record"],
     ["NO_ACTIVE_CHECKS", "doesn't contain any active Checks"],
     ["NO_RECORD_CONTEXT", "only works on a supported record page"],
@@ -1156,7 +1297,7 @@ describe("c-record-health-check — load and error states", () => {
 
       const banner = element.shadowRoot.querySelector(".rhc-error-banner");
       expect(element.shadowRoot.textContent).toContain(
-        "Health Check Needs Setup"
+        "Record Health Check Needs Setup"
       );
       expect(banner.textContent).toContain(safeMessage);
       expect(banner.textContent).not.toContain(technicalMessage);
@@ -1232,7 +1373,7 @@ describe("c-record-health-check — run orchestration", () => {
       element.shadowRoot.querySelector(".rhc-error-banner")
     ).not.toBeNull();
     expect(element.shadowRoot.textContent).toContain(
-      "This health check has a configuration problem."
+      "This Record Health Check has a configuration problem."
     );
     expect(evaluateCheck).not.toHaveBeenCalled();
   });
@@ -5103,7 +5244,7 @@ describe("healthCheckModel — complete response contracts", () => {
   it("uses documented Aura defaults when parsed fields are absent", () => {
     expect(parseAuraError({ body: { message: "{}" } })).toEqual({
       reasonCode: "LOAD_FAILED",
-      message: "An error occurred loading health checks.",
+      message: "An error occurred loading Record Health Check.",
       diagnosticCode: expect.anything()
     });
   });
@@ -5194,7 +5335,7 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
     );
 
     expect(presentation.message).toBe(
-      "This health check has a configuration problem."
+      "This Record Health Check has a configuration problem."
     );
     expect(presentation.technicalDetail).toBeNull();
     expect(presentation.diagnosticCode).toBeNull();
@@ -5218,7 +5359,7 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
       "Internal exception"
     );
 
-    expect(presentation.message).toBe("We couldn't load this health check.");
+    expect(presentation.message).toBe("We couldn't load Record Health Check.");
     expect(presentation.retryable).toBe(true);
     expect(presentation.technicalDetail).toBeNull();
   });
@@ -5231,8 +5372,10 @@ describe("healthCheckDiagnostics — complete view-model decisions", () => {
         "Internal exception"
       );
 
-      expect(presentation.title).toBe("Health Check Unavailable");
-      expect(presentation.message).toBe("We couldn't load this health check.");
+      expect(presentation.title).toBe("Record Health Check Unavailable");
+      expect(presentation.message).toBe(
+        "We couldn't load Record Health Check."
+      );
       expect(presentation.retryable).toBe(true);
     }
   );

@@ -31,6 +31,14 @@ private class RecordHealthCheckConfigServiceTest {
       automatic.get('runMode'),
       'RUN_ON_LOAD must map to the Automatic client contract.'
     );
+    Assert.isNotNull(
+      automatic.get('checkSetLabel'),
+      'The shell must identify the selected Check Set by label.'
+    );
+    Assert.isNotNull(
+      automatic.get('inactiveCheckCount'),
+      'The shell must include the inactive Check count.'
+    );
   }
 
   @IsTest

@@ -61,6 +61,7 @@ public with sharing class RecordHealthCheckConfigService {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by the controller.
     List<Record_Health_Check_Set__mdt> checkSets = [
       SELECT
+        MasterLabel,
         CardRunMode__c,
         CardTitle__c,
         CardSubtitle__c,
@@ -83,11 +84,21 @@ public with sharing class RecordHealthCheckConfigService {
         Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
         AND IsActive__c = TRUE
     ];
+    // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by the controller.
+    Integer inactiveCheckCount = [
+      SELECT COUNT()
+      FROM Record_Health_Check__mdt
+      WHERE
+        Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
+        AND IsActive__c = FALSE
+    ];
     return new Map<String, String>{
+      'checkSetLabel' => checkSets[0].MasterLabel,
       'runMode' => toShellRunMode(checkSets[0].CardRunMode__c),
       'cardTitle' => checkSets[0].CardTitle__c,
       'cardDescription' => checkSets[0].CardSubtitle__c,
       'activeCheckCount' => String.valueOf(activeCheckCount),
+      'inactiveCheckCount' => String.valueOf(inactiveCheckCount),
       'runButtonDisplay' => RecordHealthCheckConstants.normalizedRunButtonDisplay(
         checkSets[0].RunButtonDisplay__c
       ),

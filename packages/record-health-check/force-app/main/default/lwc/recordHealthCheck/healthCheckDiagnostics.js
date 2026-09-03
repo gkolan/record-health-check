@@ -5,90 +5,92 @@
 
 const COMPONENT_ERROR_PRESENTATIONS = {
   CONFIG_NOT_FOUND: {
-    title: "Health Check Needs Setup",
-    message: "The configured health check is no longer available.",
+    title: "Record Health Check Needs Setup",
+    message: "The selected Record Health Check is no longer available.",
     guidance:
       "Ask your Salesforce admin to select another active Check Set on this record page."
   },
   SETUP_REQUIRED: {
-    title: "Health Check Needs Setup",
-    message: "This health check hasn't been configured for this page.",
+    title: "Record Health Check Needs Setup",
+    message: "This Record Health Check hasn't been configured for this page.",
     guidance:
       "Ask your Salesforce admin to edit this record page and select an existing active Check Set."
   },
   INACTIVE_CHECK_SETS_ONLY: {
-    title: "Health Check Needs Setup",
-    message: "Health checks exist for this record type, but none are active.",
+    title: "Record Health Check Needs Setup",
+    message:
+      "Record Health Check has Check Sets for this record type, but none are active.",
     guidance:
       "Ask your Salesforce admin to activate a Check Set for this object, then select it on this record page."
   },
   NO_ACTIVE_CHECK_SETS: {
-    title: "Health Check Needs Setup",
-    message: "No health check has been created for this record type.",
+    title: "Record Health Check Needs Setup",
+    message: "No Record Health Check has been created for this record type.",
     guidance:
       "Ask your Salesforce admin to create and activate a Check Set for this object, then select it on this record page."
   },
   CONFIG_INACTIVE: {
-    title: "Health Check Needs Setup",
-    message: "This health check is currently inactive.",
+    title: "Record Health Check Needs Setup",
+    message: "This Record Health Check is currently inactive.",
     guidance:
       "Ask your Salesforce admin to activate this Check Set or select another active Check Set on the record page."
   },
   OBJECT_MISMATCH: {
-    title: "Health Check Needs Setup",
-    message: "This health check isn't configured for this type of record.",
+    title: "Record Health Check Needs Setup",
+    message:
+      "This Record Health Check isn't configured for this type of record.",
     guidance:
       "Ask your Salesforce admin to select a Check Set whose Record Object API Name matches this record page."
   },
   NO_ACTIVE_CHECKS: {
-    title: "Health Check Needs Setup",
-    message: "This health check doesn't contain any active Checks.",
+    title: "Record Health Check Needs Setup",
+    message: "This Record Health Check doesn't contain any active Checks.",
     guidance:
       "Ask your Salesforce admin to add or activate at least one Check in this Check Set."
   },
   NO_RECORD_CONTEXT: {
-    title: "Health Check Needs Setup",
+    title: "Record Health Check Needs Setup",
     message: "This component only works on a supported record page.",
     guidance:
       "Ask your Salesforce admin to place this component on a supported Salesforce record page."
   },
   INVALID_CONFIG: {
-    title: "Health Check Needs Setup",
-    message: "This health check has a configuration problem.",
+    title: "Record Health Check Needs Setup",
+    message: "This Record Health Check has a configuration problem.",
     guidance: "Ask your Salesforce admin to review this Check Set in Setup."
   },
   NOT_AUTHORIZED: {
-    title: "Health Check Unavailable",
-    message: "You don't have access to view or run this health check.",
+    title: "Record Health Check Unavailable",
+    message: "You don't have access to view or run Record Health Check.",
     guidance: "Contact your Salesforce administrator if you need access."
   },
   RECORD_NOT_ACCESSIBLE: {
-    title: "Health Check Unavailable",
-    message: "This health check can't access the current record.",
+    title: "Record Health Check Unavailable",
+    message: "Record Health Check can't access the current record.",
     guidance: "Verify your record access or refresh the page."
   },
   RECORD_NO_LONGER_AVAILABLE: {
-    title: "Health Check Unavailable",
+    title: "Record Health Check Unavailable",
     message: "The current record is no longer available.",
     guidance: "Refresh the page or return to the record list."
   },
   LOAD_FAILED: {
-    title: "Health Check Unavailable",
-    message: "We couldn't load this health check.",
+    title: "Record Health Check Unavailable",
+    message: "We couldn't load Record Health Check.",
     guidance:
       "Try again. If the problem continues, contact your Salesforce administrator.",
     retryable: true
   },
   AVAILABILITY_LOOKUP_FAILED: {
-    title: "Health Check Unavailable",
-    message: "We couldn't verify this health check's setup.",
+    title: "Record Health Check Unavailable",
+    message: "We couldn't verify this Record Health Check's setup.",
     guidance:
       "Try again. If the problem continues, contact your Salesforce administrator.",
     retryable: true
   },
   CLIENT_DEFINITION_INVALID: {
-    title: "Health Check Unavailable",
-    message: "The health check returned an unexpected response.",
+    title: "Record Health Check Unavailable",
+    message: "Record Health Check returned an unexpected response.",
     guidance:
       "Try again. If the problem continues, contact your Salesforce administrator.",
     retryable: true
@@ -96,8 +98,8 @@ const COMPONENT_ERROR_PRESENTATIONS = {
 };
 
 const DEFAULT_COMPONENT_ERROR = {
-  title: "Health Check Unavailable",
-  message: "We couldn't load this health check.",
+  title: "Record Health Check Unavailable",
+  message: "We couldn't load Record Health Check.",
   guidance:
     "Try again. If the problem continues, contact your Salesforce administrator.",
   retryable: true

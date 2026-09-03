@@ -89,7 +89,7 @@ create this Check Set:
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Phone_Or_Website_Is_Required` |
 | **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Phone or Website Is Required |
@@ -102,7 +102,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 These values improve presentation. Change them for your process, or leave an optional field blank.
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks whether the Account has at least one contact channel: Phone or Website. |
 | **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Completeness |

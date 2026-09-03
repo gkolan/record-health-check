@@ -384,8 +384,14 @@ for (const { fileName, values } of activeAccountGuideChecks) {
     }
   } else if (values.get("EvaluationType__c") !== "APEX") {
     for (const field of ["DisplayFoundText__c", "DisplayExpectedText__c"]) {
-      if (!values.get(field)?.includes("{!")) {
-        failures.push(`${fileName} ${field} must demonstrate merge syntax`);
+      // Found must show live evidence; a fixed Expected target can be plain text.
+      if (
+        !values.get(field) ||
+        (field === "DisplayFoundText__c" && !values.get(field).includes("{!"))
+      ) {
+        failures.push(
+          `${fileName} ${field} must be populated; Found must demonstrate merge syntax`
+        );
       }
       if (/^(Found|Expected)\s*:/i.test(values.get(field) ?? "")) {
         failures.push(

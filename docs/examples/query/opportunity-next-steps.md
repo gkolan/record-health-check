@@ -96,7 +96,7 @@ create this Check Set:
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Open_Opportunities_Have_Next_Steps` |
 | **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Open Opportunities Have Next Steps |
@@ -113,7 +113,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 ## Optional configuration
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Confirms that every visible open Opportunity has a Next Step; skips Accounts with none. |
 | **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Readiness |

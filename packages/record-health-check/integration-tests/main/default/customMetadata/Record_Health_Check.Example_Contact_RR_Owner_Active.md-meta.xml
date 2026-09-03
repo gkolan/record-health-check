@@ -43,10 +43,10 @@
     >AS_NO_MATCH</value></values>
   <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >Active User owner count</value></values>
+    >{!rhcResult.foundValue}</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >1 active User owner</value></values>
+    >{!rhcResult.expectedValue}</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >CRITICAL</value></values>
@@ -70,10 +70,10 @@
     >ALL_RECORDS</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >15</value></values>
+    >70</value></values>
   <values><field>MaxQueryRows__c</field><value
       xsi:type="xsd:double"
-    >1</value></values>
+    >1000</value></values>
   <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

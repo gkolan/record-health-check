@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { documentationAudienceIssues } from "../lib/documentation-audience.mjs";
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -92,6 +93,7 @@ const projectMarkdownFiles = [
     .map((entry) => path.join(root, entry.name))
 ];
 const supplementalDocumentationFiles = [
+  path.join(root, "scripts/demo/README.md"),
   path.join(root, ".github/CONTRIBUTING.md"),
   path.join(root, ".github/ISSUE_TEMPLATE/bug_report.yml"),
   path.join(root, "packages/record-health-check-mcp/README.md"),
@@ -105,6 +107,9 @@ const documentationContractSources = [
 for (const file of documentationContractSources) {
   const source = fs.readFileSync(file, "utf8");
   const relativeFile = path.relative(root, file);
+  for (const issue of documentationAudienceIssues(relativeFile, source)) {
+    failures.push(`${relativeFile}: remove or relocate ${issue}`);
+  }
   for (const [obsolete, replacement] of [
     [
       "docs/guides/troubleshoot-with-show-diagnostics.md",

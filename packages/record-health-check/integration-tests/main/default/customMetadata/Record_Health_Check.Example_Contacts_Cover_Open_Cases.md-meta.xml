@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Case throughput vs intake</label>
+    <label>Example: Cases closed vs created</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Recent Case closures keep pace with intake</value>
+    >Cases closed keep pace with Cases created</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -92,7 +92,7 @@
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Account/{!record.Id}/view</value>
+    >/lightning/r/Account/{!record.Id}/related/Cases/view</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
@@ -123,14 +123,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Cases resolved during the last 30 days: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Cases entering the queue during the last 30 days: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

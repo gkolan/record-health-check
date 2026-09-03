@@ -78,6 +78,13 @@ const expected = {
     customMetadataTypes: [],
     tabs: []
   },
+  Record_Health_Check_Diagnostics_Viewer: {
+    classes: [],
+    objects: [],
+    customPermissions: ["Record_Health_Check_View_Diagnostics"],
+    customMetadataTypes: [],
+    tabs: []
+  },
   Record_Health_Check_MCP_Integration: {
     classes: ["RecordHealthCheckAgentRestResource"],
     objects: [],

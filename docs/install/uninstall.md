@@ -17,9 +17,10 @@ automation entry points. Before making that change, identify where Record Health
    every page that contains the **Record Health Check** card. Include its activation assignment.
 2. Ask the owners of Salesforce automation whether a Flow, Apex class, scheduled job, or integration
    uses Record Health Check or receives its Platform Events.
-3. Export or record assignments for all five packaged permission sets: **Record Health Check Card
+3. Export or record assignments for every installed Record Health Check permission set: **Record Health Check Card
    User**, **Record Health Check User**, **Record Health Check Admin**, **Record Health Check MCP
-   Integration**, and **Record Health Check Error Log Publisher**.
+   Integration**, **Record Health Check Diagnostics Viewer**, and **Record Health Check Error Log
+   Publisher**. Diagnostics Viewer is present only if that addition has been deployed or is included in your installed version.
 4. Agree on when users and automation should stop relying on Record Health Check.
 
 ## Preserve the configuration first
@@ -80,8 +81,7 @@ removes packaged permission sets during uninstall, so this step is preparation r
 technical requirement.
 
 If assignments are managed through automation, use the team's approved user-access process to
-remove the two permission-set assignments. Do not substitute an undocumented Salesforce CLI
-command for the Setup procedure above.
+remove the recorded permission-set assignments.
 
 ## Step 4: Uninstall the package
 
@@ -109,43 +109,13 @@ Salesforce blocks an uninstall if other metadata in the org still depends on pac
 implements the packaged interface). Resolve every dependency identified in
 [Before you start](#before-you-start) first, then retry.
 
-## Contributor-only alternative: Remove development source
-
-If Record Health Check was source-deployed during contributor development, remove the same manifest
-that installed it. Run these commands from `packages/record-health-check/` or pass the full manifest
-path from the repository root:
-
-```bash
-cd packages/record-health-check
-
-sf project delete source \
-  --manifest manifest/package.xml \
-  --target-org <org-alias> \
-  --check-only
-```
-
-Review the `--check-only` (dry-run) output before removing the check. Confirm the manifest does not
-include anything the org still needs, then run the deletion:
-
-```bash
-sf project delete source \
-  --manifest manifest/package.xml \
-  --target-org <org-alias>
-```
-
-Do not run a bare deletion without a manifest. Deleting by manifest keeps the operation scoped to
-Record Health Check's own components.
-
-This alternative applies only to contributor development orgs. An org that used the public package
-installer should follow [Step 4](#step-4-uninstall-the-package).
-
 ## Step 5: Confirm the org is clean
 
 | Check | Expected result |
 | --- | --- |
 | Open a record page that previously had the card | No Record Health Check component appears, and Lightning App Builder no longer offers it |
 | Search Custom Metadata Types and **Setup → Apex Classes** | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check** (`Record_Health_Check__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
-| Review Permission Sets | The five packaged permission sets listed in [Before you start](#before-you-start) no longer exist after uninstall |
+| Review Permission Sets | The installed packaged permission sets listed in [Before you start](#before-you-start) no longer exist after uninstall |
 | Review scheduled jobs | No job references `RecordHealthCheckScheduled` |
 | Review Flow, Apex, and integrations | No automation still references the removed Platform Events or Apex classes |
 
@@ -154,7 +124,7 @@ installer should follow [Step 4](#step-4-uninstall-the-package).
 If Record Health Check needs to come back, treat it as a new installation using the retained
 backup:
 
-1. Reinstall the package (or redeploy the source) following
+1. Reinstall the package following
    [Install and verify in your org](./install-in-a-sandbox.md).
 2. Restore the exported **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) records.
 3. Restore the approved assignments recorded for each packaged permission set in

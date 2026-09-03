@@ -75,11 +75,14 @@ is listed.
 
 The package includes permission sets so people receive only the access their work requires.
 
+If **Diagnostics Viewer** is absent from Setup, an administrator can create an org-owned Permission Set that enables **Record Health Check View Diagnostics** and assign it alongside the runner permission set.
+
 | Permission set | Assign it to | What it allows |
 | --- | --- | --- |
 | **Record Health Check Card User** | People who use only the Lightning record-page card | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
 | **Record Health Check User** | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | The broader packaged runtime surface; do not assign it merely to display the card |
 | **Record Health Check Admin** | People who configure Check Sets or investigate unexpected results | User access plus package configuration and diagnostic access |
+| **Record Health Check Diagnostics Viewer** | An affected Card User or User who must reproduce an issue | Diagnostic visibility only; assign it temporarily alongside the existing runner Permission Set |
 
 To give a non-admin access after choosing **Install for Admins Only**:
 
@@ -88,7 +91,9 @@ To give a non-admin access after choosing **Install for Admins Only**:
 3. Select **Manage Assignments**, then **Add Assignments**.
 4. Select the users who should run the card and complete the assignment.
 
-Repeat those steps with **Record Health Check Admin** only for administrators and troubleshooters.
+Repeat those steps with **Record Health Check Admin** only for Check administrators. Assign
+**Record Health Check Diagnostics Viewer** temporarily alongside Card User or User when that runner
+must reproduce an issue without receiving Admin access.
 The **Issue**, **Where**, and **Why** diagnosis requires both **Show Diagnostics** on the Check Set
 and the **Record Health Check View Diagnostics** custom permission. The card-user and standard-user
 permission sets do not grant that diagnostic permission.
@@ -130,7 +135,7 @@ The packaged component is supported on Lightning record pages in Lightning Exper
 treat this guide as verification for Salesforce Classic, an App or Home page, Experience Cloud, or
 Salesforce mobile; validate any additional surface separately before promising support.
 
-![Account Check Builder Guide on the existing demo Account record page](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
+For a row-by-row explanation of the card, see [result statuses and card labels](../reference/results/statuses-and-labels.md).
 
 ## Step 4: Verify the experience as a user
 
@@ -185,12 +190,13 @@ Diagnostics](../diagnostics/browser-console.md).
 ## Optional: Install from the Salesforce CLI
 
 Use the command-line path when you are automating installation. The same commands work on Windows,
-macOS, and Linux after the Salesforce CLI is installed.
+macOS, and Linux after the Salesforce CLI is installed. Replace `PACKAGE_VERSION_ID` with
+`stable.subscriberPackageVersionId` from the [release configuration](../../config/package-releases.json).
 
 ```bash
 sf org login web --instance-url https://test.salesforce.com --alias rhc-sandbox
 sf org display --target-org rhc-sandbox
-sf package install --package 04tak000000eM53AAE --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type Mixed --wait 30 --publish-wait 10 --no-prompt
+sf package install --package PACKAGE_VERSION_ID --target-org rhc-sandbox --security-type AdminsOnly --upgrade-type Mixed --wait 30 --publish-wait 10 --no-prompt
 sf org assign permset --name rhc__Record_Health_Check_Card_User --target-org rhc-sandbox
 ```
 

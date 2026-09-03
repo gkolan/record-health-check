@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Proposal qualification floor</label>
+    <label>Example: Proposal Amount exceptions</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,7 +12,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">80</value>
+        <value xsi:type="xsd:double">90</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Proposal-stage deals meet the value floor</value>
+    >No proposal has a missing or low Amount</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -52,7 +52,7 @@
     </values>
     <values>
         <field>ExpectedCurrencyIsoCode__c</field>
-        <value xsi:type="xsd:string">USD</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>NoRowsResult__c</field>
@@ -117,7 +117,7 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">CURRENCY</value>
+        <value xsi:type="xsd:string">TEXT</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -131,12 +131,10 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Deals below floor: {!rhcResult.foundValue}</value>
+    >{!rhcResult.totalRecordCount} exceptions</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >No proposal below $25,000 for {!record.Name fallback="this Account"}</value>
+        <value xsi:type="xsd:string">No exceptions</value>
     </values>
 </CustomMetadata>

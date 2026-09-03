@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const releasePageUrl = process.env.RHC_BROWSER_URL;
+const retainedReleaseEvidence = Boolean(process.env.RHC_BROWSER_JSON);
 
 export default defineConfig({
   testDir: "./tests/browser",
@@ -10,16 +11,22 @@ export default defineConfig({
   workers: 1,
   timeout: 120_000,
   expect: { timeout: 30_000 },
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  reporter: retainedReleaseEvidence
+    ? [["json", { outputFile: process.env.RHC_BROWSER_JSON }]]
+    : process.env.CI
+      ? [["github"], ["html", { open: "never" }]]
+      : "list",
   use: {
     baseURL: releasePageUrl,
-    screenshot: "only-on-failure",
-    trace: "retain-on-failure",
-    video: "retain-on-failure"
+    // Raw captures can contain frontdoor session IDs and password setup steps.
+    // The release runner publishes only redacted JSON and an escaped HTML view.
+    screenshot: retainedReleaseEvidence ? "off" : "only-on-failure",
+    trace: retainedReleaseEvidence ? "off" : "retain-on-failure",
+    video: retainedReleaseEvidence ? "off" : "retain-on-failure"
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "firefox", use: { ...devices["Desktop Firefox"] } }
   ],
-  outputDir: "test-results/browser"
+  outputDir: process.env.RHC_BROWSER_OUTPUT || "test-results/browser"
 });

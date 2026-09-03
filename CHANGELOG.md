@@ -9,6 +9,11 @@ interfaces and product-generation terminology.
 **Subscriber install:** promoted unlocked package `Record Health Check@2.0.6-2`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
 
+**Distribution notice (September 2, 2026):** the public install redirects currently target 2.0.4.2,
+not the latest promoted artifact. The 2.0.6 line has a reported RefreshView component-loading
+regression. The corrective 2.0.7 candidate is not released; see
+[Choose a package version](./docs/install/choose-a-package-version.md) before installing or upgrading.
+
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
 > included in Run All Tests, or source-deployed into a customized org and subscriber validation
 > rules, triggers, or flows reject Framework fixture DML. Ordinary subscriber `RunLocalTests` skips
@@ -25,7 +30,7 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
   pipeline for Lightning, Apex, and Flow.
 - `RecordHealthCheck.evaluate(RecordHealthCheckRequest)` returns ordered, typed evaluation results
   with optional display content.
-- Apex plugins implement `RecordHealthCheck`, receive one `RecordHealthCheckScope`, and return
+- Apex plugins implement `RecordHealthCheckPlugin`, receive one `RecordHealthCheckScope`, and return
   one `RecordHealthCheckOutcome` per requested record ID.
 - Flow actions expose Check and Check Set evaluation without requiring custom Apex.
 - Optional Set Run, Check Result, and Error Log Platform Events carry independent machine-readable
@@ -47,9 +52,7 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 
 ### Lightning performance
 
-- Superseded during 2.0.4 development: an earlier implementation declared **When Checks Run** in
-  App Builder and failed closed on a mode mismatch. The current component uses the selected Check
-  Set as the single source of truth and loads lightweight shell configuration on initial render.
+- The selected Check Set controls when Checks run. The component loads its title and run settings on initial render.
   Manual cards defer definitions and evaluation until Run; Automatic cards defer those operations
   until browser idle.
 
@@ -66,26 +69,41 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
   The Framework package ships four Example Check Sets (`Example_…`, card titles prefixed with
   `Example:`) plus matching integration fixtures.
 
-### Engineering gates
-
-- The package manifest and Permission Sets are checked against shipped metadata.
-- Apex tests use the shared TestDataFactory for Salesforce record creation.
-- Salesforce Code Analyzer, ESLint, the SLDS linter, formatting, documentation structure, links,
-  field limits, query shapes, Framework version language, Apex coverage, and deployment validation are release
-  gates.
-
 For installation and verification, start with
 [Install and verify](./docs/install/install-in-a-sandbox.md). For the public contracts, use the
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
-## Version 2.0.7
+## Unreleased: 2.0.7
+
+This is a candidate source description, not a release-readiness claim. Hosted source validation,
+exact-package clean/upgrade stages, and representative-sandbox acceptance must pass before promotion.
 
 ### Fixed
 
 - Record Health Check now registers its save-driven RefreshView handler with the protocol required
   by either Lightning Web Security or Lightning Locker. A RefreshView registration failure no
   longer prevents the component from loading.
+- Record-page on-load work is deferred behind a quiet shell. App Builder uses only optional
+  lightweight configuration metadata; missing, failed, or late preview responses cannot start
+  record evaluation or block the preview.
+
+### Changed
+
+- Diagnostics access is separated from ordinary Check execution through the Diagnostics Viewer
+  entitlement. Existing customer configuration and least-privilege access require upgrade validation.
+- Example Check definitions, demo setup, and administrator documentation are aligned with the
+  current configuration contract.
+
+### Release safeguards
+
+- All subscriber Apex tests, including actual Flow interviews, run through an exact inventory.
+  Browser evidence is isolated per invocation and rejects skips, incomplete results, and flaky retries.
+- Source and installed on-load fixtures prove all four Check types. Clean installation and upgrades
+  from both 2.0.6.2 and 2.0.4.2 are required under LWS and Locker.
+- Promotion requires successful named hosted jobs, current retained artifacts, and recorded acceptance
+  of the affected CPQ page and representative customer configuration. Dependency, toolchain, coverage,
+  and documented release-owner controls remain blocking; no runtime pass is implied by these changes.
 
 ## Version 2.0.6
 

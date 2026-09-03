@@ -3,15 +3,25 @@
 import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import {
+  assertHostedEvidence,
+  hostedEvidenceContract
+} from "../lib/hosted-evidence.mjs";
 
-export function selectSuccessfulRun(runs, { commit, candidate = "" }) {
+export function selectSuccessfulRun(
+  runs,
+  { commit, candidate = "", stage = "" }
+) {
   return runs.find((run) => {
     if (run.head_sha !== commit || run.status !== "completed") return false;
     if (run.conclusion !== "success") return false;
     if (run.event !== "workflow_dispatch") return false;
     if (
       candidate &&
-      String(run.display_title ?? "") !== `Subscriber validation · ${candidate}`
+      String(run.display_title ?? "") !==
+        `Subscriber validation · ${candidate}${stage ? ` · ${stage}` : ""}`
     ) {
       return false;
     }
@@ -125,6 +135,35 @@ if (values["self-test"]) {
       "Hosted validation must reject credential-skipped pull request runs."
     );
   }
+  const staged = {
+    id: 6,
+    head_sha: "abc",
+    status: "completed",
+    conclusion: "success",
+    event: "workflow_dispatch",
+    display_title: "Subscriber validation · 04tPASS · upgrade-2.0.4.2"
+  };
+  if (
+    selectSuccessfulRun([staged], {
+      commit: "abc",
+      candidate: "04tPASS",
+      stage: "clean-install"
+    }) ||
+    selectSuccessfulRun([staged], {
+      commit: "abc",
+      candidate: "04tPASS",
+      stage: "upgrade-2.0.6.2"
+    }) ||
+    !selectSuccessfulRun([staged], {
+      commit: "abc",
+      candidate: "04tPASS",
+      stage: "upgrade-2.0.4.2"
+    })
+  ) {
+    throw new Error(
+      "Hosted validation must bind each subscriber dispatch to its exact stage."
+    );
+  }
   console.log("Hosted Salesforce validation selector self-test passed.");
   process.exit(0);
 }
@@ -163,17 +202,57 @@ if (!response.ok) {
   );
 }
 const payload = await response.json();
-const selected = selectSuccessfulRun(payload.workflow_runs ?? [], {
-  commit,
-  candidate: values.candidate
-});
-if (!selected) {
-  const binding = values.candidate ? ` and candidate ${values.candidate}` : "";
-  throw new Error(
-    `No successful completed ${values.workflow} run exists for commit ${commit}${binding}.`
+async function fetchAll(url, field) {
+  const records = [];
+  for (let page = 1; ; page += 1) {
+    const response = await fetch(`${url}?per_page=100&page=${page}`, {
+      headers
+    });
+    if (!response.ok)
+      throw new Error(
+        `Unable to inspect hosted ${field}: HTTP ${response.status}`
+      );
+    const result = await response.json();
+    if (!Array.isArray(result[field]))
+      throw new Error(`Missing hosted ${field} inventory.`);
+    records.push(...result[field]);
+    if (result[field].length < 100) return records;
+  }
+}
+const matrix = JSON.parse(
+  fs.readFileSync(
+    path.join(paths.repoRoot, "config/release-runtime-matrix.json"),
+    "utf8"
+  )
+);
+const stages = values.candidate
+  ? [
+      "clean-install",
+      ...matrix.upgradeBases.map((base) => `upgrade-${base.version}`)
+    ]
+  : [""];
+for (const stage of stages) {
+  const selected = selectSuccessfulRun(payload.workflow_runs ?? [], {
+    commit,
+    candidate: values.candidate,
+    stage
+  });
+  if (!selected)
+    throw new Error(
+      `No successful ${values.workflow} dispatch for ${commit}, candidate ${values.candidate || "source"}, stage ${stage || "source"}.`
+    );
+  const baseUrl = `https://api.github.com/repos/${slug}/actions/runs/${selected.id}`;
+  const [jobs, artifacts] = await Promise.all([
+    fetchAll(`${baseUrl}/attempts/${selected.run_attempt}/jobs`, "jobs"),
+    fetchAll(`${baseUrl}/artifacts`, "artifacts")
+  ]);
+  assertHostedEvidence(
+    selected,
+    jobs,
+    artifacts,
+    hostedEvidenceContract(values.candidate, stage)
+  );
+  console.log(
+    `Hosted Salesforce validation passed: ${values.workflow} run ${selected.id}, ${stage || "source"}, commit ${commit}; all required jobs and retained artifacts verified.`
   );
 }
-
-console.log(
-  `Hosted Salesforce validation passed: ${values.workflow} run ${selected.id} for ${commit}.`
-);

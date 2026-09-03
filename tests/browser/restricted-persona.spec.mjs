@@ -23,7 +23,7 @@ async function expectCompleted(card, total) {
     .toBe(true);
 }
 
-test("runs safely for a standard user without diagnostic access", async ({
+test("runs safely for a Card User without diagnostic access", async ({
   page
 }) => {
   const pageErrors = [];
@@ -39,6 +39,15 @@ test("runs safely for a standard user without diagnostic access", async ({
     hasText: "Automated Account Data Quality and Customer Readiness Review"
   });
   await expectCompleted(automaticCard, 4);
+  const expectedPassed = Number(process.env.RHC_EXPECTED_AUTOMATIC_PASSED);
+  expect([3, 4]).toContain(expectedPassed);
+  await expect(automaticCard).toContainText(`${expectedPassed} Passed`);
+  if (expectedPassed === 3) await expect(automaticCard).toContainText("1 Info");
+  await expect(
+    automaticCard.locator(
+      ".rhc-status-icon--unable, .rhc-status-icon--system-error"
+    )
+  ).toHaveCount(0);
 
   const runButton = manualCard.getByRole("button", { name: /^Run$/ });
   await expect(runButton).toBeEnabled();

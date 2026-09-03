@@ -1,9 +1,5 @@
 # Documentation quality and accuracy standard
 
-Maintainer reference for documentation contributors and reviewers.
-
-This page is for documentation contributors.
-
 Use this standard for every page in `docs`. [Create your first Check](../step-by-step-guide/create-your-first-check.md)
 is the administrator-task reference for Setup labels, ordered steps, expected results, and recovery.
 The [Batch Apex guide](../developer-guides/async-apex/batch.md) is the developer-task reference for complete code and
@@ -43,6 +39,33 @@ Give administrators an explicit off-ramp before code or infrastructure prerequis
   error, or monitoring. Explain it where it first appears.
 - Do not use internal engineering terms when normal Salesforce language says the same thing.
 - Do not use personas, assumed team structures, or unexplained sample variables.
+
+## Keep internal review material out of user guides
+
+Installation guides, examples, FAQs, and public API references must help the reader use the
+product. Do not publish editorial scoring tables, ratings of example quality, draft approval
+questions, or instructions to the author or reviewer in those pages. Published example tables
+describe the available configuration, so label their entries **Value**, not **Proposed value**.
+
+Keep package release procedures and contributor checks in contributor or maintainer documentation.
+Link to those from contributor navigation. Keep internal review findings in local review evidence.
+Expected Check results, instructions for testing a configuration, and business scores calculated by
+a Check belong in user documentation when they help the reader complete the task.
+
+`npm run check:docs` rejects known internal-review phrases in user pages. Passing that check or the
+structural audit does not establish usefulness or audience fit. Review every paragraph and table
+for what the reader needs to do or understand, including text that matches none of the automated
+patterns.
+
+## Keep setup guidance current
+
+Keep setup guidance current across releases. Refer to the latest released package through the
+stable installation links and release configuration. Link tool prerequisites to the toolchain
+configuration instead of repeating version numbers. Do not pin a public walkthrough to a package
+ID or source commit. Keep exact release history in the changelog and machine-readable configuration.
+When a command needs a package ID, explain where to obtain it and use a clearly named placeholder.
+Keep source examples and their data scripts together so that removing a version number does not
+imply an unreleased feature is already available in the installed package.
 
 ## Use the right page order
 

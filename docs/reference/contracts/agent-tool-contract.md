@@ -1,9 +1,5 @@
 # Agent tool contract
 
-This contract defines the versioned Agentforce, REST, and MCP boundary.
-
-This page defines the versioned boundary used by Agentforce, REST, and MCP.
-
 Audience: Agentforce, REST, and MCP integrators. If you are not connecting an agent or MCP client,
 you can ignore this contract. Administrators enabling native actions should use
 [Agentforce actions](../../developer-guides/agentforce-and-mcp/agentforce-actions.md).
@@ -93,11 +89,7 @@ formulas, user IDs, raw logs, and administrator diagnostics.
 Adding a required field, operation, output data, multi-record input, identity flow, or changed status
 meaning requires a reviewed contract version and compatibility plan.
 
-Run the schema gate:
-
-```bash
-npm run check:agent-tool-contract
-```
+Validate integration requests and responses against the linked JSON schemas. Test malformed inputs, missing permissions, and each health status before enabling an integration.
 
 ## Related
 

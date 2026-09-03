@@ -25,7 +25,7 @@
     >IF(ISBLANK(AccountId), "No customer account linked", Account.Name)</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A confirmed customer account for {!record.Name fallback="this opportunity"}</value></values>
+    >Account linked</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >CRITICAL</value></values>
@@ -49,7 +49,7 @@
     >ALL_RECORDS</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >5</value></values>
+    >10</value></values>
   <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

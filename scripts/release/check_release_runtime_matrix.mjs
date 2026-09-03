@@ -3,12 +3,52 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { releaseUpgradeBases } from "../lib/release-upgrades.mjs";
+import { readPackageReleases } from "../lib/package-releases.mjs";
 
 const root = process.cwd();
 const matrix = JSON.parse(
   fs.readFileSync(path.join(root, "config/release-runtime-matrix.json"), "utf8")
 );
 const errors = [];
+releaseUpgradeBases(matrix, readPackageReleases());
+requireEqual(
+  matrix.upgradeBases.map((base) => base.version),
+  ["2.0.6.2", "2.0.4.2"],
+  "Required upgrade origins"
+);
+// Inspect the actual on-load definitions, not just a declared list of types.
+for (const [directory, prefix, setName] of [
+  [
+    "packages/record-health-check/integration-tests/main/default/customMetadata",
+    "",
+    "Release_On_Load"
+  ],
+  ["subscriber-app/main/default/customMetadata", "rhc__", "Subscriber_On_Load"]
+]) {
+  const actualTypes = ["Formula", "Query", "Compare", "Apex"].map((kind) => {
+    const file = `${directory}/${prefix}Record_Health_Check.${setName}_${kind}.md-meta.xml`;
+    const xml = fs.readFileSync(path.join(root, file), "utf8");
+    return (
+      xml
+        .match(
+          /<field>(?:rhc__)?EvaluationType__c<\/field>\s*<value[^>]*>\s*([^<]+)<\/value>/
+        )?.[1]
+        ?.trim() || "MISSING"
+    );
+  });
+  requireEqual(
+    actualTypes,
+    ["APEX", "COMPARE_TWO_QUERIES", "FORMULA", "QUERY"],
+    `${setName} actual on-load types`
+  );
+}
+for (const topology of ["namespaced", "no-namespace"]) {
+  requireText(
+    `packages/record-health-check/integration-tests/browser-fixtures/${topology}/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml`,
+    ["Release_On_Load"]
+  );
+}
 const expectedTypes = ["APEX", "COMPARE_TWO_QUERIES", "FORMULA", "QUERY"];
 const requiredEntryPoints = [
   "lwc-run-on-load",
@@ -312,12 +352,16 @@ requireSecureDevHubAuthentication(
   3
 );
 requireText(".github/workflows/salesforce-validate.yml", [
-  "Reserve release-matrix scratch-org capacity",
+  "Check release-matrix scratch-org capacity",
   "npm run check:scratch-capacity -- --dev-hub devhub --required 4"
 ]);
 requireText(".github/workflows/subscriber-validate.yml", [
-  "Reserve subscriber-matrix scratch-org capacity",
-  "npm run check:scratch-capacity -- --dev-hub devhub --required 4"
+  "Check subscriber-stage scratch-org capacity",
+  "npm run check:scratch-capacity -- --dev-hub devhub --required 2",
+  "upgrade-2.0.6.2",
+  "upgrade-2.0.4.2",
+  "subscriber-apex-${{ matrix.artifact_suffix }}",
+  "subscriber-preservation-${{ matrix.artifact_suffix }}"
 ]);
 requireText("scripts/release/create-package-version.mjs", [
   '"salesforce-validate.yml"',
@@ -339,10 +383,23 @@ requireText("scripts/release/promote-package-version.mjs", [
 ]);
 requireOrderedText("scripts/release/promote-package-version.mjs", [
   '["status", "--porcelain"]',
+  "assertReleaseAcceptance(",
   '"salesforce-validate.yml"',
   '"subscriber-validate.yml"',
   "const report = runJson",
   '"promote"'
+]);
+requireText("scripts/release/check_hosted_validation.mjs", [
+  "matrix.upgradeBases.map(",
+  "assertHostedEvidence(",
+  "hostedEvidenceContract(",
+  '"clean-install"',
+  "/attempts/${selected.run_attempt}/jobs"
+]);
+requireText("playwright.config.mjs", ['retainedReleaseEvidence ? "off"']);
+requireText("scripts/release/run_salesforce_browser_gate.mjs", [
+  "redactBrowserEvidence(",
+  "browserEvidenceHtml("
 ]);
 requireText("scripts/release/verify-package-version.mjs", [
   "runInstalledSurfaceGates(alias, securityMode)",
@@ -354,7 +411,9 @@ requireText("scripts/release/verify-package-version.mjs", [
   "preservationVerified: true",
   "verifyUpgradeBase.apex",
   "runtimeMatrix.candidateVersion",
-  "runtimeMatrix.upgradeFromVersion",
+  "selectUpgradeBase(runtimeMatrix, releases, upgradeFromId)",
+  '"scripts/release/run_exact_apex_test_inventory.mjs"',
+  '"subscriber"',
   '"contract:org"',
   '"test:browser:salesforce"',
   '"--security-mode"',
@@ -378,7 +437,9 @@ requireText("scripts/release/run_salesforce_browser_gate.mjs", [
   "RHC_RESTRICTED_BROWSER_URL",
   "RHC_RESTRICTED_CURRENT_PASSWORD",
   "tests/browser/restricted-user-setup.spec.mjs",
-  "RHCReleaseMatrixBuilderPage"
+  "RHCReleaseMatrixBuilderPage",
+  "browserEvidencePaths(",
+  "assertBrowserReport("
 ]);
 requireText("tests/browser/restricted-user-setup.spec.mjs", [
   "completes mandatory first login for the restricted scratch user",
@@ -392,7 +453,8 @@ requireText("tests/browser/app-builder.spec.mjs", [
   "Select a Check Set in the component properties.",
   'components.locator("lightning-spinner")',
   "RecordHealthCheckController",
-  "expect(recordHealthCheckApexRequests).toEqual([])",
+  "expect(recordHealthCheckApexRequests).toHaveLength(1)",
+  '"getCheckSetShellConfig"',
   "expect(pageErrors).toEqual([])"
 ]);
 requireText("tests/browser/restricted-persona.spec.mjs", [
@@ -510,7 +572,7 @@ const browserPages = [
     markers: [
       "<componentName>rhc:recordHealthCheck</componentName>",
       "<value>rhc__Example_Account_Check_Builder_Guide</value>",
-      "<value>rhc__Account_Data_Quality</value>"
+      "<value>rhc__Release_On_Load</value>"
     ]
   },
   {
@@ -518,7 +580,7 @@ const browserPages = [
     markers: [
       "<componentName>c:recordHealthCheck</componentName>",
       "<value>Example_Account_Check_Builder_Guide</value>",
-      "<value>Account_Data_Quality</value>"
+      "<value>Release_On_Load</value>"
     ]
   }
 ];
@@ -571,7 +633,7 @@ requireText(
   "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
   [
     "keeps the App Builder preview quiet without a record context",
-    "keeps the App Builder preview quiet when Salesforce supplies a sample record",
+    "identifies the Check Set and summarizes counts in App Builder",
     "does not render runtime actions in a configured Builder preview",
     "shows Builder guidance without Apex when no Check Set is selected",
     "uses the Lightning Locker registration protocol when LWS registration is rejected"

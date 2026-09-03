@@ -1,5 +1,5 @@
 name: Subscriber validation
-run-name: Subscriber validation · ${{ inputs.package_version_id }}
+run-name: Subscriber validation · ${{ inputs.package_version_id }} · ${{ inputs.validation_stage }}
 
 on:
   workflow_dispatch:
@@ -8,13 +8,22 @@ on:
         description: Candidate 04t to validate; required before promotion
         required: true
         type: string
+      validation_stage:
+        description: Run all three stages on the same commit and candidate before promotion
+        required: true
+        type: choice
+        default: clean-install
+        options:
+          - clean-install
+          - upgrade-2.0.6.2
+          - upgrade-2.0.4.2
 
 permissions:
   contents: read
 
 concurrency:
-  group: subscriber-release-${{ github.ref }}
-  cancel-in-progress: true
+  group: salesforce-devhub-release
+  cancel-in-progress: false
 
 jobs:
   require-dev-hub-secret:
@@ -33,7 +42,7 @@ jobs:
             exit 1
           fi
       - name: Install pinned Salesforce CLI for Dev Hub preflight
-        run: npm install --global @salesforce/cli@2.149.9
+        run: npm install --global @salesforce/cli@2.150.6
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
@@ -43,10 +52,12 @@ jobs:
           printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
           chmod 600 "$auth_file"
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Reserve subscriber-matrix scratch-org capacity
-        run: npm run check:scratch-capacity -- --dev-hub devhub --required 4
+      - name: Check subscriber-stage scratch-org capacity
+        run: npm run check:scratch-capacity -- --dev-hub devhub --required 2
 
   subscriber-clean-install:
+    name: subscriber-clean-install (${{ matrix.security_mode }})
+    if: inputs.validation_stage == 'clean-install'
     needs: require-dev-hub-secret
     runs-on: ubuntu-latest
     strategy:
@@ -68,13 +79,15 @@ jobs:
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
       - run: npx playwright install --with-deps chromium firefox
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
       - name: Validate explicit candidate package version
         id: rhc-package
         shell: bash
+        env:
+          CANDIDATE_PACKAGE_ID: ${{ inputs.package_version_id }}
         run: |
-          package_id="${{ inputs.package_version_id }}"
+          package_id="$CANDIDATE_PACKAGE_ID"
           if [[ ! "$package_id" =~ ^04t[[:alnum:]]{12}([[:alnum:]]{3})?$ ]]; then
             echo "::error::Candidate package version is not a 15- or 18-character 04t ID."
             exit 1
@@ -105,7 +118,18 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Upload reconciled subscriber Apex inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          path: test-results/apex/
+          if-no-files-found: error
+          retention-days: 90
+
   subscriber-upgrade:
+    name: subscriber-upgrade (${{ matrix.security_mode }})
+    if: inputs.validation_stage != 'clean-install'
     needs: require-dev-hub-secret
     runs-on: ubuntu-latest
     strategy:
@@ -127,14 +151,17 @@ jobs:
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
       - run: npx playwright install --with-deps chromium firefox
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
       - name: Resolve explicit candidate and tracked upgrade base
         id: rhc-package
         shell: bash
+        env:
+          VALIDATION_STAGE: ${{ inputs.validation_stage }}
+          CANDIDATE_PACKAGE_ID: ${{ inputs.package_version_id }}
         run: |
-          package_id="${{ inputs.package_version_id }}"
-          upgrade_from="$(node --input-type=module -e 'import { stablePackageVersionId } from "./scripts/lib/package-releases.mjs"; process.stdout.write(stablePackageVersionId())')"
+          package_id="$CANDIDATE_PACKAGE_ID"
+          upgrade_from="$(node scripts/release/resolve_upgrade_base.mjs "$VALIDATION_STAGE")"
           if [[ ! "$package_id" =~ ^04t[[:alnum:]]{12}([[:alnum:]]{3})?$ ]]; then
             echo "::error::Candidate package version is not a 15- or 18-character 04t ID."
             exit 1
@@ -158,10 +185,27 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: subscriber-upgrade-evidence-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}
+          name: subscriber-upgrade-evidence-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
           path: |
-            packages/record-health-check/.package-evidence/*-upgrade-preservation.json
             playwright-report/
             test-results/browser/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload reconciled subscriber Apex inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          path: test-results/apex/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload subscriber configuration preservation proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: subscriber-preservation-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          path: packages/record-health-check/.package-evidence/*-upgrade-preservation.json
           if-no-files-found: error
           retention-days: 90

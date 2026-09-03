@@ -207,7 +207,7 @@ export function parseAuraError(err) {
     }
     return {
       reasonCode: err.reasonCode,
-      message: err.message || "An error occurred loading health checks.",
+      message: err.message || "An error occurred loading Record Health Check.",
       diagnosticCode
     };
   }
@@ -219,7 +219,8 @@ export function parseAuraError(err) {
     }
     return {
       reasonCode: parsed.reasonCode || "LOAD_FAILED",
-      message: parsed.message || "An error occurred loading health checks.",
+      message:
+        parsed.message || "An error occurred loading Record Health Check.",
       diagnosticCode: parsed.diagnosticCode || diagnosticCode
     };
   } catch {
@@ -230,7 +231,7 @@ export function parseAuraError(err) {
     return {
       reasonCode: "LOAD_FAILED",
       message:
-        "An unexpected error occurred loading health checks. Please try again.",
+        "An unexpected error occurred loading Record Health Check. Please try again.",
       diagnosticCode
     };
   }

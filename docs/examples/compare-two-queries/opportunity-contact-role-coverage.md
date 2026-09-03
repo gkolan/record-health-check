@@ -98,7 +98,7 @@ create this Check Set:
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Open_Opportunities_Have_Contact_Roles` |
 | **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Open Opportunities Have Contact Roles |
@@ -119,7 +119,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 These values improve presentation. Change them for your process, or leave an optional field blank.
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Info |
 | **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has one or more open Opportunities with no Contact Roles. Add the appropriate stakeholders before the forecast review. |

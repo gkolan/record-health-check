@@ -104,7 +104,7 @@ create this Check Set:
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Account_Team_Covers_Opportunity_Owners` |
 | **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Account Team Covers Opportunity Owners |
@@ -127,7 +127,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 These values improve presentation. Change them for your process, or leave an optional field blank.
 
-| Setup field | API&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Value |
+| Setup field | API name | Value |
 | --- | --- | --- |
 | **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
 | **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | On `{!record.Name fallback="this record"}`, one or more open Opportunity owners are missing from the Account Team. Review the missing users before the handoff. |

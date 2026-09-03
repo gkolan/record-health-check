@@ -1,6 +1,6 @@
 # Develop the repository source
 
-Use this workflow when changing the package implementation.
+Use this workflow to change the package implementation or evaluate examples that are not yet released.
 
 > [!NOTE]
 > On this page, create a scratch org for changing the Record Health Check package source. The setup
@@ -15,7 +15,7 @@ Use this workflow when changing the package implementation.
 `npm run setup` creates an installed-package demo. `npm run dev:setup` deploys unpackaged contributor
 source. They are different workflows; do not substitute one command for the other.
 
-Use this guide only when contributing changes to this repository. The package project is in
+Use this guide for source development and evaluation. The package project is in
 `packages/record-health-check/`. If the goal is to evaluate the installed package as an
 administrator or user, follow [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md)
 instead.
@@ -25,9 +25,9 @@ instead.
 Before you start:
 
 - Git
-- Salesforce CLI 2.149.9 (`sf`) installed and on your `PATH`
+- Salesforce CLI (`sf`) installed and on your `PATH`, using the version in [the toolchain configuration](../../config/toolchain.json)
 - A Dev Hub org you can authenticate (example alias: `my-dev-hub`)
-- Node.js 22
+- Node.js with npm, using the major version in the toolchain configuration
 
 Clone the repository, install its pinned dependencies, authenticate the Dev Hub, and verify the
 required Salesforce CLI version:
@@ -40,8 +40,8 @@ sf org login web --set-default-dev-hub --alias my-dev-hub
 npm run check:toolchain
 ```
 
-The final command must report that the local and CI toolchains use Salesforce CLI 2.149.9. The
-repository intentionally stops contributor commands when another CLI version is installed.
+The final command verifies your tools against [the repository toolchain configuration](../../config/toolchain.json).
+If it reports a mismatch, install the required version before continuing.
 
 ## Step 1: Create the contributor org
 
@@ -61,9 +61,15 @@ What success looks like:
 | Milestone | Expected result |
 | --- | --- |
 | Scratch org created | Alias `rhc-dev` (or the alias you chose) is Active |
-| Package source deployed | `packages/record-health-check/force-app` is in the org |
+| Package source deployed | `packages/record-health-check/force-app` is in the org, including **Record Health Check Diagnostics Viewer** |
+| Administrator access assigned | **Record Health Check Admin** is assigned to the setup user and already includes diagnostic access |
 | Integration fixtures deployed | `packages/record-health-check/integration-tests` is in the org for maintainer gates |
 | Local tests ran | Package `RunLocalTests` completed during the package-source deploy |
+
+To test diagnostics as a non-admin, assign **Record Health Check Diagnostics Viewer** alongside
+**Card User** or **User**, then enable **Show Diagnostics** on the selected Check Set. Follow
+[the scratch-org permission steps](../install/install-demo-in-a-scratch-org.md#try-the-other-permission-sets).
+The data-seeding command does not assign permissions.
 
 This command does **not** install the public `04t` subscriber package.
 
@@ -91,15 +97,20 @@ no-namespace source scratch org with:
 npm run demo:setup-source -- --alias rhc-dev
 ```
 
-The command detects the source namespace, runs the committed safe-to-rerun
-`scripts/subscriber/data/setupDemoData.apex` seed, and evaluates all 25 current-source Checks using
-`scripts/contributor/verifyDemoSource.apex`. For the current source, success reports **5 Passed, 18
-Failed, 1 Skipped, and 1 Unable to Check**. The data shape remains three Accounts, 44 Contacts, six
-Opportunities, four Opportunity Contact Roles, two Tasks, and 16 Cases.
+The command detects the source namespace, restores Jordan Blake as Acme's inactive owner, and
+seeds both the Acme Builder Guide and the dedicated readiness scenarios. It verifies all 49 active
+Checks across the four example Check Sets. The Builder Guide retains **7 Passed, 17 Failed,
+0 Skipped, and 1 Unable to Check**. The complete dataset contains five Accounts, 48 Contacts,
+11 Opportunities, seven Contact Roles, four Tasks, 18 Cases, and one Product with one Line Item.
 
-Rerunning the command replaces only the tagged Acme demo's related records. To remove the complete
-demo, delete the three Accounts whose Account Number begins with `RHC-DEMO-`, starting with Acme and
-then its parents so Salesforce relationship constraints are respected.
+To verify the current data without reseeding:
+
+```bash
+npm run demo:verify-source -- --alias rhc-dev
+```
+
+See [readiness scenarios and cleanup](../install/install-demo-in-a-scratch-org.md#readiness-scenarios)
+for the expected results, record markers, and safe removal order.
 
 ## Step 3: Prove portable (no-namespace) source deploy
 
@@ -139,6 +150,21 @@ Keep `integration-tests/` out of subscriber installs. That directory contains ma
 fixtures, not package metadata.
 See the [integration-tests README](../../packages/record-health-check/integration-tests/README.md).
 
+## Repository checks for contributors
+
+Package contributors must keep the same Qualified API Name behavior in Apex, Flow, Lightning, tests,
+and documentation. After changing selection logic or installed examples, run:
+
+```bash
+npm run check:configuration-identity
+npm run check:package-boundary
+npm run check:agent-tool-contract
+```
+
+The package source is under `packages/record-health-check/force-app`. Test-only metadata under
+`packages/record-health-check/integration-tests` and `subscriber-app` is not included in a normal
+installation.
+
 ## Step 4: Delete scratch orgs when testing is complete
 
 Delete every scratch org created for the change after its evidence is no longer needed:
@@ -151,6 +177,36 @@ sf org delete scratch --target-org rhc-portable --no-prompt
 Replace the aliases when different names were supplied. These commands delete the Salesforce
 scratch orgs; they do not delete repository files. Do not delete a shared org or an org that this
 workflow did not create.
+
+## Remove development source from a retained development org
+
+If Record Health Check was source-deployed during contributor development, remove the same manifest
+that installed it. Run these commands from `packages/record-health-check/` or pass the full manifest
+path from the repository root:
+
+```bash
+cd packages/record-health-check
+
+sf project delete source \
+  --manifest manifest/package.xml \
+  --target-org <org-alias> \
+  --check-only
+```
+
+Review the `--check-only` (dry-run) output before removing the check. Confirm the manifest does not
+include anything the org still needs, then run the deletion:
+
+```bash
+sf project delete source \
+  --manifest manifest/package.xml \
+  --target-org <org-alias>
+```
+
+Do not run a bare deletion without a manifest. Deleting by manifest keeps the operation scoped to
+Record Health Check's own components.
+
+This alternative applies only to contributor development orgs. An org that used the public package
+installer should follow [the package uninstall guide](../install/uninstall.md#step-4-uninstall-the-package).
 
 ## Windows and shell notes
 
@@ -180,7 +236,7 @@ when both options exist.
 | `An org already uses alias '…'` | Confirm which org owns the alias. Choose a new `--alias`, or delete the old scratch org only when this work created it and it is no longer needed. |
 | Scratch-org capacity is insufficient | Reuse a suitable contributor org, delete an owned org that is no longer needed, or wait for the daily limit to reset |
 | Toolchain check reports another CLI version | Install the exact version shown in `config/toolchain.json`, then rerun `npm run check:toolchain` |
-| Deploy fails on currency field planner tests | The org is multi-currency; see the [setup and troubleshooting FAQ](../faqs/setup-and-troubleshooting.md#why-did-source-deployment-fail-a-currency-planner-test) |
+| Deploy fails on currency field planner tests | In a multi-currency org, `CurrencyIsoCode` can appear in the field plan. Update a test that assumes only `Id` to reflect that org shape. |
 | `sf` not found on Windows | Confirm the Salesforce CLI install and that your shell session can resolve `sf` |
 | Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../install/install-demo-in-a-scratch-org.md) |
 | Acme Corporation is missing from a source org | Run `npm run demo:setup-source -- --alias <source-org-alias>` |

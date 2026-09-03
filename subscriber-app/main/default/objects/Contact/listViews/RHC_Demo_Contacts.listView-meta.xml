@@ -7,10 +7,13 @@
     <columns>CONTACT.EMAIL</columns>
     <columns>CONTACT.PHONE1</columns>
     <filterScope>Everything</filterScope>
+    <booleanFilter>1 OR 2</booleanFilter>
     <filters>
         <field>ACCOUNT.NAME</field>
         <operation>equals</operation>
         <value>Acme Corporation</value>
     </filters>
+    <filters><field>CONTACT.LAST_NAME</field><operation
+    >contains</operation><value>RHC Demo</value></filters>
     <label>RHC Demo Contacts</label>
 </ListView>

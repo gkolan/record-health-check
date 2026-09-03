@@ -1,0 +1,140 @@
+{
+  "Account": {
+    "checkSet": "Example_Account_Relationship_Risk",
+    "query": "SELECT Id,Name FROM Account WHERE AccountNumber IN ('RHC-DEMO-ACME','RHC-DEMO-READY','RHC-DEMO-REVIEW')",
+    "records": {
+      "Acme Corporation": {
+        "Example_Account_Owner_Active": "FAIL",
+        "Example_Contacts_Have_Email": "FAIL",
+        "Example_Executive_Sponsorship": "PASS",
+        "Example_Pipeline_Protects_Revenue": "PASS",
+        "Example_Customer_Engagement_Current": "PASS",
+        "Example_No_High_Priority_Issues": "FAIL",
+        "Example_Open_Deals_Have_Contacts": "FAIL",
+        "Example_Channel_Partner_Governance": "SKIPPED"
+      },
+      "RHC Demo Ready Account": {
+        "Example_Account_Owner_Active": "PASS",
+        "Example_Contacts_Have_Email": "PASS",
+        "Example_Executive_Sponsorship": "PASS",
+        "Example_Pipeline_Protects_Revenue": "PASS",
+        "Example_Customer_Engagement_Current": "PASS",
+        "Example_No_High_Priority_Issues": "PASS",
+        "Example_Open_Deals_Have_Contacts": "PASS",
+        "Example_Channel_Partner_Governance": "PASS"
+      },
+      "RHC Demo Review Account": {
+        "Example_Account_Owner_Active": "FAIL",
+        "Example_Contacts_Have_Email": "FAIL",
+        "Example_Executive_Sponsorship": "FAIL",
+        "Example_Pipeline_Protects_Revenue": "FAIL",
+        "Example_Customer_Engagement_Current": "FAIL",
+        "Example_No_High_Priority_Issues": "FAIL",
+        "Example_Open_Deals_Have_Contacts": "FAIL",
+        "Example_Channel_Partner_Governance": "FAIL"
+      }
+    }
+  },
+  "Contact": {
+    "checkSet": "Example_Contact_Relationship_Readiness",
+    "query": "SELECT Id,Name FROM Contact WHERE AssistantName='RHC-DEMO-READINESS'",
+    "records": {
+      "Elena Hart (RHC Demo)": {
+        "Example_Contact_RR_Account": "PASS",
+        "Example_Contact_RR_Title": "PASS",
+        "Example_Contact_RR_Mailing_City": "PASS",
+        "Example_Contact_RR_Reachable_Channel": "PASS",
+        "Example_Contact_RR_Phone": "PASS",
+        "Example_Contact_RR_Email": "PASS",
+        "Example_Contact_RR_Owner_Active": "PASS",
+        "Example_Contact_RR_Recent_Engagement": "PASS"
+      },
+      "Marcus Shaw (RHC Demo)": {
+        "Example_Contact_RR_Account": "PASS",
+        "Example_Contact_RR_Title": "PASS",
+        "Example_Contact_RR_Mailing_City": "PASS",
+        "Example_Contact_RR_Reachable_Channel": "PASS",
+        "Example_Contact_RR_Phone": "PASS",
+        "Example_Contact_RR_Email": "PASS",
+        "Example_Contact_RR_Owner_Active": "PASS",
+        "Example_Contact_RR_Recent_Engagement": "FAIL"
+      },
+      "Morgan Vale (RHC Demo)": {
+        "Example_Contact_RR_Account": "FAIL",
+        "Example_Contact_RR_Title": "FAIL",
+        "Example_Contact_RR_Mailing_City": "FAIL",
+        "Example_Contact_RR_Reachable_Channel": "FAIL",
+        "Example_Contact_RR_Phone": "FAIL",
+        "Example_Contact_RR_Email": "FAIL",
+        "Example_Contact_RR_Owner_Active": "FAIL",
+        "Example_Contact_RR_Recent_Engagement": "FAIL"
+      },
+      "Riley Chen (RHC Demo)": {
+        "Example_Contact_RR_Account": "PASS",
+        "Example_Contact_RR_Title": "PASS",
+        "Example_Contact_RR_Mailing_City": "PASS",
+        "Example_Contact_RR_Reachable_Channel": "PASS",
+        "Example_Contact_RR_Phone": "PASS",
+        "Example_Contact_RR_Email": "FAIL",
+        "Example_Contact_RR_Owner_Active": "PASS",
+        "Example_Contact_RR_Recent_Engagement": "FAIL"
+      }
+    }
+  },
+  "Opportunity": {
+    "checkSet": "Example_Opportunity_Deal_Readiness",
+    "query": "SELECT Id,Name FROM Opportunity WHERE Name IN ('RHC Demo Ready Deal','RHC Demo Review Deal','RHC Demo Closed Won','RHC Demo Closed Lost','RHC Demo Low Pipeline')",
+    "records": {
+      "RHC Demo Ready Deal": {
+        "Example_Opportunity_DR_Account": "PASS",
+        "Example_Opportunity_DR_Amount": "PASS",
+        "Example_Opportunity_DR_Close_Date": "PASS",
+        "Example_Opportunity_DR_Next_Step": "PASS",
+        "Example_Opportunity_DR_Probability": "PASS",
+        "Example_Opportunity_DR_Owner_Active": "PASS",
+        "Example_Opportunity_DR_Buyer_Contact": "PASS",
+        "Example_Opportunity_DR_Recent_Activity": "PASS"
+      },
+      "RHC Demo Review Deal": {
+        "Example_Opportunity_DR_Account": "FAIL",
+        "Example_Opportunity_DR_Amount": "FAIL",
+        "Example_Opportunity_DR_Close_Date": "FAIL",
+        "Example_Opportunity_DR_Next_Step": "FAIL",
+        "Example_Opportunity_DR_Probability": "FAIL",
+        "Example_Opportunity_DR_Owner_Active": "FAIL",
+        "Example_Opportunity_DR_Buyer_Contact": "FAIL",
+        "Example_Opportunity_DR_Recent_Activity": "FAIL"
+      },
+      "RHC Demo Closed Won": {
+        "Example_Opportunity_DR_Account": "PASS",
+        "Example_Opportunity_DR_Amount": "PASS",
+        "Example_Opportunity_DR_Close_Date": "PASS",
+        "Example_Opportunity_DR_Next_Step": "PASS",
+        "Example_Opportunity_DR_Probability": "PASS",
+        "Example_Opportunity_DR_Owner_Active": "PASS",
+        "Example_Opportunity_DR_Buyer_Contact": "SKIPPED",
+        "Example_Opportunity_DR_Recent_Activity": "SKIPPED"
+      },
+      "RHC Demo Closed Lost": {
+        "Example_Opportunity_DR_Account": "PASS",
+        "Example_Opportunity_DR_Amount": "PASS",
+        "Example_Opportunity_DR_Close_Date": "PASS",
+        "Example_Opportunity_DR_Next_Step": "PASS",
+        "Example_Opportunity_DR_Probability": "PASS",
+        "Example_Opportunity_DR_Owner_Active": "PASS",
+        "Example_Opportunity_DR_Buyer_Contact": "SKIPPED",
+        "Example_Opportunity_DR_Recent_Activity": "SKIPPED"
+      },
+      "RHC Demo Low Pipeline": {
+        "Example_Opportunity_DR_Account": "PASS",
+        "Example_Opportunity_DR_Amount": "PASS",
+        "Example_Opportunity_DR_Close_Date": "PASS",
+        "Example_Opportunity_DR_Next_Step": "PASS",
+        "Example_Opportunity_DR_Probability": "PASS",
+        "Example_Opportunity_DR_Owner_Active": "FAIL",
+        "Example_Opportunity_DR_Buyer_Contact": "FAIL",
+        "Example_Opportunity_DR_Recent_Activity": "FAIL"
+      }
+    }
+  }
+}

@@ -2,9 +2,9 @@
 <ListView xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Account_Relationship_Risk</fullName>
     <columns>MasterLabel</columns>
-    <columns>Record_Health_Check_Set__c</columns>
     <columns>CheckTitle__c</columns>
     <columns>EvaluationType__c</columns>
+    <columns>EvaluationOrder__c</columns>
     <columns>IsActive__c</columns>
     <filterScope>Everything</filterScope>
     <filters>
@@ -12,5 +12,5 @@
         <operation>equals</operation>
         <value>Example_Account_Relationship_Risk</value>
     </filters>
-    <label>Account Relationship &amp; Risk</label>
+    <label>Example: Account Relationship &amp; Risk</label>
 </ListView>

@@ -6,6 +6,14 @@
 /* ── Component-wide error row ─────────────────────────────────────────────── */
 .rhc-error-banner {
   background: var(--rhc-theme-card-background);
+  border-bottom-left-radius: var(--rhc-theme-card-radius);
+  border-bottom-right-radius: var(--rhc-theme-card-radius);
+}
+
+/* End the setup/error accent before the rounded corner begins. Clipping the
+   full-height accent against the radius makes the bar look pinched or broken. */
+.rhc-error-banner > .rhc-row__accent {
+  bottom: var(--rhc-theme-card-radius);
 }
 
 .rhc-error-banner__body {
@@ -78,9 +86,20 @@
   color: var(--slds-g-color-neutral-base-40, #706e6b);
 }
 
+.rhc-builder-preview {
+  margin: 0;
+  padding: var(--slds-g-spacing-4, 1rem);
+  font-size: var(--slds-g-font-scale-base, 0.8125rem);
+  color: var(--slds-g-color-neutral-base-40, #706e6b);
+  line-height: var(--slds-g-font-line-height-3, 1.5);
+}
+
 .rhc-card {
   display: block;
-  background: var(--rhc-theme-card-background);
+  /* The body owns the rounded surface. Keeping this wrapper transparent avoids
+     a square card-colored layer showing outside the bottom corner while
+     overflow remains visible for tooltips. */
+  background: transparent;
   border: var(--rhc-theme-card-border-width, var(--slds-g-sizing-border-1, 1px))
     solid var(--rhc-theme-card-border);
   /* Match standard Lightning cards (related lists, record panels). */
@@ -252,6 +271,8 @@
 .rhc-body {
   display: flex;
   flex-direction: column;
+  background: var(--rhc-theme-card-background);
+  border-radius: inherit;
 }
 
 .rhc-stat {

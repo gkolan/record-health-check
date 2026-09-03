@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: salesforce-release-${{ github.ref }}
-  cancel-in-progress: true
+  group: salesforce-devhub-release
+  cancel-in-progress: false
 
 jobs:
   require-dev-hub-secret:
@@ -40,7 +40,7 @@ jobs:
           node-version: 22
       - name: Install pinned Salesforce CLI for Dev Hub preflight
         if: steps.credentials.outputs.available == 'true'
-        run: npm install --global @salesforce/cli@2.149.9
+        run: npm install --global @salesforce/cli@2.150.6
       - name: Authenticate Dev Hub
         if: steps.credentials.outputs.available == 'true'
         env:
@@ -51,7 +51,7 @@ jobs:
           printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
           chmod 600 "$auth_file"
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Reserve release-matrix scratch-org capacity
+      - name: Check release-matrix scratch-org capacity
         if: steps.credentials.outputs.available == 'true'
         run: npm run check:scratch-capacity -- --dev-hub devhub --required 4
 
@@ -93,7 +93,7 @@ jobs:
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts
         run: npm run check:permission-sets
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
       - run: echo y | sf plugins install code-analyzer@5.15.0
       - name: Record analyzer toolchain versions
@@ -256,7 +256,7 @@ jobs:
       - run: npm ci
       - name: Verify Lightning Locker and LWS runtime compatibility
         run: npm run check:lightning-runtime-compatibility
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
@@ -357,6 +357,7 @@ jobs:
           fi
 
   locker-browser-tests:
+    name: locker-browser-tests (${{ matrix.topology }})
     needs: require-dev-hub-secret
     if: needs.require-dev-hub-secret.outputs.available == 'true'
     runs-on: ubuntu-latest
@@ -379,7 +380,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:

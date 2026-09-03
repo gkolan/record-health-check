@@ -20,19 +20,19 @@
     >FORMULA</value></values>
     <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >OR(AND(IsClosed, OR(Probability = 0, Probability = 100)), AND(NOT(IsClosed), Probability &gt; 0, Probability &lt; 100))</value></values>
+    >OR(AND(IsClosed, OR(Probability = 0, Probability = 1)), AND(NOT(IsClosed), Probability &gt; 0, Probability &lt; 1))</value></values>
     <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
     >Probability</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >Open: greater than 0% and less than 100%; closed: 0% or 100%</value></values>
+    >Open: 0% &lt; value &lt; 100%; closed: 0% or 100%</value></values>
     <values><field>FormulaResultType__c</field><value
       xsi:type="xsd:string"
     >NUMBER</value></values>
     <values><field>DisplayValueFormat__c</field><value
       xsi:type="xsd:string"
-    >PERCENT</value></values>
+    >RATIO_PERCENT</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>
@@ -56,7 +56,7 @@
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >40</value></values>
+    >50</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

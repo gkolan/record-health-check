@@ -75,6 +75,15 @@ test("renders manual and on-load cards without a component or page-loading failu
   }
 
   await expectRunCompleted(automaticCard, 4);
+  const expectedPassed = Number(process.env.RHC_EXPECTED_AUTOMATIC_PASSED);
+  expect([3, 4]).toContain(expectedPassed);
+  await expect(automaticCard).toContainText(`${expectedPassed} Passed`);
+  if (expectedPassed === 3) await expect(automaticCard).toContainText("1 Info");
+  await expect(
+    automaticCard.locator(
+      ".rhc-status-icon--unable, .rhc-status-icon--system-error"
+    )
+  ).toHaveCount(0);
   await expect(automaticCard.getByRole("button", { name: /run/i })).toHaveCount(
     0
   );

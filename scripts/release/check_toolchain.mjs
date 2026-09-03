@@ -47,7 +47,7 @@ if (!releaseWorkflow.includes(`code-analyzer@${policy.codeAnalyzerPlugin}`)) {
 
 if (
   !subscriberWorkflow.includes("required: true") ||
-  !subscriberWorkflow.includes("stablePackageVersionId()")
+  !subscriberWorkflow.includes("scripts/release/resolve_upgrade_base.mjs")
 ) {
   fail(
     ".github/workflows/subscriber-validate.yml must require an explicit candidate and resolve the tracked stable upgrade base."

@@ -3,6 +3,8 @@
 Record Health Check shows whether a Salesforce record meets requirements configured by an
 administrator. It reports what it finds; it does not block saves or change the record.
 
+Start with the latest released package. When working from repository source, use [matching documentation and examples](./install/choose-a-package-version.md#documentation-and-installed-version).
+
 ## New here? Follow these steps
 
 1. [See what Record Health Check does](./start-here/what-it-does.md).
@@ -31,11 +33,7 @@ Want the complete learning sequence? Open the [step-by-step guide](./step-by-ste
 | [Architecture](./architecture/README.md) | Understand framework structure, security boundaries, data relationships, and Apex implementation |
 | [Reference](./reference/README.md) | Find the complete feature catalog, statuses, contracts, limits, merge syntax, and exact evaluation rules |
 | [Developer guides](./developer-guides/README.md) | Use Apex, asynchronous execution, Agentforce, MCP, or Pub/Sub |
-| [Quality gates](./quality-gates/README.md) | Understand the checks required for code, packages, and documentation |
 | [Contributing](./contributing/README.md) | Change, test, document, or review the package source |
-
-The folder names describe user goals. You should not need to know which internal API or metadata
-layer owns your question before choosing a folder.
 
 ## Choose how to build a Check
 

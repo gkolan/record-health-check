@@ -452,6 +452,7 @@
     <types>
         <members>Record_Health_Check_Admin</members>
         <members>Record_Health_Check_Card_User</members>
+        <members>Record_Health_Check_Diagnostics_Viewer</members>
         <members>Record_Health_Check_Error_Log_Publisher</members>
         <members>Record_Health_Check_MCP_Integration</members>
         <members>Record_Health_Check_User</members>
@@ -464,6 +465,7 @@
         <name>Layout</name>
     </types>
     <types>
+        <members>CustomPermission.Record_Health_Check</members>
         <members>Record_Health_Check__mdt.All</members>
         <members>Record_Health_Check__mdt.Account_Check_Builder_Guide</members>
         <members>Record_Health_Check__mdt.Account_Relationship_Risk</members>

@@ -11,8 +11,8 @@ workflow wiring, or incomplete package-install verification.
 
 ## Version identity
 
-The package version is `major.minor.patch.build`. This corrective release is `2.0.7.1`, upgrading
-from the stable `2.0.6.2` package. A package candidate is identified by its exact `04t` version ID and Git commit SHA.
+The package version is `major.minor.patch.build`. Use the candidate and stable package IDs from
+[the release configuration](../../config/package-releases.json) for the upgrade path. A package candidate is identified by its exact `04t` version ID and Git commit SHA.
 Evidence from another build, branch head, pull-request merge commit, or package ID cannot satisfy a
 candidate's gate.
 
@@ -24,8 +24,9 @@ candidate's gate.
 | Hosted source validation | Namespaced and no-namespace jobs pass for the exact commit | Do not create a package version |
 | Package creation | Code coverage, artifact membership, version identity, and dependency checks pass | Do not publish a candidate for subscriber testing |
 | Clean subscriber installation | Exact candidate installs and all installed-surface gates pass | Do not promote |
-| Subscriber upgrade | `2.0.6.2` upgrades to the exact candidate; customer-owned configuration survives; all installed-surface gates pass again | Do not promote |
-| Promotion | Exact-commit source workflow and exact-candidate subscriber workflow are both successful | Promotion command must fail closed |
+| Subscriber upgrade | Every reviewed base in `upgradeBases` upgrades to the exact candidate; customer-owned configuration survives; all installed-surface gates pass again | Do not promote |
+| Representative sandbox | A reviewer records exact-candidate acceptance of the affected CPQ page, customer configuration, access, automation, and recovery | Do not promote |
+| Promotion | Exact-commit source workflow, all exact-candidate subscriber stages, and sandbox acceptance are complete | Promotion command must fail closed |
 | Release publication | Release registry, changelog, install links, tag, and rollback information identify the promoted `04t` | Do not announce the release |
 
 Package creation and promotion require a clean Git worktree and verify hosted GitHub Actions
@@ -98,6 +99,19 @@ record check, show an operational spinner, register an invalid RefreshView conte
 record ID. At runtime, the component renders its shell first and defers on-load work; it does not
 put a loading overlay on the record page.
 
+The source automatic fixture is `Release_On_Load`, with exactly one Check of each type. Its seeded
+Account yields three passes and the expected recent-activity failure. The installed fixture is
+`Subscriber_On_Load`, with four expected passes. Both reject Unable and System Error results.
+The restricted browser persona receives Card User, not the broader User permission set.
+Each browser/scenario run retains its own JSON verdict and evidence directory. Skipped,
+failed, and flaky/retry-recovered tests block the gate; later runs cannot overwrite earlier
+results.
+
+The release runner redacts login URLs, session IDs, and generated passwords before retaining JSON
+and a readable HTML view. Raw traces, videos, and screenshots are disabled for this authentication-
+inclusive run to keep credentials out of uploaded artifacts. Unredacted reporter output stays in
+a temporary directory outside the upload paths and is removed when the browser process finishes.
+
 ## Apex and server-side gates
 
 Both namespace shapes run two explicit, reconciled inventories: package-only tests before fixtures,
@@ -129,6 +143,9 @@ The installed-package tests repeat the public API, Flow interview, four evaluati
 REST/MCP, Queueable, Batch, Scheduled, and LWC gates after both a clean installation and the
 upgrade. The matrix remains blocked unless the subscriber-owned Flow and its Apex interview test
 exist; an Apex-only substitute does not satisfy the Flow entry-point gate.
+Subscriber execution also discovers and reconciles every executable test class under
+`subscriber-app/main/default/classes`, including `RHCSubscriberFlowSmokeTest`; each selected stage
+retains a separate mandatory Apex artifact for each security mode.
 
 ## Security release contract
 
@@ -173,9 +190,9 @@ returns exit code zero and reports zero violations.
   component spinner or page-level loading overlay is permitted on initial load, in App Builder, or
   during automatic execution. Progress after a deliberate user click stays inside the clicked
   action control.
-- App Builder previews are server-inert even when Salesforce supplies a sample record ID: configured and unconfigured
-  previews make no `RecordHealthCheckController` request, load no definitions, evaluate no Check,
-  and render no runtime action.
+- A configured App Builder preview makes one lightweight shell request so it can identify the selected
+  Check Set and show active/inactive counts. An unconfigured preview remains server-inert. Neither
+  preview loads definitions, evaluates a Check, accesses sample-record data, or renders a runtime action.
 - Browser tests fail on any uncaught page error, Salesforce component-error dialog, incomplete
   result count, persistent spinner, duplicate automatic run, stale handler, full reload during
   record navigation, or the reported `Invalid contextElement` signature.
@@ -215,23 +232,35 @@ returns exit code zero and reports zero violations.
 
 ## Upgrade and data-preservation gates
 
-The upgrade org starts with the promoted `2.0.6.2` package. Before upgrading, the workflow creates
+Each upgrade org starts with one exact reviewed released base from `upgradeBases`: 2.0.6.2 and
+the older public-link version 2.0.4.2 for this release. Before upgrading, the workflow creates
 subscriber-owned Check Sets and Checks and records their identities and values. It then:
 
-1. deploys only the subscriber-owned preservation fixture and proves the stable `2.0.6.2` global
+1. deploys only the subscriber-owned preservation fixture and proves the stable package global
    Apex API can execute it;
-2. installs the exact `2.0.7.1` candidate using the tracked upgrade mode;
+2. installs the exact candidate package using the tracked upgrade mode;
 3. verifies the installed package version ID;
 4. proves the subscriber-owned metadata is unchanged;
 5. reassigns and verifies permissions;
 6. deploys the candidate-only subscriber harness, then runs Apex, asynchronous, REST/MCP, Flow,
    Agentforce, Platform Event, App Builder, restricted-user, and browser gates under both LWS and
    Locker;
-7. retains install requests, test output, browser traces, and the exact before/after Custom
+7. retains install requests, test output, sanitized browser reports, and the exact before/after Custom
    Metadata preservation snapshot for 90 days.
 
 A clean install cannot satisfy the upgrade gate. An upgrade that succeeds but loses configuration
 or fails an entry point is a failed release.
+
+The subscriber workflow runs three separate dispatch stages: `clean-install`, `upgrade-2.0.6.2`, and
+`upgrade-2.0.4.2`. Each creates two fresh orgs (LWS and Locker). All three stages must pass on the same
+commit and candidate. Only the unselected job's skip is expected. Together with source validation,
+this requires ten scratch-org creations; daily quotas may require more than one day. Shared workflow
+concurrency prevents release workflows from overlapping but does not reserve Dev Hub quota.
+
+Before promotion, complete the five representative-sandbox scenarios in the
+[manual release-owner checklist](./manual-release-owner-checklist.md). The guarded promotion command
+requires a recent reviewer attestation bound to the candidate and commit. Blank scratch Account pages
+cannot replace evidence from the affected CPQ Quote page and existing customer automation.
 
 ## Supply-chain, metadata, and documentation gates
 
@@ -255,8 +284,12 @@ those conditions into warnings or skipped success.
 ## Evidence and exceptions
 
 Evidence belongs in hosted workflow logs and retained artifacts for the exact source revision.
-Record deploy IDs, Apex run IDs, org shape, security mode, browser traces, package install request
+Record deploy IDs, Apex run IDs, org shape, security mode, sanitized browser reports, package install request
 IDs, before/after metadata snapshots, candidate ID, and workflow URL.
+
+The hosted checker verifies successful named jobs and nonempty, unexpired artifacts created in the
+current attempt, not merely the overall workflow conclusion. Artifact presence is not an independent
+content audit: the test runners must validate their results before publishing evidence.
 
 There is no informal release exception. Reducing supported scope or waiving a gate requires a
 reviewed source change to this contract and the machine-readable matrix before a candidate exists;

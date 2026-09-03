@@ -165,7 +165,13 @@ if (acmeAccounts.isEmpty()) {
 } else {
   acme = acmeAccounts[0];
 }
-acme.OwnerId = UserInfo.getUserId();
+acme.OwnerId = [
+  SELECT Id
+  FROM User
+  WHERE FederationIdentifier = 'rhc-demo-owner-jordan-blake' AND IsActive = TRUE
+  LIMIT 1
+]
+.Id;
 acme.ParentId = division.Id;
 acme.AccountNumber = 'RHC-DEMO-ACME';
 acme.Type = 'Customer';

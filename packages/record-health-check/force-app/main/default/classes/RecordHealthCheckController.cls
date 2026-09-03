@@ -12,7 +12,7 @@ public with sharing class RecordHealthCheckController {
    * can avoid loading Check definitions for a Manual card before Run is selected.
    *
    * @param checkSetQualifiedApiName Namespace-safe name of the selected Check Set.
-   * @return Run mode, Card Title, description, active Check count, and button presentation; or an empty map when blank or missing.
+   * @return Check Set label, run mode, Card Title, description, active and inactive Check counts, and button presentation; or an empty map when blank or missing.
    * @throws AuraHandledException if shell configuration cannot be loaded safely.
    */
   @AuraEnabled

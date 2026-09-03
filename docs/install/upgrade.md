@@ -68,7 +68,7 @@ Keep:
 - the currently installed package version;
 - a list of Lightning pages that contain the card and the Check Set selected on each page;
 - assignments for all packaged permission sets used in the org, including Card User, User, Admin,
-  MCP Integration, and Error Log Publisher;
+  MCP Integration and Error Log Publisher, plus Diagnostics Viewer if deployed;
 - a list of Flows, Apex callers, scheduled work, or integrations that receive Record Health Check
   Platform Events;
 - one record that should pass and one that should need attention for each important Check Set.

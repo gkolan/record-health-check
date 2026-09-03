@@ -78,4 +78,7 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+<values><field>NoRowsResult__c</field><value
+      xsi:type="xsd:string"
+    >FAIL</value></values>
 </CustomMetadata>

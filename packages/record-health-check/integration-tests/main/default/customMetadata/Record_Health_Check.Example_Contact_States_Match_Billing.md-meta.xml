@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Reachable deal stakeholders</label>
+    <label>Example: Contact details on open deals</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Open-deal stakeholders have a verified contact channel</value>
+    >Contacts on open deals have Email or Phone</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -104,7 +104,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check passes when no Contact attached to an open Opportunity lacks both email and phone, connecting buying-committee coverage to usable outreach evidence.</value>
+    >The Query check counts Contact Roles on open Opportunities whose Contact has neither Email nor Phone. It passes when the count is zero. It checks presence, not whether the contact details are valid.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -127,12 +127,10 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open-deal stakeholders without email or phone: {!rhcResult.foundValue}</value>
+    >{!rhcResult.foundValue} missing both</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Buyer-contact standard: {!rhcResult.expectedValue} unreachable stakeholders</value>
+        <value xsi:type="xsd:string">None missing both</value>
     </values>
 </CustomMetadata>

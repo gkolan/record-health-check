@@ -1,7 +1,5 @@
 # Package testing and upgrades
 
-Maintainer reference for package validation and upgrade behavior.
-
 This page is for package maintainers.
 
 > [!NOTE]

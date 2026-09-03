@@ -80,7 +80,7 @@ record fields, a user-mode Query Check, or reviewed custom Apex with a documente
 
 For `TODAY()` and `NOW()` conditions, verify the interactive, Flow, and scheduling users' timezones
 and document the intended cutoff. When a Flow result differs from the card, follow the
-[execution-context war room](../diagnostics/execution-context-war-room.md) before changing formula
+[execution-context troubleshooting guide](../diagnostics/troubleshoot-execution-context.md) before changing formula
 logic or permissions.
 
 See [Flow action inputs and outputs](./action-inputs-and-outputs.md#inputs-and-outputs) for every
@@ -143,7 +143,7 @@ delivered when the transaction rolls back.
 | A result is `UNABLE_TO_EVALUATE` | The reason code, record access, field access, and Check configuration |
 | A collection is rejected before evaluation | The 200-row limit, 10-group limit, and 2,000,000-character JSON result limit |
 | No Platform Event is received | The publication input, Check metadata event setting, and the Flow, Apex trigger, or integration that should receive it |
-| The card and Flow disagree for the same record | The actual execution user, Flow context, data access, timezone, and unsupported formula globals; use the execution-context war room |
+| The card and Flow disagree for the same record | The actual execution user, Flow context, data access, timezone, and unsupported formula globals; use the execution-context troubleshooting guide |
 
 ## Related
 
@@ -152,4 +152,4 @@ delivered when the transaction rolls back.
 - [Apex API](../developer-guides/run-from-apex.md)
 - [Platform Event behavior](../save-results/when-to-use-platform-events.md)
 - [Platform Event subscriptions](../save-results/README.md)
-- [Execution-context war room](../diagnostics/execution-context-war-room.md)
+- [Troubleshoot differences between execution contexts](../diagnostics/troubleshoot-execution-context.md)

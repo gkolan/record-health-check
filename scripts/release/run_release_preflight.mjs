@@ -46,5 +46,5 @@ for (const gate of gates) {
 }
 
 console.log(
-  "\nRelease preflight passed. Package candidate creation is unlocked."
+  "\nLocal release preflight passed. Package creation still requires exact-commit hosted Salesforce validation."
 );

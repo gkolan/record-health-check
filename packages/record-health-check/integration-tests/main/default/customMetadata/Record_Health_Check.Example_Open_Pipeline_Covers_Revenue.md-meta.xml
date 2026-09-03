@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Pipeline recovery after losses</label>
+    <label>Example: New pipeline vs lost value</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,7 +14,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >New pipeline value replaces recent losses</value>
+    >New pipeline value covers recently lost value</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
@@ -98,7 +98,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">170</value>
+        <value xsi:type="xsd:double">200</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -147,14 +147,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >New open pipeline: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Recently lost value: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

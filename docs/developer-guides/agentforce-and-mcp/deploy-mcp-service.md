@@ -62,7 +62,7 @@ You need:
 4. One readable test record and one record that the future integration user cannot read.
 5. Permission to create a Salesforce user, Permission Sets, and an External Client App or supported
    Connected App.
-6. Node.js 22, Docker when the hosting platform uses containers, and a secret manager.
+6. Node.js as specified in [the toolchain configuration](../../../config/toolchain.json), Docker when the hosting platform uses containers, and a secret manager.
 7. A hosting platform that terminates HTTPS and can set environment variables and secrets.
 8. An OAuth 2.0 identity provider that issues JWT access tokens and publishes a JWKS endpoint.
 9. An MCP client that supports Streamable HTTP and bearer authentication.
@@ -94,7 +94,7 @@ source control, screenshots, tickets, or command history.
 This step proves the source and tests before credentials are introduced.
 
 1. Open a terminal in `packages/record-health-check-mcp`.
-2. Confirm that `node --version` reports Node.js 22.
+2. Confirm that `node --version` matches the major version in the toolchain configuration.
 3. Install the locked dependencies:
 
    ```sh
@@ -345,7 +345,7 @@ SOQL, arbitrary Apex, record mutation, MCP resources, or MCP prompts to this ser
 5. Confirm that `resources/list` and `prompts/list` do not expose Salesforce content.
 6. Attempt to call an invented tool such as `run_soql`.
 7. Confirm that the call is rejected before Salesforce is contacted.
-8. Save the redacted tool-list result as release evidence.
+8. Save the redacted tool list so you can compare it after a service update.
 
 Repeat this proof after every dependency or tool-contract change.
 

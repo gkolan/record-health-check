@@ -4,6 +4,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
+import { seedDemoData } from "../lib/demo-data.mjs";
+import { verifyReadinessData } from "../lib/demo-verification.mjs";
 import {
   namespacedPermissionSet,
   readPackageReleases
@@ -15,6 +17,7 @@ import {
 import { packageVersionString } from "../lib/package-version.mjs";
 import { run, runJson } from "../lib/run.mjs";
 import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
+import { selectUpgradeBase } from "../lib/release-upgrades.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -194,19 +197,23 @@ function runUpgradeBaseVerification(alias) {
 }
 
 function runSubscriberSmoke(alias) {
-  run("sf", [
-    "apex",
-    "run",
-    "test",
-    "--class-names",
-    "RHCSubscriberSmokeTest",
-    "--target-org",
-    alias,
-    "--result-format",
-    "human",
-    "--wait",
-    "30"
-  ]);
+  // Discover and reconcile every subscriber test, including the real Flow
+  // interview. A class existing on disk is not evidence that it executed.
+  run(
+    "node",
+    [
+      "scripts/release/run_exact_apex_test_inventory.mjs",
+      "--target-org",
+      alias,
+      "--scope",
+      "subscriber",
+      "--topology",
+      alias,
+      "--wait",
+      "60"
+    ],
+    { cwd: paths.repoRoot }
+  );
 }
 
 function runDemoVerification(alias) {
@@ -218,6 +225,7 @@ function runDemoVerification(alias) {
     "--file",
     `${paths.subscriberData}/verifyDemo.apex`
   ]);
+  verifyReadinessData(alias);
 }
 
 function runInstalledSurfaceGates(alias, securityMode) {
@@ -242,6 +250,8 @@ function runInstalledSurfaceGates(alias, securityMode) {
       "run",
       "test:browser:salesforce",
       "--",
+      "--installed-package",
+      values.package,
       "--target-org",
       alias,
       "--security-mode",
@@ -323,7 +333,7 @@ function writeUpgradeEvidence(
   );
   fs.mkdirSync(evidenceDirectory, { recursive: true });
   const evidencePath = new URL(
-    `${candidateId}-${securityMode.toLowerCase()}-upgrade-preservation.json`,
+    `${candidateId}-${upgradeFromId}-${securityMode.toLowerCase()}-upgrade-preservation.json`,
     evidenceDirectory
   );
   fs.writeFileSync(
@@ -412,19 +422,11 @@ function main() {
   const upgradeFromId =
     values["upgrade-from"] ||
     (stableId === candidateId ? previousId : stableId);
-  if (
-    releases.stable?.version !== runtimeMatrix.upgradeFromVersion ||
-    upgradeFromId !== stableId
-  ) {
-    console.error(
-      `The release upgrade gate must start from tracked stable ${runtimeMatrix.upgradeFromVersion} (${stableId}).`
-    );
-    process.exit(1);
-  }
+  const upgradeBase = selectUpgradeBase(runtimeMatrix, releases, upgradeFromId);
   assertPackageVersion(
     upgradeFromId,
     devHub,
-    runtimeMatrix.upgradeFromVersion,
+    upgradeBase.version,
     "Upgrade base"
   );
   const needsUpgradeOrg =
@@ -591,16 +593,7 @@ function runUpgradeGate(
   }
 
   if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
-    for (const script of ["setupDemoData.apex"]) {
-      run("sf", [
-        "apex",
-        "run",
-        "--target-org",
-        alias,
-        "--file",
-        `${paths.subscriberData}/${script}`
-      ]);
-    }
+    seedDemoData(alias);
   }
 
   const configurationBeforeUpgrade = subscriberConfiguration(alias);

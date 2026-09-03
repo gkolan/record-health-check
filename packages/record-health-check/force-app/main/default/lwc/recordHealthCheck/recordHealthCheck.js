@@ -134,6 +134,8 @@ export default class RecordHealthCheck extends LightningElement {
   @track frameworkMaxChecks = 25;
   @track inactiveCheckCount = 0;
   @track inactiveCheckLabels = [];
+  @track isBuilderPreview = false;
+  @track builderCountsAvailable = false;
   @track completedCheckCount = 0;
   @track runComplete = false;
   /** Stays true after the first completed run until definitions reload — drives
@@ -253,11 +255,10 @@ export default class RecordHealthCheck extends LightningElement {
     this._definitionLoadInProgress = false;
 
     // Current Lightning App Builder versions can supply a sample recordId to
-    // record-page previews. Detect the supported Builder container itself so a
-    // preview never calls Apex, evaluates checks, exposes runtime actions, or
-    // contributes to Builder's page-level loading treatment.
+    // record-page previews. Detect the supported Builder container itself so
+    // the preview loads only shell metadata, never definitions or evaluations.
     if (isLightningAppBuilderContext()) {
-      this._prepareNoRecordShell();
+      this._loadBuilderPreview(loadToken);
       return;
     }
 
@@ -301,10 +302,13 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   async _resolveConfiguredLifecycle(loadToken, checkSetName) {
-    // Keep every design-time preview fully local. App Builder can supply a
-    // sample recordId, so the container check is required in addition to the
-    // ordinary missing-record guard.
-    if (isLightningAppBuilderContext() || !this.recordId) {
+    // App Builder can supply a sample recordId. Its preview uses only the
+    // lightweight Check Set shell; definitions and evaluation remain runtime-only.
+    if (isLightningAppBuilderContext()) {
+      this._loadBuilderPreview(loadToken);
+      return;
+    }
+    if (!this.recordId) {
       this._prepareNoRecordShell();
       return;
     }
@@ -343,10 +347,12 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   _prepareNoRecordShell() {
+    this.isBuilderPreview = false;
+    this.builderCountsAvailable = false;
     this.triggerMode = null;
     this.displayTitle = "Record Health Check";
     this.displayDescription = this.checkSetName
-      ? "The configured health check will run when a record is available."
+      ? "Runs when a record is available."
       : "Select a Check Set in the component properties.";
     this.isLoading = false;
     this._clearComponentError();
@@ -355,7 +361,64 @@ export default class RecordHealthCheck extends LightningElement {
     this.hasCompletedRunOnce = false;
   }
 
+  async _loadBuilderPreview(loadToken) {
+    const requestedCheckSetName = this.checkSetName;
+    this.isBuilderPreview = true;
+    this.builderCountsAvailable = false;
+    this.triggerMode = null;
+    this.displayTitle = requestedCheckSetName || "Record Health Check";
+    this.displayDescription = requestedCheckSetName
+      ? "Record Health Check"
+      : null;
+    this.isLoading = false;
+    this._clearComponentError();
+    this.checks = [];
+    this.runComplete = false;
+    this.hasCompletedRunOnce = false;
+    this.totalAvailableCheckCount = 0;
+    this.totalCheckCount = 0;
+    this.inactiveCheckCount = 0;
+
+    if (!requestedCheckSetName) {
+      return;
+    }
+
+    try {
+      const shellConfig = await getCheckSetShellConfig({
+        checkSetQualifiedApiName: requestedCheckSetName
+      });
+      if (
+        !this._connected ||
+        loadToken !== this._loadToken ||
+        requestedCheckSetName !== this.checkSetName ||
+        !isLightningAppBuilderContext()
+      ) {
+        return;
+      }
+      if (!shellConfig || Object.keys(shellConfig).length === 0) {
+        return;
+      }
+      const activeCheckCount = Number(shellConfig.activeCheckCount) || 0;
+      this.displayTitle =
+        shellConfig.checkSetLabel ||
+        shellConfig.cardTitle ||
+        requestedCheckSetName;
+      this.totalAvailableCheckCount = activeCheckCount;
+      this.totalCheckCount = Math.min(
+        activeCheckCount,
+        this.frameworkMaxChecks
+      );
+      this.inactiveCheckCount = Number(shellConfig.inactiveCheckCount) || 0;
+      this.builderCountsAvailable = true;
+    } catch {
+      // Keep the selected identity and local guidance visible if Builder cannot
+      // load its optional metadata summary. Runtime error handling is unchanged.
+    }
+  }
+
   _prepareQuietManualShell(shellConfig = {}) {
+    this.isBuilderPreview = false;
+    this.builderCountsAvailable = false;
     this.triggerMode = "Manual";
     this._prepareMetadataShell(shellConfig);
     this.isLoading = false;
@@ -368,6 +431,8 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   _prepareDeferredAutomaticShell(shellConfig = {}) {
+    this.isBuilderPreview = false;
+    this.builderCountsAvailable = false;
     this.triggerMode = "Automatic";
     this._prepareMetadataShell(shellConfig);
     this.isLoading = false;
@@ -1065,7 +1130,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get errorBannerTitle() {
-    return this.componentErrorTitle || "Health Check Unavailable";
+    return this.componentErrorTitle || "Record Health Check Unavailable";
   }
 
   get componentErrorAccessibleLabel() {
@@ -1346,6 +1411,27 @@ export default class RecordHealthCheck extends LightningElement {
       ? this.actionButtonLabel
       : "the icon";
     return `Click ${action} to evaluate ${this.checkCountPhrase}.`;
+  }
+
+  get showBuilderPreviewMessage() {
+    return this.isBuilderPreview;
+  }
+
+  get builderPreviewMessage() {
+    if (!this.checkSetName) {
+      return "Select a Check Set in the component properties.";
+    }
+    const availability = "Runs when a record is available.";
+    if (!this.builderCountsAvailable) {
+      return availability;
+    }
+    const activeLabel =
+      this.totalAvailableCheckCount === 1 ? "check" : "checks";
+    if (this.inactiveCheckCount === 0) {
+      return `${availability} Includes ${this.totalAvailableCheckCount} active ${activeLabel}.`;
+    }
+    const inactiveLabel = this.inactiveCheckCount === 1 ? "check" : "checks";
+    return `${availability} Includes ${this.totalAvailableCheckCount} active ${activeLabel} and ${this.inactiveCheckCount} inactive ${inactiveLabel}.`;
   }
 
   get showHiddenEvaluationHint() {

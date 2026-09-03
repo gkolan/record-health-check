@@ -22,49 +22,47 @@
     </values>
     <values>
         <field>EvaluationType__c</field>
-        <value xsi:type="xsd:string">QUERY</value>
+        <value xsi:type="xsd:string">FORMULA</value>
     </values>
     <values>
         <field>SourceQuery__c</field>
-        <value
-      xsi:type="xsd:string"
-    >SELECT COUNT() activeOwners FROM User WHERE Id = {!record.OwnerId} AND IsActive = true</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>SourceQueryField__c</field>
-        <value xsi:type="xsd:string">activeOwners</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>ExpectedValueSource__c</field>
-        <value xsi:type="xsd:string">FIXED_VALUE</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>ExpectedFixedValue__c</field>
-        <value xsi:type="xsd:string">1</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>ComparisonOperator__c</field>
-        <value xsi:type="xsd:string">EQUALS</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>QueryResultHandling__c</field>
-        <value xsi:type="xsd:string">ONE_RESULT</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>NoRowsResult__c</field>
-        <value xsi:type="xsd:string">FAIL</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>EmptyValueHandling__c</field>
-        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">Active User owner count</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value xsi:type="xsd:string">1 active User owner</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -101,10 +99,27 @@
     </values>
     <values>
         <field>MaxQueryRows__c</field>
-        <value xsi:type="xsd:double">1</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
+    </values>
+
+    <values>
+        <field>PassConditionFormula__c</field>
+        <value xsi:type="xsd:string">Owner.IsActive</value>
+    </values>
+
+    <values>
+        <field>DisplayFoundFormula__c</field>
+        <value
+      xsi:type="xsd:string"
+    >TRIM(Owner.FirstName &amp; " " &amp; Owner.LastName) &amp; " is " &amp; IF(Owner.IsActive, "active", "inactive")</value>
+    </values>
+
+    <values>
+        <field>DisplayExpectedFormula__c</field>
+        <value xsi:type="xsd:string">"Active"</value>
     </values>
 </CustomMetadata>

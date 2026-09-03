@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Open pipeline concentration</label>
+    <label>Example: Proposal and Product totals</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Proposal Amount matches the Opportunity Product total</value>
+    >Total proposal Amount matches total Product value</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check compares total Amount from proposal-stage Opportunities with Total Price from their Opportunity Products. It passes when both totals match and returns Unable to Evaluate when no Product total exists.</value>
+    >The Compare Two Queries check sums proposal Amounts and Product Total Prices across the Account. It passes when the totals match. Differences between individual proposals can cancel out; this is an Account-level reconciliation.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -76,7 +76,7 @@
         <field>UnableToEvaluateMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcCheck.checkTitle fallback="This check"} cannot compare totals because the proposal has no Opportunity Product total.</value>
+    >{!record.Name fallback="This Account"} has no Product total to compare with proposal Amount. Add Opportunity Products to test the comparison.</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
@@ -98,7 +98,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">180</value>
+        <value xsi:type="xsd:double">210</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -118,7 +118,7 @@
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review concentration for {!record.Name fallback="Account"}</value>
+    >Review proposal Products for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -135,7 +135,7 @@
         <field>ApplicabilityNotMetMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no open Opportunity with an Amount, so deal-size comparison does not apply.</value>
+    >{!record.Name fallback="This Account"} has no proposal-stage Opportunity with an Amount to compare.</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -147,14 +147,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Proposal Amount: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Opportunity Product total: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

@@ -19,10 +19,10 @@ Record these values in the pull request or retained release evidence before star
 | Exact package version | `MAJOR.MINOR.PATCH.BUILD` from `config/release-runtime-matrix.json` |
 | Release branch | The pull-request head branch |
 | Release commit | Full output of `git rev-parse HEAD` |
-| Upgrade base | `upgradeFromVersion` from `config/release-runtime-matrix.json` |
+| Upgrade bases | Every entry in `upgradeBases` in `config/release-runtime-matrix.json` |
 | Candidate package ID | The new `04t` returned by package creation |
 | Hosted source workflow | URL of the successful manually dispatched run |
-| Subscriber workflow | URL of the successful run for the exact `04t` |
+| Subscriber workflows | Successful clean-install and both upgrade-stage URLs for the exact `04t` |
 
 Do not reuse evidence from another commit, pull-request merge commit, branch head, package build, or
 `04t`.
@@ -85,7 +85,7 @@ tracked file.
 2. Select **Run workflow**.
 3. Select the release branch, not `main` and not a stale branch.
 4. Run the workflow.
-5. Before fan-out, confirm `Reserve release-matrix scratch-org capacity` passes with four daily and
+5. Before fan-out, confirm `Check release-matrix scratch-org capacity` passes with four daily and
    active slots available. The complete source matrix creates four scratch orgs. Deleting an org
    restores an active slot but does not restore a daily creation. Do not run unrelated scratch-org
    creation concurrently with the release gate.
@@ -93,7 +93,8 @@ tracked file.
    - `require-dev-hub-secret`
    - `package-source-tests`
    - `portable-source-tests`
-   - `locker-browser-tests`
+   - `locker-browser-tests (namespaced)`
+   - `locker-browser-tests (no-namespace)`
 7. Confirm the run's head SHA is the recorded release commit.
 8. Retain the workflow URL and uploaded evidence.
 
@@ -126,21 +127,52 @@ candidate requires the documented reviewed override and is not a normal retry me
 2. Select **Run workflow**.
 3. Select the unchanged release branch.
 4. Enter the exact candidate `04t` in `package_version_id`.
-5. Run the workflow.
-6. Confirm `Reserve subscriber-matrix scratch-org capacity` passes before the four jobs fan out.
-7. Confirm all four matrix jobs execute and pass:
-   - clean install under Lightning Web Security;
-   - clean install under Lightning Locker;
-   - upgrade from the tracked stable version under Lightning Web Security;
-   - upgrade from the tracked stable version under Lightning Locker.
+5. Choose `validation_stage: clean-install` and run the workflow.
+6. Confirm `Check subscriber-stage scratch-org capacity` passes before the two selected jobs fan out.
+7. Require both selected jobs to execute and pass, one under Lightning Web Security and one under
+   Lightning Locker. Repeat the dispatch for `upgrade-2.0.6.2`, then `upgrade-2.0.4.2`, always using
+   the same candidate and unchanged release branch. The latter covers the older public-link version,
+   not just the latest promoted version. All three stages are mandatory.
 8. Confirm the workflow title identifies the exact candidate and the run's head SHA is the release
    commit.
-9. Retain install requests, Apex results, browser traces, and upgrade-preservation snapshots.
+9. Retain install requests, the complete subscriber Apex inventory (including
+   `RHCSubscriberFlowSmokeTest`), browser evidence, and both upgrade-preservation snapshots.
+
+Each subscriber dispatch creates two fresh orgs. Together with the four-org source matrix, the full
+release needs ten scratch-org creations. Check daily and active capacity before each stage; if only
+five daily creations are available, plan across quota resets. Workflow concurrency serializes these
+release workflows but does not reserve capacity against other tools or people. Deleting scratch orgs
+does not refund daily creations. Do not replace fresh-org tests with reused-org results to rush release.
+
+The unselected clean/upgrade job is intentionally skipped in each staged dispatch. Only that skip is
+allowed: either selected security-mode job being skipped or lacking its artifacts blocks promotion.
 
 Successful source deployment or clean installation cannot replace the upgrade gate. Successful job
 completion without the required retained artifacts is also a failure.
 
-## 6. Promote the exact candidate
+## 6. Verify a representative sandbox
+
+Before promotion, install or upgrade the exact candidate in an approved representative sandbox with
+the affected CPQ Quote page and customer-owned configuration. Coordinate access with its owner; never
+use production as the test environment. Record the org, persona, expected/actual outcome, and a safe
+evidence reference for each scenario below. Do not include credentials or customer record contents.
+
+| Scenario | Acceptance evidence required |
+| --- | --- |
+| `cpq-quote-lifecycle` | The affected Quote page loads, runs manually and on load, saves, refreshes, and navigates without the reported error, duplicate execution, or an RHC loading overlay. Builder and configuration previews remain quiet. |
+| `existing-page-and-access-preservation` | Existing page placements and customer Check Sets survive the upgrade. Admin, Card User, User, and a user without Run permission behave as documented; diagnostics require the separate entitlement. |
+| `four-type-business-outcomes` | Representative Formula, Query, Compare Two Queries, and Apex Checks return the expected outcomes, including failure, no-data, and restricted-data cases. A successful transaction alone is insufficient. |
+| `existing-automation` | Existing Flow, Apex, REST/MCP, and asynchronous consumers still return their expected results and publish only requested events. Existing validation rules, triggers, and flows remain enabled. |
+| `configuration-recovery` | Customer metadata and page-placement backups exist, the documented restore procedure is rehearsed in the sandbox, and a forward-fix/rollout-stop plan is recorded. Do not assume an in-place package downgrade. |
+
+Copy [`config/release-acceptance-template.json`](../../config/release-acceptance-template.json) to
+`packages/record-health-check/.package-evidence/<candidate-04t>-acceptance.json`. Fill in the exact
+candidate ID, full creation commit, reviewer, ISO verification timestamp, and each scenario's result
+and evidence reference. Leave untested scenarios pending. The file stays ignored and local; retain a
+redacted copy with the release evidence. Promotion rejects missing, pending, stale, or differently
+bound evidence. This is a human attestation gate, not a claim that a script inspected your sandbox.
+
+## 7. Promote the exact candidate
 
 From the same working copy, unchanged branch, and exact creation commit, run:
 
@@ -149,12 +181,14 @@ npm run package:promote -- --dev-hub <dev-hub-alias> --package <candidate-04t>
 ```
 
 Promotion fails unless the worktree is clean, local creation evidence binds the `04t` to the current
-commit, hosted source validation passed for that commit, and subscriber validation passed for that
-commit and candidate. Never bypass or rewrite this evidence.
+commit, representative-sandbox acceptance is complete, hosted source validation passed for that
+commit, and all three subscriber stages passed for that commit and candidate. The hosted checker
+requires successful named jobs and nonempty, unexpired artifacts from the current run attempt;
+a green workflow summary alone is insufficient. Never bypass or rewrite this evidence.
 
 Record the production and sandbox installation URLs printed by the promotion command.
 
-## 7. Publish the promoted release
+## 8. Publish the promoted release
 
 After promotion:
 
@@ -183,7 +217,7 @@ a newer installed version.
 
 Stop the release immediately when any of these conditions occurs:
 
-- source or subscriber Salesforce jobs are skipped;
+- any required source or selected subscriber Salesforce job is skipped;
 - the workflow commit differs from the release commit;
 - the subscriber workflow names a different `04t`;
 - the local branch advances after package creation and before promotion;
@@ -195,6 +229,25 @@ Stop the release immediately when any of these conditions occurs:
 
 Fix the cause and repeat the affected gates. Never reinterpret a skipped or partial result as a
 pass.
+
+## Lessons retained for every release
+
+- A passing mock cannot prove Salesforce lifecycle compatibility: keep the exact RefreshView
+  regression, both security modes, both namespace shapes, and real browser gates.
+- Discover and reconcile every Apex test, including real subscriber Flow interviews; never maintain
+  a one-class smoke list that silently omits a new test.
+- Prove all four Check types actually execute in manual and on-load fixtures. A fixture's label or
+  a completed job is not evidence of type coverage or correct business outcomes.
+- Keep each browser run's evidence separate and reject skipped or flaky results. Never let
+  a later browser run overwrite an earlier failure's evidence.
+- Rehearse upgrades from every supported public distribution base, preserve customer configuration,
+  and check the affected customer page before promotion.
+- Pin and verify the CLI/authentication command, enforce dependency and coverage checks, and record
+  quota limits before dispatch. Fix the cause instead of lowering the gate.
+- Bind every release decision to the same commit and immutable package ID. A green PR, old artifact,
+  or source deployment is not proof that the package is ready.
+
+These controls reduce regression risk; they cannot promise that an unknown defect will never occur.
 
 ## Related
 

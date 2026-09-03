@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Buying-committee breadth</label>
+    <label>Example: Find a Technical Buyer role</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Open-deal buying committee includes a technical evaluator</value>
+    >Open-deal Contact Roles include Technical Buyer</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -104,13 +104,13 @@
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check passes when the Contact Role list across open Opportunities contains Technical Buyer, turning a reusable list-membership operator into an explicit solution-validation requirement.</value>
+    >The Query check searches the Role values on open Opportunities for Technical Buyer. It passes when the role appears. Found shows the value being sought; Expected shows the returned list to search.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -141,14 +141,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Capabilities represented on open deals: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Required buying-committee capability: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

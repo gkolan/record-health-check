@@ -21,7 +21,10 @@ the promoted package for an installed org. See
 Assign **Record Health Check Card User** when only the Lightning card is required. Assign
 **Record Health Check User** to automation principals that also need Flow, Agent, REST, Apex,
 Queueable, Batch, or Scheduled entry points. Assign **Record Health Check Admin** to administrators
-who configure the package or need authorized diagnostics.
+who configure the package. For troubleshooting as an existing Card User or User, add
+**Record Health Check Diagnostics Viewer** temporarily and enable **Show Diagnostics** on the
+Check Set. Admin already includes diagnostic access. See [Permission Sets](../reference/permission-sets.md)
+for the complete choices and the alternative if Diagnostics Viewer is absent.
 
 These permission sets do not grant access to Account, Contact, Opportunity, Case, or custom-object
 data. See [Security and data access](../architecture/security-and-data-access.md).
@@ -76,7 +79,7 @@ A Flow, Queueable, Batch, or scheduled transaction can therefore see a different
 scope than the interactive card. Timezone-sensitive formulas can also cross their cutoff at a
 different wall-clock time. Formula globals such as `$User` are not supported in record-context
 Formula Checks and fail closed rather than adapting to the caller. Use the
-[execution-context war room](../diagnostics/execution-context-war-room.md) to compare the execution
+[execution-context troubleshooting guide](../diagnostics/troubleshoot-execution-context.md) to compare the execution
 user, permissions, visible rows, timezone, job ID, Run ID, and Reason Code before changing the
 Check.
 
@@ -91,27 +94,18 @@ flows.
 
 Package installation and upgrade also compile the packaged Apex test surface.
 
-Package contributors therefore use in-memory records, synthetic IDs, and seeded query caches in
-packaged tests. Tests that must insert Account, Contact, Opportunity, Task, Event, or Case records
-belong in `integration-tests/` and run on a clean scratch org. Do not extend the packaged factory to
-try to bypass customer automation, and do not apply managed-package test-exclusion guidance to
-this unlocked package. See
-[Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md).
+### Packaged tests fail while creating business records
 
-### Known issue for 2.0.0-* installs
-
-Customers on an unlocked `2.0.0-*` build can see Framework test setup fail with an Account or
+Older installations can encounter Framework test setup failures with an Account or
 related-object validation, required-field, trigger, or flow error when they explicitly run packaged
 tests, choose Run All Tests, or deploy package source into a customized org. The error is raised by
 subscriber automation reacting to packaged test data setup.
 
-Ordinary subscriber `RunLocalTests` does not select the installed namespaced package tests. Until a
-fixing package version is published, confirm the failing stack is Framework fixture DML and report
+Ordinary subscriber `RunLocalTests` does not select the installed namespaced package tests. If an older version fails this way, confirm the failing stack is Framework fixture DML and report
 unclear cases through the project support channel. Do not disable production automation merely to
 make the Framework test fixture pass.
 
-The fix removes subscriber-shaped business-object DML from packaged tests; this note will name the
-first fixed version when it is promoted.
+Current packaged tests avoid business-object DML. Follow [Upgrade and revalidate](../install/upgrade.md) to test the latest release in a sandbox.
 
 ## Why does the package contain so many Apex classes?
 
@@ -200,7 +194,7 @@ Release validation covers namespaced and no-namespace source shapes, package ins
 subscriber-style behavior, and upgrade preservation of organization-owned Custom Metadata. A
 production rollout still requires sandbox validation against the destination org’s licenses,
 schema, permissions, Checks, and integrations. See
-[Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md).
+[Upgrade and revalidate](../install/upgrade.md).
 
 ## Does an upgrade overwrite organization-owned Check configuration?
 
@@ -239,13 +233,6 @@ User-only fields on polymorphic Owner relationships require an explicit path suc
 `UNABLE_TO_EVALUATE`. A Query that counts active Users instead returns zero and can intentionally
 produce `FAIL`. Choose the pattern that expresses the required business meaning. See
 [Formula ownership checks](../reference/evaluation/formula.md#ownership-checks-active-user-queuegroup-and-query-vs-formula).
-
-## Why did source deployment fail a currency planner test?
-
-This applies only to contributors deploying unpackaged source. In a multi-currency org,
-`CurrencyIsoCode` can correctly appear in the field plan, so a test expecting only `Id` is using a
-single-currency assumption. Subscribers installing the package are unaffected. See
-[Source development](../contributing/source-development.md).
 
 ## Why does a Query Check ignore records in the Recycle Bin?
 

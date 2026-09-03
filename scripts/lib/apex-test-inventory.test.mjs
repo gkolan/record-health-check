@@ -3,10 +3,20 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   discoverApexTestClasses,
   verifyApexTestResult
 } from "./apex-test-inventory.mjs";
+
+test("subscriber inventory includes the real Flow interview test", () => {
+  const root = fileURLToPath(new URL("../../", import.meta.url));
+  const names = discoverApexTestClasses(root, [
+    "subscriber-app/main/default/classes"
+  ]).map((entry) => entry.className);
+  assert.ok(names.includes("RHCSubscriberFlowSmokeTest"));
+  assert.ok(names.includes("RHCSubscriberSmokeTest"));
+});
 
 test("discovers class-level IsTest annotations and ignores comments", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "rhc-apex-inventory-"));

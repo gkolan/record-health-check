@@ -23,7 +23,7 @@ Health Check Admin**. Turn the setting off after the investigation.
 | Lightning card | Turn on authorized diagnostics temporarily, then inspect applicability, dependencies, field access, Formula configuration, SOQL, or Apex |
 | Flow | Route a known non-normal result without treating display text as an API |
 | Apex | Branch or log using a stable `UPPER_SNAKE_CASE` value |
-| Support or release review | Connect the public result with authorized **Show Diagnostics** details and logs |
+| Troubleshooting | Connect the public result with authorized **Show Diagnostics** details and logs |
 
 Reason Codes explain why a Check did not produce a normal `PASS` or `FAIL`, or why a card could not
 load. Codes use `UPPER_SNAKE_CASE`, and future package versions can add new codes. Integrations must
@@ -89,12 +89,12 @@ a custom Apex Check.
 | `CHECK_INACTIVE` | `UNABLE_TO_EVALUATE` | Check is inactive. |
 | `INVALID_CHECK_TYPE` | `UNABLE_TO_EVALUATE` | Evaluation Type missing or unrecognized. |
 | `INVALID_CONFIG` | definition / unable | Invalid Check Set display or identity configuration. |
-| `MISSING_REQUIRED_FIELD` | validation | A required Check Set or Check field (e.g. Base Object API Name, Card Title) is blank (deploy/CI validator). |
+| `MISSING_REQUIRED_FIELD` | validation | A required Check Set or Check field (e.g. Base Object API Name, Card Title) is blank. |
 | `CHECK_LIMIT_EXCEEDED` | Lightning definition / validation warning | A Check Set has more than 25 active Checks. The Lightning card shows and runs the first 25; the metadata audit reports the excess. Direct Apex and Flow use `FRAMEWORK_MAX_CHECKS_EXCEEDED` instead. |
 | `APEX_DISPLAY_TEXT_IGNORED` | validation warning | An Apex Check configures Display Found or Expected formulas/text. Custom Apex Check outcomes supply those values, so the metadata audit warns that these fields are ignored. |
 | `USER_RUN_PUBLICATION_UNREACHABLE` | validation warning | An automatic card hides Run and Rerun while Check Set publication is enabled. Users cannot publish from the card, but Apex and Flow remain available. |
 | `USER_RESULT_PUBLICATION_UNREACHABLE` | validation warning | An automatic card hides Run and Rerun while publication is enabled for one of its Checks. Users cannot publish from the card, but Apex and Flow remain available. |
-| `INVALID_DEPENDENCY` | validation | Prerequisite metadata is invalid (deploy/CI validator). |
+| `INVALID_DEPENDENCY` | validation | Prerequisite metadata is invalid. |
 | `INVALID_OBJECT_API_NAME` | thrown request error | The selected Check Set has a blank or unknown Salesforce object API name. |
 
 ---

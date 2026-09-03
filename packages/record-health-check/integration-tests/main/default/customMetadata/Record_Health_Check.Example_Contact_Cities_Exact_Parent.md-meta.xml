@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Open deal product coverage</label>
+    <label>Example: Opportunity Product coverage</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Every open Opportunity has at least one Product</value>
+    >Open Opportunity names match those with Products</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when the open Opportunity name list exactly matches the deals represented by Opportunity Products, making quote and scope readiness understandable without displaying record IDs.</value>
+    >The Compare Two Queries check compares open Opportunity names with names represented by Products. It passes when the lists match exactly. Duplicate names can hide missing Product coverage; use IDs when names are not unique.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -98,7 +98,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">230</value>
+        <value xsi:type="xsd:double">240</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -147,14 +147,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Open deals requiring configured Products: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Open deals represented by Product line items: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

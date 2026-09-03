@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Sales-service contact overlap</label>
+    <label>Example: Sales and service Contacts</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Sales and service work share a customer Contact</value>
+    >Sales and service share a Contact name</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when at least one named customer Contact connects unresolved service work with an open Opportunity, demonstrating cross-functional stakeholder continuity without exposing record IDs.</value>
+    >The Compare Two Queries check compares Contact names on open Cases with names on open Opportunities. It passes when the lists overlap. Matching names do not prove Contact identity; use IDs when distinct people can share a name.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -98,7 +98,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">210</value>
+        <value xsi:type="xsd:double">220</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -147,14 +147,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Contacts involved in unresolved service work: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Contacts represented on open sales work: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

@@ -1,14 +1,10 @@
 # Choose a package version
 
-> [!NOTE]
-> On this page, choose an immutable Record Health Check package version, install it in the intended
-> Salesforce environment, and understand the safe recovery path if a release must be reversed.
-
-Use this page only when a release owner must pin an exact version, verify the installed version, or
+Use this page to select an exact package version, verify the installed version, or
 plan recovery. For a normal first installation, follow [Install and verify](./install-in-a-sandbox.md).
 
-Each Salesforce package version has a unique `04t` ID. The sandbox and production buttons for a row
-install the same immutable package; only the Salesforce login destination differs.
+Each Salesforce package version has a unique `04t` ID. The sandbox and production links
+install the same released package; only the Salesforce login destination differs.
 
 In Salesforce packaging terms, this is a **second-generation unlocked package (2GP)**. Released
 versions have fixed contents: Salesforce does not edit a released version in place.
@@ -22,21 +18,39 @@ changing versions and follow the full [upgrade and revalidation procedure](./upg
 To see the current version, open **Setup → Installed Packages**, select **Record Health Check**, and
 read **Version Number**.
 
+## Documentation and installed version
+
+Verify the exact target before installation. Repository source can include changes that are
+not yet released. When following an example, use documentation, Check definitions, data scripts,
+and expected results from the same source or release.
+
+The [release configuration](../../config/package-releases.json) identifies the latest stable
+package and its installation links. The [changelog](../../CHANGELOG.md) records release history.
+Deploying source to a scratch org does not update the published package.
+
 ## Step 1: Choose a version
 
-Versions are listed newest first. The catalog retains earlier promoted versions for release-owner
-verification and recovery planning.
+The public redirects can temporarily target an older version than the latest promoted artifact.
+Check the current distribution notice in the [release notes](../../CHANGELOG.md), confirm the
+installation screen, and validate in a sandbox before upgrading. Do not interpret an older redirect
+as an in-place downgrade path for an existing installation.
 
-| Version | Release name | Package version ID | Sandbox | Production or Developer Edition |
-| --- | --- | --- | --- | --- |
-| **2.0.6.2** | Version 2.0.6 | `04tak000000eM53AAE` | [Install 2.0.6.2 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eM53AAE) | [Install 2.0.6.2 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eM53AAE) |
-| **2.0.5.1** | Version 2.0.5 | `04tak000000eIO1AAM` | [Install 2.0.5.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eIO1AAM) | [Install 2.0.5.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000eIO1AAM) |
-| **2.0.4.2** | Version 2.0.4 | `04tak000000cZBFAA2` | [Install 2.0.4.2 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000cZBFAA2) | [Install 2.0.4.2 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000cZBFAA2) |
-| **2.0.3.1** | Version 2.0.3 | `04tak000000ajbJAAQ` | [Install 2.0.3.1 in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) | [Install 2.0.3.1 in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000ajbJAAQ) |
+Public install destinations:
+
+| Target environment | Install |
+| --- | --- |
+| Sandbox | [Open the public sandbox installer](https://recordhealthcheck.com/install/sandbox) |
+| Production or Developer Edition | [Open the public production installer](https://recordhealthcheck.com/install/production) |
+
+For a repeatable installation or upgrade, record the exact package ID from the release
+configuration before starting. Use that same ID in each environment you validate.
 
 Choose **Install for Admins Only** on the Salesforce installation page, then assign **Record Health
-Check User** or **Record Health Check Admin** as described in [Install and verify in your
-org](./install-in-a-sandbox.md).
+Check Card User**, **Record Health Check User**, or **Record Health Check Admin** as described in [Install and verify in your
+org](./install-in-a-sandbox.md). For troubleshooting as a Card User or User, add
+**Record Health Check Diagnostics Viewer** and enable **Show Diagnostics** on the Check Set;
+Admin already includes diagnostic access. See [Permission Sets](../reference/permission-sets.md)
+if Diagnostics Viewer is absent from Setup.
 
 The installation page shows the package name, publisher, target version, component access choices,
 and whether the org already has a related version. Confirm the target org and version before
@@ -44,11 +58,12 @@ selecting **Install**.
 
 ## Step 2: Install an exact version with Salesforce CLI
 
-Use the `04t` value from the table when an automated process must install a specific version:
+Copy `stable.subscriberPackageVersionId` from the [release configuration](../../config/package-releases.json)
+and replace `PACKAGE_VERSION_ID` below. The value begins with `04t`.
 
 ```bash
 sf package install \
-  --package 04tak000000eM53AAE \
+  --package PACKAGE_VERSION_ID \
   --target-org <org-alias> \
   --security-type AdminsOnly \
   --upgrade-type Mixed \
@@ -71,10 +86,10 @@ Use the recovery path that matches the situation:
 
 | Situation | Safe path |
 | --- | --- |
-| A new or clean org needs a listed release | Install that version's exact `04t` from the table. |
+| A new or clean org needs a specific release | Install its recorded `04t` package version ID. |
 | An upgrade has not reached production | Stop the rollout and keep production on its current installed version. |
 | An installed upgrade must be reversed | Preserve subscriber-owned Check Sets and Checks, then prefer a higher corrective package version. Validate the forward fix in a sandbox before production. |
-| The package must be removed | Follow [Uninstall and rollback](./uninstall.md), including configuration backup and dependency removal. Reinstall the desired listed version only after confirming that a clean reinstall is acceptable. |
+| The package must be removed | Follow [Uninstall and rollback](./uninstall.md), including configuration backup and dependency removal. Reinstall the desired release only after confirming that a clean reinstall is acceptable. |
 
 Package rollback and configuration rollback are separate concerns. Before any upgrade or uninstall,
 back up organization-owned `Record_Health_Check_Set__mdt` and `Record_Health_Check__mdt` records and

@@ -67,7 +67,7 @@ test("keeps configured and unconfigured App Builder previews quiet", async ({
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("request", (request) => {
     if (request.postData()?.includes("RecordHealthCheckController")) {
-      recordHealthCheckApexRequests.push(request.url());
+      recordHealthCheckApexRequests.push(request.postData());
     }
   });
   await page.goto(builderUrl, { waitUntil: "domcontentloaded" });
@@ -81,7 +81,7 @@ test("keeps configured and unconfigured App Builder previews quiet", async ({
     editorPage.on("pageerror", (error) => pageErrors.push(error.message));
     editorPage.on("request", (request) => {
       if (request.postData()?.includes("RecordHealthCheckController")) {
-        recordHealthCheckApexRequests.push(request.url());
+        recordHealthCheckApexRequests.push(request.postData());
       }
     });
   }
@@ -91,13 +91,19 @@ test("keeps configured and unconfigured App Builder previews quiet", async ({
   await expect(components).toHaveCount(2);
 
   const configured = components.filter({
-    hasText: "The configured health check will run when a record is available."
+    hasText: "Runs when a record is available."
   });
   const unconfigured = components.filter({
     hasText: "Select a Check Set in the component properties."
   });
   await expect(configured).toHaveCount(1);
   await expect(unconfigured).toHaveCount(1);
+  await expect(configured.locator(".rhc-header__desc")).toHaveText(
+    "Record Health Check"
+  );
+  await expect(configured.locator(".rhc-builder-preview")).toContainText(
+    /Includes \d+ active checks?(?: and \d+ inactive checks?)?\./
+  );
 
   for (let sample = 0; sample < 60; sample += 1) {
     await expect(components.locator("lightning-spinner")).toHaveCount(0);
@@ -118,6 +124,7 @@ test("keeps configured and unconfigured App Builder previews quiet", async ({
     editorPage.getByText("A Component Error has occurred")
   ).toHaveCount(0);
   await expect(editorPage.getByText("Invalid contextElement")).toHaveCount(0);
-  expect(recordHealthCheckApexRequests).toEqual([]);
+  expect(recordHealthCheckApexRequests).toHaveLength(1);
+  expect(recordHealthCheckApexRequests[0]).toContain("getCheckSetShellConfig");
   expect(pageErrors).toEqual([]);
 });

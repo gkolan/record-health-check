@@ -128,6 +128,12 @@
             </template>
           </div>
 
+          <template if:true={showBuilderPreviewMessage}>
+            <p class="rhc-builder-preview" role="status">
+              {builderPreviewMessage}
+            </p>
+          </template>
+
           <template if:true={completionWarning}>
             <div class="rhc-completion-warning" role="status">
               <span

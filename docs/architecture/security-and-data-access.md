@@ -1,7 +1,5 @@
 # Security and data access
 
-This architecture reference explains execution identity and data visibility.
-
 Use this reference to understand who can run Checks and which data they can see.
 
 > [!NOTE]
@@ -14,7 +12,7 @@ Record Health Check reads Salesforce data with the access of the user who starts
 not grant access to a record or field the user cannot already read. A standard Check does not change
 the checked record.
 
-The package protects four separate areas:
+The package protects five separate areas:
 
 | Area | Protection |
 | --- | --- |
@@ -26,9 +24,12 @@ The package protects four separate areas:
 
 ## Choose the correct Permission Set
 
-The package installs five Permission Sets. **Record Health Check Run**
+This checkout defines six Permission Sets; see [version availability](../install/choose-a-package-version.md#documentation-and-installed-version) for the published package. **Record Health Check Run**
 (`rhc__Record_Health_Check_Run`) is a Custom Permission included in the four runner Permission Sets; it is not a Permission Set
 by itself.
+
+For the complete capability matrix, API names, and assignment steps, see [Permission Sets](../reference/permission-sets.md). For the
+two authorization gates, see [Custom Permissions](../reference/custom-permissions.md).
 
 To assign one, go to **Setup → Permission Sets**, open the installed Permission Set, select
 **Manage Assignments**, and then select **Add Assignments**. Do not search for a Permission Set named
@@ -41,6 +42,7 @@ Permission Sets.
 | **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to Lightning, Apex, Flow, Agentforce, REST, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for Set Run and Check Result events | Automation principals that use those broader entry points; not the default card-only assignment |
 | **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Runner access plus diagnostics, Custom Metadata type visibility, validation, and App Builder picklist access | Administrators who maintain or troubleshoot Checks; creating Custom Metadata also requires Salesforce Customize Application or equivalent access |
 | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`) | Run Custom Permission, the versioned Apex REST adapter, and read access to both Custom Metadata Types; excludes UI, Flow, Agentforce, async Apex, lifecycle events, and diagnostics | Dedicated least-privilege MCP integration users |
+| **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) | Diagnostics Custom Permission only; no Run permission, Apex, metadata, object, field, or event access | Affected Card User or User assignments that need temporary diagnostic visibility without Admin access |
 | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create) | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data |
 
 Do not assign the Admin Permission Set merely because a person needs to run a Check. Diagnostic
@@ -94,7 +96,7 @@ test does not prove that a sales or service user can read every field required b
 
 Formula globals such as `$User` are not a supported way to branch a Formula Check by caller. For a
 page-versus-automation incident, use the
-[execution-context war room](../diagnostics/execution-context-war-room.md) to distinguish access,
+[execution-context troubleshooting guide](../diagnostics/troubleshoot-execution-context.md) to distinguish access,
 identity, timezone, and asynchronous transaction boundaries before changing the Check.
 
 ## How stored SOQL is protected
@@ -148,7 +150,9 @@ Detailed troubleshooting appears only when both conditions are true:
 2. The running user has **Record Health Check View Diagnostics**
    (`rhc__Record_Health_Check_View_Diagnostics`).
 
-The Admin Permission Set includes that Custom Permission. The User Permission Set does not.
+The Admin and Diagnostics Viewer Permission Sets include that Custom Permission. The Card User,
+User, and MCP Integration Permission Sets do not. Diagnostics Viewer is additive: the affected user
+still needs the appropriate runner Permission Set.
 
 Turn **Show Diagnostics** off after troubleshooting. It applies to the whole Check Set, so every
 person who also has the diagnostics permission can see the details while it remains enabled.
@@ -226,6 +230,8 @@ user edit and save data according to that user's Salesforce access. See
 
 ## Related
 
+- [Permission Sets](../reference/permission-sets.md)
+- [Custom Permissions](../reference/custom-permissions.md)
 - [Install and verify](../install/install-in-a-sandbox.md)
 - [Operate in production](../production-operations/operate-in-production.md)
 - [Reason Codes](../reference/results/reason-codes.md)

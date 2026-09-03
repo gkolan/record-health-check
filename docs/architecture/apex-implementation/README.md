@@ -4,8 +4,6 @@ Use this reference to locate the production Apex class responsible for a package
 changing or reviewing the repository source. These classes are implementation details, not public
 Apex APIs for subscriber code.
 
-This folder is only for developers changing the package source.
-
 > [!IMPORTANT]
 > **Audience: package maintainers and Salesforce developers.** This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation

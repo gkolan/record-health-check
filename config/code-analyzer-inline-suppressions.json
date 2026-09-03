@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "entries": [
     {
+      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckConfigService.cls",
+      "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by the controller."
+    },
+    {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAsyncSupport.cls",
       "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata defines the packaged Check Set object and must remain available to authorized async runners."
     },

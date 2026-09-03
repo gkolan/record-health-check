@@ -93,7 +93,8 @@
     "prettier": "prettier --write --no-error-on-unmatched-pattern \"packages/record-health-check/force-app/**/*.{cls,css,html,js,trigger,xml}\" \"packages/record-health-check/integration-tests/**/*.{cls,css,html,js,trigger,xml}\" \"subscriber-app/**/*.{cls,css,html,js,trigger,xml}\" \"scripts/**/*.{apex,js,json,md,mjs,xml,yaml,yml}\" \"packages/record-health-check/manifest/**/*.xml\" \"config/**/*.json\" \"*.{js,json,md,xml,yaml,yml}\" \".github/**/*.{md,yaml,yml}\"",
     "prettier:verify": "prettier --check --no-error-on-unmatched-pattern \"packages/record-health-check/force-app/**/*.{cls,css,html,js,trigger,xml}\" \"packages/record-health-check/integration-tests/**/*.{cls,css,html,js,trigger,xml}\" \"subscriber-app/**/*.{cls,css,html,js,trigger,xml}\" \"scripts/**/*.{apex,js,json,md,mjs,xml,yaml,yml}\" \"packages/record-health-check/manifest/**/*.xml\" \"config/**/*.json\" \"*.{js,json,md,xml,yaml,yml}\" \".github/**/*.{md,yaml,yml}\"",
     "prepare": "husky || true",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "demo:verify-source": "node scripts/contributor/setup-demo.mjs --verify-only"
   },
   "devDependencies": {
     "@locker/eslint-config-locker": "^0.28.9",

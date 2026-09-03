@@ -1,6 +1,15 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import {
+  browserEvidencePaths,
+  assertBrowserReport,
+  redactBrowserEvidence,
+  browserEvidenceHtml
+} from "../lib/browser-evidence.mjs";
 
 process.env.SF_DISABLE_LOG_FILE ??= "true";
 
@@ -31,6 +40,7 @@ function executeJson(command, args) {
 const targetOrg = option("--target-org");
 const securityMode = option("--security-mode");
 const existingRestrictedOrg = option("--restricted-org");
+const installedPackage = option("--installed-package");
 
 if (!targetOrg || !["LWS", "Locker"].includes(securityMode)) {
   process.stderr.write(
@@ -128,13 +138,24 @@ try {
   }
   restrictedCurrentPassword = generatedPassword;
   restrictedNewPassword = `${generatedPassword}Rhc9`;
+  const cardPermission = executeJson("sf", [
+    "data",
+    "query",
+    "--target-org",
+    targetOrg,
+    "--query",
+    "SELECT Name, NamespacePrefix FROM PermissionSet WHERE Name = 'Record_Health_Check_Card_User' AND IsOwnedByProfile = false"
+  ]).result?.records;
+  if (cardPermission?.length !== 1)
+    throw new Error("Expected one package Card User permission set.");
+  const cardPermissionName = `${cardPermission[0].NamespacePrefix ? `${cardPermission[0].NamespacePrefix}__` : ""}${cardPermission[0].Name}`;
   const existingAssignment = executeJson("sf", [
     "data",
     "query",
     "--target-org",
     targetOrg,
     "--query",
-    `SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = '${restrictedUserId}' AND PermissionSet.Name = 'Record_Health_Check_User' LIMIT 1`
+    `SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = '${restrictedUserId}' AND PermissionSet.Name = 'Record_Health_Check_Card_User' LIMIT 1`
   ]).result?.records?.[0];
   if (!existingAssignment?.Id) {
     execute("sf", [
@@ -146,7 +167,7 @@ try {
       "--on-behalf-of",
       restrictedUsername,
       "--name",
-      "Record_Health_Check_User"
+      cardPermissionName
     ]);
   }
   const created = executeJson("sf", [
@@ -213,13 +234,63 @@ try {
   }
 
   function runBrowserSpec(browser, spec, env) {
-    execute(
-      "npm",
-      ["run", "test:browser", "--", `--project=${browser}`, spec],
-      {
-        env: { ...process.env, ...env }
-      }
+    const evidence = browserEvidencePaths(
+      `${securityMode.toLowerCase()}-${fixtureToken}`,
+      browser,
+      spec
     );
+    // Keep unsanitized reporter output outside all artifact-upload directories.
+    const temporary = fs.mkdtempSync(
+      path.join(os.tmpdir(), "rhc-browser-report-")
+    );
+    const rawReport = path.join(temporary, "result.json");
+    const environment = {
+      ...process.env,
+      ...env,
+      RHC_BROWSER_OUTPUT: evidence.output,
+      RHC_BROWSER_JSON: rawReport
+    };
+    try {
+      const result = spawnSync(
+        "npm",
+        ["run", "test:browser", "--", `--project=${browser}`, spec],
+        {
+          encoding: "utf8",
+          env: environment,
+          stdio: "pipe",
+          maxBuffer: 64 * 1024 * 1024,
+          timeout: 10 * 60 * 1000
+        }
+      );
+      for (const output of [result.stdout, result.stderr]) {
+        if (output)
+          process.stdout.write(redactBrowserEvidence(output, environment));
+      }
+      if (!fs.existsSync(rawReport))
+        throw new Error("Browser execution did not produce a result report.");
+      const sanitized = redactBrowserEvidence(
+        fs.readFileSync(rawReport, "utf8"),
+        environment
+      );
+      fs.mkdirSync(evidence.output, { recursive: true });
+      fs.mkdirSync(evidence.html, { recursive: true });
+      fs.writeFileSync(evidence.json, sanitized);
+      fs.writeFileSync(
+        path.join(evidence.html, "index.html"),
+        browserEvidenceHtml(sanitized)
+      );
+      if (result.error)
+        throw new Error(
+          `Browser execution failed: ${result.error.code || "process error"}`
+        );
+      if (result.status !== 0)
+        throw new Error(
+          `Browser execution exited with status ${result.status}.`
+        );
+      assertBrowserReport(JSON.parse(sanitized));
+    } finally {
+      fs.rmSync(temporary, { recursive: true, force: true });
+    }
   }
 
   const restrictedSetupUrl = frontdoorUrl(
@@ -239,6 +310,7 @@ try {
     );
     runBrowserSpec(browser, "tests/browser/release-matrix.spec.mjs", {
       RHC_BROWSER_URL: url,
+      RHC_EXPECTED_AUTOMATIC_PASSED: installedPackage ? "4" : "3",
       RHC_SECURITY_MODE: securityMode,
       RHC_SECOND_ACCOUNT_ID: secondAccountId,
       RHC_SECOND_ACCOUNT_NAME: secondAccountName
@@ -261,6 +333,7 @@ try {
     );
     runBrowserSpec(browser, "tests/browser/restricted-persona.spec.mjs", {
       RHC_BROWSER_URL: restrictedUrl,
+      RHC_EXPECTED_AUTOMATIC_PASSED: installedPackage ? "4" : "3",
       RHC_RESTRICTED_BROWSER_URL: restrictedUrl,
       RHC_SECURITY_MODE: securityMode
     });

@@ -8,7 +8,7 @@ select a released package version, upgrade an installation, or remove the packag
 | What you need to do | Guide |
 | --- | --- |
 | Install and verify the package in an org | [Install and verify in a sandbox](./install-in-a-sandbox.md) |
-| Create a disposable org with the complete demo | [Install the demo in a scratch org](./install-demo-in-a-scratch-org.md) |
+| Choose a released or current-source scratch-org demo | [Install the demo in a scratch org](./install-demo-in-a-scratch-org.md) |
 | Inspect and verify the examples included with the package | [Explore the installed examples](./explore-installed-examples.md) |
 | Choose a released package version | [Choose a package version](./choose-a-package-version.md) |
 | Upgrade an existing installation | [Upgrade and revalidate](./upgrade.md) |

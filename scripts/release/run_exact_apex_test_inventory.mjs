@@ -28,8 +28,8 @@ if (!values["target-org"] || !values.topology) {
   console.error("Pass --target-org and --topology.");
   process.exit(1);
 }
-if (!["package", "full"].includes(values.scope)) {
-  console.error("--scope must be package or full.");
+if (!["package", "full", "subscriber"].includes(values.scope)) {
+  console.error("--scope must be package, full, or subscriber.");
   process.exit(1);
 }
 if (!/^[a-z0-9-]+$/i.test(values.topology)) {
@@ -41,9 +41,10 @@ if (!/^\d+$/.test(values.wait) || Number(values.wait) < 1) {
   process.exit(1);
 }
 
-const sourceDirectories = [
-  "packages/record-health-check/force-app/main/default/classes"
-];
+const sourceDirectories =
+  values.scope === "subscriber"
+    ? ["subscriber-app/main/default/classes"]
+    : ["packages/record-health-check/force-app/main/default/classes"];
 if (values.scope === "full") {
   sourceDirectories.push(
     "packages/record-health-check/integration-tests/main/default/classes"

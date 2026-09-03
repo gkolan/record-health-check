@@ -25,7 +25,7 @@
             <componentInstance>
                 <componentInstanceProperties>
                     <name>checkSetName</name>
-                    <value>Account_Data_Quality</value>
+                    <value>Release_On_Load</value>
                 </componentInstanceProperties>
                 <componentName>c:recordHealthCheck</componentName>
                 <identifier>c_recordHealthCheck_onLoad</identifier>

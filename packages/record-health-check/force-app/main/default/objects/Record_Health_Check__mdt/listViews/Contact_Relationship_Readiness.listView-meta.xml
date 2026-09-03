@@ -2,9 +2,9 @@
 <ListView xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Contact_Relationship_Readiness</fullName>
     <columns>MasterLabel</columns>
-    <columns>Record_Health_Check_Set__c</columns>
     <columns>CheckTitle__c</columns>
     <columns>EvaluationType__c</columns>
+    <columns>EvaluationOrder__c</columns>
     <columns>IsActive__c</columns>
     <filterScope>Everything</filterScope>
     <filters>
@@ -12,5 +12,5 @@
         <operation>equals</operation>
         <value>Example_Contact_Relationship_Readiness</value>
     </filters>
-    <label>Contact Relationship Readiness</label>
+    <label>Example: Contact Relationship Readiness</label>
 </ListView>
