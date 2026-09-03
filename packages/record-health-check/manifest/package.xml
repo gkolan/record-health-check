@@ -446,7 +446,6 @@
     </types>
     <types>
         <members>Record_Health_Check_Run</members>
-        <members>Record_Health_Check_View_Diagnostics</members>
         <name>CustomPermission</name>
     </types>
     <types>
@@ -465,7 +464,6 @@
         <name>Layout</name>
     </types>
     <types>
-        <members>CustomPermission.Record_Health_Check</members>
         <members>Record_Health_Check__mdt.All</members>
         <members>Record_Health_Check__mdt.Account_Check_Builder_Guide</members>
         <members>Record_Health_Check__mdt.Account_Relationship_Risk</members>

@@ -45,5 +45,7 @@ public class RecordHealthCheckDefinitionResponse {
   @AuraEnabled
   public Boolean showDiagnostics; // mirrors ShowDiagnostics__c — tells LWC to show adminDetailMessage
   @AuraEnabled
+  public Boolean canViewDetails; // verified explicit permission-set assignment
+  @AuraEnabled
   public List<RecordHealthCheckDefinition> checks;
 }

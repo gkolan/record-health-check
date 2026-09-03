@@ -11,10 +11,10 @@ private with sharing class RecordHealthCheckScopePipelineIT {
   @IsTest
   static void qualifiedCheckEvaluatesDeduplicatedScopeInInputOrder() {
     Account first = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'First', 'AnnualRevenue' => 2000000 }
+      new Map<String, Object>{ 'Name' => 'First', 'Type' => 'Prospect' }
     );
     Account second = RecordHealthCheckTestDataFactory.account(
-      new Map<String, Object>{ 'Name' => 'Second', 'AnnualRevenue' => 2000000 }
+      new Map<String, Object>{ 'Name' => 'Second', 'Type' => 'Prospect' }
     );
     RHCIntegrationTestDataFactory.createAccounts(
       new List<Account>{ first, second }
@@ -52,7 +52,7 @@ private with sharing class RecordHealthCheckScopePipelineIT {
     Assert.areEqual(
       2,
       response.summary.passed,
-      'Both Accounts above the annual-revenue threshold should pass.'
+      'Both Accounts with a populated Type should pass.'
     );
     Assert.isNull(
       response.results[0].display,
@@ -64,8 +64,8 @@ private with sharing class RecordHealthCheckScopePipelineIT {
   static void displayModeAddsDisplayWithoutChangingEnvelope() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
-        'Name' => 'Revenue Below Threshold',
-        'AnnualRevenue' => 500000
+        'Name' => 'Account Type Missing',
+        'Type' => null
       }
     );
     RHCIntegrationTestDataFactory.createAccount(account);
@@ -85,7 +85,7 @@ private with sharing class RecordHealthCheckScopePipelineIT {
     Assert.areEqual(
       RecordHealthCheckStatus.FAIL,
       response.results[0].evaluation.status,
-      'Annual revenue below one million should fail.'
+      'An Account with no Type should fail.'
     );
     Assert.isNotNull(
       response.results[0].display,
@@ -101,8 +101,8 @@ private with sharing class RecordHealthCheckScopePipelineIT {
   static void summaryModeOmitsPassingItemsButRetainsCounts() {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
-        'Name' => 'Revenue Above Threshold',
-        'AnnualRevenue' => 2000000
+        'Name' => 'Account Type Populated',
+        'Type' => 'Prospect'
       }
     );
     RHCIntegrationTestDataFactory.createAccount(account);
@@ -131,6 +131,7 @@ private with sharing class RecordHealthCheckScopePipelineIT {
     Account account = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{
         'Name' => 'Silent Default',
+        'Type' => 'Prospect',
         'Website' => 'https://silent.example.com',
         'AnnualRevenue' => 2000000
       }

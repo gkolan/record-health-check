@@ -17,10 +17,10 @@
   },
   "lwc": {
     "verifiedAt": "2026-09-02",
-    "testCount": 255,
-    "linesPercent": 98.58,
-    "statementsPercent": 98.11,
+    "testCount": 258,
+    "linesPercent": 98.59,
+    "statementsPercent": 98.12,
     "functionsPercent": 99.08,
-    "branchesPercent": 91.83
+    "branchesPercent": 91.94
   }
 }

@@ -1,12 +1,14 @@
 # Custom Permissions
 
-Use this reference to understand the two authorization gates installed by Record Health Check and
-which packaged Permission Sets grant them.
+The 2.0.7.2 source packages exactly one Custom Permission: **Record Health Check Run**.
+Earlier package versions include a separate View Diagnostics Custom Permission.
 
 A Custom Permission is a Salesforce access flag, not a Permission Set. Administrators normally
 grant a Custom Permission by assigning a Permission Set that contains it. Record Health Check uses
-one Custom Permission to authorize runs and another to protect diagnostic detail. Their
-authorization behavior is independent of business-record access.
+one Custom Permission to authorize runs. Diagnostic detail instead requires a direct, active
+assignment of the packaged Admin or Diagnostics Viewer Permission Set. Profile grants, cloned
+Permission Sets, and Permission Set Group membership alone do not authorize diagnostics.
+Their authorization behavior is independent of business-record access.
 
 If **Diagnostics Viewer** or the **Record Health Check** list view is absent from Setup, use the alternatives below and in [Permission Sets](./permission-sets.md). See [documentation and installed version](../install/choose-a-package-version.md#documentation-and-installed-version) when comparing source examples with an installed package.
 
@@ -15,7 +17,6 @@ If **Diagnostics Viewer** or the **Record Health Check** list view is absent fro
 | Custom Permission label | API name | What it controls |
 | --- | --- | --- |
 | **Record Health Check Run** | `rhc__Record_Health_Check_Run` | Whether a package entry point may start a Record Health Check run |
-| **Record Health Check View Diagnostics** | `rhc__Record_Health_Check_View_Diagnostics` | Whether the running user may receive restricted advanced detail, including troubleshooting output when the selected Check Set also enables **Show Diagnostics** |
 
 The `rhc__` prefix is the installed package namespace. Copy the API name shown in Setup or package
 documentation; do not add or remove the namespace yourself.
@@ -45,21 +46,22 @@ scoping-rule access while evaluating a Check.
 
 ## Record Health Check View Diagnostics
 
-The permission can reveal the Formula **Passes when** expression when the row uses the documented
+In the 2.0.7.2 source this is no longer a Custom Permission. Explicit diagnostics access
+can reveal the Formula **Passes when** expression when the row uses the documented
 Formula comparison display; that specific display does not require **Show Diagnostics**. Broader
 troubleshooting detail appears only when both conditions are true:
 
 1. **Show Diagnostics** (`ShowDiagnostics__c`) is selected on the applicable Record Health Check Set
    Custom Metadata record.
-2. The running user has **Record Health Check View Diagnostics**
-   (`rhc__Record_Health_Check_View_Diagnostics`).
+2. The running user has a direct, active assignment of the package's **Record Health Check Admin**
+   or **Record Health Check Diagnostics Viewer** Permission Set, in the package namespace.
 
-Selecting **Show Diagnostics** alone does not grant access. Assigning the Custom Permission alone
+Selecting **Show Diagnostics** alone does not grant access. Assigning a diagnostics Permission Set alone
 does not cause a Check Set with **Show Diagnostics** cleared to return the broader troubleshooting
 output.
 
-**Record Health Check Admin** and **Record Health Check Diagnostics Viewer** contain this Custom
-Permission. Admin is appropriate for Check maintainers. Diagnostics Viewer grants no other package
+**Record Health Check Admin** and **Record Health Check Diagnostics Viewer** are recognized by their
+explicit assignments, not by a second Custom Permission. Admin is appropriate for Check maintainers. Diagnostics Viewer grants no other package
 access and is the least-privilege choice to add temporarily to an affected Card User or User.
 
 Authorized diagnostic output can include object and field names, formula and SOQL text, access
@@ -74,9 +76,8 @@ To see which packaged Permission Set grants a Custom Permission:
 
 1. In Salesforce Setup, enter `Custom Permissions` in **Quick Find**, then select **Custom
    Permissions**.
-2. Select the **Record Health Check** list view, which filters permission labels starting with
-   `Record Health Check`, then open **Record Health Check Run** or **Record Health Check View
-   Diagnostics**. If that view is absent, use **All** and find the same names.
+2. Use **All** and open **Record Health Check Run**. A fresh 2.0.7.2 installation must have
+   no other RHC Custom Permission.
 3. Review the Permission Sets that enable the Custom Permission.
 4. Return to **Permission Sets**, open the appropriate installed Permission Set, and use **Manage
    Assignments** to review its users.

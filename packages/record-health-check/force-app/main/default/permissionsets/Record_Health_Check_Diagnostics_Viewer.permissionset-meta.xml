@@ -4,8 +4,4 @@
     <description
   >View restricted Record Health Check details, including troubleshooting output when enabled. Assign alongside a packaged runner Permission Set temporarily and narrowly.</description>
     <hasActivationRequired>false</hasActivationRequired>
-    <customPermissions>
-        <enabled>true</enabled>
-        <name>Record_Health_Check_View_Diagnostics</name>
-    </customPermissions>
 </PermissionSet>

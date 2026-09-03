@@ -8,10 +8,6 @@
         <enabled>true</enabled>
         <name>Record_Health_Check_Run</name>
     </customPermissions>
-    <customPermissions>
-        <enabled>true</enabled>
-        <name>Record_Health_Check_View_Diagnostics</name>
-    </customPermissions>
     <customMetadataTypeAccesses>
         <enabled>true</enabled>
         <name>Record_Health_Check__mdt</name>

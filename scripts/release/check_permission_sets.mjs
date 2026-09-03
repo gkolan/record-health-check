@@ -33,10 +33,7 @@ const expected = {
       "Record_Health_Check_Result__e",
       "Record_Health_Check_Set_Run__e"
     ],
-    customPermissions: [
-      "Record_Health_Check_Run",
-      "Record_Health_Check_View_Diagnostics"
-    ],
+    customPermissions: ["Record_Health_Check_Run"],
     tabs: [],
     customMetadataTypes: [
       "Record_Health_Check__mdt",
@@ -81,7 +78,7 @@ const expected = {
   Record_Health_Check_Diagnostics_Viewer: {
     classes: [],
     objects: [],
-    customPermissions: ["Record_Health_Check_View_Diagnostics"],
+    customPermissions: [],
     customMetadataTypes: [],
     tabs: []
   },
@@ -125,6 +122,16 @@ const sorted = (items) => [...items].sort();
 const same = (left, right) =>
   JSON.stringify(sorted(left)) === JSON.stringify(sorted(right));
 const errors = [];
+const customPermissionFiles = fs
+  .readdirSync(path.join(DEFAULT, "customPermissions"))
+  .filter((file) => file.endsWith(".customPermission-meta.xml"));
+if (
+  !same(customPermissionFiles, [
+    "Record_Health_Check_Run.customPermission-meta.xml"
+  ])
+) {
+  errors.push("Run must be the only packaged custom permission.");
+}
 const allowedTopLevelElements = new Set([
   "label",
   "description",

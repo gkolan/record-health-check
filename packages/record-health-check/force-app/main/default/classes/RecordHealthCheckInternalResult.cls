@@ -14,7 +14,7 @@ public class RecordHealthCheckInternalResult {
   // The expectedValueLabel a Formula check uses when it echoes its raw pass/fail
   // condition instead of a business comparison value. This "Passes when" line is
   // a technical explanation, so the engine gates it (and the raw expectedValue it
-  // labels) behind Record_Health_Check_View_Diagnostics — business users see the
+  // labels) behind explicit diagnostics permission-set assignment — business users see the
   // failure message and any display-formula Found/Expected chips only.
   @AuraEnabled
   public String checkDeveloperName;
@@ -44,7 +44,7 @@ public class RecordHealthCheckInternalResult {
   @AuraEnabled
   public String expectedValueLabel; // overrides the UI's default "Expected" key when set — e.g. "Passes when" for a Formula check echoing its pass/fail condition rather than a comparison value
   @AuraEnabled
-  public String actualValueDetail; // value-source note for the Found side — only when Record_Health_Check_View_Diagnostics is held
+  public String actualValueDetail; // value-source note for the Found side — only with explicit diagnostics assignment
   @AuraEnabled
   public String expectedValueDetail; // value-source note for the Expected side — only when the same permission is held
   // Structured value source the evaluators fill in; the engine renders these into

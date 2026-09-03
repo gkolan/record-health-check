@@ -10,7 +10,6 @@ import {
 } from "lightning/refresh";
 import themeStyles from "./recordHealthCheckTheme.css";
 import USER_ID from "@salesforce/user/Id";
-import CAN_VIEW_DIAGNOSTICS from "@salesforce/customPermission/Record_Health_Check_View_Diagnostics";
 import getCheckSetShellConfig from "@salesforce/apex/RecordHealthCheckController.getCheckSetShellConfig";
 import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.getCheckDefinitions";
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
@@ -184,6 +183,7 @@ export default class RecordHealthCheck extends LightningElement {
   _resizeFrame;
   _cancelAutomaticRun = null;
   _definitionLoadInProgress = false;
+  _canViewDetails = false;
   _refreshHandlerRegistration = null;
   _recordRefreshTimer = null;
 
@@ -201,7 +201,7 @@ export default class RecordHealthCheck extends LightningElement {
     const presentation = componentErrorPresentation(
       reasonCode,
       technicalMessage,
-      CAN_VIEW_DIAGNOSTICS === true,
+      this._canViewDetails === true,
       diagnosticCode
     );
     this.componentError = presentation.message;
@@ -703,6 +703,7 @@ export default class RecordHealthCheck extends LightningElement {
   };
 
   async _loadDefinitions(runSource = null) {
+    this._canViewDetails = false;
     const loadToken = ++this._loadToken;
     const requestedCheckSetName = this.checkSetName;
     const requestedRecordId = this.recordId;
@@ -834,6 +835,7 @@ export default class RecordHealthCheck extends LightningElement {
       this.comparisonDisplay = response.comparisonDisplay;
       this.stopOnFirstError = response.stopOnFirstError;
       this.showDiagnostics = response.showDiagnostics === true;
+      this._canViewDetails = response.canViewDetails === true;
       this.totalCheckCount = canonicalChecks.length;
       this.totalAvailableCheckCount =
         typeof response.totalAvailableCheckCount === "number"
@@ -1118,7 +1120,7 @@ export default class RecordHealthCheck extends LightningElement {
     this.completionWarning =
       "Your results are shown, but the run couldn't be finalized.";
     this.completionWarningDiagnosticCode =
-      CAN_VIEW_DIAGNOSTICS === true ? parsed.diagnosticCode : null;
+      this._canViewDetails === true ? parsed.diagnosticCode : null;
   }
 
   get isSetupError() {

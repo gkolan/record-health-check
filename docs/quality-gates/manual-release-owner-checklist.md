@@ -278,6 +278,15 @@ pass.
   scratch-creation command must explicitly select the authenticated `devhub` alias with
   `--target-dev-hub devhub`. The offline regression gate rejects missing or incorrect Hub targets
   before any creation attempt; do not rely on a runner's saved defaults.
+- Run the actual Code Analyzer commands locally before handing off hosted validation; passing
+  configuration, suppression-inventory, and source checks does not mean the analyzer passed.
+  Test-only Flows need fault connectors too. Fault paths must return explicit failure outputs,
+  not silently continue. Check description findings against the Metadata API schema: action
+  parameters do not support descriptions, so adding invalid XML is not a valid remediation.
+- Inspect converted object metadata, not only source-file/manifest parity. A Setup list view
+  under `objects/CustomPermission` causes a non-customizable `CustomObject` entry during 2GP
+  packaging. Keep real custom permissions in `customPermissions/`; the artifact gate rejects
+  this unsupported object/list-view representation before another package build is attempted.
 - Bind every release decision to the same commit and immutable package ID. A green PR, old artifact,
   or source deployment is not proof that the package is ready.
 

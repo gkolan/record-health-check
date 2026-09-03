@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <actionCalls>
+        <description
+    >Evaluate the configured Check, then evaluate its Check Set. Unexpected action faults terminate through Handle_Action_Fault.</description>
         <name>Run_Check</name>
         <label>Run Check</label>
         <locationX>176</locationX>
@@ -10,6 +12,9 @@
         <connector>
             <targetReference>Run_Check_Set</targetReference>
         </connector>
+        <faultConnector>
+            <targetReference>Handle_Action_Fault</targetReference>
+        </faultConnector>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
         <inputParameters>
             <name>checkQualifiedApiName</name>
@@ -48,12 +53,17 @@
         <storeOutputAutomatically>false</storeOutputAutomatically>
     </actionCalls>
     <actionCalls>
+        <description
+    >Evaluate the configured Check Set and expose its result counters. Unexpected action faults terminate through Handle_Action_Fault.</description>
         <name>Run_Check_Set</name>
         <label>Run Check Set</label>
         <locationX>176</locationX>
         <locationY>320</locationY>
         <actionName>rhc__RecordHealthCheckRunSetFlowAction</actionName>
         <actionType>apex</actionType>
+        <faultConnector>
+            <targetReference>Handle_Action_Fault</targetReference>
+        </faultConnector>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
         <inputParameters>
             <name>checkSetQualifiedApiName</name>
@@ -112,6 +122,50 @@
         <storeOutputAutomatically>false</storeOutputAutomatically>
     </actionCalls>
     <apiVersion>66.0</apiVersion>
+    <assignments>
+        <description
+    >Terminate the release-test interview with explicit failure outputs and retain the fault detail. Never continue to the next action or report success after a fault.</description>
+        <name>Handle_Action_Fault</name>
+        <label>Handle Action Fault</label>
+        <locationX>440</locationX>
+        <locationY>320</locationY>
+        <assignmentItems>
+            <assignToReference>checkIsSuccess</assignToReference>
+            <operator>Assign</operator>
+            <value><booleanValue>false</booleanValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>setIsSuccess</assignToReference>
+            <operator>Assign</operator>
+            <value><booleanValue>false</booleanValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>checkStatus</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>ERROR</stringValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>setStatus</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>ERROR</stringValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>checkErrorType</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>FLOW_FAULT</stringValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>setErrorType</assignToReference>
+            <operator>Assign</operator>
+            <value><stringValue>FLOW_FAULT</stringValue></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>flowFaultMessage</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference
+        >$Flow.FaultMessage</elementReference></value>
+        </assignmentItems>
+    </assignments>
     <description
   >Subscriber-owned release-gate wrapper over the installed package Check and Check Set invocable Apex contracts. Hand-authored from the pinned Apex signatures and validated by deployment plus a real Flow interview test.</description>
     <interviewLabel
@@ -127,6 +181,8 @@
     </start>
     <status>Active</status>
     <variables>
+        <description
+    >Check action error category; FLOW_FAULT indicates an unexpected Flow action fault.</description>
         <name>checkErrorType</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -134,6 +190,8 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description
+    >True only when the Check action completes successfully.</description>
         <name>checkIsSuccess</name>
         <dataType>Boolean</dataType>
         <isCollection>false</isCollection>
@@ -141,6 +199,7 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description>Qualified API name of the Check to evaluate.</description>
         <name>checkQualifiedApiName</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -148,6 +207,8 @@
         <isOutput>false</isOutput>
     </variables>
     <variables>
+        <description
+    >Structured Check result returned unchanged by the invocable action.</description>
         <name>checkResultJson</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -155,6 +216,8 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description
+    >Qualified API name of the Check Set to evaluate.</description>
         <name>checkSetQualifiedApiName</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -162,6 +225,8 @@
         <isOutput>false</isOutput>
     </variables>
     <variables>
+        <description
+    >Terminal Check status; ERROR indicates an unexpected Flow action fault.</description>
         <name>checkStatus</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -169,6 +234,8 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description
+    >Event publication policy passed unchanged to both invocable actions.</description>
         <name>eventPublication</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -176,6 +243,8 @@
         <isOutput>false</isOutput>
     </variables>
     <variables>
+        <description
+    >Record ID evaluated by both invocable actions.</description>
         <name>recordId</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -183,6 +252,8 @@
         <isOutput>false</isOutput>
     </variables>
     <variables>
+        <description
+    >Check Set action error category; FLOW_FAULT indicates an unexpected Flow action fault.</description>
         <name>setErrorType</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -190,6 +261,8 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description
+    >Number of Check Set evaluations that failed their business condition.</description>
         <name>setFailedCount</name>
         <dataType>Number</dataType>
         <isCollection>false</isCollection>
@@ -198,6 +271,8 @@
         <scale>0</scale>
     </variables>
     <variables>
+        <description
+    >True only when the Check Set action completes successfully.</description>
         <name>setIsSuccess</name>
         <dataType>Boolean</dataType>
         <isCollection>false</isCollection>
@@ -205,6 +280,7 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description>Number of Check Set evaluations that passed.</description>
         <name>setPassedCount</name>
         <dataType>Number</dataType>
         <isCollection>false</isCollection>
@@ -213,6 +289,8 @@
         <scale>0</scale>
     </variables>
     <variables>
+        <description
+    >Structured Check Set result returned unchanged by the invocable action.</description>
         <name>setResultJson</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -220,6 +298,7 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description>Number of Check Set evaluations skipped.</description>
         <name>setSkippedCount</name>
         <dataType>Number</dataType>
         <isCollection>false</isCollection>
@@ -228,6 +307,8 @@
         <scale>0</scale>
     </variables>
     <variables>
+        <description
+    >Terminal Check Set status; ERROR indicates an unexpected Flow action fault.</description>
         <name>setStatus</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
@@ -235,6 +316,8 @@
         <isOutput>true</isOutput>
     </variables>
     <variables>
+        <description
+    >Number of Check Set evaluations with system errors.</description>
         <name>setSystemErrorCount</name>
         <dataType>Number</dataType>
         <isCollection>false</isCollection>
@@ -243,11 +326,22 @@
         <scale>0</scale>
     </variables>
     <variables>
+        <description
+    >Number of Check Set evaluations unable to evaluate.</description>
         <name>setUnableCount</name>
         <dataType>Number</dataType>
         <isCollection>false</isCollection>
         <isInput>false</isInput>
         <isOutput>true</isOutput>
         <scale>0</scale>
+    </variables>
+    <variables>
+        <description
+    >Unexpected Flow action fault detail for the release-test runner; not a successful action result.</description>
+        <name>flowFaultMessage</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
     </variables>
 </Flow>

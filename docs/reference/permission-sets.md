@@ -3,7 +3,7 @@
 Use this reference to choose the least-privilege Record Health Check Permission Set for a person,
 automation principal, or integration user.
 
-This reference describes six Permission Sets. Availability depends on the installed release. If **Diagnostics Viewer** is absent from Setup, create an org-owned Permission Set that enables **Record Health Check View Diagnostics**, then assign it alongside the existing runner access. See [version availability](../install/choose-a-package-version.md#documentation-and-installed-version).
+This reference describes six Permission Sets. In the 2.0.7.2 source, diagnostics requires a direct, active assignment of the packaged Admin or Diagnostics Viewer set. Run is the only packaged Custom Permission. Cloned sets and group-only assignments do not confer diagnostics access. See [version availability](../install/choose-a-package-version.md#documentation-and-installed-version).
 
 Four authorize a specific way to run health
 checks. Two are additive: one grants diagnostic viewing and one grants restricted error-log event
@@ -18,7 +18,7 @@ Opportunity, Case, or any other business object or field used by a Check.
 | Run Checks from Flow, Apex, Agentforce, Queueable, Batch, or Scheduled Apex | **Record Health Check User** (`rhc__Record_Health_Check_User`) | It grants the supported runtime entry points without configuration validation or diagnostic detail. |
 | Configure, validate, or troubleshoot Checks | **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | It adds Custom Metadata visibility, validation entry points, and diagnostic authorization to the runtime access. |
 | Call the versioned REST adapter from a dedicated MCP integration | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`) | It grants only the REST adapter and the package metadata access that adapter needs. |
-| Let an existing runner view diagnostics without granting Admin | **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) | It grants only the diagnostics Custom Permission. Assign it temporarily alongside Card User or User. |
+| Let an existing runner view diagnostics without granting Admin | **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) | Its explicit assignment authorizes diagnostics. Assign it directly and temporarily alongside Card User or User. |
 | Publish restricted error-log events | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | It grants Create and Read access only to the restricted Log Platform Event. Assign it in addition to the appropriate runner access. |
 
 Do not assign **Record Health Check Admin** merely to make a card, Flow, Apex class, or integration
@@ -32,7 +32,7 @@ This mapping shows the package access contained in each runner Permission Set.
 | Capability | Card User | User | Admin | MCP Integration |
 | --- | :---: | :---: | :---: | :---: |
 | **Record Health Check Run** Custom Permission | Yes | Yes | Yes | Yes |
-| **Record Health Check View Diagnostics** Custom Permission | No | No | Yes | No |
+| Diagnostics authorization through direct assignment | No | No | Yes | No |
 | Lightning record-page card controller | Yes | Yes | Yes | No |
 | App Builder Check Set picker | Yes | Yes | Yes | No |
 | Public Apex API | No | Yes | Yes | No |
@@ -50,7 +50,7 @@ This mapping shows the package access contained in each runner Permission Set.
 | Capability | Diagnostics Viewer | Error Log Publisher |
 | --- | :---: | :---: |
 | **Record Health Check Run** Custom Permission | No | No |
-| **Record Health Check View Diagnostics** Custom Permission | Yes | No |
+| Diagnostics authorization through direct assignment | Yes | No |
 | Package Apex, Custom Metadata, or business-data access | No | No |
 | Create and Read access to Set Run and Check Result events | No | No |
 | Create and Read access to the restricted Log event | No | Yes |
@@ -94,8 +94,7 @@ Assign **Record Health Check Admin** to administrators who maintain Check defini
 configuration, or perform authorized troubleshooting. It includes the package runtime entry points
 and adds:
 
-- **Record Health Check View Diagnostics**
-  (`rhc__Record_Health_Check_View_Diagnostics`);
+- diagnostics access through this set's direct, active assignment;
 - read access to both packaged Custom Metadata Types; and
 - the package metadata-validation entry points.
 
@@ -125,8 +124,8 @@ Assign **Record Health Check Diagnostics Viewer** temporarily alongside **Record
 User** or **Record Health Check User** when the affected runner must reproduce a problem with
 authorized diagnostic detail. It includes only:
 
-- **Custom Permission label:** Record Health Check View Diagnostics
-- **Custom Permission API name:** `rhc__Record_Health_Check_View_Diagnostics`
+- **Authorization:** direct, active assignment of this packaged Permission Set;
+- no diagnostic Custom Permission is installed or checked.
 
 It does not include the Run Custom Permission, Apex class access, Custom Metadata access, business
 data access, or Platform Event access. The existing runner Permission Set continues to determine how

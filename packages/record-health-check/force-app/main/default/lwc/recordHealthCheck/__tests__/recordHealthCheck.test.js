@@ -74,11 +74,6 @@ jest.mock(
   () => ({ default: jest.fn() }),
   { virtual: true }
 );
-jest.mock(
-  "@salesforce/customPermission/Record_Health_Check_View_Diagnostics",
-  () => ({ default: false }),
-  { virtual: true }
-);
 
 const flushPromises = () => Promise.resolve();
 const deferred = () => {
@@ -1316,6 +1311,33 @@ describe("c-record-health-check — run orchestration", () => {
     jest.clearAllMocks();
     element = createComponent();
   });
+
+  it.each([true, false, undefined])(
+    "uses server authorization %s for completion diagnostics",
+    async (allowed) => {
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({ canViewDetails: allowed })
+      );
+      evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+      completeRun.mockRejectedValueOnce({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "RUN_COMPLETION_FAILED",
+            message: "Completion failed",
+            diagnosticCode: "RHC-ASSIGNMENT-TEST"
+          })
+        }
+      });
+      await appendAndLoad(element);
+      await clickRun(element);
+      const warning = element.shadowRoot.querySelector(
+        ".rhc-completion-warning"
+      );
+      expect(warning.textContent.includes("RHC-ASSIGNMENT-TEST")).toBe(
+        allowed === true
+      );
+    }
+  );
 
   it("keeps results visible and shows a nonblocking warning when completion fails", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
