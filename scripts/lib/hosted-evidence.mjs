@@ -2,6 +2,7 @@ export function hostedEvidenceContract(candidate = "", stage = "") {
   if (!candidate)
     return {
       jobs: [
+        "offline-preflight",
         "require-dev-hub-secret",
         "package-source-tests",
         "portable-source-tests",
@@ -26,6 +27,7 @@ export function hostedEvidenceContract(candidate = "", stage = "") {
   }
   return {
     jobs: [
+      "offline-preflight",
       "require-dev-hub-secret",
       ...["LWS", "Locker"].map(
         (mode) =>

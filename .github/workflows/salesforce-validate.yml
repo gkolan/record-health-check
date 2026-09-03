@@ -1,7 +1,6 @@
 name: Salesforce release gate
 
 on:
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -12,7 +11,65 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  offline-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix packages/record-health-check-mcp
+      - run: npm install --global @salesforce/cli@2.150.6
+      - run: npm run check:toolchain
+      - name: Complete all no-org release checks before spending quota
+        run: npm run release:preflight
+      - name: Verify browser installation before spending quota
+        run: npx playwright install --with-deps chromium firefox
+      - run: echo y | sf plugins install code-analyzer@5.15.0
+      - name: Record analyzer toolchain versions
+        run: |
+          sf --version
+          sf plugins --core
+      - name: Enforce Code Analyzer output locations
+        run: npm run check:code-analyzer-output-paths
+      - name: Enforce the exact Code Analyzer suppression allowlist
+        run: npm run check:code-analyzer-suppressions
+      - name: Enforce the exact inline suppression inventory
+        run: npm run check:code-analyzer-inline-suppressions
+      - name: Run blocking Code Analyzer release-policy gate
+        run: |
+          mkdir -p code-analyzer/logs
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --workspace subscriber-app --target 'packages/record-health-check/force-app/**/*.cls' --target 'packages/record-health-check/force-app/**/*.trigger' --target 'packages/record-health-check/force-app/**/*.xml' --target 'packages/record-health-check/integration-tests/**/*.cls' --target 'packages/record-health-check/integration-tests/**/*.trigger' --target 'packages/record-health-check/integration-tests/**/*.xml' --target 'subscriber-app/**/*.cls' --target 'subscriber-app/**/*.trigger' --target 'subscriber-app/**/*.xml' --rule-selector AppExchange --rule-selector Recommended:Security --rule-selector flow:all --include-fixes --output-file code-analyzer/appexchange-security.json --output-file code-analyzer/appexchange-security.html --severity-threshold 5
+          sf code-analyzer run --workspace packages/record-health-check/force-app --target 'packages/record-health-check/force-app/**/*.js' --rule-selector eslint:Recommended --rule-selector retire-js:Recommended --include-fixes --output-file code-analyzer/javascript-security.json --output-file code-analyzer/javascript-security.html --severity-threshold 5
+          node scripts/release/check_code_analyzer_integrity.mjs --log-dir code-analyzer/logs --output code-analyzer/appexchange-security.json --output code-analyzer/javascript-security.json
+      - name: Run all-checks neutral advisory debt audit
+        if: success()
+        continue-on-error: true
+        run: |
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --workspace subscriber-app --target 'packages/record-health-check/force-app/**/*.cls' --target 'packages/record-health-check/force-app/**/*.trigger' --target 'packages/record-health-check/force-app/**/*.xml' --target 'packages/record-health-check/integration-tests/**/*.cls' --target 'packages/record-health-check/integration-tests/**/*.trigger' --target 'packages/record-health-check/integration-tests/**/*.xml' --target 'subscriber-app/**/*.cls' --target 'subscriber-app/**/*.trigger' --target 'subscriber-app/**/*.xml' --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-apex-metadata.json --output-file code-analyzer/neutral-apex-metadata.html
+          sf code-analyzer run --workspace packages/record-health-check/force-app --target 'packages/record-health-check/force-app/**/*.js' --config-file code-analyzer-neutral.yml --rule-selector eslint:all --rule-selector retire-js:all --include-fixes --output-file code-analyzer/neutral-javascript.json --output-file code-analyzer/neutral-javascript.html
+      - name: Upload Code Analyzer evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: code-analyzer-evidence
+          path: |
+            code-analyzer/appexchange-security.json
+            code-analyzer/appexchange-security.html
+            code-analyzer/javascript-security.json
+            code-analyzer/javascript-security.html
+            code-analyzer/neutral-apex-metadata.json
+            code-analyzer/neutral-apex-metadata.html
+            code-analyzer/neutral-javascript.json
+            code-analyzer/neutral-javascript.html
+            code-analyzer/logs/
+          if-no-files-found: error
+          retention-days: 90
+
   require-dev-hub-secret:
+    needs: offline-preflight
     runs-on: ubuntu-latest
     outputs:
       available: ${{ steps.credentials.outputs.available }}
@@ -23,11 +80,6 @@ jobs:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
           if [ -z "${SFDX_AUTH_URL}" ]; then
-            if [ "${{ github.event_name }}" = "pull_request" ]; then
-              echo "available=false" >> "$GITHUB_OUTPUT"
-              echo "::warning::SFDX_AUTH_URL is unavailable; hosted Salesforce validation is optional for pull requests and was not run."
-              exit 0
-            fi
             echo "::error::SFDX_AUTH_URL is required for manually dispatched release validation."
             exit 1
           fi
@@ -95,11 +147,6 @@ jobs:
         run: npm run check:permission-sets
       - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
-      - run: echo y | sf plugins install code-analyzer@5.15.0
-      - name: Record analyzer toolchain versions
-        run: |
-          sf --version
-          sf plugins --core
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
@@ -127,7 +174,7 @@ jobs:
         run: npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-package --scope package
       - name: Upload namespaced package-only Apex inventory evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: apex-inventory-namespaced-package
           path: test-results/apex/namespaced-package/
@@ -167,7 +214,7 @@ jobs:
         run: npm run test:browser:salesforce -- --target-org rhc-ci --security-mode LWS
       - name: Upload namespaced LWS browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: browser-evidence-namespaced-lws
           path: |
@@ -181,7 +228,7 @@ jobs:
         run: npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-full --scope full
       - name: Upload namespaced Apex inventory evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: apex-inventory-namespaced-full
           path: test-results/apex/namespaced-full/
@@ -191,44 +238,6 @@ jobs:
         run: npm run test:unit:coverage && npm run check:quality-metrics -- --apex-org rhc-ci
       - name: Verify bounded query behavior against the accepted baseline
         run: npm run check:query-verdicts -- --target-org rhc-ci --namespace rhc
-      # Run static analysis last. The blocking release-policy profile documents
-      # package-specific check decisions; every enabled finding fails CI. The
-      # separate neutral audit runs every check as advisory debt evidence.
-      - name: Enforce Code Analyzer output locations
-        run: npm run check:code-analyzer-output-paths
-      - name: Enforce the exact Code Analyzer suppression allowlist
-        run: npm run check:code-analyzer-suppressions
-      - name: Enforce the exact inline suppression inventory
-        run: npm run check:code-analyzer-inline-suppressions
-      - name: Run blocking Code Analyzer release-policy gate
-        run: |
-          mkdir -p code-analyzer/logs
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --workspace subscriber-app --target 'packages/record-health-check/force-app/**/*.cls' --target 'packages/record-health-check/force-app/**/*.trigger' --target 'packages/record-health-check/force-app/**/*.xml' --target 'packages/record-health-check/integration-tests/**/*.cls' --target 'packages/record-health-check/integration-tests/**/*.trigger' --target 'packages/record-health-check/integration-tests/**/*.xml' --target 'subscriber-app/**/*.cls' --target 'subscriber-app/**/*.trigger' --target 'subscriber-app/**/*.xml' --rule-selector AppExchange --rule-selector Recommended:Security --rule-selector flow:all --include-fixes --output-file code-analyzer/appexchange-security.json --output-file code-analyzer/appexchange-security.html --severity-threshold 5
-          sf code-analyzer run --workspace packages/record-health-check/force-app --target 'packages/record-health-check/force-app/**/*.js' --rule-selector eslint:Recommended --rule-selector retire-js:Recommended --include-fixes --output-file code-analyzer/javascript-security.json --output-file code-analyzer/javascript-security.html --severity-threshold 5
-          node scripts/release/check_code_analyzer_integrity.mjs --log-dir code-analyzer/logs --output code-analyzer/appexchange-security.json --output code-analyzer/javascript-security.json
-      - name: Run all-checks neutral advisory debt audit
-        if: always()
-        continue-on-error: true
-        run: |
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --workspace subscriber-app --target 'packages/record-health-check/force-app/**/*.cls' --target 'packages/record-health-check/force-app/**/*.trigger' --target 'packages/record-health-check/force-app/**/*.xml' --target 'packages/record-health-check/integration-tests/**/*.cls' --target 'packages/record-health-check/integration-tests/**/*.trigger' --target 'packages/record-health-check/integration-tests/**/*.xml' --target 'subscriber-app/**/*.cls' --target 'subscriber-app/**/*.trigger' --target 'subscriber-app/**/*.xml' --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-apex-metadata.json --output-file code-analyzer/neutral-apex-metadata.html
-          sf code-analyzer run --workspace packages/record-health-check/force-app --target 'packages/record-health-check/force-app/**/*.js' --config-file code-analyzer-neutral.yml --rule-selector eslint:all --rule-selector retire-js:all --include-fixes --output-file code-analyzer/neutral-javascript.json --output-file code-analyzer/neutral-javascript.html
-      - name: Upload Code Analyzer evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-analyzer-evidence
-          path: |
-            code-analyzer/appexchange-security.json
-            code-analyzer/appexchange-security.html
-            code-analyzer/javascript-security.json
-            code-analyzer/javascript-security.html
-            code-analyzer/neutral-apex-metadata.json
-            code-analyzer/neutral-apex-metadata.html
-            code-analyzer/neutral-javascript.json
-            code-analyzer/neutral-javascript.html
-            code-analyzer/logs/
-          if-no-files-found: error
-          retention-days: 90
       - name: Delete scratch org
         if: always()
         continue-on-error: true
@@ -282,7 +291,7 @@ jobs:
         run: npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-package --scope package
       - name: Upload no-namespace package-only Apex inventory evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: apex-inventory-no-namespace-package
           path: test-results/apex/no-namespace-package/
@@ -320,7 +329,7 @@ jobs:
         run: npm run test:browser:salesforce -- --target-org rhc-ci-portable --security-mode LWS
       - name: Upload no-namespace LWS browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: browser-evidence-no-namespace-lws
           path: |
@@ -334,7 +343,7 @@ jobs:
         run: npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-full --scope full
       - name: Upload no-namespace Apex inventory evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: apex-inventory-no-namespace-full
           path: test-results/apex/no-namespace-full/
@@ -358,11 +367,12 @@ jobs:
 
   locker-browser-tests:
     name: locker-browser-tests (${{ matrix.topology }})
-    needs: require-dev-hub-secret
-    if: needs.require-dev-hub-secret.outputs.available == 'true'
+    needs: [require-dev-hub-secret, portable-source-tests]
+    if: needs.require-dev-hub-secret.outputs.available == 'true' && needs.portable-source-tests.result == 'success'
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
+      max-parallel: 1
       matrix:
         include:
           - topology: namespaced
@@ -429,7 +439,7 @@ jobs:
         run: npm run test:browser:salesforce -- --target-org "${{ matrix.alias }}" --security-mode Locker
       - name: Upload ${{ matrix.topology }} Locker browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: browser-evidence-${{ matrix.topology }}-locker
           path: |

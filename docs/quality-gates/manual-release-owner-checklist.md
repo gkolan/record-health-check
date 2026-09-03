@@ -9,6 +9,29 @@ The release owner performs GitHub authentication, pushes, merges, workflow dispa
 creation, and promotion. A contributor or automation assistant may prepare source, commits, local
 validation, and instructions, but must not use or request the release owner's GitHub credentials.
 
+## Quota policy: Creation is the final validation phase
+
+The release owner's daily scratch-org allowance is five. Do not create scratch orgs to investigate
+an error or test a workflow edit. Use local checks and already authorized, suitable existing orgs
+for diagnosis. A check-only deployment does not require a new org. New orgs are reserved for the
+final fresh-environment release evidence after known failures are resolved.
+
+Pull-request and push CI must consume no scratch-org or package-version creation quota. Both
+Salesforce workflows are manual-only and require the complete no-org preflight before checking
+capacity. The source workflow also completes Code Analyzer before any org is created. Source
+runtime stages execute namespaced LWS, portable LWS, then Locker; Locker and subscriber matrices
+run one org at a time and stop queued work on failure. Capacity checks are not reservations and
+cannot protect against unrelated Dev Hub activity.
+
+Never repeatedly rerun an org-consuming workflow while its first failure is unexplained. Inspect
+the original error and existing evidence, correct the cause, and repeat no-org validation first.
+Do not relax required fresh-org evidence to save quota; schedule it after the quota resets.
+
+Package creation is an owner-run final build after local and hosted source validation pass, not a
+debugging tool. No GitHub workflow creates or promotes a package. Clean-install and upgrade tests
+necessarily follow creation because they validate that exact immutable artifact; promotion follows
+those tests and sandbox acceptance. Do not create another candidate just because a gate failed.
+
 ## Values to record
 
 Record these values in the pull request or retained release evidence before starting:
@@ -85,11 +108,12 @@ tracked file.
 2. Select **Run workflow**.
 3. Select the release branch, not `main` and not a stale branch.
 4. Run the workflow.
-5. Before fan-out, confirm `Check release-matrix scratch-org capacity` passes with four daily and
+5. Confirm `offline-preflight` passes, then confirm `Check release-matrix scratch-org capacity` passes with four daily and
    active slots available. The complete source matrix creates four scratch orgs. Deleting an org
    restores an active slot but does not restore a daily creation. Do not run unrelated scratch-org
    creation concurrently with the release gate.
 6. Open the completed run and confirm that all of these jobs executed and passed:
+   - `offline-preflight`
    - `require-dev-hub-secret`
    - `package-source-tests`
    - `portable-source-tests`
@@ -128,7 +152,8 @@ candidate requires the documented reviewed override and is not a normal retry me
 3. Select the unchanged release branch.
 4. Enter the exact candidate `04t` in `package_version_id`.
 5. Choose `validation_stage: clean-install` and run the workflow.
-6. Confirm `Check subscriber-stage scratch-org capacity` passes before the two selected jobs fan out.
+6. Confirm `offline-preflight`, including exact-commit source validation, passes. Then confirm
+   `Check subscriber-stage scratch-org capacity` passes before the two selected jobs run sequentially.
 7. Require both selected jobs to execute and pass, one under Lightning Web Security and one under
    Lightning Locker. Repeat the dispatch for `upgrade-2.0.6.2`, then `upgrade-2.0.4.2`, always using
    the same candidate and unchanged release branch. The latter covers the older public-link version,

@@ -52,7 +52,7 @@ jobs:
         with:
           subject-path: record-health-check-mcp.tar
       - name: Upload verification evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: record-health-check-mcp-${{ github.sha }}
           path: |

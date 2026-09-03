@@ -26,7 +26,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  offline-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix packages/record-health-check-mcp
+      - run: npm install --global @salesforce/cli@2.150.6
+      - run: npm run check:toolchain
+      - name: Complete all no-org release checks before spending quota
+        run: npm run release:preflight
+      - name: Require exact-commit source validation before subscriber org creation
+        run: npm run check:hosted-validation
+      - name: Verify browser installation before spending quota
+        run: npx playwright install --with-deps chromium firefox
+
   require-dev-hub-secret:
+    needs: offline-preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -61,7 +81,8 @@ jobs:
     needs: require-dev-hub-secret
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
+      max-parallel: 1
       matrix:
         include:
           - security_mode: LWS
@@ -109,7 +130,7 @@ jobs:
         run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --skip-upgrade
       - name: Upload clean-install browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: subscriber-clean-install-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}
           path: |
@@ -120,7 +141,7 @@ jobs:
 
       - name: Upload reconciled subscriber Apex inventory
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
           path: test-results/apex/
@@ -133,7 +154,8 @@ jobs:
     needs: require-dev-hub-secret
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
+      max-parallel: 1
       matrix:
         include:
           - security_mode: LWS
@@ -183,7 +205,7 @@ jobs:
         run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --upgrade-from "${{ steps.rhc-package.outputs.upgrade_from }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --upgrade-only
       - name: Upload upgrade preservation and browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: subscriber-upgrade-evidence-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
           path: |
@@ -194,7 +216,7 @@ jobs:
 
       - name: Upload reconciled subscriber Apex inventory
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
           path: test-results/apex/
@@ -203,9 +225,11 @@ jobs:
 
       - name: Upload subscriber configuration preservation proof
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: subscriber-preservation-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
           path: packages/record-health-check/.package-evidence/*-upgrade-preservation.json
+          # This exact test-evidence path is hidden; do not widen the upload scope.
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 90

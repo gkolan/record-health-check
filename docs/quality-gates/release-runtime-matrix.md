@@ -4,6 +4,17 @@ This is the minimum release contract for Record Health Check. It applies to ever
 including patch builds. A missing, skipped, timed-out, inconclusive, or stale result is a failure.
 Static analysis and unit tests do not substitute for a live Salesforce result.
 
+Scratch-org and package-version creation are scarce, owner-controlled release operations. Pull
+requests run no-org CI only. Salesforce workflows are dispatched manually, after known defects have
+been diagnosed without creating new orgs. A shared no-org preflight and blocking source analyzer
+must pass before source runtime jobs can create anything. Namespaced LWS runs before portable LWS,
+which runs before the one-at-a-time Locker matrix. Subscriber stages also run one org at a time
+and require exact-commit hosted source evidence. Queued matrix work stops on failure.
+
+GitHub artifact uploads use a Node 24 action; project npm commands use the Node major pinned in
+`config/toolchain.json`. These are separate runtimes. Deprecated action runtimes must not be restored
+by enabling an insecure-runtime opt-out. Missing evidence remains a failure, not a warning to ignore.
+
 The machine-readable dimensions are in
 [`config/release-runtime-matrix.json`](../../config/release-runtime-matrix.json). The CI guard
 `npm run check:release-runtime-matrix` rejects missing dimensions, missing evidence files, weakened

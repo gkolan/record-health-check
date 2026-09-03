@@ -5,12 +5,28 @@ import path from "node:path";
 import process from "node:process";
 import { releaseUpgradeBases } from "../lib/release-upgrades.mjs";
 import { readPackageReleases } from "../lib/package-releases.mjs";
+import { assertReleaseQuotaPolicy } from "../lib/release-quota-policy.mjs";
 
 const root = process.cwd();
 const matrix = JSON.parse(
   fs.readFileSync(path.join(root, "config/release-runtime-matrix.json"), "utf8")
 );
 const errors = [];
+const workflowsDirectory = path.join(root, ".github/workflows");
+assertReleaseQuotaPolicy(
+  fs.readFileSync(
+    path.join(workflowsDirectory, "salesforce-validate.yml"),
+    "utf8"
+  ),
+  fs.readFileSync(
+    path.join(workflowsDirectory, "subscriber-validate.yml"),
+    "utf8"
+  ),
+  fs
+    .readdirSync(workflowsDirectory)
+    .filter((file) => /\.ya?ml$/.test(file))
+    .map((file) => fs.readFileSync(path.join(workflowsDirectory, file), "utf8"))
+);
 releaseUpgradeBases(matrix, readPackageReleases());
 requireEqual(
   matrix.upgradeBases.map((base) => base.version),
