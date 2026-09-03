@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Won-deal primary contacts</label>
+    <label>Example: Won Opportunity primary roles</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,7 +14,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Every won deal retains its primary customer Contact</value>
+    >Every won Opportunity has a primary Contact</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
@@ -147,14 +147,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Won deals retaining a primary Contact: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Won deals requiring buyer-history continuity: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

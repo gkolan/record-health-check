@@ -231,7 +231,7 @@ elevate record, object, field, or sharing access.
 | --- | --- |
 | User-run screen flow | Test with representative users and their actual record and field access |
 | Record-triggered or other automated Flow | Confirm the configured execution context and effective access |
-| Troubleshooting with diagnostics | Grant only the documented administrator permission and remove it when no longer needed |
+| Troubleshooting with diagnostics | Add **Record Health Check Diagnostics Viewer** temporarily to the affected runner and remove it when no longer needed |
 
 A user-run screen Flow and system-context automation can produce different results for the same
 record. Always test in the Flow's actual run context.

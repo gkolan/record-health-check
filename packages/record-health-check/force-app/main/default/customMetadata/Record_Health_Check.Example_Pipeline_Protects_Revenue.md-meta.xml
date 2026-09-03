@@ -18,7 +18,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Tests open pipeline against an illustrative target of 75% of Account Annual Revenue. Pipeline-coverage reviews are common, but the ratio must be calibrated to your sales cycle and qualification rules.</value>
+    >The Query check passes when open pipeline totals at least 75% of Annual Revenue. This example assumes a single currency; align the Account and aggregate currency before using it in a multi-currency org.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -28,7 +28,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT CurrencyIsoCode, SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null GROUP BY CurrencyIsoCode</value>
+    >SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null</value>
     </values>
     <values>
         <field>SourceQueryField__c</field>
@@ -52,15 +52,11 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >{!rhcResult.foundValue} in qualified open pipeline</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >75% revenue target: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
     <values>
         <field>QueryResultHandling__c</field>

@@ -15,6 +15,8 @@ API Name also includes the `rhc__` namespace, such as
 Use these records to verify a sandbox installation. Create separate Check Sets with names and
 requirements owned by your organization before using Record Health Check in a business process.
 
+The descriptions below match the examples in this checkout. An installed release can have different rules and order; see [version availability](./choose-a-package-version.md#documentation-and-installed-version) before expecting identical results.
+
 ## Outcome
 
 After this walkthrough, you will have located the installed example Check Sets, connected one
@@ -33,18 +35,19 @@ to a Lightning record page, and proved that a controlled record change updates t
 | Check Set Developer Name | Card title | Installed Checks |
 | --- | --- | --- |
 | `Example_Account_Check_Builder_Guide` | Example: Account Check Builder Guide | 25 active Checks: 3 Formula, 10 Query, 11 Compare Two Queries, and 1 Apex |
-| `Example_Account_Relationship_Risk` | Example: Account Relationship & Risk Health Check | Original example from `main`: 9 Checks, 8 active |
+| `Example_Account_Relationship_Risk` | Example: Account Relationship & Risk Health Check | 9 Checks, 8 active, covering ownership, contact coverage, pipeline, parent alignment, and activity |
 
 The Account Check Builder Guide is ordered from Formula to Query to Compare Two Queries, followed by
 one Apex Check. See [Install the demo in a scratch org](./install-demo-in-a-scratch-org.md#what-the-demo-prepares)
-for the exact 25 Checks, their order, expected outcomes, and seeded evidence.
+for the exact 25 Checks, their order, expected outcomes, and demo data. For formulas, queries, and
+settings, use [Account Check Builder Guide: configuration and results](../examples/account-check-builder-guide.md).
 
 ### Contact and Opportunity
 
 | Check Set Developer Name | Card title | Installed Checks |
 | --- | --- | --- |
-| `Example_Contact_Relationship_Readiness` | Example: Contact Relationship Readiness | 8 active Checks: Account context; active owner; unique email; permitted phone and outreach channels; role context; complete regional context; recent engagement |
-| `Example_Opportunity_Deal_Readiness` | Example: Opportunity Deal Readiness | 8 active Checks: Account context; active owner; positive amount; current close date; actionable next step; probability aligned with deal state; primary buyer contact; recent activity |
+| `Example_Contact_Relationship_Readiness` | Example: Contact Relationship Readiness | 8 active Checks: Account context; Title or Department; regional context; Email or Phone; reporting line; email without a bounce; active owner; recent Task |
+| `Example_Opportunity_Deal_Readiness` | Example: Opportunity Deal Readiness | 8 active Checks: Account context; active owner; positive amount; current close date; non-placeholder Next Step; probability aligned with deal state; primary buyer contact; recent activity |
 
 ## Step 1: Inspect an example in Setup
 
@@ -77,7 +80,8 @@ presentation come from that Check Set's Custom Metadata fields.
 If no example appears in Lightning App Builder, confirm the installed package version and refresh
 the builder. If the card shows setup guidance, confirm the record object's API name matches the
 Check Set and that the user has **Record Health Check Card User**. For an Unable to Check or System Error
-result, follow [Troubleshoot with Show Diagnostics](../diagnostics/browser-console.md).
+result, enable **Show Diagnostics** on the Check Set and use **Record Health Check Diagnostics Viewer**
+alongside Card User or User. Admin already includes diagnostic access. Follow [Troubleshoot with Show Diagnostics](../diagnostics/browser-console.md).
 
 ## Installed metadata versus documentation recipes
 

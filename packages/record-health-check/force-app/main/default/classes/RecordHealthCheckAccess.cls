@@ -8,6 +8,8 @@ public with sharing class RecordHealthCheckAccess {
   @TestVisible
   private static Boolean runPermissionOverride;
 
+  private static Map<Id, Boolean> detailsByUser = new Map<Id, Boolean>();
+
   /** Stable authorization failure raised when the runner entitlement is absent. */
   public class AuthorizationException extends Exception {
   }
@@ -40,15 +42,52 @@ public with sharing class RecordHealthCheckAccess {
   }
 
   /**
-   * Single Advanced-tier permission. Power-user explanation (Passes when,
-   * value source) and troubleshooting internals (raw exceptions, timings) are one
-   * audience, so they share one grant: Record_Health_Check_View_Diagnostics.
-   * The Check Set's ShowDiagnostics__c flag still decides *when* the troubleshooting
-   * subset is shown — it is a per-set switch, not a second permission.
+   * Advanced detail requires a direct, active assignment of this package's
+   * Admin or Diagnostics Viewer permission set. Installation profile grants
+   * never authorize diagnostics. ShowDiagnostics__c still controls presentation.
    */
   public static Boolean canViewDetails() {
-    return FeatureManagement.checkPermission(
-      'Record_Health_Check_View_Diagnostics'
-    );
+    Id userId = UserInfo.getUserId();
+    if (!detailsByUser.containsKey(userId)) {
+      detailsByUser.put(userId, hasDirectDiagnosticsAssignment(userId));
+    }
+    return detailsByUser.get(userId);
+  }
+
+  /**
+   * Reads only the caller's authorization metadata, not business records.
+   * PermissionSetAssignment is unavailable to minimum-access users in USER_MODE.
+   * This bounded SYSTEM_MODE query accepts no client-supplied user or set identity
+   * and returns only a Boolean; it does not grant Setup access to the caller.
+   */
+  private static Boolean hasDirectDiagnosticsAssignment(Id userId) {
+    String typeName = Record_Health_Check__mdt.SObjectType.getDescribe()
+      .getName();
+    String packageNamespace = typeName == 'Record_Health_Check__mdt'
+      ? null
+      : typeName.substringBefore('__');
+    Set<String> names = new Set<String>{
+      'Record_Health_Check_Admin',
+      'Record_Health_Check_Diagnostics_Viewer'
+    };
+    try {
+      return ![
+          SELECT Id
+          FROM PermissionSetAssignment
+          WHERE
+            AssigneeId = :userId
+            AND IsActive = TRUE
+            AND PermissionSetGroupId = NULL
+            AND PermissionSet.IsOwnedByProfile = FALSE
+            AND PermissionSet.NamespacePrefix = :packageNamespace
+            AND PermissionSet.Name IN :names
+          WITH SYSTEM_MODE
+          LIMIT 1
+        ]
+        .isEmpty();
+    } catch (QueryException denied) {
+      // Inability to verify an assignment must never disclose restricted detail.
+      return false;
+    }
   }
 }

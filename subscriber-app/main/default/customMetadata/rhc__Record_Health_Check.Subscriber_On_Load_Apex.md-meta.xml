@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Subscriber On-Load Apex</label>
+    <protected>false</protected>
+    <values><field>rhc__Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Subscriber_On_Load</value></values>
+    <values><field>rhc__CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Subscriber Apex plugin resolves</value></values>
+    <values><field>rhc__EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >APEX</value></values>
+    <values><field>rhc__ApexClass__c</field><value
+      xsi:type="xsd:string"
+    >RHCSubscriberPlugin</value></values>
+    <values><field>rhc__FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>rhc__FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >The subscriber Apex plugin did not pass.</value></values>
+    <values><field>rhc__UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The installed-package on-load Apex plugin could not run.</value></values>
+    <values><field>rhc__ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>rhc__EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >40</value></values>
+    <values><field>rhc__IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

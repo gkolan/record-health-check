@@ -1,36 +1,115 @@
 name: Salesforce release gate
 
 on:
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: salesforce-release-${{ github.ref }}
-  cancel-in-progress: true
+  group: salesforce-devhub-release
+  cancel-in-progress: false
 
 jobs:
-  check-dev-hub-secret:
+  offline-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix packages/record-health-check-mcp
+      - run: npm install --global @salesforce/cli@2.150.6
+      - run: npm run check:toolchain
+      - name: Complete all no-org release checks before spending quota
+        run: npm run release:preflight
+      - name: Verify browser installation before spending quota
+        run: npx playwright install --with-deps chromium firefox
+      - run: echo y | sf plugins install code-analyzer@5.15.0
+      - name: Record analyzer toolchain versions
+        run: |
+          sf --version
+          sf plugins --core
+      - name: Enforce Code Analyzer output locations
+        run: npm run check:code-analyzer-output-paths
+      - name: Enforce the exact Code Analyzer suppression allowlist
+        run: npm run check:code-analyzer-suppressions
+      - name: Enforce the exact inline suppression inventory
+        run: npm run check:code-analyzer-inline-suppressions
+      - name: Run blocking Code Analyzer release-policy gate
+        run: |
+          mkdir -p code-analyzer/logs
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --workspace subscriber-app --target 'packages/record-health-check/force-app/**/*.cls' --target 'packages/record-health-check/force-app/**/*.trigger' --target 'packages/record-health-check/force-app/**/*.xml' --target 'packages/record-health-check/integration-tests/**/*.cls' --target 'packages/record-health-check/integration-tests/**/*.trigger' --target 'packages/record-health-check/integration-tests/**/*.xml' --target 'subscriber-app/**/*.cls' --target 'subscriber-app/**/*.trigger' --target 'subscriber-app/**/*.xml' --rule-selector AppExchange --rule-selector Recommended:Security --rule-selector flow:all --include-fixes --output-file code-analyzer/appexchange-security.json --output-file code-analyzer/appexchange-security.html --severity-threshold 5
+          sf code-analyzer run --workspace packages/record-health-check/force-app --target 'packages/record-health-check/force-app/**/*.js' --rule-selector eslint:Recommended --rule-selector retire-js:Recommended --include-fixes --output-file code-analyzer/javascript-security.json --output-file code-analyzer/javascript-security.html --severity-threshold 5
+          node scripts/release/check_code_analyzer_integrity.mjs --log-dir code-analyzer/logs --output code-analyzer/appexchange-security.json --output code-analyzer/javascript-security.json
+      - name: Run all-checks neutral advisory debt audit
+        if: success()
+        continue-on-error: true
+        run: |
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --workspace subscriber-app --target 'packages/record-health-check/force-app/**/*.cls' --target 'packages/record-health-check/force-app/**/*.trigger' --target 'packages/record-health-check/force-app/**/*.xml' --target 'packages/record-health-check/integration-tests/**/*.cls' --target 'packages/record-health-check/integration-tests/**/*.trigger' --target 'packages/record-health-check/integration-tests/**/*.xml' --target 'subscriber-app/**/*.cls' --target 'subscriber-app/**/*.trigger' --target 'subscriber-app/**/*.xml' --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-apex-metadata.json --output-file code-analyzer/neutral-apex-metadata.html
+          sf code-analyzer run --workspace packages/record-health-check/force-app --target 'packages/record-health-check/force-app/**/*.js' --config-file code-analyzer-neutral.yml --rule-selector eslint:all --rule-selector retire-js:all --include-fixes --output-file code-analyzer/neutral-javascript.json --output-file code-analyzer/neutral-javascript.html
+      - name: Upload Code Analyzer evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: code-analyzer-evidence
+          path: |
+            code-analyzer/appexchange-security.json
+            code-analyzer/appexchange-security.html
+            code-analyzer/javascript-security.json
+            code-analyzer/javascript-security.html
+            code-analyzer/neutral-apex-metadata.json
+            code-analyzer/neutral-apex-metadata.html
+            code-analyzer/neutral-javascript.json
+            code-analyzer/neutral-javascript.html
+            code-analyzer/logs/
+          if-no-files-found: error
+          retention-days: 90
+
+  require-dev-hub-secret:
+    needs: offline-preflight
     runs-on: ubuntu-latest
     outputs:
-      has-secret: ${{ steps.check.outputs.has-secret }}
+      available: ${{ steps.credentials.outputs.available }}
     steps:
-      - id: check
+      - name: Require hosted Salesforce credentials
+        id: credentials
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
           if [ -z "${SFDX_AUTH_URL}" ]; then
-            echo "::warning::SFDX_AUTH_URL secret is not configured. Skipping the Salesforce release gate (org deploy and Apex tests will not run)."
-            echo "has-secret=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has-secret=true" >> "$GITHUB_OUTPUT"
+            echo "::error::SFDX_AUTH_URL is required for manually dispatched release validation."
+            exit 1
           fi
+          echo "available=true" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v5
+        if: steps.credentials.outputs.available == 'true'
+      - uses: actions/setup-node@v5
+        if: steps.credentials.outputs.available == 'true'
+        with:
+          node-version: 22
+      - name: Install pinned Salesforce CLI for Dev Hub preflight
+        if: steps.credentials.outputs.available == 'true'
+        run: npm install --global @salesforce/cli@2.150.6
+      - name: Authenticate Dev Hub
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
+      - name: Check release-matrix scratch-org capacity
+        if: steps.credentials.outputs.available == 'true'
+        run: npm run check:scratch-capacity -- --dev-hub devhub --required 4
 
   package-source-tests:
-    needs: check-dev-hub-secret
-    if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs: require-dev-hub-secret
+    if: needs.require-dev-hub-secret.outputs.available == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -58,29 +137,28 @@ jobs:
         run: npm run check:namespaced-tokens
       - name: Verify exact configuration identity contract
         run: npm run check:configuration-identity
+      - name: Verify Lightning Locker and LWS runtime compatibility
+        run: npm run check:lightning-runtime-compatibility
       - name: Verify package version synchronization
         run: npm run check:version-sync
       - name: Verify field limits
         run: npm run check:field-limits
       - name: Verify permission-set limits and access contracts
         run: npm run check:permission-sets
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
-      - run: echo y | sf plugins install code-analyzer@5.14.0
-      - name: Record analyzer toolchain versions
-        run: |
-          sf --version
-          sf plugins --core
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
-      - name: Check scratch-org capacity
-        run: npm run check:scratch-capacity -- --dev-hub devhub
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
       - name: Create namespaced package-source scratch org
         working-directory: packages/record-health-check
-        run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
+        run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --target-dev-hub devhub --set-default --duration-days 30 --wait 15
       - name: Dry-run production package deployment
         working-directory: packages/record-health-check
         # Check-only tests run before a newly validated Custom Permission is
@@ -93,7 +171,15 @@ jobs:
       - name: Assign package permissions before Apex tests
         run: sf org assign permset --name Record_Health_Check_Admin --target-org rhc-ci
       - name: Run production package Apex tests
-        run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
+        run: npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-package --scope package
+      - name: Upload namespaced package-only Apex inventory evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: apex-inventory-namespaced-package
+          path: test-results/apex/namespaced-package/
+          if-no-files-found: error
+          retention-days: 90
       - name: Enforce packaged-only Apex coverage class by class
         run: npm run check:apex-coverage -- rhc-ci --list
       - name: Run metadata validator against production metadata
@@ -114,41 +200,44 @@ jobs:
             source_args+=(--source-dir "$directory")
           done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
           sf project deploy start "${source_args[@]}" --target-org rhc-ci --test-level NoTestRun --wait 30
+      - name: Deploy namespaced browser page
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir integration-tests/browser-fixtures/namespaced/main/default/flexipages --target-org rhc-ci --test-level NoTestRun --wait 30
+      - name: Activate namespaced browser page
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir integration-tests/browser-fixtures/namespaced/main/default/objects --target-org rhc-ci --test-level NoTestRun --wait 30
       - name: Assign integration harness permissions
         run: sf org assign permset --name Record_Health_Check_Integration_Harness --target-org rhc-ci
+      - name: Install release browser engines
+        run: npx playwright install --with-deps chromium firefox
+      - name: Exercise LWC manual and on-load behavior under LWS
+        run: npm run test:browser:salesforce -- --target-org rhc-ci --security-mode LWS
+      - name: Upload namespaced LWS browser evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-evidence-namespaced-lws
+          path: |
+            playwright-report/
+            test-results/browser/
+          if-no-files-found: error
+          retention-days: 90
       - name: Verify the live MCP-to-Apex REST contract
         run: npm run contract:org --prefix packages/record-health-check-mcp -- --target-org rhc-ci --namespace rhc
-      - run: sf apex run test --target-org rhc-ci --test-level RunLocalTests --code-coverage --wait 30 --result-format human
+      - name: Run and reconcile every namespaced source Apex test
+        run: npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-full --scope full
+      - name: Upload namespaced Apex inventory evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: apex-inventory-namespaced-full
+          path: test-results/apex/namespaced-full/
+          if-no-files-found: error
+          retention-days: 90
       - name: Verify published Apex and LWC coverage statistics
         run: npm run test:unit:coverage && npm run check:quality-metrics -- --apex-org rhc-ci
       - name: Verify bounded query behavior against the accepted baseline
         run: npm run check:query-verdicts -- --target-org rhc-ci --namespace rhc
-      # Run static analysis last. The blocking release-policy profile documents
-      # package-specific check decisions; every enabled finding fails CI. The
-      # separate neutral audit runs every check as advisory debt evidence.
-      - name: Enforce Code Analyzer output locations
-        run: npm run check:code-analyzer-output-paths
-      - name: Run blocking Code Analyzer release-policy gate
-        run: |
-          mkdir -p code-analyzer/logs
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --rule-selector Recommended --include-fixes --output-file code-analyzer/release-profile.json --output-file code-analyzer/release-profile.html --severity-threshold 5
-      - name: Run all-checks neutral advisory debt audit
-        if: always()
-        continue-on-error: true
-        run: |
-          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --config-file code-analyzer-neutral.yml --rule-selector all --include-fixes --output-file code-analyzer/neutral-audit.json --output-file code-analyzer/neutral-audit.html
-      - name: Upload Code Analyzer evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-analyzer-evidence
-          path: |
-            code-analyzer/release-profile.json
-            code-analyzer/release-profile.html
-            code-analyzer/neutral-audit.json
-            code-analyzer/neutral-audit.html
-            code-analyzer/logs/
-          retention-days: 90
       - name: Delete scratch org
         if: always()
         continue-on-error: true
@@ -164,8 +253,8 @@ jobs:
           fi
 
   portable-source-tests:
-    needs: [check-dev-hub-secret, package-source-tests]
-    if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs: [require-dev-hub-secret, package-source-tests]
+    if: needs.require-dev-hub-secret.outputs.available == 'true' && needs.package-source-tests.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -174,25 +263,93 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.149.9
+      - name: Verify Lightning Locker and LWS runtime compatibility
+        run: npm run check:lightning-runtime-compatibility
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
-      - name: Check scratch-org capacity
-        run: npm run check:scratch-capacity -- --dev-hub devhub
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
       - name: Create clean no-namespace scratch org
         working-directory: packages/record-health-check
         run: sf org create scratch --definition-file ../../config/subscriber-scratch-def.json --alias rhc-ci-portable --target-dev-hub devhub --duration-days 30 --no-namespace --wait 15
-      - name: Deploy portable package source and run Apex tests
+      - name: Dry-run portable production deployment
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir force-app --target-org rhc-ci-portable --test-level NoTestRun --dry-run --wait 30
+      - name: Deploy portable package source
         working-directory: packages/record-health-check
         run: |
           sf project deploy start --source-dir force-app --target-org rhc-ci-portable --test-level NoTestRun --wait 30
           sf org assign permset --name Record_Health_Check_Admin --target-org rhc-ci-portable
-          sf apex run test --target-org rhc-ci-portable --test-level RunLocalTests --code-coverage --wait 30 --result-format human
+      - name: Run every portable package-source Apex test
+        run: npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-package --scope package
+      - name: Upload no-namespace package-only Apex inventory evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: apex-inventory-no-namespace-package
+          path: test-results/apex/no-namespace-package/
+          if-no-files-found: error
+          retention-days: 90
       - name: Enforce portable-source Apex coverage class by class
+        run: npm run check:apex-coverage -- rhc-ci-portable --list
+      - name: Dry-run portable integration harness
+        working-directory: packages/record-health-check
+        run: |
+          source_args=()
+          while IFS= read -r -d '' directory; do
+            source_args+=(--source-dir "$directory")
+          done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
+          sf project deploy start "${source_args[@]}" --target-org rhc-ci-portable --test-level NoTestRun --dry-run --wait 30
+      - name: Deploy portable integration harness
+        working-directory: packages/record-health-check
+        run: |
+          source_args=()
+          while IFS= read -r -d '' directory; do
+            source_args+=(--source-dir "$directory")
+          done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
+          sf project deploy start "${source_args[@]}" --target-org rhc-ci-portable --test-level NoTestRun --wait 30
+      - name: Deploy no-namespace browser page
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir integration-tests/browser-fixtures/no-namespace/main/default/flexipages --target-org rhc-ci-portable --test-level NoTestRun --wait 30
+      - name: Activate no-namespace browser page
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir integration-tests/browser-fixtures/no-namespace/main/default/objects --target-org rhc-ci-portable --test-level NoTestRun --wait 30
+      - name: Assign portable integration harness permissions
+        run: sf org assign permset --name Record_Health_Check_Integration_Harness --target-org rhc-ci-portable
+      - name: Install release browser engines
+        run: npx playwright install --with-deps chromium firefox
+      - name: Exercise portable LWC manual and on-load behavior under LWS
+        run: npm run test:browser:salesforce -- --target-org rhc-ci-portable --security-mode LWS
+      - name: Upload no-namespace LWS browser evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-evidence-no-namespace-lws
+          path: |
+            playwright-report/
+            test-results/browser/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Verify portable live MCP-to-Apex REST contract
+        run: npm run contract:org --prefix packages/record-health-check-mcp -- --target-org rhc-ci-portable --namespace ""
+      - name: Run and reconcile every no-namespace source Apex test
+        run: npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-full --scope full
+      - name: Upload no-namespace Apex inventory evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: apex-inventory-no-namespace-full
+          path: test-results/apex/no-namespace-full/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Re-enforce portable Apex coverage after integration deployment
         run: npm run check:apex-coverage -- rhc-ci-portable --list
       - name: Delete no-namespace scratch org
         if: always()
@@ -206,4 +363,100 @@ jobs:
             sf org delete scratch --target-org rhc-ci-portable --no-prompt
           else
             echo "No rhc-ci-portable scratch org authorization found; skipping cleanup"
+          fi
+
+  locker-browser-tests:
+    name: locker-browser-tests (${{ matrix.topology }})
+    needs: [require-dev-hub-secret, portable-source-tests]
+    if: needs.require-dev-hub-secret.outputs.available == 'true' && needs.portable-source-tests.result == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        include:
+          - topology: namespaced
+            alias: rhc-ci-locker-ns
+            no_namespace: false
+            browser_fixture: namespaced
+          - topology: no-namespace
+            alias: rhc-ci-locker-portable
+            no_namespace: true
+            browser_fixture: no-namespace
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --global @salesforce/cli@2.150.6
+      - run: npm run check:toolchain
+      - name: Authenticate Dev Hub
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
+      - name: Create ${{ matrix.topology }} Lightning Locker org
+        working-directory: packages/record-health-check
+        env:
+          NO_NAMESPACE: ${{ matrix.no_namespace }}
+          ORG_ALIAS: ${{ matrix.alias }}
+        run: |
+          extra_args=()
+          if [ "$NO_NAMESPACE" = "true" ]; then
+            extra_args+=(--no-namespace)
+          fi
+          sf org create scratch --definition-file ../../config/locker-scratch-def.json --alias "$ORG_ALIAS" --target-dev-hub devhub --duration-days 1 --wait 15 "${extra_args[@]}"
+      - name: Deploy production package source
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir force-app --target-org "${{ matrix.alias }}" --test-level NoTestRun --wait 30
+      - name: Deploy browser integration fixture
+        working-directory: packages/record-health-check
+        run: |
+          source_args=()
+          while IFS= read -r -d '' directory; do
+            source_args+=(--source-dir "$directory")
+          done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
+          sf project deploy start "${source_args[@]}" --target-org "${{ matrix.alias }}" --test-level NoTestRun --wait 30
+      - name: Deploy topology-correct Locker browser page
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir "integration-tests/browser-fixtures/${{ matrix.browser_fixture }}/main/default/flexipages" --target-org "${{ matrix.alias }}" --test-level NoTestRun --wait 30
+      - name: Activate topology-correct Locker browser page
+        working-directory: packages/record-health-check
+        run: sf project deploy start --source-dir "integration-tests/browser-fixtures/${{ matrix.browser_fixture }}/main/default/objects" --target-org "${{ matrix.alias }}" --test-level NoTestRun --wait 30
+      - name: Assign browser-gate permissions
+        run: |
+          sf org assign permset --name Record_Health_Check_Admin --target-org "${{ matrix.alias }}"
+          sf org assign permset --name Record_Health_Check_Integration_Harness --target-org "${{ matrix.alias }}"
+      - name: Install release browser engines
+        run: npx playwright install --with-deps chromium firefox
+      - name: Exercise LWC manual and on-load behavior under Lightning Locker
+        run: npm run test:browser:salesforce -- --target-org "${{ matrix.alias }}" --security-mode Locker
+      - name: Upload ${{ matrix.topology }} Locker browser evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-evidence-${{ matrix.topology }}-locker
+          path: |
+            playwright-report/
+            test-results/browser/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Delete Locker scratch org
+        if: always()
+        continue-on-error: true
+        run: |
+          if ! command -v sf >/dev/null 2>&1; then
+            echo "sf CLI was never installed; skipping scratch org cleanup"
+            exit 0
+          fi
+          if sf org display --target-org "${{ matrix.alias }}" >/dev/null 2>&1; then
+            sf org delete scratch --target-org "${{ matrix.alias }}" --no-prompt
+          else
+            echo "No ${{ matrix.alias }} authorization found; skipping cleanup"
           fi

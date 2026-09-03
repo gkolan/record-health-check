@@ -458,7 +458,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT CurrencyIsoCode, SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null GROUP BY CurrencyIsoCode",
+    "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1943,7 +1943,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT CurrencyIsoCode, SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null GROUP BY CurrencyIsoCode",
+    "soql": "SELECT SUM(Amount) pipelineTotal FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2010,6 +2010,39 @@
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
     "soql": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Release_On_Load_Compare",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Release_On_Load_Compare",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Release_On_Load_Query",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2763,17 +2796,6 @@
   {
     "aggregate": true,
     "bareCount": true,
-    "check": "Example_Account_Owner_Active",
-    "correlation": "Id = record.OwnerId",
-    "field": "SourceQuery__c",
-    "note": "Reverse index on record.OwnerId values across the scope",
-    "package": "force-app",
-    "soql": "SELECT COUNT() activeOwners FROM User WHERE Id = {!record.OwnerId} AND IsActive = true",
-    "strategy": "TOKEN_INDIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
     "check": "Example_Contact_RR_Owner_Active",
     "correlation": "Id = record.OwnerId",
     "field": "SourceQuery__c",
@@ -2890,17 +2912,6 @@
     "note": "Reverse index on record.OwnerId values across the scope",
     "package": "integration-tests",
     "soql": "SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true",
-    "strategy": "TOKEN_INDIRECT"
-  },
-  {
-    "aggregate": true,
-    "bareCount": true,
-    "check": "Example_Account_Owner_Active",
-    "correlation": "Id = record.OwnerId",
-    "field": "SourceQuery__c",
-    "note": "Reverse index on record.OwnerId values across the scope",
-    "package": "integration-tests",
-    "soql": "SELECT COUNT() activeOwners FROM User WHERE Id = {!record.OwnerId} AND IsActive = true",
     "strategy": "TOKEN_INDIRECT"
   },
   {

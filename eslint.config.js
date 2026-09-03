@@ -3,6 +3,7 @@ const eslintJs = require("@eslint/js");
 const jestPlugin = require("eslint-plugin-jest");
 const auraConfig = require("@salesforce/eslint-plugin-aura");
 const lwcConfig = require("@salesforce/eslint-config-lwc/recommended");
+const lockerConfig = require("@locker/eslint-config-locker/recommended");
 const globals = require("globals");
 
 module.exports = defineConfig([
@@ -16,6 +17,15 @@ module.exports = defineConfig([
   {
     files: ["**/lwc/**/*.js"],
     extends: [lwcConfig]
+  },
+
+  // Salesforce's security-specific rules model browser APIs that are blocked
+  // or distorted by Lightning Web Security. Keep test-only browser fixtures
+  // out of this production-source gate.
+  {
+    files: ["**/lwc/**/*.js"],
+    ignores: ["**/lwc/**/__tests__/**", "**/lwc/**/__mocks__/**"],
+    extends: [...lockerConfig]
   },
 
   // LWC configuration with override for LWC test files

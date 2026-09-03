@@ -13,6 +13,7 @@ private class RecordHealthCheckControllerShellTest {
   static void getCheckSetShellConfigReturnsMetadataValues() {
     Record_Health_Check_Set__mdt expectedCheckSet = [
       SELECT
+        MasterLabel,
         CardTitle__c,
         CardSubtitle__c,
         RunButtonDisplay__c,
@@ -23,6 +24,20 @@ private class RecordHealthCheckControllerShellTest {
       WHERE DeveloperName = 'Example_Account_Relationship_Risk'
       LIMIT 1
     ];
+    Integer expectedActiveCount = [
+      SELECT COUNT()
+      FROM Record_Health_Check__mdt
+      WHERE
+        Record_Health_Check_Set__r.DeveloperName = 'Example_Account_Relationship_Risk'
+        AND IsActive__c = TRUE
+    ];
+    Integer expectedInactiveCount = [
+      SELECT COUNT()
+      FROM Record_Health_Check__mdt
+      WHERE
+        Record_Health_Check_Set__r.DeveloperName = 'Example_Account_Relationship_Risk'
+        AND IsActive__c = FALSE
+    ];
 
     Test.startTest();
     Map<String, String> shellConfig = RecordHealthCheckController.getCheckSetShellConfig(
@@ -32,6 +47,11 @@ private class RecordHealthCheckControllerShellTest {
     );
     Test.stopTest();
 
+    Assert.areEqual(
+      expectedCheckSet.MasterLabel,
+      shellConfig.get('checkSetLabel'),
+      'The shell should expose the selected Check Set label.'
+    );
     Assert.areEqual(
       'Manual',
       shellConfig.get('runMode'),
@@ -47,9 +67,15 @@ private class RecordHealthCheckControllerShellTest {
       shellConfig.get('cardDescription'),
       'The shell should expose the configured subtitle.'
     );
-    Assert.isTrue(
-      Integer.valueOf(shellConfig.get('activeCheckCount')) > 0,
+    Assert.areEqual(
+      expectedActiveCount,
+      Integer.valueOf(shellConfig.get('activeCheckCount')),
       'The shell should expose the active Check count.'
+    );
+    Assert.areEqual(
+      expectedInactiveCount,
+      Integer.valueOf(shellConfig.get('inactiveCheckCount')),
+      'The shell should expose the inactive Check count.'
     );
     Assert.areEqual(
       RecordHealthCheckConstants.normalizedRunButtonDisplay(

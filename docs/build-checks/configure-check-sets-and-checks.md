@@ -257,7 +257,9 @@ Test in a sandbox with realistic records and the same permissions users will hav
 10. Rerun after correcting the saved record and confirm the result changes as expected.
 
 Turn on **Show Diagnostics** only for authorized troubleshooting. The installed **Record Health
-Check Admin** permission set includes the **Record Health Check View Diagnostics** Custom Permission.
+Check Diagnostics Viewer** and **Record Health Check Admin** permission sets include the **Record
+Health Check View Diagnostics** Custom Permission. Assign Diagnostics Viewer temporarily alongside
+Card User or User when the affected runner must reproduce an issue without Admin access.
 Turn diagnostics off again after the investigation.
 
 ## Step 10: Review limits
@@ -283,8 +285,8 @@ query and formula behavior.
 
 | What the user sees | What to check first |
 | --- | --- |
-| **Health Check Needs Setup** | Select an active Check Set in Lightning App Builder. |
-| **Health Check Unavailable** | Review access, active Check Set status, record context, and configuration guidance shown on the card. |
+| **Record Health Check Needs Setup** | Select an active Check Set in Lightning App Builder. |
+| **Record Health Check Unavailable** | Review access, active Check Set status, record context, and configuration guidance shown on the card. |
 | The Check Set is not available in the component dropdown | Confirm the Check Set is active and its Object matches the record page object. |
 | No Checks appear | Confirm at least one Check in the selected Check Set is active. |
 | A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |

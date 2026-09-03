@@ -1,9 +1,9 @@
 # Feature catalog
 
 > [!NOTE]
-> This page inventories the capabilities shipped in Record Health Check 2.0.6 source. Each row
-> links to the guide that defines its setup, behavior, or limits. A capability is not implied when
-> it is absent from this catalog.
+> Use this catalog to find setup instructions and supported behavior. It describes this checkout;
+> [version availability](../install/choose-a-package-version.md#documentation-and-installed-version)
+> identifies additions that are not yet in the published package.
 
 Record Health Check is a read-only evaluation framework. It explains record health; it does not
 change business records, block saves, or keep a permanent result history by itself.
@@ -78,8 +78,8 @@ change business records, block saves, or keep a permanent result history by itse
 | Capability | Supported behavior | Detailed guide |
 | --- | --- | --- |
 | User-context access | Business-record reads use user mode, and Apex plugins run with sharing. The package does not grant access to subscriber business objects or fields. | [Security and data access](../architecture/security-and-data-access.md) |
-| Purpose-specific access | **Record Health Check Card User**, **Record Health Check User**, **Record Health Check Admin**, **Record Health Check MCP Integration**, and **Record Health Check Error Log Publisher** Permission Sets separate card, automation, administration, integration, and logging duties. | [Install and assign access](../install/install-in-a-sandbox.md#step-2-choose-who-can-use-it) |
-| Run and diagnostic permissions | Record Health Check Run authorizes execution. Record Health Check View Diagnostics authorizes restricted diagnostic detail when the Check Set also enables it. | [Security and data access](../architecture/security-and-data-access.md#the-diagnostics-custom-permission) |
+| Purpose-specific access | **Record Health Check Card User**, **Record Health Check User**, **Record Health Check Admin**, **Record Health Check MCP Integration**, **Record Health Check Diagnostics Viewer**, and **Record Health Check Error Log Publisher** separate card, automation, administration, integration, diagnostic-viewing, and restricted logging duties. | [Permission Sets](./permission-sets.md) |
+| Run and diagnostic permissions | Record Health Check Run authorizes execution. Record Health Check View Diagnostics authorizes restricted diagnostic detail when the Check Set also enables it. | [Custom Permissions](./custom-permissions.md) |
 | Plugin side-effect protection | Plugin dispatch rejects detected record writes, callouts, email, Queueable, and Future work. Platform Event, Batch, and Scheduled prohibitions also require contract tests, static analysis, and review because Apex exposes no complete transaction counter for them. | [Verify an Apex Check](../developer-guides/verify-an-apex-check.md) |
 | Safe templates and links | Query templates, merge tokens, and Action URLs are validated and bounded. Unsupported or inaccessible inputs fail closed instead of producing a guessed verdict. | [Merge syntax](./merge-syntax/README.md), [bulk-query grammar](./evaluation/bulk-query-grammar.md) |
 | Namespaced configuration | Qualified API names and foreign-package field namespaces are preserved exactly across package and subscriber metadata. | [Names and API identities](./configuration/names-and-api-identities.md) |
@@ -89,11 +89,10 @@ change business records, block saves, or keep a permanent result history by itse
 
 | Capability | Supported behavior | Detailed guide |
 | --- | --- | --- |
-| Immutable 2GP package versions | Release owners can pin exact `04t` versions, rehearse upgrades, and promote only after the documented gates pass. | [Choose a package version](../install/choose-a-package-version.md) |
+| Immutable 2GP package versions | Install a specific `04t` version and test that same version in a sandbox before upgrading production. | [Choose a package version](../install/choose-a-package-version.md) |
 | Install, upgrade, and uninstall | Guides cover sandbox-first installation, permission assignment, configuration backup, N-1 upgrade rehearsal, and safe uninstall preparation. | [Install](../install/README.md) |
 | Packaged examples | Four active Example Check Sets contain 50 Checks across Account, Contact, and Opportunity. Matching docs explain Formula, Query, Compare two queries, Apex, applicability, display, and remediation patterns. | [Explore installed examples](../install/explore-installed-examples.md), [examples library](../examples/README.md) |
 | Production operations | Back up subscriber-owned Custom Metadata, monitor events and jobs, test least-privilege users, and preserve evidence for support. | [Production operations](../production-operations/README.md) |
-| Release quality gates | Formatting, linting, package boundaries, query shapes, permissions, documentation, Jest, Apex coverage, Code Analyzer, source deployment, clean installation, and upgrade rehearsal protect releases. | [Quality gates](../quality-gates/README.md) |
 
 ## Explicit boundaries and non-features
 

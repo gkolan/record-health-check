@@ -124,7 +124,16 @@ private class RecordHealthCheckApiIT {
         .withRunId('set-test-run')
     );
     Assert.areEqual('set-test-run', response.runId);
-    Assert.isTrue(response.results.size() > 0);
+    Assert.areEqual(
+      25,
+      response.results.size(),
+      'The Apex API must return every Check in the four-evaluator release set.'
+    );
+    Assert.areEqual(
+      new Set<String>{ 'APEX', 'COMPARE_TWO_QUERIES', 'FORMULA', 'QUERY' },
+      evaluationTypes(response),
+      'The Apex API response must contain results from every evaluator type.'
+    );
     Assert.areEqual(
       response.results.size(),
       response.summary.passed +
@@ -433,5 +442,37 @@ private class RecordHealthCheckApiIT {
     Assert.isFalse(responses[0].isSuccess);
     Assert.areEqual(expectedType, responses[0].errorType);
     Assert.isTrue(responses[0].errorMessage.contains(expectedMessage));
+  }
+
+  private static Set<String> evaluationTypes(
+    RecordHealthCheckResponse response
+  ) {
+    Set<String> checkNames = new Set<String>();
+    for (RecordHealthCheckResultItem item : response.results) {
+      checkNames.add(item.evaluation.checkQualifiedApiName);
+    }
+    Map<String, Record_Health_Check__mdt> checksByQualifiedName = new Map<String, Record_Health_Check__mdt>();
+    for (Record_Health_Check__mdt configuredCheck : [
+      SELECT QualifiedApiName, EvaluationType__c
+      FROM Record_Health_Check__mdt
+      WHERE QualifiedApiName IN :checkNames
+    ]) {
+      checksByQualifiedName.put(
+        configuredCheck.QualifiedApiName,
+        configuredCheck
+      );
+    }
+    Set<String> types = new Set<String>();
+    for (String checkName : checkNames) {
+      Record_Health_Check__mdt configuredCheck = checksByQualifiedName.get(
+        checkName
+      );
+      Assert.isNotNull(
+        configuredCheck,
+        'Every Apex API result identity must resolve to Custom Metadata.'
+      );
+      types.add(configuredCheck.EvaluationType__c);
+    }
+    return types;
   }
 }

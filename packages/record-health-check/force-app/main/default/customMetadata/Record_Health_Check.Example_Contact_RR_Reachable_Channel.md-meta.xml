@@ -4,38 +4,37 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-  <label>Example: Contact - Permitted Channel</label><protected
-  >false</protected>
+  <label>Example: Contact - Email or Phone</label><protected>false</protected>
   <values><field>Record_Health_Check_Set__c</field><value
       xsi:type="xsd:string"
     >Example_Contact_Relationship_Readiness</value></values>
   <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >A Permitted Outreach Channel Is Available</value></values>
+    >Contact has Email or Phone</value></values>
   <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >Relationship work needs at least one recorded channel that respects the Contact's standard email and call preferences.</value></values>
+    >The Formula check passes when Email or Phone has a value. It checks completeness, not reachability or permission to contact.</value></values>
   <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>
   <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
-    >OR(AND(ISBLANK(EmailBouncedDate), NOT(ISBLANK(Email))), AND(NOT(DoNotCall), NOT(ISBLANK(Phone))))</value></values>
+    >OR(NOT(ISBLANK(Email)), NOT(ISBLANK(Phone)))</value></values>
   <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
-    >IF(AND(ISBLANK(EmailBouncedDate), NOT(ISBLANK(Email))), "Available email channel", IF(AND(NOT(DoNotCall), NOT(ISBLANK(Phone))), "Available phone channel", "No available channel"))</value></values>
+    >IF(NOT(ISBLANK(Email)), "Email recorded", IF(NOT(ISBLANK(Phone)), "Phone recorded", "Neither recorded"))</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >At least one recorded outreach channel allowed by standard Contact preferences</value></values>
+    >Email or Phone</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
   <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >No permitted email or phone channel is available for {!record.Name fallback="this contact"}.</value></values>
+    >{!record.Name fallback="This Contact"} has neither Email nor Phone.</value></values>
   <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
-    >Respect existing opt-out and do-not-call settings. Confirm whether another permitted business channel can be recorded; never clear a preference without authorization.</value></values>
+    >Add the appropriate business contact details. Check communication preferences before contacting this person.</value></values>
   <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
     >Review outreach details</value></values>
@@ -44,13 +43,13 @@
     >/lightning/r/Contact/{!record.Id}/edit</value></values>
   <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
-    >Permitted outreach could not be evaluated. Verify Email, Phone, Email Opt Out, and Do Not Call access, then retry.</value></values>
+    >Contact details could not be evaluated. Verify access to Email and Phone, then retry.</value></values>
   <values><field>ApplicabilityMode__c</field><value
       xsi:type="xsd:string"
     >ALL_RECORDS</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >50</value></values>
+    >40</value></values>
   <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

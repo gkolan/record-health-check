@@ -97,4 +97,20 @@ public class RecordHealthCheckPersonaTestDataFactory {
     String token = String.valueOf(Crypto.getRandomInteger()).replace('-', '');
     return token.length() > 8 ? token.right(8) : token;
   }
+
+  /** Creates an admin-profile user with no permission-set assignments. */
+  public static User createProfileOnlyAdmin() {
+    User result = createMinimumAccessUser('profonly');
+    result.ProfileId = [
+      SELECT Id
+      FROM Profile
+      WHERE Name = 'System Administrator'
+      LIMIT 1
+    ]
+    .Id;
+    System.runAs(currentUser()) {
+      update result;
+    }
+    return result;
+  }
 }

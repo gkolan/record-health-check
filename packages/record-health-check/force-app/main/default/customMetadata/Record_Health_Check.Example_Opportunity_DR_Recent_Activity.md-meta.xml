@@ -10,10 +10,10 @@
     >Example_Opportunity_Deal_Readiness</value></values>
   <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Deal Engagement Is Current</value></values>
+    >A Task was completed in the last 30 days</value></values>
   <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A completed activity in the last 30 days provides evidence that an open deal is actively progressing.</value></values>
+    >The Query check passes when an open deal has a completed Task dated within the last 30 days. Closed deals skip this check.</value></values>
   <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
@@ -43,10 +43,10 @@
     >AS_NO_MATCH</value></values>
   <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >{!rhcResult.foundValue} completed deal activities in the last 30 days</value></values>
+    >{!rhcResult.foundValue}</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >At least 1 recent completed deal activity</value></values>
+    >{!rhcResult.expectedValue}</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
@@ -76,7 +76,7 @@
     >The opportunity is closed, so active deal-engagement readiness is not evaluated.</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >60</value></values>
+    >80</value></values>
   <values><field>MaxQueryRows__c</field><value
       xsi:type="xsd:double"
     >1</value></values>

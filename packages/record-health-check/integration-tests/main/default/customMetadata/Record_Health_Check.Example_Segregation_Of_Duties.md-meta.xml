@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Strategic billing readiness</label>
+    <label>Example: Account Phone or Website</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Strategic Accounts are contract-ready for billing</value>
+    >Account has a phone number or website</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The formula evaluation verifies all five billing-address components are populated and passes only when an Account above the $1 million applicability threshold is contract-ready for invoicing.</value>
+    >The formula checks the standard Account Phone and Website fields. It passes when either field has a value and fails when both are blank. This checks completeness, not whether the number or website is valid.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -34,7 +34,7 @@
         <field>PassConditionFormula__c</field>
         <value
       xsi:type="xsd:string"
-    >AND(NOT(ISBLANK(BillingStreet)), NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingPostalCode)), NOT(ISBLANK(BillingCountry)))</value>
+    >OR(NOT(ISBLANK(Phone)), NOT(ISBLANK(Website)))</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -44,7 +44,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} meets the strategic-account threshold but is not contract-ready because required billing-address components are missing.</value>
+    >{!record.Name fallback="This Account"} has neither a phone number nor a website.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -54,15 +54,15 @@
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
-        <value xsi:type="xsd:string">WHEN_FORMULA_TRUE</value>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
     </values>
     <values>
         <field>ApplicabilityFormula__c</field>
-        <value xsi:type="xsd:string">AnnualRevenue &gt; 1000000</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">30</value>
+        <value xsi:type="xsd:double">20</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -76,13 +76,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm the legal billing location and complete its address. Customize the threshold and fields for your contracting process.</value>
+    >For {!record.Name fallback="this Account"}, add a business phone number or website so users can contact or research the business.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review billing for {!record.Name fallback="Account"}</value>
+    >Add Phone or Website for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -97,9 +97,7 @@
     </values>
     <values>
         <field>ApplicabilityNotMetMessage__c</field>
-        <value
-      xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} is below the $1 million strategic-account threshold, so the contract-readiness control does not apply.</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>FormulaResultType__c</field>
@@ -109,10 +107,12 @@
         <field>DisplayFoundFormula__c</field>
         <value
       xsi:type="xsd:string"
-    >IF(AND(NOT(ISBLANK(BillingStreet)), NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingPostalCode)), NOT(ISBLANK(BillingCountry))), "Contract-ready billing address", "Billing address is missing required components")</value>
+    >"Phone: " &amp; BLANKVALUE(Phone, "Not set") &amp; "; Website: " &amp; BLANKVALUE(Website, "Not set")</value>
     </values>
     <values>
         <field>DisplayExpectedFormula__c</field>
-        <value xsi:type="xsd:string">"Contract-ready billing address"</value>
+        <value
+      xsi:type="xsd:string"
+    >"A phone number or website is provided"</value>
     </values>
 </CustomMetadata>

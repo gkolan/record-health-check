@@ -104,13 +104,6 @@ Knowledge `WITH DATA CATEGORY` are deliberately rejected. Polymorphic paths are 
 explicit or flat Name-entity-safe fields; paths that require `TYPEOF` use a purpose-built Query or
 Apex Check.
 
-Foreign-package field resolution is measured in a two-package namespaced gate using RHC (`rhc`)
-and Salesforce CPQ (`SBQQ`). The gate evaluates `SBQQ__AssetQuantitiesCombined__c` through Formula,
-Query, and `{!record.SBQQ__AssetQuantitiesCombined__c fallback="not set"}` merge surfaces. This
-proves API-name handling only; it does not make CPQ a dependency or claim support for CPQ business
-semantics. See the
-[foreign-namespace fixture](../../../packages/record-health-check/integration-tests/foreign-namespace/README.md).
-
 ## Person Accounts
 
 Person Accounts are supported when your org has the feature enabled. `IsPersonAccount`,

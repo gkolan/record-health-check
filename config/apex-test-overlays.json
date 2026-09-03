@@ -1,0 +1,23 @@
+{
+  "description": "Exact test classes whose integration-harness variant intentionally replaces the package-source variant after packaged-only coverage has already passed.",
+  "classes": [
+    "RecordHealthCheckAccessTest",
+    "RecordHealthCheckAutomationAsyncTest",
+    "RecordHealthCheckConfigServiceTest",
+    "RecordHealthCheckContractHarnessTest",
+    "RecordHealthCheckDisplayCurrencyTest",
+    "RecordHealthCheckDisplayFieldTest",
+    "RecordHealthCheckDisplayFormatTest",
+    "RecordHealthCheckDisplayNumberTest",
+    "RecordHealthCheckDisplayTemporalTest",
+    "RecordHealthCheckFieldPlannerTest",
+    "RecordHealthCheckScopeDisplayTest",
+    "RecordHealthCheckSecurityAndOpsTest",
+    "RecordHealthCheckTemplateServiceTest",
+    "RHCDisplayCurrencyComparisonTest",
+    "RHCDisplayCurrencyRendererTest",
+    "RHCDisplayCurrencyResolutionTest",
+    "RHCFieldPlannerSecurityTest",
+    "RHCQueryClassificationRedTest"
+  ]
+}

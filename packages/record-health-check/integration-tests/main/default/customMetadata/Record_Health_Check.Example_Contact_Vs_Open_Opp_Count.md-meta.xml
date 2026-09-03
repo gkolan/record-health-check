@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Open deal next-step coverage</label>
+    <label>Example: Proposal Next Steps</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,15 +12,13 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Every proposal-stage deal has a documented mutual action</value>
+        <value xsi:type="xsd:string">Every proposal has a Next Step</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when every proposal-stage Opportunity has a documented Next Step, limiting the policy to deals mature enough to require an agreed customer action.</value>
+    >The Compare Two Queries check counts proposals with Next Step and all proposals. It passes when the counts match. This checks that Next Step has text, not whether the action has been agreed.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -58,7 +56,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >One or more proposal-stage Opportunities for {!record.Name fallback="this Account"} have no documented mutual action.</value>
+    >One or more proposals for {!record.Name fallback="this Account"} have no Next Step.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -72,7 +70,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">140</value>
+        <value xsi:type="xsd:double">150</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -98,7 +96,7 @@
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Account/{!record.Id}/view</value>
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
     </values>
 
     <values>
@@ -119,14 +117,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Proposal-stage deals with a documented mutual action: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Proposal-stage deals requiring an agreed action: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

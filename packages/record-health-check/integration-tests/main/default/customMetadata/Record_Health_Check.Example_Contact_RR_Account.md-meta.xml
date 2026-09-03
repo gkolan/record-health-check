@@ -26,7 +26,7 @@
     >IF(ISBLANK(AccountId), "No account linked", Account.Name)</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A confirmed account relationship for {!record.Name fallback="this contact"}</value></values>
+    >Account linked</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >CRITICAL</value></values>
@@ -50,7 +50,7 @@
     >ALL_RECORDS</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >5</value></values>
+    >10</value></values>
   <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

@@ -4,43 +4,43 @@
  */
 
 /** Bulk Flow adapter for qualified Check requests. */
-public with sharing class RecordHealthCheckRunCheckFlowAction {
+global with sharing class RecordHealthCheckRunCheckFlowAction {
   /** One Flow input for a qualified Check evaluation. */
-  public class Request {
+  global class Request {
     @InvocableVariable(
       required=true
       label='Check Qualified API Name'
       description='QualifiedApiName of the Check to run.'
     )
-    public String checkQualifiedApiName;
+    global String checkQualifiedApiName;
 
     @InvocableVariable(required=true label='Record ID')
-    public Id recordId;
+    global Id recordId;
 
     @InvocableVariable(
       required=true
       label='Event Publication'
       description='Required: NONE, ACTIONABLE, or ALL.'
     )
-    public String eventPublication;
+    global String eventPublication;
   }
 
   /** One aligned Flow output for a Check request. */
-  public class Response {
+  global class Response {
     @InvocableVariable(label='Success')
-    public Boolean isSuccess;
+    global Boolean isSuccess;
     @InvocableVariable(label='Error Message')
-    public String errorMessage;
+    global String errorMessage;
     @InvocableVariable(label='Error Type')
-    public String errorType;
+    global String errorType;
     @InvocableVariable(label='Contract Version')
-    public String contractVersion;
+    global String contractVersion;
     @InvocableVariable(label='Status')
-    public String status;
+    global String status;
     @InvocableVariable(label='Reason Code')
-    public String reasonCode;
+    global String reasonCode;
     @InvocableVariable(label='Result JSON')
-    public String resultJson;
+    global String resultJson;
   }
 
   /**
@@ -54,7 +54,7 @@ public with sharing class RecordHealthCheckRunCheckFlowAction {
     description='Runs one qualified Record Health Check for each input record.'
     category='Record Health Check'
   )
-  public static List<Response> runCheck(List<Request> requests) {
+  global static List<Response> runCheck(List<Request> requests) {
     if (requests == null) {
       return new List<Response>();
     }

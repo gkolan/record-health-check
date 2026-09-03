@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { paths } from "../lib/paths.mjs";
+import { seedDemoData } from "../lib/demo-data.mjs";
+import { verifyReadinessData } from "../lib/demo-verification.mjs";
 import {
   namespacedPermissionSet,
   readPackageReleases,
@@ -179,17 +181,7 @@ function main() {
   ]);
 
   if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
-    for (const script of ["setupDemoData.apex"]) {
-      console.log(`Running demo lifecycle step ${script}...`);
-      run("sf", [
-        "apex",
-        "run",
-        "--target-org",
-        options.alias,
-        "--file",
-        `${paths.subscriberData}/${script}`
-      ]);
-    }
+    seedDemoData(options.alias);
     console.log("Verifying deterministic demo data and Check outcomes...");
     run("sf", [
       "apex",
@@ -199,6 +191,7 @@ function main() {
       "--file",
       `${paths.subscriberData}/verifyDemo.apex`
     ]);
+    verifyReadinessData(options.alias);
   }
 
   console.log("Running subscriber smoke tests...");
@@ -219,6 +212,12 @@ function main() {
   console.log("");
   console.log("Subscriber demo org is ready.");
   console.log(`Alias: ${options.alias}`);
+  console.log(
+    "To test diagnostics, add Record Health Check Diagnostics Viewer to the test user's Card User or User access and enable Show Diagnostics on the Check Set."
+  );
+  console.log(
+    "Assignment steps and the alternative if that set is absent: docs/install/install-demo-in-a-scratch-org.md#try-the-other-permission-sets"
+  );
   console.log(
     `Open: sf org open --target-org ${options.alias} --path 'lightning/o/Account/list?filterName=RHC_Demo_Accounts'`
   );

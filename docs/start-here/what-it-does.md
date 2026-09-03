@@ -95,10 +95,13 @@ quarterly review, a health check is a better fit.
 
 People who only run the card receive **Record Health Check Card User**. Automation principals that
 use Flow, Apex, Agentforce, REST, Queueable, Batch, or Scheduled entry points receive **Record Health
-Check User**. Administrators who configure Checks or investigate unexpected results receive
-**Record Health Check Admin** plus the Salesforce Setup access needed for the work. None of these
-installed permission sets grants access to your Account, Contact, Opportunity, Case, or
-custom-object data.
+Check User**. Administrators who configure Checks receive **Record Health Check Admin** plus the
+Salesforce Setup access needed for the work. Add **Record Health Check Diagnostics Viewer**
+temporarily to a Card User or User who must reproduce an unexpected result without receiving Admin
+access. If Diagnostics Viewer is absent from Setup, use an org-owned
+Permission Set with the existing View Diagnostics Custom Permission as explained in
+[Permission Sets](../reference/permission-sets.md). None of these permission sets grants access to your Account, Contact,
+Opportunity, Case, or custom-object data.
 
 Assign them from **Setup → Permission Sets**, open the permission set appropriate to the person's
 role, and select **Manage Assignments**.

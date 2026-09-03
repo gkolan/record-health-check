@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
+import { packageVersionString } from "../lib/package-version.mjs";
 import { readPackageReleases } from "../lib/package-releases.mjs";
 import { run, runJson } from "../lib/run.mjs";
 import { assertPackageVersionCapacity } from "../lib/salesforce-limits.mjs";
@@ -60,13 +61,35 @@ if (worktree) {
 }
 
 run("npm", ["run", "release:preflight"], { cwd: paths.repoRoot });
+run(
+  "node",
+  [
+    "scripts/release/check_hosted_validation.mjs",
+    "--workflow",
+    "salesforce-validate.yml",
+    "--commit",
+    gitCommit
+  ],
+  { cwd: paths.repoRoot }
+);
 
 const releases = readPackageReleases();
-// Only pass --version-number when the caller asks for a specific line. A
-// hardcoded default silently overrides packageDirectories[].versionNumber in
-// sfdx-project.json, so a stale constant here builds the wrong version line
-// (2.0.0.NEXT long after the project moved to 2.0.1).
-const versionNumber = values["version-number"];
+const runtimeMatrix = JSON.parse(
+  fs.readFileSync(
+    path.join(paths.repoRoot, "config/release-runtime-matrix.json"),
+    "utf8"
+  )
+);
+// The release contract names one exact four-part 2GP version. Passing it
+// explicitly prevents NEXT from advancing to an unexpected build number.
+const versionNumber =
+  values["version-number"] ?? runtimeMatrix.candidateVersion;
+if (versionNumber !== runtimeMatrix.candidateVersion) {
+  console.error(
+    `This release gate may create only ${runtimeMatrix.candidateVersion}; received ${versionNumber}.`
+  );
+  process.exit(1);
+}
 const packageCapacity = assertPackageVersionCapacity(values["dev-hub"]);
 const createsUsedToday = packageCapacity.max - packageCapacity.remaining;
 if (createsUsedToday > 0 && !values["allow-additional-candidate"]) {
@@ -141,9 +164,7 @@ const createArguments = [
   "--target-dev-hub",
   values["dev-hub"]
 ];
-if (versionNumber) {
-  createArguments.push("--version-number", versionNumber);
-}
+createArguments.push("--version-number", versionNumber);
 
 run("sf", createArguments, { cwd: paths.packageRoot });
 
@@ -165,6 +186,13 @@ if (createdRecords.length !== 1) {
   process.exit(1);
 }
 const latest = createdRecords[0];
+const createdVersion = packageVersionString(latest);
+if (createdVersion !== runtimeMatrix.candidateVersion) {
+  console.error(
+    `Salesforce created ${createdVersion || "an unknown version"}; expected exact candidate ${runtimeMatrix.candidateVersion}. Candidate creation is blocked.`
+  );
+  process.exit(1);
+}
 
 const evidenceDirectory = path.join(paths.packageRoot, ".package-evidence");
 fs.mkdirSync(evidenceDirectory, { recursive: true });

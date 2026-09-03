@@ -6,6 +6,10 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
 import { run } from "../lib/run.mjs";
+import {
+  assertPackageObjectBoundary,
+  assertRunOnlyCustomPermission
+} from "../lib/package-object-boundary.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -57,6 +61,8 @@ try {
   }
 
   const manifest = fs.readFileSync(manifestPath, "utf8");
+  assertPackageObjectBoundary(manifest);
+  assertRunOnlyCustomPermission(manifest);
   const customMetadataBlock = [
     ...manifest.matchAll(/<types>([\s\S]*?)<\/types>/g)
   ]

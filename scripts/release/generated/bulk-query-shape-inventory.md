@@ -7,16 +7,16 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `docs/reference/evaluation/bulk-query-grammar.md`.
 
-**269 templates · 7 strategies · 0 unclassified**
+**270 templates · 7 strategies · 0 unclassified**
 
 ## Strategy totals
 
 | Strategy | Templates | How one scope-wide query is built |
 | --- | --- | --- |
-| `CHILD_DIRECT` | 183 | Group child rows by the lookup field that carried the token |
+| `CHILD_DIRECT` | 186 | Group child rows by the lookup field that carried the token |
 | `SELF` | 36 | Query the evaluated records themselves; correlation column is Id |
 | `CHILD_PATH` | 24 | Group child rows by the relationship path that carried the token |
-| `TOKEN_INDIRECT` | 18 | Collect distinct token values across the scope, query them once, map back |
+| `TOKEN_INDIRECT` | 16 | Collect distinct token values across the scope, query them once, map back |
 | `SCOPE_INVARIANT` | 4 | No record token; one query serves every record in the scope |
 | `ORDERED_PICK_IN_MEMORY` | 3 | ORDER BY + LIMIT 1 on another field; rank per record in Apex |
 | `ORDERED_PICK_AGGREGATE` | 1 | ORDER BY + LIMIT 1 on the selected field becomes MIN/MAX with GROUP BY |
@@ -212,6 +212,9 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Compare_Missing` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Query_Max_Rows` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Negative_Row_Cap` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Release_On_Load_Compare` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Release_On_Load_Compare` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `Release_On_Load_Query` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_PATH` | force-app | `Example_Average_Deal_Vs_Largest` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Billing_State_In_Contacts` | `ApplicabilityCountQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
 | `CHILD_PATH` | force-app | `Example_Billing_State_In_Contacts` | `ComparisonQuery__c` | `Opportunity.AccountId = record.Id` | GROUP BY Opportunity.AccountId |
@@ -280,7 +283,6 @@ predicate to issue a single query.
 | `SELF` | integration-tests | `RHC_Negative_For_Update` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_Missing_Field` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_System_Mode` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
-| `TOKEN_INDIRECT` | force-app | `Example_Account_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
 | `TOKEN_INDIRECT` | force-app | `Example_Contact_RR_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
 | `TOKEN_INDIRECT` | force-app | `Example_Opportunity_DR_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_ERB_UnableToEvaluate` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
@@ -292,7 +294,6 @@ predicate to issue a single query.
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_T9_ListsOverlap` | `ApplicabilityCountQuery__c` | `Id = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_CTQ_T9_ListsOverlap` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Account_EU_OwnerIsActive` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
-| `TOKEN_INDIRECT` | integration-tests | `Example_Account_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ExactListMatch` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ListContainsAll` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |
 | `TOKEN_INDIRECT` | integration-tests | `Example_CTQ_ListsOverlap` | `ComparisonQuery__c` | `AccountId = record.ParentId` | Reverse index on record.ParentId values across the scope |

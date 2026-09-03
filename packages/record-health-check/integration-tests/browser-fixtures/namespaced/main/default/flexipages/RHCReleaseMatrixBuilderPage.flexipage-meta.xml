@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <flexiPageRegions>
+        <name>header</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>checkSetName</name>
+                    <value>rhc__Example_Account_Check_Builder_Guide</value>
+                </componentInstanceProperties>
+                <componentName>rhc:recordHealthCheck</componentName>
+                <identifier>rhc_recordHealthCheck_builderConfigured</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>rhc:recordHealthCheck</componentName>
+                <identifier
+        >rhc_recordHealthCheck_builderUnconfigured</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>main</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <name>sidebar</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <description
+  >Namespaced configured and unconfigured App Builder preview release gate.</description>
+    <masterLabel>RHC Release Matrix Builder Page</masterLabel>
+    <sobjectType>Account</sobjectType>
+    <template>
+        <name>flexipage:recordHomeTemplateDesktop</name>
+    </template>
+    <type>RecordPage</type>
+</FlexiPage>

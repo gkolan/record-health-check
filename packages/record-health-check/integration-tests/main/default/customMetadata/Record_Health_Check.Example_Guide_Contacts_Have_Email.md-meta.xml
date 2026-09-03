@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Service-contact reachability</label>
+    <label>Example: Escalated Case descriptions</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Escalated Cases document customer impact</value>
+    >Every escalated open Case has a Description</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check verifies Description on every open Case where Escalated is selected. It passes only when every escalated Case explains the customer impact.</value>
+    >The Query check reads Description on each escalated open Case. It passes only when every Description has a value. No escalated open Cases skips the check. It does not assess the quality of the text.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -80,13 +80,11 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Missing descriptions: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount}</value>
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} missing</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Required missing descriptions for {!record.Name fallback="this Account"}: 0</value>
+        <value xsi:type="xsd:string">None missing</value>
     </values>
     <values>
         <field>ActionLabel__c</field>

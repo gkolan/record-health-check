@@ -61,7 +61,7 @@ future save. Administrators should still test Checks in a sandbox before activat
 | Public Apex API, Batch, Queueable, Scheduled Apex, and two Flow actions | The same evaluation code for automation and integrations |
 | `Record_Health_Check_Set_Run__e` and `Record_Health_Check_Result__e` | Optional Platform Events after deliberately started runs |
 | `Record_Health_Check_Log__e` | `ERROR` detail published through `RecordHealthCheckLogger.flush()` |
-| Five Permission Sets and two Custom Permissions | **Card User** grants the record-page card, **User** grants broader runtime entry points, **Admin** grants configuration and diagnostics, **MCP Integration** grants only the versioned REST adapter, and **Error Log Publisher** grants restricted log-event publication. The Custom Permissions separately gate runs and diagnostics. |
+| Six Permission Sets and two Custom Permissions | **Card User** grants the record-page card, **User** grants broader runtime entry points, **Admin** grants configuration and diagnostics, **MCP Integration** grants only the versioned REST adapter, **Diagnostics Viewer** adds diagnostic visibility to an existing runner, and **Error Log Publisher** grants restricted log-event publication. The Custom Permissions separately gate runs and diagnostics. |
 
 Record Health Check does not create history records. Apex, Flow, and custom Batch classes can save
 the returned results directly to a custom object created by your team. Platform Events are optional
@@ -380,6 +380,9 @@ The installed **Card User**, **User**, and **Admin** Permission Sets include the
 Check Run** Custom Permission and the Apex access appropriate to their surfaces. **Record Health Check Admin**
 (`rhc__Record_Health_Check_Admin`) also includes **Record Health Check View Diagnostics**, setup
 access for the Custom Metadata, and Apex class access for the package metadata validator.
+**Record Health Check Diagnostics Viewer**
+(`rhc__Record_Health_Check_Diagnostics_Viewer`) includes only View Diagnostics and must be combined
+with an appropriate runner Permission Set.
 
 ## 10. Limits
 

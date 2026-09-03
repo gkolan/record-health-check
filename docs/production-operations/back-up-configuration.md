@@ -41,16 +41,16 @@ configuration after the only copy has been deleted from every connected org.
 ## Option 2: Retrieve metadata into source control
 
 Use Salesforce CLI when you need a versioned, reviewable backup or the orgs are not connected.
-This is a developer or release-engineer task.
+Run the command from a Salesforce DX project after authenticating the source org. The examples below use the installed package namespace `rhc`. The wildcard can retrieve package-owned examples as well as your records; select the organization-owned records before preparing a restore.
 
 ```bash
 sf project retrieve start \
-  --metadata "CustomMetadata:Record_Health_Check_Set.*" \
-  --metadata "CustomMetadata:Record_Health_Check.*" \
+  --metadata "CustomMetadata:rhc__Record_Health_Check_Set.*" \
+  --metadata "CustomMetadata:rhc__Record_Health_Check.*" \
   --target-org your-org-alias
 ```
 
-In a managed-package subscriber org, confirm the namespace and retrieved member names before
+In an org with the installed namespaced unlocked package, confirm the retrieved member names before
 committing anything. Keep organization-owned configuration separate from package-owned examples.
 
 To restore, review the retrieved files, authorize the target org, and deploy only the approved
@@ -68,8 +68,7 @@ Custom Metadata records through the organization's release process. Validate in 
 
 ## Important rollback limit
 
-Salesforce does not support installing an older managed-package version over a newer version as a
-general rollback method. Configuration backup and package rollback are separate. If an upgrade is
+Do not rely on installing an older package version over a newer version as a rollback method. Configuration backup and package rollback are separate. If an upgrade is
 not acceptable, stop the rollout and follow the package-version and uninstall guidance approved by
 your release owner.
 

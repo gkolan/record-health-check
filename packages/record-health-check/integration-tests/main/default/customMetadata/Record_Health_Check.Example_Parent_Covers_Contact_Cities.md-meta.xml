@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Priority service stakeholders</label>
+    <label>Example: Priority Case Contact coverage</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Sales stakeholder map covers priority service Contacts</value>
+    >Sales Contact names cover priority Case Contacts</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when the open-deal stakeholder map contains every named Contact from high-priority service work, surfacing coordination gaps before commercial conversations.</value>
+    >The Compare Two Queries check compares Contact names on open Opportunities with names on high-priority open Cases. It passes when the first list contains every name in the second. Shared names can represent different Contacts.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -98,7 +98,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">220</value>
+        <value xsi:type="xsd:double">230</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -147,14 +147,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Contacts represented in the open-deal stakeholder map: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Priority service Contacts requiring sales awareness: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

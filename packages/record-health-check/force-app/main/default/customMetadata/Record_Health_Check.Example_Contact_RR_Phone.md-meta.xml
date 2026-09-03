@@ -22,10 +22,10 @@
     >OR(ISBLANK(ReportsToId), ReportsTo.AccountId = AccountId)</value></values>
     <values><field>DisplayFoundFormula__c</field><value
       xsi:type="xsd:string"
-    >IF(ISBLANK(ReportsToId), "No manager recorded", ReportsTo.Name)</value></values>
+    >IF(ISBLANK(ReportsToId), "None", TRIM(ReportsTo.FirstName &amp; " " &amp; ReportsTo.LastName))</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >No manager, or a manager on the same Account</value></values>
+    >Same Account or no manager</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>
@@ -49,7 +49,7 @@
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >20</value></values>
+    >50</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "candidateVersion": "2.0.7.1",
+  "upgradeFromVersion": "2.0.6.2",
+  "upgradeBases": [
+    {
+      "version": "2.0.6.2",
+      "subscriberPackageVersionId": "04tak000000eM53AAE"
+    },
+    { "version": "2.0.4.2", "subscriberPackageVersionId": "04tak000000cZBFAA2" }
+  ],
+  "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+  "sourceTopologies": ["namespaced", "no-namespace"],
+  "lightningSecurityModes": ["LWS", "Locker"],
+  "browserEngines": ["chromium", "firefox"],
+  "allTypeCheckSet": "Example_Account_Check_Builder_Guide",
+  "apexExternalEntryClasses": [
+    "RecordHealthCheck",
+    "RecordHealthCheckAgentRestResource",
+    "RecordHealthCheckBatch",
+    "RecordHealthCheckController",
+    "RecordHealthCheckQueueable",
+    "RecordHealthCheckRunCheckAgentAction",
+    "RecordHealthCheckRunCheckFlowAction",
+    "RecordHealthCheckRunSetAgentAction",
+    "RecordHealthCheckRunSetFlowAction",
+    "RecordHealthCheckScheduled",
+    "RecordHealthCheckSetPicklist",
+    "RecordHealthCheckValidateMetadataAction"
+  ],
+  "entryPoints": [
+    {
+      "id": "lwc-run-on-load",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "tests/browser/release-matrix.spec.mjs",
+        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
+        "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
+      ]
+    },
+    {
+      "id": "lwc-manual",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "tests/browser/release-matrix.spec.mjs",
+        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
+        "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
+      ]
+    },
+    {
+      "id": "apex-api",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckApiIT.cls"
+      ]
+    },
+    {
+      "id": "flow-interview",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "packages/record-health-check/integration-tests/main/default/flows/RHC_Release_Matrix.flow-meta.xml",
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckAutomationFlowIT.cls",
+        "subscriber-app/main/default/flows/RHC_Subscriber_Release_Matrix.flow-meta.xml",
+        "subscriber-app/main/default/classes/RHCSubscriberFlowSmokeTest.cls"
+      ]
+    },
+    {
+      "id": "rest-mcp",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "scripts/release/verify_mcp_salesforce_contract.mjs",
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckAgentRestResourceIT.cls"
+      ]
+    },
+    {
+      "id": "agentforce-actions",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckAgentActionIT.cls",
+        "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+      ]
+    },
+    {
+      "id": "platform-events",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckScopePipelineIT.cls",
+        "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls",
+        "subscriber-app/main/default/classes/RHCSubscriberEventReceipt.cls",
+        "subscriber-app/main/default/triggers/RHCSubscriberCheckResultTrigger.trigger",
+        "subscriber-app/main/default/triggers/RHCSubscriberSetRunTrigger.trigger"
+      ]
+    },
+    {
+      "id": "queueable",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckAutomationAsyncTest.cls",
+        "packages/record-health-check/integration-tests/main/default/classes/RHCIntegrationEventReceipt.cls",
+        "packages/record-health-check/integration-tests/main/default/triggers/RHCIntegrationCheckResultTrigger.trigger",
+        "packages/record-health-check/integration-tests/main/default/triggers/RHCIntegrationSetRunTrigger.trigger"
+      ]
+    },
+    {
+      "id": "batch",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckAutomationAsyncTest.cls",
+        "packages/record-health-check/integration-tests/main/default/classes/RHCIntegrationEventReceipt.cls",
+        "packages/record-health-check/integration-tests/main/default/triggers/RHCIntegrationCheckResultTrigger.trigger",
+        "packages/record-health-check/integration-tests/main/default/triggers/RHCIntegrationSetRunTrigger.trigger"
+      ]
+    },
+    {
+      "id": "scheduled",
+      "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
+      "evidence": [
+        "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckAutomationAsyncTest.cls",
+        "packages/record-health-check/integration-tests/main/default/classes/RHCIntegrationEventReceipt.cls",
+        "packages/record-health-check/integration-tests/main/default/triggers/RHCIntegrationCheckResultTrigger.trigger",
+        "packages/record-health-check/integration-tests/main/default/triggers/RHCIntegrationSetRunTrigger.trigger"
+      ]
+    }
+  ],
+  "lifecycleScenarios": [
+    "lwc-run-on-load",
+    "lwc-manual-run",
+    "lwc-refresh-view",
+    "page-load-no-overlay",
+    "browser-runtime-errors",
+    "app-builder-with-config",
+    "app-builder-without-config",
+    "record-navigation",
+    "component-disconnect-reconnect",
+    "fresh-package-install",
+    "upgrade-2.0.6.2-to-2.0.7.1",
+    "post-install-lwc",
+    "post-upgrade-lwc",
+    "post-install-apex-api",
+    "post-upgrade-apex-api",
+    "post-install-flow",
+    "post-upgrade-flow",
+    "post-install-rest-mcp",
+    "post-upgrade-rest-mcp",
+    "post-install-agentforce",
+    "post-upgrade-agentforce",
+    "post-install-platform-events",
+    "post-upgrade-platform-events",
+    "post-install-queueable",
+    "post-upgrade-queueable",
+    "post-install-batch",
+    "post-upgrade-batch",
+    "post-install-scheduled",
+    "post-upgrade-scheduled",
+    "post-install-metadata-validation",
+    "post-upgrade-metadata-validation",
+    "restricted-persona",
+    "administrator-persona"
+  ],
+  "lifecycleEvidence": {
+    "lwc-run-on-load": ["tests/browser/release-matrix.spec.mjs"],
+    "lwc-manual-run": ["tests/browser/release-matrix.spec.mjs"],
+    "lwc-refresh-view": [
+      "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
+      "tests/browser/lifecycle.mjs"
+    ],
+    "page-load-no-overlay": ["tests/browser/release-matrix.spec.mjs"],
+    "browser-runtime-errors": ["tests/browser/release-matrix.spec.mjs"],
+    "app-builder-with-config": [
+      "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
+      "tests/browser/app-builder.spec.mjs",
+      "subscriber-app/main/default/flexipages/RHCReleaseMatrixBuilderPage.flexipage-meta.xml"
+    ],
+    "app-builder-without-config": [
+      "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
+      "tests/browser/app-builder.spec.mjs",
+      "subscriber-app/main/default/flexipages/RHCReleaseMatrixBuilderPage.flexipage-meta.xml"
+    ],
+    "record-navigation": [
+      "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
+      "tests/browser/lifecycle.mjs"
+    ],
+    "component-disconnect-reconnect": [
+      "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
+      "tests/browser/lifecycle.mjs"
+    ],
+    "fresh-package-install": ["scripts/release/verify-package-version.mjs"],
+    "upgrade-2.0.6.2-to-2.0.7.1": [
+      "scripts/release/verify-package-version.mjs"
+    ],
+    "post-install-lwc": [
+      "scripts/release/verify-package-version.mjs",
+      "tests/browser/release-matrix.spec.mjs"
+    ],
+    "post-upgrade-lwc": [
+      "scripts/release/verify-package-version.mjs",
+      "tests/browser/release-matrix.spec.mjs"
+    ],
+    "post-install-apex-api": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-upgrade-apex-api": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-install-flow": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/flows/RHC_Subscriber_Release_Matrix.flow-meta.xml",
+      "subscriber-app/main/default/classes/RHCSubscriberFlowSmokeTest.cls"
+    ],
+    "post-upgrade-flow": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/flows/RHC_Subscriber_Release_Matrix.flow-meta.xml",
+      "subscriber-app/main/default/classes/RHCSubscriberFlowSmokeTest.cls"
+    ],
+    "post-install-rest-mcp": [
+      "scripts/release/verify-package-version.mjs",
+      "scripts/release/verify_mcp_salesforce_contract.mjs"
+    ],
+    "post-upgrade-rest-mcp": [
+      "scripts/release/verify-package-version.mjs",
+      "scripts/release/verify_mcp_salesforce_contract.mjs"
+    ],
+    "post-install-agentforce": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-upgrade-agentforce": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-install-platform-events": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-upgrade-platform-events": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-install-queueable": [
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-upgrade-queueable": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-install-batch": [
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-upgrade-batch": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-install-scheduled": [
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-upgrade-scheduled": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-install-metadata-validation": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "post-upgrade-metadata-validation": [
+      "scripts/release/verify-package-version.mjs",
+      "subscriber-app/main/default/classes/RHCSubscriberSmokeTest.cls"
+    ],
+    "restricted-persona": [
+      "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckRestrictedPersonaTest.cls",
+      "tests/browser/restricted-persona.spec.mjs"
+    ],
+    "administrator-persona": [
+      "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckSecurityAndOpsTest.cls"
+    ]
+  }
+}

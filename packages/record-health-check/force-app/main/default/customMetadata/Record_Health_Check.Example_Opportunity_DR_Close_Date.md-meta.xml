@@ -26,7 +26,7 @@
     >CloseDate</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >Today or later while {!record.Name fallback="the opportunity"} remains open</value></values>
+    >Today or later; closed exempt</value></values>
     <values><field>FormulaResultType__c</field><value
       xsi:type="xsd:string"
     >DATE</value></values>
@@ -56,7 +56,7 @@
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >20</value></values>
+    >30</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

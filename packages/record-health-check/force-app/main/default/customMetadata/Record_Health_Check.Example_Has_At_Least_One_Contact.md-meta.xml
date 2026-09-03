@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Decision-maker coverage</label>
+    <label>Example: Decision Maker roles</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,7 +12,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">40</value>
+        <value xsi:type="xsd:double">100</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Open pipeline has an identified decision maker</value>
+    >Open Opportunities include a Decision Maker</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -96,7 +96,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check passes when open pipeline has at least one explicit Decision Maker; zero roles fails. Before cloning, align roles and stages and decide whether authority is required once per Account or on every qualifying deal.</value>
+    >The Query check counts Decision Maker Contact Roles across open Opportunities. It passes when at least one role exists. This checks the recorded role, not whether the person has verified buying authority.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -121,14 +121,10 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Verified buying authority on open deals: {!rhcResult.foundValue} Decision Maker role{!rhcResult.foundValuePluralSuffix}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Minimum buying-authority evidence: {!rhcResult.expectedValue} verified Decision Maker</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
 </CustomMetadata>

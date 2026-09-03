@@ -1,37 +1,96 @@
 name: Subscriber validation
+run-name: Subscriber validation · ${{ inputs.package_version_id }} · ${{ inputs.validation_stage }}
 
 on:
-  pull_request:
   workflow_dispatch:
+    inputs:
+      package_version_id:
+        description: Candidate 04t to validate; required before promotion
+        required: true
+        type: string
+      validation_stage:
+        description: Run all three stages on the same commit and candidate before promotion
+        required: true
+        type: choice
+        default: clean-install
+        options:
+          - clean-install
+          - upgrade-2.0.6.2
+          - upgrade-2.0.4.2
 
 permissions:
   contents: read
 
 concurrency:
-  group: subscriber-release-${{ github.ref }}
-  cancel-in-progress: true
+  group: salesforce-devhub-release
+  cancel-in-progress: false
 
 jobs:
-  check-dev-hub-secret:
+  offline-preflight:
     runs-on: ubuntu-latest
-    outputs:
-      has-secret: ${{ steps.check.outputs.has-secret }}
     steps:
-      - id: check
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix packages/record-health-check-mcp
+      - run: npm install --global @salesforce/cli@2.150.6
+      - run: npm run check:toolchain
+      - name: Complete all no-org release checks before spending quota
+        run: npm run release:preflight
+      - name: Require exact-commit source validation before subscriber org creation
+        run: npm run check:hosted-validation
+      - name: Verify browser installation before spending quota
+        run: npx playwright install --with-deps chromium firefox
+
+  require-dev-hub-secret:
+    needs: offline-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Require hosted Salesforce credentials
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
           if [ -z "${SFDX_AUTH_URL}" ]; then
-            echo "::warning::SFDX_AUTH_URL secret is not configured. Skipping subscriber install and upgrade gates."
-            echo "has-secret=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has-secret=true" >> "$GITHUB_OUTPUT"
+            echo "::error::SFDX_AUTH_URL is required. Subscriber validation must fail, never pass by skipping live package tests."
+            exit 1
           fi
+      - name: Install pinned Salesforce CLI for Dev Hub preflight
+        run: npm install --global @salesforce/cli@2.150.6
+      - name: Authenticate Dev Hub
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
+      - name: Check subscriber-stage scratch-org capacity
+        run: npm run check:scratch-capacity -- --dev-hub devhub --required 2
 
   subscriber-clean-install:
-    needs: check-dev-hub-secret
-    if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    name: subscriber-clean-install (${{ matrix.security_mode }})
+    if: inputs.validation_stage == 'clean-install'
+    needs: require-dev-hub-secret
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        include:
+          - security_mode: LWS
+            alias: rhc-ci-subscriber-lws
+            artifact_suffix: lws
+          - security_mode: Locker
+            alias: rhc-ci-subscriber-locker
+            artifact_suffix: locker
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -39,15 +98,19 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm ci --prefix packages/record-health-check-mcp
+      - run: npx playwright install --with-deps chromium firefox
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
-      - name: Resolve stable package version
+      - name: Validate explicit candidate package version
         id: rhc-package
         shell: bash
+        env:
+          CANDIDATE_PACKAGE_ID: ${{ inputs.package_version_id }}
         run: |
-          package_id="$(node --input-type=module -e 'import { stablePackageVersionId } from "./scripts/lib/package-releases.mjs"; process.stdout.write(stablePackageVersionId())')"
+          package_id="$CANDIDATE_PACKAGE_ID"
           if [[ ! "$package_id" =~ ^04t[[:alnum:]]{12}([[:alnum:]]{3})?$ ]]; then
-            echo "::error::Stable package version is not a 15- or 18-character 04t ID."
+            echo "::error::Candidate package version is not a 15- or 18-character 04t ID."
             exit 1
           fi
           printf 'id=%s\n' "$package_id" >> "$GITHUB_OUTPUT"
@@ -55,17 +118,52 @@ jobs:
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
       - name: Clean subscriber install and smoke test
         env:
           DEV_HUB_ALIAS: devhub
           RHC_SKIP_DEMO_DATA: "1"
-        run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias rhc-ci-subscriber --skip-upgrade
+        run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --skip-upgrade
+      - name: Upload clean-install browser evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: subscriber-clean-install-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}
+          path: |
+            playwright-report/
+            test-results/browser/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload reconciled subscriber Apex inventory
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          path: test-results/apex/
+          if-no-files-found: error
+          retention-days: 90
 
   subscriber-upgrade:
-    needs: check-dev-hub-secret
-    if: needs.check-dev-hub-secret.outputs.has-secret == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    name: subscriber-upgrade (${{ matrix.security_mode }})
+    if: inputs.validation_stage != 'clean-install'
+    needs: require-dev-hub-secret
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        include:
+          - security_mode: LWS
+            alias: rhc-ci-upgrade-lws
+            artifact_suffix: lws
+          - security_mode: Locker
+            alias: rhc-ci-upgrade-locker
+            artifact_suffix: locker
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -73,24 +171,65 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.149.9
+      - run: npm ci --prefix packages/record-health-check-mcp
+      - run: npx playwright install --with-deps chromium firefox
+      - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
-      - name: Resolve stable package version
+      - name: Resolve explicit candidate and tracked upgrade base
         id: rhc-package
         shell: bash
+        env:
+          VALIDATION_STAGE: ${{ inputs.validation_stage }}
+          CANDIDATE_PACKAGE_ID: ${{ inputs.package_version_id }}
         run: |
-          package_id="$(node --input-type=module -e 'import { stablePackageVersionId } from "./scripts/lib/package-releases.mjs"; process.stdout.write(stablePackageVersionId())')"
+          package_id="$CANDIDATE_PACKAGE_ID"
+          upgrade_from="$(node scripts/release/resolve_upgrade_base.mjs "$VALIDATION_STAGE")"
           if [[ ! "$package_id" =~ ^04t[[:alnum:]]{12}([[:alnum:]]{3})?$ ]]; then
-            echo "::error::Stable package version is not a 15- or 18-character 04t ID."
+            echo "::error::Candidate package version is not a 15- or 18-character 04t ID."
             exit 1
           fi
           printf 'id=%s\n' "$package_id" >> "$GITHUB_OUTPUT"
+          printf 'upgrade_from=%s\n' "$upgrade_from" >> "$GITHUB_OUTPUT"
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias devhub --set-default-dev-hub
-      - name: Previous-to-stable subscriber upgrade gate
+          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
+          trap 'rm -f "$auth_file"' EXIT
+          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
+          chmod 600 "$auth_file"
+          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
+      - name: Exact subscriber upgrade gate
         env:
           DEV_HUB_ALIAS: devhub
-        run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias rhc-ci-upgrade --upgrade-only
+        run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --upgrade-from "${{ steps.rhc-package.outputs.upgrade_from }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --upgrade-only
+      - name: Upload upgrade preservation and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: subscriber-upgrade-evidence-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          path: |
+            playwright-report/
+            test-results/browser/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload reconciled subscriber Apex inventory
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          path: test-results/apex/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload subscriber configuration preservation proof
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: subscriber-preservation-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          path: packages/record-health-check/.package-evidence/*-upgrade-preservation.json
+          # This exact test-evidence path is hidden; do not widen the upload scope.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 90

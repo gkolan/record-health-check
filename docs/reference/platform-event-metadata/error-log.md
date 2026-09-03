@@ -110,7 +110,7 @@ This example shows the shape of a Log event. The IDs and error details are illus
 ```json
 {
   "ContractVersion__c": "1.0",
-  "FrameworkVersion__c": "2.0.6",
+  "FrameworkVersion__c": "<framework-version>",
   "EventId__c": "rhc-run-001-APEX_EVALUATOR_ERRO-18273",
   "RunId__c": "rhc-run-001",
   "OccurredAt__c": "2026-07-21T15:30:00.000Z",

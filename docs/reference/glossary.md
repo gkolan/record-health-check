@@ -148,7 +148,7 @@ Permission is not itself a Permission Set. See
 
 ## Record Health Check Error Log Publisher
 
-The fifth packaged Permission Set grants Create and Read access only to the restricted
+The packaged Error Log Publisher Permission Set grants Create and Read access only to the restricted
 `rhc__Record_Health_Check_Log__e` Platform Event. It does not include **Record Health Check Run** and
 does not let its assignee start a Check. Assign it separately and narrowly only when a Check Set's
 default-off **Publish Error Log Event** setting is deliberately enabled. See
@@ -158,8 +158,8 @@ default-off **Publish Error Log Event** setting is deliberately enabled. See
 
 A Check Set setting that allows troubleshooting detail to be returned. Detail appears only when the
 running user also has the **Record Health Check View Diagnostics**
-(`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission. The Admin Permission Set includes
-that permission; the User Permission Set does not. See
+(`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission. The Diagnostics Viewer and Admin
+Permission Sets include that permission; the Card User and User Permission Sets do not. See
 [Security and data access](../architecture/security-and-data-access.md#the-diagnostics-custom-permission).
 
 ## Platform Event publication

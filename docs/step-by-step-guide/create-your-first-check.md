@@ -16,9 +16,7 @@ The administrator completing this guide needs:
 - Salesforce **Customize Application** (or equivalent Custom Metadata management access) to create
   and save Check Set and Check records; **Record Health Check Admin does not grant this Salesforce
   system permission**;
-- access to edit Lightning record pages; the page builder also needs **Record Health Check Admin**
-  so App Builder can load the Check Set picklist;
-  and
+- access to edit Lightning record pages; **Record Health Check Admin** already includes the App Builder picker access needed by this guide; and
 - Read access to Account and `BillingCity`.
 
 People who only run the completed card need **Record Health Check Card User** plus access to the Account
@@ -131,10 +129,7 @@ reusable validation tool after future Custom Metadata edits.
 If the Check Set picker is empty, confirm the Check Set is active and its **Object** value is
 `Account`.
 
-When an Example Check Set is already installed, the card can look like this example (Pass, Fail, and
-Skipped outcomes with Found and Expected values):
-
-![Example Account Relationship and Risk health check card](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
+The card should show **Account Readiness** and a Run button. It will evaluate the Billing City Check when you select **Run**.
 
 ## Step 5: Test both results
 

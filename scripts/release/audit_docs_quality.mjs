@@ -11,7 +11,6 @@ const root = path.resolve(
 const docsRoot = path.join(root, "docs");
 const reportFile = path.join(root, "reports", "docs-quality-audit.md");
 const checkOnly = process.argv.includes("--check");
-const minimumStructuralScore = 9.8;
 const files = [];
 
 function walk(directory) {
@@ -98,6 +97,8 @@ function topLevelTitleCount(markdown) {
 function classify(relative) {
   if (relative === "docs/README.md") return "Documentation home";
   if (relative === "docs/examples/README.md") return "Examples home";
+  if (relative === "docs/examples/account-check-builder-guide.md")
+    return "Worked example";
   if (/docs\/examples\/[^/]+\/README\.md$/.test(relative))
     return "Evaluation Type examples home";
   if (relative === "docs/start-here/README.md") return "Task home";
@@ -401,32 +402,32 @@ const results = files.sort().map((file) => {
   const checks = [
     ["one clear page title", topLevelTitleCount(markdown) === 1],
     [
-      "reader-oriented opening",
+      "opening text is present",
       opening.replace(/^#.*$/m, "").trim().split(/\s+/).length >= 8
     ],
     [
-      "purpose or outcome is explicit",
+      "opening contains a task or reference verb",
       /\b(use|learn|start|look up|configure|create|install|run|integrate|reference|describes?|explains?|shows?)\b/i.test(
         opening
       )
     ],
+    ["expected section markers are present", structureMatches(type, markdown)],
     [
-      "information architecture matches the page purpose",
-      structureMatches(type, markdown)
-    ],
-    [
-      "page provides an actionable aid",
+      "page contains a list, table, or code example",
       /^\d+\.\s+/m.test(markdown) ||
         /^\|.*\|$/m.test(markdown) ||
         /^```\w+/m.test(markdown) ||
         /^[-*]\s+/m.test(markdown)
     ],
-    ["paragraphs are concise", paragraphsAreReadable(markdown)],
-    ["tables are structurally readable", tablesAreReadable(markdown)],
+    [
+      "prose paragraphs are within the length limit",
+      paragraphsAreReadable(markdown)
+    ],
+    ["table column counts are consistent", tablesAreReadable(markdown)],
     ["code fences identify their language", codeFencesHaveLanguages(markdown)],
     ["local links resolve", localLinksResolve(file, markdown)],
     [
-      "final navigation is easy to find",
+      "related navigation appears near the end",
       file === path.join(docsRoot, "README.md") ||
         Boolean(
           navigation &&
@@ -436,25 +437,24 @@ const results = files.sort().map((file) => {
         )
     ]
   ];
-  const score = checks.filter(([, passed]) => passed).length;
-  return { relative, type, score, checks };
+  return { relative, type, checks };
 });
 
-const failing = results.filter(({ score }) => score < minimumStructuralScore);
-const average =
-  results.reduce((sum, result) => sum + result.score, 0) / results.length;
+const failing = results.filter(({ checks }) =>
+  checks.some(([, passed]) => !passed)
+);
 const report = [
-  "# Documentation structural-readiness audit",
+  "# Documentation structure checks",
   "",
-  `Audited **${results.length}** Markdown pages under \`docs/\`. The structural threshold is **${minimumStructuralScore}/10** and the current average is **${average.toFixed(2)}/10**.`,
+  `Checked **${results.length}** Markdown pages under \`docs/\`.`,
   "",
-  "This automated score measures structural readiness only. It cannot score voice, usefulness, narrative quality, technical judgment, or the single-link experience, and it never replaces a human editorial review. Each page earns one point for: a clear title, a reader-oriented opening, an explicit purpose, page-type-specific information architecture, an actionable aid, concise paragraphs, readable tables, labeled code fences, valid local links, and final navigation.",
+  "These automated checks inspect document structure, links, and formatting conventions. They do not establish technical accuracy, reader usefulness, completeness, or rendered layout. Editorial review and applicable walkthroughs remain separate requirements.",
   "",
-  "| Score | Page type | Page | Result |",
-  "| ---: | --- | --- | --- |",
-  ...results.map(({ relative, type, score, checks }) => {
+  "| Page type | Page | Structural findings |",
+  "| --- | --- | --- |",
+  ...results.map(({ relative, type, checks }) => {
     const missed = checks.filter(([, passed]) => !passed).map(([name]) => name);
-    return `| ${score.toFixed(1)}/10 | ${type} | [${relative}](../${relative}) | ${missed.length ? `Improve: ${missed.join("; ")}` : "Pass"} |`;
+    return `| ${type} | [${relative}](../${relative}) | ${missed.length ? missed.join("; ") : "None"} |`;
   }),
   ""
 ].join("\n");
@@ -468,16 +468,16 @@ if (checkOnly) {
 }
 
 if (failing.length) {
-  for (const { relative, score, checks } of failing) {
+  for (const { relative, checks } of failing) {
     const missed = checks
       .filter(([, passed]) => !passed)
       .map(([name]) => name)
       .join(", ");
-    console.error(`${relative}: ${score}/10 — ${missed}`);
+    console.error(`${relative}: ${missed}`);
   }
   process.exit(1);
 }
 
 console.log(
-  `Documentation structural-readiness audit passed: ${results.length} pages, ${average.toFixed(2)}/10 average, minimum ${minimumStructuralScore}/10.`
+  `Documentation structure checks passed for ${results.length} pages. Technical accuracy, usefulness, and rendered layout require separate review.`
 );

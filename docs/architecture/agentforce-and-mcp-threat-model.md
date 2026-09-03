@@ -1,9 +1,5 @@
 # Agentforce and MCP threat model
 
-This architecture reference is for security and integration reviewers.
-
-This page is for security and integration reviewers.
-
 Audience: security architects and Agentforce or MCP implementers. If you only need to let an agent
 run a Check, use [Agentforce actions](../developer-guides/agentforce-and-mcp/agentforce-actions.md).
 

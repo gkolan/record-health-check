@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > Use this page to choose the supported entry point for a Record Health Check run. Record Health
-> Check does not run merely because a Salesforce record or Custom Metadata record is saved.
+> Check can run on a record page or through automation you configure. It does not install a save-time trigger.
 
 Choose the person or process that needs to start evaluation, then follow the linked guide.
 
@@ -25,7 +25,7 @@ Do not create new `@future` integrations. Move existing work to Queueable Apex.
 
 ## These actions do not start a run
 
-- Saving an Account, Contact, Opportunity, or other business record
+- Saving a business record without an open Record Health Check card or configured automation
 - Saving a Record Health Check Custom Metadata record
 - Adding the component to an App page or Home page; the component supports record pages
 - Receiving a Platform Event, unless your own subscriber explicitly calls a Flow or Apex entry point
@@ -42,7 +42,9 @@ Do not create new `@future` integrations. Move existing work to Queueable Apex.
 | Packaged Batch helper | 1 to 2,000 known record IDs; default scope size 100 |
 | Agentforce and REST | Event publication is always `NONE` |
 
-## Card load versus Run
+## Card load, record save, and Run
+
+An open automatic card refreshes after a standard record save or RefreshView notification. A manual card does so after its first completed Run. Saving a record elsewhere does not start a background health check by itself.
 
 Opening or refreshing a record page can evaluate the card, but a load never publishes Check Set Run
 or Check Result events. An explicit Run or Rerun can publish those events when the Check Set and

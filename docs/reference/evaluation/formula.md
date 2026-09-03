@@ -64,16 +64,16 @@ zero.
   example, `What:Account.Name` is supported, while an Account-only field such as
   `What:Account.Industry` requires a Query or Apex Check; it is omitted from Formula record loading
   so one unsupported field cannot invalidate the shared scope query.
-- Whether a polymorphic relationship needs the colon segment is decided by the relationship's
-  schema. For User-only fields on `Owner`, including Account ownership checks, use the explicit
-  `Owner:User.Field` form. Bare paths such as `Owner.IsActive`, `Owner.FirstName`, and
-  `Owner.LastName` are not portable and can return `FIELD_NOT_RESOLVED`.
+- Whether an owner relationship needs the colon segment is decided by the relationship's
+  schema. The Account example uses `Owner.IsActive`, `Owner.FirstName`, and `Owner.LastName`.
+  For polymorphic owners that require an explicit type, use `Owner:User.Field`; a path that
+  does not match the object's schema can return `FIELD_NOT_RESOLVED`.
 - `$User`, `$Profile`, `$Setup`, `$Permission`, and other global merge references are never treated
   as record fields; a formula that reads `$User.Id` never adds a bogus `User.Id` path to the record
   query. FormulaEval rejects these globals in record context, and Record Health Check returns
   `UNABLE_TO_EVALUATE` with `INVALID_FORMULA` rather than producing an execution-user-dependent
   verdict. For a page-versus-automation incident, use the
-  [execution-context war room](../../diagnostics/execution-context-war-room.md).
+  [execution-context troubleshooting guide](../../diagnostics/troubleshoot-execution-context.md).
 
 The Pass Condition must return a Checkbox value (`true` or `false`). Display formulas can return
 Checkbox, Number, Date, Date/Time, or Text. **Auto** tries supported result types until one works.
@@ -94,6 +94,11 @@ Display formulas never change `PASS` or `FAIL`.
 
 "Owner is active" is a common Check, and it has two supported patterns with different behavior for
 non-User owners:
+
+`Example_Account_Owner_Active` uses the Formula pattern on Account with `Owner.IsActive`.
+Found shows the owner's name and active/inactive status; Expected shows `Active`. Its formula
+returns true for an active User and false for an inactive User. The Account example does not
+model Queue ownership; the table below describes the explicitly typed polymorphic variant.
 
 | Pattern | Example | Queue/Group owner | Missing/inaccessible User |
 | --- | --- | --- | --- |

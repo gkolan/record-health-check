@@ -1,0 +1,16 @@
+{
+  "subscriberPackageVersionId": "",
+  "gitCommit": "",
+  "verifiedBy": "",
+  "verifiedAt": "",
+  "scenarios": {
+    "cpq-quote-lifecycle": { "status": "pending", "evidence": "" },
+    "existing-page-and-access-preservation": {
+      "status": "pending",
+      "evidence": ""
+    },
+    "four-type-business-outcomes": { "status": "pending", "evidence": "" },
+    "existing-automation": { "status": "pending", "evidence": "" },
+    "configuration-recovery": { "status": "pending", "evidence": "" }
+  }
+}

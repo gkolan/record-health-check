@@ -446,12 +446,12 @@
     </types>
     <types>
         <members>Record_Health_Check_Run</members>
-        <members>Record_Health_Check_View_Diagnostics</members>
         <name>CustomPermission</name>
     </types>
     <types>
         <members>Record_Health_Check_Admin</members>
         <members>Record_Health_Check_Card_User</members>
+        <members>Record_Health_Check_Diagnostics_Viewer</members>
         <members>Record_Health_Check_Error_Log_Publisher</members>
         <members>Record_Health_Check_MCP_Integration</members>
         <members>Record_Health_Check_User</members>

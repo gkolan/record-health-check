@@ -1,55 +1,35 @@
-# Account relationship and risk demo
+# Record Health Check demo
 
-> [!NOTE]
-> On this page, create the subscriber demo scratch org with one command and confirm the deterministic
-> Acme outcomes that maintainers use for first-run verification.
+Use [Try the demo in a scratch org](../../docs/install/install-demo-in-a-scratch-org.md) for the complete setup instructions, runnable Apex files, Check Set selection, expected results, and cleanup.
 
-Create a subscriber demo scratch org with one command. Pass your Dev Hub org alias with `--dev-hub`.
-The same command works on Windows, macOS, and Linux:
+Run the commands in **PowerShell**, **Command Prompt**, or **Git Bash** on **Windows**, or in a terminal on **macOS or Linux**.
 
-```bash
-npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
-```
+Use the data scripts and Check definitions from the same source checkout or release. The guide explains how to evaluate the latest released package or test all four example Check Sets with current source.
 
-Use a different scratch-org alias when needed:
+## Seed an existing current-source scratch org
+
+After deploying the current source, run:
 
 ```bash
-npm run setup -- --dev-hub my-dev-hub --alias my-demo-alias
+npm run demo:setup-source -- --alias your-scratch-org
 ```
 
-The setup installs the promoted **Record Health Check** package (`04t` from
-`config/package-releases.json`), assigns `Record_Health_Check_Admin`, deploys subscriber-owned
-metadata from `subscriber-app`, seeds demo Account data from `scripts/subscriber/data/`, and runs
-`RHCSubscriberSmokeTest`.
+The command creates or reuses the synthetic Jordan Blake user, seeds the Acme hierarchy and readiness scenarios, and leaves Jordan inactive. The four Apex scripts are also available to run separately in the order documented in the guide. Reseeding replaces the named demo records; keep manual experiments on separate records.
 
-`setupDemoData.apex` creates the complete Acme scenario in one repeatable seed step. The user who
-runs setup owns Acme; the examples do not create or deactivate Salesforce users.
+## Test diagnostics
 
-It does **not** deploy unpackaged Framework source or `integration-tests` samples.
+The data scripts do not assign permissions. To inspect diagnostics as a Card User or User, add **Record Health Check Diagnostics Viewer** and enable **Show Diagnostics** on the Check Set. **Record Health Check Admin** already includes diagnostic access. Follow [the assignment and verification steps](../../docs/install/install-demo-in-a-scratch-org.md#try-the-other-permission-sets), including the alternative if Diagnostics Viewer is absent from Setup.
 
-The deterministic Acme data seeded by `setupDemoData.apex` includes:
+## Verify without changing data
 
-- `Asteron Global Holdings → Asteron Industrial Systems → Acme Corporation`
-- 38 realistic contacts, including six without email addresses
-- four Opportunity Contact Roles on one open Opportunity: one `Decision Maker`, two `Executive Sponsor` roles, and one unreachable `Business User`; no `Technical Buyer`
-- two open Opportunities, three recent Closed Lost Opportunities, and one historical Closed Won Opportunity without Amount or primary Contact
-- two completed activities in the last 60 days
-- 16 Cases: 4 open High, 4 open Medium, 4 open Low, and 4 closed Cases; 6 of the 12 open Cases have no Contact
-- six Parent Account Contacts across five cities for realistic list comparisons
-- 38 Acme Contacts across four different cities, with no city overlap with the Parent Account
+```bash
+npm run demo:verify-source -- --alias your-scratch-org
+```
 
-The deterministic Check Set result is 5 Passed, 18 Failed, 1 Skipped, and 1 Unable. Failed rows
-include Critical, Warning, and Info examples. The full 25-Check outcome and quality-score tables are in
-[Install the demo in a scratch org](../../docs/install/install-demo-in-a-scratch-org.md#what-the-demo-prepares).
+Verification covers all four updated example Check Sets. It supports namespaced and no-namespace source orgs, but requires matching Check definitions. It does not update an older installed package.
 
-`setupDemoData.apex` is safe to run again for the named Acme demo records. On rerun, it replaces
-Acme's Contacts, Opportunities, Opportunity Contact Roles, Tasks, Events, and Cases so the scenario
-does not get out of sync or accumulate duplicates.
+## Related
 
-For the full walkthrough, including Windows shell notes, see
-[Create the demo scratch org](../../docs/install/install-demo-in-a-scratch-org.md).
-
-Contributors changing Framework source use
-[`npm run dev:setup`](../../docs/contributing/source-development.md) instead.
-After source deployment, run `npm run demo:setup-source -- --alias <source-org-alias>` to seed Acme
-and verify the current source in either namespace mode.
+- [Full dataset, expected results, and cleanup](../../docs/install/install-demo-in-a-scratch-org.md)
+- [Create a source development org](../../docs/contributing/source-development.md)
+- [Install the published package in a sandbox](../../docs/install/install-in-a-sandbox.md)

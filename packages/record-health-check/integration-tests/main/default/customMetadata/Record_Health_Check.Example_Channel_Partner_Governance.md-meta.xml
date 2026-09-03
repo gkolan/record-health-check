@@ -62,7 +62,7 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value xsi:type="xsd:string">Parent Account assignment</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedFormula__c</field>
@@ -117,10 +117,13 @@
     </values>
     <values>
         <field>MaxQueryRows__c</field>
-        <value xsi:type="xsd:double">1</value>
+        <value xsi:type="xsd:double">1000</value>
     </values>
     <values>
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
     </values>
+<values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >{!rhcResult.expectedValue}</value></values>
 </CustomMetadata>

@@ -1,4 +1,4 @@
-# Execution-context war room
+# Troubleshoot differences between execution contexts
 
 Use this runbook when the same Check behaves differently on a Lightning record page, in Flow, or
 in asynchronous Apex. The goal is to identify the transaction's actual execution user and access
@@ -132,9 +132,9 @@ Batch Apex.
 **Exit condition:** Schedule ownership, timezone, permission assignment, and record scope are
 explicitly owned and included in the operational handoff.
 
-## Evidence package
+## Information to compare
 
-Before closing the war room, retain only approved, redacted evidence:
+Before closing the investigation, retain only approved, redacted information:
 
 - page and automation statuses, Reason Codes, Run IDs, and timestamps;
 - Flow execution mode and intended automation principal;

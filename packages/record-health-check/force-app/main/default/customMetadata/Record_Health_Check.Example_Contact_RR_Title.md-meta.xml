@@ -26,7 +26,7 @@
     >IF(NOT(ISBLANK(Title)), Title, BLANKVALUE(Department, "Role context not identified"))</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A current job title or department for {!record.Name fallback="this contact"}</value></values>
+    >Title or department</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>
@@ -50,7 +50,7 @@
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >30</value></values>
+    >20</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

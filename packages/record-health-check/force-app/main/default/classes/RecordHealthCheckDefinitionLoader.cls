@@ -149,6 +149,7 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     );
     response.stopOnFirstError = checkSet.StopOnSystemError__c;
     response.showDiagnostics = canShowDiagnostics(checkSet);
+    response.canViewDetails = RecordHealthCheckAccess.canViewDetails();
     response.totalAvailableCheckCount = totalAvailable;
     response.frameworkMaxChecks = RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
     response.checksOmittedByLimit = checksOmitted;

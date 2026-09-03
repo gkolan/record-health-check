@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Record Health Check Diagnostics Viewer</label>
+    <description
+  >View restricted Record Health Check details, including troubleshooting output when enabled. Assign alongside a packaged runner Permission Set temporarily and narrowly.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+</PermissionSet>

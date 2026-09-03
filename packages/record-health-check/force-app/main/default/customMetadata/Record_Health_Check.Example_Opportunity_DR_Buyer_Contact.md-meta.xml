@@ -44,10 +44,10 @@
     >AS_NO_MATCH</value></values>
   <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >{!rhcResult.foundValue} buyer contacts identified</value></values>
+    >{!rhcResult.foundValue}</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >Exactly 1 primary customer Contact Role</value></values>
+    >{!rhcResult.expectedValue}</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
@@ -77,7 +77,7 @@
     >The opportunity is closed, so active buyer-contact readiness is not evaluated.</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >50</value></values>
+    >70</value></values>
   <values><field>MaxQueryRows__c</field><value
       xsi:type="xsd:double"
     >1</value></values>

@@ -5,7 +5,9 @@ released. Administrators who only configure Checks can skip it.
 
 | Topic | Reference |
 | --- | --- |
+| Release-owner GitHub, package, promotion, and publication steps | [Manual release-owner checklist](./manual-release-owner-checklist.md) |
 | Package validation and upgrade behavior | [Package testing and upgrades](./package-testing-and-upgrades.md) |
+| Fail-closed release runtime matrix | [Release runtime matrix](./release-runtime-matrix.md) |
 | Reviewed static-analysis exceptions | [Code Analyzer suppressions](./code-analyzer-suppressions.md) |
 | Documentation requirements | [Documentation standard](./documentation-standard.md) |
 | Test-only Apex access and architecture enforcement | [Apex test-only access](./apex-test-only-access.md) |

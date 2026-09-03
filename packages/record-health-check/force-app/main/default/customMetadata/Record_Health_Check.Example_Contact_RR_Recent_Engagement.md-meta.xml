@@ -11,10 +11,10 @@
     >Example_Contact_Relationship_Readiness</value></values>
   <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Relationship Engagement Is Current</value></values>
+    >A Task was completed in the last 60 days</value></values>
   <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A completed activity in the last 60 days provides evidence that the relationship is being maintained.</value></values>
+    >The Query check passes when at least one completed Task is dated within the last 60 days. It does not assess engagement quality.</value></values>
   <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
@@ -44,10 +44,10 @@
     >AS_NO_MATCH</value></values>
   <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >Completed relationship activities in 60 days: {!rhcResult.foundValue}</value></values>
+    >{!rhcResult.foundValue}</value></values>
   <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >At least 1 recent completed activity</value></values>
+    >{!rhcResult.expectedValue}</value></values>
   <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
@@ -71,7 +71,7 @@
     >ALL_RECORDS</value></values>
   <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >60</value></values>
+    >80</value></values>
   <values><field>MaxQueryRows__c</field><value
       xsi:type="xsd:double"
     >1</value></values>

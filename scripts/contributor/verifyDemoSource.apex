@@ -26,7 +26,12 @@ Map<String, Integer> actualCounts = new Map<String, Integer>{
   'accounts' => [
     SELECT COUNT()
     FROM Account
-    WHERE AccountNumber LIKE 'RHC-DEMO-%'
+    WHERE
+      AccountNumber IN (
+        'RHC-DEMO-ACME',
+        'RHC-DEMO-ASTERON-GLOBAL',
+        'RHC-DEMO-ASTERON-INDUSTRIAL'
+      )
   ],
   'contacts' => [SELECT COUNT() FROM Contact WHERE AccountId = :demoAccount.Id],
   'parentContacts' => [
@@ -110,9 +115,9 @@ RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
     .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
 );
 Map<String, String> expectedStatuses = new Map<String, String>{
-  'Example_Website_URL_Valid' => 'FAIL',
+  'Example_Website_URL_Valid' => 'PASS',
   'Example_Guide_Industry_Manufacturing' => 'PASS',
-  'Example_Segregation_Of_Duties' => 'SKIPPED',
+  'Example_Segregation_Of_Duties' => 'PASS',
   'Example_Has_At_Least_One_Contact' => 'PASS',
   'Example_Open_Cases_Have_Contacts' => 'FAIL',
   'Example_Fewer_Than_Ten_Open_Cases' => 'FAIL',
@@ -170,12 +175,12 @@ for (RecordHealthCheckResultItem item : response.results) {
   if (checkName.endsWith('Example_Website_URL_Valid')) {
     if (
       item.evaluation.found == null ||
-      String.isBlank(item.evaluation.found.storedValue) ||
+      item.evaluation.found.storedValue != 'Customer' ||
       item.evaluation.expected == null ||
-      item.evaluation.expected.storedValue != '$1,000,000 or more'
+      item.evaluation.expected.storedValue != 'An Account Type is selected'
     ) {
       throw new StringException(
-        'Unexpected Annual Revenue Formula values. Found=' +
+        'Unexpected Account Type Formula values. Found=' +
           item.evaluation.found?.storedValue +
           ', Expected=' +
           item.evaluation.expected?.storedValue +
@@ -186,18 +191,18 @@ for (RecordHealthCheckResultItem item : response.results) {
       item.display == null ||
       String.isBlank(item.display.foundDisplayValue) ||
       String.isBlank(item.display.expectedDisplayValue) ||
-      item.display.renderedMessage.contains('{!') ||
-      item.display.renderedFix.contains('{!') ||
-      item.display.actionLabel.contains('{!') ||
-      item.display.actionUrl.contains('{!')
+      item.display.renderedMessage?.contains('{!') == true ||
+      item.display.renderedFix?.contains('{!') == true ||
+      item.display.actionLabel?.contains('{!') == true ||
+      item.display.actionUrl?.contains('{!') == true
     ) {
       throw new StringException(
-        'The Annual Revenue Formula display values or merge fields did not render.'
+        'The Account Type Formula display values or merge fields did not render.'
       );
     }
     System.debug(
       LoggingLevel.INFO,
-      'RHC_ANNUAL_REVENUE_DISPLAY found=' +
+      'RHC_ACCOUNT_TYPE_DISPLAY found=' +
         item.display.foundDisplayValue +
         ' expected=' +
         item.display.expectedDisplayValue +
@@ -216,9 +221,9 @@ if (!expectedQualifiedStatuses.isEmpty()) {
 }
 
 if (
-  response.summary.passed != 5 ||
-  response.summary.failed != 18 ||
-  response.summary.skipped != 1 ||
+  response.summary.passed != 7 ||
+  response.summary.failed != 17 ||
+  response.summary.skipped != 0 ||
   response.summary.unable != 1 ||
   response.summary.systemError != 0
 ) {
@@ -239,5 +244,5 @@ if (
 
 System.debug(
   LoggingLevel.INFO,
-  'RHC_SOURCE_DEMO_VERIFIED pass=5 fail=18 skip=1 unable=1 cases=16'
+  'RHC_SOURCE_DEMO_VERIFIED pass=7 fail=17 skip=0 unable=1 cases=16'
 );

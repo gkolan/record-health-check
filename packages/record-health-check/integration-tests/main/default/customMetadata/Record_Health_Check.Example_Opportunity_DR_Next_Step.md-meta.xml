@@ -11,10 +11,10 @@
     >Example_Opportunity_Deal_Readiness</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Next Step Is Actionable</value></values>
+    >Next Step has non-placeholder text</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >Salesforce defines Next Step as the next task needed to close the opportunity; common placeholders do not provide that operating context.</value></values>
+    >The Formula check passes for closed deals, or when an open deal has Next Step text other than TBD, N/A, NA, or a dash. It does not verify an owner, action, or timing.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >FORMULA</value></values>
@@ -26,7 +26,7 @@
     >IF(IsClosed, "Deal is closed", BLANKVALUE(NextStep, "No next step documented"))</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A specific owner, action, and timing for {!record.Name fallback="this opportunity"}</value></values>
+    >Non-placeholder text; closed exempt</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
@@ -50,7 +50,7 @@
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >30</value></values>
+    >40</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

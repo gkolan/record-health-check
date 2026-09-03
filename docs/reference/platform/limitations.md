@@ -1,9 +1,5 @@
 # Platform limitations and safe patterns
 
-Use this reference for Salesforce edge cases and supported patterns.
-
-Use this page for edge cases after the basic setup works.
-
 Audience: Check authors and developers diagnosing a platform edge case. For ordinary configuration,
 start with the [Formula](../evaluation/formula.md) or [Query](../evaluation/query.md) reference.
 
@@ -125,10 +121,8 @@ document the timezone and test users on both sides of the boundary.
 ## Derived values, snapshots, and freshness
 
 > [!IMPORTANT]
-> **Core design decision:** Record Health Check does not add a generic freshness field or evaluator.
-> Freshness is a policy expressed with existing Checks and evidence exposed by the data model.
-> Product-specific watermark, job, and provenance semantics belong in extension recipes or reviewed
-> subscriber Apex.
+> To check whether data is current, use an available timestamp or processing status in a Formula,
+> Query, or custom Apex Check. Choose the acceptable age for your business process.
 
 Core does not infer when a stored or derived field was computed. Make freshness an explicit part of
 the Check when the data model exposes evidence for it:

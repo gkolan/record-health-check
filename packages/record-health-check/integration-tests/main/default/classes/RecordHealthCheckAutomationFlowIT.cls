@@ -1,7 +1,85 @@
 @IsTest
 private with sharing class RecordHealthCheckAutomationFlowIT {
+  private static final String RELEASE_MATRIX_FLOW = 'RHC_Release_Matrix';
+  private static final String RELEASE_MATRIX_SET = 'Example_Account_Check_Builder_Guide';
+
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
+  }
+
+  @IsTest
+  static void realFlowInterviewExecutesAllFourEvaluatorTypes() {
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
+      'Flow Release Matrix'
+    );
+    List<Record_Health_Check__mdt> configuredChecks = [
+      SELECT QualifiedApiName, EvaluationType__c
+      FROM Record_Health_Check__mdt
+      WHERE
+        Record_Health_Check_Set__r.DeveloperName = :RELEASE_MATRIX_SET
+        AND IsActive__c = TRUE
+      ORDER BY EvaluationOrder__c, DeveloperName
+    ];
+    Assert.isFalse(
+      configuredChecks.isEmpty(),
+      'The release-matrix Check Set must contain active Checks.'
+    );
+    Set<String> evaluationTypes = new Set<String>();
+    for (Record_Health_Check__mdt configuredCheck : configuredChecks) {
+      evaluationTypes.add(configuredCheck.EvaluationType__c);
+    }
+    Assert.isTrue(
+      evaluationTypes.containsAll(
+        new Set<String>{ 'FORMULA', 'QUERY', 'COMPARE_TWO_QUERIES', 'APEX' }
+      ),
+      'The release Flow fixture must cover all four evaluator types.'
+    );
+
+    Map<String, Object> inputs = new Map<String, Object>{
+      'recordId' => accountRecord.Id,
+      'checkQualifiedApiName' => configuredChecks[0].QualifiedApiName,
+      'checkSetQualifiedApiName' => RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        RELEASE_MATRIX_SET
+      ),
+      'eventPublication' => 'NONE'
+    };
+    Flow.Interview interview = Flow.Interview.createInterview(
+      RELEASE_MATRIX_FLOW,
+      inputs
+    );
+
+    Test.startTest();
+    interview.start();
+    Test.stopTest();
+
+    Assert.areEqual(
+      true,
+      interview.getVariableValue('checkIsSuccess'),
+      'The real Flow interview must execute one Check successfully.'
+    );
+    assertTerminalStatus(
+      (String) interview.getVariableValue('checkStatus'),
+      'Check'
+    );
+    Assert.areEqual(null, interview.getVariableValue('checkErrorType'));
+    Assert.isNotNull(interview.getVariableValue('checkResultJson'));
+
+    Assert.areEqual(
+      true,
+      interview.getVariableValue('setIsSuccess'),
+      'The real Flow interview must execute the complete Check Set successfully.'
+    );
+    assertTerminalStatus(
+      (String) interview.getVariableValue('setStatus'),
+      'Check Set'
+    );
+    Assert.areEqual(null, interview.getVariableValue('setErrorType'));
+    Assert.isNotNull(interview.getVariableValue('setResultJson'));
+    Assert.areEqual(
+      configuredChecks.size(),
+      terminalCount(interview),
+      'Every configured evaluator must reach exactly one terminal result.'
+    );
   }
 
   @IsTest
@@ -369,6 +447,43 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       value += 'x';
     }
     return value;
+  }
+
+  private static Integer terminalCount(Flow.Interview interview) {
+    return integerOutput(interview, 'setPassedCount') +
+      integerOutput(interview, 'setFailedCount') +
+      integerOutput(interview, 'setSkippedCount') +
+      integerOutput(interview, 'setUnableCount') +
+      integerOutput(interview, 'setSystemErrorCount');
+  }
+
+  private static Integer integerOutput(
+    Flow.Interview interview,
+    String variableName
+  ) {
+    Object value = interview.getVariableValue(variableName);
+    Assert.isNotNull(
+      value,
+      'The Flow must expose output variable ' + variableName + '.'
+    );
+    return ((Decimal) value).intValue();
+  }
+
+  private static void assertTerminalStatus(String status, String operation) {
+    Assert.isTrue(
+      new Set<String>{
+          'PASS',
+          'FAIL',
+          'SKIPPED',
+          'UNABLE_TO_EVALUATE',
+          'ERROR'
+        }
+        .contains(status),
+      operation +
+        ' must expose a recognized terminal status; received ' +
+        status +
+        '.'
+    );
   }
 
   @IsTest

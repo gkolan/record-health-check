@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Deal-to-account value guardrail</label>
+    <label>Example: Active Opportunity owners</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,7 +12,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">90</value>
+        <value xsi:type="xsd:double">80</value>
     </values>
     <values>
         <field>IsActive__c</field>
@@ -22,7 +22,7 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Opportunities have active owners</value>
+    >Every open Opportunity has an active owner</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -109,7 +109,7 @@
 
     <values>
         <field>DisplayValueFormat__c</field>
-        <value xsi:type="xsd:string">CURRENCY</value>
+        <value xsi:type="xsd:string">TEXT</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
@@ -127,13 +127,11 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Inactive owners: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount}</value>
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} inactive</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Required inactive owners for {!record.Name fallback="this Account"}: 0</value>
+        <value xsi:type="xsd:string">None inactive</value>
     </values>
     <values>
         <field>ExpectedFixedValue__c</field>

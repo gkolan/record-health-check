@@ -25,7 +25,7 @@
     >BLANKVALUE(Amount, 0)</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >A qualified value greater than zero for {!record.Name fallback="this opportunity"}</value></values>
+    >Greater than zero</value></values>
     <values><field>FormulaResultType__c</field><value
       xsi:type="xsd:string"
     >NUMBER</value></values>
@@ -55,7 +55,7 @@
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >10</value></values>
+    >20</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

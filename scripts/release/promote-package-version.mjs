@@ -5,8 +5,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
+import { packageVersionString } from "../lib/package-version.mjs";
 import { readPackageReleases } from "../lib/package-releases.mjs";
 import { run, runJson } from "../lib/run.mjs";
+import { assertReleaseAcceptance } from "../lib/release-acceptance.mjs";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -23,6 +25,12 @@ if (!devHub) {
 }
 
 const releases = readPackageReleases();
+const runtimeMatrix = JSON.parse(
+  fs.readFileSync(
+    path.join(paths.repoRoot, "config/release-runtime-matrix.json"),
+    "utf8"
+  )
+);
 const packageVersionId = values.package ?? positionals[0] ?? "";
 
 if (!/^04t[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(packageVersionId)) {
@@ -48,16 +56,60 @@ const gitCommit = execFileSync("git", ["rev-parse", "HEAD"], {
   cwd: paths.repoRoot,
   encoding: "utf8"
 }).trim();
+const worktree = execFileSync("git", ["status", "--porcelain"], {
+  cwd: paths.repoRoot,
+  encoding: "utf8"
+}).trim();
+if (worktree) {
+  console.error(
+    "Package promotion requires a clean worktree so the validation evidence and promotion logic match the exact hosted commit."
+  );
+  process.exit(1);
+}
 if (
   evidence.subscriberPackageVersionId !== packageVersionId ||
   evidence.package2Id !== releases.package2Id ||
-  evidence.gitCommit !== gitCommit
+  evidence.gitCommit !== gitCommit ||
+  String(evidence.version) !== runtimeMatrix.candidateVersion
 ) {
   console.error(
     "Candidate evidence does not bind this 04t to the configured package and current commit."
   );
   process.exit(1);
 }
+
+const acceptancePath = path.join(
+  paths.packageRoot,
+  ".package-evidence",
+  `${packageVersionId}-acceptance.json`
+);
+if (!fs.existsSync(acceptancePath)) {
+  throw new Error(
+    `Missing representative-sandbox acceptance: ${acceptancePath}. Complete the release-owner checklist; do not fabricate pass evidence.`
+  );
+}
+assertReleaseAcceptance(
+  JSON.parse(fs.readFileSync(acceptancePath, "utf8")),
+  packageVersionId,
+  gitCommit
+);
+
+run("node", [
+  "scripts/release/check_hosted_validation.mjs",
+  "--workflow",
+  "salesforce-validate.yml",
+  "--commit",
+  gitCommit
+]);
+run("node", [
+  "scripts/release/check_hosted_validation.mjs",
+  "--workflow",
+  "subscriber-validate.yml",
+  "--commit",
+  gitCommit,
+  "--candidate",
+  packageVersionId
+]);
 
 const report = runJson("sf", [
   "package",
@@ -71,9 +123,11 @@ const report = runJson("sf", [
 const reportedPackage2Id = report?.Package2Id ?? report?.package2Id;
 const reportedSubscriberId =
   report?.SubscriberPackageVersionId ?? report?.subscriberPackageVersionId;
+const reportedVersion = packageVersionString(report);
 if (
   reportedPackage2Id !== releases.package2Id ||
-  (reportedSubscriberId && reportedSubscriberId !== packageVersionId)
+  (reportedSubscriberId && reportedSubscriberId !== packageVersionId) ||
+  reportedVersion !== runtimeMatrix.candidateVersion
 ) {
   console.error(
     "Dev Hub package report does not match the configured package or candidate 04t."

@@ -1,87 +1,100 @@
-# Install the demo in a scratch org
+# Try the demo in a scratch org
 
-Use this developer workflow to create a disposable environment.
-
-> [!NOTE]
-> On this page, create a disposable, fully prepared scratch org. One command installs Record Health
-> Check and adds examples, a Lightning page, permissions, predictable records, and a package smoke
-> test without changing an existing sandbox or production org.
-
-Use this path when you want to judge a known, repeatable experience rather than interpret whatever
-data happens to be in an existing sandbox. When setup finishes, you can open Acme Corporation and
-compare the card with the expected outcomes documented below.
-
-> [!IMPORTANT]
-> Stop here if you have only a sandbox login. Use [Install and verify](./install-in-a-sandbox.md)
-> instead. This contributor and evaluator path requires source tools and permission to create
-> disposable orgs from a Dev Hub.
-
-A **Dev Hub** is the Salesforce org authorized to create scratch orgs. A **scratch org** is a
-temporary, source-driven Salesforce org. The **alias** is the local CLI name used in later commands.
-The demo scratch org has no namespace of its own so it behaves like a package subscriber.
+Use a disposable Salesforce scratch org to explore Record Health Check with prepared records. Choose whether to evaluate the latest released package or the examples in the current source before running commands.
 
 ## Before you begin
 
-You need Git, Node.js with npm, the Salesforce CLI, and a Dev Hub that can create scratch orgs. The
-setup command works in PowerShell, Command Prompt, Git Bash, and macOS or Linux terminals.
+You need Git, Node.js with npm, Salesforce CLI, and a Dev Hub that can create scratch orgs. A **Dev Hub** authorizes temporary Salesforce orgs. An **alias** is the local name used by CLI commands to identify an org. If you only have a sandbox login, use [Install and verify](./install-in-a-sandbox.md).
+
+Use the tool versions specified in [the repository toolchain configuration](../../config/toolchain.json). Run `npm run check:toolchain` after installing dependencies to check your environment. On **Windows**, use **PowerShell**, **Command Prompt**, or **Git Bash**. On **macOS or Linux**, use your terminal.
+
+## Step 1: Choose the demo version
+
+### Latest released package
+
+To evaluate the released package in a scratch org, follow [Install and verify](./install-in-a-sandbox.md) using that org as the target. Use the latest-release installation link for Production or Developer Edition. Complete the permission and record-page setup in that guide.
+
+For a prepared installed-package demo, use `npm run setup` from the source checkout associated with that release and follow its included demo instructions. Keep its setup scripts, Check definitions, and expected results together; the current development checkout can contain examples that the released package does not yet include.
+
+### Examples in the current source
+
+The remaining sections describe the prepared dataset and expected results for this checkout. Use a scratch org with the matching source deployed to try all four Check Sets below.
+
+For a scratch org with the current source already deployed, run these commands from the current repository checkout, replacing `your-scratch-org` with its alias:
 
 ```bash
-sf --version
-git clone https://github.com/gkolan/record-health-check.git
-cd record-health-check
-sf org login web --set-default-dev-hub --alias my-dev-hub
-sf org display --target-org my-dev-hub
-npm install
+npm ci
+npm run demo:setup-source -- --alias your-scratch-org
+npm run demo:verify-source -- --alias your-scratch-org
 ```
 
-The final `sf org display` command confirms which Dev Hub will create the org. `npm install` prepares
-the checked-in setup tools; it does not install Record Health Check into Salesforce. The setup
-command first verifies the repository's pinned Salesforce CLI version and confirms that the Dev Hub
-has scratch-org capacity. It creates a 30-day org by default; pass `--duration-days` with a whole
-number from 1 through 30 when you need a shorter lifetime.
+If you need to create a source scratch org first, follow [Source development](../contributing/source-development.md). That workflow is for development and evaluation; install a released package in subscriber sandboxes and production orgs.
 
-## Step 1: Create the demo org
-
-From the repository root, run:
+The seed command creates or reuses Jordan Blake, creates the business records, deactivates Jordan, and verifies all four example Check Sets. It does not add Lightning components or list views. For the demo list views, deploy only these files from the current checkout:
 
 ```bash
-npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
+sf project deploy start --target-org your-scratch-org --source-dir subscriber-app/main/default/objects/Account/listViews --source-dir subscriber-app/main/default/objects/Contact/listViews --source-dir subscriber-app/main/default/objects/Opportunity/listViews --wait 30
 ```
 
-The command deliberately refuses to overwrite an existing alias. If `rhc-demo` already exists, delete it yourself
-only when you no longer need that org, or choose another alias.
+Add the card to each object's page using Step 2. In later commands, replace `rhc-demo` with the alias of this source scratch org. Source and installed-package namespaces are detected by the npm verifier; namespace detection alone does not make older Check definitions match the updated expected results.
 
-The terminal prints each major operation, including capacity check, scratch-org creation, package
-installation, permission assignment, demo deployment, data setup, and smoke verification. Success
-ends with the org alias and next command. On failure, use the last named operation as the starting
-point for investigation.
+## The four example Check Sets
 
-The command creates a separate scratch org and prepares the entire experience:
+Each Check Set runs against the object named below. The two Account sets serve different purposes; choose the one that matches what you want to learn.
 
-1. Creates a scratch org that has no package namespace of its own.
-2. Installs the same promoted Record Health Check package offered by the public install links.
-3. Gives the scratch-org user **Record Health Check Card User** access, matching the everyday record-page experience.
-4. Adds the prepared Lightning page and demo configuration.
-5. Creates the Acme records used by the Example Check Set and adds focused Account, Contact, and
-   Opportunity list views for those records.
-6. Runs the subscriber smoke test before reporting success.
+| Check Set in App Builder | Object | What it demonstrates | First record to try |
+| --- | --- | --- | --- |
+| **Example: Account Check Builder Guide** | Account | 25 examples that progress from basic Account fields through related-record queries, comparisons, and Apex. Use this set to learn how to build Checks. | Acme Corporation: 7 pass, 17 fail, 0 skip, 1 unable |
+| **Example: Account Relationship & Risk** | Account | 8 customer-review Checks covering ownership, Contacts, executive sponsorship, open-deal coverage, pipeline, activity, high-priority Cases, and a parent Account for channel customers. | Acme Corporation: 3 pass, 4 fail, 1 skip, 0 unable |
+| **Example: Contact Relationship Readiness** | Contact | 8 Checks for Account context, role and location details, Email or Phone, reporting line, email bounce status, active ownership, and recent Tasks. | Elena Hart (RHC Demo): 8 pass |
+| **Example: Opportunity Deal Readiness** | Opportunity | 8 Checks for Account, Amount, Close Date, Next Step, Probability, active ownership, primary Contact, and recent Tasks. | RHC Demo Ready Deal: 8 pass |
 
-This uses the promoted installed package, the same way a sandbox or production org would. It does
-not replace the package with development source.
+A passing completeness Check does not prove that contact details are valid, communication is permitted, or a Next Step has been agreed. The descriptions explain what each rule actually tests.
 
-If the org was created for source review instead, this installed-package setup did not run and Acme
-will not exist automatically. Follow
-[Seed the current-source Acme demo](../contributing/source-development.md#seed-the-current-source-acme-demo)
-to load and verify the same record hierarchy against namespaced or no-namespace source.
+### How Check Set selection works
+
+When you add **Record Health Check** to a record page in **Lightning App Builder**, its **Check Set** property lists only active sets for that page's object.
+
+| Record page | Default with the supplied examples | What you do |
+| --- | --- | --- |
+| Account | Two active sets are available, so a newly added component has no automatic selection. | Select **Example: Account Check Builder Guide** or **Example: Account Relationship & Risk**. |
+| Contact | Its one active set is selected automatically. | Confirm **Example: Contact Relationship Readiness**, then save and activate the page. |
+| Opportunity | Its one active set is selected automatically. | Confirm **Example: Opportunity Deal Readiness**, then save and activate the page. |
+
+If the org does not already have a configured Account page, add the component and select **Example: Account Check Builder Guide** yourself. Add a second card to show Account Relationship & Risk alongside it.
+
+These defaults assume only the supplied example sets are active. A contributor org can contain additional active test sets; select the intended example explicitly when there is more than one choice.
+
+Automatic selection happens in App Builder when exactly one active set matches the object. Adding another active Contact or Opportunity set removes that automatic default for a newly added card. It does not change a selection already saved on a page. An existing card with a blank selection still needs configuration; the runtime does not silently choose a set.
+
+## Run the Apex data scripts yourself
+
+The Apex files are included in the repository under `scripts/subscriber/data/`. The source seed command runs them for you. To create or reset the data yourself in a scratch org with the matching current Check definitions, run the four files in this exact order:
+
+| Order | Apex script | Data prepared |
+| --: | --- | --- |
+| 1 | [setupDemoUser.apex](../../scripts/subscriber/data/setupDemoUser.apex) | Creates or reactivates Jordan Blake. |
+| 2 | [setupDemoData.apex](../../scripts/subscriber/data/setupDemoData.apex) | Creates the Acme hierarchy and its related records for both Account Check Sets; assigns Acme to Jordan. |
+| 3 | [setupReadinessData.apex](../../scripts/subscriber/data/setupReadinessData.apex) | Adds ready and needs-review Account, Contact, and Opportunity scenarios, including Tasks, Cases, Contact Roles, and a Product. |
+| 4 | [deactivateDemoUser.apex](../../scripts/subscriber/data/deactivateDemoUser.apex) | Leaves Jordan inactive so the owner Checks demonstrate the intended failures. |
+
+```bash
+sf apex run --target-org rhc-demo --file scripts/subscriber/data/setupDemoUser.apex
+sf apex run --target-org rhc-demo --file scripts/subscriber/data/setupDemoData.apex
+sf apex run --target-org rhc-demo --file scripts/subscriber/data/setupReadinessData.apex
+sf apex run --target-org rhc-demo --file scripts/subscriber/data/deactivateDemoUser.apex
+```
+
+You can also open each file and run its contents separately in **Developer Console → Debug → Open Execute Anonymous Window**. Use four separate executions: Salesforce User changes must be separate from business-record changes. If a data script fails after step 1, run step 4 to leave Jordan inactive, then resolve the error before repeating the lifecycle. The npm runner performs that cleanup automatically.
+
+These scripts require a user who can manage the synthetic demo User and create the listed business records. They reset the named demo records, so preserve manual experiments on separate records. Data creation does not add Record Health Check to Contact or Opportunity pages; follow Step 2 below.
 
 ## What the demo prepares
 
-The setup creates the same Acme scenario every time. The record counts and relationships are
-intentional. Five Checks pass, 18 expose business gaps, one skips because its policy does not
-apply, and one reports Unable because the data cannot support a defensible benchmark.
+The Account Builder Guide portion creates the same Acme scenario every time. The record counts and relationships are intentional. Seven Checks pass, 17 expose business gaps, none skip, and one reports Unable because the data has no Opportunity Products to compare with the proposal Amount.
 
 | Salesforce object | Records created | Purpose |
-| --- | ---: | --- |
+| --- | --: | --- |
 | Account | 3 | Corporate parent, operating division, and Acme Corporation |
 | Contact | 44 | 38 Acme stakeholders and 6 Parent Account stakeholders used by the query examples |
 | Opportunity | 6 | 2 open deals, 3 recent losses, and 1 historical win without a defensible Amount |
@@ -96,7 +109,7 @@ No Event records are created. Recent engagement comes from the two completed Tas
 | Account hierarchy | `Asteron Global Holdings` → `Asteron Industrial Systems` → `Acme Corporation` |
 | Acme classification | Type `Customer`; Industry `Technology`; Annual Revenue `$500,000`; 1,250 employees |
 | Parent bill-to policy | Acme and its operating parent both use `2400 West Fulton Street, Chicago, Illinois 60612, United States` |
-| Owner | The user who runs setup owns Acme; the demo does not create or deactivate users |
+| Owner | Jordan Blake is created or reused, assigned to Acme, then deactivated to demonstrate the inactive-owner failure in Account Relationship Risk |
 | Acme Contacts | 38 total; exactly 6 have no Email; addresses span Cleveland, Columbus, Indianapolis, and Madison |
 | Parent Account Contacts | 6 total across Chicago, Milwaukee, Detroit, Minneapolis, and St. Louis |
 | Open Opportunities | 2: a `$600,000` proposal and a `$0` qualification-stage deal; valued pipeline is concentrated entirely in the proposal |
@@ -105,110 +118,88 @@ No Event records are created. Recent engagement comes from the two completed Tas
 | Recent activity | Exactly 2 completed Tasks in the last 60 days |
 | Cases | 16 total: 4 open High, 4 open Medium, 4 open Low, and 4 closed; 6 of 12 open Cases have no Contact; 1 named priority Contact has no email |
 
-The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts,
-relationships, and health-check outcomes remain predictable. It creates only the Asteron hierarchy
-and Acme teaching data listed above; it does not seed a separate Contact or Opportunity portfolio.
+The setup uses dates relative to the day it runs. Calendar dates therefore move, but record counts, relationships, and health-check outcomes remain predictable. The Acme data above is supplemented by the readiness scenarios below.
 
-After setup, use these expected outcomes to verify all 25 Checks on Acme Corporation. Severity is
-shown only when a Check fails.
+### Readiness scenarios
+
+The complete dataset contains **5 Accounts, 48 Contacts, 11 Opportunities, 7 Contact Roles, 4 Tasks, 18 Cases, 1 Product, and 1 Opportunity Line Item**, plus one inactive demo User. The Product has one standard Price Book Entry. No Events are created.
+
+| Scenario | Record | What it tests |
+| --- | --- | --- |
+| Inactive Account owner | Acme Corporation / Jordan Blake | Actual owner name and inactive status; Account Builder Guide retains its expected results |
+| Ready Account | RHC Demo Ready Account | All 8 Account Relationship Risk Checks pass, including channel parent, pipeline, customer contacts, and activity |
+| Account needing review | RHC Demo Review Account | All 8 Account Relationship Risk Checks fail with low pipeline, a high-priority Case, missing relationships, and an inactive owner |
+| Ready Contact | Elena Hart (RHC Demo) | All 8 Contact Checks pass; same-Account manager, complete details, and recent Tasks |
+| Manager without activity | Marcus Shaw (RHC Demo) | Department instead of Title, no manager, and missing recent Task |
+| Contact needing review | Morgan Vale (RHC Demo) | All 8 Contact Checks fail; no Account or contact details, manager on another Account, inactive owner, and no recent Task |
+| Bounced email | Riley Chen (RHC Demo) | Email Check fails, while a recorded contact channel still passes |
+| Ready deal | RHC Demo Ready Deal | All 8 Opportunity Checks pass; primary Contact, recent Task, 50% probability, and matching Product total |
+| Deal needing review | RHC Demo Review Deal | All 8 Opportunity Checks fail, including missing Account, zero Amount, placeholder Next Step, overdue date, and 100% on an open deal |
+| Closed deals | RHC Demo Closed Won / RHC Demo Closed Lost | 100% / 0% display correctly; open-deal Contact and activity Checks skip |
+| Low pipeline | RHC Demo Low Pipeline | Positive Amount below the Account coverage target; missing primary Contact and recent Task |
+
+The verifier checks **49 active examples across four Check Sets**. It asserts 122 results across these scenarios and the Acme Builder Guide, including a positive Product-total comparison. The inactive Industry-alignment sample is not part of the active Check Set verification. The one expected Unable result remains on Acme, which intentionally has no Products. The ready deal supplies the corresponding passing Product-total example.
+
+The demo Contact and Opportunity list views include the new readiness records. The pipeline-to-revenue example assumes a single currency; align currencies before adapting it to a multicurrency org.
+
+### Repeat setup and verify
+
+After deploying current source, run:
+
+```bash
+npm run demo:setup-source -- --alias your-scratch-org
+npm run demo:verify-source -- --alias your-scratch-org
+```
+
+The second command only verifies. Repeating setup reuses Jordan and the Product, replaces the named demo child records, and leaves Jordan inactive. Setup deliberately replaces demo records, so use a separate Account for manual experiments you want to preserve. Verification checks known record counts, relationships, each expected Check status, display values, and unresolved merge tokens.
+
+### Remove the demo data
+
+Delete demo Tasks, Cases, Opportunity Contact Roles, and Opportunities first. Readiness Tasks use subjects `RHC Demo Relationship Review` and `RHC Demo Deal Review`; readiness Cases use `RHC Demo Routine Question` and `RHC Demo Urgent Issue`; readiness Opportunity names begin `RHC Demo`. Then delete Contacts tagged with Assistant Name `RHC-DEMO-READINESS` and the five Accounts whose Account Number starts with `RHC-DEMO-`, deleting child Accounts before parents. Remove the `RHC-DEMO-PRODUCT` Product and its Price Book Entry after its Opportunity Line Item is gone. Salesforce Users cannot be deleted; leave Jordan inactive. His Federation Identifier is `rhc-demo-owner-jordan-blake`. Keep the standard Price Book and other users intact.
+
+### Account Builder Guide outcomes
+
+After setup, use these expected outcomes to verify all 25 Checks on Acme Corporation. Severity is shown only when a Check fails.
 
 | Order | Check | Type | Expected outcome | Why the demo produces this result |
-| ---: | --- | --- | --- | --- |
-| 10 | Account activity is within the 60-day review window | Formula | Pass | Latest Account activity is 14 days ago; Found shows the recorded date and Expected shows the rolling cutoff. |
-| 20 | Billing address matches the parent bill-to account | Formula | Pass | Found and Expected show the same complete centralized bill-to address. |
-| 30 | Strategic Accounts are contract-ready for billing | Formula | Skipped | The policy applies above `$1 million`; Acme records `$500,000` Annual Revenue. |
-| 40 | Open pipeline has an identified decision maker | Query | Pass | The proposal has one explicitly verified Decision Maker role. |
-| 50 | Every open Case identifies an accountable customer Contact | Query | Fail (Critical) | 6 of 12 open Cases lack a customer Contact. |
-| 60 | High-priority service load stays within escalation capacity | Query | Fail (Critical) | 4 high-priority Cases exceed capacity of 3. |
-| 70 | Priority service Contacts have a reachable email channel | Query | Fail (Warning) | 1 of 3 named priority Contacts has no email. |
-| 80 | Proposal-stage deals meet the qualification floor | Query | Pass | The `$600,000` proposal exceeds the illustrative `$25,000` floor. |
-| 90 | Open deal size stays within the Account-scale review limit | Query | Fail (Warning) | The `$600,000` proposal exceeds Acme's `$500,000` Annual Revenue review ceiling. |
-| 100 | Account rating is supported by a mature open deal | Query | Fail (Info) | Acme is Hot, but the highest open-deal Probability is 65%, below the required above-70% evidence. |
-| 110 | Open-deal stakeholders have a verified contact channel | Query | Fail (Warning) | One Contact Role has neither email nor phone. |
-| 120 | Open-deal buying committee includes a technical evaluator | Query | Fail (Info) | Decision Maker, Executive Sponsor, and Business User are present; Technical Buyer is absent. |
-| 130 | Recent Case closures keep pace with intake | Query | Fail (Warning) | 4 Cases closed while 16 entered the queue during the rolling 30 days. |
-| 140 | Every proposal-stage deal has a documented mutual action | Compare Two Queries | Fail (Warning) | The proposal has no agreed Next Step. |
-| 150 | Every high-priority open Case identifies a Contact | Compare Two Queries | Fail (Critical) | 3 of 4 high-priority Cases identify a customer Contact. |
-| 160 | Every proposal-stage deal retains campaign attribution | Compare Two Queries | Fail (Warning) | The proposal has no Primary Campaign Source. |
-| 170 | New qualified pipeline replenishes recently lost deals | Compare Two Queries | Fail (Critical) | 2 new open deals do not replace 3 recent losses. |
-| 180 | Valued pipeline is not concentrated in one deal | Compare Two Queries | Fail (Warning) | Total valued pipeline and the largest deal are both `$600,000`. |
-| 190 | Every won deal retains its primary customer Contact | Compare Two Queries | Fail (Warning) | The historical win has no primary Contact Role. |
-| 200 | Every open deal closes within the 180-day planning horizon | Compare Two Queries | Fail (Warning) | 1 of 2 open deals is inside the horizon; the other Close Date is stale. |
-| 210 | Sales and service work share a customer Contact | Compare Two Queries | Fail (Warning) | Named service Contacts and open-deal Contacts do not overlap. |
-| 220 | Sales stakeholder map covers priority service Contacts | Compare Two Queries | Fail (Warning) | Priority service Contacts are absent from the open-deal stakeholder map. |
-| 230 | Every open Opportunity has at least one Product | Compare Two Queries | Fail (Critical) | Neither open Opportunity is represented by an Opportunity Product. |
-| 240 | Open-deal valuation has a won-deal benchmark | Compare Two Queries | Unable | The historical win has no defensible Amount, so the framework does not invent a benchmark. |
-| 250 | Customer engagement volume meets the 60-day operating cadence | Apex | Pass | Two completed Tasks meet the configured minimum of two. |
+| --: | --- | --- | --- | --- |
+| 10 | Account Type is set | Formula | Pass | Acme has Type `Customer`. |
+| 20 | Account has a phone number or website | Formula | Pass | Acme has both a business Phone and Website. |
+| 30 | Billing address matches the parent bill-to account | Formula | Pass | The complete billing address matches the parent Account. |
+| 40 | High-priority open Cases stay within the limit | Verify with Query | Fail (Critical) | 4 high-priority open Cases exceed the maximum of 1. |
+| 50 | At least one open Opportunity is Commit | Verify with Query | Fail (Info) | No open Opportunity has Forecast Category Commit. |
+| 60 | Every open Case has a Contact | Verify with Query | Fail (Critical) | 6 of 12 open Cases have no Contact. |
+| 70 | Every escalated open Case has a Description | Verify with Query | Fail (Warning) | The open escalated Case has no Description. |
+| 80 | Every open Opportunity has an active owner | Verify with Query | Pass | Both open Opportunities have active owners. |
+| 90 | No proposal has a missing or low Amount | Verify with Query | Pass | No proposal has a blank Amount or an Amount below $25,000. |
+| 100 | Open Opportunities include a Decision Maker | Verify with Query | Pass | One Decision Maker Contact Role is recorded on an open Opportunity. |
+| 110 | Contacts on open deals have Email or Phone | Verify with Query | Fail (Warning) | One Contact Role has neither Email nor Phone. |
+| 120 | Open-deal Contact Roles include Technical Buyer | Verify with Query | Fail (Info) | Technical Buyer is absent from the returned Contact Role values. |
+| 130 | Cases closed keep pace with Cases created | Verify with Query | Fail (Warning) | 4 Cases closed and 16 were created in the last 30 days. |
+| 140 | Every won Opportunity has an Amount | Compare Two Queries | Fail (Warning) | The won Opportunity has no Amount. |
+| 150 | Every proposal has a Next Step | Compare Two Queries | Fail (Warning) | The proposal has no Next Step. |
+| 160 | Every proposal has a Primary Campaign Source | Compare Two Queries | Fail (Critical) | The proposal has no Primary Campaign Source. |
+| 170 | Open Opportunity Close Dates are in range | Compare Two Queries | Fail (Info) | Only 1 of 2 open Opportunities closes within the next 180 days. |
+| 180 | Every open Opportunity has a Contact Role | Compare Two Queries | Fail (Critical) | Only 1 of 2 open Opportunities has Contact Roles. |
+| 190 | Every won Opportunity has a primary Contact | Compare Two Queries | Fail (Warning) | No won Opportunity has a primary Contact Role; the configured no-row behavior fails. |
+| 200 | New pipeline value covers recently lost value | Compare Two Queries | Fail (Critical) | $600,000 in new pipeline is below $760,000 in recently lost value. |
+| 210 | Total proposal Amount matches total Product value | Compare Two Queries | Unable to Evaluate | There are no Opportunity Products, so no Product total is available. |
+| 220 | Sales and service share a Contact name | Compare Two Queries | Fail (Warning) | Open Case Contact names and open Opportunity Contact names do not overlap. |
+| 230 | Sales Contact names cover priority Case Contacts | Compare Two Queries | Fail (Warning) | Priority Case Contact names are absent from open Opportunity Contact names. |
+| 240 | Open Opportunity names match those with Products | Compare Two Queries | Fail (Warning) | Two open Opportunity names are compared with an empty list of Opportunity names with Products. |
+| 250 | Account activity meets the 60-day cadence | Apex | Pass | Two completed Tasks meet the configured minimum of two. |
 
-The exact summary is **5 Passed, 18 Failed, 1 Skipped, and 1 Unable**. The design intentionally
-shows more problems than successes so adopters see meaningful detection and remediation behavior.
+The exact summary is **7 Passed, 17 Failed, 0 Skipped, and 1 Unable**. The design intentionally shows more problems than successes so adopters see meaningful detection and remediation behavior.
 
-### Passing checks are complete cloneable examples
+These 25 Checks do not use categories, so the card shows one overall summary. Found and Expected values state the measured business evidence and the governing policy or comparison baseline.
 
-A green demo result is not shorthand for “this will pass everywhere.” Each passing Check includes
-the same operational documentation as a failing example: measured evidence, policy baseline,
-failure behavior, remediation, and the decisions an adopter must make before cloning it.
+Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing, and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and the running user has the **Record Health Check View Diagnostics** custom permission. Assign **Record Health Check Diagnostics Viewer** alongside **Card User** or **User** to test those details. **Record Health Check Admin** already includes the diagnostic permission. A System Administrator receives these details only through a permission set or another assignment that grants the custom permission.
 
-| Order | Found in the demo | Expected policy | What failure means and how to respond | Before cloning |
-| ---: | --- | --- | --- | --- |
-| 10 | Latest completed Account activity date: 14 days ago | Date must be on or after the rolling 60-day cutoff | An older date fails because the Account activity record is stale. Review whether the latest activity represents qualifying customer work, correct supported evidence, and schedule the next accountable touchpoint. No activity currently skips. | `LastActivityDate` includes broad Account activity. Define qualifying evidence, replace 60 days with the approved review window, and decide whether missing activity should Skip or Fail. |
-| 20 | Acme's complete billing address | Parent Account's complete bill-to address; all five components match | Any street, city, state, postal-code, or country difference fails. Finance should confirm the legal bill-to location before either record is corrected. No parent currently skips. | Use only where centralized parent billing is policy; account for address normalization and legitimate legal-entity exceptions. |
-| 40 | 1 verified Decision Maker role across open Opportunities | At least 1 verified Decision Maker role | Zero roles fails because open pipeline lacks explicit buying-authority evidence. Confirm authority with the customer and add the appropriate Contact Role; never infer authority from title alone. | Align role values and qualifying stages to the sales process, then decide whether coverage is required once per Account or on every qualifying Opportunity. |
-| 80 | Proposal-stage Amounts: `$600,000` | Every proposal-stage Amount must be at least `$25,000` | Any proposal below the floor fails. Validate scope, pricing, and commercial fit; requalify or return the deal to an earlier stage instead of inflating Amount. No proposal-stage rows currently skip. | Replace the illustrative floor and currency with approved thresholds by segment, geography, product, or sales motion. |
-| 250 | 2 completed customer engagements in 60 days | At least 2 completed engagements | Fewer than two fails because the operating cadence lacks enough documented customer interaction. Verify genuine engagement evidence and its outcome before logging anything. | Define qualifying Task/Event types and completion states, then calibrate both the lookback window and minimum volume. |
+The Account Builder Guide runs on request, reveals one result at a time, shows passed and skipped rows, shows Found and Expected on demand, and places the summary at the bottom.
 
-The same failure message, Unable guidance, fix instructions, and action link are stored on these
-five Check records even though Acme passes them. Cloning the metadata therefore preserves the
-failure experience; adopters still own the policy decisions identified above.
+## Step 2: Open and test all four Check Sets
 
-### 25-check quality gate
-
-Each scenario is reviewed on three 10-point dimensions. No dimension may be below 9, and the
-combined acceptable score is 29/30 or higher. **Quality /10** is the combined score divided by three.
-
-| Order | Understandability | Business value | Logic depth | Total /30 | Quality /10 |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 10 | 10 | 9 | 10 | **29** | **9.7** |
-| 20 | 10 | 10 | 9 | **29** | **9.7** |
-| 30 | 10 | 9 | 10 | **29** | **9.7** |
-| 40 | 10 | 10 | 10 | **30** | **10.0** |
-| 50 | 10 | 10 | 9 | **29** | **9.7** |
-| 60 | 10 | 10 | 9 | **29** | **9.7** |
-| 70 | 10 | 10 | 10 | **30** | **10.0** |
-| 80 | 10 | 10 | 9 | **29** | **9.7** |
-| 90 | 9 | 10 | 10 | **29** | **9.7** |
-| 100 | 9 | 10 | 10 | **29** | **9.7** |
-| 110 | 10 | 10 | 9 | **29** | **9.7** |
-| 120 | 10 | 10 | 10 | **30** | **10.0** |
-| 130 | 9 | 10 | 10 | **29** | **9.7** |
-| 140 | 10 | 10 | 9 | **29** | **9.7** |
-| 150 | 10 | 10 | 9 | **29** | **9.7** |
-| 160 | 10 | 9 | 10 | **29** | **9.7** |
-| 170 | 9 | 10 | 10 | **29** | **9.7** |
-| 180 | 10 | 10 | 10 | **30** | **10.0** |
-| 190 | 10 | 10 | 10 | **30** | **10.0** |
-| 200 | 10 | 10 | 9 | **29** | **9.7** |
-| 210 | 9 | 10 | 10 | **29** | **9.7** |
-| 220 | 9 | 10 | 10 | **29** | **9.7** |
-| 230 | 10 | 10 | 9 | **29** | **9.7** |
-| 240 | 9 | 10 | 10 | **29** | **9.7** |
-| 250 | 10 | 10 | 10 | **30** | **10.0** |
-
-These 25 Checks do not use categories, so the card shows one overall summary. Found and Expected
-values state the measured business evidence and the governing policy or comparison baseline.
-
-Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing,
-and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and
-the running user has the **Record Health Check View Diagnostics** custom permission. The standard
-user permission does not include that permission. A System Administrator receives these details
-only through a permission set or another assignment that grants the custom permission.
-
-The prepared Lightning page points to
-`rhc__Example_Account_Check_Builder_Guide`. The Check Set keeps the existing demo interaction: run on
-request, reveal one result at a time, show passed and skipped rows, show Found and Expected on
-demand, and place the summary at the bottom.
-
-## Step 2: Open and test the experience
+### Account: Choose between the two sets
 
 Open the prepared Account list:
 
@@ -216,103 +207,134 @@ Open the prepared Account list:
 sf org open --target-org rhc-demo --path 'lightning/o/Account/list?filterName=RHC_Demo_Accounts'
 ```
 
-Open **Acme Corporation**. Its Account page already contains Record Health Check. Run the checks and
-confirm the summary is five passed, 18 failed, one skipped, and one unable to check. Expand the
-results and follow the guidance as someone preparing for the customer review would.
+Open **Acme Corporation**, select **Gear → Edit Page**, and add **Record Health Check** if the page does not already contain it. Select **Example: Account Check Builder Guide** in the component properties, then save and activate the page. Return to Acme, run the Checks, and compare the results with the table above.
 
-The setup also deploys **RHC Demo Contacts** and **RHC Demo Opportunities** list views. These views
-show only the deterministic records created by the setup script, even though the scratch org also
-includes Salesforce-provided sample data.
+To test the other Account set:
 
-To verify the prepared data and outcomes from the command line, run:
+1. Open **Gear → Edit Page**.
+2. Select the **Record Health Check** component.
+3. In its **Check Set** property, choose **Example: Account Relationship & Risk**. You can instead add a second Record Health Check component and select this set on that card.
+4. **Save**, then **Activate** if the page has not been assigned to your app, profile, or record type.
+5. Return to Acme and run the Checks. Expect Jordan Blake's inactive ownership to fail.
+6. Open **RHC Demo Ready Account** and **RHC Demo Review Account** to compare the passing and failing scenarios using this same set.
 
-```bash
-sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
-```
+### Contact: The single set is selected automatically
 
-This verification is separate from `npm run setup`; run it after setup finishes.
+Open **Contacts → RHC Demo Contacts** and select **Elena Hart (RHC Demo)**.
+
+1. Open **Gear → Edit Page** and add **Record Health Check** if it is not already on the page.
+2. Select the component. **Example: Contact Relationship Readiness** is the automatic Check Set default while it is the only active Contact set. Confirm the property before saving.
+3. **Save** and **Activate** the page for the app/profile/record types you are testing.
+4. Return to the record. Run the Checks when the card offers a Run button, or wait for an automatic run if the Check Set is configured that way.
+5. Compare Elena with **Morgan Vale (RHC Demo)**, **Marcus Shaw (RHC Demo)**, and **Riley Chen (RHC Demo)**.
+
+### Opportunity: The single set is selected automatically
+
+Open **Opportunities → RHC Demo Opportunities** and select **RHC Demo Ready Deal**.
+
+1. Open **Gear → Edit Page** and add **Record Health Check** if it is not already on the page.
+2. Confirm that **Example: Opportunity Deal Readiness** is selected automatically while it is the only active Opportunity set.
+3. **Save** and **Activate** the page for the users and record types you are testing.
+4. Return to the record and run the Checks, or wait for its configured automatic run.
+5. Compare the ready deal with **RHC Demo Review Deal**, the closed deals, and **RHC Demo Low Pipeline**.
+
+The list-view deployment in Step 1 adds the demo views. The source seed command adds the data. Add the card once to each object's page as described above. The demo views select Acme-related and named readiness records; other records matching those filters can also appear if you create them.
+
+### Expected card summaries
+
+| Check Set | Record | Pass | Fail | Skip | Unable |
+| --- | --- | --: | --: | --: | --: |
+| Account Check Builder Guide | Acme Corporation | 7 | 17 | 0 | 1 |
+| Account Relationship & Risk | Acme Corporation | 3 | 4 | 1 | 0 |
+| Account Relationship & Risk | RHC Demo Ready Account | 8 | 0 | 0 | 0 |
+| Account Relationship & Risk | RHC Demo Review Account | 0 | 8 | 0 | 0 |
+| Contact Relationship Readiness | Elena Hart (RHC Demo) | 8 | 0 | 0 | 0 |
+| Contact Relationship Readiness | Marcus Shaw (RHC Demo) | 7 | 1 | 0 | 0 |
+| Contact Relationship Readiness | Morgan Vale (RHC Demo) | 0 | 8 | 0 | 0 |
+| Contact Relationship Readiness | Riley Chen (RHC Demo) | 6 | 2 | 0 | 0 |
+| Opportunity Deal Readiness | RHC Demo Ready Deal | 8 | 0 | 0 | 0 |
+| Opportunity Deal Readiness | RHC Demo Review Deal | 0 | 8 | 0 | 0 |
+| Opportunity Deal Readiness | RHC Demo Closed Won | 6 | 0 | 2 | 0 |
+| Opportunity Deal Readiness | RHC Demo Closed Lost | 6 | 0 | 2 | 0 |
+| Opportunity Deal Readiness | RHC Demo Low Pipeline | 5 | 3 | 0 | 0 |
+
+The Account Builder Guide's single Unable result is intentional: Acme has no Product total. Acme's Account Relationship & Risk set skips channel governance because Acme is not a channel customer. Closed Opportunities skip primary-Contact and recent-Task Checks because those apply only to open deals. The inactive Industry-alignment example is excluded from the eight Account Relationship & Risk Checks.
+
+Expand **Found** and **Expected** to inspect the evidence. Some configured no-row failures have no comparison values; that absence does not mean a measured zero. A ready record passes all eight readiness Checks, while the needs-review records expose the specific gaps described above.
 
 ## Step 3: Know that verification succeeded
 
-The demo is ready when:
+The current-source seed command verifies all four sets automatically. To repeat that verification without changing the data, use the repository's namespace-aware verifier:
 
-- the setup command completes without an error;
-- if you run `verifyDemo.apex`, it completes without an assertion error;
-- Acme Corporation opens on the prepared Account page;
-- the summary shows 5 passed, 18 failed, 1 skipped, and 1 unable-to-check result; and
-- the expanded results explain the known Acme data in the tables above.
+```bash
+npm run demo:verify-source -- --alias rhc-demo
+```
 
-These outcomes prove the prepared demo. They do not certify a separate sandbox or production org;
-use [Install and verify in your org](./install-in-a-sandbox.md) for that outcome.
+It detects the deployed framework namespace. The Check definitions must still match this checkout; namespace detection does not resolve differences between releases. For individual Apex verification steps:
+
+```bash
+sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
+sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyReadinessData.apex
+```
+
+`verifyDemo.apex` checks Acme's 25 Builder Guide outcomes in a namespaced `rhc` org with the updated definitions. Use the npm verifier for a no-namespace source org. `verifyReadinessData.apex` checks the additional record counts, relationships, Product data, and Jordan's inactive ownership. The npm verifier additionally runs every Account, Contact, and Opportunity readiness outcome from the [scenario matrix](../../scripts/subscriber/data/readiness-scenarios.json), plus the passing Product-total comparison. Those additional per-set Apex assertions are generated and executed by the verifier; the two Apex commands alone do not run the whole outcome matrix.
+
+The demo is ready when setup and verification finish without assertion errors, all four cards show the expected summaries above, and the expanded results match the seeded evidence. These outcomes verify the prepared demo; use [Install and verify in your org](./install-in-a-sandbox.md) to evaluate an unrelated sandbox or production dataset.
 
 ## If setup does not finish
 
-The setup command does not overwrite an existing org alias. If setup fails after creating the
-scratch org, read the final operation shown in the terminal. If you no longer need that incomplete
-org, delete that exact scratch org before retrying:
+The setup command does not overwrite an existing org alias. If setup fails after creating the scratch org, read the final operation shown in the terminal. If you no longer need that incomplete org, delete that exact scratch org before retrying:
 
 ```bash
 sf org delete scratch --target-org rhc-demo --no-prompt
 ```
 
-This deletion cannot be undone. Confirm that `rhc-demo` is the disposable scratch org created by
-this setup before running the command. If you need the incomplete org for troubleshooting, keep it
-and rerun setup with a different alias.
+This deletion cannot be undone. Confirm that `rhc-demo` is the disposable scratch org created by this setup before running the command. If you need the incomplete org for troubleshooting, keep it and rerun setup with a different alias.
 
-Common checks:
+For an existing source org, inspect the org and rerun verification without replacing data:
 
 ```bash
 sf org display --target-org rhc-demo
-sf project deploy report --use-most-recent --target-org rhc-demo
-sf apex run test --class-names RHCSubscriberSmokeTest --target-org rhc-demo --result-format human
-sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
+npm run demo:verify-source -- --alias rhc-demo
 ```
 
-The first command confirms that the scratch org exists. The remaining commands provide deeper
-evidence when package setup, automated verification, or demo-data verification failed.
+If a data script failed, run `deactivateDemoUser.apex` before retrying so Jordan is not left active. A verification failure can mean that data scripts and Check definitions from different releases or source checkouts were mixed. Return to Step 1 and use matching versions. Do not change expected results merely to make a verifier pass.
 
 ## Try the other permission sets
 
-The setup command assigns **Record Health Check Card User** so the first experience matches what an
-everyday Salesforce user sees on a record page. The package includes other permission sets for
-specific jobs. Assign them only when you want to test that job:
+If **Diagnostics Viewer** is absent from Setup, use an org-owned Permission Set with the **Record Health Check View Diagnostics** Custom Permission, as described in [Permission Sets](../reference/permission-sets.md).
+
+A scratch-org administrator does not represent a restricted user. To test everyday-user access, use a separate non-admin user with access to the demo records and required fields. This checkout includes other permission sets for specific jobs. Assign them only when you want to test that job:
 
 | Permission set | Use it to test |
 | --- | --- |
 | **Record Health Check Card User** | Run the Lightning record-page card and select an available Check Set in App Builder |
 | **Record Health Check User** | Run Checks through Flow, Apex, REST, Agentforce, Queueable, Batch, or Scheduled entry points |
 | **Record Health Check Admin** | Configure Check metadata, validate setup, and view **Issue**, **Where**, and **Why** diagnostics when the Check Set enables them |
+| **Record Health Check Diagnostics Viewer** | View **Issue**, **Where**, and **Why** while testing as a Card User or User; enable **Show Diagnostics** on the Check Set and assign this set alongside the existing runner set |
 | **Record Health Check MCP Integration** | Call the narrowly scoped MCP and agent-tool REST surface from an approved integration user |
 | **Record Health Check Error Log Publisher** | Publish restricted error-log events from a narrowly approved automation user |
 
-These permission sets add Record Health Check access. They do not grant access to Account, Contact,
-Opportunity, Case, or any custom object used by a Check. Keep Salesforce record and field access in
-your organization's normal profiles and permission sets.
+To test diagnostics as an everyday user:
 
-Scratch-org capacity is managed in the Dev Hub. In its Setup, enter **Scratch Org Info** in Quick
-Find to review active and deleted scratch orgs; limits also appear in the Dev Hub's Company
-Information. A scratch org expires automatically at the end of its duration. Deleting it early or
-allowing it to expire permanently removes its data.
+1. In **Setup → Permission Sets**, open **Record Health Check Diagnostics Viewer**.
+2. Select **Manage Assignments → Add Assignments** and choose the test user who already has **Card User** or **User**.
+3. On the example Check Set, enable **Show Diagnostics**, then open the record as that user and run the card. Inspect **Diagnosis** on an **Unable to Check** or **System Error** result.
+4. After testing, turn off **Show Diagnostics** and remove the temporary Diagnostics Viewer assignment.
+
+Diagnostics Viewer grants diagnostic access only; it does not let someone run Checks by itself. A user with **Record Health Check Admin** already has diagnostic access and does not need the additional assignment.
+
+These permission sets add Record Health Check access. They do not grant access to Account, Contact, Opportunity, Case, or any custom object used by a Check. Keep Salesforce record and field access in your organization's normal profiles and permission sets.
+
+Scratch-org capacity is managed in the Dev Hub. In its Setup, enter **Scratch Org Info** in Quick Find to review active and deleted scratch orgs; limits also appear in the Dev Hub's Company Information. A scratch org expires automatically at the end of its duration. Deleting it early or allowing it to expire permanently removes its data.
 
 ## Currency mode
 
-The prepared demo is a single-currency org, so currency evidence uses symbols such as `$70,000`.
-Record Health Check also supports multi-currency orgs, where currency evidence includes the ISO
-currency code. See [Localization](../reference/platform/languages-and-locales.md) when you need to test
-that separate presentation.
+The documented dataset uses one currency, so currency values use symbols such as `$600,000`. Record Health Check also supports multi-currency orgs, where currency evidence includes the ISO currency code. See [Localization](../reference/platform/languages-and-locales.md) when you need to test that separate presentation.
 
 ## Windows and shell notes
 
-`npm run setup` works the same on Windows, macOS, and Linux. Pass the Dev Hub with `--dev-hub` as
-shown below; this form works in PowerShell, Command Prompt, Git Bash, bash, and zsh.
-
-```bash
-npm run setup -- --dev-hub my-dev-hub --alias rhc-demo
-```
-
-Do not use WSL to call a Salesforce CLI installed only in Windows. Use PowerShell, Command Prompt,
-or Git Bash instead. Contributors changing Record Health Check source follow [Source
-development](../contributing/source-development.md), which is a different workflow.
+On **Windows**, run the npm commands in **PowerShell**, **Command Prompt**, or **Git Bash**. On **macOS or Linux**, use your terminal. For an installed-package demo, use the setup scripts associated with that release. For the updated examples, run the source seed and verifier from this checkout. Do not call a Windows-only Salesforce CLI installation from WSL; use a shell that can run the installed CLI.
 
 ## Next steps
 

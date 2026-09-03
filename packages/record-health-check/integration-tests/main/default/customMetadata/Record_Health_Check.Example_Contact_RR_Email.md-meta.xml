@@ -14,7 +14,7 @@
     >Email Channel Has No Recorded Bounce</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >A usable business email requires an address with no recorded bounce.</value></values>
+    >The Query check passes when Email is populated and Email Bounced Date is blank. It does not verify delivery or permission to contact.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
@@ -44,10 +44,10 @@
     >AS_NO_MATCH</value></values>
     <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >{!rhcResult.foundValue} usable email channel</value></values>
+    >{!rhcResult.foundValue}</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >1 address without a recorded bounce</value></values>
+    >{!rhcResult.expectedValue}</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >WARNING</value></values>
@@ -71,10 +71,10 @@
     >ALL_RECORDS</value></values>
     <values><field>EvaluationOrder__c</field><value
       xsi:type="xsd:double"
-    >10</value></values>
+    >60</value></values>
     <values><field>MaxQueryRows__c</field><value
       xsi:type="xsd:double"
-    >1</value></values>
+    >1000</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

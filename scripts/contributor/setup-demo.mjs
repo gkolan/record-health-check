@@ -6,10 +6,13 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
 import { run, runJson } from "../lib/run.mjs";
+import { seedDemoData } from "../lib/demo-data.mjs";
+import { verifyReadinessData } from "../lib/demo-verification.mjs";
 
 const { values } = parseArgs({
   options: {
-    alias: { type: "string", default: process.env.RHC_DEV_ALIAS ?? "rhc-dev" }
+    alias: { type: "string", default: process.env.RHC_DEV_ALIAS ?? "rhc-dev" },
+    "verify-only": { type: "boolean", default: false }
   }
 });
 
@@ -65,6 +68,10 @@ const verifier = verifierTemplate
     `${apexPrefix}RecordHealthCheckResultItem`
   )
   .replaceAll(
+    "RecordHealthCheckResultMode",
+    `${apexPrefix}RecordHealthCheckResultMode`
+  )
+  .replaceAll(
     "RecordHealthCheck.evaluate",
     `${apexPrefix}RecordHealthCheck.evaluate`
   );
@@ -75,25 +82,21 @@ const temporaryDirectory = fs.mkdtempSync(
 const verifierPath = path.join(temporaryDirectory, "verifyDemoSource.apex");
 
 try {
-  console.log(`Seeding deterministic Acme data in '${alias}'...`);
-  run("sf", [
-    "apex",
-    "run",
-    "--target-org",
-    alias,
-    "--file",
-    path.join(paths.subscriberData, "setupDemoData.apex")
-  ]);
+  if (!values["verify-only"]) {
+    console.log(`Seeding deterministic demo data in '${alias}'...`);
+    seedDemoData(alias);
+  }
 
   fs.writeFileSync(verifierPath, verifier);
   console.log(
     `Verifying current source outcomes${namespace ? ` in namespace '${namespace}'` : " without a namespace"}...`
   );
   run("sf", ["apex", "run", "--target-org", alias, "--file", verifierPath]);
+  verifyReadinessData(alias, namespace);
 } finally {
   fs.rmSync(temporaryDirectory, { recursive: true, force: true });
 }
 
 console.log(
-  `Current-source Acme demo is ready in '${alias}': 5 passed, 18 failed, 1 skipped, 1 unable.`
+  `All four current-source demo Check Sets are verified; Acme Builder Guide in '${alias}': 7 passed, 17 failed, 0 skipped, 1 unable.`
 );

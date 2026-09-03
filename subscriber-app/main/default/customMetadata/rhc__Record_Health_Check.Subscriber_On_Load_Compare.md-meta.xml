@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Subscriber On-Load Compare</label>
+    <protected>false</protected>
+    <values><field>rhc__Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Subscriber_On_Load</value></values>
+    <values><field>rhc__CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Contacts do not exceed total opportunities</value></values>
+    <values><field>rhc__EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >COMPARE_TWO_QUERIES</value></values>
+    <values><field>rhc__SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}</value></values>
+    <values><field>rhc__ComparisonQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id}</value></values>
+    <values><field>rhc__QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+    <values><field>rhc__ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >LESS_THAN_OR_EQUAL</value></values>
+    <values><field>rhc__FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>rhc__FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >The Account has more contacts than opportunities.</value></values>
+    <values><field>rhc__UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The installed-package on-load comparison could not be evaluated.</value></values>
+    <values><field>rhc__ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>rhc__EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >30</value></values>
+    <values><field>rhc__IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

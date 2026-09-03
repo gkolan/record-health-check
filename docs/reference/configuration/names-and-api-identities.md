@@ -1,6 +1,7 @@
 # Names and API identities
 
-Use this reference to choose the exact Check Set or Check name required by each Salesforce surface.
+Use this reference to choose the exact Check Set or Check name required by each Salesforce surface
+and understand namespace behavior for installed metadata.
 
 > [!NOTE]
 > Apex, Flow, Lightning App Builder, and Platform Events identify a Check Set or Check by its exact
@@ -107,27 +108,9 @@ Create separate Check Sets with names and titles that describe your own business
 package upgrade can update its installed examples; it must not overwrite Custom Metadata records
 created by your team.
 
-## Repository checks for contributors
-
-> [!NOTE]
-> This section is only for package contributors. Administrators do not run repository commands.
-
-Package contributors must keep the same Qualified API Name behavior in Apex, Flow, Lightning, tests,
-and documentation. After changing selection logic or installed examples, run:
-
-```bash
-npm run check:configuration-identity
-npm run check:package-boundary
-```
-
-The package source is under `packages/record-health-check/force-app`. Test-only metadata under
-`packages/record-health-check/integration-tests` and `subscriber-app` is not included in a normal
-installation.
-
 ## Related
 
 - [Apex API](../../developer-guides/run-from-apex.md)
 - [Flow actions](../../flow-guides/action-inputs-and-outputs.md)
 - [Install and verify](../../install/install-in-a-sandbox.md)
-- [Package testing and upgrades](../../quality-gates/package-testing-and-upgrades.md)
 - [Glossary](../glossary.md)

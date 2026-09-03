@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Campaign attribution</label>
+    <label>Example: Proposal Campaigns</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -14,13 +14,13 @@
         <field>CheckTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Every proposal-stage deal retains campaign attribution</value>
+    >Every proposal has a Primary Campaign Source</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Compare Two Queries check passes when every proposal-stage Opportunity retains a Primary Campaign Source, preserving acquisition attribution after a deal becomes forecast-relevant.</value>
+    >The Compare Two Queries check counts proposals with a Primary Campaign Source and all proposals. It passes when the counts match. This checks the Campaign link, not the accuracy of attribution.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -56,15 +56,11 @@
     </values>
     <values>
         <field>DisplayFoundText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Proposal-stage deals with campaign attribution: {!rhcResult.foundValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Proposal-stage deals requiring attribution: {!rhcResult.expectedValue}</value>
+        <value xsi:type="xsd:string">{!rhcResult.expectedValue}</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>

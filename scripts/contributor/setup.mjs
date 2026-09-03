@@ -166,6 +166,12 @@ function main() {
   console.log("");
   console.log(`Contributor development org '${options.alias}' is ready.`);
   console.log(`Package project: ${paths.packageRoot}`);
+  console.log(
+    "Record Health Check Admin already grants diagnostic access. For a separate Card User or User, add Record Health Check Diagnostics Viewer and enable Show Diagnostics on the Check Set."
+  );
+  console.log(
+    "Assignment steps: docs/install/install-demo-in-a-scratch-org.md#try-the-other-permission-sets"
+  );
 }
 
 main();

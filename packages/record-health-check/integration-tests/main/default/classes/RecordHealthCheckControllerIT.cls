@@ -325,6 +325,7 @@ private class RecordHealthCheckControllerIT {
       RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{
           'Name' => 'Controller user initiated',
+          'Type' => 'Prospect',
           'Website' => 'https://controller.example.com',
           'AnnualRevenue' => 2000000
         }

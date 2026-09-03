@@ -80,52 +80,44 @@
 
               <template if:true={showHeaderActions}>
                 <div class="rhc-header__actions">
-                  <template if:true={showHeaderLoadingSpinner}>
-                    <lightning-spinner
-                      alternative-text="Loading health checks"
-                      size="small"
-                    ></lightning-spinner>
-                  </template>
-                  <template if:true={showHeaderActionButton}>
-                    <template if:true={showActionButton}>
-                      <button
-                        type="button"
-                        class={actionButtonClass}
-                        onclick={handleAction}
-                        title={actionTitle}
-                        aria-label={actionButtonAriaLabel}
-                        aria-busy={actionButtonBusy}
-                        disabled={actionButtonDisabled}
-                      >
-                        <template if:true={showRunButtonLabel}>
-                          <span class="rhc-action-button__label"
-                            >{actionButtonLabel}</span
-                          >
-                        </template>
-                        <template if:true={showActionButtonGlyph}>
-                          <span
-                            class="rhc-action-button__glyph"
-                            aria-hidden="true"
-                          >
-                            <template if:true={actionButtonBusy}>
-                              <span class="rhc-action-button__spinner"></span>
+                  <template if:true={showActionButton}>
+                    <button
+                      type="button"
+                      class={actionButtonClass}
+                      onclick={handleAction}
+                      title={actionTitle}
+                      aria-label={actionButtonAriaLabel}
+                      aria-busy={actionButtonBusy}
+                      disabled={actionButtonDisabled}
+                    >
+                      <template if:true={showRunButtonLabel}>
+                        <span class="rhc-action-button__label"
+                          >{actionButtonLabel}</span
+                        >
+                      </template>
+                      <template if:true={showActionButtonGlyph}>
+                        <span
+                          class="rhc-action-button__glyph"
+                          aria-hidden="true"
+                        >
+                          <template if:true={actionButtonBusy}>
+                            <span class="rhc-action-button__spinner"></span>
+                          </template>
+                          <template if:false={actionButtonBusy}>
+                            <template if:true={useLightningRunButtonIcon}>
+                              <lightning-icon
+                                icon-name={normalizedRunButtonIcon}
+                                size="xx-small"
+                                alternative-text=""
+                              ></lightning-icon>
                             </template>
-                            <template if:false={actionButtonBusy}>
-                              <template if:true={useLightningRunButtonIcon}>
-                                <lightning-icon
-                                  icon-name={normalizedRunButtonIcon}
-                                  size="xx-small"
-                                  alternative-text=""
-                                ></lightning-icon>
-                              </template>
-                              <template if:true={useCssRunButtonIcon}>
-                                <span class="rhc-action-button__play"></span>
-                              </template>
+                            <template if:true={useCssRunButtonIcon}>
+                              <span class="rhc-action-button__play"></span>
                             </template>
-                          </span>
-                        </template>
-                      </button>
-                    </template>
+                          </template>
+                        </span>
+                      </template>
+                    </button>
                   </template>
                 </div>
               </template>
@@ -135,6 +127,12 @@
               <p class="rhc-header__desc">{displayDescription}</p>
             </template>
           </div>
+
+          <template if:true={showBuilderPreviewMessage}>
+            <p class="rhc-builder-preview" role="status">
+              {builderPreviewMessage}
+            </p>
+          </template>
 
           <template if:true={completionWarning}>
             <div class="rhc-completion-warning" role="status">

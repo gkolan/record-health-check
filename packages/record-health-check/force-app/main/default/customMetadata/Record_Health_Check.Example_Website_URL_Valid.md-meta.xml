@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Annual revenue threshold</label>
+    <label>Example: Account Type is set</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,15 +12,13 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Annual revenue is at least $1 million</value>
+        <value xsi:type="xsd:string">Account Type is set</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Formula check compares Annual Revenue with $1,000,000. It passes when Annual Revenue is at least that threshold and fails when it is lower.</value>
+    >The formula checks the standard Account Type picklist. It passes when Type has a value and fails when Type is blank.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -32,7 +30,7 @@
     </values>
     <values>
         <field>PassConditionFormula__c</field>
-        <value xsi:type="xsd:string">AnnualRevenue &gt;= 1000000</value>
+        <value xsi:type="xsd:string">NOT(ISBLANK(TEXT(Type)))</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -42,7 +40,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has Annual Revenue below $1,000,000.</value>
+    >{!record.Name fallback="This Account"} has no Account Type selected.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -52,11 +50,11 @@
     </values>
     <values>
         <field>ApplicabilityMode__c</field>
-        <value xsi:type="xsd:string">WHEN_FORMULA_TRUE</value>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
     </values>
     <values>
         <field>ApplicabilityFormula__c</field>
-        <value xsi:type="xsd:string">NOT(ISBLANK(AnnualRevenue))</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>EvaluationOrder__c</field>
@@ -74,13 +72,13 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, confirm Annual Revenue with the Account owner and update it from an approved source. Do not change the value only to pass the Check.</value>
+    >For {!record.Name fallback="this Account"}, select the Type that describes its relationship to your business.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
         <value
       xsi:type="xsd:string"
-    >Review Annual Revenue for {!record.Name fallback="Account"}</value>
+    >Set Account Type for {!record.Name fallback="Account"}</value>
     </values>
     <values>
         <field>ActionUrl__c</field>
@@ -95,21 +93,21 @@
     </values>
     <values>
         <field>ApplicabilityNotMetMessage__c</field>
-        <value
-      xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no Annual Revenue, so the threshold cannot be checked.</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>FormulaResultType__c</field>
-        <value xsi:type="xsd:string">AUTO</value>
+        <value xsi:type="xsd:string">TEXT</value>
     </values>
     <values>
         <field>DisplayFoundFormula__c</field>
-        <value xsi:type="xsd:string">TEXT(AnnualRevenue)</value>
+        <value
+      xsi:type="xsd:string"
+    >IF(ISBLANK(TEXT(Type)), "Not set", TEXT(Type))</value>
     </values>
     <values>
         <field>DisplayExpectedFormula__c</field>
-        <value xsi:type="xsd:string">"$1,000,000 or more"</value>
+        <value xsi:type="xsd:string">"An Account Type is selected"</value>
     </values>
     <values>
         <field>DisplayFoundText__c</field>

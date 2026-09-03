@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Open Case Contact Coverage</label>
+    <label>Example: Open Case Contacts</label>
     <protected>false</protected>
     <values>
         <field>Record_Health_Check_Set__c</field>
@@ -12,15 +12,13 @@
     </values>
     <values>
         <field>CheckTitle__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Every open Case identifies an accountable customer Contact</value>
+        <value xsi:type="xsd:string">Every open Case has a Contact</value>
     </values>
     <values>
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Query check evaluates every open Case and passes only when each service issue identifies the customer Contact who can validate impact, decisions, and resolution.</value>
+    >The Query check reads Contact on each open Case. It passes only when every returned Case has a Contact. With no open Cases, it passes.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -68,13 +66,11 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Open Case contact gaps: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount}</value>
+    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} missing</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Service-triage standard: 0 of {!rhcResult.totalRecordCount} open Cases without a customer Contact</value>
+        <value xsi:type="xsd:string">None missing</value>
     </values>
     <values>
         <field>FailureSeverity__c</field>
@@ -84,7 +80,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} open Cases for {!record.Name fallback="this Account"} lack an accountable customer Contact.</value>
+    >One or more open Cases for {!record.Name fallback="this Account"} have no Contact.</value>
     </values>
     <values>
         <field>FixMessage__c</field>
@@ -116,7 +112,7 @@
     </values>
     <values>
         <field>EvaluationOrder__c</field>
-        <value xsi:type="xsd:double">50</value>
+        <value xsi:type="xsd:double">60</value>
     </values>
     <values>
         <field>MaxQueryRows__c</field>
