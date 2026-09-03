@@ -459,10 +459,13 @@ requireText("scripts/release/run_salesforce_browser_gate.mjs", [
 ]);
 requireText("tests/browser/restricted-user-setup.spec.mjs", [
   "completes mandatory first login for the restricted scratch user",
-  "Change Your Password",
+  "completeScratchUserFirstLogin(page,"
+]);
+requireText("scripts/lib/salesforce-first-login.mjs", [
+  "firstLoginState(page.url(), visible)",
   "Current Password",
   "Confirm New Password",
-  "/\\/lightning\\/page\\/home/"
+  "page.waitForURL(isLightningHome,"
 ]);
 requireText("tests/browser/app-builder.spec.mjs", [
   "RHC_BUILDER_URL is required; App Builder validation cannot skip.",

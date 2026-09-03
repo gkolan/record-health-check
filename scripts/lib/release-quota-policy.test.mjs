@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { assertReleaseQuotaPolicy } from "./release-quota-policy.mjs";
+import {
+  assertExplicitScratchDevHub,
+  assertReleaseQuotaPolicy
+} from "./release-quota-policy.mjs";
 
 const directory = new URL("../../.github/workflows/", import.meta.url);
 const source = fs.readFileSync(
@@ -16,6 +19,38 @@ const workflows = fs
   .readdirSync(directory)
   .filter((file) => /\.ya?ml$/.test(file))
   .map((file) => fs.readFileSync(new URL(file, directory), "utf8"));
+
+test("every direct scratch creation explicitly selects the authenticated Dev Hub", () => {
+  const creations = [...source.matchAll(/sf org create scratch[^\n]*/g)];
+  assert.equal(creations.length, 3);
+  for (const [command] of creations) {
+    const broken = source.replace(
+      command,
+      command.replace(" --target-dev-hub devhub", "")
+    );
+    assert.notEqual(broken, source);
+    assert.throws(
+      () => assertReleaseQuotaPolicy(broken, subscriber, workflows),
+      /explicitly select --target-dev-hub devhub/
+    );
+  }
+  for (const args of [
+    "",
+    "--set-default",
+    "--target-dev-hub",
+    "--target-dev-hub other",
+    "--target-dev-hub devhub-other"
+  ]) {
+    assert.throws(() =>
+      assertExplicitScratchDevHub([`run: sf org create scratch ${args}`])
+    );
+  }
+  assert.doesNotThrow(() =>
+    assertExplicitScratchDevHub([
+      'run: sf org create scratch \\\n  --target-dev-hub "devhub" --wait 15'
+    ])
+  );
+});
 
 test("release workflows protect quota before starting fresh-org validation", () => {
   assert.doesNotThrow(() =>

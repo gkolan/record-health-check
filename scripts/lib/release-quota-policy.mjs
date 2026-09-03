@@ -12,7 +12,27 @@ function requireText(text, expected) {
     throw new Error(`Missing quota protection: ${expected}`);
 }
 
+export function assertExplicitScratchDevHub(workflows) {
+  for (const workflow of workflows) {
+    const commands = workflow.replace(/\\\r?\n\s*/g, " ");
+    for (const [, args] of commands.matchAll(
+      /\bsf\s+org\s+create\s+scratch\b([^\n;&|]*)/g
+    )) {
+      if (
+        !/--target-dev-hub(?:\s+|=)(?:devhub|"devhub"|'devhub')(?=\s|$)/.test(
+          args
+        )
+      ) {
+        throw new Error(
+          "Scratch creation must explicitly select --target-dev-hub devhub; authentication defaults are not a release contract."
+        );
+      }
+    }
+  }
+}
+
 export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
+  assertExplicitScratchDevHub([source, subscriber, ...workflows]);
   for (const workflow of [source, subscriber]) {
     const triggers = workflow.slice(
       workflow.indexOf("on:"),

@@ -265,10 +265,19 @@ pass.
   a completed job is not evidence of type coverage or correct business outcomes.
 - Keep each browser run's evidence separate and reject skipped or flaky results. Never let
   a later browser run overwrite an earlier failure's evidence.
+- Treat restricted-user first login as a tested prerequisite: wait for the password form or
+  Lightning Home rather than checking visibility once after a redirect. Locate password inputs
+  by label, and require the actual Home path after submission. A Home return URL, a hidden
+  heading, or a login/error page is not success. Keep delayed-form and failure-path regressions
+  runnable without consuming scratch-org quota; hosted browser validation is still required.
 - Rehearse upgrades from every supported public distribution base, preserve customer configuration,
   and check the affected customer page before promotion.
 - Pin and verify the CLI/authentication command, enforce dependency and coverage checks, and record
   quota limits before dispatch. Fix the cause instead of lowering the gate.
+- Authentication success does not prove that a default Dev Hub is configured. Every workflow
+  scratch-creation command must explicitly select the authenticated `devhub` alias with
+  `--target-dev-hub devhub`. The offline regression gate rejects missing or incorrect Hub targets
+  before any creation attempt; do not rely on a runner's saved defaults.
 - Bind every release decision to the same commit and immutable package ID. A green PR, old artifact,
   or source deployment is not proof that the package is ready.
 

@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { test } from "@playwright/test";
+import { completeScratchUserFirstLogin } from "../../scripts/lib/salesforce-first-login.mjs";
 
 const setupUrl = process.env.RHC_RESTRICTED_SETUP_URL;
 const currentPassword = process.env.RHC_RESTRICTED_CURRENT_PASSWORD;
@@ -15,28 +16,5 @@ test("completes mandatory first login for the restricted scratch user", async ({
 }) => {
   test.setTimeout(60000);
   await page.goto(setupUrl, { waitUntil: "domcontentloaded" });
-  const heading = page.getByRole("heading", { name: "Change Your Password" });
-  if (!(await heading.isVisible())) {
-    await expect(page).toHaveURL(/\/lightning\/page\/home/);
-    return;
-  }
-
-  await page
-    .getByRole("textbox", { name: /^\* Current Password$/ })
-    .pressSequentially(currentPassword);
-  await page
-    .getByRole("textbox", { name: /^\* New Password$/ })
-    .pressSequentially(newPassword);
-  await page
-    .getByRole("textbox", { name: /^\* Confirm New Password$/ })
-    .pressSequentially(newPassword);
-  await page
-    .getByRole("textbox", { name: /^\* New Answer$/ })
-    .pressSequentially("Chicago");
-  const submit = page.getByRole("button", { name: /change password/i });
-  await expect(submit).toBeEnabled();
-  await submit.click();
-
-  await expect(heading).toBeHidden();
-  await expect(page).not.toHaveURL(/ChangePassword|changepassword/i);
+  await completeScratchUserFirstLogin(page, { currentPassword, newPassword });
 });

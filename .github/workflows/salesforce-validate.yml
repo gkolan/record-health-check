@@ -158,7 +158,7 @@ jobs:
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
       - name: Create namespaced package-source scratch org
         working-directory: packages/record-health-check
-        run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --set-default --duration-days 30 --wait 15
+        run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --target-dev-hub devhub --set-default --duration-days 30 --wait 15
       - name: Dry-run production package deployment
         working-directory: packages/record-health-check
         # Check-only tests run before a newly validated Custom Permission is
