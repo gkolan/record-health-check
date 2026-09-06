@@ -4,7 +4,8 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-  <label>RHC Diagnostic Bad Formula</label><protected>false</protected>
+  <label>Diagnostics: Bad Formula Configuration</label><protected
+  >false</protected>
   <values><field>ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >Account</value></values>
@@ -13,7 +14,7 @@
     >Diagnostics: Bad Formula Configuration</value></values>
   <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Integration-only fixtures. Every Check is intentionally broken.</value></values>
+    >Integration-only fixtures for every way a Formula Check can be misconfigured: no pass condition, invalid syntax, and a field reached through a relationship that does not exist. Every Check here is intentionally broken.</value></values>
   <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>

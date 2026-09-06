@@ -1199,6 +1199,17 @@
     "strategy": "CHILD_DIRECT"
   },
   {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_QC_ExpectedDatetime",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT CreatedDate FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate, Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
     "aggregate": true,
     "bareCount": true,
     "check": "Account_QC_GreaterThan",
@@ -1306,6 +1317,171 @@
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
     "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_ActionLink",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName, Email, Account.Name FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Account_Rows_AggregateAlias",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT(Id) total FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Account_Rows_ComparisonRows",
+    "correlation": "AccountId = record.Id",
+    "field": "ComparisonQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MAX(LastName) lastSurname FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": false,
+    "check": "Account_Rows_ComparisonRows",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT MIN(LastName) firstSurname FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_ComparisonWithoutQuery",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
+    "check": "Account_Rows_CountQueryRowCount",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_FormattedRowValue",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName, CreatedDate FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_MissingRow",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName, Email, Account.Name FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_NoRowsReturned",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName FROM Contact WHERE AccountId = {!record.Id} AND LastName = 'ZzzNoSuchContact' ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_NoStableOrder",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName, Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY LastName",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_OneResultSecondRow",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_SecondContactEmail",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName, Email, Account.Name FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_SetAndRunTokens",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName, Email, Account.Name FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_UnknownFormat",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_UnselectedField",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2345,6 +2521,17 @@
   {
     "aggregate": false,
     "bareCount": false,
+    "check": "Account_Rows_BeyondQueryLimit",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects Id but orders by Id",
+    "package": "integration-tests",
+    "soql": "SELECT Id, LastName FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
     "check": "Example_Oldest_City_Matches_Billing",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
@@ -2395,6 +2582,17 @@
     "note": "Same rows for every record; evaluate once and reuse",
     "package": "integration-tests",
     "soql": "SELECT Id FROM RHC_Missing_Object__c",
+    "strategy": "SCOPE_INVARIANT"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Stop_First_System_Error",
+    "correlation": "-",
+    "field": "SourceQuery__c",
+    "note": "Same rows for every record; evaluate once and reuse",
+    "package": "integration-tests",
+    "soql": "SELECT Id FROM RHC_Definitely_Missing__c",
     "strategy": "SCOPE_INVARIANT"
   },
   {
@@ -2593,6 +2791,28 @@
     "note": "Correlation column is Id; redundant LIMIT 1 dropped",
     "package": "integration-tests",
     "soql": "SELECT Rating FROM Account WHERE Id = {!record.Id} LIMIT 1",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_EncryptedField",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT Id, RHC_Encrypted_Note__c FROM Account WHERE Id = {!record.Id} ORDER BY Id",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_SubqueryProjection",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT Id, (SELECT Email FROM Contacts) FROM Account WHERE Id = {!record.Id} ORDER BY Id",
     "strategy": "SELF"
   },
   {

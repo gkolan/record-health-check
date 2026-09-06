@@ -91,8 +91,10 @@ public with sharing class RecordHealthCheckDiagnosticTrace {
     Map<String, Object> resolution = new Map<String, Object>{
       'status' => result.status,
       'reasonCode' => result.reasonCode,
-      'found' => result.actualValue,
-      'expected' => result.expectedValue,
+      // Diagnostics answer what the Check found, not what the card was told to
+      // read, so author wording never stands in for the value here.
+      'found' => result.frameworkFound(),
+      'expected' => result.frameworkExpected(),
       'renderedMessage' => result.message,
       'renderedFix' => result.fixInstructions,
       'renderedActionLabel' => result.actionLabel,

@@ -56,7 +56,7 @@ test("renders manual and on-load cards without a component or page-loading failu
     hasText: "Example: Account Check Builder Guide"
   });
   const automaticCard = components.filter({
-    hasText: "Automated Account Data Quality and Customer Readiness Review"
+    hasText: "Automatic Account Review on Page Load"
   });
 
   await expect(manualCard).toHaveCount(1);

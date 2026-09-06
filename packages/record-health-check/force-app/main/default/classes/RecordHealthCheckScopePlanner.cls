@@ -207,14 +207,18 @@ public with sharing class RecordHealthCheckScopePlanner {
       }
       if (check.EvaluationType__c == 'FORMULA') {
         plannedCalls += recordCount;
+        // Display formulas resolve their own type rather than inheriting the
+        // pass condition's, so they always probe and must be budgeted that way.
+        // Budgeting them at the declared rate would under-count every scope run
+        // whose author named a type.
         plannedCalls += plannedDisplayFormulaCalls(
           check.DisplayFoundFormula__c,
-          check.FormulaResultType__c,
+          RecordHealthCheckDisplayFormat.FORMAT_AUTO,
           recordCount
         );
         plannedCalls += plannedDisplayFormulaCalls(
           check.DisplayExpectedFormula__c,
-          check.FormulaResultType__c,
+          RecordHealthCheckDisplayFormat.FORMAT_AUTO,
           recordCount
         );
       } else if (check.EvaluationType__c == 'QUERY') {

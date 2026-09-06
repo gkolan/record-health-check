@@ -4,7 +4,8 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-  <label>RHC Diagnostic Bad Query</label><protected>false</protected>
+  <label>Diagnostics: Bad Query Configuration</label><protected
+  >false</protected>
   <values><field>ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >Account</value></values>
@@ -13,7 +14,7 @@
     >Diagnostics: Bad Query Configuration</value></values>
   <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Integration-only fixtures. Every Check is intentionally broken.</value></values>
+    >Integration-only fixtures for every way a Query Check can be misconfigured: a missing object or field, a malformed merge token, a forbidden system-mode clause, an unsafe row cap, and a missing second query. Every Check here is broken on purpose.</value></values>
   <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>

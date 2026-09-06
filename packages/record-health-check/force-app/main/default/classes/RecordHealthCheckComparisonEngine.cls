@@ -321,7 +321,10 @@ public with sharing class RecordHealthCheckComparisonEngine {
     if (nullBehavior == 'SKIP_RECORD') {
       return null;
     }
-    // blank EmptyValueHandling__c aligns with CMT field default (SkipRecordsWithMissingValue → Skip)
+    // The caller converts AS_BLANK values before reaching this helper. A blank
+    // value is not what the CMDT field default produces - that is AS_NO_MATCH,
+    // handled above. Preserve the skip fallback for an unset in-memory Check;
+    // RHCEvaluatorEdgeBehaviorTest and RHCDualQueryEdgeBehaviorTest guard it.
     return null;
   }
 }

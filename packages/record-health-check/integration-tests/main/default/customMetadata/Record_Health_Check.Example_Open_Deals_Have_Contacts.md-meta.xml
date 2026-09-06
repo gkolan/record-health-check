@@ -81,4 +81,8 @@
 <values><field>NoRowsResult__c</field><value
       xsi:type="xsd:string"
     >FAIL</value></values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">RELATIONSHIP_COVERAGE</value>
+    </values>
 </CustomMetadata>

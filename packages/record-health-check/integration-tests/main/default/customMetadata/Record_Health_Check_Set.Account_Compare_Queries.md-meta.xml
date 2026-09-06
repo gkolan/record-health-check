@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Compare Two Queries</label>
+    <label>Coverage: Compare Two Queries</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,13 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Account Compare Two Queries</value>
+        <value xsi:type="xsd:string">Coverage: Compare Two Queries</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Compare two queries evaluator: single-value and aggregate comparisons (COUNT, COUNT DISTINCT, SUM, AVG, MIN, MAX) plus list-vs-list set comparisons using Lists overlap, Lists contain all, and Lists match exactly.</value>
+    >Ten Checks that compare the result of one query against another: single values, every aggregate, and list-against-list set comparisons. Read this card to see which comparison shape fits before writing a Compare Two Queries Check.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

@@ -21,6 +21,14 @@ public class RecordHealthCheckInternalResult {
   // Server-side only (not @AuraEnabled): the record this result was evaluated
   // against; stamped onto the lifecycle and diagnostics platform events when set.
   public Id recordId;
+  // Server-side only and transient: the rows the Check's own queries returned,
+  // held just long enough for {!rhcQuery...} tokens to be resolved into the
+  // finished message, label, and URL. Not @AuraEnabled, so they never reach the
+  // browser, and transient, so they are excluded from JSON serialization,
+  // platform events, and view state. Nothing outside template resolution may
+  // read them, and nothing may retain them past this transaction.
+  public transient List<SObject> querySourceRows;
+  public transient List<SObject> queryComparisonRows;
   @AuraEnabled
   public String label;
   @AuraEnabled
@@ -30,9 +38,17 @@ public class RecordHealthCheckInternalResult {
   @AuraEnabled
   public String message;
   @AuraEnabled
-  public String actualValue; // what the record/query produced — set on a determinate PASS/FAIL
+  // The Found text the card reads. It starts as what the record or query
+  // produced, and Display: Found Text replaces it. Anything answering "what did
+  // this Check find?" calls frameworkFound() instead; anything comparing calls
+  // evaluationFound. Reading this field directly reports card wording.
+  public String actualValue;
   @AuraEnabled
-  public String expectedValue; // the operator + comparison operand the value was tested against
+  // The Expected text the card reads: the operator and the operand together,
+  // such as "to equal Manufacturing". It is a sentence, not a value. A caller
+  // comparing against the operand reads evaluationExpected, and the operator
+  // travels separately on the evaluation result.
+  public String expectedValue;
   // Server-side display values used while an evaluator result is shaped for
   // the Lightning response. Named formats use official uppercase API names.
   public Object actualDisplayValue;
@@ -76,7 +92,41 @@ public class RecordHealthCheckInternalResult {
   public String evaluatorType; // Formula, Query, CompareTwoQueries, Apex
   // Typed machine values used to build the public evaluation result. These are
   // never serialized directly to Aura consumers.
+  // Server-side only (not @AuraEnabled): the Found and Expected values the
+  // framework computed, kept before Display: Found Text or Display: Expected
+  // Text replaced them. Display text changes what the card reads, and nothing
+  // else: {!rhcResult.foundValue} and the machine result must still see the
+  // value the Check actually found.
+  public String frameworkActualValue;
+  public String frameworkExpectedValue;
+  /**
+   * True once an evaluator has recorded the operands it compared, even when one
+   * side has none: `IS_NOT_BLANK` expects no value, and saying so is the honest
+   * answer. Without this, a null typed value was indistinguishable from "not
+   * recorded", and the result mapper filled the gap from the card sentence.
+   */
+  public Boolean operandsRecorded = false;
   public RecordHealthCheckValue evaluationFound;
   public RecordHealthCheckValue evaluationExpected;
   public String evaluationComparisonOperator;
+
+  /**
+   * The Found value anything other than the card should read.
+   *
+   * Display: Found Text replaces what the card reads, so `actualValue` may hold
+   * author wording rather than the value the Check found. Every consumer that
+   * answers "what did this Check find?" — the machine result, merge tokens,
+   * diagnostics — asks here instead of reading the field, so a future surface
+   * cannot quietly report the wording as the answer.
+   */
+  public String frameworkFound() {
+    return frameworkActualValue != null ? frameworkActualValue : actualValue;
+  }
+
+  /** The Expected value anything other than the card should read. */
+  public String frameworkExpected() {
+    return frameworkExpectedValue != null
+      ? frameworkExpectedValue
+      : expectedValue;
+  }
 }

@@ -62,4 +62,26 @@
       xsi:type="xsd:string"
     >Could not check approvers: confirm Advanced Approvals is installed and the object and field API names in Apex Settings are correct for this org.</value>
     </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Replace the inactive approvers in the approval chain, or approvals submitted against this account will stall silently.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Edit the approval process for {!record.Name fallback="this account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/setup/ApprovalProcesses/home</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">RISK</value>
+    </values>
 </CustomMetadata>

@@ -23,6 +23,7 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
     result.reasonCode = outcome.reasonCode;
     result.actualValue = renderValue(outcome.found);
     result.expectedValue = renderValue(outcome.expected);
+    result.operandsRecorded = true;
     result.evaluationFound = outcome.found;
     result.evaluationExpected = outcome.expected;
     result.evaluationComparisonOperator = outcome.comparisonOperator;

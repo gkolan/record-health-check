@@ -304,6 +304,7 @@ const requiredTeachingFields = [
   "ActionUrl__c",
   "PublishUserResultEvent__c",
   "ApplicabilityMode__c",
+  "ComparisonDisplayMode__c",
   "DisplayValueFormat__c"
 ];
 const mergeTeachingFields = [

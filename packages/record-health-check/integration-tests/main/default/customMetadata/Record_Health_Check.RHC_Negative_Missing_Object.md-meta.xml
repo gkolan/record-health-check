@@ -41,4 +41,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >false</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Query check naming an object that cannot exist in the fixture org. It must fail closed with a system error rather than treat the missing object as no rows.</value>
+    </values>
 </CustomMetadata>

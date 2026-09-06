@@ -89,7 +89,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.6.2-to-2.0.7.1",
+  "upgrade-2.0.6.2-to-2.0.8.1",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -148,16 +148,9 @@ function requireOrderedText(file, snippets) {
   }
 }
 
-function rejectText(file, expression, message) {
-  const text = fs.readFileSync(path.join(root, file), "utf8");
-  if (expression.test(text)) {
-    errors.push(`${file} ${message}`);
-  }
-}
-
 function requireFailClosedArtifactUploads(file) {
   const text = fs.readFileSync(path.join(root, file), "utf8");
-  const stepBlocks = text.split(/(?=^      - (?:name:|uses:))/m);
+  const stepBlocks = text.split(/(?=^ {6}- (?:name:|uses:))/m);
   const uploads = stepBlocks.filter((block) =>
     block.includes("uses: actions/upload-artifact@")
   );
@@ -177,7 +170,7 @@ function requireFailClosedArtifactUploads(file) {
 
 function requireSecureDevHubAuthentication(file, expectedStepCount) {
   const text = fs.readFileSync(path.join(root, file), "utf8");
-  const stepBlocks = text.split(/(?=^      - (?:name:|uses:))/m);
+  const stepBlocks = text.split(/(?=^ {6}- (?:name:|uses:))/m);
   const authSteps = stepBlocks.filter((block) =>
     block.includes("name: Authenticate Dev Hub")
   );
@@ -274,8 +267,8 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.7.1") {
-  errors.push("Candidate version must be exactly 2.0.7.1.");
+if (matrix.candidateVersion !== "2.0.8.1") {
+  errors.push("Candidate version must be exactly 2.0.8.1.");
 }
 if (matrix.upgradeFromVersion !== "2.0.6.2") {
   errors.push("Upgrade base version must be exactly 2.0.6.2.");
@@ -444,6 +437,9 @@ requireText("scripts/subscriber/data/verifyUpgradeBase.apex", [
 requireText("scripts/release/run_salesforce_browser_gate.mjs", [
   'for (const browser of ["chromium", "firefox"])',
   "`--project=${browser}`",
+  "const cardContractUrl = frontdoorUrl(",
+  'runBrowserSpec(browser, "tests/browser/card-contract.spec.mjs"',
+  "RHC_BROWSER_URL: cardContractUrl",
   "sf",
   '"org"',
   '"open"',
@@ -456,6 +452,12 @@ requireText("scripts/release/run_salesforce_browser_gate.mjs", [
   "RHCReleaseMatrixBuilderPage",
   "browserEvidencePaths(",
   "assertBrowserReport("
+]);
+requireText("tests/browser/card-contract.spec.mjs", [
+  "RHC_BROWSER_URL is required; browser validation cannot skip.",
+  "RHC_SECURITY_MODE must be LWS or Locker.",
+  "Rerun did not request Check Set definitions again",
+  "header-only card"
 ]);
 requireText("tests/browser/restricted-user-setup.spec.mjs", [
   "completes mandatory first login for the restricted scratch user",

@@ -50,6 +50,10 @@ Opening or refreshing a record page can evaluate the card, but a load never publ
 or Check Result events. An explicit Run or Rerun can publish those events when the Check Set and
 Check publication settings are enabled. Error Log publication is a separate setting.
 
+Every run rereads the Check Set configuration before it evaluates, so **Run** and **Rerun** pick up
+Setup edits without a page refresh. See
+[Do I need to refresh the record page?](../faqs/setup-and-troubleshooting.md#i-changed-a-check-in-setup-do-i-need-to-refresh-the-record-page).
+
 ## Next steps
 
 - [Where results can go](./choose-where-results-go.md)

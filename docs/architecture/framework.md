@@ -494,6 +494,7 @@ custom Apex Check. See [Display value format](../reference/configuration/display
 | Allowed values in one constants class | Check execution and the package metadata audit read the same approved values |
 | SOQL stored by an administrator is prepared before it runs | `WITH USER_MODE`, rejection of data-changing keywords, and the row limit must be applied before execution |
 | Check results cached only inside one top-level run | Prerequisite chains avoid re-evaluation without leaking stale results into a later run in the same transaction |
+| Every card run rereads Check Set configuration first | A console record tab outlives Setup edits, so definitions captured at page load go stale; rereading is one Custom Metadata call in front of a run that already makes one Apex call per Check |
 
 ## 16. Out of scope
 
@@ -606,7 +607,7 @@ One bundle, four modules. Keep them together as one component.
 
 | Module | Responsibility |
 | --- | --- |
-| `recordHealthCheck` | The component itself: shell and definition loading, rendering, and user interaction |
+| `recordHealthCheck` | The component itself: shell and definition loading, rendering, and user interaction. `_loadDefinitions` is the single entry point for every evaluation the card starts, so no run can execute against configuration it did not just read |
 | `healthCheckRunner` | Run sequence: prerequisite checks, no more than five Apex calls at once, and results shown as they finish |
 | `healthCheckModel` | Consistent result fields, error handling, run IDs, and circular-dependency detection |
 | `healthCheckPresentation` | Display shaping, summary counts, and link safety |

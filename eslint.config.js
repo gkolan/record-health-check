@@ -42,6 +42,38 @@ module.exports = defineConfig([
     }
   },
 
+  // Gate scripts, browser-test drivers, and root tooling configs. These are the
+  // code that enforces every release gate, so they get the same baseline as any
+  // other source in the repo. Node globals only - nothing here runs in a browser.
+  {
+    files: ["scripts/**/*.mjs", "tests/**/*.mjs", "*.mjs"],
+    languageOptions: {
+      sourceType: "module",
+      ecmaVersion: "latest",
+      globals: {
+        ...globals.node
+      }
+    },
+    plugins: {
+      eslintJs
+    },
+    extends: ["eslintJs/recommended"],
+    rules: {
+      // An underscore prefix is this repo's existing marker for a binding that
+      // is named for the reader but deliberately unused - dropping a key with
+      // rest destructuring is the common case.
+      "no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          ignoreRestSiblings: true
+        }
+      ]
+    }
+  },
+
   // Jest mocks configuration
   {
     files: ["**/jest-mocks/**/*.js"],

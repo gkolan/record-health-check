@@ -66,4 +66,38 @@
         <field>SourceQueryField__c</field>
         <value xsi:type="xsd:string">Amount</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Query check whose Expected value comes from a formula on the record instead of a constant. Passes when an open opportunity clears a share of this account's annual revenue.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the running user can read Opportunities related to this account, and read Annual Revenue on the account and the fields this Check selects, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Confirm whether the open pipeline is proportionate to this account's revenue, and requalify the account if it is not.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review opportunities on {!record.Name fallback="this account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">ELIGIBILITY</value>
+    </values>
 </CustomMetadata>

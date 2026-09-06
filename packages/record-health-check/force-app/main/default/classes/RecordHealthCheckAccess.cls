@@ -61,7 +61,9 @@ public with sharing class RecordHealthCheckAccess {
    * and returns only a Boolean; it does not grant Setup access to the caller.
    */
   private static Boolean hasDirectDiagnosticsAssignment(Id userId) {
-    String typeName = Record_Health_Check__mdt.SObjectType.getDescribe()
+    String typeName = Record_Health_Check__mdt.SObjectType.getDescribe(
+        SObjectDescribeOptions.DEFERRED
+      )
       .getName();
     String packageNamespace = typeName == 'Record_Health_Check__mdt'
       ? null

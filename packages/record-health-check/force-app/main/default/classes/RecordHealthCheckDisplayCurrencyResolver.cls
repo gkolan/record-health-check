@@ -70,19 +70,12 @@ public with sharing class RecordHealthCheckDisplayCurrencyResolver {
     ) {
       return row;
     }
-    SObject current = row;
     List<String> parts = fieldPath.trim().split('\\.');
-    for (Integer i = 0; i < parts.size() - 1; i++) {
-      try {
-        current = current.getSObject(parts[i]);
-      } catch (System.SObjectException ignored) {
-        return null;
-      }
-      if (current == null) {
-        return null;
-      }
+    try {
+      return RecordHealthCheckValueResolver.parentForFieldPath(row, parts);
+    } catch (System.SObjectException ignored) {
+      return null;
     }
-    return current;
   }
 
   /** Returns the org corporate currency once per transaction. */

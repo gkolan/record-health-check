@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Rows NoRowsReturned</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Account_Row_Tokens_Negative</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >No Contact Named Nobody</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >A query that matches nothing. sourceRowCount is 0, which is a different fact from a query that never ran.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+    <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT Id, LastName FROM Contact WHERE AccountId = {!record.Id} AND LastName = 'ZzzNoSuchContact' ORDER BY Id</value></values>
+    <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >LastName</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ALL_ROWS_PASS</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >IS_NOT_BLANK</value></values>
+    <values><field>NoRowsResult__c</field><value
+      xsi:type="xsd:string"
+    >FAIL</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Matched {!rhcQuery.sourceRowCount} contacts, and the first is {!rhcQuery.sourceRows[1].LastName fallback="absent"}.</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Could not read the contacts for this account.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >20</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

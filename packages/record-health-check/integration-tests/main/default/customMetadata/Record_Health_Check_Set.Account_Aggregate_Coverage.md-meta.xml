@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Aggregate Coverage</label>
+    <label>Coverage: SOQL Aggregate Functions</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,13 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Account Aggregate Function Coverage</value>
+        <value xsi:type="xsd:string">Coverage: SOQL Aggregate Functions</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Shipped examples for every SOQL aggregate the framework supports: COUNT(), COUNT_DISTINCT(field), SUM, AVG, MIN, and MAX. Each check uses One row or aggregate with a single-value comparison operator.</value>
+    >One Check for each SOQL aggregate the framework supports: COUNT, COUNT_DISTINCT, SUM, AVG, MIN, and MAX. Read this card to see what each aggregate returns on real Account data before choosing one for a Check of your own.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

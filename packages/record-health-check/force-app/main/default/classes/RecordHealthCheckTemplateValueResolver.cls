@@ -35,6 +35,9 @@ public class RecordHealthCheckTemplateValueResolver {
       }
       return resultValue(context, token.propertyPath);
     }
+    if (token.namespaceName == 'rhcQuery') {
+      return queryValue(token, context);
+    }
     if (token.namespaceName == 'rhcRun') {
       if (context.run == null) {
         unavailable(token, 'The run context is not available.');
@@ -45,9 +48,63 @@ public class RecordHealthCheckTemplateValueResolver {
     return null;
   }
 
+  /**
+   * Reads one value out of the rows the Check's own queries returned.
+   *
+   * The collection an unavailable query would supply is null rather than
+   * empty, and the two cases mean different things: a Check with no comparison
+   * query can never satisfy a comparisonRows token, which is a configuration
+   * problem, while a query that ran and returned three rows simply has no
+   * fourth row, which is an empty value the author may cover with a fallback.
+   */
+  private static Object queryValue(
+    RecordHealthCheckToken token,
+    RecordHealthCheckMergeContext context
+  ) {
+    RecordHealthCheckTokenShape shape = token.shape;
+    if (shape == null || !shape.isUsable()) {
+      unavailable(token, 'The query row token could not be read.');
+    }
+    List<SObject> rows = shape.readsComparisonQuery()
+      ? context.comparisonRows
+      : context.sourceRows;
+    // A collection the Check never produced resolves empty, exactly like a row
+    // the query did not return. Whether a Check can produce it at all is a
+    // configuration question settled while the author is editing. Throwing here
+    // would break the rule that anything structurally accepted and successfully
+    // planned resolves: the same template reaches this resolver when the query
+    // returned nothing, was never reached, or failed, and none of those are the
+    // author's mistake.
+    if (rows == null) {
+      return null;
+    }
+    if (shape.kind == RecordHealthCheckTokenShape.KIND_QUERY_ROW_COUNT) {
+      return rows.size();
+    }
+    // Indexes are one-based because Check metadata is written by people.
+    if (shape.rowIndex > rows.size()) {
+      return null;
+    }
+    try {
+      return resolveFieldPath(rows[shape.rowIndex - 1], shape.fieldPath);
+    } catch (System.SObjectException error) {
+      // The query did not select this field. Authoring validation refuses that
+      // combination, so reaching here means the metadata changed underneath a
+      // running transaction. It stays a configuration error rather than
+      // becoming a blank value, because a blank would hide the cause.
+      unavailable(
+        token,
+        'The query did not select "' +
+          shape.fieldPath +
+          '". Add it to the SELECT list.'
+      );
+      return null;
+    }
+  }
+
   public static Object resolveFieldPath(SObject record, String fieldPath) {
     List<String> parts = fieldPath.split('\\.');
-    if (parts.size() > 6) {
+    if (parts.size() > RecordHealthCheckTokenRegistry.MAX_RELATIONSHIP_PARTS) {
       unavailable(
         new RecordHealthCheckToken(
           '{!record.' + fieldPath + '}',
@@ -56,17 +113,16 @@ public class RecordHealthCheckTemplateValueResolver {
           0,
           0
         ),
-        'Record relationship depth exceeds five.'
+        'Record relationship depth exceeds ' +
+          (RecordHealthCheckTokenRegistry.MAX_RELATIONSHIP_PARTS - 1) +
+          '.'
       );
     }
-    SObject current = record;
-    for (Integer i = 0; i < parts.size() - 1; i++) {
-      current = current.getSObject(parts[i]);
-      if (current == null) {
-        return null;
-      }
-    }
-    return current.get(parts[parts.size() - 1]);
+    SObject parent = RecordHealthCheckValueResolver.parentForFieldPath(
+      record,
+      parts
+    );
+    return parent == null ? null : parent.get(parts[parts.size() - 1]);
   }
 
   public static Object checkValue(
@@ -127,20 +183,20 @@ public class RecordHealthCheckTemplateValueResolver {
       return context.result.status;
     }
     if (property == 'foundValue') {
-      return context.result.actualValue;
+      return context.result.frameworkFound();
     }
     if (property == 'foundValuePluralSuffix') {
       if (context.failedRecordCount != null) {
         return context.failedRecordCount == 1 ? '' : 's';
       }
       return RecordHealthCheckDisplayFormat.isDisplayedNumberOne(
-          context.result.actualValue
+          context.result.frameworkFound()
         )
         ? ''
         : 's';
     }
     if (property == 'expectedValue') {
-      return context.result.expectedValue;
+      return context.result.frameworkExpected();
     }
     if (property == 'failedRecordCount') {
       return context.failedRecordCount;

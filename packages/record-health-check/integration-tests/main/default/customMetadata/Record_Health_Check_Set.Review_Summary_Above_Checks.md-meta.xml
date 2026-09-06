@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Review: Summary Above Checks</label>
+    <label>Review: Summary Above the Check Rows</label>
     <protected>false</protected>
     <values>
         <field>ObjectApiName__c</field>
@@ -12,13 +12,15 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Summary Above Checks</value>
+        <value
+      xsi:type="xsd:string"
+    >Review: Summary Above the Check Rows</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Integration fixture: the ungrouped result summary appears above these Check rows.</value>
+    >Two uncategorized Checks with the overall summary placed above them instead of below. Use it to confirm the summary reads correctly when it comes first.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

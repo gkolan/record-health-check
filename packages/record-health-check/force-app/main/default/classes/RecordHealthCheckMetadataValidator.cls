@@ -100,6 +100,8 @@ public with sharing class RecordHealthCheckMetadataValidator {
         EmptyValueHandling__c,
         DisplayFoundText__c,
         DisplayExpectedText__c,
+        DisplayFoundFormula__c,
+        DisplayExpectedFormula__c,
         FailureMessage__c,
         UnableToEvaluateMessage__c,
         ActionLabel__c,
@@ -116,6 +118,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         ApplicabilityCountOperator__c,
         ApplicabilityCountThreshold__c,
         PublishUserResultEvent__c,
+        ComparisonDisplayMode__c,
         Record_Health_Check_Set__c
       FROM Record_Health_Check__mdt
       ORDER BY
@@ -430,6 +433,11 @@ public with sharing class RecordHealthCheckMetadataValidator {
       RecordHealthCheckValidator.nullEmptyFindings(check),
       check
     );
+
+    issues.addAll(
+      RecordHealthCheckMetadataIssueMapper.comparisonDisplayIssues(check)
+    );
+    issues.addAll(RecordHealthCheckIgnoredConfig.issues(check));
 
     return issues;
   }

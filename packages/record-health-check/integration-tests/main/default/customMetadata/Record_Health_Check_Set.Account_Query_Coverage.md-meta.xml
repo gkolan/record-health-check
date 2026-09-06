@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Query Coverage</label>
+    <label>Coverage: Query Check Operators</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,15 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Account Query Check Coverage</value>
+        <value
+      xsi:type="xsd:string"
+    >Coverage: Query Check Operators and Outcomes</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Covers Query permutations: all comparison operators, list operators, expected-value sources, and no-rows outcomes (Pass, Fail, Skip, Unable to evaluate).</value>
+    >Every comparison operator, list operator, and Expected-value source a Query Check accepts, together with all four outcomes when the query returns no rows. Read this card to see the operator you need working against real Account data.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

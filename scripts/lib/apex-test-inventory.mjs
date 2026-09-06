@@ -152,7 +152,6 @@ export function discoverApexTestClasses(
       ) {
         continue;
       }
-      const existing = inventoryByName.get(key);
       inventoryByName.set(key, {
         ...entry,
         files: annotatedFiles
@@ -255,5 +254,36 @@ export function verifyApexTestResult(inventory, result) {
     outcome: summary.outcome,
     orgWideCoverage: summary.orgWideCoverage,
     testRunCoverage: summary.testRunCoverage
+  };
+}
+
+export function verifyApexCommandExecution(execution, verifiedResult) {
+  if (execution.error) {
+    throw new Error(
+      `Salesforce Apex test command could not run: ${execution.error.message}`
+    );
+  }
+  if (execution.signal) {
+    throw new Error(
+      `Salesforce Apex test command was interrupted by ${execution.signal}.`
+    );
+  }
+  if (execution.status !== 0) {
+    throw new Error(
+      `Salesforce Apex test command failed with status ${execution.status ?? "unknown"}.`
+    );
+  }
+  return verifiedResult;
+}
+
+export function apexTestSpawnOptions(root, environment = process.env) {
+  return {
+    cwd: root,
+    encoding: "utf8",
+    env: { ...environment, SF_DISABLE_LOG_FILE: "true" },
+    // The complete JSON is already written to --output-dir. Piping it here can
+    // exceed spawnSync's buffer when per-method coverage records are large.
+    stdio: ["ignore", "ignore", "pipe"],
+    maxBuffer: 64 * 1024 * 1024
   };
 }

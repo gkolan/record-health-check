@@ -54,4 +54,10 @@
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
     </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not read Billing City, Billing State, or Billing Country on {!record.Name}. Confirm field-level security on the billing address fields for the running user, then run the Check again.</value>
+    </values>
 </CustomMetadata>

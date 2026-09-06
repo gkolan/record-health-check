@@ -54,4 +54,10 @@
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Formula check reading a managed-package field by its full SBQQ__ API name. Passes when CPQ is not combining asset quantities, proving a foreign namespace resolves in a pass condition.</value>
+    </values>
 </CustomMetadata>

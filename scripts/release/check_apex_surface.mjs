@@ -2,10 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 const classRoot = "packages/record-health-check/force-app/main/default/classes";
-// Measured no-growth ceilings. Existing hotspots are recorded in the Step 10
-// review; reductions must lower these values in the same change.
-const maxMethodLines = 416;
-const maxDecisionPoints = 51;
+// Measured no-growth ceilings, set to the current worst method so the gate
+// actually bites. Existing hotspots are recorded in the Step 10 review;
+// reductions must lower these values in the same change.
+const maxMethodLines = 415;
+const maxDecisionPoints = 47;
 const approvedProductionRhcNames = new Set([
   "RHCConstructorMutationCheck",
   "RHCDefinitionDependencyIdentity",

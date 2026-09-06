@@ -36,4 +36,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The Apex leg of the on-load matrix. Passes when the recent-activity class reports activity, proving an Apex plugin runs during an automatic on-load evaluation.</value>
+    </values>
 </CustomMetadata>

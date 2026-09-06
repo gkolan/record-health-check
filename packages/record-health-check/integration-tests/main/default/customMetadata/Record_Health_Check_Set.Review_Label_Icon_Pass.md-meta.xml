@@ -4,17 +4,17 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Review: Label and Icon Pass</label>
+    <label>Review: Run Button With Label and Icon</label>
     <protected>false</protected>
     <values><field>ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >Account</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Label-and-Icon Run and Rerun</value></values>
+    >Review: Run Button With Label and Icon</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Run one passing Account check and compare distinct Run and Rerun labels presented with an action icon.</value></values>
+    >One passing Account Check, shown so you can compare the Run and Rerun wording when the action carries both a label and an icon.</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>

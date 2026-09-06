@@ -9,7 +9,7 @@ function completedCounts(text) {
 
 async function expectAutomaticRunCompleted(page) {
   const automaticCard = page.locator(COMPONENT_SELECTOR).filter({
-    hasText: "Automated Account Data Quality and Customer Readiness Review"
+    hasText: "Automatic Account Review on Page Load"
   });
   await expect(automaticCard).toHaveCount(1);
   await expect

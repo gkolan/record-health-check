@@ -72,6 +72,29 @@ manual Check Set still waits for its first **Run**; after results exist, later s
 These paths can show current results, but only the explicit action is eligible to publish lifecycle
 result events.
 
+## I changed a Check in Setup. Do I need to refresh the record page?
+
+No. **Run** and **Rerun** read the Check Set configuration again before evaluating anything, so the
+next run reflects Setup edits made while the record tab stayed open. A Check you activated appears,
+a Check you deactivated disappears, and a changed threshold, label, or display setting takes effect.
+
+This matters most in a console, where a record tab can stay open for days. Without the reread, the
+card would keep replaying whichever configuration happened to be current when the tab was first
+opened, and the results would look stale for no visible reason.
+
+Two details worth knowing:
+
+- The card keeps the previous results on screen while it rereads the configuration. The button
+  shows a spinner and the rows are replaced when the new run starts. The card is not stuck.
+- If the configuration reread fails, the card shows an error instead of evaluating. It will not
+  quietly fall back to the configuration it loaded earlier, because that would report a result
+  against rules the administrator has already changed.
+
+A record save refreshes the card the same way when results are already on screen, which means an
+automatic card or a manual card after its first **Run**. That refresh rereads the configuration too,
+but it clears the rows and shows the card spinner while it runs, rather than holding the previous
+results the way **Rerun** does.
+
 ## Why does a Check pass on the record page but differ in Flow or asynchronous Apex?
 
 Each Salesforce transaction uses its actual running user's authorization and user-mode data access.

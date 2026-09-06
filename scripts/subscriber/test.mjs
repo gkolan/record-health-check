@@ -2,7 +2,6 @@
 
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
-import { stablePackageVersionId } from "../lib/package-releases.mjs";
 import { run } from "../lib/run.mjs";
 
 const { values } = parseArgs({

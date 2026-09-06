@@ -435,6 +435,48 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
     }
   }
 
+  /**
+   * Validates the per-Check comparison visibility setting
+   * (ComparisonDisplayMode__c). The picklist is restricted, so an unrecognized
+   * value is defensive rather than expected. The Hidden finding is a
+   * non-blocking authoring warning: evaluation still runs.
+   *
+   * @param check Check metadata under validation.
+   * @return Issues for this Check's comparison display setting.
+   */
+  public static List<RecordHealthCheckMetadataValidator.ValidationIssue> comparisonDisplayIssues(
+    Record_Health_Check__mdt check
+  ) {
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new List<RecordHealthCheckMetadataValidator.ValidationIssue>();
+    if (
+      RecordHealthCheckComparisonVisibility.isUnsupported(
+        check.ComparisonDisplayMode__c
+      )
+    ) {
+      issues.add(
+        issue(
+          check,
+          'ComparisonDisplayMode__c',
+          'Show Found and Expected must be Automatic, Found only, Expected only, or Hidden.',
+          'COMPARISON_DISPLAY_MODE_INVALID'
+        )
+      );
+    } else if (
+      RecordHealthCheckComparisonVisibility.hidesEvidenceWithoutGuidance(check)
+    ) {
+      issues.add(
+        new RecordHealthCheckMetadataValidator.ValidationIssue(
+          'WARNING',
+          check.DeveloperName,
+          'ComparisonDisplayMode__c',
+          'Show Found and Expected is Hidden and this Check has no failure message, Fix Message, or Action URL, so a failure shows no explanation.',
+          'COMPARISON_DISPLAY_HIDDEN_WITHOUT_GUIDANCE'
+        )
+      );
+    }
+    return issues;
+  }
+
   private static RecordHealthCheckMetadataValidator.ValidationIssue issue(
     Record_Health_Check__mdt check,
     String fieldName,

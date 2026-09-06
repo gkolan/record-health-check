@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Foreign Namespace Proof</label>
+    <label>Coverage: Managed-Package Field Names</label>
     <protected>false</protected>
     <values>
         <field>ObjectApiName__c</field>
@@ -12,7 +12,9 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Foreign Namespace Proof</value>
+        <value
+      xsi:type="xsd:string"
+    >Coverage: Managed-Package Field Names</value>
     </values>
     <values>
         <field>CardRunMode__c</field>
@@ -41,5 +43,11 @@
     <values>
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>CardSubtitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Three Checks reading a CPQ field by its full SBQQ__ API name through a formula, a query, and a merged message. Deploy this card only in a namespaced org with CPQ installed; it is excluded from ordinary integration deployments.</value>
     </values>
 </CustomMetadata>

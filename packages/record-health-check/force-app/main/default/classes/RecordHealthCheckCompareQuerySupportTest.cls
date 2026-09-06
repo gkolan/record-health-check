@@ -62,6 +62,157 @@ private class RecordHealthCheckCompareQuerySupportTest {
     );
   }
 
+  @IsTest
+  static void autoFormatUsesEachQueriesOwnFieldType() {
+    Account primaryRow = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'AnnualRevenue' => 70000 }
+    );
+    Account comparisonRow = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'NumberOfEmployees' => 12 }
+    );
+    Record_Health_Check__mdt check = comparisonCheck();
+    check.SourceQueryField__c = 'AnnualRevenue';
+    check.ComparisonQueryField__c = 'NumberOfEmployees';
+    check.DisplayValueFormat__c = 'AUTO';
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+
+    Test.startTest();
+    RecordHealthCheckCompareQuerySupport.setComparisonValues(
+      check,
+      null,
+      result,
+      new List<SObject>{ primaryRow },
+      new List<SObject>{ comparisonRow },
+      'ONE_RESULT'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckDisplayFormat.render(
+        70000,
+        RecordHealthCheckDisplayFormat.FORMAT_CURRENCY
+      ),
+      result.actualValue,
+      'Auto should derive Currency from the source query field.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckComparisonDisplay.describeExpected(
+        'EQUALS',
+        12,
+        RecordHealthCheckDisplayFormat.FORMAT_NUMBER,
+        null
+      ),
+      result.expectedValue,
+      'Auto should derive Number independently from the comparison query field.'
+    );
+  }
+
+  @IsTest
+  static void scalarRelationshipCurrencyUsesEachRelatedRow() {
+    if (!UserInfo.isMultiCurrencyOrganization()) {
+      return;
+    }
+    Contact primaryRow = contactWithRelatedRevenue(70000, 'EUR', 'USD');
+    Contact comparisonRow = contactWithRelatedRevenue(80000, 'JPY', 'USD');
+    Record_Health_Check__mdt check = relationshipCurrencyCheck();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+
+    Test.startTest();
+    RecordHealthCheckCompareQuerySupport.setComparisonValues(
+      check,
+      null,
+      result,
+      new List<SObject>{ primaryRow },
+      new List<SObject>{ comparisonRow },
+      'ONE_RESULT'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckDisplayFormat.render(70000, 'CURRENCY', 'EUR'),
+      result.actualValue,
+      'The source value should use its related Account currency.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckComparisonDisplay.describeExpected(
+        'EQUALS',
+        80000,
+        'CURRENCY',
+        'JPY'
+      ),
+      result.expectedValue,
+      'The expected value should use its own related Account currency.'
+    );
+  }
+
+  @IsTest
+  static void listRelationshipCurrencyUsesEachRelatedRow() {
+    if (!UserInfo.isMultiCurrencyOrganization()) {
+      return;
+    }
+    Contact primaryRow = contactWithRelatedRevenue(70000, 'EUR', 'USD');
+    Contact comparisonRow = contactWithRelatedRevenue(80000, 'JPY', 'USD');
+    Record_Health_Check__mdt check = relationshipCurrencyCheck();
+    check.ComparisonOperator__c = 'LISTS_MATCH_EXACTLY';
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+
+    Test.startTest();
+    RecordHealthCheckCompareQuerySupport.setComparisonValues(
+      check,
+      null,
+      result,
+      new List<SObject>{ primaryRow },
+      new List<SObject>{ comparisonRow },
+      'COMPARE_AS_LISTS'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckComparisonDisplay.formatList(
+        new List<Object>{ 70000 },
+        'CURRENCY',
+        new List<String>{ 'EUR' }
+      ),
+      result.actualValue,
+      'Every source list value should follow the related field owner currency.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckComparisonDisplay.describeExpectedList(
+        'LISTS_MATCH_EXACTLY',
+        new List<Object>{ 80000 },
+        'CURRENCY',
+        new List<String>{ 'JPY' }
+      ),
+      result.expectedValue,
+      'Every expected list value should follow its related field owner currency.'
+    );
+  }
+
+  private static Record_Health_Check__mdt relationshipCurrencyCheck() {
+    Record_Health_Check__mdt check = comparisonCheck();
+    check.SourceQueryField__c = 'Account.AnnualRevenue';
+    check.ComparisonQueryField__c = 'Account.AnnualRevenue';
+    check.DisplayValueFormat__c = 'CURRENCY';
+    return check;
+  }
+
+  private static Contact contactWithRelatedRevenue(
+    Decimal revenue,
+    String relatedIsoCode,
+    String outerIsoCode
+  ) {
+    Contact row = RecordHealthCheckTestDataFactory.contact(
+      new Map<String, Object>{ 'LastName' => 'Outer' }
+    );
+    Account related = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Related', 'AnnualRevenue' => revenue }
+    );
+    related.put('CurrencyIsoCode', relatedIsoCode);
+    row.put('CurrencyIsoCode', outerIsoCode);
+    row.putSObject('Account', related);
+    return row;
+  }
+
   private static Record_Health_Check__mdt comparisonCheck() {
     return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{

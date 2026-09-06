@@ -11,7 +11,7 @@
     >Account</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Example: More Than 25 Checks</value></values>
+    >Example: Account Over 25 Checks</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
     >Thirty active checks demonstrate the Framework limit: the card runs and displays the first 25 in evaluation order and reports that 5 are omitted.</value></values>

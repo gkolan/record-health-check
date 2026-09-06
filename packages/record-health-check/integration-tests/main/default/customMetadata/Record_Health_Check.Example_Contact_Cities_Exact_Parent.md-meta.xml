@@ -128,6 +128,10 @@
     </values>
 
     <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
         <field>DisplayValueFormat__c</field>
         <value xsi:type="xsd:string">TEXT</value>
     </values>

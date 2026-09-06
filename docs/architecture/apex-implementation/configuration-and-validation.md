@@ -155,8 +155,10 @@ audit both read from here so their allowed values stay aligned.
  `public static Set<String>` accessor here returns a `new Set<String>(...)` copy,
  not the internal set itself. A caller therefore cannot overwrite the package's official values by
  changing the returned Set. The class also owns the Apex-to-Lightning-card value translation
- (`toLwcTriggerMode`, `toLwcSeverity`, `toLwcEvaluatorType`, etc.) that maps metadata API values
- (for example `CRITICAL`) to the card's presentation terms (for example `Error`).
+ (`toLwcTriggerMode`, `toLwcEvaluatorType`, etc.) that maps metadata API values
+ (for example `FORMULA`) to the card's presentation terms (for example `Formula`). Severity is not
+ translated: `CRITICAL`, `WARNING`, and `INFO` reach the card as Setup stores them, and the card
+ chooses its own words for them.
 
 ### `RecordHealthCheckReasonCodes`
 

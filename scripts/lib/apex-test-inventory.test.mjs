@@ -5,6 +5,8 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  apexTestSpawnOptions,
+  verifyApexCommandExecution,
   discoverApexTestClasses,
   verifyApexTestResult
 } from "./apex-test-inventory.mjs";
@@ -199,5 +201,33 @@ test("fails on non-passing methods or a mismatched method count", () => {
         tests: [{ Outcome: "Pass", ApexClass: { Name: "OneTest" } }]
       }),
     /reports 2 methods but contains 1/
+  );
+});
+
+test("keeps large Salesforce JSON out of the child-process stdout buffer", () => {
+  const options = apexTestSpawnOptions("/workspace", { EXAMPLE: "value" });
+
+  assert.deepEqual(options.stdio, ["ignore", "ignore", "pipe"]);
+  assert.equal(options.cwd, "/workspace");
+  assert.equal(options.env.EXAMPLE, "value");
+  assert.equal(options.env.SF_DISABLE_LOG_FILE, "true");
+});
+
+test("rejects Salesforce CLI transport failures and every nonzero exit", () => {
+  assert.throws(
+    () =>
+      verifyApexCommandExecution(
+        { status: null, error: new Error("spawn failed"), signal: null },
+        { outcome: "Passed", executedClassCount: 1, executedMethodCount: 1 }
+      ),
+    /could not run: spawn failed/
+  );
+  assert.throws(
+    () =>
+      verifyApexCommandExecution(
+        { status: 1, error: undefined, signal: null },
+        { outcome: "Passed", executedClassCount: 1, executedMethodCount: 1 }
+      ),
+    /failed with status 1/
   );
 });

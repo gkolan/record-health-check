@@ -479,11 +479,6 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   }
 
   private static Object readPath(SObject row, String fieldPath) {
-    List<String> parts = fieldPath.split('\\.');
-    SObject current = row;
-    for (Integer index = 0; index < parts.size() - 1; index++) {
-      current = current == null ? null : current.getSObject(parts[index]);
-    }
-    return current == null ? null : current.get(parts[parts.size() - 1]);
+    return RecordHealthCheckValueResolver.valueAtFieldPath(row, fieldPath);
   }
 }

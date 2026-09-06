@@ -4,6 +4,7 @@ ignores:
   files:
     - "code-analyzer/**"
     - "coverage/**"
+    - "**/dist/**"
     - "reports/**"
     - "releases/**"
     - "test-results/**"

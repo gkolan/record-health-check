@@ -316,6 +316,21 @@ try {
       RHC_SECOND_ACCOUNT_NAME: secondAccountName
     });
 
+    // Record-page card contract: the card body must stay painted through every
+    // frame, and Rerun must reread Check Set configuration. See
+    // docs/architecture/record-page-card-contract.md.
+    // Each Playwright process needs a fresh single-use frontdoor URL; reusing
+    // the release-matrix URL would send this second process to Salesforce's
+    // login page after the first process consumed its session handoff.
+    const cardContractUrl = frontdoorUrl(
+      targetOrg,
+      `/lightning/r/Account/${accountId}/view`
+    );
+    runBrowserSpec(browser, "tests/browser/card-contract.spec.mjs", {
+      RHC_BROWSER_URL: cardContractUrl,
+      RHC_SECURITY_MODE: securityMode
+    });
+
     const builderUrl = frontdoorUrl(
       targetOrg,
       "/lightning/setup/FlexiPageList/home"

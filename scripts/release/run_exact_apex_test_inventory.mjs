@@ -7,7 +7,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
+  apexTestSpawnOptions,
   discoverApexTestClasses,
+  verifyApexCommandExecution,
   verifyApexTestResult
 } from "../lib/apex-test-inventory.mjs";
 
@@ -94,14 +96,8 @@ console.log(
   `Running exact Apex inventory: ${inventory.length} classes in ${values.topology}.`
 );
 const execution = spawnSync("sf", args, {
-  cwd: root,
-  encoding: "utf8",
-  env: { ...process.env, SF_DISABLE_LOG_FILE: "true" },
-  maxBuffer: 64 * 1024 * 1024
+  ...apexTestSpawnOptions(root)
 });
-if (execution.stdout) {
-  process.stdout.write(execution.stdout);
-}
 if (execution.stderr) {
   process.stderr.write(execution.stderr);
 }
@@ -127,15 +123,9 @@ fs.copyFileSync(
   path.join(evidenceDirectory, "salesforce-result.json")
 );
 
-if (execution.error || execution.status !== 0) {
-  console.error(
-    `Salesforce Apex test command failed with status ${execution.status ?? "unknown"}.`
-  );
-  process.exit(execution.status ?? 1);
-}
-
 try {
   const verdict = verifyApexTestResult(inventory, result);
+  verifyApexCommandExecution(execution, verdict);
   const evidence = {
     topology: values.topology,
     scope: values.scope,

@@ -109,7 +109,9 @@ Review {!record.Name fallback="this Account"} before approval.
 ```
 
 The Account name is inserted, but `Review` and `before approval` remain exactly as the administrator
-wrote them. Result tokens such as `{!rhcResult.foundValue}` use the already formatted display value.
+wrote them. Result tokens such as `{!rhcResult.foundValue}` carry the value the Check found, already
+rendered in the reader's locale by the framework. They are not affected by Display: Found Text or
+Display: Expected Text, which change what the card reads and nothing else.
 See [Merge tokens](../merge-syntax/README.md) for available tokens and fallback behavior.
 
 ## Related

@@ -4,17 +4,17 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Subscriber On Load</label>
+    <label>Subscriber: Automatic Run on Page Load</label>
     <protected>false</protected>
     <values><field>rhc__ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >Account</value></values>
     <values><field>rhc__CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Automated Account Data Quality and Customer Readiness Review</value></values>
+    >Automatic Account Review on Page Load</value></values>
     <values><field>rhc__CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Installed-package checks begin after the record page becomes idle without a page-level loading treatment.</value></values>
+    >Installed-package Checks that begin on their own once the record page is idle, with no card-level or page-level spinner at any point. Used by the subscriber release browser gate to prove the loading contract after a real package install.</value></values>
     <values><field>rhc__CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_LOAD</value></values>

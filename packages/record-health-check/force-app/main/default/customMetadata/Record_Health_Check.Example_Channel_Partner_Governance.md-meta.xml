@@ -65,12 +65,6 @@
         <value xsi:type="xsd:string">{!rhcResult.foundValue}</value>
     </values>
     <values>
-        <field>DisplayExpectedFormula__c</field>
-        <value
-      xsi:type="xsd:string"
-    >"An approved channel-partner hierarchy"</value>
-    </values>
-    <values>
         <field>FailureSeverity__c</field>
         <value xsi:type="xsd:string">WARNING</value>
     </values>
@@ -125,5 +119,9 @@
     </values>
 <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
-    >{!rhcResult.expectedValue}</value></values>
+    >An approved channel-partner hierarchy</value></values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">COMPLIANCE</value>
+    </values>
 </CustomMetadata>

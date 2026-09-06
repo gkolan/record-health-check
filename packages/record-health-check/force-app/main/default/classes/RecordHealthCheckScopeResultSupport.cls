@@ -424,9 +424,12 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     evaluation.recordId = recordId;
     evaluation.checkQualifiedApiName = check.QualifiedApiName;
     evaluation.status = internalResult.status;
-    evaluation.severity = String.isBlank(internalResult.severity)
-      ? internalResult.severity
-      : RecordHealthCheckConstants.toLwcSeverity(internalResult.severity);
+    // The severity a caller receives is the severity Setup stores: CRITICAL,
+    // WARNING, or INFO. It used to be remapped here into the card's own words,
+    // so an automation matching the documented CRITICAL never fired and the
+    // Check Result event disagreed with its own reference page. Presentation
+    // words belong to the component, not to the contract.
+    evaluation.severity = internalResult.severity;
     evaluation.reasonCode = internalResult.reasonCode;
     if (internalResult.diagnosticIncident != null) {
       evaluation.diagnosticId = internalResult.diagnosticIncident.diagnosticId;
@@ -437,16 +440,19 @@ public with sharing class RecordHealthCheckScopeResultSupport {
           .instruction;
       }
     }
-    evaluation.found = internalResult.evaluationFound != null
-      ? internalResult.evaluationFound
-      : internalResult.actualValue == null
-          ? null
-          : RecordHealthCheckValue.ofString(internalResult.actualValue);
-    evaluation.expected = internalResult.evaluationExpected != null
-      ? internalResult.evaluationExpected
-      : internalResult.expectedValue == null
-          ? null
-          : RecordHealthCheckValue.ofString(internalResult.expectedValue);
+    // Recorded operands are the answer even when one side has none:
+    // IS_NOT_BLANK expects no value. The old string fallback is what handed
+    // automations "to not be blank" as though it were one.
+    evaluation.found = RecordHealthCheckQueryEvaluatorSupport.machineValue(
+      internalResult.evaluationFound,
+      internalResult.operandsRecorded,
+      internalResult.actualValue
+    );
+    evaluation.expected = RecordHealthCheckQueryEvaluatorSupport.machineValue(
+      internalResult.evaluationExpected,
+      internalResult.operandsRecorded,
+      internalResult.expectedValue
+    );
     evaluation.comparisonOperator = internalResult.evaluationComparisonOperator;
     if (
       evaluation.comparisonOperator == null &&

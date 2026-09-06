@@ -1,0 +1,8 @@
+# The four Python gate scripts under scripts/release/ enforce release gates and
+# are otherwise unchecked: prettier does not cover .py.
+#
+# The runner passes Ruff an exact inventory of tracked and unignored Python
+# files. Do not replace that inventory with `ruff check scripts/`: Ruff honors
+# the parent `scripts/*` ignore and can otherwise report a vacuous success.
+
+extend-exclude = ["node_modules", "reports", "code-analyzer", "test-results"]

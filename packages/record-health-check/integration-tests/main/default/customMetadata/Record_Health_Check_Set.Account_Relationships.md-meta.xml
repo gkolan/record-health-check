@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Relationships</label>
+    <label>Account Relationship Health</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,13 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Account Relationships</value>
+        <value xsi:type="xsd:string">Account Relationship Health</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Validates that this account has the expected related records and engagement signals.</value>
+    >Whether this Account has the related records and classification that later work depends on: at least one contact, an open opportunity, an account type, and a rating. A short card to put beside a longer one.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

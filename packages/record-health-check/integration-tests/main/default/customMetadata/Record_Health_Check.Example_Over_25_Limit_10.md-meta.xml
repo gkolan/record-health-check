@@ -36,4 +36,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not read {!record.Name}. These 30 example Checks only confirm the record loaded, so an Unable result here means the record itself was unreadable rather than a problem with the 25-Check display ceiling.</value>
+    </values>
 </CustomMetadata>

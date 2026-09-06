@@ -37,17 +37,15 @@ public with sharing class RecordHealthCheckDisplayFieldResolver {
     ) {
       return null;
     }
-    SObject current = row;
     List<String> parts = fieldPath.trim().split('\\.');
-    for (Integer i = 0; i < parts.size() - 1; i++) {
-      try {
-        current = current.getSObject(parts[i]);
-      } catch (System.SObjectException ignored) {
-        return null;
-      }
-      if (current == null) {
-        return null;
-      }
+    SObject current;
+    try {
+      current = RecordHealthCheckValueResolver.parentForFieldPath(row, parts);
+    } catch (System.SObjectException ignored) {
+      return null;
+    }
+    if (current == null) {
+      return null;
     }
     Schema.SObjectField token = RecordHealthCheckDescribeCache.resolveField(
       current.getSObjectType(),

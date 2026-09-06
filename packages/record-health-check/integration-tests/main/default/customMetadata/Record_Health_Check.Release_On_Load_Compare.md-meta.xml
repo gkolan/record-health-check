@@ -45,4 +45,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The Compare Two Queries leg of the on-load matrix. Passes when contacts do not outnumber total opportunities, proving a two-query comparison runs on load.</value>
+    </values>
 </CustomMetadata>

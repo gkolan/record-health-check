@@ -50,4 +50,10 @@
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Formula check whose failure message merges a managed-package field by its full SBQQ__ API name, proving a foreign namespace resolves in rendered message text.</value>
+    </values>
 </CustomMetadata>

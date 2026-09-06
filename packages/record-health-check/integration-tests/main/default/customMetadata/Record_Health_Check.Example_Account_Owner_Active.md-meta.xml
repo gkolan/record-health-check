@@ -122,4 +122,8 @@
         <field>DisplayExpectedFormula__c</field>
         <value xsi:type="xsd:string">"Active"</value>
     </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">RISK</value>
+    </values>
 </CustomMetadata>

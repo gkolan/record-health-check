@@ -36,4 +36,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not read {!record.Name}. This fixture only confirms the record loaded, so an Unable result means the record itself was unreadable rather than a problem with the run button.</value>
+    </values>
 </CustomMetadata>

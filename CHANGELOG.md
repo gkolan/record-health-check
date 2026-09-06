@@ -74,13 +74,19 @@ For installation and verification, start with
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
-## Unreleased: 2.0.7
+## Unreleased: 2.0.8
 
 This is a candidate source description, not a release-readiness claim. Hosted source validation,
 exact-package clean/upgrade stages, and representative-sandbox acceptance must pass before promotion.
 
 ### Fixed
 
+- Query-row merge tokens and Compare Two Queries display values using `format="AUTO"` now derive
+  each side's Currency or other display format from its own selected field. Currency fields reached
+  through a relationship use the related record's currency instead of the outer query row's
+  currency, including list comparisons.
+- The Salesforce browser gate now creates a fresh single-use frontdoor URL for the card-contract
+  spec instead of reusing the URL already consumed by the release-matrix browser process.
 - Record Health Check now registers its save-driven RefreshView handler with the protocol required
   by either Lightning Web Security or Lightning Locker. A RefreshView registration failure no
   longer prevents the component from loading.
@@ -94,6 +100,38 @@ exact-package clean/upgrade stages, and representative-sandbox acceptance must p
   entitlement. Existing customer configuration and least-privilege access require upgrade validation.
 - Example Check definitions, demo setup, and administrator documentation are aligned with the
   current configuration contract.
+
+### Changed in 2.0.8
+
+- Merge-token guidance now distinguishes transient raw query rows from values intentionally copied
+  into rendered messages, labels, and URLs, including their browser, API, and diagnostics exposure.
+- Merge tokens in a query Check are checked against what the query actually addresses, so an
+  unselected field, a missing row, or an unstable row order is reported at configuration time
+  instead of at evaluation time.
+- The Agentforce actions and the REST tool resource share one description of a valid request. A
+  generated correlation identifier is now unique across concurrent requests; previously two
+  requests in the same millisecond could receive the same one.
+- Allowed configuration values are read from the Custom Metadata picklists that store them rather
+  than restated in Apex, so a new picklist value cannot be accepted by one layer and refused by
+  another.
+- A record-page tooltip waits before opening using the browser's own transition timing, which
+  honors the reader's reduced-motion setting without a script.
+- Setup list views show more of what an administrator sorts by: Check Sets list When Checks Run
+  beside Active, and the All Checks list shows Evaluation Order the example lists already showed.
+- The record-page loading spinner is the same grey as the per-Check spinner it hands over to,
+  instead of starting blue and changing colour mid-load.
+- The release browser gate now checks the record-page card on every run: the card body must stay
+  painted through load, run, and completion, and Rerun must reread Check Set configuration.
+- The record-page card always shows its body, not just the grey header. A Check Set with no
+  active checks, a card with no record, and a card with no Check Set selected each explain
+  themselves in the body instead of rendering an empty strip, and the loading spinner now covers
+  the Check Set shell request as well as the definition request.
+- Run and Rerun on the record page read the Check Set configuration again before evaluating.
+  Activating a Check, deactivating one, or changing a threshold, label, or display setting now
+  takes effect on the next run instead of waiting for the reader to reload the page, which
+  matters most in a console where a record tab can stay open for days. The card keeps its
+  previous results and the Rerun label on screen while it rereads, and reports an error rather
+  than evaluating against configuration that has already changed.
 
 ### Release safeguards
 

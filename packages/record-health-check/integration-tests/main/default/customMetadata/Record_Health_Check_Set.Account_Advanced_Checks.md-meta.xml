@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Review: Icon-Only Run Control</label>
+    <label>Coverage: Advanced Account Patterns</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,13 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Icon-Only Run and Rerun</value>
+        <value xsi:type="xsd:string">Coverage: Advanced Account Patterns</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Screenshot example: the visible action is only a refresh icon. Its accessible name changes from Run advanced Account health checks to Run advanced Account health checks again after completion.</value>
+    >Eight harder Account Checks in one place: relationship counts, revenue thresholds, list membership, and an Apex Check. Copy one as the starting point for a rule plain field-presence cannot express. Its only visible action is a refresh icon.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

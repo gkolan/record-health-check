@@ -15,6 +15,12 @@ subscriber triggers used by the manual Salesforce release gate
 (`.github/workflows/salesforce-validate.yml`). Never deploy it to a customer sandbox or production
 org.
 
+`npm run check:fixture-value-coverage` re-derives every configuration surface these fixtures must
+cover — restricted picklist values, behavioral checkboxes, merge-token properties, and inline
+display formats — and fails when one has no fixture. `npm run check:check-set-comprehension` holds
+each card to a title, a label, a subtitle, and the per-Check fields a reader sees. Both gates carry
+their rules, and the states deliberately left to manual verification, in their own module comments.
+
 ## Safe deploy paths
 
 | Path                                                                                             | What deploys                                                                                      |
@@ -69,6 +75,22 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
 - `Account_Display_Formats`: one Check Set whose Checks cover every **Display: Value Format**
   option across Query, Formula, and Compare two queries
 - `RHC_Event_Export__c` helper object for lifecycle-event export smoke tests
+- `Account_Category_Grouping`: one Account card with one Check per **Category** value plus one
+  uncategorized Check, so the results summary shows every category group alphabetically with the
+  uncategorized Check under Other. It is also the only fixture using
+  `FoundExpectedDisplay__c=FAILURES_ONLY`, so Found and Expected must appear on failed Checks only
+- `RHC_Stop_On_System_Error`: the only fixture with `StopOnSystemError__c=true`. Its first Check
+  queries a missing object and the two Checks after it must produce no result at all
+- `RHC_Inactive_Set`: the only fixture with `IsActive__c=false` on the Check Set. A card pointed at
+  it must report the Check Set as inactive instead of evaluating its Check
+- `Account_QC_ExpectedDatetime` in `Account_Query_Coverage`: the only fixture declaring
+  `FormulaResultType__c=DATETIME`, typing an Expected record formula that returns a Datetime
+- `Account_Token_Surfaces`: three Checks that all fail on purpose so their failure messages render.
+  Between them they use every `rhcCheck` and `rhcResult` merge token and every inline
+  `format="…"` modifier, giving each one a card an administrator can read instead of only an Apex
+  assertion
+- `RHC_No_Active_Checks`: an active Check Set whose two Checks are both inactive, so the card must
+  report that it has no active Checks and name how many are inactive
 - `RHC_Conformance_Record__c`, a product-neutral fixture for hierarchy, signed decimal, currency,
   null, snapshot/current, timestamp, and mixed-bulk evaluator conformance
 - `foreign-namespace/`: a separately deployed, CPQ-dependent gate that proves full `SBQQ__` field

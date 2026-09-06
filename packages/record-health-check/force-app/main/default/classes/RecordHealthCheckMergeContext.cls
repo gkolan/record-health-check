@@ -10,6 +10,11 @@ public class RecordHealthCheckMergeContext {
   public SObject checkSet;
   public RecordHealthCheckInternalResult result;
   public RecordHealthCheckRunContext run;
+  // Transient query rows for {!rhcQuery...} resolution. Held only while a
+  // template is being finished and never copied into any result the framework
+  // returns, publishes, logs, or sends to the browser.
+  public transient List<SObject> sourceRows;
+  public transient List<SObject> comparisonRows;
   public Integer failedRecordCount;
   public Integer totalRecordCount;
   public Boolean resultFinalized = false;
@@ -35,6 +40,16 @@ public class RecordHealthCheckMergeContext {
     resultFinalized = finalized == true;
     return this;
   }
+  /** Attaches the rows the Check's own queries returned, for row tokens. */
+  public RecordHealthCheckMergeContext withQueryRows(
+    List<SObject> source,
+    List<SObject> comparison
+  ) {
+    sourceRows = source;
+    comparisonRows = comparison;
+    return this;
+  }
+
   public RecordHealthCheckMergeContext withRun(
     RecordHealthCheckRunContext value
   ) {

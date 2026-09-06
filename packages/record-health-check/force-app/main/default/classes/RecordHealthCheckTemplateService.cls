@@ -85,14 +85,32 @@ public class RecordHealthCheckTemplateService {
     frameworkValues.expectedValue = result.expectedValue;
     RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
       .withRecord(record)
-      .withResult(frameworkValues, true);
+      .withResult(frameworkValues, true)
+      .withQueryRows(result.querySourceRows, result.queryComparisonRows);
     context.failedRecordCount = failedRecordCount;
     context.totalRecordCount = totalRecordCount;
 
+    // Recorded before either replacement so the machine result and every merge
+    // token keep the value the Check actually found. Display text decides what
+    // the card reads; it does not decide what the Check reports.
     if (String.isNotBlank(check.DisplayFoundText__c)) {
+      result.frameworkActualValue = result.actualValue;
+      if (result.evaluationFound == null && result.actualValue != null) {
+        result.evaluationFound = RecordHealthCheckValue.ofString(
+          result.actualValue
+        );
+        result.operandsRecorded = true;
+      }
       result.actualValue = resolveDisplay(check.DisplayFoundText__c, context);
     }
     if (String.isNotBlank(check.DisplayExpectedText__c)) {
+      result.frameworkExpectedValue = result.expectedValue;
+      if (result.evaluationExpected == null && result.expectedValue != null) {
+        result.evaluationExpected = RecordHealthCheckValue.ofString(
+          result.expectedValue
+        );
+        result.operandsRecorded = true;
+      }
       result.expectedValue = resolveDisplay(
         check.DisplayExpectedText__c,
         context
@@ -162,24 +180,58 @@ public class RecordHealthCheckTemplateService {
     return resolved;
   }
 
+  /**
+   * Formats a typed token against the row the value actually came from.
+   *
+   * Formatting reads the field's definition to fill in an Auto format and to
+   * pick up a picklist label, and reads the row to learn which currency an
+   * amount is in. A query row token's value came from a queried row, not from
+   * the page's record, so both lookups have to follow it there; using the base
+   * record would resolve the wrong field definition and, in a multi-currency
+   * org, state the amount in the wrong currency.
+   */
   private static String formatRecordToken(
     Object raw,
     RecordHealthCheckToken token,
     RecordHealthCheckMergeContext context
   ) {
+    SObject basis = context.record;
+    String fieldPath = token.propertyPath;
+    RecordHealthCheckTokenShape shape = token.shape;
+    if (
+      shape != null &&
+      shape.kind == RecordHealthCheckTokenShape.KIND_QUERY_ROW_FIELD
+    ) {
+      List<SObject> rows = shape.readsComparisonQuery()
+        ? context.comparisonRows
+        : context.sourceRows;
+      // A row the query never returned has no definition to read either, so
+      // the value is left to render as the plain formatter sees it.
+      basis = rows != null &&
+        shape.rowIndex <= rows.size()
+        ? rows[shape.rowIndex - 1]
+        : null;
+      fieldPath = shape.fieldPath;
+    }
     Object displayValue = RecordHealthCheckDisplayFormat.valueForDisplay(
       raw,
       token.formatName,
-      context.record,
-      token.propertyPath
+      basis,
+      fieldPath
     );
-    String isoCode = RecordHealthCheckDisplayFormat.currencyIsoCodeFrom(
-      context.record
+    String resolvedFormat = RecordHealthCheckDisplayFormat.formatForRow(
+      token.formatName,
+      basis,
+      fieldPath
     );
     return RecordHealthCheckDisplayFormat.render(
       displayValue,
-      token.formatName,
-      isoCode
+      resolvedFormat,
+      RecordHealthCheckDisplayFormat.currencyIsoCodeFor(
+        basis,
+        context.record,
+        fieldPath
+      )
     );
   }
 

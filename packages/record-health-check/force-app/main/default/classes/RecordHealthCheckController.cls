@@ -88,8 +88,10 @@ public with sharing class RecordHealthCheckController {
 
   /**
    * Returns Check Set display settings and ordered check definitions.
-   * Not cacheable: metadata edits to Check Sets/Checks appear on the next
-   * component load without requiring a page refresh.
+   * Not cacheable: the card calls this before every run, so metadata edits to
+   * Check Sets/Checks take effect on the next Run or Rerun without a page
+   * refresh. Marking it cacheable would reintroduce that staleness through the
+   * Lightning Data Service cache.
    * Throws AuraHandledException for all component-level failures:
    * CONFIG_NOT_FOUND, CONFIG_INACTIVE, OBJECT_MISMATCH,
    * NO_RECORD_CONTEXT, NO_ACTIVE_CHECKS, and LOAD_FAILED for any

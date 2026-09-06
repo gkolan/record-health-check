@@ -3,7 +3,7 @@ function job(workflow, name) {
   const start = workflow.indexOf(marker);
   if (start < 0) throw new Error(`Missing quota-control job: ${name}`);
   const remainder = workflow.slice(start + marker.length);
-  const next = remainder.search(/^  [a-z][a-z0-9-]*:/m);
+  const next = remainder.search(/^ {2}[a-z][a-z0-9-]*:/m);
   return next < 0 ? remainder : remainder.slice(0, next);
 }
 
@@ -40,7 +40,7 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
     );
     requireText(triggers, "workflow_dispatch:");
     if (
-      [...triggers.matchAll(/^  ([a-z_]+):/gm)].some(
+      [...triggers.matchAll(/^ {2}([a-z_]+):/gm)].some(
         ([, event]) => event !== "workflow_dispatch"
       )
     ) {

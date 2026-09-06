@@ -4,14 +4,14 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>RHC Persona Access</label>
+    <label>Coverage: Field Security by Persona</label>
     <protected>false</protected>
     <values><field>ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >rhc__RHC_Persona_Record__c</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Persona Access Verification</value></values>
+    >Coverage: Field Security by Persona</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>
@@ -51,5 +51,11 @@
     <values>
         <field>SummaryDisplay__c</field>
         <value xsi:type="xsd:string">BOTTOM</value>
+    </values>
+    <values>
+        <field>CardSubtitle__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Two Checks reading the same record through fields one persona can see and another cannot. Run this card as each persona to confirm a restricted field reports Unable to evaluate instead of leaking its value. Requires a namespaced org.</value>
     </values>
 </CustomMetadata>

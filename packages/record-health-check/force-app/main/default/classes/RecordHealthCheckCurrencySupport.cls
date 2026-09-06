@@ -418,15 +418,7 @@ public with sharing class RecordHealthCheckCurrencySupport {
 
   @TestVisible
   private static Object readPath(SObject row, String fieldPath) {
-    List<String> segments = fieldPath.split('\\.');
-    SObject current = row;
-    for (Integer index = 0; index < segments.size() - 1; index++) {
-      current = current?.getSObject(segments[index]);
-      if (current == null) {
-        return null;
-      }
-    }
-    return current.get(segments[segments.size() - 1]);
+    return RecordHealthCheckValueResolver.valueAtFieldPath(row, fieldPath);
   }
 
   private static Boolean isCurrencyField(String query, String fieldPath) {

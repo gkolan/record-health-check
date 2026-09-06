@@ -57,7 +57,7 @@ public with sharing class RecordHealthCheckValueResolver {
       );
     }
     try {
-      return traverse(row, fieldName);
+      return valueAtFieldPath(row, fieldName);
     } catch (System.SObjectException ex) {
       throw new ResolverException(
         'INVALID_SOQL_TEMPLATE',
@@ -78,11 +78,15 @@ public with sharing class RecordHealthCheckValueResolver {
     return values;
   }
 
-  private static Object traverse(SObject row, String fieldPath) {
-    if (!fieldPath.contains('.')) {
-      return row.get(fieldPath);
-    }
-    List<String> parts = fieldPath.split('\\.');
+  /**
+   * Walks the parent relationships of a split field path and returns the row that
+   * owns the terminal field. Null when any parent relationship on the way is blank.
+   *
+   * @param row Starting record.
+   * @param parts Field path already split on '.'.
+   * @return Row owning the terminal field, or null.
+   */
+  public static SObject parentForFieldPath(SObject row, List<String> parts) {
     SObject current = row;
     for (Integer i = 0; i < parts.size() - 1; i++) {
       current = current.getSObject(parts[i]);
@@ -90,7 +94,23 @@ public with sharing class RecordHealthCheckValueResolver {
         return null;
       }
     }
-    return current.get(parts[parts.size() - 1]);
+    return current;
+  }
+
+  /**
+   * Reads the value at a dotted field path.
+   *
+   * @param row Record containing the requested fields.
+   * @param fieldPath Field or parent relationship path.
+   * @return Field value, or null when a parent relationship is blank.
+   */
+  public static Object valueAtFieldPath(SObject row, String fieldPath) {
+    if (!fieldPath.contains('.')) {
+      return row.get(fieldPath);
+    }
+    List<String> parts = fieldPath.split('\\.');
+    SObject parent = parentForFieldPath(row, parts);
+    return parent == null ? null : parent.get(parts[parts.size() - 1]);
   }
 
   /**

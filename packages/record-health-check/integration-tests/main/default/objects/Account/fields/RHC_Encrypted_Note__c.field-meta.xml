@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RHC_Encrypted_Note__c</fullName>
+    <label>RHC Encrypted Note</label>
+    <description
+  >Integration-test only. A Classic encrypted field exists so the rule that refuses encrypted values in rendered text is reachable, rather than skipping itself in every org.</description>
+    <type>EncryptedText</type>
+    <length>32</length>
+    <maskChar>asterisk</maskChar>
+    <maskType>all</maskType>
+    <required>false</required>
+</CustomField>

@@ -231,6 +231,10 @@
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
+                <field>ComparisonDisplayMode__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
                 <field>DisplayValueFormat__c</field>
             </layoutItems>
             <layoutItems>

@@ -36,4 +36,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The Formula leg of the on-load matrix. Passes when the account has a name, so the run's outcome depends on the loading contract rather than on the data.</value>
+    </values>
 </CustomMetadata>

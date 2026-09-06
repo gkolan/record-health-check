@@ -146,6 +146,10 @@
     "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckExhaustiveSmoke.cls": {
       "maximum": 3,
       "category": "scratch-org test-only access"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckQueryTokenRules.cls": {
+      "maximum": 1,
+      "category": "Testability: the multi-currency condition is passed in so the rule can be proved on both sides of it in any org."
     }
   },
   "testRuntimeBranches": {},

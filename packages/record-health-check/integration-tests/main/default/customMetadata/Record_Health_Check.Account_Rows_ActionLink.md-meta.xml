@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Rows ActionLink</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Account_Row_Tokens_Positive</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >First Contact Is Reachable</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Builds a safe action link from a queried row. The row value fills one path segment and is URL-encoded exactly once.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+    <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT Id, LastName, Email, Account.Name FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id</value></values>
+    <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >Email</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ALL_ROWS_PASS</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >IS_NOT_BLANK</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Open the first contact to add an address.</value></values>
+    <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >View {!rhcQuery.sourceRows[1].LastName fallback="the contact"}</value></values>
+    <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Contact/{!rhcQuery.sourceRows[1].Id}/view</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Could not read the contacts for this account.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >20</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

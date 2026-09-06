@@ -48,4 +48,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The Query leg of the on-load matrix. Passes when the contact count can be read, proving a query runs during an automatic on-load evaluation.</value>
+    </values>
 </CustomMetadata>

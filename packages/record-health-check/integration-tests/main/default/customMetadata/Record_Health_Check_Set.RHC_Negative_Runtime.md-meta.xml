@@ -4,17 +4,17 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>RHC Negative Runtime</label>
+    <label>Diagnostics: Fail-Closed Runtime</label>
     <protected>false</protected>
     <values><field>ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >Account</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >RHC Negative Runtime Scenarios</value></values>
+    >Diagnostics: Fail-Closed Runtime Scenarios</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Integration-only fail-closed, schema, query, and row-cap scenarios.</value></values>
+    >Integration-only fixtures for the guards that must refuse rather than guess: a query past the row cap, a missing object, a missing field, FOR UPDATE, and SYSTEM MODE. Every Check here is expected to fail closed.</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>

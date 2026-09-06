@@ -16,11 +16,11 @@
     "testRunId": "707Rt00002DroD1"
   },
   "lwc": {
-    "verifiedAt": "2026-09-02",
-    "testCount": 258,
-    "linesPercent": 98.59,
-    "statementsPercent": 98.12,
-    "functionsPercent": 99.08,
-    "branchesPercent": 91.94
+    "verifiedAt": "2026-09-05",
+    "testCount": 305,
+    "linesPercent": 98.89,
+    "statementsPercent": 98.4,
+    "functionsPercent": 99.06,
+    "branchesPercent": 92.88
   }
 }

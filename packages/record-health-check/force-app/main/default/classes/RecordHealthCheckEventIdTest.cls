@@ -4,14 +4,8 @@ private class RecordHealthCheckEventIdTest {
   @IsTest
   static void reusedRunIdProducesUniqueEventIds() {
     Test.startTest();
-    String first = RecordHealthCheckEventId.newId(
-      'nightly-2026-08-19',
-      'Account_DQ_BillingCity-001000000000001AAA'
-    );
-    String second = RecordHealthCheckEventId.newId(
-      'nightly-2026-08-19',
-      'Account_DQ_BillingCity-001000000000001AAA'
-    );
+    String first = RecordHealthCheckEventId.newId('nightly-2026-08-19');
+    String second = RecordHealthCheckEventId.newId('nightly-2026-08-19');
     Test.stopTest();
 
     Assert.areNotEqual(
@@ -33,10 +27,9 @@ private class RecordHealthCheckEventIdTest {
   static void longAndNullRunIdsRemainBounded() {
     Test.startTest();
     String longId = RecordHealthCheckEventId.newId(
-      '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
-      'check-record'
+      '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789'
     );
-    String nullId = RecordHealthCheckEventId.newId(null, null);
+    String nullId = RecordHealthCheckEventId.newId(null);
     Test.stopTest();
 
     Assert.isTrue(longId.length() <= 80, 'Long run IDs must be bounded.');

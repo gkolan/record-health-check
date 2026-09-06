@@ -128,6 +128,20 @@
             </template>
           </div>
 
+          <template if:true={isCardLoading}>
+            <div
+              class="rhc-card-loading"
+              role="status"
+              aria-live="polite"
+              aria-label={cardLoadingLabel}
+            >
+              <lightning-spinner
+                alternative-text={cardLoadingLabel}
+                size="small"
+              ></lightning-spinner>
+            </div>
+          </template>
+
           <template if:true={showBuilderPreviewMessage}>
             <p class="rhc-builder-preview" role="status">
               {builderPreviewMessage}
@@ -153,6 +167,13 @@
 
           <template if:true={showPreRunHint}>
             <p class="rhc-pre-run-hint" role="status">{preRunHintText}</p>
+          </template>
+          <!-- Last-resort body content: renders only when no other block does,
+               so the card can never collapse to a header-only strip. -->
+          <template if:true={showEmptyBodyNotice}>
+            <p class="rhc-pre-run-hint rhc-empty-body" role="status">
+              {emptyBodyNotice}
+            </p>
           </template>
           <template if:true={showHiddenEvaluationHint}>
             <p class="rhc-pre-run-hint" role="status">

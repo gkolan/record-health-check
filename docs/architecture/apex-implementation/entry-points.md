@@ -206,17 +206,36 @@ each EventBus call and logs a publication failure without failing the health che
 
 **See also:** [Lifecycle events](../../save-results/when-to-use-platform-events.md)
 
+### `RecordHealthCheckAgentContract`
+
+**Role:** Hold the request rules every Agentforce surface shares, in one place.
+
+**Type:** Utility class · `public with sharing`
+
+The two native actions and the REST tool resource accept the same request shape, so
+`validateRequest(recordId, qualifiedApiName, correlationId, identityLabel)` states the Record ID,
+identity-format, length, and correlation-ID rules once. `identityLabel` names the identity in every
+rejection message, which is the only wording that differs between a Check and a Check Set.
+`safeCorrelationId(value)` returns a caller value that passes `isValidCorrelationId(value)`, and
+otherwise generates one that stays unique across concurrent requests.
+
+**Notable behavior:**
+
+- A correlation ID is at most 120 letters, numbers, periods, underscores, colons, or hyphens.
+- A rejected or missing correlation ID is replaced, never echoed back into an operational log.
+
 ### `RecordHealthCheckEventId`
 
 **Role:** Generate unique, bounded application identifiers for lifecycle-event publications.
 
 **Type:** Utility class · `public with sharing`
 
-`newId(runId, eventIdentity)` preserves up to 50 characters of the caller-owned Run ID as an
-operational prefix and hashes the run, event identity, current time, a cryptographic random value,
-and a transaction-local sequence into a 16-character suffix. Separate publications therefore have
-different `EventId__c` values even when a caller deliberately reuses the same Run ID. A replay of
-the same Platform Event retains its original ID, so subscriber deduplication remains safe.
+`newId(runId)` preserves up to 50 characters of the caller-owned Run ID as an operational prefix,
+then appends a transaction-local sequence and a cryptographic random value. The sequence separates
+publications inside one transaction and the random value separates concurrent transactions, so
+separate publications have different `EventId__c` values even when a caller deliberately reuses the
+same Run ID. A replay of the same Platform Event retains its original ID, so subscriber
+deduplication remains safe.
 
 **Notable behavior:**
 

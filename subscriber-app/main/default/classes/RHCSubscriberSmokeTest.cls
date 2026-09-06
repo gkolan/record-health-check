@@ -193,7 +193,10 @@ private class RHCSubscriberSmokeTest {
   @IsTest
   static void restrictedSubscriberIsDeniedAtEveryServerEntryPoint() {
     User restrictedUser = RHCSubscriberTestDataFactory.createStandardUserWithoutRunAccess();
-    Id inaccessibleRecordId = Id.valueOf('001000000000001AAA');
+    Id inaccessibleRecordId = Id.valueOf(
+      Account.SObjectType.getDescribe(SObjectDescribeOptions.DEFERRED)
+        .getKeyPrefix() + String.valueOf(restrictedUser.Id).substring(3)
+    );
     String checkSetName = RHCSubscriberTestDataFactory.qualifiedCheckSetName(
       'Example_Account_Check_Builder_Guide'
     );

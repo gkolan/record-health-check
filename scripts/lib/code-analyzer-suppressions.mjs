@@ -37,7 +37,7 @@ function parseSuppressions(lines) {
   let currentPath = null;
 
   for (const line of lines) {
-    const pathMatch = line.match(/^  ["']([^"']+)["']:\s*$/);
+    const pathMatch = line.match(/^ {2}["']([^"']+)["']:\s*$/);
     if (pathMatch) {
       currentPath = pathMatch[1];
       entries.set(currentPath, { rules: [], maximums: [], reasons: [] });
