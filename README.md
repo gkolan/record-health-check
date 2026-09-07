@@ -2,7 +2,7 @@
 
 [![License: Apache 2.0](./assets/img/badge-license.svg)](./LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Apex coverage: 99.66%](https://img.shields.io/badge/Apex_coverage-99.66%25-brightgreen)](./config/quality-metrics.json)
+[![Apex coverage: 99.69%](https://img.shields.io/badge/Apex_coverage-99.69%25-brightgreen)](./config/quality-metrics.json)
 [![LWC line coverage: 98.89%](https://img.shields.io/badge/LWC_lines-98.89%25-brightgreen)](./config/quality-metrics.json)
 [![Salesforce API](./assets/img/badge-salesforce-api.svg)](./packages/record-health-check/sfdx-project.json)
 
@@ -89,7 +89,7 @@ This inventory describes the current source checkout. See [version availability]
 | Area                  | Details                                                                                                                                                                                                                                                                                                              |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Package               | Salesforce 2GP unlocked package with the `rhc` namespace                                                                                                                                                                                                                                                             |
-| Apex                  | 243 classes, including 126 `@IsTest` classes and 1 global contract-test support class · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.66% coverage from the complete namespaced 2.0.8 source test run · Salesforce-validated 2.0.8.1 package coverage: 99% |
+| Apex                  | 243 classes, including 126 `@IsTest` classes and 1 global contract-test support class · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.69% coverage from the complete namespaced 2.0.8 source test run · Salesforce-validated 2.0.8.1 package coverage: 99% |
 | LWC                   | 1 Lightning Web Component · 305 Jest tests · 98.89% line coverage · 92.88% branch coverage                                                                                                                                                                                                                           |
 | Packaged examples     | 4 active Example Check Set records containing 50 Check records; 49 Checks are active                                                                                                                                                                                                                                 |
 | Permission sets       | Card User, User, Admin, MCP Integration, Diagnostics Viewer, and Error Log Publisher                                                                                                                                                                                                                                 |
