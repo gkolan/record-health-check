@@ -196,8 +196,8 @@ for (const fileName of drafts) {
     // The requirement is the only place an administrator's own field names can
     // come from, so anything else the draft spells with __c was invented.
     ...(slug
-        ? inventedNameProblems(
-            normalizedDraft,
+      ? inventedNameProblems(
+          normalizedDraft,
           fs.readFileSync(
             path.join(draftsDirectory, `requirement-${slug}.txt`),
             "utf8"

@@ -283,9 +283,7 @@ export function draftFields(markdown) {
     if (columns > 0 && columns < 4) continue;
     const cells = line
       .split("|")
-      .map((cell) =>
-        cell.trim().replace(/^`|`$/g, "").replaceAll("\\_", "_")
-      );
+      .map((cell) => cell.trim().replace(/^`|`$/g, "").replaceAll("\\_", "_"));
     const index = cells.findIndex(
       (cell) =>
         /^[A-Za-z][A-Za-z0-9_]*(__c)?$/.test(cell) &&
