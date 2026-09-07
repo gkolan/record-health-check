@@ -33,14 +33,19 @@ function fakePage(states, destination = home) {
     "* Current Password",
     "New Password",
     "Confirm New Password *",
+    "* New Security Question",
     "* New Answer"
   ];
   let state = states[0];
   let probes = 0;
   let clicks = 0;
   const filled = [];
+  const typed = [];
+  const selected = [];
   return {
     filled,
+    selected,
+    typed,
     probes: () => probes,
     clicks: () => clicks,
     url: () => state.url,
@@ -55,6 +60,14 @@ function fakePage(states, destination = home) {
         async fill(value) {
           assert.equal(state.visible, true);
           filled.push([matching[0], value]);
+        },
+        async pressSequentially(value) {
+          assert.equal(state.visible, true);
+          typed.push([matching[0], value]);
+        },
+        async selectOption(value) {
+          assert.equal(state.visible, true);
+          selected.push([matching[0], value]);
         }
       };
     },
@@ -86,10 +99,14 @@ test("waits through frontdoor and a delayed password form before completing setu
   await completeScratchUserFirstLogin(page, credentials, options);
   assert.equal(page.probes(), 3);
   assert.equal(page.clicks(), 1);
-  assert.deepEqual(
-    page.filled.map(([, value]) => value),
-    ["fake-current", "fake-new", "fake-new", "Chicago"]
-  );
+  assert.deepEqual(page.typed, [
+    ["* Current Password", "fake-current"],
+    ["New Password", "fake-new"],
+    ["Confirm New Password *", "fake-new"],
+    ["* New Answer", "Chicago"]
+  ]);
+  assert.deepEqual(page.filled, []);
+  assert.deepEqual(page.selected, [["* New Security Question", { index: 1 }]]);
 });
 
 test("waits for an already initialized user without changing credentials", async () => {

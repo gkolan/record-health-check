@@ -62,16 +62,19 @@ export async function completeScratchUserFirstLogin(
   if (state === "home") return;
   if (!currentPassword || !newPassword)
     throw new Error("Scratch-user setup passwords are required.");
-  await current.fill(currentPassword, { timeout });
+  await current.pressSequentially(currentPassword, { delay: 1, timeout });
   await page
     .getByLabel(/^\s*\*?\s*New Password\s*\*?\s*$/i)
-    .fill(newPassword, { timeout });
+    .pressSequentially(newPassword, { delay: 1, timeout });
   await page
     .getByLabel(/^\s*\*?\s*Confirm New Password\s*\*?\s*$/i)
-    .fill(newPassword, { timeout });
+    .pressSequentially(newPassword, { delay: 1, timeout });
+  await page
+    .getByLabel(/^\s*\*?\s*New Security Question\s*\*?\s*$/i)
+    .selectOption({ index: 1 }, { timeout });
   await page
     .getByLabel(/^\s*\*?\s*New Answer\s*\*?\s*$/i)
-    .fill("Chicago", { timeout });
+    .pressSequentially("Chicago", { delay: 1, timeout });
   await page
     .getByRole("button", { name: /change password/i })
     .click({ timeout });
