@@ -50,15 +50,14 @@ missing event as an automation incident, not as proof that the Check did not run
 administrator's current browser session:
 
 1. Enable **Show Diagnostics** on the specific Check Set being investigated, not broadly.
-2. Confirm only users holding **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) through an org-owned Permission Set, **Record Health Check Admin**, or **Record Health Check Diagnostics Viewer**
-   when available
-   can see the resulting detail; everyone else still sees the standard card.
+2. Confirm only users directly assigned **Record Health Check Admin** or **Record Health Check
+   Diagnostics Viewer** can see the resulting detail; everyone else still sees the standard card.
 3. Turn it back off when the investigation ends.
 4. Periodically audit which Check Sets currently have **Show Diagnostics** checked; a forgotten
    Check Set left in diagnostics mode has no time-based expiration.
 
-See [Security and data access: The diagnostics Custom Permission](../architecture/security-and-data-access.md#the-diagnostics-custom-permission)
-for why both the Check Set setting and the Custom Permission must be true together, and
+See [Security and data access: Diagnostics authorization](../architecture/security-and-data-access.md#diagnostics-authorization)
+for why both the Check Set setting and a direct packaged Permission Set assignment are required, and
 [Troubleshoot Record Health Check](../diagnostics/browser-console.md) for a full
 investigation workflow.
 

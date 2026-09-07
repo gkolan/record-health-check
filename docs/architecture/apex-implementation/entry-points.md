@@ -217,7 +217,7 @@ The two native actions and the REST tool resource accept the same request shape,
 identity-format, length, and correlation-ID rules once. `identityLabel` names the identity in every
 rejection message, which is the only wording that differs between a Check and a Check Set.
 `safeCorrelationId(value)` returns a caller value that passes `isValidCorrelationId(value)`, and
-otherwise generates one that stays unique across concurrent requests.
+otherwise generates one with a full 128-bit random suffix for collision resistance across concurrent requests.
 
 **Notable behavior:**
 

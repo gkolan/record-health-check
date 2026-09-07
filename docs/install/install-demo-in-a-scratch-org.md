@@ -193,7 +193,7 @@ The exact summary is **7 Passed, 17 Failed, 0 Skipped, and 1 Unable**. The desig
 
 These 25 Checks do not use categories, so the card shows one overall summary. Found and Expected values state the measured business evidence and the governing policy or comparison baseline.
 
-Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing, and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and the running user has the **Record Health Check View Diagnostics** custom permission. Assign **Record Health Check Diagnostics Viewer** alongside **Card User** or **User** to test those details. **Record Health Check Admin** already includes the diagnostic permission. A System Administrator receives these details only through a permission set or another assignment that grants the custom permission.
+Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing, and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and the running user is directly assigned **Record Health Check Admin** or **Record Health Check Diagnostics Viewer**. Assign **Record Health Check Diagnostics Viewer** alongside **Card User** or **User** to test those details. A System Administrator receives these details only through one of those two assignments.
 
 The Account Builder Guide runs on request, reveals one result at a time, shows passed and skipped rows, shows Found and Expected on demand, and places the summary at the bottom.
 
@@ -302,7 +302,7 @@ If a data script failed, run `deactivateDemoUser.apex` before retrying so Jordan
 
 ## Try the other permission sets
 
-If **Diagnostics Viewer** is absent from Setup, use an org-owned Permission Set with the **Record Health Check View Diagnostics** Custom Permission, as described in [Permission Sets](../reference/permission-sets.md).
+If **Diagnostics Viewer** is absent from Setup, assign **Record Health Check Admin** instead. An org-owned Permission Set cannot grant diagnostics, as described in [Permission Sets](../reference/permission-sets.md).
 
 A scratch-org administrator does not represent a restricted user. To test everyday-user access, use a separate non-admin user with access to the demo records and required fields. This checkout includes other permission sets for specific jobs. Assign them only when you want to test that job:
 

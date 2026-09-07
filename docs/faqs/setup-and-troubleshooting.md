@@ -47,14 +47,16 @@ data-handling requirements.
 
 Business-record queries run in user mode and package service classes use sharing-aware boundaries.
 Configuration Custom Metadata loads after run authorization because it defines the rule rather
-than granting business-record access. Diagnostics require an additional Custom Permission. See
+than granting business-record access. Diagnostics require a direct packaged Admin or Diagnostics
+Viewer Permission Set assignment. See
 [Security and data access](../architecture/security-and-data-access.md).
 
 ## How are inaccessible records and fields reported?
 
 The public result fails closed as `UNABLE_TO_EVALUATE` without revealing restricted details. When
-diagnostics are enabled on the Check Set and the transaction has the diagnostics Custom Permission,
-the detail can distinguish record visibility, field access, invalid metadata, and other causes.
+diagnostics are enabled on the Check Set and the running user has a direct packaged Admin or
+Diagnostics Viewer Permission Set assignment, the detail can distinguish record visibility, field
+access, invalid metadata, and other causes.
 Do not enable diagnostics broadly or leave them enabled after an investigation.
 
 ## Are lifecycle events enabled by default?

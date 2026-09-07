@@ -21,7 +21,7 @@ public with sharing class RecordHealthCheckAgentContract {
   }
 
   /**
-   * Returns the caller's correlation identifier, or generates a unique one.
+   * Returns the caller's correlation identifier, or generates a collision-resistant one.
    *
    * @param value Caller-supplied identifier; blank or unsafe values are replaced.
    * @return An identifier safe to place in operational logs.
@@ -30,8 +30,7 @@ public with sharing class RecordHealthCheckAgentContract {
     if (!String.isBlank(value) && isValidCorrelationId(value.trim())) {
       return value.trim();
     }
-    String randomSuffix = EncodingUtil.convertToHex(Crypto.generateAesKey(128))
-      .substring(0, 8);
+    String randomSuffix = EncodingUtil.convertToHex(Crypto.generateAesKey(128));
     return 'agent-' +
       String.valueOf(DateTime.now().getTime()) +
       '-' +

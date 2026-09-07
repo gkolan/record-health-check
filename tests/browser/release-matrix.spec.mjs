@@ -25,6 +25,40 @@ function completedCounts(text) {
   return match ? { complete: Number(match[1]), total: Number(match[2]) } : null;
 }
 
+// Spinners inside the card that are not the card's own load slot. Counted in
+// one page-side pass so a spinner that settles mid-check cannot be read as a
+// stray one.
+function strayCardSpinners(components) {
+  return components.evaluateAll((hosts) =>
+    hosts.reduce((count, host) => {
+      const root = host.shadowRoot ?? host;
+      const spinners = root.querySelectorAll(
+        "lightning-spinner, .slds-spinner_container"
+      );
+      return (
+        count +
+        [...spinners].filter((node) => !node.closest(".rhc-card-loading"))
+          .length
+      );
+    }, 0)
+  );
+}
+
+// Salesforce page-level loading overlays. Under Lightning Web Security the
+// card's own spinner sits in a shadow root a document query does not reach;
+// under Locker's synthetic shadow the component ancestor test excludes it.
+function pageLevelSpinners(page) {
+  return page.evaluate(
+    () =>
+      [...globalThis.document.querySelectorAll(".slds-spinner_container")]
+        .filter((node) => node.getBoundingClientRect().height > 0)
+        .filter(
+          (node) =>
+            !node.closest("c-record-health-check, rhc-record-health-check")
+        ).length
+  );
+}
+
 async function expectRunCompleted(card, expectedTotal) {
   await expect
     .poll(async () => {
@@ -62,15 +96,14 @@ test("renders manual and on-load cards without a component or page-loading failu
   await expect(manualCard).toHaveCount(1);
   await expect(automaticCard).toHaveCount(1);
 
-  // RHC must never add a card- or page-level spinner during initial setup or
-  // RUN_ON_LOAD evaluation. Progress that follows a deliberate click is kept
-  // inside the clicked action button and is checked separately below.
+  // The card's own load slot is the one spinner RHC may raise before a
+  // deliberate click (docs/architecture/record-page-card-contract.md). Any
+  // other spinner in the card, and any Salesforce page-level loading overlay,
+  // is still a failure. Progress that follows a click is kept inside the
+  // clicked action button and is checked separately below.
   for (let sample = 0; sample < 60; sample += 1) {
-    await expect(components.locator("lightning-spinner")).toHaveCount(0);
-    await expect(components.locator(".slds-spinner_container")).toHaveCount(0);
-    await expect(page.locator(".slds-spinner_container:visible")).toHaveCount(
-      0
-    );
+    expect(await strayCardSpinners(components)).toBe(0);
+    expect(await pageLevelSpinners(page)).toBe(0);
     await page.waitForTimeout(100);
   }
 
@@ -92,6 +125,9 @@ test("renders manual and on-load cards without a component or page-loading failu
   await expect(runButton).toBeEnabled();
   await runButton.click();
   await expectRunCompleted(manualCard, 25);
+
+  // The load slot hands over and disappears; it must not outlive the load.
+  await expect(components.locator(".rhc-card-loading")).toHaveCount(0);
 
   await exerciseRefreshAndNavigation(page);
 

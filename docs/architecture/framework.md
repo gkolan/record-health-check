@@ -372,17 +372,18 @@ results, Platform Events, custom Apex Checks, and Action URLs, see
 | Check selection | A Check is always loaded with its parent Check Set, so an inactive Check or a Check from the wrong object cannot run |
 | Merge tokens | Only known tokens resolve, with caps on token count and completed message size |
 | Fix links | Same-org relative paths or `https://` only, length-capped, and checked again in the component before use as a link |
-| Diagnostics detail | Requires the **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission and a Check Set that enables Show Diagnostics |
+| Diagnostics detail | Requires a direct **Record Health Check Admin** or **Record Health Check Diagnostics Viewer** Permission Set assignment and a Check Set that enables Show Diagnostics |
 | Lightning event input | `completeRun` accepts only a button-initiated run, the current record, and one result for each configured Check; it calculates counts from the accepted results |
 | Error messages | Public responses return a safe message and a Reason Code; exception text stays in authorized diagnostics |
 
 The installed **Card User**, **User**, and **Admin** Permission Sets include the **Record Health
 Check Run** Custom Permission and the Apex access appropriate to their surfaces. **Record Health Check Admin**
-(`rhc__Record_Health_Check_Admin`) also includes **Record Health Check View Diagnostics**, setup
+(`rhc__Record_Health_Check_Admin`) also authorizes diagnostics, setup
 access for the Custom Metadata, and Apex class access for the package metadata validator.
 **Record Health Check Diagnostics Viewer**
-(`rhc__Record_Health_Check_Diagnostics_Viewer`) includes only View Diagnostics and must be combined
-with an appropriate runner Permission Set.
+(`rhc__Record_Health_Check_Diagnostics_Viewer`) authorizes only diagnostics and must be combined
+with an appropriate runner Permission Set. Diagnostics is authorized by the assignment itself, not
+by a Custom Permission, so a cloned or org-owned Permission Set cannot grant it.
 
 ## 10. Limits
 
@@ -422,7 +423,7 @@ The same allowed values and caps are checked at two different moments, and both 
 | `Record_Health_Check_Log__e` | Receiving Flows, Apex triggers, and monitoring tools | `ERROR` detail held during the run and published by `flush()` when Error Log publication is enabled |
 | `Record_Health_Check_Set_Run__e` | Receiving Flows, Apex triggers, and external integrations | Published according to the programmatic request choice or Lightning button-run setting |
 | `Record_Health_Check_Result__e` | Receiving Flows, Apex triggers, and external integrations | Published according to the programmatic request choice or Lightning Check setting |
-| Show Diagnostics on the card | The Lightning record page | Requires the diagnostics Custom Permission |
+| Show Diagnostics on the card | The Lightning record page | Requires a direct packaged Admin or Diagnostics Viewer Permission Set assignment |
 
 Health-result publication is limited to deliberately started runs and is best effort. Programmatic
 requests choose `NONE`, `ACTIONABLE`, or `ALL`; Lightning button runs use Custom Metadata. Events
@@ -577,7 +578,7 @@ For longer per-class descriptions, see [Reference: Apex classes](./apex-implemen
 | `RecordHealthCheckLogger` | `[RHC]` log lines, held `ERROR` entries, and `flush()` to the log event |
 | `RecordHealthCheckDiagnosticTrace` | Authorized Check configuration, merge-resolution, and query diagnostics |
 | `RecordHealthCheckSettingsProvider` | Reads Custom Metadata settings for Lightning-button and Error Log Platform Events |
-| `RecordHealthCheckAccess` | Checks the Run and View Diagnostics Custom Permissions |
+| `RecordHealthCheckAccess` | Checks the Run Custom Permission and direct diagnostics Permission Set assignment |
 | `RecordHealthCheckValueSource` | Comparison diagnostic detail |
 | `RecordHealthCheckSetPicklist` | Check Set picker in Lightning App Builder |
 | `RecordHealthCheckScope` | The records a custom Check is asked about, plus its parameters. Read-only |

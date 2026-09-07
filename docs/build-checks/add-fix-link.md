@@ -79,8 +79,9 @@ URL.
 ## Merge tokens
 
 **Action Label**, **Fix Message**, and **Action URL** all support merge tokens. Action Label and
-Fix Message use display tokens (including result tokens after the Check finishes). Action URL uses
-URL tokens and URL-encodes each inserted value. Result tokens are not allowed in Action URL.
+Fix Message use display tokens (including result tokens after the Check finishes, such as
+`{!rhcResult.foundValue}`). Action URL uses URL tokens and URL-encodes each inserted value. Result
+tokens are not allowed in Action URL.
 
 ```text
 {!record.Id}
@@ -97,6 +98,12 @@ Action Label examples (keep them short; the field is 80 characters):
 Review {!record.Name}
 Edit {!record.Name fallback="this account"}
 Open {!rhcCheck.checkTitle}
+```
+
+Fix Message can also quote the compared value after the Check finishes:
+
+```text
+Found {!rhcResult.foundValue}; update the record so it matches {!rhcResult.expectedValue}.
 ```
 
 The engine resolves token values before showing the label or link. Values substituted into URLs are

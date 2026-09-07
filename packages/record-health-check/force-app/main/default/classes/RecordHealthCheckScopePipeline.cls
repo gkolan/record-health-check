@@ -480,7 +480,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     return 'rhc-api-' +
       String.valueOf(Datetime.now().getTime()) +
       '-' +
-      String.valueOf(Math.abs(Crypto.getRandomInteger()));
+      EncodingUtil.convertToHex(Crypto.generateAesKey(128));
   }
 
   public class SelectionContext {

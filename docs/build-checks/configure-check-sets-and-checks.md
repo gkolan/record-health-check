@@ -256,9 +256,9 @@ Test in a sandbox with realistic records and the same permissions users will hav
    data.
 10. Rerun after correcting the saved record and confirm the result changes as expected.
 
-Turn on **Show Diagnostics** only for authorized troubleshooting. The installed **Record Health
-Check Diagnostics Viewer** and **Record Health Check Admin** permission sets include the **Record
-Health Check View Diagnostics** Custom Permission. Assign Diagnostics Viewer temporarily alongside
+Turn on **Show Diagnostics** only for authorized troubleshooting. Diagnostic detail requires a
+direct assignment of the installed **Record Health Check Diagnostics Viewer** or **Record Health
+Check Admin** Permission Set. Assign Diagnostics Viewer temporarily alongside
 Card User or User when the affected runner must reproduce an issue without Admin access.
 Turn diagnostics off again after the investigation.
 
@@ -328,7 +328,9 @@ Record Health Check does not automatically create a Salesforce record for every 
 
 Merge tokens insert values from the current record or health-check result into messages, queries,
 and supported URLs. For example, `{!record.Name fallback="this Account"}` uses the Account name when
-it is populated and the words `this Account` when it is blank. Use the
+it is populated and the words `this Account` when it is blank. After the Check finishes, result
+tokens such as `{!rhcResult.foundValue}` and `{!rhcResult.expectedValue}` insert the compared values
+(not the card's display wording). Use the
 [Merge-token reference](../reference/merge-syntax/README.md) for supported fields, fallback
 behavior, and security rules.
 

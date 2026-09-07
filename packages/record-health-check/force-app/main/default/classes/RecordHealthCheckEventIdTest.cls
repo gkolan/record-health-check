@@ -21,6 +21,10 @@ private class RecordHealthCheckEventIdTest {
       first.length() <= 80 && second.length() <= 80,
       'Generated IDs must fit the platform event EventId field.'
     );
+    Assert.isTrue(
+      Pattern.matches('^nightly-2026-08-19-[0-9]+-[0-9a-fA-F]{32}$', first),
+      'The suffix must preserve all 128 random bits as unsigned hex.'
+    );
   }
 
   @IsTest
@@ -32,7 +36,15 @@ private class RecordHealthCheckEventIdTest {
     String nullId = RecordHealthCheckEventId.newId(null);
     Test.stopTest();
 
-    Assert.isTrue(longId.length() <= 80, 'Long run IDs must be bounded.');
+    Assert.areEqual(
+      80,
+      longId.length(),
+      'Long run IDs must fill but not exceed the field.'
+    );
     Assert.isTrue(nullId.length() <= 80, 'Null inputs must remain safe.');
+    Assert.isTrue(
+      Pattern.matches('^[0-9]{45}-[0-9]+-[0-9a-fA-F]{32}$', longId),
+      'Only the caller prefix should be shortened to preserve the sequence and full random suffix.'
+    );
   }
 }

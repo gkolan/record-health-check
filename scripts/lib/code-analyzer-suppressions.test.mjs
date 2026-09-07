@@ -10,7 +10,7 @@ const trackedConfig = fs.readFileSync("code-analyzer.yml", "utf8");
 
 test("accepts the exact tracked security suppression allowlist", () => {
   assert.deepEqual(codeAnalyzerSuppressionErrors(trackedConfig), []);
-  assert.equal(EXPECTED_CODE_ANALYZER_SUPPRESSIONS.size, 4);
+  assert.equal(EXPECTED_CODE_ANALYZER_SUPPRESSIONS.size, 6);
 });
 
 test("rejects an additional suppression path", () => {
@@ -34,4 +34,15 @@ test("rejects a widened limit or globally disabled security rule", () => {
   const errors = codeAnalyzerSuppressionErrors(widened).join("\n");
   assert.match(errors, /cap suppressed violations at exactly 1/);
   assert.match(errors, /must not be disabled globally/);
+});
+
+test("rejects a widened Flow false-positive allowance", () => {
+  const widened = trackedConfig.replace(
+    "max_suppressed_violations: 24",
+    "max_suppressed_violations: 25"
+  );
+  assert.match(
+    codeAnalyzerSuppressionErrors(widened).join("\n"),
+    /must cap suppressed violations at exactly 24/
+  );
 });

@@ -1,19 +1,27 @@
 export const EXPECTED_CODE_ANALYZER_SUPPRESSIONS = new Map([
   [
     "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Set__mdt/fields/PassedChecksDisplay__c.field-meta.xml",
-    "pmd:ProtectSensitiveData"
+    { rule: "pmd:ProtectSensitiveData", maximum: 1 }
   ],
   [
     "packages/record-health-check/force-app/main/default/objects/Record_Health_Check__mdt/fields/PassConditionFormula__c.field-meta.xml",
-    "pmd:ProtectSensitiveData"
+    { rule: "pmd:ProtectSensitiveData", maximum: 1 }
   ],
   [
     "packages/record-health-check/integration-tests/main/default/objects/RHC_Benchmark_Result__c/fields/Passed__c.field-meta.xml",
-    "pmd:ProtectSensitiveData"
+    { rule: "pmd:ProtectSensitiveData", maximum: 1 }
   ],
   [
     "packages/record-health-check/integration-tests/main/default/objects/RHC_Persona_Record__c/fields/Accessible_Value__c.field-meta.xml",
-    "pmd:ProtectSensitiveData"
+    { rule: "pmd:ProtectSensitiveData", maximum: 1 }
+  ],
+  [
+    "packages/record-health-check/integration-tests/main/default/flows/RHC_Release_Matrix.flow-meta.xml",
+    { rule: "flow:MissingDescription", maximum: 24 }
+  ],
+  [
+    "subscriber-app/main/default/flows/RHC_Subscriber_Release_Matrix.flow-meta.xml",
+    { rule: "flow:MissingDescription", maximum: 19 }
   ]
 ]);
 
@@ -74,17 +82,19 @@ export function codeAnalyzerSuppressionErrors(source) {
     }
   }
 
-  for (const [path, expectedRule] of EXPECTED_CODE_ANALYZER_SUPPRESSIONS) {
+  for (const [path, expected] of EXPECTED_CODE_ANALYZER_SUPPRESSIONS) {
     const entry = actual.get(path);
     if (!entry) {
       errors.push(`missing approved suppression: ${path}`);
       continue;
     }
-    if (entry.rules.length !== 1 || entry.rules[0] !== expectedRule) {
-      errors.push(`${path} must suppress only ${expectedRule}`);
+    if (entry.rules.length !== 1 || entry.rules[0] !== expected.rule) {
+      errors.push(`${path} must suppress only ${expected.rule}`);
     }
-    if (entry.maximums.length !== 1 || entry.maximums[0] !== 1) {
-      errors.push(`${path} must cap suppressed violations at exactly 1`);
+    if (entry.maximums.length !== 1 || entry.maximums[0] !== expected.maximum) {
+      errors.push(
+        `${path} must cap suppressed violations at exactly ${expected.maximum}`
+      );
     }
     if (entry.reasons.length !== 1 || entry.reasons[0].trim().length < 20) {
       errors.push(`${path} must contain one specific suppression reason`);

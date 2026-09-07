@@ -157,10 +157,9 @@ default-off **Publish Error Log Event** setting is deliberately enabled. See
 ## Show Diagnostics
 
 A Check Set setting that allows troubleshooting detail to be returned. Detail appears only when the
-running user also has the **Record Health Check View Diagnostics**
-(`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission. The Diagnostics Viewer and Admin
-Permission Sets include that permission; the Card User and User Permission Sets do not. See
-[Security and data access](../architecture/security-and-data-access.md#the-diagnostics-custom-permission).
+running user is directly assigned the **Record Health Check Diagnostics Viewer** or **Record Health
+Check Admin** Permission Set. The Card User and User Permission Sets do not authorize diagnostics. See
+[Security and data access](../architecture/security-and-data-access.md#diagnostics-authorization).
 
 ## Platform Event publication
 

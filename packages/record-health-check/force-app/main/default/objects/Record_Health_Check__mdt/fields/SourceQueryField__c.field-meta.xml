@@ -3,11 +3,11 @@
     <fullName>SourceQueryField__c</fullName>
     <label>Source Query Field</label>
     <description
-  >The API name of the field to read from the "Source Query" result. Needed when the Source Query returns field values. Leave blank when the Source Query uses COUNT() or another aggregate.</description>
+  >The API name of the field or aggregate alias to read from the "Source Query" result. Needed when the Source Query returns field values, or when it uses an aliased aggregate such as SUM(Amount) totalAmount (enter totalAmount here). Leave blank only for bare COUNT(), which returns the count directly.</description>
     <type>Text</type>
     <length>255</length>
         <inlineHelpText
-  >Which column from the "Source Query" to read, e.g. MailingCity. Leave blank for COUNT()/aggregate queries.</inlineHelpText>
+  >Column or aggregate alias from the Source Query, e.g. MailingCity or totalAmount. Leave blank only for bare COUNT().</inlineHelpText>
     <required>false</required>
     <unique>false</unique>
     <externalId>false</externalId>

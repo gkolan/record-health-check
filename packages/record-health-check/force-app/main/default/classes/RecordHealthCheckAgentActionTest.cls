@@ -1,5 +1,10 @@
 @IsTest
 private with sharing class RecordHealthCheckAgentActionTest {
+  // Both native actions once generated `'agent-' + milliseconds`, which two
+  // requests in the same millisecond could share; startsWith('agent-') passes
+  // for that broken form, so the whole shape is asserted.
+  private static final String GENERATED_CORRELATION_ID = '^agent-[0-9]+-[0-9a-fA-F]{32}$';
+
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
@@ -185,7 +190,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
     assertCheckError(checkOutput, 'VALIDATION');
     assertSetError(setOutput, 'VALIDATION');
     Assert.isTrue(
-      checkOutput.correlationId.startsWith('agent-'),
+      Pattern.matches(GENERATED_CORRELATION_ID, checkOutput.correlationId),
       'An unsafe correlation value must never be reflected.'
     );
     Assert.isTrue(
@@ -347,7 +352,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
 
     assertCheckError(output, 'VALIDATION');
     Assert.isTrue(
-      output.correlationId.startsWith('agent-'),
+      Pattern.matches(GENERATED_CORRELATION_ID, output.correlationId),
       'The rejected correlation ID must not be reflected.'
     );
   }
@@ -419,7 +424,7 @@ private with sharing class RecordHealthCheckAgentActionTest {
 
     assertSetError(output, 'VALIDATION');
     Assert.isTrue(
-      output.correlationId.startsWith('agent-'),
+      Pattern.matches(GENERATED_CORRELATION_ID, output.correlationId),
       'The rejected correlation ID must not be reflected.'
     );
   }

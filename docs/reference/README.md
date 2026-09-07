@@ -29,7 +29,7 @@ Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term 
 | What the package supports | [Complete feature catalog](./feature-catalog.md) |
 | Which field to use in Setup | [Custom Metadata](./custom-metadata/README.md) |
 | Which Permission Set to assign | [Permission Sets](./permission-sets.md) |
-| What the Run or View Diagnostics Custom Permission controls | [Custom Permissions](./custom-permissions.md) |
+| What the Run Custom Permission controls, and how diagnostics access works | [Custom Permissions](./custom-permissions.md) |
 | Which fields a Platform Event publishes | [Platform Event metadata](./platform-event-metadata/README.md) |
 | Why a result says `FAIL`, `ERROR`, or `UNABLE_TO_EVALUATE` | [Result statuses and card labels](./results/statuses-and-labels.md) |
 | What a Reason Code means | [Reason Codes](./results/reason-codes.md) |

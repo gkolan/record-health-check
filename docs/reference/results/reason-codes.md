@@ -32,8 +32,8 @@ use the code, never editable display text.
 > [!IMPORTANT]
 > **Public versus diagnostics-only:** `FIELD_NOT_ACCESSIBLE` and `RECORD_NOT_ACCESSIBLE` never appear
 > as the public `reasonCode` on a result. Record Health Check replaces them with `CANNOT_EVALUATE`.
-> When **Show Diagnostics** is on and the user has **Record Health Check View Diagnostics**
-> (`rhc__Record_Health_Check_View_Diagnostics`), the specific code is available in
+> When **Show Diagnostics** is on and the user is assigned **Record Health Check Admin** or
+> **Record Health Check Diagnostics Viewer**, the specific code is available in
 > `adminDetail.reasonCode`.
 
 Record Health Check uses a neutral public code because revealing whether a hidden record or field exists

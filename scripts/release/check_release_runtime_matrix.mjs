@@ -644,8 +644,9 @@ requireText("tests/browser/release-matrix.spec.mjs", [
   "RHC_BROWSER_URL is required; browser validation cannot skip.",
   "Invalid contextElement",
   '"c-record-health-check, rhc-record-health-check"',
-  'components.locator("lightning-spinner")',
-  'page.locator(".slds-spinner_container:visible")',
+  "strayCardSpinners(components)",
+  "pageLevelSpinners(page)",
+  'components.locator(".rhc-card-loading")',
   "expectRunCompleted(automaticCard, 4)",
   "expectRunCompleted(manualCard, 25)",
   "expect(pageErrors).toEqual([])"

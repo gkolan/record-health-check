@@ -3,11 +3,11 @@
     <fullName>ApplicabilityNotMetMessage__c</fullName>
     <label>Message When Not Applicable</label>
     <description
-  >Optional business-friendly explanation shown when a check is skipped because its applicability condition is not met. Supports record merge fields.</description>
+  >Optional business-friendly explanation shown when a check is skipped because its applicability condition is not met. Insert record values with {!record.Name} and completed result values with {!rhcResult.foundValue} or {!rhcResult.expectedValue}. Query row tokens are not accepted, because the Check's queries never ran.</description>
     <type>LongTextArea</type>
     <length>32768</length>
     <visibleLines>3</visibleLines>
     <inlineHelpText
-  >Explain why this check does not apply to the current record. Example: {!record.Name} is a direct customer; this check applies only to channel customers.</inlineHelpText>
+  >Explain why this check does not apply to the current record. Tokens: {!record.FieldApiName}, {!rhcResult.foundValue}. Example: {!record.Name} is a direct customer; this check applies only to channel customers.</inlineHelpText>
     <required>false</required>
 </CustomField>

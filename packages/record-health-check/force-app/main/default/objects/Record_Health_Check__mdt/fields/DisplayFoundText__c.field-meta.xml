@@ -3,10 +3,10 @@
     <fullName>DisplayFoundText__c</fullName>
     <label>Display: Found Text</label>
     <description
-  >Optional and display only. Plain text (not a formula) that replaces the Found line the Framework writes on a Query, Formula, or Compare two queries check, including the auto-generated "N of M records did not pass" summary on a multi-row ("Every record passes") query check. An Apex check writes its own Found value, so this field does not apply there. Supports {!rhcResult.foundValue}, {!rhcResult.failedRecordCount}, and {!rhcResult.totalRecordCount} plus {!record.FieldName} tokens. Example: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} contacts missing email.</description>
+  >Optional and display only. Plain text (not a formula) that replaces the Found line the Framework writes on a Query, Formula, or Compare two queries check, including the auto-generated "N of M records did not pass" summary on a multi-row ("Every record passes") query check. An Apex check writes its own Found value, so this field does not apply there. Supports {!rhcResult.foundValue}, {!rhcResult.foundValuePluralSuffix}, {!rhcResult.failedRecordCount}, and {!rhcResult.totalRecordCount} plus {!record.FieldName} tokens. Example: {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} contacts missing email.</description>
     <type>Text</type>
     <length>255</length>
     <inlineHelpText
-  >Display only. Plain text (not a formula) for the "Found" line. Tokens: {!rhcResult.foundValue}, {!rhcResult.failedRecordCount}, {!rhcResult.totalRecordCount}, {!record.FieldName}.</inlineHelpText>
+  >Display only. Plain text for the Found line. Tokens: {!rhcResult.foundValue}, {!rhcResult.foundValuePluralSuffix}, {!rhcResult.failedRecordCount}, {!rhcResult.totalRecordCount}, {!record.FieldName}.</inlineHelpText>
     <required>false</required>
 </CustomField>

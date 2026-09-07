@@ -3,11 +3,11 @@
     <fullName>FixMessage__c</fullName>
     <label>Fix Message</label>
     <description
-  >Optional next-step guidance displayed in the detail for a failed check. Tell the user what to review or change, using language that is specific to the failed requirement. Pair it with an Action URL when a useful page, record, report, or playbook can take the user directly to that next step.</description>
+  >Optional next-step guidance displayed in the detail for a failed check. Tell the user what to review or change, using language that is specific to the failed requirement. Supports merge tokens such as {!record.Name}, {!record.Owner.Name}, and {!rhcResult.foundValue}. Pair it with an Action URL when a useful page, record, report, or playbook can take the user directly to that next step.</description>
     <type>LongTextArea</type>
     <length>32768</length>
     <visibleLines>3</visibleLines>
     <inlineHelpText
-  >Optional guidance shown after a failure. Give the user a specific next step, such as "Review open Opportunities and their Amount values."</inlineHelpText>
+  >Optional guidance after a failure. Tokens: {!record.FieldApiName}, {!rhcResult.foundValue}. Pair with Action URL when useful.</inlineHelpText>
     <required>false</required>
 </CustomField>

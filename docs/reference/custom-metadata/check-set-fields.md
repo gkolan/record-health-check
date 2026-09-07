@@ -216,9 +216,8 @@ Select this field temporarily when an administrator needs technical details on t
 browser console. The user sees those details only when both conditions are true:
 
 1. **Show Diagnostics** is selected on the Check Set.
-2. The user has the **Record Health Check View Diagnostics** Custom Permission. The installed
-   **Record Health Check Diagnostics Viewer** and **Record Health Check Admin** Permission Sets
-   include it.
+2. The user is directly assigned the installed **Record Health Check Diagnostics Viewer** or
+   **Record Health Check Admin** Permission Set.
 
 Other users continue to see the standard card. Clear this field after troubleshooting because the
 details can contain object names, field names, formulas, or queries. See

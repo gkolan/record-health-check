@@ -167,7 +167,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L2 | [`RecordHealthCheckValueResolver`](./shared-services.md#recordhealthcheckvalueresolver) | Extract, convert, and compare query values |
 | L2 | [`RecordHealthCheckDescribeCache`](./shared-services.md#recordhealthcheckdescribecache) | Schema describe cache for the current transaction |
 | L2 | [`RecordHealthCheckEvaluatorException`](./shared-services.md#recordhealthcheckevaluatorexception) | Evaluator failure carrying a reason code |
-| L2 | [`RecordHealthCheckAccess`](./shared-services.md#recordhealthcheckaccess) | Diagnostics Custom Permission check |
+| L2 | [`RecordHealthCheckAccess`](./shared-services.md#recordhealthcheckaccess) | Run access and direct packaged diagnostics Permission Set assignment checks |
 | L2 | [`RecordHealthCheckLogger`](./shared-services.md#recordhealthchecklogger) | `[RHC]` debug lines and ERROR log platform events |
 | L2 | `RecordHealthCheckDiagnosticTrace` | Builds authorized Check configuration and resolution snapshots for browser diagnostics |
 | L2 | `RecordHealthCheckSettingsProvider` | Resolves lifecycle and diagnostic publication settings |

@@ -40,8 +40,8 @@ access.
    `rhc__`.
 7. Test the configuration with the same principal used by the active agent.
 
-The User Permission Set grants run access but not the diagnostics Custom Permission. Do not assign
-the Admin Permission Set only to make an agent action run.
+The User Permission Set grants run access but not diagnostics authorization. Do not assign the
+Admin or Diagnostics Viewer Permission Set only to make an agent action run.
 
 ## Basic Agentforce configuration pattern
 

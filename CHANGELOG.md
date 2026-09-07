@@ -11,7 +11,8 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 
 **Distribution notice (September 2, 2026):** the public install redirects currently target 2.0.4.2,
 not the latest promoted artifact. The 2.0.6 line has a reported RefreshView component-loading
-regression. The corrective 2.0.7 candidate is not released; see
+regression. The corrective 2.0.7.2 package was released on September 3, 2026 under an approved
+one-time exception and is not yet the configured stable release; see
 [Choose a package version](./docs/install/choose-a-package-version.md) before installing or upgrading.
 
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
@@ -96,21 +97,48 @@ exact-package clean/upgrade stages, and representative-sandbox acceptance must p
 
 ### Changed
 
+- **Upgrade impact for automations.** A Check Result now reports the severity Setup stores
+  (`CRITICAL`, `WARNING`, or `INFO`) instead of the card's own words `Error`, `Warning`, and
+  `Info`. Found and Expected now carry the values that were compared instead of the card's
+  sentence, so Expected is `Manufacturing` rather than `to equal Manufacturing`, and the
+  comparison operator travels on its own field. This is the contract the reference pages already
+  described, and matching on it no longer requires knowing the card's wording. A Flow, Apex
+  subscriber, or Check Result event handler that matches the old strings will stop matching after
+  the upgrade without reporting an error. Update those comparisons before installing.
 - Diagnostics access is separated from ordinary Check execution through the Diagnostics Viewer
   entitlement. Existing customer configuration and least-privilege access require upgrade validation.
 - Example Check definitions, demo setup, and administrator documentation are aligned with the
   current configuration contract.
-
-### Changed in 2.0.8
-
+- The AI draft prompt and Setup field help teach Record Health Check merge tokens with correct and
+  wrong examples (`{!record.Id}` in SOQL, not Flow or Apex bind forms), and Source Query Field help
+  matches the bare `COUNT()` versus aliased-aggregate rule. Message and display-field help also name
+  `{!rhcResult.foundValue}` / `{!rhcResult.expectedValue}` so authors do not confuse merge tokens with
+  Flow `evaluation.found` or card display wording.
+- Administrator AI drafting lives in one folder, [Draft configuration with AI](./docs/build-checks/draft-with-ai/),
+  with separate copy-paste prompts for Formula, Query, Compare two queries, and Apex. Those prompts
+  include exact Custom Metadata API names, Setup-label-to-stored-value maps, and Salesforce formula
+  syntax rules so low-cost assistants do not invent field names or use `&&` in Pass Condition.
+  Each prompt is self-contained and now offers every Check and Check Set field, so an assistant that
+  cannot follow links can still propose applicability, prerequisites, categories, severity, display
+  formatting, and card behavior instead of a bare pass/fail rule. `npm run check:ai-prompts` reads
+  the prompts against the Custom Metadata and fails on an invented field, a Setup label stored where
+  a stored value belongs, a capability no prompt offers, or a prompt that drifted from the shared
+  rules. The same gate re-validates recorded low-cost-model answers for all four Evaluation Types in
+  `tests/ai-drafts`, and refuses evidence recorded from an older version of a prompt. Every release
+  re-records that evidence: `npm run release:preflight` runs `check:ai-model-drafts`, which asks the
+  lowest-cost Claude model to draft each Evaluation Type from the prompts in that commit and fails
+  when what comes back is not configuration an administrator could save.
 - Merge-token guidance now distinguishes transient raw query rows from values intentionally copied
   into rendered messages, labels, and URLs, including their browser, API, and diagnostics exposure.
-- Merge tokens in a query Check are checked against what the query actually addresses, so an
-  unselected field, a missing row, or an unstable row order is reported at configuration time
-  instead of at evaluation time.
+- Query-row merge tokens use zero-based collection indexes: `sourceRows[0]` and
+  `comparisonRows[0]` address the first returned row, matching Apex and JavaScript conventions.
+- Merge tokens in a query Check are checked against what the query actually addresses. An
+  unselected field, a missing row, or an unstable row order is reported by the metadata validator,
+  and a Check that still has one returns `UNABLE_TO_EVALUATE` naming it instead of rendering a
+  blank value.
 - The Agentforce actions and the REST tool resource share one description of a valid request. A
-  generated correlation identifier is now unique across concurrent requests; previously two
-  requests in the same millisecond could receive the same one.
+  generated correlation identifier now combines its millisecond timestamp with a full 128-bit
+  random suffix; previously two requests in the same millisecond received the same identifier.
 - Allowed configuration values are read from the Custom Metadata picklists that store them rather
   than restated in Apex, so a new picklist value cannot be accepted by one layer and refused by
   another.

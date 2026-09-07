@@ -34,7 +34,7 @@ on [Install and verify](../install/install-in-a-sandbox.md).
 
 | Question | Answer on this page |
 | --- | --- |
-| Why does checking Show Diagnostics appear to do nothing? | The viewer also needs **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) through Diagnostics Viewer or Admin |
+| Why does checking Show Diagnostics appear to do nothing? | The viewer also needs a direct **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** assignment |
 | What changes on the card? | Authorized troubleshooting lines and details appear after a run |
 | What appears in the browser console? | One `[RHC]` summary; only results needing review receive per-Check groups, and full support evidence is reserved for technical outcomes |
 | How do I return to normal operation? | Uncheck Show Diagnostics and remove temporary administrator access when appropriate |
@@ -130,7 +130,7 @@ Compare users without granting broad administrator access permanently:
 
 - the baseline card user needs **Record Health Check Card User**; add **Record Health Check
   Diagnostics Viewer** temporarily when that user must reproduce an issue with authorized detail;
-- Show Diagnostics additionally requires the diagnostics Custom Permission described below;
+- Show Diagnostics additionally requires the direct packaged Permission Set assignment described below;
 - record sharing and object/field permissions remain those of the running user;
 - a custom Apex Check must query with the running user's access; and
 - a Flow, Apex trigger, or integration receiving a Platform Event needs separate access to that
@@ -140,13 +140,13 @@ Test as the affected user whenever possible. A System Administrator success does
 the intended user has the required access.
 
 > [!WARNING]
-> Turning on **Show Diagnostics** on the Check Set alone does **nothing** visible. Both the Check Set flag **and** the **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) permission are required for troubleshooting output.
+> Turning on **Show Diagnostics** on the Check Set alone does **nothing** visible. Both the Check Set flag **and** a direct **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** Permission Set assignment are required for troubleshooting output.
 
 ## Both steps are required
 
-If the Diagnostics Viewer Permission Set is absent from Setup, create an org-owned
-Permission Set, enable the existing
-**Record Health Check View Diagnostics** Custom Permission, and assign that set in step 2.
+If the Diagnostics Viewer Permission Set is absent from Setup, assign **Record Health Check Admin**
+in step 2 instead. Diagnostics is authorized by the packaged assignment itself, so an org-owned or
+cloned Permission Set cannot grant it.
 See [Permission Sets](../reference/permission-sets.md) for the access each set grants.
 
 | Step | What to do | Where in Setup |
@@ -154,40 +154,40 @@ See [Permission Sets](../reference/permission-sets.md) for the access each set g
 | **1. Check Set** | Check **Show Diagnostics** | **Custom Metadata Types** → **Record Health Check Set** → open your Check Set → **Show Diagnostics** (`ShowDiagnostics__c`) |
 | **2. User** | Assign **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) alongside the user's existing runner Permission Set | **Permission Sets** → open **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) → **Manage Assignments** → add the troubleshooting user |
 
-Step 2 grants the **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission, which unlocks advanced detail. The Check Set's **Show Diagnostics** flag then decides when that detail appears on the card and in the console.
+Step 2 authorizes advanced detail. The Check Set's **Show Diagnostics** flag then decides when that detail appears on the card and in the console.
 
-Salesforce does not assign a Custom Permission directly to a user. Assign the packaged **Record
-Health Check Diagnostics Viewer** Permission Set alongside the user's existing runner Permission
-Set. **Record Health Check Admin** also contains the permission, but reserve Admin for people who
-maintain or validate Check configuration.
+Assign the packaged **Record Health Check Diagnostics Viewer** Permission Set alongside the user's
+existing runner Permission Set. **Record Health Check Admin** also authorizes diagnostics, but
+reserve Admin for people who maintain or validate Check configuration. The assignment must be direct
+and active: an installation profile grant, a cloned Permission Set, or Permission Set Group
+membership alone does not authorize diagnostics.
 
 The two controls answer different questions. **Show Diagnostics** lets an administrator choose
-which Check Sets may produce troubleshooting output. The Custom Permission decides which users may
-see it. Requiring both prevents a configuration change from exposing record identifiers, timing,
-Reason Codes, source details, or access failures to every user of the Lightning page.
+which Check Sets may produce troubleshooting output. The Permission Set assignment decides which
+users may see it. Requiring both prevents a configuration change from exposing record identifiers,
+timing, Reason Codes, source details, or access failures to every user of the Lightning page.
 
 ### Which Permission Set unlocks troubleshooting detail?
 
-| Permission Set | API name | Can run checks | Includes View Diagnostics |
+| Permission Set | API name | Can run checks | Authorizes diagnostics |
 | --- | --- | --- | --- |
 | Record Health Check Card User | `rhc__Record_Health_Check_Card_User` | Card only | No |
 | Record Health Check User | `rhc__Record_Health_Check_User` | Yes | No |
-| Record Health Check Admin | `rhc__Record_Health_Check_Admin` | Yes | Yes: includes **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) |
-| Record Health Check Diagnostics Viewer | `rhc__Record_Health_Check_Diagnostics_Viewer` | No; combine with Card User or User | Yes: includes only **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) |
+| Record Health Check Admin | `rhc__Record_Health_Check_Admin` | Yes | Yes |
+| Record Health Check Diagnostics Viewer | `rhc__Record_Health_Check_Diagnostics_Viewer` | No; combine with Card User or User | Yes, and nothing else |
 
 If you checked Show Diagnostics on the Check Set but still see a normal card, confirm that the
 viewing user has **Record Health Check Diagnostics Viewer** or **Record Health Check Admin**. Also
 confirm that the user still has a runner Permission Set appropriate to the entry point.
 
-## What View Diagnostics unlocks
+## What diagnostics access unlocks
 
-**Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) is the Custom Permission that authorizes advanced result and
-troubleshooting information. Record Health Check Diagnostics Viewer and Record Health Check Admin
-include it.
+A direct **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** assignment
+authorizes advanced result and troubleshooting information.
 
-| Capability | View Diagnostics required | Show Diagnostics required | What the authorized user receives |
+| Capability | Diagnostics access required | Show Diagnostics required | What the authorized user receives |
 | --- | --- | --- | --- |
-| Formula **Passes when** | Yes | No | The Formula Check's pass condition when the row uses the default Formula comparison display. Users without View Diagnostics see the business message instead of the formula expression. |
+| Formula **Passes when** | Yes | No | The Formula Check's pass condition when the row uses the default Formula comparison display. Users without diagnostics access see the business message instead of the formula expression. |
 | Result troubleshooting line | Yes | Yes | Status, Reason Code, duration, and Evaluation Type beneath each result. |
 | **Diagnosis** | Yes | Yes | A concise Issue, Where, and Why explanation for `UNABLE_TO_EVALUATE` or `ERROR`. |
 | Browser-console prompt | Yes | Yes | A reminder that full technical evidence and next steps are available in the browser console. |
@@ -195,7 +195,7 @@ include it.
 | Results needing review | Yes | Yes | A concise collapsed group for each Fail, Skipped, Unable to Check, or System Error result. Passing Checks are omitted from console detail. |
 | Advanced diagnostics and support report | Yes | Yes | Technical evidence for `UNABLE_TO_EVALUATE` and `ERROR` only. Ordinary business Fail and Skipped results remain concise and do not produce a support bundle. |
 
-The Custom Permission does not grant record or field access. Record Health Check still uses the
+Diagnostics access does not grant record or field access. Record Health Check still uses the
 running user's Salesforce access, and diagnostic output can describe only information the user was
 allowed to evaluate.
 
@@ -213,7 +213,7 @@ After you **run** the checks (automatic or manual), and only when both steps abo
 | **Found and Expected source details** | For Unable to Check and System Error outcomes, source details may be included in the browser console's **Advanced diagnostics** group. Business Fail and Skipped results do not produce that technical bundle. |
 | **Console hint** | Small footnote directing technical users to the browser console (F12) for evidence and next steps. |
 
-Users **without** **Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) never see the gray lines, Diagnosis panels, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
+Users **without** a **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** assignment never see the gray lines, Diagnosis panels, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
 
 ## What you see in the browser console
 

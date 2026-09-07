@@ -83,6 +83,10 @@ const documentationContractSources = [
   ...projectMarkdownFiles,
   ...supplementalDocumentationFiles
 ];
+const diagnosticsHistoryFiles = new Set([
+  "docs/architecture/security-and-data-access.md",
+  "docs/reference/custom-permissions.md"
+]);
 for (const file of documentationContractSources) {
   const source = fs.readFileSync(file, "utf8");
   const relativeFile = path.relative(root, file);
@@ -105,6 +109,21 @@ for (const file of documentationContractSources) {
         `${relativeFile}: replace obsolete documentation value ${obsolete} with ${replacement}`
       );
     }
+  }
+
+  // Diagnostics authorization stopped being a Custom Permission when the
+  // package moved to explicit packaged Permission Set assignments. Keep the
+  // historical explanation in the Custom Permissions reference and the
+  // explicit "there is no" statement in the security architecture, but fail
+  // every other page that revives the retired authorization model.
+  if (
+    !diagnosticsHistoryFiles.has(relativeFile) &&
+    (source.includes("Record Health Check View Diagnostics") ||
+      /\bdiagnostics Custom Permission\b/i.test(source))
+  ) {
+    failures.push(
+      `${relativeFile}: diagnostics access must use a direct packaged Admin or Diagnostics Viewer Permission Set assignment, not the retired Custom Permission`
+    );
   }
 }
 
@@ -338,7 +357,7 @@ const requiredFeatureCatalogTerms = [
   "MCP Integration",
   "Error Log Publisher",
   "Record Health Check Run",
-  "Record Health Check View Diagnostics"
+  "Record Health Check Diagnostics Viewer"
 ];
 for (const term of requiredFeatureCatalogTerms) {
   if (!featureCatalog.includes(term)) {

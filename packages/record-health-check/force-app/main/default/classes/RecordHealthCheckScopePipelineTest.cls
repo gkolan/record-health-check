@@ -122,6 +122,28 @@ private with sharing class RecordHealthCheckScopePipelineTest {
     );
   }
 
+  @IsTest
+  static void generatedRunIdUsesFullRandomSuffixForEmptyScope() {
+    RecordHealthCheckRequest request = RecordHealthCheckRequest.forCheck(
+      RecordHealthCheckTestDataFactory.qualifiedCheckName(FORMULA_CHECK),
+      new List<Id>()
+    );
+
+    Test.startTest();
+    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(request);
+    Test.stopTest();
+
+    Assert.isTrue(
+      Pattern.matches('^rhc-api-[0-9]+-[0-9a-fA-F]{32}$', response.runId),
+      'A generated API run ID must preserve all 128 random bits as unsigned hex.'
+    );
+    Assert.areEqual(
+      0,
+      response.results.size(),
+      'Generating a run ID must not change empty-scope behavior.'
+    );
+  }
+
   private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
     context.objectApiName = 'Account';

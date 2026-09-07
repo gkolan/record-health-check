@@ -62,7 +62,7 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Earliest of {!rhcQuery.sourceRowCount} contacts, created {!rhcQuery.sourceRows[1].CreatedDate format="DATETIME" fallback="at an unknown time"}.</value>
+    >Earliest of {!rhcQuery.sourceRowCount} contacts, created {!rhcQuery.sourceRows[0].CreatedDate format="DATETIME" fallback="at an unknown time"}.</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>

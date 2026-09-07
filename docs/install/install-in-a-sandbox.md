@@ -75,7 +75,7 @@ is listed.
 
 The package includes permission sets so people receive only the access their work requires.
 
-If **Diagnostics Viewer** is absent from Setup, an administrator can create an org-owned Permission Set that enables **Record Health Check View Diagnostics** and assign it alongside the runner permission set.
+If **Diagnostics Viewer** is absent from Setup, assign **Record Health Check Admin** alongside the runner permission set. An org-owned Permission Set cannot grant diagnostics.
 
 | Permission set | Assign it to | What it allows |
 | --- | --- | --- |
@@ -95,8 +95,8 @@ Repeat those steps with **Record Health Check Admin** only for Check administrat
 **Record Health Check Diagnostics Viewer** temporarily alongside Card User or User when that runner
 must reproduce an issue without receiving Admin access.
 The **Issue**, **Where**, and **Why** diagnosis requires both **Show Diagnostics** on the Check Set
-and the **Record Health Check View Diagnostics** custom permission. The card-user and standard-user
-permission sets do not grant that diagnostic permission.
+and a direct **Record Health Check Admin** or **Record Health Check Diagnostics Viewer** assignment.
+The card-user and standard-user permission sets do not authorize diagnostics.
 A person can be a Salesforce non-admin and still run Record Health Check; the **Record Health Check
 Card User** permission set provides card access, while the person's existing Salesforce access
 still controls which records and fields the checks can read.
