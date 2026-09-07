@@ -35,6 +35,7 @@ export const sourceGates = [
   "check:field-limits",
   "check:check-set-comprehension",
   "check:fixture-value-coverage",
+  "check:demo-outcome-coverage",
   "check:manifest",
   "check:package-artifact",
   "check:package-boundary",

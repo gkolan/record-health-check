@@ -96,7 +96,7 @@ This inventory describes the current source checkout. See [version availability]
 | Custom permissions    | Record Health Check Run                                                                                                                                                                                                                                            |
 | Custom Metadata Types | Record Health Check Set (18 fields) and Record Health Check (45 fields)                                                                                                                                                                                            |
 | Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields)                                                                                                                                           |
-| Documentation         | 143 maintained pages, including 19 documented Check examples                                                                                                                                                                                                       |
+| Documentation         | 144 maintained pages, including 19 documented Check examples                                                                                                                                                                                                       |
 
 </details>
 

@@ -121,5 +121,5 @@ try {
 }
 
 console.log(
-  `All four current-source demo Check Sets are verified; Acme Builder Guide in '${alias}': 7 passed, 17 failed, 0 skipped, 1 unable.`
+  `All four current-source demo Check Sets and every declared outcome are verified in '${alias}'.`
 );

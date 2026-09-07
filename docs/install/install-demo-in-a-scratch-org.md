@@ -75,7 +75,7 @@ The Apex files are included in the repository under `scripts/subscriber/data/`. 
 | --: | --- | --- |
 | 1 | [setupDemoUser.apex](../../scripts/subscriber/data/setupDemoUser.apex) | Creates or reactivates Jordan Blake. |
 | 2 | [setupDemoData.apex](../../scripts/subscriber/data/setupDemoData.apex) | Creates the Acme hierarchy and its related records for both Account Check Sets; assigns Acme to Jordan. |
-| 3 | [setupReadinessData.apex](../../scripts/subscriber/data/setupReadinessData.apex) | Adds ready and needs-review Account, Contact, and Opportunity scenarios, including Tasks, Cases, Contact Roles, and a Product. |
+| 3 | [setupReadinessData.apex](../../scripts/subscriber/data/setupReadinessData.apex) | Adds ready, needs-review, and not-applicable Account scenarios plus Contact and Opportunity scenarios, including Tasks, Cases, Contact Roles, Campaigns, and a Product. |
 | 4 | [deactivateDemoUser.apex](../../scripts/subscriber/data/deactivateDemoUser.apex) | Leaves Jordan inactive so the owner Checks demonstrate the intended failures. |
 
 ```bash
@@ -122,11 +122,14 @@ The setup uses dates relative to the day it runs. Calendar dates therefore move,
 
 ### Readiness scenarios
 
-The complete dataset contains **5 Accounts, 48 Contacts, 11 Opportunities, 7 Contact Roles, 4 Tasks, 18 Cases, 1 Product, and 1 Opportunity Line Item**, plus one inactive demo User. The Product has one standard Price Book Entry. No Events are created.
+The complete dataset contains **8 Accounts, 51 Contacts, 19 Opportunities, 12 Contact Roles, 6 Tasks, 20 Cases, 1 Campaign, 1 Product, and 4 Opportunity Line Items**, plus one inactive demo User. The Product has one standard Price Book Entry. No Events are created.
 
 | Scenario | Record | What it tests |
 | --- | --- | --- |
 | Inactive Account owner | Acme Corporation / Jordan Blake | Actual owner name and inactive status; Account Builder Guide retains its expected results |
+| Builder Guide ready | RHC Builder Ready Account | 22 Checks pass and 3 service-to-sales handoff Checks skip because there are no Cases; the Check Set has no failures |
+| Builder Guide needs review | RHC Builder Needs Review Account | 22 Checks fail against deliberate gaps; 3 service-to-sales handoff Checks pass to prove their opposite outcome |
+| Builder Guide not applicable | RHC Builder Empty Account | No related records; verifies the expected passing, failing, and skipped behavior when a Check has nothing relevant to evaluate |
 | Ready Account | RHC Demo Ready Account | All 8 Account Relationship Risk Checks pass, including channel parent, pipeline, customer contacts, and activity |
 | Account needing review | RHC Demo Review Account | All 8 Account Relationship Risk Checks fail with low pipeline, a high-priority Case, missing relationships, and an inactive owner |
 | Ready Contact | Elena Hart (RHC Demo) | All 8 Contact Checks pass; same-Account manager, complete details, and recent Tasks |
@@ -277,7 +280,7 @@ sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
 sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyReadinessData.apex
 ```
 
-`verifyDemo.apex` checks Acme's 25 Builder Guide outcomes in a namespaced `rhc` org with the updated definitions. Use the npm verifier for a no-namespace source org. `verifyReadinessData.apex` checks the additional record counts, relationships, Product data, and Jordan's inactive ownership. The npm verifier additionally runs every Account, Contact, and Opportunity readiness outcome from the [scenario matrix](../../scripts/subscriber/data/readiness-scenarios.json), plus the passing Product-total comparison. Those additional per-set Apex assertions are generated and executed by the verifier; the two Apex commands alone do not run the whole outcome matrix.
+`verifyDemo.apex` retains the detailed Acme Builder Guide and display-value assertions in a namespaced `rhc` org. Use the npm verifier for a no-namespace source org. `verifyReadinessData.apex` checks record counts, relationships, Product data, and Jordan's inactive ownership. The npm verifier then executes every named outcome in the [scenario matrix](../../scripts/subscriber/data/readiness-scenarios.json). The matrix includes both PASS and FAIL for every active packaged Check, plus SKIPPED and UNABLE_TO_EVALUATE where those behaviors are part of the Check. The source gate `npm run check:demo-outcome-coverage` prevents a Check or Check Set from being added without that complete contract.
 
 The demo is ready when setup and verification finish without assertion errors, all four cards show the expected summaries above, and the expanded results match the seeded evidence. These outcomes verify the prepared demo; use [Install and verify in your org](./install-in-a-sandbox.md) to evaluate an unrelated sandbox or production dataset.
 

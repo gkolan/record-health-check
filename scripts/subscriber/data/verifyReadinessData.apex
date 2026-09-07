@@ -35,7 +35,7 @@ System.assertEquals(
   ]
 );
 System.assertEquals(
-  4,
+  7,
   [SELECT COUNT() FROM Contact WHERE AssistantName = 'RHC-DEMO-READINESS']
 );
 List<Opportunity> deals = [
@@ -53,7 +53,7 @@ List<Opportunity> deals = [
 System.assertEquals(5, deals.size());
 Set<Id> dealIds = new Map<Id, Opportunity>(deals).keySet();
 System.assertEquals(
-  3,
+  2,
   [SELECT COUNT() FROM OpportunityContactRole WHERE OpportunityId IN :dealIds]
 );
 System.assertEquals(
@@ -108,6 +108,61 @@ System.assertEquals(
     WHERE Opportunity.Account.AccountNumber = 'RHC-DEMO-REVIEW'
   ]
 );
+List<Account> builderAccounts = [
+  SELECT Id
+  FROM Account
+  WHERE
+    AccountNumber IN (
+      'RHC-BUILDER-READY',
+      'RHC-BUILDER-REVIEW',
+      'RHC-BUILDER-EMPTY'
+    )
+];
+System.assertEquals(3, builderAccounts.size());
+Set<Id> builderAccountIds = new Map<Id, Account>(builderAccounts).keySet();
+List<Opportunity> builderDeals = [
+  SELECT Id
+  FROM Opportunity
+  WHERE AccountId IN :builderAccountIds
+];
+System.assertEquals(8, builderDeals.size());
+Set<Id> builderDealIds = new Map<Id, Opportunity>(builderDeals).keySet();
+System.assertEquals(
+  5,
+  [
+    SELECT COUNT()
+    FROM OpportunityContactRole
+    WHERE OpportunityId IN :builderDealIds
+  ]
+);
+System.assertEquals(
+  3,
+  [
+    SELECT COUNT()
+    FROM OpportunityLineItem
+    WHERE OpportunityId IN :builderDealIds
+  ]
+);
+System.assertEquals(
+  2,
+  [
+    SELECT COUNT()
+    FROM Task
+    WHERE Subject IN ('RHC Builder Ready Review', 'RHC Builder Ready Follow-up')
+  ]
+);
+System.assertEquals(
+  3,
+  [
+    SELECT COUNT()
+    FROM Case
+    WHERE
+      Subject IN (
+        'RHC Builder Review Escalation',
+        'RHC Builder Review Unassigned Case'
+      )
+  ]
+);
 System.debug(
-  'RHC_READINESS_DATA_VERIFIED owner=Jordan Blake inactive=true accounts=2 contacts=4 opportunities=5 roles=3 tasks=2 cases=2 products=1 lineItems=1'
+  'RHC_READINESS_DATA_VERIFIED readinessAccounts=2 builderAccounts=3 contacts=7 readinessDeals=5 builderDeals=8 readinessRoles=3 builderRoles=5 readinessTasks=2 builderTasks=2 readinessCases=2 builderCases=2 products=1 readinessLineItems=1 builderLineItems=3'
 );

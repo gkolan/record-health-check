@@ -20,6 +20,11 @@ Use this guide for source development and evaluation. The package project is in
 administrator or user, follow [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md)
 instead.
 
+Before changing how a Check evaluates data, read
+[Check and Check Set outcome verification](../quality-gates/check-outcome-verification.md). New
+behavior is incomplete until its passing, failing, and applicable skipped or unable-to-check
+results are executable in Salesforce and protected by the source gates.
+
 ## Prerequisites
 
 Before you start:
@@ -99,9 +104,12 @@ npm run demo:setup-source -- --alias rhc-dev
 
 The command detects the source namespace, restores Jordan Blake as Acme's inactive owner, and
 seeds both the Acme Builder Guide and the dedicated readiness scenarios. It verifies all 49 active
-Checks across the four example Check Sets. The Builder Guide retains **7 Passed, 17 Failed,
-0 Skipped, and 1 Unable to Check**. The complete dataset contains five Accounts, 48 Contacts,
-11 Opportunities, seven Contact Roles, four Tasks, 18 Cases, and one Product with one Line Item.
+Checks across the four example Check Sets. Every active example Check is exercised with both a
+passing and a needs-review record; applicable skipped and unable-to-check outcomes are exercised as
+well. The Builder Guide retains **7 Passed, 17 Failed,
+0 Skipped, and 1 Unable to Check** for Acme. The complete dataset contains eight Accounts, 51
+Contacts, 19 Opportunities, 12 Contact Roles, six Tasks, 20 Cases, one Campaign, and one Product
+with four Opportunity Line Items.
 
 To verify the current data without reseeding:
 

@@ -70,6 +70,7 @@
     "check:field-limits": "python3 scripts/release/generate_field_size_registry.py --check",
     "check:check-set-comprehension": "node scripts/release/check_check_set_comprehension.mjs",
     "check:fixture-value-coverage": "node scripts/release/check_fixture_value_coverage.mjs",
+    "check:demo-outcome-coverage": "node scripts/release/check_demo_outcome_coverage.mjs",
     "check:manifest": "node scripts/release/check_manifest_coverage.mjs",
     "check:package-artifact": "node scripts/release/audit_package_artifact.mjs",
     "check:package-boundary": "node scripts/release/check_package_boundary.mjs",

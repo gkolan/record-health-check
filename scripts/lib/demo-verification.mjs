@@ -44,7 +44,8 @@ export function verifyReadinessData(alias, namespace = "rhc") {
       `Demo data integrity failed: ${integrityPayload.message}. Evidence: ${directory}`
     );
   let total = 0;
-  for (const [object, scenario] of Object.entries(matrix)) {
+  for (const [scenarioName, scenario] of Object.entries(matrix)) {
+    const object = scenario.object ?? scenarioName;
     const records = Object.entries(scenario.records);
     const expected = records
       .map(
@@ -104,7 +105,7 @@ System.debug('RHC_READINESS_VERIFIED ${object} records=${records.length} results
       /\b(RecordHealthCheckResponse|RecordHealthCheckRequest|RecordHealthCheckResultMode|RecordHealthCheckResultItem|RecordHealthCheck)\b/g,
       `${prefix}$1`
     );
-    const file = path.join(directory, `verify${object}.apex`);
+    const file = path.join(directory, `verify${scenarioName}.apex`);
     fs.writeFileSync(file, source);
     const result = tryRun("sf", [
       "apex",
@@ -116,7 +117,7 @@ System.debug('RHC_READINESS_VERIFIED ${object} records=${records.length} results
       "--json"
     ]);
     fs.writeFileSync(
-      path.join(directory, `${object}.json`),
+      path.join(directory, `${scenarioName}.json`),
       result.stdout || result.stderr
     );
     const payload = JSON.parse(result.stdout);
@@ -126,50 +127,16 @@ System.debug('RHC_READINESS_VERIFIED ${object} records=${records.length} results
       !payload.result?.success
     ) {
       throw new Error(
-        `${object} demo verification failed: ${payload.message ?? payload.result?.exceptionMessage}. Evidence: ${directory}`
+        `${scenarioName} demo verification failed: ${payload.message ?? payload.result?.exceptionMessage}. Evidence: ${directory}`
       );
     }
     console.log(
-      `Verified ${object}: ${records.length} scenarios, ${count} Check results.`
+      `Verified ${scenarioName}: ${records.length} scenarios, ${count} Check results.`
     );
     total += count;
   }
-  const productFile = path.join(directory, "verifyProducts.apex");
-  fs.writeFileSync(
-    productFile,
-    `
-Account ready=[SELECT Id FROM Account WHERE AccountNumber='RHC-DEMO-READY' LIMIT 1];
-${prefix}RecordHealthCheckResponse response=${prefix}RecordHealthCheck.evaluate(${prefix}RecordHealthCheckRequest.forCheck('${metadataPrefix}Example_Average_Deal_Vs_Largest',ready.Id).withResultMode(${prefix}RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY));
-System.assertEquals(1,response.results.size());
-System.assertEquals('PASS',response.results[0].evaluation.status,'Positive Product-total scenario');
-System.assert(!String.isBlank(response.results[0].display.foundDisplayValue));
-System.assert(!String.isBlank(response.results[0].display.expectedDisplayValue));
-`
-  );
-  const product = tryRun("sf", [
-    "apex",
-    "run",
-    "--target-org",
-    alias,
-    "--file",
-    productFile,
-    "--json"
-  ]);
-  fs.writeFileSync(
-    path.join(directory, "products.json"),
-    product.stdout || product.stderr
-  );
-  const productPayload = JSON.parse(product.stdout);
-  if (
-    product.status !== 0 ||
-    productPayload.status !== 0 ||
-    !productPayload.result?.success
-  )
-    throw new Error(
-      `Product comparison failed: ${productPayload.message}. Evidence: ${directory}`
-    );
   console.log(
-    `Verified ${total} readiness results plus the positive Product comparison. Evidence: ${directory}`
+    `Verified ${total} expected Check results. Evidence: ${directory}`
   );
   return directory;
 }

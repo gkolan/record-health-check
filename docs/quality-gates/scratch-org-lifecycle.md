@@ -58,8 +58,19 @@ The setup deploys package source and the integration-test metadata. `dev:test` t
 and integration Apex tests together after those fixtures exist. The deterministic demo setup
 then creates the Accounts, Contacts, Opportunities, Cases, Tasks, Product, Opportunity Product, and
 inactive owner required by the four example Check Sets. The verifier runs every active example
-against its expected result. A reviewer can then open the prepared list views and exercise the
+against its expected result. Every active packaged Check must have an expected passing record and
+an expected needs-review record. Checks with a meaningful not-applicable or no-data path must also
+have the corresponding skipped or unable-to-check record.
+
+Each packaged Check Set must also have one record with no failed Checks and one record with at
+least one failed Check. A skipped Check is reported separately and never counted as a pass.
+
+The `check:demo-outcome-coverage` source
+gate rejects an incomplete matrix before an org is created, and the org verifier proves that the
+declared outcomes are the outcomes Salesforce returns. A reviewer can then open the prepared list
+views and exercise the
 record-page card by following [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md).
+The complete reusable standard is [Check and Check Set outcome verification](./check-outcome-verification.md).
 
 Before reusing this org after a code change, deploy the current checkout, rerun the relevant Apex
 tests, and rerun both demo commands. Do not rely on results produced by an older commit.
@@ -176,5 +187,6 @@ the exact promoted `04t` recorded in `config/package-releases.json`.
 - [Source development](../contributing/source-development.md)
 - [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md)
 - [Package testing and upgrades](./package-testing-and-upgrades.md)
+- [Check and Check Set outcome verification](./check-outcome-verification.md)
 - [Release runtime matrix](./release-runtime-matrix.md)
 - [Release instructions](../../.github/RELEASING.md)
