@@ -181,20 +181,20 @@ that separately on the Check.
 
 The raw query rows and unused columns stay transient on the server and are never serialized on the
 result or published in an event. A field selected by a token is intentionally copied into the
-completed message, label, or URL, so that rendered text follows its normal output surface: it can
+completed message, label, or URL, so that the completed text follows its normal destination: it can
 reach the browser or API caller and, when diagnostics are enabled, diagnostic logs. Treat every row
 field referenced by a token as user-visible and choose fields appropriate for the result's audience.
 No token causes an extra query.
 
 ## Four names for Found, and which one you are reading
 
-The same English idea appears under different names depending on which surface you are looking at.
+The same English idea appears under different names depending on where you read the result.
 They are not interchangeable, and the differences are the whole reason a Check can look right and
 report something else.
 
 | Name | Where it appears | What it holds |
 | --- | --- | --- |
-| `found` / `expected` | The evaluation result a Flow, Apex, or REST caller receives | The **operand**: the value compared, with no comparison wording. Empty when the operator compares against nothing, such as Is Not Blank |
+| `found` / `expected` | The evaluation result a Flow, Apex, or REST caller receives | The value that was compared, with no comparison wording. Empty when the operator compares against nothing, such as Is Not Blank |
 | `comparisonOperator` | The same evaluation result | The operator, in its own field, so it is never mixed into the value |
 | `{!rhcResult.foundValue}` / `{!rhcResult.expectedValue}` | Merge tokens in messages, labels, and display text | What the framework computed, rendered for a reader. Unaffected by Display: Found Text |
 | `foundDisplayValue` / `expectedDisplayValue` | The display half of a result, and the card | Exactly what the card reads, including Display: Found Text and the comparison wording |

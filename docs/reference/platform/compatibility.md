@@ -83,14 +83,14 @@ date, rounding, access, and audit contract; core Query and Formula evaluation do
 ## Audited platform data shapes
 
 Core is describe- and API-name-driven; it does not contain product object names or business
-semantics. The following classifications describe the supported framework surface, not whether a
+semantics. The following classifications describe what the framework supports, not whether a
 particular Salesforce feature is licensed in an org.
 
 | Shape | Compatibility status |
 | --- | --- |
 | Standard/custom/namespaced objects and plain or relationship fields | Supported when global describe and user-mode SOQL expose the complete authored API name; foreign package prefixes are never inferred |
 | Number, Currency, Percent, ID, URL, Email, Phone, Date, Date/Time, and Time | Supported within the documented comparison/display boundaries |
-| Compound Address or Location | Select scalar components or use supported SOQL functions; no compound typed value is published |
+| Compound Address or Location | Select individual fields or use supported SOQL functions; no compound typed value is published |
 | Base64/Blob fields | Deliberately unsupported for Query comparison; a plain selected Base64 field is refused before execution with `FIELD_TYPE_NOT_SUPPORTED`, and binary values must not enter result or diagnostic contracts |
 | History objects | Exact user-mode query must satisfy that object's platform restrictions |
 | Knowledge data categories | Deliberately unsupported in core Query templates; use reviewed user-mode Apex |
@@ -98,7 +98,7 @@ particular Salesforce feature is licensed in an org.
 | External objects, Big Objects, Data 360 objects | Not tested because the project fixtures do not provision those licensed object families |
 | Shield-encrypted strings and Geolocation custom fields | Not tested; validate with a licensed neutral fixture before relying on them |
 
-Query templates support ordinary scalar, relationship, semi/anti-join, aggregate, and grouped
+Query templates support ordinary field values, relationships, semi/anti-joins, aggregate queries, and grouped
 aggregate shapes when Salesforce accepts them under user mode. `ALL ROWS`, system mode, and
 Knowledge `WITH DATA CATEGORY` are deliberately rejected. Polymorphic paths are limited to
 explicit or flat Name-entity-safe fields; paths that require `TYPEOF` use a purpose-built Query or

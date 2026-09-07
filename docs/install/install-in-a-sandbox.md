@@ -80,7 +80,7 @@ If **Diagnostics Viewer** is absent from Setup, assign **Record Health Check Adm
 | Permission set | Assign it to | What it allows |
 | --- | --- | --- |
 | **Record Health Check Card User** | People who use only the Lightning record-page card | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
-| **Record Health Check User** | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | The broader packaged runtime surface; do not assign it merely to display the card |
+| **Record Health Check User** | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | All packaged ways to run Record Health Check; do not assign it merely to display the card |
 | **Record Health Check Admin** | People who configure Check Sets or investigate unexpected results | User access plus package configuration and diagnostic access |
 | **Record Health Check Diagnostics Viewer** | An affected Card User or User who must reproduce an issue | Diagnostic visibility only; assign it temporarily alongside the existing runner Permission Set |
 
@@ -133,7 +133,7 @@ saving so you do not update a page that the test user never receives.
 
 The packaged component is supported on Lightning record pages in Lightning Experience. Do not
 treat this guide as verification for Salesforce Classic, an App or Home page, Experience Cloud, or
-Salesforce mobile; validate any additional surface separately before promising support.
+Salesforce mobile; validate any other device or user interface separately before promising support.
 
 For a row-by-row explanation of the card, see [result statuses and card labels](../reference/results/statuses-and-labels.md).
 
@@ -155,7 +155,8 @@ Info. Unable to Check and System Error mean Record Health Check could not give a
 
 For one final confidence check, change a field used by an Example Check on a record you can safely edit.
 Save the record. A completed card should refresh and follow the saved Salesforce data. Select
-**Rerun** if the editing surface does not send a standard RefreshView notification. The
+**Rerun** if the custom component that edits the record does not send a standard RefreshView
+notification. The
 health check should not change the record itself.
 
 ## You are ready to continue when

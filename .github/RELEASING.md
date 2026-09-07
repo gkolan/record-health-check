@@ -41,9 +41,9 @@ Checks:
 Before creating a release candidate:
 
 1. Run every local gate, including docs, query shapes, permissions, formatting, lint, and Jest.
-   The deterministic `check:ai-prompts` gate validates the committed low-cost-model recordings and
-   their prompt fingerprints. Re-record them deliberately when a prompt changes; release execution
-   does not require a third-party model credential.
+   `check:ai-prompts` confirms that the saved low-cost-model examples match the current prompts and
+   Custom Metadata fields. Re-record them deliberately when a prompt changes. A normal release does
+   not require a third-party model credential.
 2. Run Code Analyzer and resolve every unsuppressed release finding.
 3. Run the package-source org gate in CI (`salesforce-validate.yml`).
 4. After both namespaced and no-namespace source tests complete, run

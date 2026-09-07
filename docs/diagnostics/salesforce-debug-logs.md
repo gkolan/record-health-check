@@ -74,7 +74,7 @@ contract. A completed Apex job does not mean every health Check passed.
 disabled by default and requires both **Publish Error Log Event** on the Check Set and the Error Log
 Publisher permission.
 
-Use this event for ongoing monitoring. Use a debug log for a bounded investigation when structured
+Use this event for ongoing monitoring. Use a debug log for a short, focused investigation when structured
 diagnostics are incomplete. See the [Error Log event field reference](../reference/platform-event-metadata/error-log.md).
 
 ## Redact before sharing

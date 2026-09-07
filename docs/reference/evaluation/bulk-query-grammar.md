@@ -10,7 +10,7 @@ Use this reference when a Query Check must run for several records in one reques
 | `TOKEN_INDIRECT` | A field equals another record token, including a token with options such as `fallback` | Collect token values, query once, and map rows back to the scope. |
 | `SCOPE_INVARIANT` | No record token | Execute once and reuse the result for every record. |
 | `ORDERED_PICK_AGGREGATE` | One bare selected field is also the single ordered field with `LIMIT 1` | Rewrite to `MIN` or `MAX` grouped by the correlation field. |
-| `ORDERED_PICK_IN_MEMORY` | `ORDER BY ... LIMIT 1` where the selected field differs from the ordered field or is a relationship path | Fetch a bounded scope result and choose one row per record in Apex. |
+| `ORDERED_PICK_IN_MEMORY` | `ORDER BY ... LIMIT 1` where the selected field differs from the ordered field or is a relationship path | Fetch results within the configured record limit and choose one row per record in Apex. |
 | `UNCLASSIFIED` | Unsupported or ambiguous correlation | Reject the configuration; do not fall back to one query per record. |
 
 The aggregate ordered-pick strategy accepts only a bare field. A relationship selection such as

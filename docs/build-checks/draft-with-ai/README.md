@@ -28,7 +28,7 @@ product your organization approves. This guide does not require or endorse a par
 2. Choose the Evaluation Type in the table below.
 3. Open that type's prompt page and copy the single system-prompt block. Each prompt is
    self-contained: it already carries the [shared rules](./shared-rules.md), every Check Set field,
-   and every Check field, so an assistant that cannot open links still has the whole surface.
+   and every Check field, so an assistant that cannot open links still has every available setting.
 4. Paste a filled [requirement template](./requirement-template.md) after the system prompt.
 5. Review the draft against the field references and examples linked from the prompt page.
 6. Enter approved values in a sandbox, then follow [Test the human-approved draft](#test-the-human-approved-draft).
@@ -54,7 +54,7 @@ then regenerate the four prompts from it. `npm run check:ai-prompts` fails when 
 from the shared block, names a field or stored value the Check metadata does not declare, or stops
 offering a configurable field to the assistant.
 
-Canonical merge-token examples:
+Supported merge-token examples:
 
 - SOQL: `WHERE AccountId = {!record.Id}`
 - Message: `{!record.Name fallback="This Account"} needs at least one verified Contact.`

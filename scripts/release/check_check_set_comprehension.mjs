@@ -63,7 +63,8 @@ for (const directory of directories) {
       checks.push({
         api,
         set: values.get("Record_Health_Check_Set__c") ?? "(none)",
-        fields: new Set(values.keys())
+        fields: new Set(values.keys()),
+        values
       });
     }
   }

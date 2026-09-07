@@ -29,10 +29,10 @@ Every supported Lightning, Flow, Apex, Agentforce, REST, and asynchronous entry 
 before an individual Check result exists.
 
 The Custom Permission is necessary but not sufficient by itself. The running user also needs access
-to the Apex entry-point class for the selected surface. The packaged runner Permission Sets combine
+to the Apex entry-point class for the selected way of running Record Health Check. The packaged runner Permission Sets combine
 the Custom Permission with the appropriate class access:
 
-| Packaged Permission Set | Contains Run | Authorized surface |
+| Packaged Permission Set | Contains Run | Authorized entry point |
 | --- | :---: | --- |
 | **Record Health Check Card User** | Yes | Lightning record-page card and App Builder picker |
 | **Record Health Check User** | Yes | Lightning, Flow, Apex, Agentforce, REST, Queueable, Batch, and Scheduled Apex |

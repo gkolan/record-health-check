@@ -411,7 +411,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
   }
 
   @IsTest
-  static void refusesEncryptedFieldsInEveryOrgTopology() {
+  static void refusesEncryptedFieldsWithoutCustomerCreatedSchema() {
     RecordHealthCheckQueryTokenRules.fieldTypeOverrideForTest = Schema.DisplayType.ENCRYPTEDSTRING;
     try {
       RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(

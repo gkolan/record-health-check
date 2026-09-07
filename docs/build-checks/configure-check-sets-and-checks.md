@@ -142,7 +142,7 @@ This example checks Billing Country with a formula:
 This comparison means the Contact count must be greater than zero. One or more visible Contacts
 passes; zero visible Contacts fails.
 
-For **One row or aggregate**, Record Health Check reads one scalar result. Leave **Source Query
+For **One row or aggregate**, Record Health Check reads one result. Leave **Source Query
 Field** blank for bare `COUNT()`; for an aliased aggregate such as `SUM(Amount) total`, enter the
 alias `total`. Other query-result modes evaluate each returned row or compare lists and require the
 matching fields described in the Query reference.
@@ -292,7 +292,7 @@ query and formula behavior.
 | A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |
 | **Unable to Check** | Review the Reason Code, query or formula configuration, and the running user's object and field access. |
 | **System Error** | Review custom Apex, Salesforce debug logs, and the Reason Code. |
-| Results did not change after an edit | Confirm the edit surface sends a standard Lightning RefreshView notification. Otherwise select **Rerun** or refresh the page. A manual Check Set must be run once before save-driven refresh begins. |
+| Results did not change after an edit | Confirm the custom component that edits the record sends a standard Lightning RefreshView notification. Otherwise select **Rerun** or refresh the page. A manual Check Set must be run once before save-driven refresh begins. |
 | A Platform Event was expected but not received | Confirm publication is enabled, the run source publishes events, the transaction committed, and receiving automation is active. |
 
 Use [Troubleshoot Record Health Check](../diagnostics/browser-console.md) for a complete,

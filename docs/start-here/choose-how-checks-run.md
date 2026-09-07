@@ -33,7 +33,7 @@ Do not create new `@future` integrations. Move existing work to Queueable Apex.
 
 ## Important limits at the start
 
-| Surface | Limit or behavior |
+| Where the Check runs | Limit or behavior |
 | --- | --- |
 | Lightning card | Evaluates one record and the first 25 active Checks in the selected Check Set |
 | Direct Apex or one Flow request group | Up to 200 records and 25 active Checks |

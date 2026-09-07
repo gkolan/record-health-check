@@ -251,7 +251,7 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
   }
 
   /**
-   * Bounded deliberately: an unbounded window is not a useful health check, and
+   * Limit the date range deliberately. An unlimited window is not a useful health check, and
    * a negative one would silently invert the question being asked.
    *
    * Null means the administrator supplied an invalid value; the caller returns

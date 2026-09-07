@@ -5,9 +5,9 @@
  */
 public with sharing class RecordHealthCheckCurrencySupport {
   @TestVisible
-  // Lets every org topology prove scalar-unit handling even when the platform
-  // omits CurrencyIsoCode entirely from a single-currency org's Account schema.
-  private static String scalarUnitFieldPathOverrideForTest;
+  // A single-currency test org does not have Account.CurrencyIsoCode. This test
+  // setting uses another Account field to confirm how currency units are read.
+  private static String unitFieldPathOverrideForTest;
 
   private static final Pattern CURRENCY_AGGREGATE_PATTERN = Pattern.compile(
     '(?is)\\b(?:SUM|AVG|MIN|MAX)\\s*\\(\\s*([A-Za-z0-9_.]+)\\s*\\)'
@@ -238,9 +238,9 @@ public with sharing class RecordHealthCheckCurrencySupport {
         ? aggregateCurrencyUnit(query, row)
         : readPath(
             row,
-            scalarUnitFieldPathOverrideForTest == null
+            unitFieldPathOverrideForTest == null
               ? isoFieldPath(fieldPath)
-              : scalarUnitFieldPathOverrideForTest
+              : unitFieldPathOverrideForTest
           );
       String isoCode = unit == null ? null : String.valueOf(unit);
       if (String.isNotBlank(isoCode)) {
@@ -280,9 +280,9 @@ public with sharing class RecordHealthCheckCurrencySupport {
     }
     String unitFieldPath = aggregateQuery
       ? null
-      : scalarUnitFieldPathOverrideForTest == null
+      : unitFieldPathOverrideForTest == null
           ? isoFieldPath(fieldPath)
-          : scalarUnitFieldPathOverrideForTest;
+          : unitFieldPathOverrideForTest;
     for (SObject row : rows) {
       if (
         (aggregateQuery
@@ -430,6 +430,7 @@ public with sharing class RecordHealthCheckCurrencySupport {
     return false;
   }
 
+  @TestVisible
   private static Object readPath(SObject row, String fieldPath) {
     return RecordHealthCheckValueResolver.valueAtFieldPath(row, fieldPath);
   }

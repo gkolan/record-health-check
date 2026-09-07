@@ -101,7 +101,7 @@ exact-package clean/upgrade stages, and representative-sandbox acceptance must p
   (`CRITICAL`, `WARNING`, or `INFO`) instead of the card's own words `Error`, `Warning`, and
   `Info`. Found and Expected now carry the values that were compared instead of the card's
   sentence, so Expected is `Manufacturing` rather than `to equal Manufacturing`, and the
-  comparison operator travels on its own field. This is the contract the reference pages already
+  comparison operator travels on its own field. This is the behavior the reference pages already
   described, and matching on it no longer requires knowing the card's wording. A Flow, Apex
   subscriber, or Check Result event handler that matches the old strings will stop matching after
   the upgrade without reporting an error. Update those comparisons before installing.
@@ -126,7 +126,7 @@ exact-package clean/upgrade stages, and representative-sandbox acceptance must p
   rules. The same gate re-validates recorded low-cost-model answers for all four Evaluation Types in
   `tests/ai-drafts`, and refuses evidence recorded from an older version of a prompt. A reviewed
   prompt change deliberately re-records that evidence with `npm run check:ai-model-drafts`; ordinary
-  release preflight remains deterministic and does not require a third-party model credential.
+  release preflight checks the saved examples and does not require a third-party model credential.
 - Merge-token guidance now distinguishes transient raw query rows from values intentionally copied
   into rendered messages, labels, and URLs, including their browser, API, and diagnostics exposure.
 - Query-row merge tokens use zero-based collection indexes: `sourceRows[0]` and

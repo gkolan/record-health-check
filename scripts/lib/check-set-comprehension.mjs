@@ -107,6 +107,14 @@ export const TIER_B = [
   "Category__c"
 ];
 
+/** Text shown to an administrator or record-page user. */
+export const READER_FACING_TEXT_FIELDS = new Set([
+  ...TIER_A,
+  ...TIER_B,
+  "DisplayFoundText__c",
+  "DisplayExpectedText__c"
+]);
+
 /** Check Sets that represent a real administrator scenario, so Tier B applies. */
 export const TIER_B_SETS = [
   "Account_Compliance_Audit",
@@ -202,11 +210,21 @@ export function comprehensionFindings(sets, checks) {
   }
 
   const tierB = new Set(TIER_B_SETS);
-  for (const { api, set, fields } of checks) {
+  for (const { api, set, fields, values = new Map() } of checks) {
     const required = [...TIER_A, ...(tierB.has(set) ? TIER_B : [])];
     const missing = required.filter((field) => !fields.has(field));
     if (missing.length > 0) {
       findings.push(`${api} (in ${set}) is missing ${missing.join(", ")}`);
+    }
+    for (const [field, value] of values) {
+      if (
+        READER_FACING_TEXT_FIELDS.has(field) &&
+        /\b[A-Za-z]+\((?:s|es|ies)\)/i.test(value)
+      ) {
+        findings.push(
+          `${api} ${field} uses parenthetical plural shorthand in "${value}"; write the message as a natural sentence or use a result plural-suffix token`
+        );
+      }
     }
   }
   return findings.sort();

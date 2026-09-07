@@ -253,8 +253,8 @@ Select this field only when restricted administrator or support automation needs
 Health Check errors for this Check Set. Assign **Record Health Check Error Log Publisher** to each
 running identity first. Leaving it cleared does not turn off Salesforce debug logs.
 
-If Record Health Check cannot find the Check Set, it fails closed and does not publish restricted
-error details without an explicit setting. See
+If Record Health Check cannot find the Check Set, it returns an unable-to-evaluate result and does
+not publish restricted error details without an explicit setting. See
 [Record Health Check Log Platform Event](../platform-event-metadata/error-log.md) before granting access or saving these
 restricted details.
 

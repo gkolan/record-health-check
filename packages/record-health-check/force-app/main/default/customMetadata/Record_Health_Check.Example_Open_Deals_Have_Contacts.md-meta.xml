@@ -35,7 +35,7 @@
     >EQUALS</value></values>
     <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >{!rhcResult.foundValue} open deals have a customer contact</value></values>
+    >Open deals with a customer contact: {!rhcResult.foundValue}</value></values>
     <values><field>DisplayExpectedText__c</field><value
       xsi:type="xsd:string"
     >Every open deal for {!record.Name fallback="this account"} has a customer contact</value></values>

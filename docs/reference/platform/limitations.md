@@ -25,7 +25,7 @@ Check does not reproduce the roll-up query. Boolean `false` is `FAIL`; a null or
 | Calculated-formula dependency expansion | 10 expansions | `UNABLE_TO_EVALUATE` / `FORMULA_DEPENDENCY_DEPTH_EXCEEDED` |
 | Salesforce cross-object formula spanning | Salesforce compiler limit (commonly 5 levels) | Salesforce rejects the formula at save/compile time |
 
-The dependency ceiling is larger because one operand can expand through several stored formula
+The dependency ceiling is larger because one formula input can expand through several stored formula
 fields. Keep author-written formula and merge paths within five relationship hops. For an optional
 parent value within that ceiling, use a literal fallback such as
 `{!record.Parent.Name fallback="no parent"}`.
@@ -146,7 +146,7 @@ Use the smallest existing mechanism that can prove the policy:
 | Stored calculation timestamp and source `LastModifiedDate` | Formula or Compare Two Queries compares the two timestamps | `FAIL` when the source is newer; never infer freshness from the derived value alone |
 | Stored watermark and maximum permitted age | Formula compares the watermark with `NOW()` or `TODAY()` using the intended timezone/date boundary | `FAIL` outside the threshold; missing watermark follows an explicit applicability or prerequisite policy |
 | Child or aggregate source changes | Query or Compare Two Queries obtains a source maximum/change signal and compares it with the watermark | A cap, inaccessible source, or unprovable unit returns unable rather than a partial `PASS` |
-| Processing job history or external provenance | Reviewed subscriber Apex reads the authorized evidence and returns one bounded outcome per root | Missing, failed, inaccessible, or never-run evidence cannot default to `PASS` |
+| Processing job history or external provenance | Reviewed subscriber Apex reads the authorized evidence and returns one outcome per root record within the documented limits | Missing, failed, inaccessible, or never-run evidence cannot default to `PASS` |
 
 The same derived field can legitimately have different freshness policies in different
 organizations. Keeping those thresholds and evidence paths in Check configuration makes the policy

@@ -1,6 +1,6 @@
 # Names and API identities
 
-Use this reference to choose the exact Check Set or Check name required by each Salesforce surface
+Use this reference to choose the exact Check Set or Check name required by each Salesforce entry point
 and understand namespace behavior for installed metadata.
 
 > [!NOTE]

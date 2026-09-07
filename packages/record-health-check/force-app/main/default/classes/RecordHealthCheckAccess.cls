@@ -6,8 +6,8 @@
 /** Central authorization checks for privileged Record Health Check features. */
 public with sharing class RecordHealthCheckAccess {
   @TestVisible
-  // The second value proves the fail-closed QueryException path without relying
-  // on an org-specific Setup-object failure that Apex tests cannot manufacture.
+  // The second value confirms that users cannot see diagnostics when Salesforce
+  // cannot read Permission Set assignments during a test.
   private static Boolean runPermissionOverride,
     diagnosticsQueryExceptionForTest;
 
@@ -97,7 +97,7 @@ public with sharing class RecordHealthCheckAccess {
     }
   }
 
-  /** Keeps package and unpackaged authorization on the same implementation. */
+  /** Reads the namespace from either installed-package or unpackaged metadata. */
   @TestVisible
   private static String packageNamespaceForTypeName(String typeName) {
     return typeName == 'Record_Health_Check__mdt'

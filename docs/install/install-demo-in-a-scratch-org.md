@@ -312,7 +312,7 @@ A scratch-org administrator does not represent a restricted user. To test everyd
 | **Record Health Check User** | Run Checks through Flow, Apex, REST, Agentforce, Queueable, Batch, or Scheduled entry points |
 | **Record Health Check Admin** | Configure Check metadata, validate setup, and view **Issue**, **Where**, and **Why** diagnostics when the Check Set enables them |
 | **Record Health Check Diagnostics Viewer** | View **Issue**, **Where**, and **Why** while testing as a Card User or User; enable **Show Diagnostics** on the Check Set and assign this set alongside the existing runner set |
-| **Record Health Check MCP Integration** | Call the narrowly scoped MCP and agent-tool REST surface from an approved integration user |
+| **Record Health Check MCP Integration** | Call the limited MCP and agent-tool REST API from an approved integration user |
 | **Record Health Check Error Log Publisher** | Publish restricted error-log events from a narrowly approved automation user |
 
 To test diagnostics as an everyday user:

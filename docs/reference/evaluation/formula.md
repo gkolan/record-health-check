@@ -60,7 +60,7 @@ zero.
   query and validates the type segment against the object's schema, so a mistyped type (or one
   that isn't a real candidate for that relationship) is treated the same as any other unresolvable
   path rather than guessing.
-- Flat SOQL can hydrate only fields exposed by Salesforce's polymorphic `Name` pseudo-entity. For
+- Flat SOQL can load only fields exposed by Salesforce's polymorphic `Name` pseudo-entity. For
   example, `What:Account.Name` is supported, while an Account-only field such as
   `What:Account.Industry` requires a Query or Apex Check; it is omitted from Formula record loading
   so one unsupported field cannot invalidate the shared scope query.
@@ -105,12 +105,12 @@ model Queue ownership; the table below describes the explicitly typed polymorphi
 | Formula `Owner:User.IsActive` | Custom Formula Check | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason |
 | QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
 
-Both patterns are fail-closed in the sense that neither produces a false `PASS` for a non-User or
+Neither pattern produces a false `PASS` for a non-User or
 inactive owner. They differ in **how** they fail: the Formula path reports "I could not determine
-this" (`UNABLE_TO_EVALUATE`), while the QUERY `COUNT()` pattern reports "this predicate was not
+this" (`UNABLE_TO_EVALUATE`), while the QUERY `COUNT()` pattern reports "this condition was not
 satisfied" (`FAIL`) without distinguishing *why* the count was zero. Choose QUERY when you want a
-uniform fail-closed outcome across Queue, inactive User, and missing User; choose Formula (once
-hydrated per the polymorphic guidance above) when you want a Queue/Group owner treated as
+same unable-to-evaluate outcome across Queue, inactive User, and missing User; choose Formula (after
+Record Health Check loads the fields described in the polymorphic guidance above) when you want a Queue/Group owner treated as
 "can't tell," not as "fails the check."
 
 Label Check titles, failure messages, and action copy **"active User"**, not "active owner," unless

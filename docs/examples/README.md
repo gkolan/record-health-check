@@ -152,7 +152,7 @@ object without repeating the same configuration pattern.
 | [Opportunity Contact Role coverage](./compare-two-queries/opportunity-contact-role-coverage.md) | Aggregate alias, two-query equality, and count-query applicability |
 | [Open-pipeline product continuity](./compare-two-queries/open-pipeline-product-continuity.md) | Two lists compared with **Lists overlap** |
 | [Account Team coverage](./compare-two-queries/account-team-opportunity-coverage.md) | Two lists compared with **Lists contain all** and no-row failure |
-| [Recent Account activity](./apex/recent-activity.md) | Apex across Task and Event with bounded JSON parameters |
+| [Recent Account activity](./apex/recent-activity.md) | Apex across Task and Event with a limited date range configured in JSON |
 | [Open Opportunity health](./apex/open-opportunity-health.md) | Apex applying several conditions to each related record plus count-query applicability |
 | [Strategic Account readiness](./apex/strategic-readiness.md) | Weighted Apex score, multiple JSON parameters, and formula applicability |
 | [Inactive approval participants](./apex/inactive-approver.md) | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior |

@@ -47,7 +47,7 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
   /**
    * The value a machine caller receives for one side of the comparison.
    *
-   * A typed operand always wins. When there is none and the evaluator recorded
+   * A typed comparison value always wins. When there is none and the evaluator recorded
    * its operands anyway, the absence is deliberate: `IS_NOT_BLANK` compares
    * against nothing, and saying so is the honest answer. Only an evaluator that
    * recorded nothing at all falls back to the card text, which is what used to
@@ -70,13 +70,13 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
    * The typed value a machine caller receives for one side of the comparison.
    *
    * The card wants a sentence — "to equal Manufacturing" reads well beside a
-   * value — while an automation wants the operand, because it compares. Those
+   * value — while an automation wants the comparison value. Those
    * were the same field, so a Flow asking whether Expected was `Manufacturing`
    * was handed the sentence and never matched. The operator already travels on
    * its own field, so it never belongs inside the value.
    *
-   * @param raw The operand as the evaluator computed it, before any formatting.
-   * @return The typed value, or null when there was no operand.
+   * @param raw The comparison value before any display formatting.
+   * @return The typed value, or null when there was no comparison value.
    */
   public static RecordHealthCheckValue typedOperand(Object raw) {
     if (raw == null) {

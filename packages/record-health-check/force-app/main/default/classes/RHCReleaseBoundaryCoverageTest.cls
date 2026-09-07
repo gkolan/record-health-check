@@ -2,7 +2,7 @@
 @IsTest
 private with sharing class RHCReleaseBoundaryCoverageTest {
   @IsTest
-  static void preservesTypedMachineOperandsAcrossFlowBoundaries() {
+  static void preservesTypedValuesForFlow() {
     RecordHealthCheckValue fallback = RecordHealthCheckQueryEvaluatorSupport.machineValue(
       null,
       false,
@@ -24,7 +24,7 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
     Assert.areEqual('7', integerValue.storedValue);
 
     Id accountId = RecordHealthCheckTestDataFactory.accountFixture(
-        'Typed operand'
+        'Typed Flow value'
       )
       .Id;
     RecordHealthCheckValue idValue = RecordHealthCheckQueryEvaluatorSupport.typedOperand(

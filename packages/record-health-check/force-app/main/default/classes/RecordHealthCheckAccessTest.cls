@@ -70,7 +70,7 @@ private class RecordHealthCheckAccessTest {
   }
 
   @IsTest
-  static void derivesPackageIdentityInBothDeploymentTopologies() {
+  static void derivesPackageIdentityForInstalledAndUnpackagedMetadata() {
     Assert.isNull(
       RecordHealthCheckAccess.packageNamespaceForTypeName(
         'Record_Health_Check__mdt'

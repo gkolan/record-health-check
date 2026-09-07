@@ -151,9 +151,9 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
   }
 
   @IsTest
-  static void readsScalarUnitsAndRejectsMissingScalarEvidence() {
+  static void readsNonAggregateUnitsAndRejectsMissingUnitInformation() {
     RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
-    RecordHealthCheckCurrencySupport.scalarUnitFieldPathOverrideForTest = 'Name';
+    RecordHealthCheckCurrencySupport.unitFieldPathOverrideForTest = 'Name';
     try {
       Account usd = RecordHealthCheckTestDataFactory.account(
         new Map<String, Object>{ 'Name' => 'USD', 'AnnualRevenue' => 10 }
@@ -182,12 +182,12 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
           null,
           null
         );
-        Assert.fail('A scalar Currency row without its ISO unit must fail.');
+        Assert.fail('A Currency row without its ISO currency must fail.');
       } catch (RecordHealthCheckEvaluatorException expected) {
         Assert.areEqual('CURRENCY_UNIT_UNKNOWN', expected.reasonCode);
       }
     } finally {
-      RecordHealthCheckCurrencySupport.scalarUnitFieldPathOverrideForTest = null;
+      RecordHealthCheckCurrencySupport.unitFieldPathOverrideForTest = null;
       RecordHealthCheckDisplayCurrencyResolver.multiCurrency = null;
     }
   }

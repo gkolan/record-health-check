@@ -14,8 +14,8 @@
  */
 public with sharing class RecordHealthCheckQueryTokenRules {
   @TestVisible
-  // Classic encrypted fields are customer-created, so package-only orgs need a
-  // describe-type seam to exercise the rule without shipping artificial schema.
+  // Classic encrypted fields are created by customers. This test setting checks
+  // the encrypted-field rule without adding a sample encrypted field to the package.
   private static Schema.DisplayType fieldTypeOverrideForTest;
 
   /**

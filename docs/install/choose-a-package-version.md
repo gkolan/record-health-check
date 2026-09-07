@@ -30,7 +30,7 @@ Deploying source to a scratch org does not update the published package.
 
 ## Step 1: Choose a version
 
-The public redirects can temporarily target an older version than the latest promoted artifact.
+The public redirects can temporarily target an older version than the latest promoted package version.
 Check the current distribution notice in the [release notes](../../CHANGELOG.md), confirm the
 installation screen, and validate in a sandbox before upgrading. Do not interpret an older redirect
 as an in-place downgrade path for an existing installation.

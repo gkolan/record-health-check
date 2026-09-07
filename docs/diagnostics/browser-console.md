@@ -23,8 +23,8 @@ when the investigation is complete.
 
 Salesforce administrators can normally stop after the card, configuration, access, and browser
 console sections. Continue into debug logs, background jobs, and integration evidence only when a
-developer or automation owner needs that surface. If you use only the Lightning card, skip the
-non-card and Platform Event sections.
+developer or automation owner needs help with one of those options. If you use only the Lightning
+card, skip the non-card and Platform Event sections.
 
 For what a normal (non-diagnostics) card looks like with Pass, Fail, and Skipped outcomes, see the
 [Demo Account Relationship and Risk screenshot](../../assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png)
@@ -258,7 +258,7 @@ IDs, queries, source values, and customer data can still be present; “support 
 Use [Salesforce debug logs](./salesforce-debug-logs.md) only when the card diagnosis and reviewed
 browser-console support report do not identify the failed phase and corrective action.
 
-For failures outside the Lightning card, use the guide for that execution surface:
+For failures outside the Lightning card, use the guide for the way Record Health Check was run:
 
 - [Flow actions](../flow-guides/action-inputs-and-outputs.md)
 - [Asynchronous Apex](../developer-guides/async-apex/README.md)

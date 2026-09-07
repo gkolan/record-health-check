@@ -12,7 +12,12 @@ import {
 const subtitle =
   "A sentence long enough to say what the reader will actually see on this card.";
 const card = (api, title, label = title) => ({ api, label, title, subtitle });
-const check = (api, set, fields) => ({ api, set, fields: new Set(fields) });
+const check = (api, set, fields, values = new Map()) => ({
+  api,
+  set,
+  fields: new Set(fields),
+  values
+});
 const fullTierA = check("C", "Account_Query_Coverage", TIER_A);
 
 test("every declared purpose is one the prefix table knows", () => {
@@ -113,6 +118,26 @@ test("a fully populated card produces no findings", () => {
     ),
     []
   );
+});
+
+test("reader-facing Check text does not use parenthetical plural shorthand", () => {
+  const findings = comprehensionFindings(
+    [],
+    [
+      check(
+        "C",
+        "Account_Query_Coverage",
+        TIER_A,
+        new Map([
+          [
+            "FailureMessage__c",
+            "This account has 2 high-priority case record(s)."
+          ]
+        ])
+      )
+    ]
+  );
+  assert.match(findings.join("\n"), /FailureMessage__c.*record\(s\)/);
 });
 
 test("a record label that reworded the title is reported", () => {
