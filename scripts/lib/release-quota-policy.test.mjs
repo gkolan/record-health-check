@@ -35,6 +35,13 @@ const packageVerifier = fs.readFileSync(
   new URL("../release/verify-package-version.mjs", import.meta.url),
   "utf8"
 );
+const releaseOwnerChecklist = fs.readFileSync(
+  new URL(
+    "../../docs/quality-gates/manual-release-owner-checklist.md",
+    import.meta.url
+  ),
+  "utf8"
+);
 
 test("local scratch org defaults are short and can be selected explicitly", () => {
   assert.match(contributorSetup, /durationDays: "7"/);
@@ -131,4 +138,17 @@ test("release workflows protect quota before starting fresh-org validation", () 
       assertReleaseQuotaPolicy(source, subscriber, [...workflows, unsafe])
     );
   }
+});
+
+test("release-owner instructions match the two-org namespaced source workflow", () => {
+  assert.match(releaseOwnerChecklist, /source matrix creates two scratch orgs/);
+  assert.match(
+    releaseOwnerChecklist,
+    /full\nrelease needs eight scratch-org creations/
+  );
+  assert.match(releaseOwnerChecklist, /`locker-browser-tests \(namespaced\)`/);
+  assert.doesNotMatch(
+    releaseOwnerChecklist,
+    /portable-source-tests|locker-browser-tests \(no-namespace\)|four-org source matrix|ten scratch-org creations/
+  );
 });

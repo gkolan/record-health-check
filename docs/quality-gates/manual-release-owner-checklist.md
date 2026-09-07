@@ -19,9 +19,10 @@ final fresh-environment release evidence after known failures are resolved.
 Pull-request and push CI must consume no scratch-org or package-version creation quota. Both
 Salesforce workflows are manual-only and require the complete no-org preflight before checking
 capacity. The source workflow also completes Code Analyzer before any org is created. Source
-runtime stages execute namespaced LWS, portable LWS, then Locker; Locker and subscriber matrices
-run one org at a time and stop queued work on failure. Capacity checks are not reservations and
-cannot protect against unrelated Dev Hub activity.
+runtime stages execute namespaced LWS, then namespaced Locker. The Locker stage and each subscriber
+stage run one org at a time and stop queued work on failure. A no-namespace source deployment is an
+optional contributor check, not a second package shape or a release requirement. Capacity checks
+are not reservations and cannot protect against unrelated Dev Hub activity.
 
 Never repeatedly rerun an org-consuming workflow while its first failure is unexplained. Inspect
 the original error and existing evidence, correct the cause, and repeat no-org validation first.
@@ -108,17 +109,15 @@ tracked file.
 2. Select **Run workflow**.
 3. Select the release branch, not `main` and not a stale branch.
 4. Run the workflow.
-5. Confirm `offline-preflight` passes, then confirm `Check release-matrix scratch-org capacity` passes with four daily and
-   active slots available. The complete source matrix creates four scratch orgs. Deleting an org
+5. Confirm `offline-preflight` passes, then confirm `Check release-matrix scratch-org capacity`
+   passes with two daily and active slots available. The complete source matrix creates two scratch orgs. Deleting an org
    restores an active slot but does not restore a daily creation. Do not run unrelated scratch-org
    creation concurrently with the release gate.
 6. Open the completed run and confirm that all of these jobs executed and passed:
    - `offline-preflight`
    - `require-dev-hub-secret`
    - `package-source-tests`
-   - `portable-source-tests`
    - `locker-browser-tests (namespaced)`
-   - `locker-browser-tests (no-namespace)`
 7. Confirm the run's head SHA is the recorded release commit.
 8. Retain the workflow URL and uploaded evidence.
 
@@ -163,8 +162,8 @@ candidate requires the documented reviewed override and is not a normal retry me
 9. Retain install requests, the complete subscriber Apex inventory (including
    `RHCSubscriberFlowSmokeTest`), browser evidence, and both upgrade-preservation snapshots.
 
-Each subscriber dispatch creates two fresh orgs. Together with the four-org source matrix, the full
-release needs ten scratch-org creations. Check daily and active capacity before each stage; if only
+Each subscriber dispatch creates two fresh orgs. Together with the two-org source matrix, the full
+release needs eight scratch-org creations. Check daily and active capacity before each stage; if only
 five daily creations are available, plan across quota resets. Workflow concurrency serializes these
 release workflows but does not reserve capacity against other tools or people. Deleting scratch orgs
 does not refund daily creations. Do not replace fresh-org tests with reused-org results to rush release.
