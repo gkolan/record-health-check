@@ -1,0 +1,32 @@
+{
+  "recordings": {
+    "formula": {
+      "file": "claude-haiku-4-5-20251001-formula.md",
+      "model": "claude-haiku-4-5-20251001",
+      "promptSha256": "76ab1865eaf6b68b1a91b045173510b1a876570bd6d068eda354694486c02ad8",
+      "recordedAt": "2026-09-07",
+      "via": "Claude Code Haiku subagent; api.anthropic.com is unreachable from this environment, so draft_with_model.mjs could not make the call"
+    },
+    "query": {
+      "file": "claude-haiku-4-5-20251001-query.md",
+      "model": "claude-haiku-4-5-20251001",
+      "promptSha256": "c8de390b9672adc5ca340b056438bac27b09b76ff83c1acd264a32dc5ba9af57",
+      "recordedAt": "2026-09-07",
+      "via": "Claude Code Haiku subagent; api.anthropic.com is unreachable from this environment, so draft_with_model.mjs could not make the call"
+    },
+    "compare-two-queries": {
+      "file": "claude-haiku-4-5-20251001-compare-two-queries.md",
+      "model": "claude-haiku-4-5-20251001",
+      "promptSha256": "36a48964863c824ed9dcf375a9f45f4f778ce9ab63a33064501f29ad2f6aa77e",
+      "recordedAt": "2026-09-07",
+      "via": "Claude Code Haiku subagent; api.anthropic.com is unreachable from this environment, so draft_with_model.mjs could not make the call"
+    },
+    "apex": {
+      "file": "claude-haiku-4-5-20251001-apex.md",
+      "model": "claude-haiku-4-5-20251001",
+      "promptSha256": "681760363e6d2bad23f26b945f8efad0258ee365375d2f8341d496ea2ace1dc6",
+      "recordedAt": "2026-09-07",
+      "via": "Claude Code Haiku subagent; api.anthropic.com is unreachable from this environment, so draft_with_model.mjs could not make the call"
+    }
+  }
+}

@@ -23,8 +23,33 @@ jobs:
       - run: npm ci --prefix packages/record-health-check-mcp
       - run: npm install --global @salesforce/cli@2.150.6
       - run: npm run check:toolchain
+      - name: Require the model key the AI drafting release gate needs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY}" ]; then
+            echo "::error::ANTHROPIC_API_KEY is required. The release preflight re-records what the lowest-cost model returns from the AI drafting prompts; there is no offline substitute for that call."
+            exit 1
+          fi
+      # The preflight also runs check:ai-model-drafts, which calls the
+      # lowest-cost Claude model once per Evaluation Type against the prompts in
+      # this commit. Everything else here still needs no org.
       - name: Complete all no-org release checks before spending quota
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run release:preflight
+      # The model's wording differs between runs, so the answers themselves are
+      # not compared. What the gate asserts is that this run's answers are
+      # saveable Check configuration; these are kept so a reviewer can read what
+      # the model actually produced for the released prompts.
+      - name: Keep this release's low-cost-model drafts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ai-drafting-evidence
+          path: tests/ai-drafts/
+          if-no-files-found: error
+          retention-days: 90
       - name: Verify browser installation before spending quota
         run: npx playwright install --with-deps chromium firefox
       - run: echo y | sf plugins install code-analyzer@5.15.0

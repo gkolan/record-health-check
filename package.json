@@ -64,6 +64,8 @@
     "check:version-sync": "node scripts/release/check_version_sync.mjs",
     "check:product-version-language": "node scripts/release/check_product_version_language.mjs",
     "check:distribution-boundary": "node scripts/release/check_distribution_boundary.mjs",
+    "check:ai-prompts": "node scripts/release/check_ai_prompt_accuracy.mjs",
+    "check:ai-model-drafts": "node scripts/release/draft_with_model.mjs --all && node scripts/release/check_ai_prompt_accuracy.mjs",
     "check:docs": "node scripts/release/check_docs.mjs && node scripts/release/audit_docs_quality.mjs --check",
     "check:field-limits": "python3 scripts/release/generate_field_size_registry.py --check",
     "check:check-set-comprehension": "node scripts/release/check_check_set_comprehension.mjs",

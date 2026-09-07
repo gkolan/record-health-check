@@ -41,7 +41,7 @@ optional; there is no theme picker, and an AI draft never replaces human review.
 | Design a complete readiness review | [Configure Check Sets and Checks](./configure-check-sets-and-checks.md) |
 | Give users a corrective next step | [Configure action links](./add-fix-link.md) |
 | Understand why the card follows the active Salesforce theme | [How the card follows your Salesforce theme](../lightning-record-page/theme-and-accessibility.md) |
-| Draft configuration with an AI assistant | [Draft configuration with AI](./draft-with-ai.md) |
+| Draft configuration with an AI assistant | [Draft configuration with AI](./draft-with-ai/) |
 
 ### Run and fix
 

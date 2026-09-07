@@ -31,6 +31,7 @@ export const sourceGates = [
   "check:version-sync",
   "check:product-version-language",
   "check:docs",
+  "check:ai-prompts",
   "check:field-limits",
   "check:check-set-comprehension",
   "check:fixture-value-coverage",
@@ -45,6 +46,24 @@ export const sourceGates = [
   "test:unit:coverage",
   "check:quality-metrics"
 ];
+
+/**
+ * Gates that a release runs and an ordinary pull request does not, because they
+ * spend something a contributor's pull request should not spend.
+ *
+ * `check:ai-model-drafts` calls the lowest-cost Claude model once per Evaluation
+ * Type and re-records what it returns. The product claim behind
+ * `docs/build-checks/draft-with-ai` is that an administrator drafting with the
+ * cheapest model available to them gets Check configuration that saves, and
+ * only a live call to that model can test it. Running it per release, against
+ * the prompts being released, is what keeps that claim current; the source gate
+ * `check:ai-prompts` then refuses any release whose recorded evidence was made
+ * from an older prompt.
+ *
+ * It needs ANTHROPIC_API_KEY and fails loudly without one. That is deliberate:
+ * a release that cannot check this claim should not quietly skip it.
+ */
+export const releaseGates = ["check:ai-model-drafts"];
 
 /**
  * Narrows `gates` to the exactly-named `requested` gates, preserving the
@@ -85,5 +104,7 @@ export function gateEnvironment(environment, baseEnvironment = process.env) {
 export function gatesFor(environment) {
   const toolchainGate =
     environment === "ci" ? "check:toolchain-policy" : "check:toolchain-latest";
-  return [toolchainGate, ...sourceGates];
+  return environment === "ci"
+    ? [toolchainGate, ...sourceGates]
+    : [toolchainGate, ...sourceGates, ...releaseGates];
 }

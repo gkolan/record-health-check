@@ -1,0 +1,18 @@
+Draft a Check Set and Check for this requirement:
+
+- Base object: Account
+- Evaluation Type: FORMULA
+- Verified field API names: BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry
+- Pass when: all five Billing address fields are populated
+- Fail when: any one of them is blank
+- Skip when: never; this applies to every Account
+- If a query finds no records: not applicable
+- Failure message (plain language): the Account is missing part of its billing address
+- Fix guidance / Action URL needed?: yes; open the Account edit page
+- Business category and severity: Completeness; Warning
+- Prerequisite Check that must pass first: none
+- Card behavior: run when the user clicks Run; show every row; summary below the Checks
+- Publish Platform Events?: no
+- Users who will run it: billing specialists
+- Use administrator-created API names without an rhc__ prefix.
+- Fill like a published example: concrete MasterLabel, DeveloperName, CardTitle, CardSubtitle, CheckTitle, and CheckDescription; FailureMessage with {!record.Name fallback="this record"}; FixMessage and UnableToEvaluateMessage filled; for QUERY or COMPARE_TWO_QUERIES fill DisplayFoundText and DisplayExpectedText with rhcResult tokens; for FORMULA fill DisplayFoundFormula and DisplayExpectedFormula when they help the user.

@@ -1,0 +1,18 @@
+Draft a Check Set and Check for this requirement:
+
+- Base object: Account
+- Evaluation Type: APEX
+- Apex class confirmed to exist in the org: AccountHasRecentActivityCheck
+- Apex parameters: the class accepts a daysBack number; we want 90 days
+- Pass when: the Account has a Task or Event within the last 90 days
+- Fail when: it does not
+- Skip when: never
+- Failure message (plain language): no recent activity on this Account
+- Fix guidance / Action URL needed?: yes; the Account record page
+- Business category and severity: Timeliness; Warning
+- Prerequisite Check that must pass first: none
+- Card behavior: run when the user clicks Run; show every row; summary below the Checks
+- Publish Platform Events?: no
+- Users who will run it: account managers
+- Use administrator-created API names without an rhc__ prefix.
+- Fill like a published example: concrete MasterLabel, DeveloperName, CardTitle, CardSubtitle, CheckTitle, and CheckDescription; FailureMessage with {!record.Name fallback="this record"}; FixMessage and UnableToEvaluateMessage filled; for QUERY or COMPARE_TWO_QUERIES fill DisplayFoundText and DisplayExpectedText with rhcResult tokens; for FORMULA fill DisplayFoundFormula and DisplayExpectedFormula when they help the user.

@@ -45,7 +45,7 @@ test("preserves user verification, business scores, and AI drafting instructions
       "docs/examples/formula/account.md",
       "Account Rating is Hot, Warm, or Cold."
     ],
-    ["docs/build-checks/draft-with-ai.md", "| Field | Proposed value |"],
+    ["docs/build-checks/draft-with-ai/README.md", "| Field | Proposed value |"],
     ["docs/developer-guides/mcp.md", "Verify each authentication gate."],
     [
       "docs/install/demo.md",

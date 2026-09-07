@@ -1,0 +1,18 @@
+Draft a Check Set and Check for this requirement:
+
+- Base object: Account
+- Evaluation Type: QUERY
+- Verified relationship and fields: Opportunity.AccountId, Opportunity.IsClosed, Opportunity.NextStep
+- Pass when: every open Opportunity on the Account has a Next Step
+- Fail when: at least one open Opportunity has no Next Step
+- Skip when: the Account has no open Opportunities
+- If a query finds no records: Skip
+- Failure message (plain language): some open Opportunities have no Next Step
+- Fix guidance / Action URL needed?: yes; the Account Opportunities related list
+- Business category and severity: Readiness; Critical
+- Prerequisite Check that must pass first: none
+- Card behavior: run when the page opens; show passed checks as a count only; summary above the Checks
+- Publish Platform Events?: no
+- Users who will run it: account managers
+- Use administrator-created API names without an rhc__ prefix.
+- Fill like a published example: concrete MasterLabel, DeveloperName, CardTitle, CardSubtitle, CheckTitle, and CheckDescription; FailureMessage with {!record.Name fallback="this record"}; FixMessage and UnableToEvaluateMessage filled; for QUERY or COMPARE_TWO_QUERIES fill DisplayFoundText and DisplayExpectedText with rhcResult tokens; for FORMULA fill DisplayFoundFormula and DisplayExpectedFormula when they help the user.
