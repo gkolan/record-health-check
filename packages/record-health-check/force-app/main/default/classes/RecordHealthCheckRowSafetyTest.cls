@@ -26,7 +26,7 @@ private class RecordHealthCheckRowSafetyTest {
   static void dropsALinkWhoseEncodedUrlOutgrowsItsLimit() {
     String oversized = 'a b&c'.repeat(500);
     String resolved = RecordHealthCheckTemplateService.resolveUrl(
-      '/lightning/r/Account/{!rhcQuery.sourceRows[1].Name}/view',
+      '/lightning/r/Account/{!rhcQuery.sourceRows[0].Name}/view',
       new RecordHealthCheckMergeContext()
         .withRecord(RecordHealthCheckTestDataFactory.accountFixture('Page'))
         .withQueryRows(
@@ -66,7 +66,7 @@ private class RecordHealthCheckRowSafetyTest {
       }
     ) {
       String rendered = RecordHealthCheckTemplateService.resolveDisplay(
-        'Review {!rhcQuery.sourceRows[1].Name}',
+        'Review {!rhcQuery.sourceRows[0].Name}',
         new RecordHealthCheckMergeContext()
           .withRecord(RecordHealthCheckTestDataFactory.accountFixture('Page'))
           .withQueryRows(

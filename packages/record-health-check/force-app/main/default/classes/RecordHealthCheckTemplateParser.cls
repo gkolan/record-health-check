@@ -213,7 +213,7 @@ public class RecordHealthCheckTemplateParser {
     }
     return base +
       ' A Check has one result, not a list of results. To read a row the ' +
-      'Check queried, use {!rhcQuery.sourceRows[1].Field}.';
+      'Check queried, use {!rhcQuery.sourceRows[0].Field}.';
   }
 
   private static String notAllowedMessage(

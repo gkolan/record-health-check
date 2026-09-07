@@ -208,8 +208,8 @@ public class RecordHealthCheckTemplateService {
       // A row the query never returned has no definition to read either, so
       // the value is left to render as the plain formatter sees it.
       basis = rows != null &&
-        shape.rowIndex <= rows.size()
-        ? rows[shape.rowIndex - 1]
+        shape.rowIndex < rows.size()
+        ? rows[shape.rowIndex]
         : null;
       fieldPath = shape.fieldPath;
     }

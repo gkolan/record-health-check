@@ -81,12 +81,13 @@ public class RecordHealthCheckTemplateValueResolver {
     if (shape.kind == RecordHealthCheckTokenShape.KIND_QUERY_ROW_COUNT) {
       return rows.size();
     }
-    // Indexes are one-based because Check metadata is written by people.
-    if (shape.rowIndex > rows.size()) {
+    // Query rows follow the same zero-based indexing developers use in Apex
+    // and JavaScript collections.
+    if (shape.rowIndex >= rows.size()) {
       return null;
     }
     try {
-      return resolveFieldPath(rows[shape.rowIndex - 1], shape.fieldPath);
+      return resolveFieldPath(rows[shape.rowIndex], shape.fieldPath);
     } catch (System.SObjectException error) {
       // The query did not select this field. Authoring validation refuses that
       // combination, so reaching here means the metadata changed underneath a

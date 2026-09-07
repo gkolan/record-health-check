@@ -160,7 +160,7 @@ public with sharing class RecordHealthCheckQueryTokenRules {
             ' counts records rather than returning them, so counting its rows ' +
             'always gives 1. Use {!rhcResult.foundValue} for the number it ' +
             'counted, or alias the count as in SELECT COUNT(Id) total and use ' +
-            '{!rhcQuery.sourceRows[1].total}.'
+            '{!rhcQuery.sourceRows[0].total}.'
         );
       }
       return null;
@@ -192,17 +192,17 @@ public with sharing class RecordHealthCheckQueryTokenRules {
     }
     String queryLabel = comparison ? 'Comparison Query' : 'Source Query';
     // An aggregate with no GROUP BY returns exactly one row whatever the data,
-    // so position 1 is repeatable without an ORDER BY — and SOQL would reject
+    // so index 0 is repeatable without an ORDER BY — and SOQL would reject
     // one anyway, because an aggregate cannot be ordered by an ungrouped field.
     if (projection.returnsExactlyOneRow()) {
-      return shape.rowIndex == 1
+      return shape.rowIndex == 0
         ? null
         : new RecordHealthCheckTokenIssue(
             'TOKEN_ROW_INDEX_INVALID',
             token.expression,
             'The ' +
               queryLabel +
-              ' returns exactly one row, so only row 1 exists.'
+              ' returns exactly one row, so only index 0 exists.'
           );
     }
     if (!projection.hasStableRowOrder()) {
@@ -225,13 +225,13 @@ public with sharing class RecordHealthCheckQueryTokenRules {
     // One Result evaluation refuses the moment a second row comes back, so a
     // token addressing one is unreachable by construction: either the Check
     // fails on cardinality before the message is written, or there was only
-    // ever one row. Either way row 2 is never rendered.
-    if (shape.rowIndex > 1 && check.QueryResultHandling__c == 'ONE_RESULT') {
+    // ever one row. Either way index 1 is never rendered.
+    if (shape.rowIndex > 0 && check.QueryResultHandling__c == 'ONE_RESULT') {
       return new RecordHealthCheckTokenIssue(
         'TOKEN_ROW_INDEX_INVALID',
         token.expression,
         'How To Interpret Query Results is "One Result", so this Check never ' +
-          'has more than one row. Address row 1, or choose a multi-row ' +
+          'has more than one row. Address index 0, or choose a multi-row ' +
           'handling mode.'
       );
     }
@@ -250,11 +250,11 @@ public with sharing class RecordHealthCheckQueryTokenRules {
         cap +
         ', so it returns at most that many rows';
     }
-    if (shape.rowIndex > cap) {
+    if (shape.rowIndex >= cap) {
       return new RecordHealthCheckTokenIssue(
         'TOKEN_ROW_INDEX_INVALID',
         token.expression,
-        capSource + ', so row ' + shape.rowIndex + ' can never exist.'
+        capSource + ', so index ' + shape.rowIndex + ' can never exist.'
       );
     }
     RecordHealthCheckTokenIssue encrypted = encryptedFieldIssue(

@@ -35,7 +35,7 @@ private class RecordHealthCheckQueryRowUsageTest {
       SourceQuery__c = 'SELECT Id, LastName, Email, Account.Name FROM Contact ' +
         'WHERE AccountId = {!record.Id} ORDER BY Id',
       FailureMessage__c = 'Second contact is ' +
-        '{!rhcQuery.sourceRows[2].Email fallback="not listed"}'
+        '{!rhcQuery.sourceRows[1].Email fallback="not listed"}'
     );
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.firstIssue(byChildQuery),
@@ -47,7 +47,7 @@ private class RecordHealthCheckQueryRowUsageTest {
       EvaluationType__c = 'QUERY',
       SourceQuery__c = 'SELECT Id, (SELECT Email FROM Contacts) FROM Account ' +
         'ORDER BY Id',
-      FailureMessage__c = '{!rhcQuery.sourceRows[2].Email}'
+      FailureMessage__c = '{!rhcQuery.sourceRows[1].Email}'
     );
     Assert.areEqual(
       'QUERY_PROJECTION_NOT_ANALYZABLE',
@@ -70,7 +70,7 @@ private class RecordHealthCheckQueryRowUsageTest {
     Assert.areEqual(
       'alpha@example.com',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Email}',
+        '{!rhcQuery.sourceRows[0].Email}',
         context
       )
     );
@@ -78,8 +78,8 @@ private class RecordHealthCheckQueryRowUsageTest {
       '2 contacts, second is Beta, email not listed',
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!rhcQuery.sourceRowCount} contacts, second is ' +
-          '{!rhcQuery.sourceRows[2].LastName}, email ' +
-          '{!rhcQuery.sourceRows[2].Email fallback="not listed"}',
+          '{!rhcQuery.sourceRows[1].LastName}, email ' +
+          '{!rhcQuery.sourceRows[1].Email fallback="not listed"}',
         context
       ),
       'A child with no email falls back; it is not a missing row.'
@@ -87,7 +87,7 @@ private class RecordHealthCheckQueryRowUsageTest {
     Assert.areEqual(
       'Third: none',
       RecordHealthCheckTemplateService.resolveDisplay(
-        'Third: {!rhcQuery.sourceRows[3].LastName fallback="none"}',
+        'Third: {!rhcQuery.sourceRows[2].LastName fallback="none"}',
         context
       ),
       'A row the query never returned falls back the same way.'
@@ -149,19 +149,19 @@ private class RecordHealthCheckQueryRowUsageTest {
     // SOQL refuses to order an aggregate by an ungrouped field, so requiring
     // ", Id" here would have been advice no author could follow and would have
     // locked every aggregate out of row tokens. An aggregate with no GROUP BY
-    // returns exactly one row, so position 1 is repeatable by construction.
+    // returns exactly one row, so index 0 is repeatable by construction.
     Record_Health_Check__mdt check = new Record_Health_Check__mdt(
       DeveloperName = 'AggregateAlias',
       EvaluationType__c = 'QUERY',
       SourceQuery__c = 'SELECT COUNT(Id) total FROM Account',
-      FailureMessage__c = 'There are {!rhcQuery.sourceRows[1].total}'
+      FailureMessage__c = 'There are {!rhcQuery.sourceRows[0].total}'
     );
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.firstIssue(check),
       'An explicit alias on a single-row aggregate is addressable.'
     );
 
-    check.FailureMessage__c = '{!rhcQuery.sourceRows[2].total}';
+    check.FailureMessage__c = '{!rhcQuery.sourceRows[1].total}';
     Assert.areEqual(
       'TOKEN_ROW_INDEX_INVALID',
       RecordHealthCheckQueryTokenRules.firstIssue(check)?.reasonCode,
@@ -178,7 +178,7 @@ private class RecordHealthCheckQueryRowUsageTest {
     );
     Assert.isNotNull(
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].total}',
+        '{!rhcQuery.sourceRows[0].total}',
         contextWith(aggregated, null)
       ),
       'And the alias reads off that row.'
@@ -192,7 +192,7 @@ private class RecordHealthCheckQueryRowUsageTest {
       EvaluationType__c = 'QUERY',
       SourceQuery__c = 'SELECT LeadSource, COUNT(Id) total FROM Lead ' +
         'GROUP BY LeadSource ORDER BY LeadSource',
-      FailureMessage__c = '{!rhcQuery.sourceRows[1].total}'
+      FailureMessage__c = '{!rhcQuery.sourceRows[0].total}'
     );
     RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(
       grouped
@@ -219,12 +219,12 @@ private class RecordHealthCheckQueryRowUsageTest {
       EvaluationType__c = 'QUERY',
       SourceQuery__c = 'SELECT Id, Name FROM Account ORDER BY Id',
       QueryResultHandling__c = 'ONE_RESULT',
-      FailureMessage__c = '{!rhcQuery.sourceRows[2].Name}'
+      FailureMessage__c = '{!rhcQuery.sourceRows[1].Name}'
     );
     Assert.areEqual(
       'TOKEN_ROW_INDEX_INVALID',
       RecordHealthCheckQueryTokenRules.firstIssue(oneResult)?.reasonCode,
-      'One Result evaluation fails on a second row, so row 2 never renders.'
+      'One Result evaluation fails on a second row, so index 1 never renders.'
     );
 
     Record_Health_Check__mdt limited = new Record_Health_Check__mdt(
@@ -233,7 +233,7 @@ private class RecordHealthCheckQueryRowUsageTest {
       SourceQuery__c = 'SELECT Id, Name FROM Account ORDER BY Id LIMIT 1',
       QueryResultHandling__c = 'ALL_ROWS_PASS',
       MaxQueryRows__c = 200,
-      FailureMessage__c = '{!rhcQuery.sourceRows[2].Name}'
+      FailureMessage__c = '{!rhcQuery.sourceRows[1].Name}'
     );
     RecordHealthCheckTokenIssue limitIssue = RecordHealthCheckQueryTokenRules.firstIssue(
       limited
@@ -248,7 +248,7 @@ private class RecordHealthCheckQueryRowUsageTest {
     limited.SourceQuery__c = 'SELECT Id, Name FROM Account ORDER BY Id LIMIT 5';
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.firstIssue(limited),
-      'Row 2 of five is reachable.'
+      'Index 1 of five is reachable.'
     );
   }
 
@@ -265,7 +265,7 @@ private class RecordHealthCheckQueryRowUsageTest {
       DeveloperName = 'CurrencyRow',
       EvaluationType__c = 'QUERY',
       SourceQuery__c = 'SELECT Id, AnnualRevenue FROM Account ORDER BY Id',
-      FailureMessage__c = '{!rhcQuery.sourceRows[1].AnnualRevenue format="CURRENCY"}'
+      FailureMessage__c = '{!rhcQuery.sourceRows[0].AnnualRevenue format="CURRENCY"}'
     );
     RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(
       check
@@ -284,7 +284,7 @@ private class RecordHealthCheckQueryRowUsageTest {
     // Auto renders a currency field through the currency renderer without the
     // author ever writing "currency", so it needs the same basis.
     check.SourceQuery__c = 'SELECT Id, AnnualRevenue FROM Account ORDER BY Id';
-    check.FailureMessage__c = '{!rhcQuery.sourceRows[1].AnnualRevenue format="AUTO"}';
+    check.FailureMessage__c = '{!rhcQuery.sourceRows[0].AnnualRevenue format="AUTO"}';
     Assert.areEqual(
       'FIXED_CURRENCY_BASIS_MISSING',
       RecordHealthCheckQueryTokenRules.firstIssue(check)?.reasonCode,
@@ -292,14 +292,14 @@ private class RecordHealthCheckQueryRowUsageTest {
     );
 
     check.SourceQuery__c = 'SELECT Id, Name FROM Account ORDER BY Id';
-    check.FailureMessage__c = '{!rhcQuery.sourceRows[1].Name format="AUTO"}';
+    check.FailureMessage__c = '{!rhcQuery.sourceRows[0].Name format="AUTO"}';
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.firstIssue(check),
       'Auto on a text field has no currency to state.'
     );
 
     check.SourceQuery__c = 'SELECT Id, AnnualRevenue FROM Account ORDER BY Id';
-    check.FailureMessage__c = '{!rhcQuery.sourceRows[1].AnnualRevenue}';
+    check.FailureMessage__c = '{!rhcQuery.sourceRows[0].AnnualRevenue}';
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.firstIssue(check),
       'A bare token is plain text and never reaches the currency renderer.'
@@ -320,7 +320,7 @@ private class RecordHealthCheckQueryRowUsageTest {
           DeveloperName = 'AggregateCurrency',
           EvaluationType__c = 'QUERY',
           SourceQuery__c = 'SELECT SUM(AnnualRevenue) total FROM Account',
-          FailureMessage__c = '{!rhcQuery.sourceRows[1].total format="CURRENCY"}'
+          FailureMessage__c = '{!rhcQuery.sourceRows[0].total format="CURRENCY"}'
         )
       ),
       'An ungrouped aggregate already renders in corporate currency.'
@@ -363,7 +363,7 @@ private class RecordHealthCheckQueryRowUsageTest {
     // So does aliasing the aggregate and reading it as a value.
     counting.SourceQuery__c =
       'SELECT COUNT(Id) total FROM Contact ' + 'WHERE AccountId = {!record.Id}';
-    counting.FailureMessage__c = 'This account has {!rhcQuery.sourceRows[1].total} contacts';
+    counting.FailureMessage__c = 'This account has {!rhcQuery.sourceRows[0].total} contacts';
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.firstIssue(counting),
       'An aliased aggregate is read as a value, not as a row count.'
@@ -406,7 +406,7 @@ private class RecordHealthCheckQueryRowUsageTest {
             SourceQuery__c = 'SELECT Id, ' +
               encryptedField +
               ' FROM Account ORDER BY Id',
-            FailureMessage__c = '{!rhcQuery.sourceRows[1].' +
+            FailureMessage__c = '{!rhcQuery.sourceRows[0].' +
               encryptedField +
               '}'
           )

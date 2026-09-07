@@ -36,7 +36,7 @@ public class RecordHealthCheckTokenShape {
   /** `sourceRows` or `comparisonRows` for query tokens; otherwise null. */
   public String collection;
 
-  /** One-based row position for a query row token; otherwise null. */
+  /** Zero-based row index for a query row token; otherwise null. */
   public Integer rowIndex;
 
   /**

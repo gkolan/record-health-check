@@ -32,7 +32,7 @@
     >IS_NOT_BLANK</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >First email is {!rhcQuery.sourceRows[1].Email}.</value></values>
+    >First email is {!rhcQuery.sourceRows[0].Email}.</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>

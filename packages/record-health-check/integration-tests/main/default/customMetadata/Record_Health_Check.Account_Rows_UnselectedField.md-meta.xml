@@ -35,7 +35,7 @@
     >INFO</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Contact {!rhcQuery.sourceRows[1].LastName}</value></values>
+    >Contact {!rhcQuery.sourceRows[0].LastName}</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Could not read the contacts for this account.</value></values>

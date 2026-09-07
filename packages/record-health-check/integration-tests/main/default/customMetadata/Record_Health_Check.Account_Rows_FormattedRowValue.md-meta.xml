@@ -32,7 +32,7 @@
     >IS_NOT_BLANK</value></values>
     <values><field>DisplayFoundText__c</field><value
       xsi:type="xsd:string"
-    >First of {!rhcQuery.sourceRowCount} contacts, created {!rhcQuery.sourceRows[1].CreatedDate format="DATE" fallback="on an unknown date"}.</value></values>
+    >First of {!rhcQuery.sourceRowCount} contacts, created {!rhcQuery.sourceRows[0].CreatedDate format="DATE" fallback="on an unknown date"}.</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>

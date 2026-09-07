@@ -41,7 +41,7 @@
     >INFO</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >{!rhcSet.cardTitle} ({!rhcSet.developerName}/{!rhcSet.masterLabel}) on {!rhcSet.objectApiName}: {!rhcSet.cardSubtitle} | check {!rhcCheck.developerName} order {!rhcCheck.evaluationOrder} | run {!rhcRun.runId} from {!rhcRun.source} started {!rhcRun.startedAt}, completed {!rhcRun.completedAt fallback="while this message was being written"} in {!rhcRun.durationMs fallback="an unfinished"} ms | first row {!rhcQuery.sourceRows[1].LastName fallback="none"}.</value></values>
+    >{!rhcSet.cardTitle} ({!rhcSet.developerName}/{!rhcSet.masterLabel}) on {!rhcSet.objectApiName}: {!rhcSet.cardSubtitle} | check {!rhcCheck.developerName} order {!rhcCheck.evaluationOrder} | run {!rhcRun.runId} from {!rhcRun.source} started {!rhcRun.startedAt}, completed {!rhcRun.completedAt fallback="while this message was being written"} in {!rhcRun.durationMs fallback="an unfinished"} ms | first row {!rhcQuery.sourceRows[0].LastName fallback="none"}.</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Could not read the contacts for this account.</value></values>

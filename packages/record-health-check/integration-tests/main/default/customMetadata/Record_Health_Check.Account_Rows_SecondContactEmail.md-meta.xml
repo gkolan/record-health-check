@@ -14,7 +14,7 @@
     >Every Contact Has an Email Address</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >Reaches a specific related record by querying the child object. sourceRows[2] is the second Contact in the query's own ORDER BY.</value></values>
+    >Reaches a specific related record by querying the child object. sourceRows[1] is the second Contact in the query's own ORDER BY.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
@@ -35,7 +35,7 @@
     >WARNING</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >{!rhcQuery.sourceRowCount} contacts on {!rhcQuery.sourceRows[1].Account.Name}; the second is {!rhcQuery.sourceRows[2].LastName fallback="not present"} at {!rhcQuery.sourceRows[2].Email fallback="no address"}.</value></values>
+    >{!rhcQuery.sourceRowCount} contacts on {!rhcQuery.sourceRows[0].Account.Name}; the second is {!rhcQuery.sourceRows[1].LastName fallback="not present"} at {!rhcQuery.sourceRows[1].Email fallback="no address"}.</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Could not read the contacts for this account.</value></values>

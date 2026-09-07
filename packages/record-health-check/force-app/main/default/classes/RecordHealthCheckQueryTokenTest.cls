@@ -24,10 +24,10 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'Open Second',
       RecordHealthCheckTemplateService.resolveDisplay(
-        'Open {!rhcQuery.sourceRows[2].Name}',
+        'Open {!rhcQuery.sourceRows[1].Name}',
         context
       ),
-      'Indexes are one-based, so row 2 is the second row.'
+      'Indexes are zero-based, so index 1 is the second row.'
     );
     Assert.areEqual(
       'Found 2',
@@ -49,7 +49,7 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'Open this record',
       RecordHealthCheckTemplateService.resolveDisplay(
-        'Open {!rhcQuery.sourceRows[4].Name fallback="this record"}',
+        'Open {!rhcQuery.sourceRows[3].Name fallback="this record"}',
         context
       ),
       'A row the query never returned is empty, not an error.'
@@ -57,7 +57,7 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'Open ',
       RecordHealthCheckTemplateService.resolveDisplay(
-        'Open {!rhcQuery.sourceRows[4].Name}',
+        'Open {!rhcQuery.sourceRows[3].Name}',
         context
       ),
       'Without a fallback the token simply inserts nothing.'
@@ -77,8 +77,8 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'FromSource then FromComparison',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Name} then ' +
-        '{!rhcQuery.comparisonRows[1].Name}',
+        '{!rhcQuery.sourceRows[0].Name} then ' +
+        '{!rhcQuery.comparisonRows[0].Name}',
         context
       ),
       'The two collections must never cross.'
@@ -100,7 +100,7 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'Compared with nothing',
       RecordHealthCheckTemplateService.resolveDisplay(
-        'Compared with {!rhcQuery.comparisonRows[1].Name fallback="nothing"}',
+        'Compared with {!rhcQuery.comparisonRows[0].Name fallback="nothing"}',
         context
       )
     );
@@ -141,9 +141,9 @@ private class RecordHealthCheckQueryTokenTest {
       DeveloperName = 'DisplayRowToken',
       EvaluationType__c = 'QUERY',
       DisplayFoundText__c = '{!rhcResult.foundValue} on ' +
-        '{!rhcQuery.sourceRows[1].Name}',
+        '{!rhcQuery.sourceRows[0].Name}',
       DisplayExpectedText__c = 'none on ' +
-        '{!rhcQuery.sourceRows[1].Name fallback="that record"}'
+        '{!rhcQuery.sourceRows[0].Name fallback="that record"}'
     );
     RecordHealthCheckTemplateService.applyFoundExpectedText(
       check,
@@ -176,7 +176,7 @@ private class RecordHealthCheckQueryTokenTest {
       'a b&c=d/e?f'
     );
     String url = RecordHealthCheckTemplateService.resolveUrl(
-      '/lightning/r/Account/{!rhcQuery.sourceRows[1].Name}/view',
+      '/lightning/r/Account/{!rhcQuery.sourceRows[0].Name}/view',
       contextWith(new List<SObject>{ hostile }, null)
     );
     Assert.isTrue(
@@ -197,7 +197,7 @@ private class RecordHealthCheckQueryTokenTest {
   static void suppressesTheLinkWhenTheRowValueIsMissing() {
     try {
       RecordHealthCheckTemplateService.resolveUrl(
-        '/lightning/r/Account/{!rhcQuery.sourceRows[9].Id}/view',
+        '/lightning/r/Account/{!rhcQuery.sourceRows[8].Id}/view',
         contextWith(
           new List<SObject>{
             RecordHealthCheckTestDataFactory.accountFixture('Only')
@@ -226,7 +226,7 @@ private class RecordHealthCheckQueryTokenTest {
     }
     try {
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].CheckTitle__c}',
+        '{!rhcQuery.sourceRows[0].CheckTitle__c}',
         contextWith(rows, null)
       );
       Assert.fail('An unselected field must not resolve.');
@@ -260,7 +260,7 @@ private class RecordHealthCheckQueryTokenTest {
       'Counting rows of a nested query is safe.'
     );
 
-    check.FailureMessage__c = 'Open {!rhcQuery.sourceRows[1].Name}';
+    check.FailureMessage__c = 'Open {!rhcQuery.sourceRows[0].Name}';
     RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(
       check
     );
@@ -284,7 +284,7 @@ private class RecordHealthCheckQueryTokenTest {
     }
     try {
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Contacts}',
+        '{!rhcQuery.sourceRows[0].Contacts}',
         contextWith(rows, null)
       );
       Assert.fail('A collection must not resolve as a value.');
@@ -333,7 +333,7 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       expected,
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].AnnualRevenue format="AUTO"}',
+        '{!rhcQuery.sourceRows[0].AnnualRevenue format="AUTO"}',
         contextWith(new List<SObject>{ row }, null)
       ),
       'Auto must derive Currency from the selected query field instead of rendering a plain number.'
@@ -362,7 +362,7 @@ private class RecordHealthCheckQueryTokenTest {
         'EUR'
       ),
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Account.AnnualRevenue format="CURRENCY"}',
+        '{!rhcQuery.sourceRows[0].Account.AnnualRevenue format="CURRENCY"}',
         contextWith(new List<SObject>{ outerRow }, null)
       ),
       'A related amount must use the related record currency, not the outer query row currency.'
@@ -393,7 +393,7 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'none',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Name fallback="none"}',
+        '{!rhcQuery.sourceRows[0].Name fallback="none"}',
         contextWith(new List<SObject>{ withoutName }, null)
       ),
       'A null field is empty and takes the fallback.'
@@ -403,13 +403,13 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'none',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Name fallback="none"}',
+        '{!rhcQuery.sourceRows[0].Name fallback="none"}',
         contextWith(new List<SObject>{ blankName }, null)
       ),
       'An empty string is treated the same as a null, as everywhere else.'
     );
 
-    // E3: exactly one row. Row 1 reads; row 2 is missing, not an error.
+    // E3: exactly one row. Index 0 reads; index 1 is missing, not an error.
     RecordHealthCheckMergeContext single = contextWith(
       new List<SObject>{ withName },
       null
@@ -417,17 +417,17 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'Named',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Name}',
+        '{!rhcQuery.sourceRows[0].Name}',
         single
       )
     );
     Assert.areEqual(
       'absent',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[2].Name fallback="absent"}',
+        '{!rhcQuery.sourceRows[1].Name fallback="absent"}',
         single
       ),
-      'Asking for a second row of a one-row result is empty, not a fault.'
+      'Index 1 of a one-row result is empty, not a fault.'
     );
 
     // E6: positions address rows, so duplicates are not collapsed.
@@ -451,7 +451,7 @@ private class RecordHealthCheckQueryTokenTest {
     Assert.areEqual(
       'no owner',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Owner.Name fallback="no owner"}',
+        '{!rhcQuery.sourceRows[0].Owner.Name fallback="no owner"}',
         contextWith(new List<SObject>{ withName }, null)
       ),
       'An unset parent is empty, not a null dereference.'

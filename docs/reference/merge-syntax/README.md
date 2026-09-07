@@ -118,15 +118,16 @@ without a separate conditional.
 A Query or Compare Two Queries Check can read the rows its own query returned:
 
 ```text
-{!rhcQuery.sourceRows[1].Name}
-{!rhcQuery.sourceRows[2].Email}
-{!rhcQuery.sourceRows[1].Account.Name}
+{!rhcQuery.sourceRows[0].Name}
+{!rhcQuery.sourceRows[1].Email}
+{!rhcQuery.sourceRows[0].Account.Name}
 {!rhcQuery.sourceRowCount}
-{!rhcQuery.comparisonRows[1].Id}
+{!rhcQuery.comparisonRows[0].Id}
 {!rhcQuery.comparisonRowCount}
 ```
 
-Row numbers start at 1 and count the rows the query returned.
+Row indexes start at 0, matching Apex and JavaScript collections. Index `0` is the first returned
+row, index `1` is the second, and so on.
 
 ### Reaching a related record
 
@@ -136,7 +137,7 @@ whatever the Check's own query returned, so querying Contact makes the contacts 
 ```text
 Source Query:  SELECT Id, LastName, Email, Account.Name FROM Contact
                WHERE AccountId = {!record.Id} ORDER BY Id
-Message:       Second contact is {!rhcQuery.sourceRows[2].Email fallback="not listed"}
+Message:       Second contact is {!rhcQuery.sourceRows[1].Email fallback="not listed"}
 ```
 
 A subquery on the parent, such as `SELECT Id, (SELECT Email FROM Contacts) FROM Account`, does not
@@ -144,25 +145,26 @@ work and is refused when a row token is used with it.
 
 ### What a Check must satisfy
 
-Setup reports each of these when the Check is saved or audited, so a row token either works or is
-explained.
+Record Health Check reports each of these when the metadata validator audits the Check, and again
+when the Check runs: an unmet requirement returns `UNABLE_TO_EVALUATE` naming the problem instead of
+a blank value. Custom Metadata has no save-time hook, so saving a Check does not report them.
 
 | Requirement | Why |
 | --- | --- |
 | The Check runs a query | Formula and Apex Checks have no rows |
 | The field is in the `SELECT` list | Selecting `Id` does not authorize `Name`, and selecting `Owner.Name` does not authorize `Owner.Email` |
-| The query has an `ORDER BY` naming `Id` | Row 2 only means something if the query returns rows in the same order every time |
-| The row number is within reach | It cannot exceed the query's own `LIMIT`, the Check's Max Query Rows, or the single row a One Result Check returns |
+| The query has an `ORDER BY` naming `Id` | An indexed row only means something if the query returns rows in the same order every time |
+| The row index is within reach | It must be lower than the query's own `LIMIT`, the Check's Max Query Rows, or the single row a One Result Check returns |
 | A `comparisonRows` token has a Comparison Query | Otherwise the Check produces no comparison rows |
 | A currency-formatted amount has its currency | In a multi-currency org, select `CurrencyIsoCode` beside the amount |
 
 Two shapes need less. An ungrouped aggregate such as `SELECT COUNT(Id) total FROM Contact` returns
-exactly one row, so it needs no `ORDER BY` and row 1 is always addressable. A row count reads no
+exactly one row, so it needs no `ORDER BY` and index 0 is always addressable. A row count reads no
 column and no order, so it needs neither.
 
 `SELECT COUNT()` is the exception in the other direction: it returns one row holding the total, so
 `sourceRowCount` there would always be 1. Use `{!rhcResult.foundValue}` for the number counted, or
-alias the aggregate as `SELECT COUNT(Id) total` and read `{!rhcQuery.sourceRows[1].total}`.
+alias the aggregate as `SELECT COUNT(Id) total` and read `{!rhcQuery.sourceRows[0].total}`.
 
 ### When the value is not there
 

@@ -41,7 +41,7 @@ private class RecordHealthCheckQueryRoleTest {
       SourceQuery__c = CONTACTS,
       ComparisonQuery__c = CONTACTS,
       ComparisonOperator__c = 'LIST_CONTAINS_ANY',
-      FailureMessage__c = '{!rhcQuery.sourceRows[1].LastName}'
+      FailureMessage__c = '{!rhcQuery.sourceRows[0].LastName}'
     );
     Assert.areEqual(
       'QUERY_ROLE_NOT_AVAILABLE',
@@ -49,7 +49,7 @@ private class RecordHealthCheckQueryRoleTest {
       'The value under test comes from the formula, so the primary side is ' +
       'never queried however the Source Query field is filled in.'
     );
-    listMembership.FailureMessage__c = '{!rhcQuery.comparisonRows[1].LastName}';
+    listMembership.FailureMessage__c = '{!rhcQuery.comparisonRows[0].LastName}';
     Assert.isNull(
       codeFor(listMembership),
       'The rows a list-membership Check does return are comparisonRows.'
@@ -63,7 +63,7 @@ private class RecordHealthCheckQueryRoleTest {
       ExpectedValueSource__c = 'FIXED_VALUE',
       ExpectedFixedValue__c = 'x',
       ComparisonOperator__c = 'EQUALS',
-      FailureMessage__c = '{!rhcQuery.comparisonRows[1].LastName}'
+      FailureMessage__c = '{!rhcQuery.comparisonRows[0].LastName}'
     );
     Assert.areEqual(
       'QUERY_ROLE_NOT_AVAILABLE',
@@ -81,7 +81,7 @@ private class RecordHealthCheckQueryRoleTest {
   /**
    * One Result limits both sides, not just the primary one. A comparison query
    * returning a second row fails on cardinality exactly as the source does, so
-   * comparisonRows[2] is as unreachable as sourceRows[2].
+   * comparisonRows[1] is as unreachable as sourceRows[1].
    */
   @IsTest
   static void appliesTheOneResultCeilingToBothCollections() {
@@ -94,14 +94,14 @@ private class RecordHealthCheckQueryRoleTest {
       ComparisonQueryField__c = 'LastName',
       ComparisonOperator__c = 'EQUALS',
       QueryResultHandling__c = 'ONE_RESULT',
-      FailureMessage__c = '{!rhcQuery.comparisonRows[2].LastName}'
+      FailureMessage__c = '{!rhcQuery.comparisonRows[1].LastName}'
     );
     Assert.areEqual(
       'TOKEN_ROW_INDEX_INVALID',
       codeFor(oneResult),
       'A second comparison row can never exist in One Result mode.'
     );
-    oneResult.FailureMessage__c = '{!rhcQuery.comparisonRows[1].LastName}';
+    oneResult.FailureMessage__c = '{!rhcQuery.comparisonRows[0].LastName}';
     Assert.isNull(codeFor(oneResult), 'The first row is reachable.');
   }
 }

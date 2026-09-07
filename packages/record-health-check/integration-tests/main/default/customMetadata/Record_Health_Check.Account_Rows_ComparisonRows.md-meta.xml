@@ -41,7 +41,7 @@
     >WARNING</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Surnames run from {!rhcQuery.sourceRows[1].firstSurname} to {!rhcQuery.comparisonRows[1].lastSurname} ({!rhcQuery.sourceRowCount} source row, {!rhcQuery.comparisonRowCount} comparison row).</value></values>
+    >Surnames run from {!rhcQuery.sourceRows[0].firstSurname} to {!rhcQuery.comparisonRows[0].lastSurname} ({!rhcQuery.sourceRowCount} source row, {!rhcQuery.comparisonRowCount} comparison row).</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Could not read the contact surnames for this account.</value></values>

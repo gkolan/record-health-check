@@ -56,7 +56,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
     for (String evaluationType : new List<String>{ 'FORMULA', 'APEX' }) {
       Record_Health_Check__mdt candidate = check(
         null,
-        '{!rhcQuery.sourceRows[1].LastName}'
+        '{!rhcQuery.sourceRows[0].LastName}'
       );
       candidate.EvaluationType__c = evaluationType;
       Assert.areEqual(
@@ -71,12 +71,12 @@ private class RecordHealthCheckQueryTokenRulesTest {
   static void refusesACollectionTheCheckDoesNotProduce() {
     Assert.areEqual(
       'QUERY_ROLE_NOT_AVAILABLE',
-      codeFor(check(CONTACTS, '{!rhcQuery.comparisonRows[1].LastName}')),
+      codeFor(check(CONTACTS, '{!rhcQuery.comparisonRows[0].LastName}')),
       'There is no Comparison Query on this Check.'
     );
     Record_Health_Check__mdt dual = check(
       CONTACTS,
-      '{!rhcQuery.comparisonRows[1].LastName}'
+      '{!rhcQuery.comparisonRows[0].LastName}'
     );
     dual.EvaluationType__c = 'COMPARE_TWO_QUERIES';
     dual.ComparisonQuery__c = 'SELECT Id, LastName FROM Contact ORDER BY Id';
@@ -93,7 +93,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT Id, (SELECT Id FROM Contacts) FROM Account ORDER BY Id',
-          '{!rhcQuery.sourceRows[1].Name}'
+          '{!rhcQuery.sourceRows[0].Name}'
         )
       )
     );
@@ -102,7 +102,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT Id FROM Contact ORDER BY Id',
-          '{!rhcQuery.sourceRows[1].LastName}'
+          '{!rhcQuery.sourceRows[0].LastName}'
         )
       )
     );
@@ -111,7 +111,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT Id, LastName FROM Contact ORDER BY LastName',
-          '{!rhcQuery.sourceRows[1].LastName}'
+          '{!rhcQuery.sourceRows[0].LastName}'
         )
       )
     );
@@ -121,7 +121,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
         check(
           'SELECT LastName, COUNT(Id) total FROM Contact ' +
           'GROUP BY LastName ORDER BY LastName',
-          '{!rhcQuery.sourceRows[1].total}'
+          '{!rhcQuery.sourceRows[0].total}'
         )
       ),
       'A grouped aggregate has no repeatable order either.'
@@ -132,7 +132,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
   static void appliesTheTightestRowCeilingItCanFind() {
     Record_Health_Check__mdt oneResult = check(
       CONTACTS,
-      '{!rhcQuery.sourceRows[2].LastName}'
+      '{!rhcQuery.sourceRows[1].LastName}'
     );
     oneResult.QueryResultHandling__c = 'ONE_RESULT';
     Assert.areEqual(
@@ -146,7 +146,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT Id, LastName FROM Contact ORDER BY Id LIMIT 2',
-          '{!rhcQuery.sourceRows[3].LastName}'
+          '{!rhcQuery.sourceRows[2].LastName}'
         )
       ),
       'The query LIMIT is tighter than Max Query Rows.'
@@ -154,7 +154,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
 
     Record_Health_Check__mdt capped = check(
       CONTACTS,
-      '{!rhcQuery.sourceRows[9].LastName}'
+      '{!rhcQuery.sourceRows[8].LastName}'
     );
     capped.MaxQueryRows__c = 5;
     Assert.areEqual(
@@ -168,7 +168,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT COUNT(Id) total FROM Contact',
-          '{!rhcQuery.sourceRows[2].total}'
+          '{!rhcQuery.sourceRows[1].total}'
         )
       ),
       'An ungrouped aggregate returns exactly one row.'
@@ -177,7 +177,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT COUNT(Id) total FROM Contact',
-          '{!rhcQuery.sourceRows[1].total}'
+          '{!rhcQuery.sourceRows[0].total}'
         )
       ),
       'Its single row needs no ORDER BY, which SOQL would reject anyway.'
@@ -219,7 +219,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       'SELECT Id FROM Contact ORDER BY Id',
       null
     );
-    candidate.UnableToEvaluateMessage__c = '{!rhcQuery.sourceRows[1].LastName}';
+    candidate.UnableToEvaluateMessage__c = '{!rhcQuery.sourceRows[0].LastName}';
     Assert.areEqual(
       'QUERY_FIELD_NOT_SELECTED',
       codeFor(candidate),
@@ -227,7 +227,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
     );
 
     candidate.UnableToEvaluateMessage__c = null;
-    candidate.ActionUrl__c = '/x/{!rhcQuery.sourceRows[1].LastName}';
+    candidate.ActionUrl__c = '/x/{!rhcQuery.sourceRows[0].LastName}';
     Assert.areEqual(
       'QUERY_FIELD_NOT_SELECTED',
       codeFor(candidate),
@@ -235,7 +235,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
     );
 
     candidate.ActionUrl__c = null;
-    candidate.DisplayExpectedText__c = '{!rhcQuery.sourceRows[1].LastName}';
+    candidate.DisplayExpectedText__c = '{!rhcQuery.sourceRows[0].LastName}';
     Assert.areEqual(
       'QUERY_FIELD_NOT_SELECTED',
       codeFor(candidate),
@@ -247,23 +247,23 @@ private class RecordHealthCheckQueryTokenRulesTest {
   static void appliesTheCurrencyBasisRuleOnlyWhereItCanBeSatisfied() {
     Record_Health_Check__mdt amount = check(
       'SELECT Id, AnnualRevenue FROM Account ORDER BY Id',
-      '{!rhcQuery.sourceRows[1].AnnualRevenue format="CURRENCY"}'
+      '{!rhcQuery.sourceRows[0].AnnualRevenue format="CURRENCY"}'
     );
     Record_Health_Check__mdt withBasis = check(
       'SELECT Id, AnnualRevenue, CurrencyIsoCode FROM Account ORDER BY Id',
-      '{!rhcQuery.sourceRows[1].AnnualRevenue format="CURRENCY"}'
+      '{!rhcQuery.sourceRows[0].AnnualRevenue format="CURRENCY"}'
     );
     Record_Health_Check__mdt autoAmount = check(
       'SELECT Id, AnnualRevenue FROM Account ORDER BY Id',
-      '{!rhcQuery.sourceRows[1].AnnualRevenue format="AUTO"}'
+      '{!rhcQuery.sourceRows[0].AnnualRevenue format="AUTO"}'
     );
     Record_Health_Check__mdt autoText = check(
       'SELECT Id, Name FROM Account ORDER BY Id',
-      '{!rhcQuery.sourceRows[1].Name format="AUTO"}'
+      '{!rhcQuery.sourceRows[0].Name format="AUTO"}'
     );
     Record_Health_Check__mdt aggregate = check(
       'SELECT SUM(AnnualRevenue) total FROM Account',
-      '{!rhcQuery.sourceRows[1].total format="CURRENCY"}'
+      '{!rhcQuery.sourceRows[0].total format="CURRENCY"}'
     );
 
     Assert.isNull(codeFor(withBasis), 'Selecting the currency resolves it.');
@@ -300,9 +300,9 @@ private class RecordHealthCheckQueryTokenRulesTest {
   @IsTest
   static void statesTheCurrencyRuleIndependentlyOfTheOrgItRunsIn() {
     Map<String, String> byTemplate = new Map<String, String>{
-      '{!rhcQuery.sourceRows[1].AnnualRevenue format="CURRENCY"}' => 'SELECT Id, AnnualRevenue FROM Account ORDER BY Id',
-      '{!rhcQuery.sourceRows[1].AnnualRevenue format="AUTO"}' => 'SELECT Id, AnnualRevenue FROM Account ORDER BY Id',
-      '{!rhcQuery.sourceRows[1].Owner.Name format="CURRENCY"}' => 'SELECT Id, Owner.Name FROM Account ORDER BY Id'
+      '{!rhcQuery.sourceRows[0].AnnualRevenue format="CURRENCY"}' => 'SELECT Id, AnnualRevenue FROM Account ORDER BY Id',
+      '{!rhcQuery.sourceRows[0].AnnualRevenue format="AUTO"}' => 'SELECT Id, AnnualRevenue FROM Account ORDER BY Id',
+      '{!rhcQuery.sourceRows[0].Owner.Name format="CURRENCY"}' => 'SELECT Id, Owner.Name FROM Account ORDER BY Id'
     };
     for (String template : byTemplate.keySet()) {
       RecordHealthCheckToken parsed = RecordHealthCheckTemplateService.parse(
@@ -343,7 +343,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
     // A relationship path needs that relationship's own currency, and a text
     // field needs none at all.
     RecordHealthCheckToken related = RecordHealthCheckTemplateService.parse(
-      '{!rhcQuery.sourceRows[1].Owner.Name format="CURRENCY"}'
+      '{!rhcQuery.sourceRows[0].Owner.Name format="CURRENCY"}'
     )[0];
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.currencyBasisIssue(
@@ -359,7 +359,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
     );
 
     RecordHealthCheckToken plain = RecordHealthCheckTemplateService.parse(
-      '{!rhcQuery.sourceRows[1].Name}'
+      '{!rhcQuery.sourceRows[0].Name}'
     )[0];
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.currencyBasisIssue(
@@ -392,7 +392,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
         codeFor(
           check(
             'SELECT Id, Name FROM Account ORDER BY Id',
-            '{!rhcQuery.sourceRows[1].Name}'
+            '{!rhcQuery.sourceRows[0].Name}'
           )
         ),
         'No encrypted field exists here, so the rule has nothing to refuse.'
@@ -404,7 +404,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT Id, ' + encryptedField + ' FROM Account ORDER BY Id',
-          '{!rhcQuery.sourceRows[1].' + encryptedField + '}'
+          '{!rhcQuery.sourceRows[0].' + encryptedField + '}'
         )
       )
     );
@@ -421,7 +421,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       codeFor(
         check(
           'SELECT Id, Name FROM ZzzNoSuchObject__c ORDER BY Id',
-          '{!rhcQuery.sourceRows[1].Name}'
+          '{!rhcQuery.sourceRows[0].Name}'
         )
       ),
       'The token rules judge the token, not whether the object exists.'

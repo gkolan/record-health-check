@@ -9,7 +9,7 @@ private class RecordHealthCheckTokenShapeTest {
   static void readsRowCollectionPositionAndField() {
     RecordHealthCheckTokenShape source = RecordHealthCheckTokenRegistry.resolve(
       'rhcQuery',
-      'sourceRows[1].Name'
+      'sourceRows[0].Name'
     );
     Assert.isTrue(source.isUsable(), 'A well-formed row token resolves.');
     Assert.areEqual(
@@ -17,7 +17,7 @@ private class RecordHealthCheckTokenShapeTest {
       source.kind
     );
     Assert.areEqual('sourceRows', source.collection);
-    Assert.areEqual(1, source.rowIndex, 'Indexes are one-based.');
+    Assert.areEqual(0, source.rowIndex, 'Indexes are zero-based.');
     Assert.areEqual('Name', source.fieldPath);
     Assert.isTrue(
       source.isTypedField,
@@ -27,10 +27,10 @@ private class RecordHealthCheckTokenShapeTest {
 
     RecordHealthCheckTokenShape comparison = RecordHealthCheckTokenRegistry.resolve(
       'rhcQuery',
-      'comparisonRows[4].Owner.Name'
+      'comparisonRows[3].Owner.Name'
     );
     Assert.isTrue(comparison.readsComparisonQuery());
-    Assert.areEqual(4, comparison.rowIndex);
+    Assert.areEqual(3, comparison.rowIndex);
     Assert.areEqual('Owner.Name', comparison.fieldPath);
 
     RecordHealthCheckTokenShape count = RecordHealthCheckTokenRegistry.resolve(
@@ -48,10 +48,9 @@ private class RecordHealthCheckTokenShapeTest {
   }
 
   @IsTest
-  static void rejectsEveryIndexThatIsNotAPositiveWholeNumber() {
+  static void rejectsEveryIndexThatIsNotAZeroBasedWholeNumber() {
     for (
       String property : new List<String>{
-        'sourceRows[0].Id',
         'sourceRows[-1].Id',
         'sourceRows[1.5].Id',
         'sourceRows[i].Id',
@@ -59,10 +58,11 @@ private class RecordHealthCheckTokenShapeTest {
         'sourceRows[*].Id',
         'sourceRows[1:3].Id',
         'sourceRows[+1].Id',
+        'sourceRows[00].Id',
         'sourceRows[01].Id',
         'sourceRows[].Id',
         'sourceRows[ ].Id',
-        'sourceRows[2001].Id',
+        'sourceRows[2000].Id',
         'sourceRows[999999999999999999999999999999999].Id'
       }
     ) {
@@ -78,7 +78,7 @@ private class RecordHealthCheckTokenShapeTest {
       );
     }
     Assert.isTrue(
-      RecordHealthCheckTokenRegistry.resolve('rhcQuery', 'sourceRows[2000].Id')
+      RecordHealthCheckTokenRegistry.resolve('rhcQuery', 'sourceRows[1999].Id')
         .isUsable(),
       'The last row a Check can return is addressable.'
     );
@@ -113,7 +113,7 @@ private class RecordHealthCheckTokenShapeTest {
     );
     Assert.areEqual('UNKNOWN_TOKEN_PROPERTY', shape.reasonCode);
     Assert.isTrue(
-      shape.message.contains('sourceRows[1].Field'),
+      shape.message.contains('sourceRows[0].Field'),
       'The message must name the supported form: ' + shape.message
     );
   }

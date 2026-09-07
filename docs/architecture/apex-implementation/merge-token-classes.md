@@ -69,7 +69,7 @@ property lists.
 For example, `foundValuePluralSuffix` lets a message display **1 Contact** or **2 Contacts** without
 requiring an administrator to write conditional logic.
 
-`resolve` replaced a yes-or-no membership test once `rhcQuery.sourceRows[1].Name` introduced a
+`resolve` replaced a yes-or-no membership test once `rhcQuery.sourceRows[0].Name` introduced a
 property with three parts. Callers read the resolved shape rather than reading the property string
 again.
 
@@ -158,7 +158,7 @@ into this shape and every consumer downstream reads typed fields.
 | --- | --- |
 | `kind` | `KIND_PROPERTY` for a named value, or one of the two query row kinds |
 | `collection` | `sourceRows` or `comparisonRows` for a query token |
-| `rowIndex` | The one-based row position a query token addresses |
+| `rowIndex` | The zero-based row index a query token addresses |
 | `fieldPath` | The terminal field or relationship path the token reads |
 | `isTypedField` | Whether Salesforce still knows the value's data type, which is what `format` needs |
 | `reasonCode`, `message` | Why the token is unusable, and the change that fixes it |

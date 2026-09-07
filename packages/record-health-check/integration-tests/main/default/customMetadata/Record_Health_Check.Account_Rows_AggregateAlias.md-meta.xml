@@ -14,7 +14,7 @@
     >Account Has Fewer Than Five Contacts</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >An ungrouped aggregate returns exactly one row, so row 1 is addressable without an ORDER BY, which SOQL would reject on an aggregate.</value></values>
+    >An ungrouped aggregate returns exactly one row, so index 0 is addressable without an ORDER BY, which SOQL would reject on an aggregate.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
@@ -41,7 +41,7 @@
     >INFO</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >This account has {!rhcQuery.sourceRows[1].total} contacts.</value></values>
+    >This account has {!rhcQuery.sourceRows[0].total} contacts.</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Could not count the contacts for this account.</value></values>

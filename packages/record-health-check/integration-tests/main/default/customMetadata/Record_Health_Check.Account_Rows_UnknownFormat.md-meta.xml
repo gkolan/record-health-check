@@ -32,7 +32,7 @@
     >IS_NOT_BLANK</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >First contact is {!rhcQuery.sourceRows[1].LastName format="Currency"}.</value></values>
+    >First contact is {!rhcQuery.sourceRows[0].LastName format="Currency"}.</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>

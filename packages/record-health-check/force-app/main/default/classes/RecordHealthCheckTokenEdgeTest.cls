@@ -49,7 +49,7 @@ private class RecordHealthCheckTokenEdgeTest {
 
   @IsTest
   static void refusesAQueryTokenWhoseShapeNeverResolved() {
-    RecordHealthCheckToken broken = token('rhcQuery', 'sourceRows[0].Name');
+    RecordHealthCheckToken broken = token('rhcQuery', 'sourceRows[-1].Name');
     Assert.isFalse(broken.shape.isUsable(), 'Precondition: the shape failed.');
     try {
       RecordHealthCheckTemplateValueResolver.valueFor(
@@ -84,7 +84,7 @@ private class RecordHealthCheckTokenEdgeTest {
   @IsTest
   static void explainsWhyARowTokenIsRefusedOnTheNotApplicableMessage() {
     List<RecordHealthCheckTokenIssue> issues = RecordHealthCheckTemplateService.validate(
-      '{!rhcQuery.sourceRows[1].Name}',
+      '{!rhcQuery.sourceRows[0].Name}',
       RecordHealthCheckTokenSurfaces.NOT_APPLICABLE_MESSAGE
     );
     Assert.areEqual(1, issues.size());
@@ -111,7 +111,7 @@ private class RecordHealthCheckTokenEdgeTest {
     Assert.areEqual(
       'Row',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[1].Name format="TEXT"}',
+        '{!rhcQuery.sourceRows[0].Name format="TEXT"}',
         context
       ),
       'A present row formats against itself.'
@@ -119,7 +119,7 @@ private class RecordHealthCheckTokenEdgeTest {
     Assert.areEqual(
       'none',
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!rhcQuery.sourceRows[4].Name format="TEXT" fallback="none"}',
+        '{!rhcQuery.sourceRows[3].Name format="TEXT" fallback="none"}',
         context
       ),
       'An absent row formats to nothing and uses the fallback.'

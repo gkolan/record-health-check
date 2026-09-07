@@ -35,7 +35,7 @@
     >INFO</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Third contact: {!rhcQuery.sourceRows[3].LastName fallback="there is no third contact"}.</value></values>
+    >Third contact: {!rhcQuery.sourceRows[2].LastName fallback="there is no third contact"}.</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Could not read the contacts for this account.</value></values>

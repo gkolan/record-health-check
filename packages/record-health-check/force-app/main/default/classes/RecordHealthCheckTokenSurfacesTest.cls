@@ -5,7 +5,7 @@
 
 @IsTest
 private class RecordHealthCheckTokenSurfacesTest {
-  private static final String ROW = '{!rhcQuery.sourceRows[1].Name}';
+  private static final String ROW = '{!rhcQuery.sourceRows[0].Name}';
 
   @IsTest
   static void declaresQueryRowsOnlyOnSurfacesWrittenAfterTheQueryRuns() {
@@ -163,7 +163,7 @@ private class RecordHealthCheckTokenSurfacesTest {
     Assert.areEqual(1, issues.size());
     Assert.areEqual('UNSUPPORTED_TOKEN_NAMESPACE', issues[0].reasonCode);
     Assert.isTrue(
-      issues[0].message.contains('rhcQuery.sourceRows[1].Field'),
+      issues[0].message.contains('rhcQuery.sourceRows[0].Field'),
       'The author is sent to the namespace that does hold rows: ' +
       issues[0].message
     );

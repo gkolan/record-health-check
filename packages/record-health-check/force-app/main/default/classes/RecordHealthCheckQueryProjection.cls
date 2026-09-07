@@ -270,7 +270,7 @@ public with sharing class RecordHealthCheckQueryProjection {
   }
 
   /**
-   * Returns exactly one row, whatever the data, so position 1 is repeatable
+   * Returns exactly one row, whatever the data, so index 0 is repeatable
    * without an ORDER BY. SOQL rejects ordering an aggregate by an ungrouped
    * field, so requiring one here would be advice no author could follow.
    */

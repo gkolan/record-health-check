@@ -14,7 +14,7 @@
     >Refused: BeyondQueryLimit</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >Row 3 of a query that ends in LIMIT 1. The query's own ceiling is tighter than the Check's, and the row can never exist. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
+    >Index 2 of a query that ends in LIMIT 1. The query's own ceiling is tighter than the Check's, and the row can never exist. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
@@ -32,7 +32,7 @@
     >IS_NOT_BLANK</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Third contact is {!rhcQuery.sourceRows[3].LastName}.</value></values>
+    >Third contact is {!rhcQuery.sourceRows[2].LastName}.</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>

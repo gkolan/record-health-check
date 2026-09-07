@@ -32,7 +32,7 @@
     >IS_NOT_BLANK</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Note reads {!rhcQuery.sourceRows[1].RHC_Encrypted_Note__c}.</value></values>
+    >Note reads {!rhcQuery.sourceRows[0].RHC_Encrypted_Note__c}.</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>

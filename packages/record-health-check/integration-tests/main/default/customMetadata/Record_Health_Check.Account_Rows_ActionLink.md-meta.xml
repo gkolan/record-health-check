@@ -38,10 +38,10 @@
     >Open the first contact to add an address.</value></values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
-    >View {!rhcQuery.sourceRows[1].LastName fallback="the contact"}</value></values>
+    >View {!rhcQuery.sourceRows[0].LastName fallback="the contact"}</value></values>
     <values><field>ActionUrl__c</field><value
       xsi:type="xsd:string"
-    >/lightning/r/Contact/{!rhcQuery.sourceRows[1].Id}/view</value></values>
+    >/lightning/r/Contact/{!rhcQuery.sourceRows[0].Id}/view</value></values>
     <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Could not read the contacts for this account.</value></values>

@@ -14,7 +14,7 @@
     >Refused: OneResultSecondRow</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >Row 2 on a One Result Check. Evaluation refuses the moment a second row arrives, so the token could never render even when the data has two. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
+    >Index 1 on a One Result Check. Evaluation refuses the moment a second row arrives, so the token could never render even when the data has two. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
@@ -32,7 +32,7 @@
     >IS_NOT_BLANK</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >Second contact is {!rhcQuery.sourceRows[2].LastName}.</value></values>
+    >Second contact is {!rhcQuery.sourceRows[1].LastName}.</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>

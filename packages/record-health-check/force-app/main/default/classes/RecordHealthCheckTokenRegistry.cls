@@ -53,13 +53,15 @@ public class RecordHealthCheckTokenRegistry {
     'comparisonRowCount' => RecordHealthCheckTokenShape.COLLECTION_COMPARISON
   };
 
-  /** The absolute literal row index, matching the Framework's Max Query Rows. */
-  private static final Integer MAX_ROW_INDEX = 2000;
+  /** Highest zero-based index when the Framework returns its maximum 2,000 rows. */
+  private static final Integer MAX_ROW_INDEX = 1999;
 
   private static final Pattern ROW_REFERENCE = Pattern.compile(
     '^(sourceRows|comparisonRows)\\[([^\\]]*)\\]\\.(.+)$'
   );
-  private static final Pattern ROW_INDEX = Pattern.compile('^[1-9][0-9]*$');
+  private static final Pattern ROW_INDEX = Pattern.compile(
+    '^(?:0|[1-9][0-9]*)$'
+  );
   /** The resolver follows five relationships, so a path has at most six parts. */
   public static final Integer MAX_RELATIONSHIP_PARTS = 6;
 
@@ -168,9 +170,9 @@ public class RecordHealthCheckTokenRegistry {
     if (!ROW_INDEX.matcher(rawIndex).matches()) {
       return RecordHealthCheckTokenShape.rejected(
         'TOKEN_ROW_INDEX_INVALID',
-        'Address a row with a whole number starting at 1, such as ' +
+        'Address a row with a zero-based whole number, such as ' +
           collection +
-          '[1]. Received "' +
+          '[0]. Received "' +
           rawIndex +
           '".'
       );
@@ -196,7 +198,7 @@ public class RecordHealthCheckTokenRegistry {
         'UNKNOWN_TOKEN_PROPERTY',
         'A query row token must end in a field or relationship path, such as ' +
           collection +
-          '[1].Name. Received "' +
+          '[0].Name. Received "' +
           fieldPath +
           '".'
       );
@@ -213,7 +215,7 @@ public class RecordHealthCheckTokenRegistry {
     String property
   ) {
     String guidance = namespaceName == 'rhcQuery'
-      ? ' Use sourceRows[1].Field, comparisonRows[1].Field, sourceRowCount, or comparisonRowCount.'
+      ? ' Use sourceRows[0].Field, comparisonRows[0].Field, sourceRowCount, or comparisonRowCount.'
       : '';
     return RecordHealthCheckTokenShape.rejected(
       'UNKNOWN_TOKEN_PROPERTY',

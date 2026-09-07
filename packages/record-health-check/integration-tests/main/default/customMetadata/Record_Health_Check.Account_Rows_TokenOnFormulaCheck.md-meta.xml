@@ -26,7 +26,7 @@
     >BOOLEAN</value></values>
     <values><field>FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >First contact is {!rhcQuery.sourceRows[1].LastName}.</value></values>
+    >First contact is {!rhcQuery.sourceRows[0].LastName}.</value></values>
     <values><field>FailureSeverity__c</field><value
       xsi:type="xsd:string"
     >INFO</value></values>
