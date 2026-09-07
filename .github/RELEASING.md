@@ -48,11 +48,11 @@ Before creating a release candidate:
 3. When the release owner explicitly authorizes scratch-org creation, the optional
    `salesforce-validate.yml` workflow can collect additional namespaced LWS and Locker evidence.
 4. When source-org tests are authorized and run, record their Apex and LWC coverage separately; run
-   `npm run check:apex-coverage -- <org-alias>` and retain the Framework result. Run
+   `npm run check:apex-coverage -- <namespaced-org-alias>` and retain the Framework result. Run
    `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
-   `npm run check:quality-metrics -- --apex-org <org-alias>`. Published coverage must describe the
-   candidate being released, not a prior package. A no-namespace source run can provide additional
-   contributor evidence, but it is not another released package shape.
+   `npm run check:quality-metrics -- --apex-org <namespaced-org-alias>`. Published coverage must
+   identify the exact test run and package being released, not a prior version. A no-namespace
+   source run can provide additional contributor evidence, but it is not a published release statistic.
 
 After creating the single candidate and before promotion:
 
