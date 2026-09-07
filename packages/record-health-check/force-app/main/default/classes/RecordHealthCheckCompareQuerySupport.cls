@@ -40,18 +40,25 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
   ) {
     SObject primaryRow = primaryRows.isEmpty() ? null : primaryRows[0];
     SObject comparisonRow = comparisonRows.isEmpty() ? null : comparisonRows[0];
-    String displayFormat = RecordHealthCheckDisplayFormat.formatForRow(
+    String primaryDisplayFormat = RecordHealthCheckDisplayFormat.formatForRow(
       check.DisplayValueFormat__c,
       primaryRow,
       check.SourceQueryField__c
     );
+    String comparisonDisplayFormat = RecordHealthCheckDisplayFormat.formatForRow(
+      check.DisplayValueFormat__c,
+      comparisonRow,
+      check.ComparisonQueryField__c
+    );
     String primaryIsoCode = RecordHealthCheckDisplayFormat.currencyIsoCodeFor(
       primaryRow,
-      record
+      record,
+      check.SourceQueryField__c
     );
     String comparisonIsoCode = RecordHealthCheckDisplayFormat.currencyIsoCodeFor(
       comparisonRow,
-      record
+      record,
+      check.ComparisonQueryField__c
     );
 
     if (mode == 'ONE_RESULT') {
@@ -62,7 +69,8 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
         comparisonRows,
         primaryRow,
         comparisonRow,
-        displayFormat,
+        primaryDisplayFormat,
+        comparisonDisplayFormat,
         primaryIsoCode,
         comparisonIsoCode,
         primaryIsZeroCount,
@@ -75,7 +83,8 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
         result,
         primaryRows,
         comparisonRows,
-        displayFormat
+        primaryDisplayFormat,
+        comparisonDisplayFormat
       );
     }
     RecordHealthCheckTemplateService.applyFoundExpectedText(
@@ -92,7 +101,8 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     List<SObject> comparisonRows,
     SObject primaryRow,
     SObject comparisonRow,
-    String displayFormat,
+    String primaryDisplayFormat,
+    String comparisonDisplayFormat,
     String primaryIsoCode,
     String comparisonIsoCode,
     Boolean primaryIsZeroCount,
@@ -120,15 +130,23 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
       comparisonRow,
       check.ComparisonQueryField__c
     );
+    // Record raw operands so callers receive what was compared, not the card wording.
+    result.evaluationFound = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      primaryValue
+    );
+    result.evaluationExpected = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      comparisonValue
+    );
+    result.operandsRecorded = true;
     result.actualValue = RecordHealthCheckComparisonDisplay.formatValue(
       displayPrimaryValue,
-      displayFormat,
+      primaryDisplayFormat,
       primaryIsoCode
     );
     result.expectedValue = RecordHealthCheckComparisonDisplay.describeExpected(
       check.ComparisonOperator__c,
       displayComparisonValue,
-      displayFormat,
+      comparisonDisplayFormat,
       comparisonIsoCode
     );
     result.actualValueSource = valueSource(
@@ -158,13 +176,29 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
     );
   }
 
+  /**
+   * A list operand as a machine caller receives it: the values compared, with
+   * no operator phrase and no display formatting.
+   */
+  private static RecordHealthCheckValue typedList(List<Object> operands) {
+    if (operands == null) {
+      return null;
+    }
+    List<String> values = new List<String>();
+    for (Object operand : operands) {
+      values.add(operand == null ? null : String.valueOf(operand));
+    }
+    return RecordHealthCheckValue.ofList(values);
+  }
+
   private static void setListComparisonValues(
     Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     List<SObject> primaryRows,
     List<SObject> comparisonRows,
-    String displayFormat
+    String primaryDisplayFormat,
+    String comparisonDisplayFormat
   ) {
     List<Object> primaryList = RecordHealthCheckValueResolver.singleValueList(
       primaryRows,
@@ -174,6 +208,11 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
       comparisonRows,
       check.ComparisonQueryField__c
     );
+    // Record raw list operands; otherwise Expected exposes "to contain all of ..."
+    // instead of values—the regression already fixed for single values.
+    result.evaluationFound = typedList(primaryList);
+    result.evaluationExpected = typedList(comparisonList);
+    result.operandsRecorded = true;
     result.actualValue = RecordHealthCheckComparisonDisplay.formatList(
       RecordHealthCheckDisplayFormat.valuesForDisplay(
         primaryList,
@@ -181,8 +220,12 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
         primaryRows,
         check.SourceQueryField__c
       ),
-      displayFormat,
-      RecordHealthCheckDisplayFormat.currencyIsoCodesFor(primaryRows, record)
+      primaryDisplayFormat,
+      RecordHealthCheckDisplayFormat.currencyIsoCodesFor(
+        primaryRows,
+        record,
+        check.SourceQueryField__c
+      )
     );
     result.expectedValue = RecordHealthCheckComparisonDisplay.describeExpectedList(
       check.ComparisonOperator__c,
@@ -192,8 +235,12 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
         comparisonRows,
         check.ComparisonQueryField__c
       ),
-      displayFormat,
-      RecordHealthCheckDisplayFormat.currencyIsoCodesFor(comparisonRows, record)
+      comparisonDisplayFormat,
+      RecordHealthCheckDisplayFormat.currencyIsoCodesFor(
+        comparisonRows,
+        record,
+        check.ComparisonQueryField__c
+      )
     );
     result.actualValueSource = listValueSource(
       check.SourceQueryField__c,

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account QC - Expected Datetime</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Account_Query_Coverage</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">No Contact Predates the Account</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Query check whose Expected Value Comes From = RecordFormula returns a Datetime, so Formula Result Type = Datetime. Passes when every contact was created at or after the account.</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">QUERY</value>
+    </values>
+    <values>
+        <field>SourceQuery__c</field>
+        <value
+      xsi:type="xsd:string"
+    >SELECT CreatedDate FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate, Id</value>
+    </values>
+    <values>
+        <field>SourceQueryField__c</field>
+        <value xsi:type="xsd:string">CreatedDate</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ALL_ROWS_PASS</value>
+    </values>
+    <values>
+        <field>ComparisonOperator__c</field>
+        <value xsi:type="xsd:string">GREATER_THAN_OR_EQUAL</value>
+    </values>
+    <values>
+        <field>ExpectedValueSource__c</field>
+        <value xsi:type="xsd:string">RECORD_FORMULA</value>
+    </values>
+    <values>
+        <field>ExpectedRecordFormula__c</field>
+        <value xsi:type="xsd:string">CreatedDate</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">DATETIME</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">DATETIME</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Earliest of {!rhcQuery.sourceRowCount} contacts, created {!rhcQuery.sourceRows[0].CreatedDate format="DATETIME" fallback="at an unknown time"}.</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value xsi:type="xsd:string">At or after the account was created</value>
+    </values>
+    <values>
+        <field>NoRowsResult__c</field>
+        <value xsi:type="xsd:string">SKIP</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">SKIP_RECORD</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name} has a contact created before the account itself, so the Datetime comparison failed.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The Datetime comparison could not be evaluated. Contact your administrator.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">130</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

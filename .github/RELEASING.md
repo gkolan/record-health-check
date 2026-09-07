@@ -41,14 +41,18 @@ Checks:
 Before creating a release candidate:
 
 1. Run every local gate, including docs, query shapes, permissions, formatting, lint, and Jest.
+   `check:ai-prompts` confirms that the saved low-cost-model examples match the current prompts and
+   Custom Metadata fields. Re-record them deliberately when a prompt changes. A normal release does
+   not require a third-party model credential.
 2. Run Code Analyzer and resolve every unsuppressed release finding.
-3. Run the package-source org gate in CI (`salesforce-validate.yml`).
-4. After both namespaced and no-namespace source tests complete, run
-   `npm run check:apex-coverage -- <org-alias>` for each org and retain the lower Framework result.
-   Run `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
-   `npm run check:quality-metrics -- --apex-org <org-alias>` against both orgs. The gate treats the
-   published Apex value as the conservative cross-shape floor: both orgs must meet or exceed it.
-   Published coverage must describe the candidate being released, not a prior package.
+3. When the release owner explicitly authorizes scratch-org creation, the optional
+   `salesforce-validate.yml` workflow can collect additional namespaced LWS and Locker evidence.
+4. When source-org tests are authorized and run, record their Apex and LWC coverage separately; run
+   `npm run check:apex-coverage -- <namespaced-org-alias>` and retain the Framework result. Run
+   `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
+   `npm run check:quality-metrics -- --apex-org <namespaced-org-alias>`. Published coverage must
+   identify the exact test run and package being released, not a prior version. A no-namespace
+   source run can provide additional contributor evidence, but it is not a published release statistic.
 
 After creating the single candidate and before promotion:
 
@@ -60,12 +64,12 @@ After creating the single candidate and before promotion:
 
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
 
-Before any Salesforce operation, run `npm run check:toolchain`. Before creating scratch orgs or a
-package candidate, the repository scripts check the Dev Hub limits and stop rather
-than consume the last required capacity. Package verification deletes only the orgs it created; use
+Before any Salesforce operation, run `npm run check:toolchain`. Never create a scratch org or
+dispatch an org-creating workflow unless the release owner explicitly authorizes that specific run.
+Package creation does not imply scratch-org authorization. Authorized package verification deletes only the orgs it created; use
 `--keep-org` solely for an intentional, time-bounded investigation and delete that org afterward.
-See [source development](../docs/contributing/source-development.md) for the public contributor workflow and
-scratch-org lifecycle checks.
+See the [scratch org lifecycle and release plan](../docs/quality-gates/scratch-org-lifecycle.md)
+for the approved org set, daily creation budget, reuse rules, demo verification, and cleanup.
 
 ## Create a package candidate
 
@@ -106,9 +110,9 @@ The package manifest must identify records by the same metadata full name used b
 files. Do not add `rhc__` or `__mdt` to a Custom Metadata record member merely because Apex refers
 to its SObject type as `rhc__Record_Health_Check_Set__mdt` after installation.
 
-### Prove Custom Metadata round-trip before packaging
+### Optional Custom Metadata round-trip
 
-Before running the release preflight, deploy the exact package source to a namespaced `rhc` scratch
+When the release owner explicitly authorizes a scratch org, you can deploy the exact package source to a namespaced `rhc` scratch
 org, retrieve the Custom Metadata records into a clean temporary directory, and compare the
 retrieved names and XML with the committed source. A successful deployment alone is insufficient:
 Salesforce can accept a source name that is later normalized differently in the server-generated
@@ -198,11 +202,12 @@ from another machine without the creation evidence.
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
 on the bash-only `VAR=value command` prefix.
 
-Do not substitute a raw `sf package version create` command. It bypasses the guarded workflow's
-hosted-evidence checks and does not create the provenance file required for promotion.
+Do not substitute a raw `sf package version create` command. It bypasses the local release checks
+and does not create the provenance file required for promotion.
 
-Record the resulting `04t` ID. Verify the immutable candidate, attach the redacted evidence to the
-pull request, and do not promote it until subscriber verification gates pass.
+Record the resulting `04t` ID and retain the redacted creation evidence. Subscriber validation is
+recommended when the release owner authorizes the required scratch orgs, but it is not a package
+creation or promotion prerequisite.
 
 ## Verify before promote
 
@@ -218,12 +223,9 @@ This runs:
   `RHCSubscriberFlowSmokeTest`
 - Upgrade rehearsal from the explicitly selected reviewed base
 
-The command alone is not the hosted release matrix. Follow the
-[manual release-owner checklist](../docs/quality-gates/manual-release-owner-checklist.md) to dispatch
-all three subscriber stages (`clean-install`, `upgrade-2.0.6.2`, `upgrade-2.0.4.2`) on the unchanged
-release commit and candidate. Each stage requires both LWS and Locker. Complete and retain the
-representative-sandbox acceptance file before promotion. Do not skip a stage because daily
-scratch-org quota is exhausted.
+This command creates scratch orgs. Run it only after the release owner explicitly authorizes the
+specific verification run. The hosted subscriber matrix and representative-sandbox review remain
+available as optional evidence; neither is required by `package:promote`.
 
 ## Promote and publish
 

@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Long Found and Expected</label>
+    <label>Example: Long Found and Expected Values</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -15,10 +15,10 @@
     >Account</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Example: Long Value Display</value></values>
+    >Example: Long Found and Expected Values</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Use this set to test the inline more and less controls.</value></values>
+    >One Check whose Found and Expected values are far too long for a card row. Use it to see the inline more and less controls that keep a long value from pushing the layout apart.</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>

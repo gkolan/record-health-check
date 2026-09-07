@@ -83,4 +83,8 @@
   <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">TIMELINESS</value>
+    </values>
 </CustomMetadata>

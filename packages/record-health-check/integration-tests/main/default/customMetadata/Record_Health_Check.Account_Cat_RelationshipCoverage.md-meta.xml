@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Category - Relationship Coverage</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Account_Category_Grouping</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">Parent Account Is Linked</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Groups under Relationship coverage. Passes when the account is linked to a parent account.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">RELATIONSHIP_COVERAGE</value>
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">FORMULA</value>
+    </values>
+    <values>
+        <field>PassConditionFormula__c</field>
+        <value xsi:type="xsd:string">NOT(ISBLANK(Parent.Name))</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">BOOLEAN</value>
+    </values>
+    <values>
+        <field>DisplayFoundFormula__c</field>
+        <value xsi:type="xsd:string">Parent.Name</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value xsi:type="xsd:string">A linked parent account</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.Name} is not linked to a parent account.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >This Check could not be evaluated. Contact your administrator.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">70</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

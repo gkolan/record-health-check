@@ -44,102 +44,11 @@ public with sharing class RecordHealthCheckConstants {
   /** Maximum values shown in a Found or Expected list preview. */
   public static final Integer DISPLAY_LIST_PREVIEW_CAP = 10;
 
-  // ─── Check Set level ───────────────────────────────────────────────────────
+  // ─── Configuration value sets ──────────────────────────────────────────────
+  // Every set below is declared once, on the restricted picklist that stores it.
+  // Reading the field describe keeps Apex and metadata from drifting apart.
 
-  private static final Set<String> VALID_DISPLAY_MODES_INTERNAL = new Set<String>{
-    'SHOW_EACH_CHECK',
-    'SHOW_COUNT_ONLY'
-  };
-  public static Set<String> validDisplayModes {
-    get {
-      return new Set<String>(VALID_DISPLAY_MODES_INTERNAL);
-    }
-  }
-  private static final Set<String> VALID_SUMMARY_DISPLAYS_INTERNAL = new Set<String>{
-    'TOP',
-    'BOTTOM'
-  };
-  public static Set<String> validSummaryDisplays {
-    get {
-      return new Set<String>(VALID_SUMMARY_DISPLAYS_INTERNAL);
-    }
-  }
-  private static final Set<String> VALID_TRIGGER_MODES_INTERNAL = new Set<String>{
-    'RUN_ON_LOAD',
-    'RUN_ON_REQUEST'
-  };
-  public static Set<String> validTriggerModes {
-    get {
-      return new Set<String>(VALID_TRIGGER_MODES_INTERNAL);
-    }
-  }
-  private static final Set<String> VALID_RUN_BUTTON_DISPLAYS_INTERNAL = new Set<String>{
-    'LABEL_AND_ICON',
-    'LABEL_ONLY',
-    'ICON_ONLY',
-    'HIDE'
-  };
-  public static Set<String> validRunButtonDisplays {
-    get {
-      return new Set<String>(VALID_RUN_BUTTON_DISPLAYS_INTERNAL);
-    }
-  }
-  private static final Set<String> VALID_REVEAL_MODES_INTERNAL = new Set<String>{
-    'ALL_AT_ONCE',
-    'ONE_BY_ONE'
-  };
-  public static Set<String> validRevealModes {
-    get {
-      return new Set<String>(VALID_REVEAL_MODES_INTERNAL);
-    }
-  }
-  private static final Set<String> VALID_COMPARISON_DISPLAYS_INTERNAL = new Set<String>{
-    'ON_DEMAND',
-    'FAILURES_ONLY',
-    'ALL_ROWS'
-  };
-  public static Set<String> validComparisonDisplays {
-    get {
-      return new Set<String>(VALID_COMPARISON_DISPLAYS_INTERNAL);
-    }
-  }
-
-  // ─── Check level ────────────────────────────────────────────────────────────
-
-  private static final Set<String> VALID_CHECK_TYPES_INTERNAL = new Set<String>{
-    'FORMULA',
-    'QUERY',
-    'APEX',
-    'COMPARE_TWO_QUERIES'
-  };
-  public static Set<String> validCheckTypes {
-    get {
-      return new Set<String>(VALID_CHECK_TYPES_INTERNAL);
-    }
-  }
-
-  private static final Set<String> VALID_OPERATORS_INTERNAL = new Set<String>{
-    'EQUALS',
-    'NOT_EQUALS',
-    'GREATER_THAN',
-    'GREATER_THAN_OR_EQUAL',
-    'LESS_THAN',
-    'LESS_THAN_OR_EQUAL',
-    'CONTAINS',
-    'DOES_NOT_CONTAIN',
-    'IS_BLANK',
-    'IS_NOT_BLANK',
-    'LIST_CONTAINS_ANY',
-    'LIST_CONTAINS_NONE',
-    'LISTS_OVERLAP',
-    'LISTS_CONTAIN_ALL',
-    'LISTS_MATCH_EXACTLY'
-  };
-  public static Set<String> validOperators {
-    get {
-      return new Set<String>(VALID_OPERATORS_INTERNAL);
-    }
-  }
+  private static final Map<String, Set<String>> PICKLIST_VALUES = new Map<String, Set<String>>();
 
   /** Operators valid only on CheckType CompareTwoQueries (list-vs-list). */
   private static final Set<String> DUAL_QUERY_OPERATORS_INTERNAL = new Set<String>{
@@ -147,70 +56,107 @@ public with sharing class RecordHealthCheckConstants {
     'LISTS_CONTAIN_ALL',
     'LISTS_MATCH_EXACTLY'
   };
+
+  private static Set<String> picklistValues(Schema.SObjectField field) {
+    Schema.DescribeFieldResult describe = field.getDescribe();
+    String key = describe.getName();
+    if (!PICKLIST_VALUES.containsKey(key)) {
+      Set<String> values = new Set<String>();
+      for (Schema.PicklistEntry entry : describe.getPicklistValues()) {
+        values.add(entry.getValue());
+      }
+      PICKLIST_VALUES.put(key, values);
+    }
+    return new Set<String>(PICKLIST_VALUES.get(key));
+  }
+
+  // ─── Check Set level ───────────────────────────────────────────────────────
+
+  public static Set<String> validDisplayModes {
+    get {
+      return picklistValues(
+        Record_Health_Check_Set__mdt.PassedChecksDisplay__c
+      );
+    }
+  }
+  public static Set<String> validSummaryDisplays {
+    get {
+      return picklistValues(Record_Health_Check_Set__mdt.SummaryDisplay__c);
+    }
+  }
+  public static Set<String> validTriggerModes {
+    get {
+      return picklistValues(Record_Health_Check_Set__mdt.CardRunMode__c);
+    }
+  }
+  public static Set<String> validRunButtonDisplays {
+    get {
+      return picklistValues(Record_Health_Check_Set__mdt.RunButtonDisplay__c);
+    }
+  }
+  public static Set<String> validRevealModes {
+    get {
+      return picklistValues(Record_Health_Check_Set__mdt.CardRevealMode__c);
+    }
+  }
+  public static Set<String> validComparisonDisplays {
+    get {
+      return picklistValues(
+        Record_Health_Check_Set__mdt.FoundExpectedDisplay__c
+      );
+    }
+  }
+
+  // ─── Check level ────────────────────────────────────────────────────────────
+
+  public static Set<String> validCheckTypes {
+    get {
+      return picklistValues(Record_Health_Check__mdt.EvaluationType__c);
+    }
+  }
+  public static Set<String> validOperators {
+    get {
+      return picklistValues(Record_Health_Check__mdt.ComparisonOperator__c);
+    }
+  }
+
   public static Set<String> dualQueryOperators {
     get {
       return new Set<String>(DUAL_QUERY_OPERATORS_INTERNAL);
     }
   }
 
-  private static final Set<String> VALID_NULL_BEHAVIORS_INTERNAL = new Set<String>{
-    'AS_NO_MATCH',
-    'SKIP_RECORD',
-    'AS_BLANK'
-  };
   public static Set<String> validNullBehaviors {
     get {
-      return new Set<String>(VALID_NULL_BEHAVIORS_INTERNAL);
+      return picklistValues(Record_Health_Check__mdt.EmptyValueHandling__c);
     }
   }
-
-  private static final Set<String> VALID_EMPTY_BEHAVIORS_INTERNAL = new Set<String>{
-    'PASS',
-    'FAIL',
-    'SKIP',
-    'UNABLE_TO_EVALUATE'
-  };
   public static Set<String> validEmptyBehaviors {
     get {
-      return new Set<String>(VALID_EMPTY_BEHAVIORS_INTERNAL);
+      return picklistValues(Record_Health_Check__mdt.NoRowsResult__c);
     }
   }
-
   public static Set<String> validSeverities {
     get {
-      return new Set<String>{ 'CRITICAL', 'WARNING', 'INFO' };
+      return picklistValues(Record_Health_Check__mdt.FailureSeverity__c);
     }
   }
   public static Set<String> validComparisonValueSources {
     get {
-      return new Set<String>{
-        'FIXED_VALUE',
-        'RECORD_FORMULA',
-        'COMPARISON_QUERY'
-      };
+      return picklistValues(Record_Health_Check__mdt.ExpectedValueSource__c);
     }
   }
   public static Set<String> validMultipleRecordsHandling {
     get {
-      return new Set<String>{
-        'ONE_RESULT',
-        'ANY_ROW_PASSES',
-        'ALL_ROWS_PASS',
-        'COMPARE_AS_LISTS'
-      };
+      return picklistValues(Record_Health_Check__mdt.QueryResultHandling__c);
     }
   }
 
   // ─── Applicability check ───────────────────────────────────────────────────
 
-  private static final Set<String> VALID_APPLICABILITY_MODES_INTERNAL = new Set<String>{
-    'ALL_RECORDS',
-    'WHEN_FORMULA_TRUE',
-    'WHEN_COUNT_QUERY_MATCHES'
-  };
   public static Set<String> validApplicabilityModes {
     get {
-      return new Set<String>(VALID_APPLICABILITY_MODES_INTERNAL);
+      return picklistValues(Record_Health_Check__mdt.ApplicabilityMode__c);
     }
   }
 
@@ -218,20 +164,14 @@ public with sharing class RecordHealthCheckConstants {
    * Operators legal on ApplicabilityCountOperator__c (SOQL applicability mode).
    * The applicability check counts rows and compares the count to an integer
    * threshold, so only the ordered/equality operators apply — not the text or
-   * list operators in VALID_OPERATORS. Mirrors
+   * list operators on ComparisonOperator__c. Mirrors
    * RecordHealthCheckScopePipeline.applyApplicabilityComparison.
    */
-  private static final Set<String> VALID_APPLICABILITY_OPERATORS_INTERNAL = new Set<String>{
-    'EQUALS',
-    'NOT_EQUALS',
-    'GREATER_THAN',
-    'GREATER_THAN_OR_EQUAL',
-    'LESS_THAN',
-    'LESS_THAN_OR_EQUAL'
-  };
   public static Set<String> validApplicabilityOperators {
     get {
-      return new Set<String>(VALID_APPLICABILITY_OPERATORS_INTERNAL);
+      return picklistValues(
+        Record_Health_Check__mdt.ApplicabilityCountOperator__c
+      );
     }
   }
 
@@ -298,19 +238,6 @@ public with sharing class RecordHealthCheckConstants {
     throw new IllegalArgumentException(
       'Unknown Found/Expected Display value: ' + foundExpectedDisplay
     );
-  }
-
-  public static String toLwcSeverity(String failureSeverity) {
-    if (failureSeverity == 'WARNING') {
-      return 'Warning';
-    }
-    if (failureSeverity == 'INFO') {
-      return 'Info';
-    }
-    if (failureSeverity == 'CRITICAL') {
-      return 'Error';
-    }
-    return failureSeverity;
   }
 
   public static String toLwcEvaluatorType(String evaluationType) {

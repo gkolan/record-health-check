@@ -52,8 +52,8 @@ private with sharing class RHCProtocolBoundaryRegressionTest {
       );
 
       Assert.isTrue(
-        Pattern.matches('^agent-[0-9]+-[0-9a-fA-F]{8}$', output.correlationId),
-        'Generated correlation IDs must combine time with an eight-character random suffix.'
+        Pattern.matches('^agent-[0-9]+-[0-9a-fA-F]{32}$', output.correlationId),
+        'Generated correlation IDs must combine time with a full 128-bit random suffix.'
       );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);

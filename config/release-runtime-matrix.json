@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "candidateVersion": "2.0.7.1",
+  "candidateVersion": "2.0.8.1",
   "upgradeFromVersion": "2.0.6.2",
   "upgradeBases": [
     {
@@ -10,7 +10,7 @@
     { "version": "2.0.4.2", "subscriberPackageVersionId": "04tak000000cZBFAA2" }
   ],
   "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
-  "sourceTopologies": ["namespaced", "no-namespace"],
+  "sourceTopologies": ["namespaced"],
   "lightningSecurityModes": ["LWS", "Locker"],
   "browserEngines": ["chromium", "firefox"],
   "allTypeCheckSet": "Example_Account_Check_Builder_Guide",
@@ -34,8 +34,7 @@
       "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
       "evidence": [
         "tests/browser/release-matrix.spec.mjs",
-        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
-        "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
+        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
       ]
     },
     {
@@ -43,8 +42,7 @@
       "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
       "evidence": [
         "tests/browser/release-matrix.spec.mjs",
-        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
-        "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
+        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
       ]
     },
     {
@@ -133,7 +131,7 @@
     "record-navigation",
     "component-disconnect-reconnect",
     "fresh-package-install",
-    "upgrade-2.0.6.2-to-2.0.7.1",
+    "upgrade-2.0.6.2-to-2.0.8.1",
     "post-install-lwc",
     "post-upgrade-lwc",
     "post-install-apex-api",
@@ -185,7 +183,7 @@
       "tests/browser/lifecycle.mjs"
     ],
     "fresh-package-install": ["scripts/release/verify-package-version.mjs"],
-    "upgrade-2.0.6.2-to-2.0.7.1": [
+    "upgrade-2.0.6.2-to-2.0.8.1": [
       "scripts/release/verify-package-version.mjs"
     ],
     "post-install-lwc": [

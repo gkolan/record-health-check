@@ -32,8 +32,8 @@ use the code, never editable display text.
 > [!IMPORTANT]
 > **Public versus diagnostics-only:** `FIELD_NOT_ACCESSIBLE` and `RECORD_NOT_ACCESSIBLE` never appear
 > as the public `reasonCode` on a result. Record Health Check replaces them with `CANNOT_EVALUATE`.
-> When **Show Diagnostics** is on and the user has **Record Health Check View Diagnostics**
-> (`rhc__Record_Health_Check_View_Diagnostics`), the specific code is available in
+> When **Show Diagnostics** is on and the user is assigned **Record Health Check Admin** or
+> **Record Health Check Diagnostics Viewer**, the specific code is available in
 > `adminDetail.reasonCode`.
 
 Record Health Check uses a neutral public code because revealing whether a hidden record or field exists
@@ -92,6 +92,12 @@ a custom Apex Check.
 | `MISSING_REQUIRED_FIELD` | validation | A required Check Set or Check field (e.g. Base Object API Name, Card Title) is blank. |
 | `CHECK_LIMIT_EXCEEDED` | Lightning definition / validation warning | A Check Set has more than 25 active Checks. The Lightning card shows and runs the first 25; the metadata audit reports the excess. Direct Apex and Flow use `FRAMEWORK_MAX_CHECKS_EXCEEDED` instead. |
 | `APEX_DISPLAY_TEXT_IGNORED` | validation warning | An Apex Check configures Display Found or Expected formulas/text. Custom Apex Check outcomes supply those values, so the metadata audit warns that these fields are ignored. |
+| `CONFIGURATION_IGNORED` | validation warning | A Check populates a field its Evaluation Type or mode never reads, such as a Source Query on a Formula Check or an Applicability Formula while Applicability Mode uses a count query. The value is not invalid, so the Check still deploys and runs; it simply has no effect. Clear the field, or change the Check so the field applies. |
+| `QUERY_FIELD_NOT_SELECTED` | validation | A query row token names a field the query's `SELECT` list does not include. The message lists the fields the query does select. |
+| `QUERY_ORDER_NOT_DETERMINISTIC` | validation | A query row token addresses a row by position, but the query has no `ORDER BY` naming `Id`, so the row in that position can change between runs. A grouped query cannot be ordered by `Id` and is reported differently. |
+| `QUERY_PROJECTION_NOT_ANALYZABLE` | validation | The query's `SELECT` list cannot be fully read, usually because it contains a subquery, so the framework cannot prove which fields it omitted. |
+| `QUERY_ROLE_NOT_AVAILABLE` | validation | A `comparisonRows` token on a Check with no Comparison Query, or a row count against a query that counts records rather than returning them. |
+| `TOKEN_ROW_INDEX_INVALID` | validation | A row number that is not a whole number starting at 1, or one the Check can never reach: beyond the query's own `LIMIT`, beyond Max Query Rows, or beyond the single row One Result and ungrouped aggregates return. |
 | `USER_RUN_PUBLICATION_UNREACHABLE` | validation warning | An automatic card hides Run and Rerun while Check Set publication is enabled. Users cannot publish from the card, but Apex and Flow remain available. |
 | `USER_RESULT_PUBLICATION_UNREACHABLE` | validation warning | An automatic card hides Run and Rerun while publication is enabled for one of its Checks. Users cannot publish from the card, but Apex and Flow remain available. |
 | `INVALID_DEPENDENCY` | validation | Prerequisite metadata is invalid. |
@@ -130,7 +136,7 @@ a custom Apex Check.
 | `INVALID_FORMULA` | `UNABLE_TO_EVALUATE` | Formula failed to compile/evaluate or returned a non-boolean where required. |
 | `DISPLAY_FORMULA_INVALID` | `UNABLE_TO_EVALUATE` | A Display Found or Display Expected formula could not be evaluated. Correct the formula and confirm its Formula Result Type. |
 | `FORMULA_EVAL_LIMIT` | `UNABLE_TO_EVALUATE` | Record Health Check stopped before the transaction reached Salesforce's formula-evaluation limit. Reduce the number of records or Formula Checks evaluated together. |
-| `FORMULA_DEPENDENCY_DEPTH_EXCEEDED` | `UNABLE_TO_EVALUATE` | A calculated-field dependency chain exceeded the planner's depth ceiling. Simplify the chain or replace the Check with a Query or Apex Check; Record Health Check will not evaluate against partially hydrated inputs. |
+| `FORMULA_DEPENDENCY_DEPTH_EXCEEDED` | `UNABLE_TO_EVALUATE` | A calculated-field dependency chain exceeded the supported depth. Simplify the chain or replace the Check with a Query or Apex Check; Record Health Check will not evaluate when it could load only some required fields. |
 
 ---
 

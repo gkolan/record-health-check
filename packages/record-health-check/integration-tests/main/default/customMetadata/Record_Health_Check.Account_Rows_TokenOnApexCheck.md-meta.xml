@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Rows TokenOnApexCheck</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Account_Row_Tokens_Negative</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Refused: TokenOnApexCheck</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >A row token on an Apex Check. The plugin supplies its own values and runs no framework query. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >APEX</value></values>
+    <values><field>ApexClass__c</field><value
+      xsi:type="xsd:string"
+    >AccountHasRecentActivityCheck</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >First contact is {!rhcQuery.sourceRows[0].LastName}.</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >This Check is misconfigured and was not evaluated.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >150</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

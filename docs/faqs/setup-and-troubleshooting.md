@@ -47,14 +47,16 @@ data-handling requirements.
 
 Business-record queries run in user mode and package service classes use sharing-aware boundaries.
 Configuration Custom Metadata loads after run authorization because it defines the rule rather
-than granting business-record access. Diagnostics require an additional Custom Permission. See
+than granting business-record access. Diagnostics require a direct packaged Admin or Diagnostics
+Viewer Permission Set assignment. See
 [Security and data access](../architecture/security-and-data-access.md).
 
 ## How are inaccessible records and fields reported?
 
 The public result fails closed as `UNABLE_TO_EVALUATE` without revealing restricted details. When
-diagnostics are enabled on the Check Set and the transaction has the diagnostics Custom Permission,
-the detail can distinguish record visibility, field access, invalid metadata, and other causes.
+diagnostics are enabled on the Check Set and the running user has a direct packaged Admin or
+Diagnostics Viewer Permission Set assignment, the detail can distinguish record visibility, field
+access, invalid metadata, and other causes.
 Do not enable diagnostics broadly or leave them enabled after an investigation.
 
 ## Are lifecycle events enabled by default?
@@ -72,13 +74,36 @@ manual Check Set still waits for its first **Run**; after results exist, later s
 These paths can show current results, but only the explicit action is eligible to publish lifecycle
 result events.
 
+## I changed a Check in Setup. Do I need to refresh the record page?
+
+No. **Run** and **Rerun** read the Check Set configuration again before evaluating anything, so the
+next run reflects Setup edits made while the record tab stayed open. A Check you activated appears,
+a Check you deactivated disappears, and a changed threshold, label, or display setting takes effect.
+
+This matters most in a console, where a record tab can stay open for days. Without the reread, the
+card would keep replaying whichever configuration happened to be current when the tab was first
+opened, and the results would look stale for no visible reason.
+
+Two details worth knowing:
+
+- The card keeps the previous results on screen while it rereads the configuration. The button
+  shows a spinner and the rows are replaced when the new run starts. The card is not stuck.
+- If the configuration reread fails, the card shows an error instead of evaluating. It will not
+  quietly fall back to the configuration it loaded earlier, because that would report a result
+  against rules the administrator has already changed.
+
+A record save refreshes the card the same way when results are already on screen, which means an
+automatic card or a manual card after its first **Run**. That refresh rereads the configuration too,
+but it clears the rows and shows the card spinner while it runs, rather than holding the previous
+results the way **Rerun** does.
+
 ## Why does a Check pass on the record page but differ in Flow or asynchronous Apex?
 
 Each Salesforce transaction uses its actual running user's authorization and user-mode data access.
 A Flow, Queueable, Batch, or scheduled transaction can therefore see a different permitted record
 scope than the interactive card. Timezone-sensitive formulas can also cross their cutoff at a
 different wall-clock time. Formula globals such as `$User` are not supported in record-context
-Formula Checks and fail closed rather than adapting to the caller. Use the
+Formula Checks and return an unable-to-evaluate result rather than changing behavior for the caller. Use the
 [execution-context troubleshooting guide](../diagnostics/troubleshoot-execution-context.md) to compare the execution
 user, permissions, visible rows, timezone, job ID, Run ID, and Reason Code before changing the
 Check.
@@ -92,7 +117,7 @@ installed namespaced tests, while Setup **Run All Tests**, namespace-qualified e
 and package-source deployments can execute them against subscriber validation rules, triggers, and
 flows.
 
-Package installation and upgrade also compile the packaged Apex test surface.
+Package installation and upgrade also compile the packaged Apex tests.
 
 ### Packaged tests fail while creating business records
 
@@ -110,7 +135,7 @@ Current packaged tests avoid business-object DML. Follow [Upgrade and revalidate
 ## Why does the package contain so many Apex classes?
 
 The current source contains 223 packaged classes, including 114 test classes. Its verification
-surface covers dynamic SOQL, formulas, metadata, security boundaries, bulk and asynchronous
+test suite covers dynamic SOQL, formulas, metadata, Salesforce access, bulk and asynchronous
 execution, integrations, and failure diagnostics. See the
 [complete size breakdown](../architecture/apex-implementation/README.md#codebase-size-and-verification).
 
@@ -131,14 +156,14 @@ object with retention, access, replay, and duplicate-handling rules. See
 ## Which limits affect scale?
 
 Each transaction remains subject to Salesforce governor limits, query-row limits, response-size
-limits, and the framework’s documented scope boundaries. Use synchronous entry points for bounded
-interactive work, Queueable for bounded background work, and Batch for explicit lists of up to
+limits, and the framework’s documented record limits. Use synchronous entry points for interactive
+work within those limits, Queueable for background work within those limits, and Batch for explicit lists of up to
 2,000 record IDs. A completed Apex job can still contain `FAIL`, `SKIPPED`,
 `UNABLE_TO_EVALUATE`, or `ERROR` health results. See the [API overview](../developer-guides/README.md).
 
 ## Can Checks run for many records or on a schedule?
 
-Yes. Queueable supports bounded background execution. Batch accepts an explicit list of up to
+Yes. Queueable supports background execution within the configured limits. Batch accepts an explicit list of up to
 2,000 record IDs and processes a configurable scope of 1–200 records per transaction, defaulting
 to 100. Scheduled Apex launches the packaged Batch for a saved explicit list. These entry points do
 not create permanent result storage by themselves; choose the result destination as part of the
@@ -186,7 +211,7 @@ deployment. See the [Apex Check contract](../developer-guides/write-an-apex-chec
 Core and custom Apex Check contracts do not allow callouts during evaluation. Retrieve or
 synchronize external information through a separately governed integration, store the approved
 decision input in Salesforce, and evaluate that visible Salesforce value. This keeps runtime
-results bounded and avoids hiding an external dependency inside a record-page check.
+results within the documented limits and avoids hiding an external dependency inside a record-page check.
 
 ## How are upgrades and compatibility changes tested?
 

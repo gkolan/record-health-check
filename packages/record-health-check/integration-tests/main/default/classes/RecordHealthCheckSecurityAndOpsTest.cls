@@ -77,11 +77,6 @@ private class RecordHealthCheckSecurityAndOpsTest {
       'A JSON array must not be accepted as plugin parameters.'
     );
     Assert.areEqual(
-      'CUSTOM',
-      RecordHealthCheckConstants.toLwcSeverity('CUSTOM'),
-      'Unknown severity values must pass through for forward compatibility.'
-    );
-    Assert.areEqual(
       'Apex',
       RecordHealthCheckConstants.toLwcEvaluatorType('APEX'),
       'The Apex evaluator must use the public LWC spelling.'
@@ -153,9 +148,6 @@ private class RecordHealthCheckSecurityAndOpsTest {
     String onDemand = RecordHealthCheckConstants.toLwcComparisonDisplay(
       'ON_DEMAND'
     );
-    String warning = RecordHealthCheckConstants.toLwcSeverity('WARNING');
-    String info = RecordHealthCheckConstants.toLwcSeverity('INFO');
-    String critical = RecordHealthCheckConstants.toLwcSeverity('CRITICAL');
     String formula = RecordHealthCheckConstants.toLwcEvaluatorType('FORMULA');
     String query = RecordHealthCheckConstants.toLwcEvaluatorType('QUERY');
     String apex = RecordHealthCheckConstants.toLwcEvaluatorType('APEX');
@@ -214,21 +206,6 @@ private class RecordHealthCheckSecurityAndOpsTest {
       'OnDemand',
       onDemand,
       'On-demand comparison display must retain its LWC value.'
-    );
-    Assert.areEqual(
-      'Warning',
-      warning,
-      'Warning severity must retain its LWC value.'
-    );
-    Assert.areEqual(
-      'Info',
-      info,
-      'Info severity should match the LWC contract.'
-    );
-    Assert.areEqual(
-      'Error',
-      critical,
-      'Critical severity should map to the LWC error variant.'
     );
     Assert.areEqual(
       'Formula',

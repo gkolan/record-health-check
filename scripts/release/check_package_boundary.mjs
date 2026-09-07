@@ -138,6 +138,63 @@ const fixtureCoreExamples = fixtureExamples.filter((name) =>
 );
 const failures = [];
 
+const resultTokenChecks = coreRecords
+  .filter((fileName) => fileName.startsWith("Record_Health_Check."))
+  .map((fileName) => ({
+    fileName,
+    values: customMetadataValues(coreDirectory, fileName)
+  }))
+  .filter(({ values }) =>
+    [...values.values()].some((value) => value.includes("{!rhcResult."))
+  );
+const expectedResultTokenCheckCount = 34;
+if (resultTokenChecks.length !== expectedResultTokenCheckCount) {
+  failures.push(
+    `force-app must ship ${expectedResultTokenCheckCount} Check examples that use rhcResult merge tokens; found ${resultTokenChecks.length}`
+  );
+}
+const demonstratedResultProperties = new Set(
+  resultTokenChecks.flatMap(({ values }) =>
+    [...values.values()].flatMap((value) =>
+      [...value.matchAll(/\{!rhcResult\.([A-Za-z][A-Za-z0-9]*)/g)].map(
+        (match) => match[1]
+      )
+    )
+  )
+);
+for (const property of [
+  "foundValue",
+  "foundValuePluralSuffix",
+  "expectedValue",
+  "failedRecordCount",
+  "totalRecordCount"
+]) {
+  if (!demonstratedResultProperties.has(property)) {
+    failures.push(
+      `force-app Check examples must demonstrate {!rhcResult.${property}}`
+    );
+  }
+}
+const rowTokenChecks = coreRecords
+  .filter((fileName) => fileName.startsWith("Record_Health_Check."))
+  .map((fileName) => ({
+    fileName,
+    values: customMetadataValues(coreDirectory, fileName)
+  }))
+  .filter(({ values }) =>
+    [...values.values()].some((value) => value.includes("{!rhcQuery."))
+  );
+if (
+  rowTokenChecks.length !== 1 ||
+  ![...rowTokenChecks[0].values.values()].some((value) =>
+    value.includes("{!rhcQuery.sourceRows[1].Email")
+  )
+) {
+  failures.push(
+    "force-app must ship one Check example that reads the second returned Contact email with {!rhcQuery.sourceRows[1].Email}"
+  );
+}
+
 for (const fileName of coreRecords) {
   for (const [fieldName, value] of customMetadataValues(
     coreDirectory,
@@ -304,6 +361,7 @@ const requiredTeachingFields = [
   "ActionUrl__c",
   "PublishUserResultEvent__c",
   "ApplicabilityMode__c",
+  "ComparisonDisplayMode__c",
   "DisplayValueFormat__c"
 ];
 const mergeTeachingFields = [
@@ -473,5 +531,7 @@ if (failures.length > 0) {
 
 console.log(
   `Verified package boundary: ${coreRecords.length} shipped Example_ records in force-app ` +
-    `with matching integration-tests fixtures, the 30-Check LWC ceiling example, and Example: card titles.`
+    `with matching integration-tests fixtures, ${resultTokenChecks.length} Checks using result ` +
+    `merge tokens, one Check reading a returned query row, the 30-Check LWC ceiling example, ` +
+    `and Example: card titles.`
 );

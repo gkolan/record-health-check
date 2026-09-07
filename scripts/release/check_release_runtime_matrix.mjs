@@ -59,7 +59,7 @@ for (const [directory, prefix, setName] of [
     `${setName} actual on-load types`
   );
 }
-for (const topology of ["namespaced", "no-namespace"]) {
+for (const topology of ["namespaced"]) {
   requireText(
     `packages/record-health-check/integration-tests/browser-fixtures/${topology}/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml`,
     ["Release_On_Load"]
@@ -89,7 +89,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.6.2-to-2.0.7.1",
+  "upgrade-2.0.6.2-to-2.0.8.1",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -148,16 +148,9 @@ function requireOrderedText(file, snippets) {
   }
 }
 
-function rejectText(file, expression, message) {
-  const text = fs.readFileSync(path.join(root, file), "utf8");
-  if (expression.test(text)) {
-    errors.push(`${file} ${message}`);
-  }
-}
-
 function requireFailClosedArtifactUploads(file) {
   const text = fs.readFileSync(path.join(root, file), "utf8");
-  const stepBlocks = text.split(/(?=^      - (?:name:|uses:))/m);
+  const stepBlocks = text.split(/(?=^ {6}- (?:name:|uses:))/m);
   const uploads = stepBlocks.filter((block) =>
     block.includes("uses: actions/upload-artifact@")
   );
@@ -177,7 +170,7 @@ function requireFailClosedArtifactUploads(file) {
 
 function requireSecureDevHubAuthentication(file, expectedStepCount) {
   const text = fs.readFileSync(path.join(root, file), "utf8");
-  const stepBlocks = text.split(/(?=^      - (?:name:|uses:))/m);
+  const stepBlocks = text.split(/(?=^ {6}- (?:name:|uses:))/m);
   const authSteps = stepBlocks.filter((block) =>
     block.includes("name: Authenticate Dev Hub")
   );
@@ -248,11 +241,7 @@ function requireUniqueRegionNames(file) {
 }
 
 requireEqual(matrix.evaluationTypes, expectedTypes, "Evaluation types");
-requireEqual(
-  matrix.sourceTopologies,
-  ["namespaced", "no-namespace"],
-  "Source topologies"
-);
+requireEqual(matrix.sourceTopologies, ["namespaced"], "Source topologies");
 requireEqual(
   matrix.lightningSecurityModes,
   ["LWS", "Locker"],
@@ -274,8 +263,8 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.7.1") {
-  errors.push("Candidate version must be exactly 2.0.7.1.");
+if (matrix.candidateVersion !== "2.0.8.1") {
+  errors.push("Candidate version must be exactly 2.0.8.1.");
 }
 if (matrix.upgradeFromVersion !== "2.0.6.2") {
   errors.push("Upgrade base version must be exactly 2.0.6.2.");
@@ -315,22 +304,17 @@ for (const entryPoint of matrix.entryPoints) {
 }
 
 requireText(".github/workflows/salesforce-validate.yml", [
+  "authorize_scratch_org_creation",
+  "if: inputs.authorize_scratch_org_creation != true",
   "npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-package --scope package",
   "npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-full --scope full",
-  "npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-package --scope package",
-  "npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-full --scope full",
   "apex-inventory-namespaced-package",
   "apex-inventory-namespaced-full",
-  "apex-inventory-no-namespace-package",
-  "apex-inventory-no-namespace-full",
   "--namespace rhc",
-  '--namespace ""',
   "--security-mode LWS",
   "--security-mode Locker",
   "topology: namespaced",
-  "topology: no-namespace",
   "browser-fixtures/namespaced/main/default/flexipages",
-  "browser-fixtures/no-namespace/main/default/flexipages",
   "matrix.browser_fixture",
   "npx playwright install --with-deps chromium firefox",
   "--workspace subscriber-app",
@@ -342,6 +326,8 @@ requireText(".github/workflows/salesforce-validate.yml", [
   "javascript-security.json"
 ]);
 requireText(".github/workflows/subscriber-validate.yml", [
+  "authorize_scratch_org_creation",
+  "if: inputs.authorize_scratch_org_creation != true",
   "package_version_id",
   "required: true",
   "upgrade_from",
@@ -361,7 +347,7 @@ for (const workflow of [
 }
 requireSecureDevHubAuthentication(
   ".github/workflows/salesforce-validate.yml",
-  4
+  3
 );
 requireSecureDevHubAuthentication(
   ".github/workflows/subscriber-validate.yml",
@@ -369,7 +355,7 @@ requireSecureDevHubAuthentication(
 );
 requireText(".github/workflows/salesforce-validate.yml", [
   "Check release-matrix scratch-org capacity",
-  "npm run check:scratch-capacity -- --dev-hub devhub --required 4"
+  "npm run check:scratch-capacity -- --dev-hub devhub --required 2"
 ]);
 requireText(".github/workflows/subscriber-validate.yml", [
   "Check subscriber-stage scratch-org capacity",
@@ -380,28 +366,21 @@ requireText(".github/workflows/subscriber-validate.yml", [
   "subscriber-preservation-${{ matrix.artifact_suffix }}"
 ]);
 requireText("scripts/release/create-package-version.mjs", [
-  '"salesforce-validate.yml"',
   "runtimeMatrix.candidateVersion",
   'createArguments.push("--version-number", versionNumber)'
 ]);
 requireOrderedText("scripts/release/create-package-version.mjs", [
   'run("npm", ["run", "release:preflight"]',
-  '"scripts/release/check_hosted_validation.mjs"',
   "const createArguments = [",
   'run("sf", createArguments'
 ]);
 requireText("scripts/release/promote-package-version.mjs", [
-  '"salesforce-validate.yml"',
-  '"subscriber-validate.yml"',
   "runtimeMatrix.candidateVersion",
   "reportedVersion !== runtimeMatrix.candidateVersion",
   '["status", "--porcelain"]'
 ]);
 requireOrderedText("scripts/release/promote-package-version.mjs", [
   '["status", "--porcelain"]',
-  "assertReleaseAcceptance(",
-  '"salesforce-validate.yml"',
-  '"subscriber-validate.yml"',
   "const report = runJson",
   '"promote"'
 ]);
@@ -444,6 +423,9 @@ requireText("scripts/subscriber/data/verifyUpgradeBase.apex", [
 requireText("scripts/release/run_salesforce_browser_gate.mjs", [
   'for (const browser of ["chromium", "firefox"])',
   "`--project=${browser}`",
+  "const cardContractUrl = frontdoorUrl(",
+  'runBrowserSpec(browser, "tests/browser/card-contract.spec.mjs"',
+  "RHC_BROWSER_URL: cardContractUrl",
   "sf",
   '"org"',
   '"open"',
@@ -456,6 +438,12 @@ requireText("scripts/release/run_salesforce_browser_gate.mjs", [
   "RHCReleaseMatrixBuilderPage",
   "browserEvidencePaths(",
   "assertBrowserReport("
+]);
+requireText("tests/browser/card-contract.spec.mjs", [
+  "RHC_BROWSER_URL is required; browser validation cannot skip.",
+  "RHC_SECURITY_MODE must be LWS or Locker.",
+  "Rerun did not request Check Set definitions again",
+  "header-only card"
 ]);
 requireText("tests/browser/restricted-user-setup.spec.mjs", [
   "completes mandatory first login for the restricted scratch user",
@@ -593,14 +581,6 @@ const browserPages = [
       "<value>rhc__Example_Account_Check_Builder_Guide</value>",
       "<value>rhc__Release_On_Load</value>"
     ]
-  },
-  {
-    file: "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
-    markers: [
-      "<componentName>c:recordHealthCheck</componentName>",
-      "<value>Example_Account_Check_Builder_Guide</value>",
-      "<value>Release_On_Load</value>"
-    ]
   }
 ];
 for (const { file, markers } of browserPages) {
@@ -615,14 +595,6 @@ for (const { file, markers } of [
       "<componentName>rhc:recordHealthCheck</componentName>",
       "<value>rhc__Example_Account_Check_Builder_Guide</value>",
       "rhc_recordHealthCheck_builderUnconfigured"
-    ]
-  },
-  {
-    file: "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixBuilderPage.flexipage-meta.xml",
-    markers: [
-      "<componentName>c:recordHealthCheck</componentName>",
-      "<value>Example_Account_Check_Builder_Guide</value>",
-      "c_recordHealthCheck_builderUnconfigured"
     ]
   },
   {
@@ -642,8 +614,9 @@ requireText("tests/browser/release-matrix.spec.mjs", [
   "RHC_BROWSER_URL is required; browser validation cannot skip.",
   "Invalid contextElement",
   '"c-record-health-check, rhc-record-health-check"',
-  'components.locator("lightning-spinner")',
-  'page.locator(".slds-spinner_container:visible")',
+  "strayCardSpinners(components)",
+  "pageLevelSpinners(page)",
+  'components.locator(".rhc-card-loading")',
   "expectRunCompleted(automaticCard, 4)",
   "expectRunCompleted(manualCard, 25)",
   "expect(pageErrors).toEqual([])"

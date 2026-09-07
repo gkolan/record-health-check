@@ -42,4 +42,38 @@
         <field>FailureMessage__c</field>
         <value xsi:type="xsd:string">Employee count is zero or blank.</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A formula comparing a number against a threshold. Passes when Employees is greater than zero. An empty Employees field cannot satisfy it.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the running user can read Employees, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Enter the employee count. A zero or empty value makes company-size segmentation meaningless.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Edit {!record.Name fallback="account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">COMPLETENESS</value>
+    </values>
 </CustomMetadata>

@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
   "summary": {
-    "classes": 89,
+    "classes": 96,
     "persistedCallSites": 0,
     "userCallSites": 0,
-    "safeClasses": 89
+    "safeClasses": 96
   },
   "classes": [
     {
@@ -26,6 +26,14 @@
     },
     {
       "className": "RHCComparisonDisplayEdgeBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCComparisonVisibilityTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": true,
@@ -585,6 +593,14 @@
       "userCalls": []
     },
     {
+      "className": "RecordHealthCheckMachineValueTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RecordHealthCheckMetadataIssueMapperTest",
       "classification": "safe",
       "targetSteps": [],
@@ -602,6 +618,30 @@
     },
     {
       "className": "RecordHealthCheckPluginDispatchTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckQueryRowUsageTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckQueryTokenTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckRowSafetyTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -706,6 +746,22 @@
     },
     {
       "className": "RecordHealthCheckTemplateServiceTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckTokenEdgeTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckTokenSurfacesTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,

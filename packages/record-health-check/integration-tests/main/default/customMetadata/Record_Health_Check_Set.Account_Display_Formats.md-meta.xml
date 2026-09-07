@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Display Formats</label>
+    <label>Coverage: Display Value Formats</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,15 +16,13 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value
-      xsi:type="xsd:string"
-    >Account Display Value Format Coverage</value>
+        <value xsi:type="xsd:string">Coverage: Display Value Formats</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Covers every Display: Value Format on Query, Formula, and Compare two queries Checks, including Salesforce Percent and Ratio as Percent as separate semantics.</value>
+    >One Check for every Display: Value Format, spread across Query, Formula, and Compare Two Queries. Read this card to see how the same underlying value is punctuated as a number, currency, percent, ratio, date, timestamp, or raw text.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

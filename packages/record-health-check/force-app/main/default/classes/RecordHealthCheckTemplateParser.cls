@@ -65,6 +65,15 @@ public class RecordHealthCheckTemplateParser {
           token.attributeError = 'Token attributes must use name="value" syntax.';
         }
       }
+      if (
+        token.namespaceName != null &&
+        RecordHealthCheckTokenRegistry.NAMESPACES.contains(token.namespaceName)
+      ) {
+        token.shape = RecordHealthCheckTokenRegistry.resolve(
+          token.namespaceName,
+          token.propertyPath
+        );
+      }
       tokens.add(token);
     }
     return tokens;
@@ -134,51 +143,28 @@ public class RecordHealthCheckTemplateParser {
           issue(
             'UNSUPPORTED_TOKEN_NAMESPACE',
             token.expression,
-            'Unsupported token namespace "' + token.namespaceName + '".'
+            unsupportedNamespaceMessage(token.namespaceName)
           )
         );
-      } else if (
-        !RecordHealthCheckTokenRegistry.contains(
-          token.namespaceName,
-          token.propertyPath
-        )
-      ) {
+      } else if (!token.shape.isUsable()) {
+        // Parsing resolves a shape for every known namespace, so by here the
+        // shape exists and carries its own reason and message.
         issues.add(
-          issue(
-            'UNKNOWN_TOKEN_PROPERTY',
-            token.expression,
-            'Unknown property "' +
-              token.propertyPath +
-              '" in namespace "' +
-              token.namespaceName +
-              '".'
-          )
+          issue(token.shape.reasonCode, token.expression, token.shape.message)
         );
       } else if (
-        surface == RecordHealthCheckTemplateService.SURFACE_SOQL &&
-        token.namespaceName != 'record'
+        !RecordHealthCheckTokenSurfaces.allows(surface, token.namespaceName)
       ) {
         issues.add(
           issue(
             'TOKEN_NOT_ALLOWED_ON_SURFACE',
             token.expression,
-            'Only record tokens are allowed in SOQL templates.'
-          )
-        );
-      } else if (
-        surface == RecordHealthCheckTemplateService.SURFACE_URL &&
-        token.namespaceName == 'rhcResult'
-      ) {
-        issues.add(
-          issue(
-            'TOKEN_NOT_ALLOWED_ON_SURFACE',
-            token.expression,
-            'Result tokens are not allowed in URL templates.'
+            notAllowedMessage(surface, token.namespaceName)
           )
         );
       } else if (
         token.formatName != null &&
-        surface != RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        !RecordHealthCheckTokenSurfaces.allowsFormat(surface)
       ) {
         issues.add(
           issue(
@@ -187,12 +173,13 @@ public class RecordHealthCheckTemplateParser {
             'The format attribute is allowed only in display templates.'
           )
         );
-      } else if (token.formatName != null && token.namespaceName != 'record') {
+      } else if (token.formatName != null && !token.shape.isTypedField) {
         issues.add(
           issue(
             'TOKEN_FORMAT_NOT_ALLOWED',
             token.expression,
-            'The format attribute is allowed only on record field tokens.'
+            'The format attribute is allowed only on tokens that name a ' +
+            'Salesforce field, which is record fields and query row fields.'
           )
         );
       } else if (
@@ -211,6 +198,42 @@ public class RecordHealthCheckTemplateParser {
       }
     }
     return issues;
+  }
+
+  /**
+   * Names the supported alternative when the namespace looks like an attempt
+   * to index a namespace that is not a collection.
+   */
+  private static String unsupportedNamespaceMessage(String namespaceName) {
+    Boolean looksIndexed =
+      namespaceName.endsWith(']') && namespaceName.contains('[');
+    String base = 'Unsupported token namespace "' + namespaceName + '".';
+    if (!looksIndexed) {
+      return base;
+    }
+    return base +
+      ' A Check has one result, not a list of results. To read a row the ' +
+      'Check queried, use {!rhcQuery.sourceRows[0].Field}.';
+  }
+
+  private static String notAllowedMessage(
+    String surface,
+    String namespaceName
+  ) {
+    if (surface == RecordHealthCheckTemplateService.SURFACE_SOQL) {
+      return 'Only record tokens are allowed in SOQL templates. A query ' +
+        'cannot reference values that exist only after it runs.';
+    }
+    if (namespaceName == 'rhcQuery') {
+      return 'Query row tokens are not available here, because the Check\'s ' +
+        'queries have not produced rows at this point.';
+    }
+    if (namespaceName == 'rhcResult') {
+      return 'Result tokens are not allowed in URL templates.';
+    }
+    return 'Tokens from the "' +
+      namespaceName +
+      '" namespace are not allowed on this surface.';
   }
 
   public static Boolean containsStrayBrace(

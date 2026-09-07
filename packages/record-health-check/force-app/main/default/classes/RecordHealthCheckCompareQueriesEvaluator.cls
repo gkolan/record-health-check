@@ -164,6 +164,11 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
 
     List<SObject> primaryRows = runQuery(primarySoql, maxRows);
     List<SObject> comparisonRows = runQuery(comparisonSoql, maxRows);
+    // Carried straight onto the result, before any branch below can return, so
+    // every outcome this evaluator produces can finish a {!rhcQuery...} token.
+    // Both fields are transient and server-side; see RecordHealthCheckInternalResult.
+    result.querySourceRows = primaryRows;
+    result.queryComparisonRows = comparisonRows;
     Boolean primaryIsZeroCount = isScopeZeroCount(primarySoql);
     Boolean comparisonIsZeroCount = isScopeZeroCount(comparisonSoql);
 

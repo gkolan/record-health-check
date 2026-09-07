@@ -36,7 +36,7 @@ test("runs safely for a Card User without diagnostic access", async ({
     hasText: "Example: Account Check Builder Guide"
   });
   const automaticCard = components.filter({
-    hasText: "Automated Account Data Quality and Customer Readiness Review"
+    hasText: "Automatic Account Review on Page Load"
   });
   await expectCompleted(automaticCard, 4);
   const expectedPassed = Number(process.env.RHC_EXPECTED_AUTOMATIC_PASSED);

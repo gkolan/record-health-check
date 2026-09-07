@@ -227,10 +227,11 @@ trace to the user.
 (`rhc__Record_Health_Check_Run`) Custom Permission. `requireCanRunChecks()` stops the request with
 `NOT_AUTHORIZED` when that permission is missing.
 
-`canViewDetails()` checks **Record Health Check View Diagnostics**
-(`rhc__Record_Health_Check_View_Diagnostics`). The Check Set's **Show Diagnostics** setting still
-controls whether troubleshooting details are prepared; the Custom Permission controls who may see
-them.
+`canViewDetails()` checks for a direct, active assignment of the package's **Record Health Check
+Admin** or **Record Health Check Diagnostics Viewer** Permission Set. There is no diagnostics Custom
+Permission, and an installation profile grant never authorizes diagnostics. The Check Set's **Show
+Diagnostics** setting still controls whether troubleshooting details are prepared; the Permission
+Set assignment controls who may see them.
 
 **Key members:**
 
@@ -238,7 +239,7 @@ them.
 | --- | --- |
 | `canRunChecks()` | Whether the running user has the Custom Permission required to start a health check |
 | `requireCanRunChecks()` | Stop the request with `AuthorizationException` when that permission is missing |
-| `canViewDetails()` | Whether the running user holds the diagnostics Custom Permission |
+| `canViewDetails()` | Whether the running user has a direct packaged Admin or Diagnostics Viewer assignment |
 
 **Notable behavior:**
 

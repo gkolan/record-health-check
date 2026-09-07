@@ -33,7 +33,7 @@ Do not create new `@future` integrations. Move existing work to Queueable Apex.
 
 ## Important limits at the start
 
-| Surface | Limit or behavior |
+| Where the Check runs | Limit or behavior |
 | --- | --- |
 | Lightning card | Evaluates one record and the first 25 active Checks in the selected Check Set |
 | Direct Apex or one Flow request group | Up to 200 records and 25 active Checks |
@@ -49,6 +49,10 @@ An open automatic card refreshes after a standard record save or RefreshView not
 Opening or refreshing a record page can evaluate the card, but a load never publishes Check Set Run
 or Check Result events. An explicit Run or Rerun can publish those events when the Check Set and
 Check publication settings are enabled. Error Log publication is a separate setting.
+
+Every run rereads the Check Set configuration before it evaluates, so **Run** and **Rerun** pick up
+Setup edits without a page refresh. See
+[Do I need to refresh the record page?](../faqs/setup-and-troubleshooting.md#i-changed-a-check-in-setup-do-i-need-to-refresh-the-record-page).
 
 ## Next steps
 

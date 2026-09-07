@@ -4,6 +4,7 @@ ignores:
   files:
     - "code-analyzer/**"
     - "coverage/**"
+    - "**/dist/**"
     - "reports/**"
     - "releases/**"
     - "test-results/**"
@@ -26,6 +27,14 @@ suppressions:
     - rule_selector: "pmd:ProtectSensitiveData"
       max_suppressed_violations: 1
       reason: "This integration-only synthetic accessible-value fixture exists to test FLS boundaries; it is not packaged or secret-bearing."
+  "packages/record-health-check/integration-tests/main/default/flows/RHC_Release_Matrix.flow-meta.xml":
+    - rule_selector: "flow:MissingDescription"
+      max_suppressed_violations: 24
+      reason: "The Flow engine flags invocable action input/output parameter nodes, but the Salesforce Flow metadata schema provides no description field on those nodes; all describable Flow elements and variables are documented."
+  "subscriber-app/main/default/flows/RHC_Subscriber_Release_Matrix.flow-meta.xml":
+    - rule_selector: "flow:MissingDescription"
+      max_suppressed_violations: 19
+      reason: "The Flow engine flags invocable action input/output parameter nodes, but the Salesforce Flow metadata schema provides no description field on those nodes; all describable Flow elements and variables are documented."
 
 engines:
   eslint:

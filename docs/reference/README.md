@@ -9,7 +9,7 @@ outcome, return to the [documentation home](../README.md) and choose a task-base
 | Folder | What you can find there |
 | --- | --- |
 | [Feature catalog](./feature-catalog.md) | Every shipped capability, its supported behavior, and the detailed guide that owns it |
-| [Permission Sets](./permission-sets.md) | The six installed access bundles and their exact runtime, diagnostic, and event surfaces |
+| [Permission Sets](./permission-sets.md) | The six installed access bundles and the ways they authorize runs, diagnostics, and events |
 | [Custom Permissions](./custom-permissions.md) | The separate run and diagnostics authorization gates and which installed Permission Sets grant them |
 | [Configuration](./configuration/README.md) | Names, display formatting, and field limits |
 | [Merge syntax](./merge-syntax/README.md) | Token namespaces, properties, fallbacks, and SOQL usage |
@@ -29,7 +29,7 @@ Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term 
 | What the package supports | [Complete feature catalog](./feature-catalog.md) |
 | Which field to use in Setup | [Custom Metadata](./custom-metadata/README.md) |
 | Which Permission Set to assign | [Permission Sets](./permission-sets.md) |
-| What the Run or View Diagnostics Custom Permission controls | [Custom Permissions](./custom-permissions.md) |
+| What the Run Custom Permission controls, and how diagnostics access works | [Custom Permissions](./custom-permissions.md) |
 | Which fields a Platform Event publishes | [Platform Event metadata](./platform-event-metadata/README.md) |
 | Why a result says `FAIL`, `ERROR`, or `UNABLE_TO_EVALUATE` | [Result statuses and card labels](./results/statuses-and-labels.md) |
 | What a Reason Code means | [Reason Codes](./results/reason-codes.md) |

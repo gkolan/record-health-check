@@ -32,8 +32,8 @@
   },
   "testVisible": {
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAccess.cls": {
-      "maximum": 2,
-      "category": "authorization test-only access"
+      "maximum": 3,
+      "category": "authorization checks for installed and unpackaged metadata"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckCompareQueriesEvaluator.cls": {
       "maximum": 3,
@@ -56,8 +56,8 @@
       "category": "currency cache state and corporate-currency query test-only access"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckCurrencySupport.cls": {
-      "maximum": 2,
-      "category": "cross-shape currency evidence test-only access"
+      "maximum": 3,
+      "category": "currency-unit checks for aggregate, non-aggregate, and single-currency orgs"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFieldPlanner.cls": {
       "maximum": 2,
@@ -146,6 +146,10 @@
     "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckExhaustiveSmoke.cls": {
       "maximum": 3,
       "category": "scratch-org test-only access"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckQueryTokenRules.cls": {
+      "maximum": 2,
+      "category": "Confirms multi-currency and encrypted-field rules without requiring customer-created fields."
     }
   },
   "testRuntimeBranches": {},

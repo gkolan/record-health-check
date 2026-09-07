@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account AppComp Coverage</label>
+    <label>Coverage: Applicability Count Operators</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -18,13 +18,13 @@
         <field>CardTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Account Applicability Comparison Operator Coverage</value>
+    >Coverage: Applicability Count Operators</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Technical matrix only: six Formula checks with identical bodies and different SOQL applicability operators. Not six distinct business checks: copy one AppComp check to learn each gate operator.</value>
+    >Six Checks with deliberately identical pass conditions, each gated by a different applicability count operator. They are one Check shown six ways, not six business rules: read them to choose the operator that decides when a Check applies.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

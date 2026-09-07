@@ -42,6 +42,27 @@ one Apex Check. See [Install the demo in a scratch org](./install-demo-in-a-scra
 for the exact 25 Checks, their order, expected outcomes, and demo data. For formulas, queries, and
 settings, use [Account Check Builder Guide: configuration and results](../examples/account-check-builder-guide.md).
 
+### Dynamic result text
+
+Thirty-four installed Checks use `{!rhcResult...}` merge tokens in **Display: Found Text**,
+**Display: Expected Text**, or **Message When Failed**. They are working examples, not placeholder
+snippets. For example:
+
+- **Example: No High-Priority Issues** uses the value found and its plural suffix to show “1 open
+  high-priority case” or “2 open high-priority cases.”
+- **Example: Contacts Have Email Addresses** shows the number of Contacts reviewed, the number
+  missing an email address, and the second Contact's email from
+  `{!rhcQuery.sourceRows[1].Email fallback="email not available"}`. Its Source Query uses `ORDER BY
+  Id`, so “second” has a stable meaning. Query-row indexes start at 0, making `[1]` the second row.
+- **Example: Average Deal vs Largest Deal** inserts the values that the Check compared into Found
+  and Expected.
+
+The first example also uses `{!record.Name fallback="This account"}` so its message remains clear
+when the Account name is unavailable.
+
+Open these Check records in Setup to see where each token is saved. Use the
+[merge syntax reference](../reference/merge-syntax/README.md) when adapting them to your own Check.
+
 ### Contact and Opportunity
 
 | Check Set Developer Name | Card title | Installed Checks |

@@ -44,6 +44,62 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
     return rows;
   }
 
+  /**
+   * The value a machine caller receives for one side of the comparison.
+   *
+   * A typed comparison value always wins. When there is none and the evaluator recorded
+   * its operands anyway, the absence is deliberate: `IS_NOT_BLANK` compares
+   * against nothing, and saying so is the honest answer. Only an evaluator that
+   * recorded nothing at all falls back to the card text, which is what used to
+   * hand automations "to equal Manufacturing" as though it were a value.
+   */
+  public static RecordHealthCheckValue machineValue(
+    RecordHealthCheckValue typed,
+    Boolean recorded,
+    String cardText
+  ) {
+    if (typed != null) {
+      return typed;
+    }
+    if (recorded == true || cardText == null) {
+      return null;
+    }
+    return RecordHealthCheckValue.ofString(cardText);
+  }
+  /**
+   * The typed value a machine caller receives for one side of the comparison.
+   *
+   * The card wants a sentence — "to equal Manufacturing" reads well beside a
+   * value — while an automation wants the comparison value. Those
+   * were the same field, so a Flow asking whether Expected was `Manufacturing`
+   * was handed the sentence and never matched. The operator already travels on
+   * its own field, so it never belongs inside the value.
+   *
+   * @param raw The comparison value before any display formatting.
+   * @return The typed value, or null when there was no comparison value.
+   */
+  public static RecordHealthCheckValue typedOperand(Object raw) {
+    if (raw == null) {
+      return null;
+    }
+    if (raw instanceof Boolean) {
+      return RecordHealthCheckValue.ofBoolean((Boolean) raw);
+    }
+    if (raw instanceof Decimal) {
+      return RecordHealthCheckValue.ofNumber((Decimal) raw);
+    }
+    if (raw instanceof Date) {
+      return RecordHealthCheckValue.ofDate((Date) raw);
+    }
+    if (raw instanceof Datetime) {
+      return RecordHealthCheckValue.ofDateTime((Datetime) raw);
+    }
+    if (raw instanceof Id) {
+      return RecordHealthCheckValue.ofId((Id) raw);
+    }
+    return RecordHealthCheckValue.ofString(String.valueOf(raw));
+  }
+
   /** Runs a bind-aware aggregate query in user mode for bulk plugin loaders. */
   public static List<AggregateResult> runAggregateQuery(
     String soql,

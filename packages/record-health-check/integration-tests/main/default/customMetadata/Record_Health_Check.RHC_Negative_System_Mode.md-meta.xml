@@ -41,4 +41,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >false</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Query check whose SOQL asks for system mode. The framework must reject the clause rather than run the query outside the user's own access.</value>
+    </values>
 </CustomMetadata>

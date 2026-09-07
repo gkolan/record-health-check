@@ -6,44 +6,52 @@
 /** Shared validation helpers used at runtime and in CI; they do not change org data. */
 public with sharing class RecordHealthCheckConfigValidator {
   private static Map<String, RecordHealthCheckPlugin> validatedPluginInstances = new Map<String, RecordHealthCheckPlugin>();
-  public static RecordHealthCheckTokenIssue firstTemplateIssue(
+  /**
+   * Every template field on a Check, paired with the surface whose token rules
+   * govern it. Declared once here because two validators walk the same fields:
+   * the parser rules below, and RecordHealthCheckQueryTokenRules.
+   *
+   * @param check One Check's Custom Metadata record.
+   * @return Entries of {template, surface}; never null.
+   */
+  public static List<List<Object>> templateSurfaces(
     Record_Health_Check__mdt check
   ) {
     if (check == null) {
-      return null;
+      return new List<List<Object>>();
     }
-    List<List<Object>> templates = new List<List<Object>>{
+    return new List<List<Object>>{
       new List<Object>{
         check.FailureMessage__c,
-        RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        RecordHealthCheckTokenSurfaces.FAILURE_MESSAGE
       },
       new List<Object>{
         check.UnableToEvaluateMessage__c,
-        RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        RecordHealthCheckTokenSurfaces.UNABLE_MESSAGE
       },
       new List<Object>{
         check.ApplicabilityNotMetMessage__c,
-        RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        RecordHealthCheckTokenSurfaces.NOT_APPLICABLE_MESSAGE
       },
       new List<Object>{
         check.FixMessage__c,
-        RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        RecordHealthCheckTokenSurfaces.FIX_MESSAGE
       },
       new List<Object>{
         check.ActionLabel__c,
-        RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        RecordHealthCheckTokenSurfaces.ACTION_LABEL
       },
       new List<Object>{
         check.DisplayFoundText__c,
-        RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        RecordHealthCheckTokenSurfaces.DISPLAY_FOUND
       },
       new List<Object>{
         check.DisplayExpectedText__c,
-        RecordHealthCheckTemplateService.SURFACE_DISPLAY
+        RecordHealthCheckTokenSurfaces.DISPLAY_EXPECTED
       },
       new List<Object>{
         check.ActionUrl__c,
-        RecordHealthCheckTemplateService.SURFACE_URL
+        RecordHealthCheckTokenSurfaces.ACTION_URL
       },
       new List<Object>{
         check.SourceQuery__c,
@@ -58,7 +66,15 @@ public with sharing class RecordHealthCheckConfigValidator {
         RecordHealthCheckTemplateService.SURFACE_SOQL
       }
     };
-    for (List<Object> entry : templates) {
+  }
+
+  public static RecordHealthCheckTokenIssue firstTemplateIssue(
+    Record_Health_Check__mdt check
+  ) {
+    if (check == null) {
+      return null;
+    }
+    for (List<Object> entry : templateSurfaces(check)) {
       List<RecordHealthCheckTokenIssue> issues = RecordHealthCheckTemplateService.validate(
         (String) entry[0],
         (String) entry[1]
@@ -67,7 +83,7 @@ public with sharing class RecordHealthCheckConfigValidator {
         return issues[0];
       }
     }
-    return null;
+    return RecordHealthCheckQueryTokenRules.firstIssue(check);
   }
 
   public static Boolean isValidObjectApiName(String objectApiName) {

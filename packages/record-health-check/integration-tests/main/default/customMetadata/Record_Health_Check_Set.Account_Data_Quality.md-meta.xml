@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Review: Hidden Automatic Run</label>
+    <label>Account Data Quality</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -18,13 +18,13 @@
         <field>CardTitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Automated Account Data Quality and Customer Readiness Review</value>
+    >Account Data Quality (Runs Automatically)</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Checks begin automatically when the page loads. No Run or Rerun action is shown, leaving the full header available for the card title.</value>
+    >The four fields a new Account is most often missing: billing city, phone, industry, and website. This card starts on its own as soon as the record page loads and shows no Run button, so the whole header belongs to the title.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

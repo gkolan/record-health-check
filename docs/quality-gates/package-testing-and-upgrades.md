@@ -87,14 +87,20 @@ package test utility, not a public extension point.
 
 ## For package contributors
 
-### Why two Salesforce org shapes are tested
+### Namespace coverage
 
-The source must compile and work in both forms:
+The released 2GP artifact always uses the `rhc` namespace. Blocking source validation therefore
+uses namespaced orgs for both Lightning Web Security and Lightning Locker. The candidate is then
+installed into ordinary subscriber orgs that have no namespace of their own; the installed package
+still uses `rhc`.
+
+An unpackaged no-namespace source deployment is retained as an optional contributor portability
+check:
 
 | Test org | What it proves |
 | --- | --- |
 | Namespaced `rhc` scratch org | Package source compiles when Salesforce applies the package namespace |
-| No-namespace scratch org | The same source remains portable for the repository's no-namespace verification gate |
+| No-namespace scratch org | Optional proof that unpackaged repository source remains portable; this is not a second package shape |
 
 Never build a Qualified API Name by adding `rhc__`. Tests query Salesforce for
 `QualifiedApiName`, and Apex uses schema describe results when an object or field name can differ by
@@ -104,22 +110,20 @@ Run the documented source-development commands in
 [Source development](../contributing/source-development.md). The repository checks also reject
 hard-coded `rhc__` strings in package Apex where the code should discover the name.
 
-### Required release checks
+### Release checks
 
 For each proposed version, maintainers must:
 
 1. Run the repository release preflight on the exact committed source.
-2. Prove the source in a namespaced scratch org.
-3. Prove the source in a clean no-namespace scratch org.
-4. Confirm Dev Hub scratch-org and package-version capacity.
-5. Create one package candidate with code coverage enabled.
-6. Retrieve the package artifact and confirm that every Custom Metadata member has a physical file.
-7. Install the candidate in a clean org and run the installation smoke tests.
-8. Install the previous promoted version in a separate clean org, create representative
+2. Create one package candidate with code coverage enabled.
+3. Retrieve the package artifact and confirm that every Custom Metadata member has a physical file.
+4. When the release owner explicitly authorizes scratch-org testing, optionally prove the source and browser behavior in namespaced LWS and Locker orgs.
+5. When authorized, optionally install the candidate in a clean org and run the installation smoke tests.
+6. When authorized, optionally install the previous promoted version in a separate clean org, create representative
    customer-owned Check Sets and Checks, and upgrade that org to the candidate.
-9. Confirm that the customer-owned Custom Metadata remains intact and rerun the smoke tests.
-10. Promote the candidate only after all checks pass.
-11. Move the former stable version to `previous`, record the new promoted `04t` and installation
+7. Record whether the optional upgrade retained customer-owned Custom Metadata.
+8. Promote the exact candidate after its package report and creation evidence are verified.
+9. Move the former stable version to `previous`, record the new promoted `04t` and installation
     links in `config/package-releases.json`, update `CHANGELOG.md`, and create the matching release
     tag.
 
@@ -129,6 +133,10 @@ package artifact contains every intended file.
 
 See [Releasing](../../.github/RELEASING.md) for commands, required evidence, and scratch-org
 cleanup rules.
+
+The authoritative org purposes, lifetimes, ownership rules, daily creation budget, human demo
+path, and orphan-recovery procedure are in the
+[scratch org lifecycle and release plan](./scratch-org-lifecycle.md).
 
 The complete fail-closed environment, entry-point, lifecycle, server-side, upgrade, and evidence
 requirements are defined in the [Release runtime matrix](./release-runtime-matrix.md). That matrix

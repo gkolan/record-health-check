@@ -66,4 +66,32 @@ Compare the Found and Expected values, then update the Employees field.</value>
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
     </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the running user can read Employees, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Confirm the employee count. Accounts below the threshold may belong in a different segment or programme.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Edit {!record.Name fallback="account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">ELIGIBILITY</value>
+    </values>
 </CustomMetadata>

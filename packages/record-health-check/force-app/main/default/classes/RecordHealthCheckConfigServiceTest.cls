@@ -145,7 +145,7 @@ private class RecordHealthCheckConfigServiceTest {
     Test.stopTest();
 
     Assert.areEqual(
-      'Automated Account Data Quality and Customer Readiness Review',
+      'Account Data Quality (Runs Automatically)',
       response.displayTitle,
       'The integration fixture title must be returned for its overridden Check Set.'
     );

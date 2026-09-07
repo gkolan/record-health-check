@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RecordHealthCheckCurrencySupport {
+  @TestVisible
+  // A single-currency test org does not have Account.CurrencyIsoCode. This test
+  // setting uses another Account field to confirm how currency units are read.
+  private static String unitFieldPathOverrideForTest;
+
   private static final Pattern CURRENCY_AGGREGATE_PATTERN = Pattern.compile(
     '(?is)\\b(?:SUM|AVG|MIN|MAX)\\s*\\(\\s*([A-Za-z0-9_.]+)\\s*\\)'
   );
@@ -231,7 +236,12 @@ public with sharing class RecordHealthCheckCurrencySupport {
     for (SObject row : rows) {
       Object unit = RecordHealthCheckSoqlTemplate.isAggregateQuery(query)
         ? aggregateCurrencyUnit(query, row)
-        : readPath(row, isoFieldPath(fieldPath));
+        : readPath(
+            row,
+            unitFieldPathOverrideForTest == null
+              ? isoFieldPath(fieldPath)
+              : unitFieldPathOverrideForTest
+          );
       String isoCode = unit == null ? null : String.valueOf(unit);
       if (String.isNotBlank(isoCode)) {
         isoCodes.add(isoCode.trim().toUpperCase());
@@ -268,7 +278,11 @@ public with sharing class RecordHealthCheckCurrencySupport {
     ) {
       return false;
     }
-    String unitFieldPath = aggregateQuery ? null : isoFieldPath(fieldPath);
+    String unitFieldPath = aggregateQuery
+      ? null
+      : unitFieldPathOverrideForTest == null
+          ? isoFieldPath(fieldPath)
+          : unitFieldPathOverrideForTest;
     for (SObject row : rows) {
       if (
         (aggregateQuery
@@ -418,15 +432,7 @@ public with sharing class RecordHealthCheckCurrencySupport {
 
   @TestVisible
   private static Object readPath(SObject row, String fieldPath) {
-    List<String> segments = fieldPath.split('\\.');
-    SObject current = row;
-    for (Integer index = 0; index < segments.size() - 1; index++) {
-      current = current?.getSObject(segments[index]);
-      if (current == null) {
-        return null;
-      }
-    }
-    return current.get(segments[segments.size() - 1]);
+    return RecordHealthCheckValueResolver.valueAtFieldPath(row, fieldPath);
   }
 
   private static Boolean isCurrencyField(String query, String fieldPath) {

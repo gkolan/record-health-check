@@ -4,17 +4,17 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Subscriber On Load</label>
+    <label>Automatic Account Review on Page Load</label>
     <protected>false</protected>
     <values><field>ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >Account</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Automated Account Data Quality and Customer Readiness Review</value></values>
+    >Automatic Account Review on Page Load</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Installed-package checks begin after the record page becomes idle without a page-level loading treatment.</value></values>
+    >Installed-package Checks that begin on their own once the record page is idle, with no card-level or page-level spinner at any point. Used by the release browser gate to prove the loading contract in a subscriber org.</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_LOAD</value></values>

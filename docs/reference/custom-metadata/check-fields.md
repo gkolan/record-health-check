@@ -68,6 +68,7 @@ or Unable to Check rows.
 | [Action URL](#action-url-actionurl__c) | `ActionUrl__c` | What users see |
 | [Evaluation Type](#evaluation-type-evaluationtype__c) | `EvaluationType__c` | Check type and value display |
 | [Display: Value Format](#display-value-format-displayvalueformat__c) | `DisplayValueFormat__c` | Check type and value display |
+| [Show Found and Expected](#show-found-and-expected-comparisondisplaymode__c) | `ComparisonDisplayMode__c` | Check type and value display |
 | [Pass Condition](#pass-condition-passconditionformula__c) | `PassConditionFormula__c` | Check fields on this record (`FORMULA`) |
 | [Display: Found Formula](#display-found-formula-displayfoundformula__c) | `DisplayFoundFormula__c` | Check fields on this record (`FORMULA`) |
 | [Display: Expected Formula](#display-expected-formula-displayexpectedformula__c) | `DisplayExpectedFormula__c` | Check fields on this record (`FORMULA`) |
@@ -280,6 +281,36 @@ fields that type uses.
 | Compare two queries | `COMPARE_TWO_QUERIES` | The result from one SOQL query must be compared with another query result. |
 | Verify with Apex | `APEX` | The requirement needs Apex logic that the other types cannot express. Configure **Apex Class**. |
 
+### Show Found and Expected (`ComparisonDisplayMode__c`)
+
+Optional restricted picklist, default **Automatic** (`AUTOMATIC`). It decides which comparison
+evidence the Lightning card may show for this Check. Leaving it blank is the same as **Automatic**,
+so Checks created before this field existed keep their current behavior.
+
+| Setup choice | Stored value | Card behavior |
+| --- | --- | --- |
+| Automatic | `AUTOMATIC` | Found and Expected appear exactly as they do today. |
+| Found only | `FOUND_ONLY` | Only the Found value can appear. |
+| Expected only | `EXPECTED_ONLY` | Only the Expected value can appear. |
+| Hidden | `HIDDEN` | Neither value appears, inline or behind the caret. |
+
+This setting filters what is eligible to appear. It does not force a value to appear when the Check
+Set's Found/Expected display placement would normally keep it hidden, and it applies to Formula,
+Query, Compare Two Queries, and Apex Checks alike.
+
+When nothing remains visible, the card also removes the comparison divider, the caret, the expanded
+comparison region, and the Found/Expected phrases in the row's accessible label. The failure
+message, Fix Message, action link, status, severity, title, description, and summary pills are
+unaffected.
+
+**Hidden is not a security control.** The evaluation result still carries both values, and they
+remain available to Apex, Flow, Platform Events, saved results, merge tokens, and authorized
+diagnostics. Use field-level security and sharing to protect data, never this setting.
+
+If you choose **Hidden** for a Check that has no failure message, Fix Message, or Action URL,
+validation reports a non-blocking warning: a failing Check would otherwise show the user a bare
+failure with no explanation. Evaluation still runs.
+
 ### Display: Value Format (`DisplayValueFormat__c`)
 
 Optional restricted picklist, default **Auto** (`AUTO`). It changes only how Found and Expected
@@ -371,8 +402,10 @@ Examples:
 
 ### Formula Result Type (`FormulaResultType__c`)
 
-Optional restricted picklist. It declares the return type for every single-value formula in this
-Check, including Found, Expected, record-formula expected values, and list-search values.
+Optional restricted picklist. It declares the return type of the formulas this Check **calculates
+with**: the Pass Condition Formula, the Expected Value (Formula), and the Value to find in the list
+(formula). A Pass Condition Formula returns a checkbox value, so **Checkbox** is the usual choice
+for a Formula Check.
 
 | Setup choice | Stored value |
 | --- | --- |
@@ -383,8 +416,13 @@ Check, including Found, Expected, record-formula expected values, and list-searc
 | Date/Time | `DATETIME` |
 | Text | `TEXT` |
 
-Leave **Auto** when you are unsure. Choosing the exact type can reduce formula evaluations, but all
-formulas in this Check that use this setting must return that type.
+It does **not** apply to Display: Found Formula or Display: Expected Formula. Those show a value
+rather than decide an outcome, and they usually return text even when the Pass Condition Formula
+returns a checkbox. Each display formula resolves its own type, so naming the correct type here can
+never blank the value shown on the card.
+
+Leave **Auto** when you are unsure. Choosing the exact type can reduce formula evaluations, but every
+formula this setting applies to must return that type.
 
 
 ## 5. Query sources (`QUERY` / `COMPARE_TWO_QUERIES`)

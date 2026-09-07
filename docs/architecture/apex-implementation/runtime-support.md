@@ -152,6 +152,13 @@ installs the package should not call this class.
 
 Builds readable operator labels and Found and Expected text for single-value and list comparisons.
 
+### `RecordHealthCheckComparisonVisibility`
+
+Owns the per-Check `ComparisonDisplayMode__c` setting: it normalizes the configured value (blank and
+unrecognized values resolve to `AUTOMATIC`), reports an unsupported value to metadata validation,
+and flags a Hidden Check that offers the user no failure message, Fix Message, or Action URL. The
+setting is presentation only and is not a security control.
+
 ### `RecordHealthCheckDiagnosticTrace`
 
 Adds troubleshooting details when the running user is allowed to view diagnostics. It does not

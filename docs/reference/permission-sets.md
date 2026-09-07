@@ -3,7 +3,10 @@
 Use this reference to choose the least-privilege Record Health Check Permission Set for a person,
 automation principal, or integration user.
 
-This reference describes six Permission Sets. In the 2.0.7.2 source, diagnostics requires a direct, active assignment of the packaged Admin or Diagnostics Viewer set. Run is the only packaged Custom Permission. Cloned sets and group-only assignments do not confer diagnostics access. See [version availability](../install/choose-a-package-version.md#documentation-and-installed-version).
+This reference describes six Permission Sets. Diagnostics requires a direct, active assignment of
+the packaged Admin or Diagnostics Viewer set. Run is the only packaged Custom Permission. Cloned
+sets and group-only assignments do not confer diagnostics access. See
+[version availability](../install/choose-a-package-version.md#documentation-and-installed-version).
 
 Four authorize a specific way to run health
 checks. Two are additive: one grants diagnostic viewing and one grants restricted error-log event

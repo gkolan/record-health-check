@@ -16,7 +16,9 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Example: Compare Two Queries</value>
+        <value
+      xsi:type="xsd:string"
+    >Example: Account Compare Two Queries</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>

@@ -74,7 +74,9 @@ global with sharing class RecordHealthCheckAgentRestResource {
     RestRequest request = RestContext.request;
     RestResponse response = RestContext.response;
     response.addHeader('Content-Type', 'application/json;charset=UTF-8');
-    String correlationId = generatedCorrelationId();
+    String correlationId = RecordHealthCheckAgentContract.safeCorrelationId(
+      null
+    );
 
     if (!RecordHealthCheckAccess.canRunChecks()) {
       return errorResponse(
@@ -133,7 +135,9 @@ global with sharing class RecordHealthCheckAgentRestResource {
       );
     }
 
-    correlationId = safeCorrelationId(input?.correlationId);
+    correlationId = RecordHealthCheckAgentContract.safeCorrelationId(
+      input?.correlationId
+    );
     String validationError = validate(input);
     if (validationError != null) {
       return errorResponse(
@@ -233,9 +237,11 @@ global with sharing class RecordHealthCheckAgentRestResource {
     }
     if (
       !String.isBlank(input.correlationId) &&
-      !isValidCorrelationId(input.correlationId.trim())
+      !RecordHealthCheckAgentContract.isValidCorrelationId(
+        input.correlationId.trim()
+      )
     ) {
-      return 'Correlation ID must use 1 to 120 letters, numbers, periods, underscores, colons, or hyphens.';
+      return RecordHealthCheckAgentContract.CORRELATION_ID_MESSAGE;
     }
     return null;
   }
@@ -329,11 +335,6 @@ global with sharing class RecordHealthCheckAgentRestResource {
     return output;
   }
 
-  private static Boolean isValidCorrelationId(String value) {
-    return value.length() <= 120 &&
-      Pattern.matches('^[a-zA-Z0-9._:-]+$', value);
-  }
-
   private static String headerValue(RestRequest request, String headerName) {
     if (request?.headers == null || String.isBlank(headerName)) {
       return null;
@@ -344,21 +345,6 @@ global with sharing class RecordHealthCheckAgentRestResource {
       }
     }
     return null;
-  }
-
-  private static String safeCorrelationId(String value) {
-    return !String.isBlank(value) && isValidCorrelationId(value.trim())
-      ? value.trim()
-      : generatedCorrelationId();
-  }
-
-  private static String generatedCorrelationId() {
-    String randomSuffix = EncodingUtil.convertToHex(Crypto.generateAesKey(128))
-      .substring(0, 8);
-    return 'agent-' +
-      String.valueOf(DateTime.now().getTime()) +
-      '-' +
-      randomSuffix;
   }
 
   private class AgentRestException extends Exception {

@@ -65,13 +65,13 @@ rules, and scoping rules are intentional visibility controls, and the card never
 infer hidden records.
 
 For installation details, use [Create your first Check](../step-by-step-guide/create-your-first-check.md). Advanced
-diagnostic values additionally require **Show Diagnostics** and the
-**Record Health Check View Diagnostics** (`rhc__Record_Health_Check_View_Diagnostics`) Custom Permission.
+diagnostic values additionally require **Show Diagnostics** and a direct **Record Health Check
+Admin** or **Record Health Check Diagnostics Viewer** Permission Set assignment.
 Assign **Record Health Check Diagnostics Viewer** alongside Card User or User when testing
-diagnostics; Admin already includes it. See [Permission Sets](../reference/permission-sets.md)
-for assignment guidance and the alternative if Diagnostics Viewer is absent.
+diagnostics; Admin already authorizes it. See [Permission Sets](../reference/permission-sets.md)
+for assignment guidance.
 When both are present, the card renders the server-provided admin-detail message; that detail remains
-absent for viewers without the permission and never changes record or field access.
+absent for unauthorized viewers and never changes record or field access.
 
 If the Check Set dropdown is empty, first confirm that the Check Set is active and its **Object**
 exactly matches the record-page object. The page builder needs Salesforce page-editing privileges and picker access supplied by **Record Health Check Card User**, **User**, or **Admin**. Refresh App Builder after permission changes and verify the package installation.

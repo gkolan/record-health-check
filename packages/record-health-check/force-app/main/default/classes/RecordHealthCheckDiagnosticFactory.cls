@@ -59,7 +59,7 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
       'RHC-' +
       String.valueOf(Datetime.now().getTime()) +
       '-' +
-      String.valueOf(Math.abs(Crypto.getRandomInteger())).left(8);
+      EncodingUtil.convertToHex(Crypto.generateAesKey(128));
     incident.runId = context?.runId;
     incident.occurredAt = System.now();
     incident.status = String.isBlank(context?.status)

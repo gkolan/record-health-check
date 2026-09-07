@@ -41,4 +41,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >false</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Query check whose SOQL asks for FOR UPDATE. The framework must reject the clause rather than take row locks during a read-only Check.</value>
+    </values>
 </CustomMetadata>

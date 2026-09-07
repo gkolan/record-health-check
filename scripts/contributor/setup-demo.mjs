@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
-import { run, runJson } from "../lib/run.mjs";
+import { run, runJson, tryRun } from "../lib/run.mjs";
 import { seedDemoData } from "../lib/demo-data.mjs";
 import { verifyReadinessData } from "../lib/demo-verification.mjs";
 
@@ -81,10 +81,33 @@ const temporaryDirectory = fs.mkdtempSync(
 );
 const verifierPath = path.join(temporaryDirectory, "verifyDemoSource.apex");
 
+// Running a Check requires the Run custom permission, so a freshly
+// source-deployed org cannot verify anything until the running user holds the
+// permission sets that grant it. Assigning an already-assigned permission set
+// is an error rather than a no-op, so failures here are ignored deliberately.
+const demoPermissionSets = [
+  "Record_Health_Check_User",
+  "Record_Health_Check_Card_User",
+  "Record_Health_Check_Admin",
+  "Record_Health_Check_Diagnostics_Viewer"
+];
+
 try {
   if (!values["verify-only"]) {
     console.log(`Seeding deterministic demo data in '${alias}'...`);
     seedDemoData(alias);
+  }
+
+  for (const permissionSet of demoPermissionSets) {
+    tryRun("sf", [
+      "org",
+      "assign",
+      "permset",
+      "--name",
+      permissionSet,
+      "--target-org",
+      alias
+    ]);
   }
 
   fs.writeFileSync(verifierPath, verifier);
@@ -98,5 +121,5 @@ try {
 }
 
 console.log(
-  `All four current-source demo Check Sets are verified; Acme Builder Guide in '${alias}': 7 passed, 17 failed, 0 skipped, 1 unable.`
+  `All four current-source demo Check Sets and every declared outcome are verified in '${alias}'.`
 );

@@ -142,7 +142,7 @@ This example checks Billing Country with a formula:
 This comparison means the Contact count must be greater than zero. One or more visible Contacts
 passes; zero visible Contacts fails.
 
-For **One row or aggregate**, Record Health Check reads one scalar result. Leave **Source Query
+For **One row or aggregate**, Record Health Check reads one result. Leave **Source Query
 Field** blank for bare `COUNT()`; for an aliased aggregate such as `SUM(Amount) total`, enter the
 alias `total`. Other query-result modes evaluate each returned row or compare lists and require the
 matching fields described in the Query reference.
@@ -256,9 +256,9 @@ Test in a sandbox with realistic records and the same permissions users will hav
    data.
 10. Rerun after correcting the saved record and confirm the result changes as expected.
 
-Turn on **Show Diagnostics** only for authorized troubleshooting. The installed **Record Health
-Check Diagnostics Viewer** and **Record Health Check Admin** permission sets include the **Record
-Health Check View Diagnostics** Custom Permission. Assign Diagnostics Viewer temporarily alongside
+Turn on **Show Diagnostics** only for authorized troubleshooting. Diagnostic detail requires a
+direct assignment of the installed **Record Health Check Diagnostics Viewer** or **Record Health
+Check Admin** Permission Set. Assign Diagnostics Viewer temporarily alongside
 Card User or User when the affected runner must reproduce an issue without Admin access.
 Turn diagnostics off again after the investigation.
 
@@ -292,7 +292,7 @@ query and formula behavior.
 | A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |
 | **Unable to Check** | Review the Reason Code, query or formula configuration, and the running user's object and field access. |
 | **System Error** | Review custom Apex, Salesforce debug logs, and the Reason Code. |
-| Results did not change after an edit | Confirm the edit surface sends a standard Lightning RefreshView notification. Otherwise select **Rerun** or refresh the page. A manual Check Set must be run once before save-driven refresh begins. |
+| Results did not change after an edit | Confirm the custom component that edits the record sends a standard Lightning RefreshView notification. Otherwise select **Rerun** or refresh the page. A manual Check Set must be run once before save-driven refresh begins. |
 | A Platform Event was expected but not received | Confirm publication is enabled, the run source publishes events, the transaction committed, and receiving automation is active. |
 
 Use [Troubleshoot Record Health Check](../diagnostics/browser-console.md) for a complete,
@@ -328,7 +328,9 @@ Record Health Check does not automatically create a Salesforce record for every 
 
 Merge tokens insert values from the current record or health-check result into messages, queries,
 and supported URLs. For example, `{!record.Name fallback="this Account"}` uses the Account name when
-it is populated and the words `this Account` when it is blank. Use the
+it is populated and the words `this Account` when it is blank. After the Check finishes, result
+tokens such as `{!rhcResult.foundValue}` and `{!rhcResult.expectedValue}` insert the compared values
+(not the card's display wording). Use the
 [Merge-token reference](../reference/merge-syntax/README.md) for supported fields, fallback
 behavior, and security rules.
 

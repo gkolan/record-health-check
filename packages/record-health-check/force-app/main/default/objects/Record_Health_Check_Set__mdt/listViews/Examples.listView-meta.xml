@@ -4,6 +4,7 @@
     <columns>MasterLabel</columns>
     <columns>ObjectApiName__c</columns>
     <columns>CardTitle__c</columns>
+    <columns>CardRunMode__c</columns>
     <columns>IsActive__c</columns>
     <filterScope>Everything</filterScope>
     <filters>

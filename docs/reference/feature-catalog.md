@@ -27,11 +27,11 @@ change business records, block saves, or keep a permanent result history by itse
 | Evaluation Type | Supported behavior | Detailed guide |
 | --- | --- | --- |
 | Formula (`FORMULA`) | Evaluate current-record and supported relationship fields with Salesforce FormulaEval. Declare the result type, decide the Pass condition, and optionally calculate separate display values. | [Formula reference](./evaluation/formula.md) |
-| Query (`QUERY`) | Run bounded user-mode SOQL for one value, any-row, all-rows, list membership, or list comparison behavior. Configure no-row, empty-value, and maximum-row outcomes explicitly. | [Query reference](./evaluation/query.md) |
-| Compare two queries (`COMPARE_TWO_QUERIES`) | Compare two counts, scalar values, or lists, including overlap, contains-all, and exact-list behavior. | [Compare two queries](./evaluation/compare-two-queries.md) |
+| Query (`QUERY`) | Run user-mode SOQL within the configured row limit for one value, any-row, all-rows, list membership, or list comparison behavior. Configure no-row, empty-value, and maximum-row outcomes explicitly. | [Query reference](./evaluation/query.md) |
+| Compare two queries (`COMPARE_TWO_QUERIES`) | Compare two counts, individual values, or lists, including overlap, contains-all, and exact-list behavior. | [Compare two queries](./evaluation/compare-two-queries.md) |
 | Apex plugin (`APEX`) | Run reviewed bulk Apex implementing `RecordHealthCheckPlugin`, returning exactly one typed outcome for every requested record ID. | [Write an Apex Check](../developer-guides/write-an-apex-check.md) |
 | Plugin contract verification | Extend the packaged contract-test support class to verify bulk query growth, complete scope coverage, permission behavior, and prohibited side effects. | [Verify an Apex Check](../developer-guides/verify-an-apex-check.md) |
-| Bulk query planning | Formula, Query, and Apex paths share bounded loading and evaluation across as many as 200 requested records. | [Bulk-query grammar](./evaluation/bulk-query-grammar.md) |
+| Bulk query planning | Formula, Query, and Apex load and evaluate as many as 200 requested records together. | [Bulk-query grammar](./evaluation/bulk-query-grammar.md) |
 
 ## Explain and display results
 
@@ -41,7 +41,7 @@ change business records, block saves, or keep a permanent result history by itse
 | Stable Reason Codes | Programmatic reasons distinguish business outcomes from access, configuration, data, and framework problems. | [Reason Codes](./results/reason-codes.md) |
 | Found and Expected values | Show raw evaluation evidence or administrator-authored display formulas/text without changing the verdict. | [Display Found and Expected](./configuration/display-found-and-expected.md) |
 | Display formats | Auto, Number, Currency, Percent, Ratio as Percent, Checkbox, Date, Date/Time, Text, and Raw formats follow the running user's locale where applicable. | [Display formats](./configuration/display-found-and-expected.md#choosing-a-format) |
-| Lists and multiple currencies | List previews are bounded. Each value retains its own available currency identity; formatting does not convert currencies. | [List previews](./configuration/display-found-and-expected.md#list-previews) |
+| Lists and multiple currencies | List previews show no more than the documented limit. Each value retains its own available currency identity; formatting does not convert currencies. | [List previews](./configuration/display-found-and-expected.md#list-previews) |
 | Guidance and actions | Failure, unable, applicability, and fix messages support safe merge tokens. Optional Action Label and Action URL provide a read-only next step. | [Configure action links](../build-checks/add-fix-link.md) |
 | Merge tokens | Record, result, Check, Check Set, and run values can be inserted into messages and safe links with typed formatting and explicit fallbacks. | [Merge syntax](./merge-syntax/README.md) |
 | Diagnostics | Authorized viewers can see restricted diagnostic evidence and produce a redacted support report. Ordinary users receive safe guidance without internal details. | [Browser diagnostics](../diagnostics/browser-console.md) |
@@ -56,7 +56,7 @@ change business records, block saves, or keep a permanent result history by itse
 | Flow | Separate actions run one Check or one Check Set and return stable status, count, reason, and JSON outputs. A third action validates configuration. | [Flow guides](../flow-guides/README.md) |
 | Synchronous Apex | `RecordHealthCheck.evaluate` accepts a typed request for one Check or Check Set. Result modes provide complete evaluation (`EVALUATION`), evaluation with display (`EVALUATION_WITH_DISPLAY`), or summary plus actionable results (`SUMMARY`). | [Run from Apex](../developer-guides/run-from-apex.md) |
 | Queueable Apex | Submit up to 200 known record IDs for later execution and monitor the Apex job ID. | [Queueable](../developer-guides/async-apex/queueable.md) |
-| Batch Apex | Evaluate larger record selections in bounded scopes, with query and explicit-ID submission options. | [Batch](../developer-guides/async-apex/batch.md) |
+| Batch Apex | Evaluate larger record selections in limited groups, with query and explicit-ID submission options. | [Batch](../developer-guides/async-apex/batch.md) |
 | Scheduled Apex | Start reviewed Queueable or Batch work on a Salesforce schedule. There is no direct Future-method API; existing Future callers should move to Queueable. | [Scheduled](../developer-guides/async-apex/scheduled.md), [replace Future](../developer-guides/async-apex/replace-future-with-queueable.md) |
 | Agentforce | Packaged agent actions run one Check or Check Set and return the versioned diagnostic contract without exposing restricted record details. | [Agentforce actions](../developer-guides/agentforce-and-mcp/agentforce-actions.md) |
 | REST agent tool | A versioned REST adapter exposes Check and Check Set operations for authorized integration users. | [Agent tool REST API](../developer-guides/agentforce-and-mcp/agent-tool-rest-api.md) |
@@ -79,9 +79,9 @@ change business records, block saves, or keep a permanent result history by itse
 | --- | --- | --- |
 | User-context access | Business-record reads use user mode, and Apex plugins run with sharing. The package does not grant access to subscriber business objects or fields. | [Security and data access](../architecture/security-and-data-access.md) |
 | Purpose-specific access | **Record Health Check Card User**, **Record Health Check User**, **Record Health Check Admin**, **Record Health Check MCP Integration**, **Record Health Check Diagnostics Viewer**, and **Record Health Check Error Log Publisher** separate card, automation, administration, integration, diagnostic-viewing, and restricted logging duties. | [Permission Sets](./permission-sets.md) |
-| Run and diagnostic permissions | Record Health Check Run authorizes execution. Record Health Check View Diagnostics authorizes restricted diagnostic detail when the Check Set also enables it. | [Custom Permissions](./custom-permissions.md) |
+| Run and diagnostic permissions | Record Health Check Run authorizes execution. A direct **Record Health Check Admin** or **Record Health Check Diagnostics Viewer** Permission Set assignment authorizes restricted diagnostic detail when the Check Set also enables it. | [Custom Permissions](./custom-permissions.md) |
 | Plugin side-effect protection | Plugin dispatch rejects detected record writes, callouts, email, Queueable, and Future work. Platform Event, Batch, and Scheduled prohibitions also require contract tests, static analysis, and review because Apex exposes no complete transaction counter for them. | [Verify an Apex Check](../developer-guides/verify-an-apex-check.md) |
-| Safe templates and links | Query templates, merge tokens, and Action URLs are validated and bounded. Unsupported or inaccessible inputs fail closed instead of producing a guessed verdict. | [Merge syntax](./merge-syntax/README.md), [bulk-query grammar](./evaluation/bulk-query-grammar.md) |
+| Safe templates and links | Query templates, merge tokens, and Action URLs are validated and checked against their documented limits. Unsupported or inaccessible inputs return an unable-to-evaluate result instead of a guessed verdict. | [Merge syntax](./merge-syntax/README.md), [bulk-query grammar](./evaluation/bulk-query-grammar.md) |
 | Namespaced configuration | Qualified API names and foreign-package field namespaces are preserved exactly across package and subscriber metadata. | [Names and API identities](./configuration/names-and-api-identities.md) |
 | Request and field limits | Record, Check, query-row, FormulaEval, token, field-size, and output limits are documented and enforced. | [Field limits](./configuration/field-limits.md) |
 

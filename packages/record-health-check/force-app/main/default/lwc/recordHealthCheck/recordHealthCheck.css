@@ -79,6 +79,17 @@
   overflow-wrap: anywhere;
 }
 
+/* Card-body definition-loading state. The container is positioned and given a
+   minimum height so the base Lightning spinner has a box to centre in and the
+   card never collapses to a header-only strip while definitions load. */
+.rhc-card-loading {
+  position: relative;
+  min-height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .rhc-pre-run-hint {
   margin: 0;
   padding: var(--slds-g-spacing-3, 0.75rem) var(--slds-g-spacing-4, 1rem);
@@ -432,14 +443,13 @@
   z-index: var(--rhc-layer-tooltip-nubbin);
 }
 
-/* Drive the nubbin from the anchor's own dwell/focus-visible state (it is a later
+/* Drive the nubbin from the anchor's own hover/focus-visible state (it is a later
    sibling), mirroring the check row's ::before, so the arrow and the bubble fade in
-   together instead of on a separate pill-hover timer. */
-.rhc-tooltip-anchor--footer.rhc-tooltip-anchor--dwell
-  ~ .rhc-stat__nubbin-host
-  .rhc-stat__nubbin {
+   together on one shared delay. */
+.rhc-tooltip-anchor--footer:hover ~ .rhc-stat__nubbin-host .rhc-stat__nubbin {
   opacity: 1;
   transform: translateY(0) rotate(45deg);
+  transition-delay: var(--rhc-tooltip-hover-show-delay);
 }
 
 .rhc-tooltip-anchor--footer:focus-visible
@@ -966,12 +976,13 @@
 }
 
 /* ── Hover/focus tooltips ──────────────────────────────────────────────────── */
-/* Pointer hover dwell is enforced in JS (TOOLTIP_HOVER_DWELL_MS) so a quick scan
-   across rows does not flash popovers. Keyboard focus keeps a shorter CSS dwell
-   via --rhc-tooltip-focus-show-delay. The summary-pill arrow (.rhc-stat__nubbin)
-   is a sibling of its anchor, not a descendant, so focus delay vars live on
-   :host where every subtree can inherit them. */
+/* Pointer hover dwells before the popover opens so a quick scan across rows does
+   not flash them; keyboard focus uses a shorter delay. Both are transition-delay
+   on the open state only, so hiding stays immediate. The summary-pill arrow
+   (.rhc-stat__nubbin) is a sibling of its anchor, not a descendant, so the delay
+   vars live on :host where every subtree can inherit them. */
 :host {
+  --rhc-tooltip-hover-show-delay: 1s;
   /* Keyboard focus: shorter delay so screen-reader users are not kept waiting. */
   --rhc-tooltip-focus-show-delay: 0.15s;
 }
@@ -1024,12 +1035,13 @@
   transform: var(--rhc-tooltip-transform);
 }
 
-/* Trigger after the JS hover dwell, or on :focus-visible (keyboard focus) only —
+/* Trigger after the hover dwell, or on :focus-visible (keyboard focus) only —
    never on plain :focus. Hide is immediate when the pointer or focus leaves. */
-.rhc-tooltip-anchor--dwell::before,
-.rhc-tooltip-anchor--dwell::after {
+.rhc-tooltip-anchor:hover::before,
+.rhc-tooltip-anchor:hover::after {
   opacity: 1;
   transform: var(--rhc-tooltip-hover-transform);
+  transition-delay: var(--rhc-tooltip-hover-show-delay);
 }
 
 .rhc-tooltip-anchor:focus-visible::before,
@@ -1095,11 +1107,12 @@
   z-index: var(--rhc-layer-tooltip-nubbin);
 }
 
-/* Match the bubble fade once the JS hover dwell fires so the arrow and bubble
-   appear together — without a shared trigger the arrow would lead the bubble. */
-.rhc-tooltip-anchor--row.rhc-tooltip-anchor--dwell::before {
+/* Match the bubble fade on the same dwell so the arrow and bubble appear
+   together — without a shared delay the arrow would lead the bubble. */
+.rhc-tooltip-anchor--row:hover::before {
   opacity: 1;
   transform: translateY(0) rotate(45deg);
+  transition-delay: var(--rhc-tooltip-hover-show-delay);
 }
 
 .rhc-tooltip-anchor--row:focus-visible::before {
@@ -1258,6 +1271,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :host {
+    --rhc-tooltip-hover-show-delay: 0s;
+    --rhc-tooltip-focus-show-delay: 0s;
+  }
   .rhc-action-button__spinner {
     animation: none;
   }

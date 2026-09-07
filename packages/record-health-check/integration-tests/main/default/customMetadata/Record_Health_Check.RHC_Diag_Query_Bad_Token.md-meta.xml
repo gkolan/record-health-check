@@ -41,4 +41,10 @@
   <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Unable to evaluate is the expected result here: this fixture's query contains a merge token the framework cannot parse. Open Diagnostics on this card to read the invalid-config detail the framework recorded.</value>
+    </values>
 </CustomMetadata>

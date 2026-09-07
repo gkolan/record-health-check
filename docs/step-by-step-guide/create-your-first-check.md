@@ -142,7 +142,7 @@ Use an Account you can safely edit.
 
 The first manual evaluation still requires **Run**. After that result exists, a standard Lightning
 record save refreshes the card automatically. Use **Rerun** when you need a deliberate run or when a
-custom editing surface does not send a RefreshView notification. Automatic and save-driven refresh
+custom component that edits the record does not send a RefreshView notification. Automatic and save-driven refresh
 do not publish user-run lifecycle events.
 
 User-run lifecycle events are optional Platform Events emitted only after a person selects Run or

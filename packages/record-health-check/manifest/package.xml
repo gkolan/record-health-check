@@ -139,6 +139,7 @@
         <members>Record_Health_Check__mdt.ComparisonQuery__c</members>
         <members>Record_Health_Check__mdt.SourceQueryField__c</members>
         <members>Record_Health_Check__mdt.ComparisonQueryField__c</members>
+        <members>Record_Health_Check__mdt.ComparisonDisplayMode__c</members>
         <members>Record_Health_Check__mdt.ComparisonOperator__c</members>
         <members>Record_Health_Check__mdt.ExpectedFixedValue__c</members>
         <members>Record_Health_Check__mdt.ExpectedCurrencyIsoCode__c</members>
@@ -221,6 +222,7 @@
         <members>RHCBulkQueryLimitTest</members>
         <members>RHCBulkQueryRuntimeRegressionTest</members>
         <members>RHCComparisonDisplayEdgeBehaviorTest</members>
+        <members>RHCComparisonVisibilityTest</members>
         <members>RHCConfigCheckValidationTest</members>
         <members>RHCTestConstructorQueueableCheck</members>
         <members>RHCCoverageBoundaryTest</members>
@@ -267,6 +269,7 @@
         <members>RecordHealthCheckAccessTest</members>
         <members>RecordHealthCheckAdminDetail</members>
         <members>RecordHealthCheckAdversarialBoundaryTest</members>
+        <members>RecordHealthCheckAgentContract</members>
         <members>RecordHealthCheckAgentActionTest</members>
         <members>RecordHealthCheckAgentRestDiagnosisTest</members>
         <members>RecordHealthCheckAgentRestResource</members>
@@ -294,6 +297,7 @@
         <members>RecordHealthCheckCompareQuerySupport</members>
         <members>RecordHealthCheckCompareQuerySupportTest</members>
         <members>RecordHealthCheckComparisonDisplay</members>
+        <members>RecordHealthCheckComparisonVisibility</members>
         <members>RecordHealthCheckComparisonEngine</members>
         <members>RecordHealthCheckConfigFindingMapper</members>
         <members>RecordHealthCheckConfigFindingMapperTest</members>
@@ -359,10 +363,13 @@
         <members>RecordHealthCheckFormulaSyntax</members>
         <members>RecordHealthCheckFormulaSyntaxTest</members>
         <members>RecordHealthCheckIncidentRecorder</members>
+        <members>RecordHealthCheckIgnoredConfig</members>
+        <members>RecordHealthCheckIgnoredConfigTest</members>
         <members>RecordHealthCheckInternalResult</members>
         <members>RecordHealthCheckLifecyclePublisher</members>
         <members>RecordHealthCheckLifecyclePublisherTest</members>
         <members>RecordHealthCheckLogger</members>
+        <members>RecordHealthCheckMachineValueTest</members>
         <members>RecordHealthCheckLoggerTest</members>
         <members>RecordHealthCheckMergeContext</members>
         <members>RecordHealthCheckMetadataIssueMapper</members>
@@ -378,6 +385,13 @@
         <members>RecordHealthCheckPluginDispatchTest</members>
         <members>RecordHealthCheckQualifiedIdentity</members>
         <members>RecordHealthCheckQueryEvaluatorSupport</members>
+        <members>RecordHealthCheckQueryProjection</members>
+        <members>RecordHealthCheckQueryProjectionTest</members>
+        <members>RecordHealthCheckQueryRoleTest</members>
+        <members>RecordHealthCheckQueryTokenRules</members>
+        <members>RecordHealthCheckQueryTokenRulesTest</members>
+        <members>RecordHealthCheckQueryRowUsageTest</members>
+        <members>RecordHealthCheckQueryTokenTest</members>
         <members>RecordHealthCheckQuerySchemaValidator</members>
         <members>RecordHealthCheckQueueable</members>
         <members>RecordHealthCheckReasonCodes</members>
@@ -385,6 +399,7 @@
         <members>RecordHealthCheckResponse</members>
         <members>RecordHealthCheckResultDisplay</members>
         <members>RecordHealthCheckResultItem</members>
+        <members>RecordHealthCheckRowSafetyTest</members>
         <members>RecordHealthCheckResultMode</members>
         <members>RecordHealthCheckRunCheckAgentAction</members>
         <members>RecordHealthCheckRunCheckFlowAction</members>
@@ -431,6 +446,11 @@
         <members>RecordHealthCheckToken</members>
         <members>RecordHealthCheckTokenIssue</members>
         <members>RecordHealthCheckTokenRegistry</members>
+        <members>RecordHealthCheckTokenEdgeTest</members>
+        <members>RecordHealthCheckTokenShape</members>
+        <members>RecordHealthCheckTokenShapeTest</members>
+        <members>RecordHealthCheckTokenSurfaces</members>
+        <members>RecordHealthCheckTokenSurfacesTest</members>
         <members>RecordHealthCheckValidateMetadataAction</members>
         <members>RecordHealthCheckValidator</members>
         <members>RecordHealthCheckValue</members>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Rows AggregateAlias</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Account_Row_Tokens_Positive</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Account Has Fewer Than Five Contacts</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >An ungrouped aggregate returns exactly one row, so index 0 is addressable without an ORDER BY, which SOQL would reject on an aggregate.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+    <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT COUNT(Id) total FROM Contact WHERE AccountId = {!record.Id}</value></values>
+    <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >total</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >LESS_THAN</value></values>
+    <values><field>ExpectedValueSource__c</field><value
+      xsi:type="xsd:string"
+    >FIXED_VALUE</value></values>
+    <values><field>ExpectedFixedValue__c</field><value
+      xsi:type="xsd:string"
+    >5</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >This account has {!rhcQuery.sourceRows[0].total} contacts.</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Could not count the contacts for this account.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >30</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

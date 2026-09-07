@@ -1,50 +1,57 @@
 #!/usr/bin/env node
 
+import { parseArgs } from "node:util";
 import { run } from "../lib/run.mjs";
+import {
+  gateEnvironment,
+  gatesFor,
+  selectGates
+} from "../lib/release-gates.mjs";
 
-const gates = [
-  "check:toolchain-latest",
-  "prettier:verify",
-  "lint",
-  "lint:slds",
-  "check:namespaced-tokens",
-  "check:configuration-identity",
-  "check:lightning-runtime-compatibility",
-  "check:hosted-validation:self-test",
-  "check:release-gate-parity",
-  "check:release-runtime-matrix",
-  "check:dependency-security",
-  "check:agent-tool-contract",
-  "check:mcp",
-  "check:test-data-factory",
-  "check:test-data-factory-inventory",
-  "check:apex-architecture",
-  "check:apex-surface",
-  "check:code-analyzer-output-paths",
-  "check:code-analyzer-suppressions",
-  "check:code-analyzer-inline-suppressions",
-  "check:plugin-sharing",
-  "check:version-sync",
-  "check:product-version-language",
-  "check:docs",
-  "check:field-limits",
-  "check:manifest",
-  "check:package-artifact",
-  "check:package-boundary",
-  "check:query-shapes",
-  "check:distribution-boundary",
-  "check:permission-sets",
-  "check:xml",
-  "test:scripts",
-  "test:unit:coverage",
-  "check:quality-metrics"
-];
+const { values } = parseArgs({
+  options: {
+    ci: { type: "boolean", default: false },
+    only: { type: "string" },
+    list: { type: "boolean", default: false }
+  }
+});
 
-for (const gate of gates) {
-  console.log(`\n=== Release preflight: ${gate} ===`);
-  run("npm", ["run", gate]);
+const environment = values.ci ? "ci" : "local";
+const allGates = gatesFor(environment);
+
+if (values.list) {
+  for (const gate of allGates) {
+    console.log(gate);
+  }
+  process.exit(0);
 }
 
-console.log(
-  "\nLocal release preflight passed. Package creation still requires exact-commit hosted Salesforce validation."
-);
+let gates;
+try {
+  gates = values.only
+    ? selectGates(allGates, values.only.split(","))
+    : allGates;
+} catch (error) {
+  process.stderr.write(`${error.message}\n`);
+  process.exit(1);
+}
+
+for (const gate of gates) {
+  console.log(`\n=== ${environment} gates: ${gate} ===`);
+  run("npm", ["run", gate], {
+    env: gateEnvironment(environment)
+  });
+}
+
+if (values.only) {
+  console.log(
+    `\n${gates.length} of ${allGates.length} ${environment} gates passed. ` +
+      `This is a subset - run the full preflight before handing off.`
+  );
+} else {
+  console.log(
+    environment === "ci"
+      ? `\nAll ${gates.length} source gates passed.`
+      : "\nLocal release preflight passed. Package creation is ready when the release owner approves it."
+  );
+}

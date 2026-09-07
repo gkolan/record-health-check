@@ -20,40 +20,49 @@ jobs:
       - run: npm install --global @salesforce/cli@2.150.6
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
-      - name: Audit shipped Node dependencies
-        run: npm audit --omit=dev --audit-level=high
-      - run: npm run check:toolchain-policy
-      - run: npm run prettier:verify
-      - run: npm run lint
-      - run: npm run lint:slds
-      - run: npm run check:namespaced-tokens
-      - run: npm run check:configuration-identity
-      - run: npm run check:lightning-runtime-compatibility
-      - run: npm run check:hosted-validation:self-test
-      - run: npm run check:release-gate-parity
-      - run: npm run check:release-runtime-matrix
-      - run: npm run check:dependency-security
-      - run: npm run check:agent-tool-contract
-      - run: npm run check:mcp
-      - run: npm run check:test-data-factory
-      - run: npm run check:test-data-factory-inventory
-      - run: npm run check:apex-architecture
-      - run: npm run check:apex-surface
-      - run: npm run check:code-analyzer-output-paths
-      - run: npm run check:code-analyzer-suppressions
-      - run: npm run check:code-analyzer-inline-suppressions
-      - run: npm run check:plugin-sharing
-      - run: npm run check:version-sync
-      - run: npm run check:product-version-language
-      - run: npm run check:docs
-      - run: npm run check:field-limits
-      - run: npm run check:manifest
-      - run: npm run check:package-artifact
-      - run: npm run check:package-boundary
-      - run: npm run check:query-shapes
-      - run: npm run check:distribution-boundary
-      - run: npm run check:permission-sets
-      - run: npm run check:xml
-      - run: npm run test:scripts
-      - run: npm run test:unit:coverage
-      - run: npm run check:quality-metrics
+      # Ruff is not an npm dependency. Install it before the gates so that
+      # lint:python runs for real here; it is allowed to skip only on a
+      # contributor's machine, never in CI.
+      - name: Install pinned Ruff for the Python gate
+        run: pipx install ruff==0.14.2
+      - name: Source gates
+        run: npm run ci:gates
+
+  # Code Analyzer needs no org, so it belongs on the PR rather than only in the
+  # scratch-org release gate. Kept as its own job with its own pinned plugin
+  # instead of folded into the lint command: it is a security scan with its own
+  # toolchain, its own evidence, and its own failure meaning.
+  code-analyzer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --global @salesforce/cli@2.150.6
+      - run: echo y | sf plugins install code-analyzer@5.15.0
+      - name: Record analyzer toolchain versions
+        run: |
+          sf --version
+          sf plugins --core
+      - name: Run blocking Code Analyzer security gate
+        run: |
+          mkdir -p code-analyzer/logs
+          sf code-analyzer run --workspace packages/record-health-check/force-app --workspace packages/record-health-check/integration-tests --workspace subscriber-app --target 'packages/record-health-check/force-app/**/*.cls' --target 'packages/record-health-check/force-app/**/*.trigger' --target 'packages/record-health-check/force-app/**/*.xml' --target 'packages/record-health-check/integration-tests/**/*.cls' --target 'packages/record-health-check/integration-tests/**/*.trigger' --target 'packages/record-health-check/integration-tests/**/*.xml' --target 'subscriber-app/**/*.cls' --target 'subscriber-app/**/*.trigger' --target 'subscriber-app/**/*.xml' --rule-selector AppExchange --rule-selector Recommended:Security --rule-selector flow:all --include-fixes --output-file code-analyzer/appexchange-security.json --output-file code-analyzer/appexchange-security.html --severity-threshold 5
+          sf code-analyzer run --workspace packages/record-health-check/force-app --target 'packages/record-health-check/force-app/**/*.js' --rule-selector eslint:Recommended --rule-selector retire-js:Recommended --include-fixes --output-file code-analyzer/javascript-security.json --output-file code-analyzer/javascript-security.html --severity-threshold 5
+          node scripts/release/check_code_analyzer_integrity.mjs --log-dir code-analyzer/logs --output code-analyzer/appexchange-security.json --output code-analyzer/javascript-security.json
+      - name: Upload Code Analyzer evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: code-analyzer-evidence-pr
+          path: |
+            code-analyzer/appexchange-security.json
+            code-analyzer/appexchange-security.html
+            code-analyzer/javascript-security.json
+            code-analyzer/javascript-security.html
+            code-analyzer/logs/
+          if-no-files-found: error
+          retention-days: 30

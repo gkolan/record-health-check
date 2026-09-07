@@ -147,14 +147,28 @@ private class RecordHealthCheckTemplateParserTest {
       null,
       RecordHealthCheckTemplateService.resolveDisplay(null, null)
     );
+    // Too deep a path is now refused while the author is still editing, rather
+    // than surfacing as a runtime failure on a record page. The resolver keeps
+    // its own guard, so this stays a single exception either way.
+    String tooDeep = '{!record.Parent.Parent.Parent.Parent.Parent.Parent.Name}';
+    List<RecordHealthCheckTokenIssue> depthIssues = RecordHealthCheckTemplateService.validate(
+      tooDeep,
+      RecordHealthCheckTemplateService.SURFACE_DISPLAY
+    );
+    Assert.areEqual(1, depthIssues.size(), 'Refused before the Check runs.');
+    Assert.areEqual('UNKNOWN_TOKEN_PROPERTY', depthIssues[0].reasonCode);
+    Assert.isTrue(
+      depthIssues[0].message.contains('relationships'),
+      'The message names the limit: ' + depthIssues[0].message
+    );
     try {
       RecordHealthCheckTemplateService.resolveDisplay(
-        '{!record.Parent.Parent.Parent.Parent.Parent.Parent.Name}',
+        tooDeep,
         new RecordHealthCheckMergeContext().withRecord(accountRecord)
       );
       Assert.isTrue(false, 'Expected relationship depth to fail.');
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('TOKEN_NOT_AVAILABLE_IN_PHASE', ex.reasonCode);
+      Assert.areEqual('UNKNOWN_TOKEN_PROPERTY', ex.reasonCode);
     }
 
     String longTemplate = ''.leftPad(20001, 'x');

@@ -18,7 +18,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Format check beyond presence: REGEX in Formula ensures Website resembles http(s)://host.tld. Contrast Account_DQ_Website (presence only).</value>
+    >Checks more than presence: the Formula confirms that Website starts with http:// or https:// and includes a host name. Compare with Account_DQ_Website, which checks presence only.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -61,5 +61,27 @@
     <values>
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Correct the website so it starts with http:// or https:// and points at a real domain. A malformed address silently breaks links elsewhere.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Edit {!record.Name fallback="account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">CONSISTENCY</value>
     </values>
 </CustomMetadata>

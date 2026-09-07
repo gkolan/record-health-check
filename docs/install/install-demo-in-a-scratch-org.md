@@ -75,7 +75,7 @@ The Apex files are included in the repository under `scripts/subscriber/data/`. 
 | --: | --- | --- |
 | 1 | [setupDemoUser.apex](../../scripts/subscriber/data/setupDemoUser.apex) | Creates or reactivates Jordan Blake. |
 | 2 | [setupDemoData.apex](../../scripts/subscriber/data/setupDemoData.apex) | Creates the Acme hierarchy and its related records for both Account Check Sets; assigns Acme to Jordan. |
-| 3 | [setupReadinessData.apex](../../scripts/subscriber/data/setupReadinessData.apex) | Adds ready and needs-review Account, Contact, and Opportunity scenarios, including Tasks, Cases, Contact Roles, and a Product. |
+| 3 | [setupReadinessData.apex](../../scripts/subscriber/data/setupReadinessData.apex) | Adds ready, needs-review, and not-applicable Account scenarios plus Contact and Opportunity scenarios, including Tasks, Cases, Contact Roles, Campaigns, and a Product. |
 | 4 | [deactivateDemoUser.apex](../../scripts/subscriber/data/deactivateDemoUser.apex) | Leaves Jordan inactive so the owner Checks demonstrate the intended failures. |
 
 ```bash
@@ -122,11 +122,14 @@ The setup uses dates relative to the day it runs. Calendar dates therefore move,
 
 ### Readiness scenarios
 
-The complete dataset contains **5 Accounts, 48 Contacts, 11 Opportunities, 7 Contact Roles, 4 Tasks, 18 Cases, 1 Product, and 1 Opportunity Line Item**, plus one inactive demo User. The Product has one standard Price Book Entry. No Events are created.
+The complete dataset contains **8 Accounts, 51 Contacts, 19 Opportunities, 12 Contact Roles, 6 Tasks, 20 Cases, 1 Campaign, 1 Product, and 4 Opportunity Line Items**, plus one inactive demo User. The Product has one standard Price Book Entry. No Events are created.
 
 | Scenario | Record | What it tests |
 | --- | --- | --- |
 | Inactive Account owner | Acme Corporation / Jordan Blake | Actual owner name and inactive status; Account Builder Guide retains its expected results |
+| Builder Guide ready | RHC Builder Ready Account | 22 Checks pass and 3 service-to-sales handoff Checks skip because there are no Cases; the Check Set has no failures |
+| Builder Guide needs review | RHC Builder Needs Review Account | 22 Checks fail against deliberate gaps; 3 service-to-sales handoff Checks pass to prove their opposite outcome |
+| Builder Guide not applicable | RHC Builder Empty Account | No related records; verifies the expected passing, failing, and skipped behavior when a Check has nothing relevant to evaluate |
 | Ready Account | RHC Demo Ready Account | All 8 Account Relationship Risk Checks pass, including channel parent, pipeline, customer contacts, and activity |
 | Account needing review | RHC Demo Review Account | All 8 Account Relationship Risk Checks fail with low pipeline, a high-priority Case, missing relationships, and an inactive owner |
 | Ready Contact | Elena Hart (RHC Demo) | All 8 Contact Checks pass; same-Account manager, complete details, and recent Tasks |
@@ -193,7 +196,7 @@ The exact summary is **7 Passed, 17 Failed, 0 Skipped, and 1 Unable**. The desig
 
 These 25 Checks do not use categories, so the card shows one overall summary. Found and Expected values state the measured business evidence and the governing policy or comparison baseline.
 
-Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing, and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and the running user has the **Record Health Check View Diagnostics** custom permission. Assign **Record Health Check Diagnostics Viewer** alongside **Card User** or **User** to test those details. **Record Health Check Admin** already includes the diagnostic permission. A System Administrator receives these details only through a permission set or another assignment that grants the custom permission.
+Technical diagnosis is separate from the teaching tooltip. **Issue**, **Where**, **Why**, timing, and server diagnostic details appear only when the Check Set has **Show Diagnostics** enabled and the running user is directly assigned **Record Health Check Admin** or **Record Health Check Diagnostics Viewer**. Assign **Record Health Check Diagnostics Viewer** alongside **Card User** or **User** to test those details. A System Administrator receives these details only through one of those two assignments.
 
 The Account Builder Guide runs on request, reveals one result at a time, shows passed and skipped rows, shows Found and Expected on demand, and places the summary at the bottom.
 
@@ -277,7 +280,7 @@ sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyDemo.apex
 sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyReadinessData.apex
 ```
 
-`verifyDemo.apex` checks Acme's 25 Builder Guide outcomes in a namespaced `rhc` org with the updated definitions. Use the npm verifier for a no-namespace source org. `verifyReadinessData.apex` checks the additional record counts, relationships, Product data, and Jordan's inactive ownership. The npm verifier additionally runs every Account, Contact, and Opportunity readiness outcome from the [scenario matrix](../../scripts/subscriber/data/readiness-scenarios.json), plus the passing Product-total comparison. Those additional per-set Apex assertions are generated and executed by the verifier; the two Apex commands alone do not run the whole outcome matrix.
+`verifyDemo.apex` retains the detailed Acme Builder Guide and display-value assertions in a namespaced `rhc` org. Use the npm verifier for a no-namespace source org. `verifyReadinessData.apex` checks record counts, relationships, Product data, and Jordan's inactive ownership. The npm verifier then executes every named outcome in the [scenario matrix](../../scripts/subscriber/data/readiness-scenarios.json). The matrix includes both PASS and FAIL for every active packaged Check, plus SKIPPED and UNABLE_TO_EVALUATE where those behaviors are part of the Check. The source gate `npm run check:demo-outcome-coverage` prevents a Check or Check Set from being added without that complete contract.
 
 The demo is ready when setup and verification finish without assertion errors, all four cards show the expected summaries above, and the expanded results match the seeded evidence. These outcomes verify the prepared demo; use [Install and verify in your org](./install-in-a-sandbox.md) to evaluate an unrelated sandbox or production dataset.
 
@@ -302,7 +305,7 @@ If a data script failed, run `deactivateDemoUser.apex` before retrying so Jordan
 
 ## Try the other permission sets
 
-If **Diagnostics Viewer** is absent from Setup, use an org-owned Permission Set with the **Record Health Check View Diagnostics** Custom Permission, as described in [Permission Sets](../reference/permission-sets.md).
+If **Diagnostics Viewer** is absent from Setup, assign **Record Health Check Admin** instead. An org-owned Permission Set cannot grant diagnostics, as described in [Permission Sets](../reference/permission-sets.md).
 
 A scratch-org administrator does not represent a restricted user. To test everyday-user access, use a separate non-admin user with access to the demo records and required fields. This checkout includes other permission sets for specific jobs. Assign them only when you want to test that job:
 
@@ -312,7 +315,7 @@ A scratch-org administrator does not represent a restricted user. To test everyd
 | **Record Health Check User** | Run Checks through Flow, Apex, REST, Agentforce, Queueable, Batch, or Scheduled entry points |
 | **Record Health Check Admin** | Configure Check metadata, validate setup, and view **Issue**, **Where**, and **Why** diagnostics when the Check Set enables them |
 | **Record Health Check Diagnostics Viewer** | View **Issue**, **Where**, and **Why** while testing as a Card User or User; enable **Show Diagnostics** on the Check Set and assign this set alongside the existing runner set |
-| **Record Health Check MCP Integration** | Call the narrowly scoped MCP and agent-tool REST surface from an approved integration user |
+| **Record Health Check MCP Integration** | Call the limited MCP and agent-tool REST API from an approved integration user |
 | **Record Health Check Error Log Publisher** | Publish restricted error-log events from a narrowly approved automation user |
 
 To test diagnostics as an everyday user:

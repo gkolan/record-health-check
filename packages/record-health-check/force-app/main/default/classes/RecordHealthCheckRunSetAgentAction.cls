@@ -89,7 +89,9 @@ global with sharing class RecordHealthCheckRunSetAgentAction {
       );
     }
     Request input = requests[0];
-    String correlationId = safeCorrelationId(input?.correlationId);
+    String correlationId = RecordHealthCheckAgentContract.safeCorrelationId(
+      input?.correlationId
+    );
     if (!RecordHealthCheckAccess.canRunChecks()) {
       return new List<Response>{
         errorResponse(correlationId, 'AUTHORIZATION', PERMISSION_DENIED_MESSAGE)
@@ -164,46 +166,12 @@ global with sharing class RecordHealthCheckRunSetAgentAction {
   }
 
   private static String validate(Request input) {
-    if (input == null || input.recordId == null) {
-      return 'Record ID is required.';
-    }
-    if (String.isBlank(input.qualifiedApiName)) {
-      return 'Check Set Qualified API Name is required.';
-    }
-    String identity = input.qualifiedApiName.trim();
-    if (
-      identity.length() >
-      RecordHealthCheckConstants.MAX_QUALIFIED_API_NAME_LENGTH
-    ) {
-      return 'Check Set Qualified API Name must not exceed 255 characters.';
-    }
-    if (
-      !Pattern.matches(
-        '^[a-zA-Z][a-zA-Z0-9_]*(?:__[a-zA-Z][a-zA-Z0-9_]*)?$',
-        identity
-      )
-    ) {
-      return 'Check Set Qualified API Name has an invalid format.';
-    }
-    if (
-      !String.isBlank(input.correlationId) &&
-      !isValidCorrelationId(input.correlationId.trim())
-    ) {
-      return 'Correlation ID must use 1 to 120 letters, numbers, periods, underscores, colons, or hyphens.';
-    }
-    return null;
-  }
-
-  private static Boolean isValidCorrelationId(String value) {
-    return value.length() <= 120 &&
-      Pattern.matches('^[a-zA-Z0-9._:-]+$', value);
-  }
-
-  private static String safeCorrelationId(String value) {
-    if (!String.isBlank(value) && isValidCorrelationId(value.trim())) {
-      return value.trim();
-    }
-    return 'agent-' + String.valueOf(DateTime.now().getTime());
+    return RecordHealthCheckAgentContract.validateRequest(
+      input?.recordId,
+      input?.qualifiedApiName,
+      input?.correlationId,
+      'Check Set Qualified API Name'
+    );
   }
 
   private static Response baseResponse(String correlationId) {
@@ -234,7 +202,9 @@ global with sharing class RecordHealthCheckRunSetAgentAction {
     for (Request input : requests) {
       outputs.add(
         errorResponse(
-          safeCorrelationId(input?.correlationId),
+          RecordHealthCheckAgentContract.safeCorrelationId(
+            input?.correlationId
+          ),
           errorType,
           errorMessage
         )

@@ -148,7 +148,7 @@ responsibilities. See [Security and data access](../architecture/security-and-da
 No. Runtime results come from rules your organization can inspect: formulas, Salesforce queries,
 comparisons, or reviewed Apex. The optional documentation workflow for drafting configuration with
 an AI assistant does not make AI part of runtime evaluation, and every draft still requires human
-review. See [Draft configuration with AI](../build-checks/draft-with-ai.md).
+review. See [Draft configuration with AI](../build-checks/draft-with-ai/).
 
 ## Who can run a Check or see its results?
 

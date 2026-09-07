@@ -33,7 +33,7 @@ records.
 
 ## Codebase size and verification
 
-The current source contains 224 packaged Apex classes, including 114 `@IsTest` classes and one
+The current source contains 243 packaged Apex classes, including 126 `@IsTest` classes and one
 global contract-test support class. Tests and contract support cover dynamic SOQL, formulas,
 metadata validation, security boundaries, bulk execution, asynchronous entry points, integrations,
 and failure diagnostics; those classes verify behavior rather than run ordinary health checks.
@@ -106,6 +106,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L5 | [`RecordHealthCheckRunCheckAgentAction`](./entry-points.md#recordhealthcheckruncheckagentaction) | Native Agentforce action for one exact Check and record |
 | L5 | [`RecordHealthCheckRunSetAgentAction`](./entry-points.md#recordhealthcheckrunsetagentaction) | Native Agentforce action for one exact Check Set and record |
 | L5 | [`RecordHealthCheckAgentRestResource`](./entry-points.md#recordhealthcheckagentrestresource) | Versioned read-only REST boundary for approved agent tools |
+| L5 | [`RecordHealthCheckAgentContract`](./entry-points.md#recordhealthcheckagentcontract) | Request rules and correlation identifiers shared by every agent surface |
 | L5 | `RecordHealthCheckQueueable` | Runs one bounded Check Set group in the background; results are not saved unless the caller publishes events or custom code saves them |
 | L5 | `RecordHealthCheckBatch` | Splits an explicit list of 1–2,000 IDs into scopes of 1–200 records that share the Batch job Run ID; defaults to 100 |
 | L5 | `RecordHealthCheckScheduled` | Runs the same saved list of IDs daily by launching `RecordHealthCheckBatch` |
@@ -166,7 +167,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L2 | [`RecordHealthCheckValueResolver`](./shared-services.md#recordhealthcheckvalueresolver) | Extract, convert, and compare query values |
 | L2 | [`RecordHealthCheckDescribeCache`](./shared-services.md#recordhealthcheckdescribecache) | Schema describe cache for the current transaction |
 | L2 | [`RecordHealthCheckEvaluatorException`](./shared-services.md#recordhealthcheckevaluatorexception) | Evaluator failure carrying a reason code |
-| L2 | [`RecordHealthCheckAccess`](./shared-services.md#recordhealthcheckaccess) | Diagnostics Custom Permission check |
+| L2 | [`RecordHealthCheckAccess`](./shared-services.md#recordhealthcheckaccess) | Run access and direct packaged diagnostics Permission Set assignment checks |
 | L2 | [`RecordHealthCheckLogger`](./shared-services.md#recordhealthchecklogger) | `[RHC]` debug lines and ERROR log platform events |
 | L2 | `RecordHealthCheckDiagnosticTrace` | Builds authorized Check configuration and resolution snapshots for browser diagnostics |
 | L2 | `RecordHealthCheckSettingsProvider` | Resolves lifecycle and diagnostic publication settings |
@@ -177,6 +178,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L2 | [`RecordHealthCheckTokenIssue`](./merge-token-classes.md#recordhealthchecktokenissue) | One token validation failure |
 | L2 | [`RecordHealthCheckMergeContext`](./merge-token-classes.md#recordhealthcheckmergecontext) | Values available while resolving merge tokens |
 | L2 | `RecordHealthCheckComparisonDisplay` | Converts comparison operands into stable display content |
+| L2 | `RecordHealthCheckComparisonVisibility` | Resolves and validates the per-Check Found/Expected visibility setting |
 | L2 | `RecordHealthCheckConfigFindingMapper` | Converts validation findings into configuration results returned during a run |
 | L2 | `RecordHealthCheckDefinitionLoader` | Loads and validates Lightning definition metadata |
 | L2 | `RHCDefinitionDependencyIdentity` | Resolves prerequisite identity without namespace collisions |

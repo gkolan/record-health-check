@@ -5,6 +5,7 @@
     <columns>Record_Health_Check_Set__c</columns>
     <columns>CheckTitle__c</columns>
     <columns>EvaluationType__c</columns>
+    <columns>EvaluationOrder__c</columns>
     <columns>IsActive__c</columns>
     <filterScope>Everything</filterScope>
     <filters>

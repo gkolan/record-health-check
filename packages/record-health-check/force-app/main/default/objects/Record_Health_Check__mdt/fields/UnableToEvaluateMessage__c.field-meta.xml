@@ -3,11 +3,11 @@
     <fullName>UnableToEvaluateMessage__c</fullName>
     <label>Message When Unable To Evaluate</label>
     <description
-  >Optional. Replaces the default message users see when a check cannot be evaluated - for example a bad query or formula (the "Unable to Evaluate" outcome). Keep it user-friendly; never include SOQL, errors, or technical detail. Press Enter to start a new line; each line is shown as a separate line on the card.</description>
+  >Optional. Replaces the default message users see when a check cannot be evaluated - for example a bad query or formula (the "Unable to Evaluate" outcome). Keep it user-friendly; never include SOQL, errors, or technical detail. Supports merge tokens such as {!record.Name}, {!rhcResult.reasonCode}, or {!rhcRun.runId}. Press Enter to start a new line; each line is shown as a separate line on the card.</description>
     <type>LongTextArea</type>
     <length>32768</length>
     <visibleLines>3</visibleLines>
-        <inlineHelpText
-  >Optional. Friendly text shown when the check can't run (Unable to Evaluate). Don't include technical details. Press Enter for a new line.</inlineHelpText>
+    <inlineHelpText
+  >Optional. Friendly text when the check can't run. Tokens: {!record.FieldApiName}, {!rhcResult.reasonCode}; no SOQL. Press Enter for a new line.</inlineHelpText>
     <required>false</required>
 </CustomField>

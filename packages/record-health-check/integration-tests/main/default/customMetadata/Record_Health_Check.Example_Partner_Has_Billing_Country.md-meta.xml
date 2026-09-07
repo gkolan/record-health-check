@@ -48,4 +48,38 @@
       xsi:type="xsd:string"
     >Partner accounts must have Billing Country set.</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A formula scoped to one record type by its applicability rule. Passes when a partner account has a Billing Country; other account types are skipped.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the running user can read Type and Billing Country, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Record the billing country for this partner account. Partner agreements and tax treatment both depend on it.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Edit {!record.Name fallback="account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">COMPLIANCE</value>
+    </values>
 </CustomMetadata>

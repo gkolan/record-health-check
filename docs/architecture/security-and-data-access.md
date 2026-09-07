@@ -19,7 +19,7 @@ The package protects five separate areas:
 | Starting a run | Requires the **Record Health Check Run** Custom Permission and access to the appropriate Apex entry point |
 | Reading Salesforce data | Package queries use `WITH USER_MODE` and package classes use `with sharing` |
 | Reading Check definitions | After Run authorization succeeds, packaged Custom Metadata definitions load in system mode; this does not grant access to business records or configuration editing |
-| Viewing troubleshooting detail | Requires both the Check Set setting and the diagnostics Custom Permission |
+| Viewing troubleshooting detail | Requires both the Check Set setting and a direct packaged Admin or Diagnostics Viewer Permission Set assignment |
 | Publishing or receiving events | Requires Platform Event permissions and an explicit publication choice or setting |
 
 ## Choose the correct Permission Set
@@ -42,7 +42,7 @@ Permission Sets.
 | **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to Lightning, Apex, Flow, Agentforce, REST, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for Set Run and Check Result events | Automation principals that use those broader entry points; not the default card-only assignment |
 | **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Runner access plus diagnostics, Custom Metadata type visibility, validation, and App Builder picklist access | Administrators who maintain or troubleshoot Checks; creating Custom Metadata also requires Salesforce Customize Application or equivalent access |
 | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`) | Run Custom Permission, the versioned Apex REST adapter, and read access to both Custom Metadata Types; excludes UI, Flow, Agentforce, async Apex, lifecycle events, and diagnostics | Dedicated least-privilege MCP integration users |
-| **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) | Diagnostics Custom Permission only; no Run permission, Apex, metadata, object, field, or event access | Affected Card User or User assignments that need temporary diagnostic visibility without Admin access |
+| **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) | Diagnostics authorization only; no Run permission, Apex, metadata, object, field, or event access | Affected Card User or User assignments that need temporary diagnostic visibility without Admin access |
 | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create) | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data |
 
 Do not assign the Admin Permission Set merely because a person needs to run a Check. Diagnostic
@@ -142,17 +142,20 @@ package also cannot correct an unsafe query written inside the custom class.
 See [Create a custom Apex Check](../developer-guides/write-an-apex-check.md) for the required review and
 tests. Administrators only paste the reviewed class API name into the Check record in Setup.
 
-## The diagnostics Custom Permission
+## Diagnostics authorization
 
 Detailed troubleshooting appears only when both conditions are true:
 
 1. **Show Diagnostics** is selected on the Check Set.
-2. The running user has **Record Health Check View Diagnostics**
-   (`rhc__Record_Health_Check_View_Diagnostics`).
+2. The running user has a direct, active assignment of **Record Health Check Admin**
+   (`rhc__Record_Health_Check_Admin`) or **Record Health Check Diagnostics Viewer**
+   (`rhc__Record_Health_Check_Diagnostics_Viewer`).
 
-The Admin and Diagnostics Viewer Permission Sets include that Custom Permission. The Card User,
-User, and MCP Integration Permission Sets do not. Diagnostics Viewer is additive: the affected user
-still needs the appropriate runner Permission Set.
+There is no diagnostics Custom Permission. The assignment itself is the authorization, so an
+installation profile grant, a cloned Permission Set, or Permission Set Group membership alone does
+not authorize diagnostics. The Card User, User, and MCP Integration Permission Sets do not
+authorize it either. Diagnostics Viewer is additive: the affected user still needs the appropriate
+runner Permission Set.
 
 Turn **Show Diagnostics** off after troubleshooting. It applies to the whole Check Set, so every
 person who also has the diagnostics permission can see the details while it remains enabled.

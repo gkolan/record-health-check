@@ -9,6 +9,7 @@ import {
   annotateCheck,
   buildSummaryGroups,
   buildSummaryStats,
+  normalizeComparisonDisplayMode,
   splitMessageLines,
   safeActionUrl
 } from "../healthCheckPresentation";
@@ -164,7 +165,7 @@ const FAIL_RESULT = (developerName) => ({
   checkDeveloperName: developerName,
   label: developerName,
   status: "FAIL",
-  severity: "Error",
+  severity: "CRITICAL",
   message: "Check failed.",
   priority: 1,
   evaluatorType: "Formula"
@@ -608,7 +609,11 @@ describe("c-record-health-check — load and error states", () => {
     expect(
       busyButton.querySelector(".rhc-action-button__spinner")
     ).not.toBeNull();
-    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    // The definition request is in progress, so the card body shows the
+    // definition-loading spinner alongside the busy action button.
+    expect(
+      element.shadowRoot.querySelector(".rhc-card-loading")
+    ).not.toBeNull();
 
     definitionLoad.resolve(
       makeDefinitions({
@@ -651,7 +656,9 @@ describe("c-record-health-check — load and error states", () => {
     expect(getCheckSetAvailabilityForRecord).not.toHaveBeenCalled();
     expect(evaluateCheck).not.toHaveBeenCalled();
     expect(completeRun).not.toHaveBeenCalled();
-    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-card-loading")
+    ).not.toBeNull();
     expect(
       element.shadowRoot.querySelector(".rhc-header__title").textContent
     ).toBe("Record Health Check");
@@ -662,7 +669,9 @@ describe("c-record-health-check — load and error states", () => {
 
     expect(getCheckSetShellConfig).toHaveBeenCalledTimes(1);
     expect(getCheckDefinitions).not.toHaveBeenCalled();
-    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-card-loading")
+    ).not.toBeNull();
 
     idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
     await flushPromises();
@@ -699,7 +708,9 @@ describe("c-record-health-check — load and error states", () => {
 
     expect(getCheckSetShellConfig).not.toHaveBeenCalled();
     expect(getCheckDefinitions).not.toHaveBeenCalled();
-    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-card-loading")
+    ).not.toBeNull();
 
     idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
     await flushPromises();
@@ -3368,64 +3379,6 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     ).toContain("Pass");
   });
 
-  it("waits before showing a row tooltip on pointer hover", async () => {
-    jest.useFakeTimers();
-    getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({
-        successDisplayMode: "Show",
-        checks: [makeDefinitions().checks[0]]
-      })
-    );
-    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
-    await appendAndLoad(element);
-    await clickRun(element);
-
-    const row = element.shadowRoot.querySelector("li.rhc-tooltip-anchor");
-    expect(row).not.toBeNull();
-    expect(row.classList.contains("rhc-tooltip-anchor--dwell")).toBe(false);
-
-    row.dispatchEvent(
-      new MouseEvent("mouseover", { bubbles: true, relatedTarget: null })
-    );
-    jest.advanceTimersByTime(999);
-    expect(row.classList.contains("rhc-tooltip-anchor--dwell")).toBe(false);
-
-    jest.advanceTimersByTime(1);
-    expect(row.classList.contains("rhc-tooltip-anchor--dwell")).toBe(true);
-
-    row.dispatchEvent(
-      new MouseEvent("mouseout", { bubbles: true, relatedTarget: null })
-    );
-    expect(row.classList.contains("rhc-tooltip-anchor--dwell")).toBe(false);
-
-    jest.useRealTimers();
-  });
-
-  it("clears a pending tooltip dwell when focus leaves the row", async () => {
-    jest.useFakeTimers();
-    getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({
-        successDisplayMode: "Show",
-        checks: [makeDefinitions().checks[0]]
-      })
-    );
-    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
-    await appendAndLoad(element);
-    await clickRun(element);
-
-    const row = element.shadowRoot.querySelector("li.rhc-tooltip-anchor");
-    row.dispatchEvent(
-      new MouseEvent("mouseover", { bubbles: true, relatedTarget: null })
-    );
-    row.dispatchEvent(
-      new FocusEvent("focusout", { bubbles: true, relatedTarget: null })
-    );
-    jest.advanceTimersByTime(1000);
-    expect(row.classList.contains("rhc-tooltip-anchor--dwell")).toBe(false);
-
-    jest.useRealTimers();
-  });
-
   it("makes only rows with a tooltip a tab stop", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
@@ -3967,7 +3920,7 @@ describe("annotateCheck — comparison disclosure matrix", () => {
   };
   const failWithValuesAndProvenance = {
     status: "FAIL",
-    severity: "Error",
+    severity: "CRITICAL",
     message: "Nope.",
     actualValue: "0",
     expectedValue: 'at least "1"',
@@ -4091,7 +4044,7 @@ describe("annotateCheck — guided remediation", () => {
 
   const failWithLink = {
     status: "FAIL",
-    severity: "Warning",
+    severity: "WARNING",
     message: "Contacts missing email.",
     actualValue: "1 of 2 contacts missing email",
     expectedValue: "every contact has an email",
@@ -4214,7 +4167,7 @@ describe("c-record-health-check — comparison disclosure (integration)", () => 
       checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
-      severity: "Warning",
+      severity: "WARNING",
       message: "Contacts missing email.",
       actualValue: "1 of 2 contacts missing email",
       expectedValue: "every contact has an email",
@@ -4370,12 +4323,12 @@ describe("buildSummaryStats — label pluralization", () => {
     buildSummaryStats(checks).find((s) => s.key === suffixMatch).label;
 
   it("pluralizes Warning only when there is more than one", () => {
-    expect(labelFor([resolved("A", "FAIL", "Warning")], "warn")).toBe(
+    expect(labelFor([resolved("A", "FAIL", "WARNING")], "warn")).toBe(
       "1 Warning"
     );
     expect(
       labelFor(
-        [resolved("A", "FAIL", "Warning"), resolved("B", "FAIL", "Warning")],
+        [resolved("A", "FAIL", "WARNING"), resolved("B", "FAIL", "WARNING")],
         "warn"
       )
     ).toBe("2 Warnings");
@@ -4386,7 +4339,7 @@ describe("buildSummaryStats — label pluralization", () => {
       {
         label: "Informational",
         uiState: "RESOLVED",
-        result: { status: "FAIL", severity: "Info" }
+        result: { status: "FAIL", severity: "INFO" }
       },
       {
         label: "Future status",
@@ -4443,7 +4396,7 @@ describe("buildSummaryStats — label pluralization", () => {
         categoryLabel: null
       },
       {
-        ...resolved("Completeness warning", "FAIL", "Warning"),
+        ...resolved("Completeness warning", "FAIL", "WARNING"),
         category: "COMPLETENESS",
         categoryLabel: "Completeness"
       },
@@ -4499,7 +4452,7 @@ describe("buildSummaryStats — label pluralization", () => {
   it("keeps the existing ungrouped summary when no resolved Check has a category", () => {
     const groups = buildSummaryGroups([
       resolved("A", "PASS", null),
-      resolved("B", "FAIL", "Error")
+      resolved("B", "FAIL", "CRITICAL")
     ]);
 
     expect(groups).toHaveLength(1);
@@ -4587,7 +4540,7 @@ describe("c-record-health-check — multi-line messages", () => {
       checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
-      severity: "Error",
+      severity: "CRITICAL",
       message: "Out of balance.\nDebit: 100\nCredit: 75",
       priority: 1,
       evaluatorType: "Formula"
@@ -4610,7 +4563,7 @@ describe("c-record-health-check — multi-line messages", () => {
       checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
-      severity: "Error",
+      severity: "CRITICAL",
       message: "Out of balance.\n\nContact Finance.",
       priority: 1,
       evaluatorType: "Formula"
@@ -4660,7 +4613,7 @@ describe("c-record-health-check — multi-line messages", () => {
       checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
-      severity: "Error",
+      severity: "CRITICAL",
       message: "This field needs attention.",
       priority: 1,
       evaluatorType: "Formula"
@@ -4682,7 +4635,7 @@ describe("c-record-health-check — multi-line messages", () => {
       checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
-      severity: "Error",
+      severity: "CRITICAL",
       message: "Out of balance.\n\nContact Finance.",
       priority: 1,
       evaluatorType: "Formula"
@@ -4705,7 +4658,7 @@ describe("c-record-health-check — multi-line messages", () => {
       checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
-      severity: "Error",
+      severity: "CRITICAL",
       message: "A long user-facing message that remains fully available.",
       fixInstructions: "Review every related record and correct its owner.",
       priority: 1,
@@ -4751,7 +4704,7 @@ describe("c-record-health-check — multi-line messages", () => {
       checkDeveloperName: "Check_A",
       label: "Check_A",
       status: "FAIL",
-      severity: "Error",
+      severity: "CRITICAL",
       message: longMessage,
       priority: 1,
       evaluatorType: "Formula"
@@ -4831,7 +4784,7 @@ describe("safeActionUrl — client-side scheme guard (HI-3)", () => {
     const a = annotateCheck(
       resolved({
         status: "FAIL",
-        severity: "Warning",
+        severity: "WARNING",
         message: "Contacts missing email.",
         actionUrl: jsScheme + "alert(document.cookie)",
         actionLabel: "Fix this",
@@ -5195,7 +5148,7 @@ describe("healthCheckModel — complete response contracts", () => {
           checkQualifiedApiName: null,
           recordId: "001000000000001AAA",
           status: "FAIL",
-          severity: "Warning",
+          severity: "WARNING",
           reasonCode: "VALUE_MISMATCH",
           found: { storedValue: "stored found" },
           expected: { storedValue: "stored expected" }
@@ -5599,7 +5552,7 @@ describe("c-record-health-check — defensive UI permutations", () => {
     expect(element.isConnected).toBe(false);
   });
 
-  it("handles tooltip child transitions, duplicate dwell, reduced motion, and non-anchors", async () => {
+  it("handles tooltip child transitions and non-anchors", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         successDisplayMode: "Show",
@@ -5607,10 +5560,6 @@ describe("c-record-health-check — defensive UI permutations", () => {
       })
     );
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
-    Object.defineProperty(window, "matchMedia", {
-      configurable: true,
-      value: jest.fn().mockReturnValue({ matches: true })
-    });
     await appendAndLoad(element);
     await clickRun(element);
 
@@ -5620,9 +5569,6 @@ describe("c-record-health-check — defensive UI permutations", () => {
       .querySelector(".rhc-card")
       .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    jest.runOnlyPendingTimers();
-    expect(row.classList).toContain("rhc-tooltip-anchor--dwell");
 
     row.classList.add("rhc-tooltip-anchor--flip-up");
     row.dispatchEvent(
@@ -5641,10 +5587,9 @@ describe("c-record-health-check — defensive UI permutations", () => {
     row.classList.add("rhc-tooltip-anchor--flip-up");
     row.dispatchEvent(childTransition);
     expect(row.classList).toContain("rhc-tooltip-anchor--flip-up");
-    delete window.matchMedia;
   });
 
-  it("cancels a pending resize and tooltip dwell when disconnected", async () => {
+  it("cancels a pending resize frame when disconnected", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         successDisplayMode: "Show",
@@ -5686,5 +5631,1076 @@ describe("c-record-health-check — defensive UI permutations", () => {
     await clickRun(element);
 
     expect(element.shadowRoot.querySelectorAll("li.rhc-row")).toHaveLength(0);
+  });
+});
+
+describe("c-record-health-check — definition-loading spinner", () => {
+  let element;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    element = createComponent();
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+  });
+
+  const spinnerHost = (el) => el.shadowRoot.querySelector(".rhc-card-loading");
+
+  it("shows the card-body spinner during the scheduled initial-load interval", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    document.body.appendChild(element);
+    await flushPromises();
+
+    const host = spinnerHost(element);
+    expect(host).not.toBeNull();
+    expect(host.getAttribute("role")).toBe("status");
+    expect(host.getAttribute("aria-live")).toBe("polite");
+    expect(host.getAttribute("aria-label")).toBe("Loading health checks");
+    expect(host.querySelector("lightning-spinner")).not.toBeNull();
+    // The header is already painted, so the body is never an unexplained blank.
+    expect(element.shadowRoot.querySelector(".rhc-header")).not.toBeNull();
+  });
+
+  it("keeps the spinner while the definition request is in flight", async () => {
+    const pending = deferred();
+    getCheckDefinitions.mockReturnValue(pending.promise);
+    document.body.appendChild(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+
+    expect(getCheckDefinitions).toHaveBeenCalled();
+    expect(spinnerHost(element)).not.toBeNull();
+
+    pending.resolve(makeDefinitions());
+    await flushPromises();
+    await flushPromises();
+    expect(spinnerHost(element)).toBeNull();
+  });
+
+  it("removes the spinner once definitions load and shows pre-run guidance", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+
+    expect(spinnerHost(element)).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-pre-run-hint")
+    ).not.toBeNull();
+  });
+
+  it("replaces the spinner with the component error UI when the load fails", async () => {
+    getCheckDefinitions.mockRejectedValue({
+      body: { message: "Definition load failed." }
+    });
+    await appendAndLoad(element);
+
+    expect(spinnerHost(element)).toBeNull();
+    expect(element.shadowRoot.querySelector('[role="alert"]')).not.toBeNull();
+  });
+
+  it("shows no spinner without a record id", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    element.recordId = undefined;
+    await appendAndLoad(element);
+
+    expect(spinnerHost(element)).toBeNull();
+  });
+
+  it("does not leave a spinner behind while checks are evaluating", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+    await clickRun(element);
+
+    expect(spinnerHost(element)).toBeNull();
+    expect(
+      element.shadowRoot.querySelectorAll("li.rhc-row").length
+    ).toBeGreaterThan(0);
+  });
+});
+
+describe("c-record-health-check — comparison display mode", () => {
+  let element;
+
+  const failWithValues = (developerName) => ({
+    ...FAIL_RESULT(developerName),
+    actualValue: "3 contacts",
+    expectedValue: "5 contacts"
+  });
+
+  const chipText = (el) =>
+    Array.from(el.shadowRoot.querySelectorAll(".rhc-cmp__val"))
+      .map((node) => node.textContent)
+      .join(" | ");
+
+  const loadWithMode = async (mode) => {
+    const base = makeDefinitions();
+    getCheckDefinitions.mockResolvedValue({
+      ...base,
+      checks: [{ ...base.checks[0], comparisonDisplayMode: mode }],
+      totalAvailableCheckCount: 1
+    });
+    evaluateCheck.mockResolvedValue(failWithValues("Check_A"));
+    await appendAndLoad(element);
+    await clickRun(element);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    element = createComponent();
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+  });
+
+  it("shows both sides for AUTOMATIC", async () => {
+    await loadWithMode("AUTOMATIC");
+    const text = chipText(element);
+    expect(text).toContain("3 contacts");
+    expect(text).toContain("5 contacts");
+  });
+
+  it("treats a blank mode exactly like AUTOMATIC", async () => {
+    await loadWithMode(undefined);
+    const text = chipText(element);
+    expect(text).toContain("3 contacts");
+    expect(text).toContain("5 contacts");
+  });
+
+  it("falls back to AUTOMATIC for an unrecognized mode", async () => {
+    await loadWithMode("NOT_A_MODE");
+    const text = chipText(element);
+    expect(text).toContain("3 contacts");
+    expect(text).toContain("5 contacts");
+  });
+
+  it("shows only Found for FOUND_ONLY", async () => {
+    await loadWithMode("FOUND_ONLY");
+    const text = chipText(element);
+    expect(text).toContain("3 contacts");
+    expect(text).not.toContain("5 contacts");
+  });
+
+  it("shows only Expected for EXPECTED_ONLY", async () => {
+    await loadWithMode("EXPECTED_ONLY");
+    const text = chipText(element);
+    expect(text).not.toContain("3 contacts");
+    expect(text).toContain("5 contacts");
+  });
+
+  it("removes both sides, the divider, and the caret for HIDDEN", async () => {
+    await loadWithMode("HIDDEN");
+
+    expect(chipText(element)).toBe("");
+    expect(element.shadowRoot.querySelector(".rhc-row__divider")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-caret")).toBeNull();
+  });
+
+  it("keeps the failure message and status while HIDDEN suppresses evidence", async () => {
+    await loadWithMode("HIDDEN");
+
+    expect(element.shadowRoot.textContent).toContain("Check failed.");
+    const row = element.shadowRoot.querySelector("li.rhc-row");
+    expect(row.getAttribute("aria-label")).not.toContain("Found");
+    expect(row.getAttribute("aria-label")).not.toContain("Expected");
+  });
+
+  it("normalizes comparison display modes", () => {
+    expect(normalizeComparisonDisplayMode(undefined)).toBe("AUTOMATIC");
+    expect(normalizeComparisonDisplayMode("")).toBe("AUTOMATIC");
+    expect(normalizeComparisonDisplayMode(" hidden ")).toBe("HIDDEN");
+    expect(normalizeComparisonDisplayMode("found_only")).toBe("FOUND_ONLY");
+    expect(normalizeComparisonDisplayMode("nonsense")).toBe("AUTOMATIC");
+    expect(normalizeComparisonDisplayMode(42)).toBe("AUTOMATIC");
+  });
+});
+
+describe("c-record-health-check — comparison display edge and adversarial cases", () => {
+  let element;
+
+  const load = async (mode, result, definitionOverrides = {}) => {
+    const base = makeDefinitions(definitionOverrides);
+    getCheckDefinitions.mockResolvedValue({
+      ...base,
+      checks: [{ ...base.checks[0], comparisonDisplayMode: mode }],
+      totalAvailableCheckCount: 1
+    });
+    evaluateCheck.mockResolvedValue(result);
+    await appendAndLoad(element);
+    await clickRun(element);
+  };
+
+  const values = (el) =>
+    Array.from(el.shadowRoot.querySelectorAll(".rhc-cmp__val"))
+      .map((node) => node.textContent)
+      .join(" | ");
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    element = createComponent();
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+  });
+
+  it("does not substitute the other side when the allowed side is empty", async () => {
+    await load("FOUND_ONLY", {
+      ...FAIL_RESULT("Check_A"),
+      actualValue: null,
+      expectedValue: "5 contacts"
+    });
+
+    expect(values(element)).toBe("");
+    expect(element.shadowRoot.querySelector(".rhc-caret")).toBeNull();
+  });
+
+  it("hides evidence on a passing row in AllRows placement", async () => {
+    await load(
+      "HIDDEN",
+      {
+        ...PASS_RESULT("Check_A"),
+        actualValue: "5 contacts",
+        expectedValue: "5 contacts"
+      },
+      { comparisonDisplay: "AllRows" }
+    );
+
+    expect(values(element)).toBe("");
+    expect(element.shadowRoot.querySelector(".rhc-row__divider")).toBeNull();
+  });
+
+  it("keeps the action link and fix instructions while evidence is hidden", async () => {
+    await load("HIDDEN", {
+      ...FAIL_RESULT("Check_A"),
+      actualValue: "3 contacts",
+      expectedValue: "5 contacts",
+      actionUrl: "/lightning/o/Contact/list",
+      actionLabel: "Review contacts",
+      fixInstructions: "Add the missing contacts."
+    });
+
+    expect(values(element)).toBe("");
+    expect(element.shadowRoot.textContent).toContain("Review contacts");
+    expect(element.shadowRoot.textContent).toContain(
+      "Add the missing contacts."
+    );
+  });
+
+  it("does not expose a hidden value through the expanded region", async () => {
+    await load(
+      "HIDDEN",
+      {
+        ...FAIL_RESULT("Check_A"),
+        actualValue: "secret-found",
+        expectedValue: "secret-expected"
+      },
+      { comparisonDisplay: "OnDemand" }
+    );
+
+    const row = element.shadowRoot.querySelector("li.rhc-row");
+    row.querySelector(".rhc-caret")?.click();
+    await flushPromises();
+
+    expect(element.shadowRoot.textContent).not.toContain("secret-found");
+    expect(element.shadowRoot.textContent).not.toContain("secret-expected");
+  });
+
+  it("applies a changed mode when the record is replaced", async () => {
+    await load("HIDDEN", {
+      ...FAIL_RESULT("Check_A"),
+      actualValue: "3 contacts",
+      expectedValue: "5 contacts"
+    });
+    expect(values(element)).toBe("");
+
+    const base = makeDefinitions();
+    getCheckDefinitions.mockResolvedValue({
+      ...base,
+      checks: [{ ...base.checks[0], comparisonDisplayMode: "AUTOMATIC" }],
+      totalAvailableCheckCount: 1
+    });
+    element.recordId = "001000000000002AAA";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+    await clickRun(element);
+
+    expect(values(element)).toContain("3 contacts");
+  });
+
+  it("ignores a mode that is not a string", async () => {
+    await load(
+      { evil: true },
+      {
+        ...FAIL_RESULT("Check_A"),
+        actualValue: "3 contacts",
+        expectedValue: "5 contacts"
+      }
+    );
+
+    expect(values(element)).toContain("3 contacts");
+    expect(values(element)).toContain("5 contacts");
+  });
+});
+
+describe("c-record-health-check — loading under failure pressure", () => {
+  let element;
+
+  const spinner = (el) => el.shadowRoot.querySelector(".rhc-card-loading");
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    element = createComponent();
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+  });
+
+  it("ignores a definition response for a record the user already left (W1)", async () => {
+    const recordA = deferred();
+    getCheckDefinitions.mockReturnValueOnce(recordA.promise);
+    document.body.appendChild(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    const recordB = deferred();
+    getCheckDefinitions.mockReturnValueOnce(recordB.promise);
+    element.recordId = "001000000000002AAA";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    // Record A answers late, after B has taken over the component.
+    recordA.resolve(
+      makeDefinitions({
+        displayTitle: "Stale record A",
+        checks: [makeDefinitions().checks[0]]
+      })
+    );
+    await flushPromises();
+    await flushPromises();
+
+    expect(element.shadowRoot.textContent).not.toContain("Stale record A");
+    expect(element.shadowRoot.querySelectorAll("li.rhc-row")).toHaveLength(0);
+    expect(spinner(element)).not.toBeNull();
+
+    recordB.resolve(makeDefinitions({ displayTitle: "Record B" }));
+    await flushPromises();
+    await flushPromises();
+    expect(spinner(element)).toBeNull();
+  });
+
+  it("discards a stale Check Set response after the Check Set changes (W2)", async () => {
+    const oldSet = deferred();
+    getCheckDefinitions.mockReturnValueOnce(oldSet.promise);
+    document.body.appendChild(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ displayTitle: "New set" })
+    );
+    element.checkSetName = "Account_Compliance";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+
+    oldSet.resolve(makeDefinitions({ displayTitle: "Old set" }));
+    await flushPromises();
+    await flushPromises();
+
+    expect(element.shadowRoot.textContent).not.toContain("Old set");
+    expect(spinner(element)).toBeNull();
+  });
+
+  it("mutates nothing when a response lands after disconnect (W3)", async () => {
+    const pending = deferred();
+    getCheckDefinitions.mockReturnValue(pending.promise);
+    document.body.appendChild(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+    expect(spinner(element)).not.toBeNull();
+
+    const shadow = element.shadowRoot;
+    document.body.removeChild(element);
+
+    pending.resolve(makeDefinitions());
+    await expect(flushPromises()).resolves.toBeUndefined();
+    await flushPromises();
+
+    expect(shadow.querySelectorAll("li.rhc-row")).toHaveLength(0);
+    expect(evaluateCheck).not.toHaveBeenCalled();
+  });
+
+  it("lets a retry own the spinner and discards the failed attempt (W4, P10)", async () => {
+    getCheckDefinitions.mockRejectedValueOnce({
+      body: { message: "Temporary failure." }
+    });
+    await appendAndLoad(element);
+
+    expect(spinner(element)).toBeNull();
+    const retry = element.shadowRoot.querySelector(
+      ".rhc-error-banner__actions button"
+    );
+    expect(retry).not.toBeNull();
+
+    const secondAttempt = deferred();
+    getCheckDefinitions.mockReturnValueOnce(secondAttempt.promise);
+    retry.click();
+    await flushPromises();
+    await flushPromises();
+
+    expect(spinner(element)).not.toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__actions")
+    ).toBeNull();
+
+    secondAttempt.resolve(makeDefinitions());
+    await flushPromises();
+    await flushPromises();
+
+    expect(spinner(element)).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-pre-run-hint")
+    ).not.toBeNull();
+  });
+
+  it("stays stable across a long unresolved load without duplicate announcements (W15)", async () => {
+    const pending = deferred();
+    getCheckDefinitions.mockReturnValue(pending.promise);
+    document.body.appendChild(element);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+
+    const first = spinner(element);
+    // Several rerender opportunities across a realistic long wait.
+    for (let tick = 0; tick < 5; tick += 1) {
+      jest.advanceTimersByTime(2000);
+      window.dispatchEvent(new CustomEvent("resize"));
+    }
+    await flushPromises();
+    await flushPromises();
+
+    // The same live region element survives rerenders, so the assistive
+    // technology announces the transition once, not once per frame.
+    expect(spinner(element)).toBe(first);
+    expect(
+      element.shadowRoot.querySelectorAll(".rhc-card-loading")
+    ).toHaveLength(1);
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(element.shadowRoot.querySelector(".rhc-stats-bar")).toBeNull();
+  });
+
+  it("adds no minimum delay when definitions resolve immediately (W16)", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+
+    expect(spinner(element)).toBeNull();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    expect(spinner(element)).toBeNull();
+  });
+
+  it("removes prior rows while the replacement record loads (P9)", async () => {
+    // Automatic mode reloads definitions for the replacement record; Manual
+    // mode deliberately returns to its pre-run shell instead, so this scenario
+    // only exists on the Automatic path.
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+    await runScheduledAutomaticRun();
+    expect(
+      element.shadowRoot.querySelectorAll("li.rhc-row").length
+    ).toBeGreaterThan(0);
+
+    const nextRecord = deferred();
+    getCheckDefinitions.mockReturnValueOnce(nextRecord.promise);
+    element.recordId = "001000000000002AAA";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    await flushPromises();
+
+    expect(element.shadowRoot.querySelectorAll("li.rhc-row")).toHaveLength(0);
+    expect(spinner(element)).not.toBeNull();
+  });
+});
+
+describe("c-record-health-check — loading state boundaries", () => {
+  let element;
+  let idleCallbacks;
+
+  const spinner = (el) => el.shadowRoot.querySelector(".rhc-card-loading");
+  const runIdle = () =>
+    idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    idleCallbacks = [];
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: jest.fn((callback) => {
+        idleCallbacks.push(callback);
+        return 61 + idleCallbacks.length;
+      })
+    });
+    Object.defineProperty(window, "cancelIdleCallback", {
+      configurable: true,
+      value: jest.fn()
+    });
+    element = createComponent();
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+    delete window.requestIdleCallback;
+    delete window.cancelIdleCallback;
+  });
+
+  it("stops loading once a valid response returns no checks", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        checks: [],
+        totalAvailableCheckCount: 0
+      })
+    );
+    document.body.appendChild(element);
+    await flushPromises();
+    runIdle(); // scheduled initial load
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+
+    // Definitions have arrived. The Check Set is simply empty, so the card
+    // shows its established empty state — a queued automatic run is not a
+    // reason to keep telling the user that checks are still loading.
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+    expect(spinner(element)).toBeNull();
+  });
+
+  it("keeps definition loading and the queued run visually distinct", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ triggerMode: "Automatic" })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    document.body.appendChild(element);
+    await flushPromises();
+    expect(spinner(element)).not.toBeNull();
+
+    runIdle(); // scheduled initial load
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+
+    // Definitions are known and an automatic run is queued: rows own the
+    // progress indication from here, not the card-level spinner.
+    expect(spinner(element)).toBeNull();
+    expect(
+      element.shadowRoot.querySelectorAll("li.rhc-row").length
+    ).toBeGreaterThan(0);
+  });
+});
+
+describe("c-record-health-check — Rerun re-reads Check Set configuration", () => {
+  let element;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    completeRun.mockResolvedValue();
+    element = createComponent();
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+  });
+
+  const rowLabels = (el) =>
+    [...el.shadowRoot.querySelectorAll(".rhc-row__label")].map((n) =>
+      n.textContent.trim()
+    );
+
+  it("requests definitions again on every user-initiated run", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+
+    await clickRun(element);
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(2);
+
+    await clickRun(element);
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(3);
+  });
+
+  it("shows a check an admin added after the page was loaded", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    await clickRun(element);
+    expect(rowLabels(element)).toEqual(["Check A", "Check B"]);
+
+    // Admin adds a third Check in Setup while the record tab stays open.
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        totalAvailableCheckCount: 3,
+        checks: [
+          {
+            developerName: "Check_A",
+            label: "Check A",
+            description: "First check",
+            priority: 1,
+            dependsOnCheckDeveloperName: null
+          },
+          {
+            developerName: "Check_B",
+            label: "Check B",
+            description: "Second check",
+            priority: 2,
+            dependsOnCheckDeveloperName: null
+          },
+          {
+            developerName: "Check_C",
+            label: "Check C",
+            description: "Added in Setup",
+            priority: 3,
+            dependsOnCheckDeveloperName: null
+          }
+        ]
+      })
+    );
+
+    await clickRun(element);
+
+    expect(rowLabels(element)).toEqual(["Check A", "Check B", "Check C"]);
+  });
+
+  it("drops a check an admin deactivated after the page was loaded", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    await clickRun(element);
+    expect(rowLabels(element)).toHaveLength(2);
+
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        totalAvailableCheckCount: 1,
+        checks: [
+          {
+            developerName: "Check_A",
+            label: "Check A",
+            description: "First check",
+            priority: 1,
+            dependsOnCheckDeveloperName: null
+          }
+        ]
+      })
+    );
+
+    await clickRun(element);
+
+    expect(rowLabels(element)).toEqual(["Check A"]);
+  });
+
+  it("applies display settings changed in Setup on the next Rerun", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    await clickRun(element);
+    expect(
+      element.shadowRoot.querySelector(".rhc-action-button").textContent.trim()
+    ).toBe("Rerun");
+
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ rerunButtonLabel: "Check Again" })
+    );
+
+    await clickRun(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-action-button").textContent.trim()
+    ).toBe("Check Again");
+  });
+
+  it("keeps the previous rows and the Rerun label on screen during the refetch", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    await clickRun(element);
+    expect(rowLabels(element)).toHaveLength(2);
+
+    // Hold the refetch open: the card must not blank out or fall back to "Run".
+    const pendingDefinitions = deferred();
+    getCheckDefinitions.mockReturnValue(pendingDefinitions.promise);
+
+    element.shadowRoot.querySelector(".rhc-action-button").click();
+    await flushPromises();
+
+    expect(rowLabels(element)).toHaveLength(2);
+    expect(element.shadowRoot.querySelector(".rhc-card-spinner")).toBeNull();
+    const btn = element.shadowRoot.querySelector(".rhc-action-button");
+    expect(btn.textContent.trim()).toBe("Rerun");
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute("aria-busy")).toBe("true");
+    expect(btn.querySelector(".rhc-action-button__spinner")).not.toBeNull();
+
+    pendingDefinitions.resolve(makeDefinitions());
+    await flushPromises();
+    await flushPromises();
+  });
+
+  it("surfaces an error instead of evaluating stale definitions when the refetch fails", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    await clickRun(element);
+    const evaluationsBeforeFailure = evaluateCheck.mock.calls.length;
+
+    getCheckDefinitions.mockRejectedValue({
+      body: { message: "config read failed" }
+    });
+
+    await clickRun(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__msg")
+    ).not.toBeNull();
+    expect(evaluateCheck).toHaveBeenCalledTimes(evaluationsBeforeFailure);
+  });
+
+  it("does not refetch definitions for a record-save refresh already in flight", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    const pending = deferred();
+    evaluateCheck.mockReturnValue(pending.promise);
+    await appendAndLoad(element);
+
+    element.shadowRoot.querySelector(".rhc-action-button").click();
+    await flushPromises();
+    const callsDuringRun = getCheckDefinitions.mock.calls.length;
+
+    // A second click while the run is in flight is ignored, so it must not
+    // queue another configuration read.
+    element.shadowRoot.querySelector(".rhc-action-button").click();
+    await flushPromises();
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(callsDuringRun);
+
+    pending.resolve(PASS_RESULT("Check_A"));
+    await flushPromises();
+    await flushPromises();
+  });
+});
+
+describe("c-record-health-check — the card body never collapses to a header", () => {
+  let element;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    completeRun.mockResolvedValue();
+    getCheckSetAvailabilityForRecord.mockResolvedValue({
+      hasActive: true,
+      hasInactive: false
+    });
+    element = createComponent();
+  });
+
+  afterEach(() => {
+    if (element.isConnected) {
+      document.body.removeChild(element);
+    }
+  });
+
+  /**
+   * Elements rendered inside the white card body, below the grey header. An
+   * empty <ul> does not count: CSS hides it with .rhc-list:empty so the card
+   * would still paint as a header-only strip.
+   */
+  const bodyContent = (el) => {
+    const body = el.shadowRoot.querySelector(".rhc-body");
+    expect(body).not.toBeNull();
+    return [...body.children]
+      .filter((node) => !node.classList.contains("rhc-header"))
+      .filter((node) => !(node.tagName === "UL" && node.children.length === 0));
+  };
+
+  const expectBody = (el, scenario) => {
+    expect(el.shadowRoot.querySelector(".rhc-header")).not.toBeNull();
+    if (bodyContent(el).length === 0) {
+      throw new Error(`Header-only card in scenario: ${scenario}`);
+    }
+  };
+
+  const emptyCheckSet = (overrides = {}) =>
+    makeDefinitions({
+      totalAvailableCheckCount: 0,
+      checks: [],
+      ...overrides
+    });
+
+  it("shows a body for every frame of a Manual load, run, and completion", async () => {
+    expect.hasAssertions();
+    const pendingDefinitions = deferred();
+    getCheckDefinitions.mockReturnValue(pendingDefinitions.promise);
+    document.body.appendChild(element);
+
+    // Every frame from connect until the definitions land, including the
+    // getCheckSetShellConfig round trip, must keep a body on screen.
+    for (let frame = 0; frame < 8; frame++) {
+      expectBody(element, `definition load, frame ${frame}`);
+      jest.runOnlyPendingTimers();
+      // eslint-disable-next-line no-await-in-loop
+      await flushPromises();
+    }
+
+    pendingDefinitions.resolve(makeDefinitions());
+    await flushPromises();
+    await flushPromises();
+    expectBody(element, "Manual, loaded, before the first run");
+
+    const pendingEvaluation = deferred();
+    evaluateCheck.mockReturnValue(pendingEvaluation.promise);
+    element.shadowRoot.querySelector(".rhc-action-button").click();
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+    expectBody(element, "Manual, run in flight");
+
+    pendingEvaluation.resolve(PASS_RESULT("Check_A"));
+    await flushPromises();
+    await flushPromises();
+    expectBody(element, "Manual, run complete");
+  });
+
+  it("renders the full card from the very first frame, never bare space", async () => {
+    const pendingShell = deferred();
+    getCheckSetShellConfig.mockReturnValue(pendingShell.promise);
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    document.body.appendChild(element);
+
+    // Nothing has resolved yet: the reader must still see a complete card —
+    // the bordered box, the grey header with a title, and a white body holding
+    // the spinner — rather than empty page space that fills in later.
+    for (let frame = 0; frame < 4; frame++) {
+      expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-body")).not.toBeNull();
+      expect(
+        element.shadowRoot
+          .querySelector(".rhc-header__title")
+          .textContent.trim()
+      ).toBe("Record Health Check");
+      expect(
+        element.shadowRoot.querySelector(".rhc-card-loading")
+      ).not.toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-card-loading lightning-spinner")
+      ).not.toBeNull();
+      expectBody(element, `first frames, frame ${frame}`);
+      jest.runOnlyPendingTimers();
+      // eslint-disable-next-line no-await-in-loop
+      await flushPromises();
+    }
+
+    pendingShell.resolve(null);
+    await flushPromises();
+    await flushPromises();
+    expectBody(element, "after the shell request resolves");
+  });
+
+  it("shows a body while the Check Set shell request is in flight", async () => {
+    const pendingShell = deferred();
+    getCheckSetShellConfig.mockReturnValue(pendingShell.promise);
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    document.body.appendChild(element);
+
+    for (let frame = 0; frame < 6; frame++) {
+      expectBody(element, `shell request, frame ${frame}`);
+      jest.runOnlyPendingTimers();
+      // eslint-disable-next-line no-await-in-loop
+      await flushPromises();
+    }
+    // The spinner, not a premature empty-state message, owns this window.
+    expect(
+      element.shadowRoot.querySelector(".rhc-card-loading")
+    ).not.toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-empty-body")).toBeNull();
+
+    pendingShell.resolve({
+      runMode: "Manual",
+      runButtonDisplay: "LABEL_AND_ICON",
+      cardTitle: "Account Health",
+      activeCheckCount: 2
+    });
+    await flushPromises();
+    await flushPromises();
+    expectBody(element, "shell request resolved");
+  });
+
+  it("explains an empty Check Set instead of rendering a bare header", async () => {
+    getCheckDefinitions.mockResolvedValue(emptyCheckSet());
+    await appendAndLoad(element);
+
+    expectBody(element, "Manual Check Set with no active checks");
+    expect(
+      element.shadowRoot.querySelector(".rhc-empty-body").textContent.trim()
+    ).toBe("This Check Set has no active checks.");
+  });
+
+  it("explains an empty Check Set on an Automatic card", async () => {
+    expect.hasAssertions();
+    getCheckDefinitions.mockResolvedValue(
+      emptyCheckSet({ triggerMode: "Automatic" })
+    );
+    await appendAndLoad(element);
+    await runScheduledAutomaticRun();
+
+    expectBody(element, "Automatic Check Set with no active checks");
+  });
+
+  it("explains an empty Check Set when the run button is hidden", async () => {
+    expect.hasAssertions();
+    getCheckDefinitions.mockResolvedValue(
+      emptyCheckSet({ triggerMode: "Automatic", runButtonDisplay: "HIDE" })
+    );
+    await appendAndLoad(element);
+    await runScheduledAutomaticRun();
+
+    expectBody(element, "hidden run button, no active checks");
+  });
+
+  it("explains an empty Check Set reported by the quiet Manual shell", async () => {
+    expect.hasAssertions();
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      runButtonDisplay: "LABEL_AND_ICON",
+      cardTitle: "Account Health",
+      activeCheckCount: 0
+    });
+    getCheckDefinitions.mockResolvedValue(emptyCheckSet());
+    await appendAndLoad(element);
+
+    expectBody(element, "quiet Manual shell reporting zero active checks");
+  });
+
+  it("keeps a body when the component has no record", async () => {
+    const noRecord = createElement("c-record-health-check", {
+      is: RecordHealthCheck
+    });
+    noRecord.checkSetName = "Account_Data_Quality";
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    document.body.appendChild(noRecord);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    try {
+      expectBody(noRecord, "no record id");
+      expect(
+        noRecord.shadowRoot.querySelector(".rhc-empty-body").textContent.trim()
+      ).toBe("Runs when a record is available.");
+    } finally {
+      document.body.removeChild(noRecord);
+    }
+  });
+
+  it("keeps a body when no Check Set is selected", async () => {
+    const noCheckSet = createElement("c-record-health-check", {
+      is: RecordHealthCheck
+    });
+    document.body.appendChild(noCheckSet);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+
+    try {
+      expectBody(noCheckSet, "no Check Set selected");
+      expect(
+        noCheckSet.shadowRoot
+          .querySelector(".rhc-empty-body")
+          .textContent.trim()
+      ).toBe("Select a Check Set in the component properties.");
+    } finally {
+      document.body.removeChild(noCheckSet);
+    }
+  });
+
+  it("keeps a body when every result row is hidden by display settings", async () => {
+    expect.hasAssertions();
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ successDisplayMode: "Hide" })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+    await clickRun(element);
+
+    expectBody(element, "all rows hidden by Passed Checks Display");
+  });
+
+  it("keeps a body through a OneAtATime run", async () => {
+    expect.hasAssertions();
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ revealMode: "OneAtATime" })
+    );
+    const pendingEvaluation = deferred();
+    evaluateCheck.mockReturnValue(pendingEvaluation.promise);
+    await appendAndLoad(element);
+
+    element.shadowRoot.querySelector(".rhc-action-button").click();
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+    expectBody(element, "OneAtATime, first row in flight");
+
+    pendingEvaluation.resolve(PASS_RESULT("Check_A"));
+    await flushPromises();
+    await flushPromises();
+    expectBody(element, "OneAtATime, run complete");
+  });
+
+  it("keeps a body when the definition load fails", async () => {
+    expect.hasAssertions();
+    getCheckDefinitions.mockRejectedValue({
+      body: { message: "definition load failed" }
+    });
+    await appendAndLoad(element);
+
+    expectBody(element, "component error");
+  });
+
+  it("does not add the empty-state notice on top of real content", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+    expect(element.shadowRoot.querySelector(".rhc-empty-body")).toBeNull();
+
+    await clickRun(element);
+    expect(element.shadowRoot.querySelector(".rhc-empty-body")).toBeNull();
+    expect(
+      element.shadowRoot.querySelectorAll("li.rhc-row").length
+    ).toBeGreaterThan(0);
   });
 });

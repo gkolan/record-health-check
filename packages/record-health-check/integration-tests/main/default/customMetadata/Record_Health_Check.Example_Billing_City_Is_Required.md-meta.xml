@@ -42,4 +42,38 @@
         <field>FailureMessage__c</field>
         <value xsi:type="xsd:string">Billing City is missing.</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The simplest formula: one field must not be empty. Passes when Billing City has a value.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the running user can read Billing City, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Open the account and enter the billing city.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Edit {!record.Name fallback="account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/edit</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">COMPLETENESS</value>
+    </values>
 </CustomMetadata>

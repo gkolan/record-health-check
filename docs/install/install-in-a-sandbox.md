@@ -75,12 +75,12 @@ is listed.
 
 The package includes permission sets so people receive only the access their work requires.
 
-If **Diagnostics Viewer** is absent from Setup, an administrator can create an org-owned Permission Set that enables **Record Health Check View Diagnostics** and assign it alongside the runner permission set.
+If **Diagnostics Viewer** is absent from Setup, assign **Record Health Check Admin** alongside the runner permission set. An org-owned Permission Set cannot grant diagnostics.
 
 | Permission set | Assign it to | What it allows |
 | --- | --- | --- |
 | **Record Health Check Card User** | People who use only the Lightning record-page card | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
-| **Record Health Check User** | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | The broader packaged runtime surface; do not assign it merely to display the card |
+| **Record Health Check User** | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | All packaged ways to run Record Health Check; do not assign it merely to display the card |
 | **Record Health Check Admin** | People who configure Check Sets or investigate unexpected results | User access plus package configuration and diagnostic access |
 | **Record Health Check Diagnostics Viewer** | An affected Card User or User who must reproduce an issue | Diagnostic visibility only; assign it temporarily alongside the existing runner Permission Set |
 
@@ -95,8 +95,8 @@ Repeat those steps with **Record Health Check Admin** only for Check administrat
 **Record Health Check Diagnostics Viewer** temporarily alongside Card User or User when that runner
 must reproduce an issue without receiving Admin access.
 The **Issue**, **Where**, and **Why** diagnosis requires both **Show Diagnostics** on the Check Set
-and the **Record Health Check View Diagnostics** custom permission. The card-user and standard-user
-permission sets do not grant that diagnostic permission.
+and a direct **Record Health Check Admin** or **Record Health Check Diagnostics Viewer** assignment.
+The card-user and standard-user permission sets do not authorize diagnostics.
 A person can be a Salesforce non-admin and still run Record Health Check; the **Record Health Check
 Card User** permission set provides card access, while the person's existing Salesforce access
 still controls which records and fields the checks can read.
@@ -133,7 +133,7 @@ saving so you do not update a page that the test user never receives.
 
 The packaged component is supported on Lightning record pages in Lightning Experience. Do not
 treat this guide as verification for Salesforce Classic, an App or Home page, Experience Cloud, or
-Salesforce mobile; validate any additional surface separately before promising support.
+Salesforce mobile; validate any other device or user interface separately before promising support.
 
 For a row-by-row explanation of the card, see [result statuses and card labels](../reference/results/statuses-and-labels.md).
 
@@ -155,7 +155,8 @@ Info. Unable to Check and System Error mean Record Health Check could not give a
 
 For one final confidence check, change a field used by an Example Check on a record you can safely edit.
 Save the record. A completed card should refresh and follow the saved Salesforce data. Select
-**Rerun** if the editing surface does not send a standard RefreshView notification. The
+**Rerun** if the custom component that edits the record does not send a standard RefreshView
+notification. The
 health check should not change the record itself.
 
 ## You are ready to continue when

@@ -1,32 +1,33 @@
-/** Generates bounded, unique application-level identifiers for lifecycle events. */
+/** Generates bounded, collision-resistant identifiers for lifecycle events. */
 public with sharing class RecordHealthCheckEventId {
   private static Integer sequence = 0;
 
   /**
-   * Generates a unique event ID while retaining a recognizable run prefix.
+   * Generates a collision-resistant event ID with a recognizable run prefix.
+   * The sequence guarantees separation within one transaction and the 128-bit
+   * random suffix separates concurrent transactions that share a run ID.
    *
    * @param runId Caller-owned correlation identifier.
-   * @param eventIdentity Check/result identity within the publication.
    * @return A unique identifier that fits EventId__c (Text 80).
    */
-  public static String newId(String runId, String eventIdentity) {
+  public static String newId(String runId) {
     sequence++;
     String safeRunId = runId == null ? 'null' : runId;
-    String nonce =
-      String.valueOf(DateTime.now().getTime()) +
-      '|' +
-      String.valueOf(Crypto.getRandomInteger()) +
-      '|' +
-      sequence;
-    String identity =
-      safeRunId +
-      '|' +
-      String.valueOf(eventIdentity) +
-      '|' +
-      nonce;
-    String digest = EncodingUtil.convertToHex(
-      Crypto.generateDigest('SHA-256', Blob.valueOf(identity))
-    );
-    return safeRunId.left(50) + '-' + digest.left(16);
+    // Hex of a random key rather than Math.abs of a random Integer: Apex
+    // Integers are two's complement, so Math.abs(Integer.MIN_VALUE) stays
+    // negative and would put a second '-' in the identifier. Preserve all 128
+    // random bits and shorten only the caller-owned prefix to fit Text(80).
+    String randomSuffix = EncodingUtil.convertToHex(Crypto.generateAesKey(128));
+    String sequencePart = String.valueOf(sequence);
+    Integer prefixLength =
+      80 -
+      sequencePart.length() -
+      randomSuffix.length() -
+      2;
+    return safeRunId.left(prefixLength) +
+      '-' +
+      sequencePart +
+      '-' +
+      randomSuffix;
   }
 }

@@ -76,7 +76,7 @@ Monitor the receiving automation separately.
 
 The installed **Record Health Check Card User**, **Record Health Check User**, and **Record Health
 Check Admin** Permission Sets include create and read access for this Platform Event. The person or
-process starting a health check still needs the permission set appropriate to its surface and access
+process starting a health check still needs the permission set appropriate to that entry point and access
 to the Salesforce records and fields used by the Checks.
 
 Also give the receiving Flow, Apex class, or integration only the access it needs for any custom

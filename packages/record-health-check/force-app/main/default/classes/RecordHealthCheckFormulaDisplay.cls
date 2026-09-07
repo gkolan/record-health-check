@@ -53,10 +53,14 @@ public with sharing class RecordHealthCheckFormulaDisplay {
     if (String.isBlank(check.DisplayFoundFormula__c)) {
       return;
     }
+    // A display formula shows whatever the author chose to show, usually text.
+    // FormulaResultType__c declares what the *pass condition* returns, and a
+    // pass condition returns a Boolean, so inheriting it here rejected the
+    // display value and left the chip blank with only a warning in the log.
     Object found = resolve(
       check.DisplayFoundFormula__c,
       record,
-      check.FormulaResultType__c,
+      RecordHealthCheckDisplayFormat.FORMAT_AUTO,
       evaluator,
       runContext
     );
@@ -69,6 +73,12 @@ public with sharing class RecordHealthCheckFormulaDisplay {
       record,
       check.DisplayFoundFormula__c
     );
+    // The formula's own result, before it is formatted for the card, so a
+    // caller comparing Found receives a value rather than punctuated text.
+    result.evaluationFound = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      found
+    );
+    result.operandsRecorded = true;
     result.actualValue = RecordHealthCheckComparisonDisplay.formatValue(
       displayFound,
       check.DisplayValueFormat__c,
@@ -95,7 +105,7 @@ public with sharing class RecordHealthCheckFormulaDisplay {
     Object expected = resolve(
       check.DisplayExpectedFormula__c,
       record,
-      check.FormulaResultType__c,
+      RecordHealthCheckDisplayFormat.FORMAT_AUTO,
       evaluator,
       runContext
     );
@@ -107,6 +117,9 @@ public with sharing class RecordHealthCheckFormulaDisplay {
       check.DisplayValueFormat__c,
       record,
       check.DisplayExpectedFormula__c
+    );
+    result.evaluationExpected = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      expected
     );
     result.expectedValue = RecordHealthCheckComparisonDisplay.formatValue(
       displayExpected,

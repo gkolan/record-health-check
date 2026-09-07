@@ -18,10 +18,7 @@ See CONTRIBUTING.md for the full workflow.
 
 <!-- How did you verify this? Paste the relevant command output. -->
 
-- [ ] `npm run prettier:verify`
-- [ ] `npm run lint`
-- [ ] `npm test`
-- [ ] `npm run test:unit:coverage` (coverage thresholds enforced)
+- [ ] `npm run ci:gates` passes locally (runs every gate CI runs — do not substitute a subset)
 - [ ] Apex: `sf project deploy validate` with `RunLocalTests` in a clean scratch org (if Apex changed)
 
 ## Checklist

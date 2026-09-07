@@ -14,6 +14,12 @@ public class RecordHealthCheckToken {
   public Integer startIndex;
   public Integer endIndex;
 
+  /**
+   * What the namespace and property turned out to address, resolved once by
+   * the registry so no consumer re-parses `propertyPath`.
+   */
+  public RecordHealthCheckTokenShape shape;
+
   public RecordHealthCheckToken(
     String expression,
     String namespaceName,

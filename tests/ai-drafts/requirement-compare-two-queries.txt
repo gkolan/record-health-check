@@ -1,0 +1,18 @@
+Draft a Check Set and Check for this requirement:
+
+- Base object: Account
+- Evaluation Type: COMPARE_TWO_QUERIES
+- Verified relationships: Opportunity.AccountId, Opportunity.IsClosed, OpportunityLineItem.OpportunityId
+- Pass when: the number of open Opportunities equals the number of open Opportunities that have at least one Opportunity Product
+- Fail when: the two counts differ
+- Skip when: the Account has no open Opportunities
+- If a query finds no records: not applicable for an aggregate comparison
+- Failure message (plain language): some open Opportunities have no products
+- Fix guidance / Action URL needed?: yes; the Account Opportunities related list
+- Business category and severity: Relationship coverage; Warning
+- Prerequisite Check that must pass first: none
+- Card behavior: run when the user clicks Run; show every row; summary below the Checks
+- Publish Platform Events?: no
+- Users who will run it: sales operations
+- Use administrator-created API names without an rhc__ prefix.
+- Fill like a published example: concrete MasterLabel, DeveloperName, CardTitle, CardSubtitle, CheckTitle, and CheckDescription; FailureMessage with {!record.Name fallback="this record"}; FixMessage and UnableToEvaluateMessage filled; for QUERY or COMPARE_TWO_QUERIES fill DisplayFoundText and DisplayExpectedText with rhcResult tokens; for FORMULA fill DisplayFoundFormula and DisplayExpectedFormula when they help the user.

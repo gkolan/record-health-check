@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Token - Inline Formats</label>
+    <protected>false</protected>
+    <values>
+        <field>Record_Health_Check_Set__c</field>
+        <value xsi:type="xsd:string">Account_Token_Surfaces</value>
+    </values>
+    <values>
+        <field>CheckTitle__c</field>
+        <value xsi:type="xsd:string">Inline Format Modifiers Render</value>
+    </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Fails on purpose so its failure message renders every inline format modifier no other fixture uses. IsDeleted is always false, so the Boolean form is deterministic.</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:nil="true" />
+    </values>
+    <values>
+        <field>EvaluationType__c</field>
+        <value xsi:type="xsd:string">FORMULA</value>
+    </values>
+    <values>
+        <field>PassConditionFormula__c</field>
+        <value xsi:type="xsd:string">ISBLANK(Id)</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">BOOLEAN</value>
+    </values>
+    <values>
+        <field>DisplayFoundText__c</field>
+        <value
+      xsi:type="xsd:string"
+    >{!record.NumberOfEmployees format="NUMBER" fallback="0"}</value>
+    </values>
+    <values>
+        <field>DisplayExpectedText__c</field>
+        <value xsi:type="xsd:string">One rendering per inline format</value>
+    </values>
+    <values>
+        <field>FailureSeverity__c</field>
+        <value xsi:type="xsd:string">WARNING</value>
+    </values>
+    <values>
+        <field>FailureMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Auto {!record.Name format="AUTO"}; text {!record.Name format="TEXT"}; raw {!record.Name format="RAW"}; number {!record.NumberOfEmployees format="NUMBER" fallback="0"}; percent {!record.NumberOfEmployees format="PERCENT" fallback="0"}; ratio percent {!record.NumberOfEmployees format="RATIO_PERCENT" fallback="0"}; boolean {!record.IsDeleted format="BOOLEAN"}.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Nothing to fix. Confirm each format rendered its own punctuation rather than the raw value.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >The inline formats could not be rendered for {!record.Name}.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>EvaluationOrder__c</field>
+        <value xsi:type="xsd:double">30</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

@@ -6,7 +6,10 @@
 /** Central authorization checks for privileged Record Health Check features. */
 public with sharing class RecordHealthCheckAccess {
   @TestVisible
-  private static Boolean runPermissionOverride;
+  // The second value confirms that users cannot see diagnostics when Salesforce
+  // cannot read Permission Set assignments during a test.
+  private static Boolean runPermissionOverride,
+    diagnosticsQueryExceptionForTest;
 
   private static Map<Id, Boolean> detailsByUser = new Map<Id, Boolean>();
 
@@ -61,16 +64,19 @@ public with sharing class RecordHealthCheckAccess {
    * and returns only a Boolean; it does not grant Setup access to the caller.
    */
   private static Boolean hasDirectDiagnosticsAssignment(Id userId) {
-    String typeName = Record_Health_Check__mdt.SObjectType.getDescribe()
+    String typeName = Record_Health_Check__mdt.SObjectType.getDescribe(
+        SObjectDescribeOptions.DEFERRED
+      )
       .getName();
-    String packageNamespace = typeName == 'Record_Health_Check__mdt'
-      ? null
-      : typeName.substringBefore('__');
+    String packageNamespace = packageNamespaceForTypeName(typeName);
     Set<String> names = new Set<String>{
       'Record_Health_Check_Admin',
       'Record_Health_Check_Diagnostics_Viewer'
     };
     try {
+      if (diagnosticsQueryExceptionForTest == true) {
+        throw new QueryException('Forced diagnostics authorization failure.');
+      }
       return ![
           SELECT Id
           FROM PermissionSetAssignment
@@ -89,5 +95,13 @@ public with sharing class RecordHealthCheckAccess {
       // Inability to verify an assignment must never disclose restricted detail.
       return false;
     }
+  }
+
+  /** Reads the namespace from either installed-package or unpackaged metadata. */
+  @TestVisible
+  private static String packageNamespaceForTypeName(String typeName) {
+    return typeName == 'Record_Health_Check__mdt'
+      ? null
+      : typeName.substringBefore('__');
   }
 }

@@ -499,7 +499,7 @@ This gate proves that an authenticated Salesforce user is allowed to run Record 
 2. Open **Record Health Check MCP Integration**.
 3. Confirm that the dedicated integration user appears under **Manage Assignments**.
 4. Confirm that the user's assigned permissions include the packaged run Custom Permission.
-5. Do not add the diagnostics Custom Permission.
+5. Do not assign **Record Health Check Admin** or **Record Health Check Diagnostics Viewer**.
 
 ### Prove the gate
 
@@ -546,7 +546,8 @@ Salesforce data security.
 1. Trigger a safe configuration or access failure in the test org.
 2. Confirm that the MCP response omits raw field values, queries, formulas, stack traces, and
    administrator diagnostics.
-3. Confirm that the integration user does not have **Record Health Check View Diagnostics**.
+3. Confirm that the integration user is not assigned **Record Health Check Admin** or **Record
+   Health Check Diagnostics Viewer**.
 4. Restore the test configuration.
 
 ## Step 6: Connect the approved MCP client

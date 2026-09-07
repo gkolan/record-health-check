@@ -43,8 +43,9 @@ Every Formula Check needs:
 | **Applies To** | All records, or an optional rule that produces `SKIPPED` when the Check does not apply |
 
 **Display: Found Formula** and **Display: Expected Formula** are optional. They explain the result
-on the card but do not decide whether the record passes. Leave **Formula Result Type** as **Auto**
-unless the example explains why another type is useful.
+on the card but do not decide whether the record passes, and they resolve their own return type, so
+**Formula Result Type** does not apply to them. Set that field for the formula the Check calculates
+with, and leave it on **Auto** if you are unsure.
 
 **Auto** lets Record Health Check infer Text, Number, Boolean, Date, or another supported value type
 from the formula result. Use an explicit type when the example requires predictable formatting.

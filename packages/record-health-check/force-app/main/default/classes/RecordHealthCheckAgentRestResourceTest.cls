@@ -373,7 +373,7 @@ private with sharing class RecordHealthCheckAgentRestResourceTest {
 
     assertError(output, 400, 'VALIDATION');
     Assert.isTrue(
-      output.correlationId.startsWith('agent-'),
+      Pattern.matches('^agent-[0-9]+-[0-9a-fA-F]{32}$', output.correlationId),
       'An unsafe correlation value must not be reflected.'
     );
   }

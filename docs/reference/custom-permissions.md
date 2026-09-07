@@ -1,7 +1,8 @@
 # Custom Permissions
 
-The 2.0.7.2 source packages exactly one Custom Permission: **Record Health Check Run**.
-Earlier package versions include a separate View Diagnostics Custom Permission.
+Record Health Check packages exactly one Custom Permission: **Record Health Check Run**.
+Package versions before 2.0.7.2 also included a separate View Diagnostics Custom Permission, which
+is no longer packaged.
 
 A Custom Permission is a Salesforce access flag, not a Permission Set. Administrators normally
 grant a Custom Permission by assigning a Permission Set that contains it. Record Health Check uses
@@ -28,10 +29,10 @@ Every supported Lightning, Flow, Apex, Agentforce, REST, and asynchronous entry 
 before an individual Check result exists.
 
 The Custom Permission is necessary but not sufficient by itself. The running user also needs access
-to the Apex entry-point class for the selected surface. The packaged runner Permission Sets combine
+to the Apex entry-point class for the selected way of running Record Health Check. The packaged runner Permission Sets combine
 the Custom Permission with the appropriate class access:
 
-| Packaged Permission Set | Contains Run | Authorized surface |
+| Packaged Permission Set | Contains Run | Authorized entry point |
 | --- | :---: | --- |
 | **Record Health Check Card User** | Yes | Lightning record-page card and App Builder picker |
 | **Record Health Check User** | Yes | Lightning, Flow, Apex, Agentforce, REST, Queueable, Batch, and Scheduled Apex |
@@ -44,9 +45,9 @@ The Run Custom Permission does not grant access to business records or fields. R
 continues to enforce the running user's object, field, record-sharing, restriction-rule, and
 scoping-rule access while evaluating a Check.
 
-## Record Health Check View Diagnostics
+## Diagnostics access
 
-In the 2.0.7.2 source this is no longer a Custom Permission. Explicit diagnostics access
+Diagnostics is no longer a Custom Permission. Explicit diagnostics access
 can reveal the Formula **Passes when** expression when the row uses the documented
 Formula comparison display; that specific display does not require **Show Diagnostics**. Broader
 troubleshooting detail appears only when both conditions are true:
@@ -76,7 +77,7 @@ To see which packaged Permission Set grants a Custom Permission:
 
 1. In Salesforce Setup, enter `Custom Permissions` in **Quick Find**, then select **Custom
    Permissions**.
-2. Use **All** and open **Record Health Check Run**. A fresh 2.0.7.2 installation must have
+2. Use **All** and open **Record Health Check Run**. A fresh installation must have
    no other RHC Custom Permission.
 3. Review the Permission Sets that enable the Custom Permission.
 4. Return to **Permission Sets**, open the appropriate installed Permission Set, and use **Manage

@@ -41,4 +41,10 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >false</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Query check selecting a field that does not exist on the queried object. It must fail closed with a system error rather than skip the field.</value>
+    </values>
 </CustomMetadata>

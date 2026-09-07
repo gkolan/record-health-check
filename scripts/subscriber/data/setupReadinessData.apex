@@ -12,7 +12,14 @@ Id demoOwner = [
 ]
 .Id;
 Account division = [
-  SELECT Id, Industry
+  SELECT
+    Id,
+    Industry,
+    BillingStreet,
+    BillingCity,
+    BillingState,
+    BillingPostalCode,
+    BillingCountry
   FROM Account
   WHERE AccountNumber = 'RHC-DEMO-ASTERON-INDUSTRIAL'
   LIMIT 1
@@ -59,20 +66,40 @@ List<Opportunity> oldDeals = [
       'RHC Demo Review Deal',
       'RHC Demo Closed Won',
       'RHC Demo Closed Lost',
-      'RHC Demo Low Pipeline'
+      'RHC Demo Low Pipeline',
+      'RHC Builder Ready Proposal',
+      'RHC Builder Ready Commit',
+      'RHC Builder Ready Won',
+      'RHC Builder Ready Lost',
+      'RHC Builder Review Proposal A',
+      'RHC Builder Review Proposal B',
+      'RHC Builder Review Won',
+      'RHC Builder Review Lost'
     )
 ];
 Set<Id> oldDealIds = new Map<Id, Opportunity>(oldDeals).keySet();
 delete [
   SELECT Id
   FROM Task
-  WHERE Subject IN ('RHC Demo Relationship Review', 'RHC Demo Deal Review')
+  WHERE
+    Subject IN (
+      'RHC Demo Relationship Review',
+      'RHC Demo Deal Review',
+      'RHC Builder Ready Review',
+      'RHC Builder Ready Follow-up'
+    )
 ];
 delete [SELECT Id FROM Event WHERE Subject = 'RHC Demo Readiness Event'];
 delete [
   SELECT Id
   FROM Case
-  WHERE Subject IN ('RHC Demo Routine Question', 'RHC Demo Urgent Issue')
+  WHERE
+    Subject IN (
+      'RHC Demo Routine Question',
+      'RHC Demo Urgent Issue',
+      'RHC Builder Review Escalation',
+      'RHC Builder Review Unassigned Case'
+    )
 ];
 delete [
   SELECT Id
@@ -300,6 +327,289 @@ insert new OpportunityLineItem(
   Quantity = 1,
   UnitPrice = 100000
 );
+
+// Separate Builder Guide records keep opposing business outcomes explicit.
+// One record cannot simultaneously have an open Case for handoff checks and
+// have no recent Cases for the recent-Case comparison.
+List<Account> builderAccounts = [
+  SELECT Id, AccountNumber
+  FROM Account
+  WHERE
+    AccountNumber IN (
+      'RHC-BUILDER-READY',
+      'RHC-BUILDER-REVIEW',
+      'RHC-BUILDER-EMPTY'
+    )
+];
+Map<String, Account> builderByNumber = new Map<String, Account>();
+for (Account accountRecord : builderAccounts)
+  builderByNumber.put(accountRecord.AccountNumber, accountRecord);
+for (String outcome : new List<String>{ 'READY', 'REVIEW', 'EMPTY' }) {
+  String accountNumber = 'RHC-BUILDER-' + outcome;
+  Account accountRecord = builderByNumber.get(accountNumber);
+  if (accountRecord == null) {
+    accountRecord = new Account(AccountNumber = accountNumber);
+    builderByNumber.put(accountNumber, accountRecord);
+  }
+  accountRecord.Name =
+    'RHC Builder ' +
+    (outcome == 'READY'
+      ? 'Ready'
+      : outcome == 'REVIEW' ? 'Needs Review' : 'Empty') +
+    ' Account';
+  accountRecord.Description = marker;
+  accountRecord.ParentId = outcome == 'EMPTY' ? null : division.Id;
+  accountRecord.Type = outcome == 'REVIEW' ? null : 'Customer';
+  accountRecord.Phone = outcome == 'REVIEW' ? null : '312-555-0199';
+  accountRecord.Website = null;
+  accountRecord.BillingStreet = outcome == 'READY'
+    ? division.BillingStreet
+    : null;
+  accountRecord.BillingCity = outcome == 'READY' ? division.BillingCity : null;
+  accountRecord.BillingState = outcome == 'READY'
+    ? division.BillingState
+    : null;
+  accountRecord.BillingPostalCode = outcome == 'READY'
+    ? division.BillingPostalCode
+    : null;
+  accountRecord.BillingCountry = outcome == 'READY'
+    ? division.BillingCountry
+    : null;
+  accountRecord.OwnerId = outcome == 'REVIEW'
+    ? demoOwner
+    : UserInfo.getUserId();
+}
+upsert builderByNumber.values();
+Account builderReady = builderByNumber.get('RHC-BUILDER-READY');
+Account builderReview = builderByNumber.get('RHC-BUILDER-REVIEW');
+
+Campaign builderCampaign;
+List<Campaign> builderCampaignMatches = [
+  SELECT Id
+  FROM Campaign
+  WHERE Name = 'RHC Builder Ready Campaign'
+  LIMIT 1
+];
+if (builderCampaignMatches.isEmpty()) {
+  builderCampaign = new Campaign(
+    Name = 'RHC Builder Ready Campaign',
+    IsActive = true
+  );
+  insert builderCampaign;
+} else {
+  builderCampaign = builderCampaignMatches[0];
+  builderCampaign.IsActive = true;
+  update builderCampaign;
+}
+
+Contact builderReadyBuyer = new Contact(
+  FirstName = 'Avery',
+  LastName = 'Builder Ready',
+  AccountId = builderReady.Id,
+  AssistantName = marker,
+  Email = 'avery.builder@rhc-demo.example',
+  Phone = '312-555-0201',
+  Description = marker
+);
+Contact builderReadyTechnicalBuyer = new Contact(
+  FirstName = 'Taylor',
+  LastName = 'Builder Ready',
+  AccountId = builderReady.Id,
+  AssistantName = marker,
+  Email = 'taylor.builder@rhc-demo.example',
+  Phone = '312-555-0202',
+  Description = marker
+);
+Contact builderReviewRoleContact = new Contact(
+  FirstName = 'Robin',
+  LastName = 'Builder Review',
+  AccountId = builderReview.Id,
+  AssistantName = marker,
+  Description = marker
+);
+Database.insert(
+  new List<Contact>{
+    builderReadyBuyer,
+    builderReadyTechnicalBuyer,
+    builderReviewRoleContact
+  },
+  demoDml
+);
+
+List<Opportunity> builderDeals = new List<Opportunity>{
+  new Opportunity(
+    Name = 'RHC Builder Ready Proposal',
+    AccountId = builderReady.Id,
+    StageName = 'Proposal/Price Quote',
+    Amount = 100000,
+    CloseDate = Date.today().addDays(30),
+    NextStep = 'Confirm approved terms.',
+    CampaignId = builderCampaign.Id
+  ),
+  new Opportunity(
+    Name = 'RHC Builder Ready Commit',
+    AccountId = builderReady.Id,
+    StageName = 'Negotiation/Review',
+    Amount = 50000,
+    CloseDate = Date.today().addDays(45),
+    NextStep = 'Complete final review.',
+    CampaignId = builderCampaign.Id
+  ),
+  new Opportunity(
+    Name = 'RHC Builder Ready Won',
+    AccountId = builderReady.Id,
+    StageName = 'Closed Won',
+    Amount = 50000,
+    CloseDate = Date.today().addDays(-20)
+  ),
+  new Opportunity(
+    Name = 'RHC Builder Ready Lost',
+    AccountId = builderReady.Id,
+    StageName = 'Closed Lost',
+    Amount = 25000,
+    CloseDate = Date.today().addDays(-30)
+  ),
+  new Opportunity(
+    Name = 'RHC Builder Review Proposal A',
+    AccountId = builderReview.Id,
+    OwnerId = demoOwner,
+    StageName = 'Proposal/Price Quote',
+    Amount = 100000,
+    CloseDate = Date.today().addDays(30)
+  ),
+  new Opportunity(
+    Name = 'RHC Builder Review Proposal B',
+    AccountId = builderReview.Id,
+    OwnerId = demoOwner,
+    StageName = 'Proposal/Price Quote',
+    Amount = 10000,
+    CloseDate = Date.today().addDays(365)
+  ),
+  new Opportunity(
+    Name = 'RHC Builder Review Won',
+    AccountId = builderReview.Id,
+    OwnerId = demoOwner,
+    StageName = 'Closed Won',
+    CloseDate = Date.today().addDays(-20)
+  ),
+  new Opportunity(
+    Name = 'RHC Builder Review Lost',
+    AccountId = builderReview.Id,
+    OwnerId = demoOwner,
+    StageName = 'Closed Lost',
+    Amount = 500000,
+    CloseDate = Date.today().addDays(-30)
+  )
+};
+Database.insert(builderDeals, demoDml);
+Database.insert(
+  new List<OpportunityContactRole>{
+    new OpportunityContactRole(
+      OpportunityId = builderDeals[0].Id,
+      ContactId = builderReadyBuyer.Id,
+      Role = 'Decision Maker',
+      IsPrimary = true
+    ),
+    new OpportunityContactRole(
+      OpportunityId = builderDeals[0].Id,
+      ContactId = builderReadyTechnicalBuyer.Id,
+      Role = 'Technical Buyer'
+    ),
+    new OpportunityContactRole(
+      OpportunityId = builderDeals[1].Id,
+      ContactId = builderReadyBuyer.Id,
+      Role = 'Decision Maker',
+      IsPrimary = true
+    ),
+    new OpportunityContactRole(
+      OpportunityId = builderDeals[2].Id,
+      ContactId = builderReadyBuyer.Id,
+      Role = 'Decision Maker',
+      IsPrimary = true
+    ),
+    new OpportunityContactRole(
+      OpportunityId = builderDeals[4].Id,
+      ContactId = builderReviewRoleContact.Id,
+      Role = 'Business User'
+    )
+  },
+  demoDml
+);
+for (Integer dealIndex : new List<Integer>{ 0, 1, 4 })
+  builderDeals[dealIndex].Pricebook2Id = standard.Id;
+update new List<Opportunity>{
+  builderDeals[0],
+  builderDeals[1],
+  builderDeals[4]
+};
+Database.insert(
+  new List<OpportunityLineItem>{
+    new OpportunityLineItem(
+      OpportunityId = builderDeals[0].Id,
+      PricebookEntryId = entry.Id,
+      Quantity = 1,
+      UnitPrice = 100000
+    ),
+    new OpportunityLineItem(
+      OpportunityId = builderDeals[1].Id,
+      PricebookEntryId = entry.Id,
+      Quantity = 1,
+      UnitPrice = 50000
+    ),
+    new OpportunityLineItem(
+      OpportunityId = builderDeals[4].Id,
+      PricebookEntryId = entry.Id,
+      Quantity = 1,
+      UnitPrice = 100000
+    )
+  },
+  demoDml
+);
+Database.insert(
+  new List<Case>{
+    new Case(
+      AccountId = builderReview.Id,
+      ContactId = builderReviewRoleContact.Id,
+      Subject = 'RHC Builder Review Escalation',
+      Status = 'New',
+      Priority = 'High',
+      Origin = 'Phone',
+      IsEscalated = true,
+      Description = 'The account and service teams have an agreed owner and next step.'
+    ),
+    new Case(
+      AccountId = builderReview.Id,
+      Subject = 'RHC Builder Review Unassigned Case',
+      Status = 'New',
+      Priority = 'High',
+      Origin = 'Web'
+    )
+  },
+  demoDml
+);
+Database.insert(
+  new List<Task>{
+    new Task(
+      WhatId = builderReady.Id,
+      WhoId = builderReadyBuyer.Id,
+      Subject = 'RHC Builder Ready Review',
+      Status = 'Completed',
+      Priority = 'Normal',
+      ActivityDate = Date.today().addDays(-5),
+      Description = marker
+    ),
+    new Task(
+      WhatId = builderReady.Id,
+      WhoId = builderReadyTechnicalBuyer.Id,
+      Subject = 'RHC Builder Ready Follow-up',
+      Status = 'Completed',
+      Priority = 'Normal',
+      ActivityDate = Date.today().addDays(-4),
+      Description = marker
+    )
+  },
+  demoDml
+);
 System.debug(
-  'RHC_READINESS_SEEDED accounts=2 contacts=4 opportunities=5 roles=3 tasks=2 cases=2 products=1'
+  'RHC_READINESS_SEEDED readinessAccounts=2 builderAccounts=3 contacts=7 opportunities=13 roles=8 tasks=4 cases=4 products=1'
 );

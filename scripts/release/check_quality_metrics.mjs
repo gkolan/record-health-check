@@ -11,6 +11,12 @@ const root = resolve(import.meta.dirname, "../..");
 const metrics = JSON.parse(
   readFileSync(resolve(root, "config/quality-metrics.json"), "utf8")
 );
+const releases = JSON.parse(
+  readFileSync(resolve(root, "config/package-releases.json"), "utf8")
+);
+const packageJson = JSON.parse(
+  readFileSync(resolve(root, "package.json"), "utf8")
+);
 const readme = readFileSync(resolve(root, "README.md"), "utf8");
 const argumentsList = process.argv.slice(2);
 const apexOrgIndex = argumentsList.indexOf("--apex-org");
@@ -25,19 +31,63 @@ function fixed(value) {
   return Number(value).toFixed(2);
 }
 
-const apexPercent = fixed(metrics.apex.coveragePercent);
-const namespacedApexPercent = fixed(metrics.apex.namespacedCoveragePercent);
+const apexPercent = fixed(metrics.apex.sourceCoveragePercent);
+const packagePercent = fixed(metrics.apex.packageCoveragePercent);
 const lwcLines = fixed(metrics.lwc.linesPercent);
+const sourceVersion = metrics.apex.packageVersion
+  .split(".")
+  .slice(0, 3)
+  .join(".");
 for (const text of [
-  `Namespaced_Apex_coverage-${namespacedApexPercent}%25-brightgreen`,
+  `Apex_coverage-${apexPercent}%25-brightgreen`,
   `LWC_lines-${lwcLines}%25-brightgreen`,
-  `${namespacedApexPercent}% namespaced package coverage`,
-  `${apexPercent}% subscriber-style coverage`,
+  `${apexPercent}% coverage from the complete namespaced ${sourceVersion} source test run`,
+  `Salesforce-validated ${metrics.apex.packageVersion} package coverage: ${Number(packagePercent)}%`,
   `${lwcLines}% line coverage`
 ]) {
   if (!readme.includes(text)) {
     fail(`README quality metric is missing or stale: ${text}`);
   }
+}
+
+if (sourceVersion !== packageJson.version) {
+  fail(
+    `Apex statistics describe ${sourceVersion}; package.json is ${packageJson.version}.`
+  );
+}
+if (metrics.apex.packageVersion !== releases.stable.version) {
+  fail(
+    `Apex package statistics name ${metrics.apex.packageVersion}; stable is ${releases.stable.version}.`
+  );
+}
+if (
+  metrics.apex.subscriberPackageVersionId !==
+  releases.stable.subscriberPackageVersionId
+) {
+  fail(
+    "Apex package statistics do not identify the current stable Salesforce package version."
+  );
+}
+if (metrics.apex.evidenceOrgShape !== "namespaced") {
+  fail("Published Apex coverage must come from the namespaced release source.");
+}
+if (
+  metrics.apex.salesforceTestCount !==
+  metrics.apex.testMethodCount + metrics.apex.testSetupMethodCount
+) {
+  fail(
+    "Salesforce Apex test count must equal test methods plus test setup methods."
+  );
+}
+const calculatedApexPercent =
+  (metrics.apex.coveredLines * 100) / metrics.apex.executableLines;
+if (fixed(calculatedApexPercent) !== apexPercent) {
+  fail(
+    `Recorded Apex coverage ${apexPercent}% does not match ${metrics.apex.coveredLines}/${metrics.apex.executableLines}.`
+  );
+}
+if (!/^707[A-Za-z0-9]{12,15}$/.test(metrics.apex.testRunId)) {
+  fail("Apex statistics must identify the exact Salesforce test run.");
 }
 
 const coverageFile = resolve(
@@ -107,18 +157,19 @@ if (apexOrg) {
     executable += record.NumLinesCovered + record.NumLinesUncovered;
   }
   const current = executable === 0 ? 0 : (covered * 100) / executable;
-  // The recorded value is the conservative cross-shape floor. A namespaced org can
-  // legitimately cover a few namespace-only branches that a subscriber-style org
-  // cannot, so equal-or-better evidence must pass while any regression still fails.
-  if (Number(fixed(current)) < Number(apexPercent)) {
+  if (
+    Number(fixed(current)) !== Number(apexPercent) ||
+    covered !== metrics.apex.coveredLines ||
+    executable !== metrics.apex.executableLines
+  ) {
     fail(
-      `Apex coverage regressed in ${apexOrg}: recorded floor ${apexPercent}%, current ${fixed(current)}% (${covered}/${executable}). Update tests or publish the newly reviewed cross-shape floor.`
+      `Apex coverage in ${apexOrg} is ${fixed(current)}% (${covered}/${executable}); recorded 2.0.8 evidence is ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}). Rerun the complete inventory and publish one matching result.`
     );
   }
 }
 
 if (!process.exitCode) {
   console.log(
-    `Quality metrics match the published Apex results: ${namespacedApexPercent}% namespaced and ${apexPercent}% subscriber-style; LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
+    `Quality metrics match 2.0.8 evidence: Apex ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}), promoted package ${Number(packagePercent)}%, and LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
   );
 }

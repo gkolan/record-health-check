@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Account Formula Coverage</label>
+    <label>Coverage: Formula Check Patterns</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,13 +16,13 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Account Formula Check Coverage</value>
+        <value xsi:type="xsd:string">Coverage: Formula Check Patterns</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>
         <value
       xsi:type="xsd:string"
-    >Covers every Formula check pattern: single field, two fields AND, two fields OR, two fields match, number comparison, parent field traversal, and conditional applicability.</value>
+    >Every shape a Formula Check takes: one field, two fields joined by AND or OR, two fields compared to each other, a numeric threshold, a parent field, and a Check that applies only to some record types. Read this card to find the pattern nearest your rule.</value>
     </values>
     <values>
         <field>CardRunMode__c</field>

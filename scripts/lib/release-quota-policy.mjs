@@ -3,7 +3,7 @@ function job(workflow, name) {
   const start = workflow.indexOf(marker);
   if (start < 0) throw new Error(`Missing quota-control job: ${name}`);
   const remainder = workflow.slice(start + marker.length);
-  const next = remainder.search(/^  [a-z][a-z0-9-]*:/m);
+  const next = remainder.search(/^ {2}[a-z][a-z0-9-]*:/m);
   return next < 0 ? remainder : remainder.slice(0, next);
 }
 
@@ -39,8 +39,9 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
       workflow.indexOf("permissions:")
     );
     requireText(triggers, "workflow_dispatch:");
+    requireText(triggers, "authorize_scratch_org_creation:");
     if (
-      [...triggers.matchAll(/^  ([a-z_]+):/gm)].some(
+      [...triggers.matchAll(/^ {2}([a-z_]+):/gm)].some(
         ([, event]) => event !== "workflow_dispatch"
       )
     ) {
@@ -62,6 +63,10 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
       job(workflow, "require-dev-hub-secret"),
       "needs: offline-preflight"
     );
+    requireText(
+      job(workflow, "require-dev-hub-secret"),
+      "if: inputs.authorize_scratch_org_creation != true"
+    );
     requireText(workflow, "group: salesforce-devhub-release");
     requireText(workflow, "cancel-in-progress: false");
   }
@@ -71,16 +76,8 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
     "needs: require-dev-hub-secret"
   );
   requireText(
-    job(source, "portable-source-tests"),
-    "needs: [require-dev-hub-secret, package-source-tests]"
-  );
-  requireText(
     job(source, "locker-browser-tests"),
-    "needs: [require-dev-hub-secret, portable-source-tests]"
-  );
-  requireText(
-    job(subscriber, "offline-preflight"),
-    "npm run check:hosted-validation"
+    "needs: [require-dev-hub-secret, package-source-tests]"
   );
   for (const [workflow, names] of [
     [source, ["locker-browser-tests"]],

@@ -48,4 +48,38 @@
       xsi:type="xsd:string"
     >{!record.Name} has no completed tasks or logged events in the last 90 days.</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >An Apex check, for logic a formula or query cannot express. Passes when the class reports recent activity on the account.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the AccountHasRecentActivityCheck class is deployed and the running user can access it, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Log the contact you have had, or make contact. Silence on a live account is the finding, not the record keeping.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review the activity timeline on {!record.Name fallback="this account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/view</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">TIMELINESS</value>
+    </values>
 </CustomMetadata>

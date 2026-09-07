@@ -119,8 +119,11 @@ function classifyOutcome(status, severity) {
     case "PASS":
       return "pass";
     case "FAIL":
-      if (severity === "Warning") return "warning";
-      if (severity === "Info") return "info";
+      // Severity arrives in the vocabulary Setup stores, which is the same
+      // vocabulary the docs and the Check Result event use. The card's own
+      // words for these are a presentation choice and stay here.
+      if (severity === "WARNING") return "warning";
+      if (severity === "INFO") return "info";
       return "error";
     case "SKIPPED":
       return "skipped";
@@ -144,6 +147,29 @@ function normalizeComparisonMode(mode) {
 }
 
 /** Add template-ready display flags for one check row. */
+const COMPARISON_DISPLAY_MODES = [
+  "AUTOMATIC",
+  "FOUND_ONLY",
+  "EXPECTED_ONLY",
+  "HIDDEN"
+];
+
+/**
+ * Resolves a Check's configured comparison visibility. Blank, missing, and
+ * unrecognized values resolve to AUTOMATIC so metadata authored before the
+ * setting existed keeps today's card behavior.
+ *
+ * @param {string} configuredMode Value supplied by the definition response.
+ * @returns {string} One supported comparison display mode.
+ */
+export function normalizeComparisonDisplayMode(configuredMode) {
+  if (typeof configuredMode !== "string") return "AUTOMATIC";
+  const normalized = configuredMode.trim().toUpperCase();
+  return COMPARISON_DISPLAY_MODES.includes(normalized)
+    ? normalized
+    : "AUTOMATIC";
+}
+
 export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
   const uiState = c.uiState;
   const result = c.result || {};
@@ -191,10 +217,24 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
 
   const mode = normalizeComparisonMode(comparisonMode);
   const rowExpanded = isExpanded === true;
+  // Per-Check comparison visibility (ComparisonDisplayMode__c). This filters
+  // which evidence is eligible to render and nothing else: the evaluation
+  // result, merge data, diagnostics, and events keep both values. Suppressing a
+  // side here also removes its inline chip, expanded row, caret, divider, and
+  // accessible-label phrase, because all of those derive from these two values.
+  const displayMode = normalizeComparisonDisplayMode(c.comparisonDisplayMode);
+  const foundAllowed =
+    displayMode === "AUTOMATIC" || displayMode === "FOUND_ONLY";
+  const expectedAllowed =
+    displayMode === "AUTOMATIC" || displayMode === "EXPECTED_ONLY";
   const actualValue =
-    isResolved && result.actualValue != null ? result.actualValue : null;
+    isResolved && foundAllowed && result.actualValue != null
+      ? result.actualValue
+      : null;
   const expectedValue =
-    isResolved && result.expectedValue != null ? result.expectedValue : null;
+    isResolved && expectedAllowed && result.expectedValue != null
+      ? result.expectedValue
+      : null;
   const hasValues = actualValue != null || expectedValue != null;
 
   // The Expected side normally reads "Expected"; a Formula check echoing its

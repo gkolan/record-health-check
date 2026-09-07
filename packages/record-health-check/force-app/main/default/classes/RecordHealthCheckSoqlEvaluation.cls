@@ -51,6 +51,11 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       String soql = evaluator.bindTokens(check.SourceQuery__c, record);
       List<SObject> rows = evaluator.runQueryForEvaluation(soql, maxRows);
       primaryRows = rows;
+      // Attached here rather than at the end, because the branches below can
+      // throw on cardinality after the rows are already in hand. An unable
+      // message that says how many rows were found, or names the first, has to
+      // still be able to read them.
+      result.querySourceRows = rows;
 
       if (check.QueryResultHandling__c == 'ONE_RESULT') {
         if (rows.isEmpty() && evaluator.isScopeZeroCountForEvaluation(soql)) {
@@ -109,6 +114,7 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
           check.ComparisonQueryField__c
         );
         comparisonRows = compRows;
+        result.queryComparisonRows = compRows;
         comparisonRow = compRows.isEmpty() ? null : compRows[0];
       } else if (check.ExpectedValueSource__c == 'FIXED_VALUE') {
         comparisonValue = check.ExpectedFixedValue__c;
@@ -136,6 +142,7 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
           maxRows
         );
         comparisonRows = compRows;
+        result.queryComparisonRows = compRows;
         if (
           compRows.isEmpty() &&
           evaluator.isScopeZeroCountForEvaluation(compSoql)
@@ -203,20 +210,12 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       // handling (EmptyValueHandling__c) and resolves to SKIPPED. Routing the
       // second through NoRowsResult__c makes "null value + no-rows = Fail"
       // wrongly FAIL, so the two are separated below.
-      Boolean zeroRows;
-      if (isListOperator) {
-        // List operator's comparison side is a query; the primary is a single-value.
-        // Indeterminate is zero-rows only when that query returned no rows.
-        zeroRows = (comparisonList == null || comparisonList.isEmpty());
-      } else if (primaryList != null) {
-        // Multi-row primary: empty list = zero rows; a non-empty list that still
-        // resolved to null means every row's value was null-skipped.
-        zeroRows = primaryList.isEmpty();
-      } else {
-        // OneResult / single single-value: an empty PRIMARY result was already routed
-        // above, so the only zero-rows cause left is an empty comparison query.
-        zeroRows = comparisonQueryWasEmpty;
-      }
+      Boolean zeroRows = isZeroRows(
+        isListOperator,
+        comparisonList,
+        primaryList,
+        comparisonQueryWasEmpty
+      );
       return zeroRows
         ? evaluator.buildEmptyOrNullResult(check, result, primaryList)
         : evaluator.buildNullIndeterminateResult(result);
@@ -420,8 +419,37 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       );
     }
 
-    applyOutcome(result, check, passed);
+    applyOutcome(result, check, passed, primaryValue, comparisonValue);
     return result;
+  }
+
+  /**
+   * Tells a genuine zero-rows outcome apart from a present-but-null value.
+   *
+   * The two must not be treated alike: zero rows is governed by
+   * NoRowsResult__c, while a null value is governed by EmptyValueHandling__c
+   * and resolves to SKIPPED. Routing the second through NoRowsResult__c makes
+   * "null value plus no rows" wrongly FAIL.
+   */
+  private static Boolean isZeroRows(
+    Boolean isListOperator,
+    List<Object> comparisonList,
+    List<Object> primaryList,
+    Boolean comparisonQueryWasEmpty
+  ) {
+    if (isListOperator) {
+      // The list operator's comparison side is the query; the primary is a
+      // single value, so this is zero rows only when that query returned none.
+      return comparisonList == null || comparisonList.isEmpty();
+    }
+    if (primaryList != null) {
+      // Multi-row primary: an empty list is zero rows, while a non-empty list
+      // that still resolved to null means every row's value was null-skipped.
+      return primaryList.isEmpty();
+    }
+    // One Result or a single value: an empty primary was routed earlier, so the
+    // only zero-rows cause left is an empty comparison query.
+    return comparisonQueryWasEmpty;
   }
 
   private static void requireCompatibleCurrencyUnits(
@@ -445,8 +473,21 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
   private static void applyOutcome(
     RecordHealthCheckInternalResult result,
     Record_Health_Check__mdt check,
-    Boolean passed
+    Boolean passed,
+    Object primaryValue,
+    Object comparisonValue
   ) {
+    // `actualValue` and `expectedValue` hold sentences by now, because the card
+    // reads "to equal Manufacturing" beside a value. A caller comparing Found
+    // or Expected needs the operand instead, and the operator already travels
+    // on its own field, so it never belongs inside the value.
+    result.evaluationFound = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      primaryValue
+    );
+    result.evaluationExpected = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      comparisonValue
+    );
+    result.operandsRecorded = true;
     if (passed) {
       result.status = 'PASS';
       return;

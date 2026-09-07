@@ -6,13 +6,8 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.6-2`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.8-1`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
-
-**Distribution notice (September 2, 2026):** the public install redirects currently target 2.0.4.2,
-not the latest promoted artifact. The 2.0.6 line has a reported RefreshView component-loading
-regression. The corrective 2.0.7 candidate is not released; see
-[Choose a package version](./docs/install/choose-a-package-version.md) before installing or upgrading.
 
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
 > included in Run All Tests, or source-deployed into a customized org and subscriber validation
@@ -21,8 +16,8 @@ regression. The corrective 2.0.7 candidate is not released; see
 > version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current stable release: `Record Health Check@2.0.6-2` (`04tak000000eM53AAE`).
-- Previous stable release: `Record Health Check@2.0.5-1` (`04tak000000eIO1AAM`).
+- Current stable release: `Record Health Check@2.0.8-1` (`04tak000000g1R7AAI`).
+- Previous stable release: `Record Health Check@2.0.6-2` (`04tak000000eM53AAE`).
 
 ### Evaluation and integration
 
@@ -74,13 +69,22 @@ For installation and verification, start with
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
-## Unreleased: 2.0.7
+## Version 2.0.8
 
-This is a candidate source description, not a release-readiness claim. Hosted source validation,
-exact-package clean/upgrade stages, and representative-sandbox acceptance must pass before promotion.
+Released package version: **2.0.8.1** (`04tak000000g1R7AAI`). Salesforce reports 99% package
+coverage and no skipped validation. Use the [2.0.8.1 sandbox install
+link](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000g1R7AAI) or the
+[2.0.8.1 production install
+link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000g1R7AAI).
 
 ### Fixed
 
+- Query-row merge tokens and Compare Two Queries display values using `format="AUTO"` now derive
+  each side's Currency or other display format from its own selected field. Currency fields reached
+  through a relationship use the related record's currency instead of the outer query row's
+  currency, including list comparisons.
+- The Salesforce browser gate now creates a fresh single-use frontdoor URL for the card-contract
+  spec instead of reusing the URL already consumed by the release-matrix browser process.
 - Record Health Check now registers its save-driven RefreshView handler with the protocol required
   by either Lightning Web Security or Lightning Locker. A RefreshView registration failure no
   longer prevents the component from loading.
@@ -90,20 +94,79 @@ exact-package clean/upgrade stages, and representative-sandbox acceptance must p
 
 ### Changed
 
+- **Upgrade impact for automations.** A Check Result now reports the severity Setup stores
+  (`CRITICAL`, `WARNING`, or `INFO`) instead of the card's own words `Error`, `Warning`, and
+  `Info`. Found and Expected now carry the values that were compared instead of the card's
+  sentence, so Expected is `Manufacturing` rather than `to equal Manufacturing`, and the
+  comparison operator travels on its own field. This is the behavior the reference pages already
+  described, and matching on it no longer requires knowing the card's wording. A Flow, Apex
+  subscriber, or Check Result event handler that matches the old strings will stop matching after
+  the upgrade without reporting an error. Update those comparisons before installing.
 - Diagnostics access is separated from ordinary Check execution through the Diagnostics Viewer
   entitlement. Existing customer configuration and least-privilege access require upgrade validation.
 - Example Check definitions, demo setup, and administrator documentation are aligned with the
   current configuration contract.
+- The AI draft prompt and Setup field help teach Record Health Check merge tokens with correct and
+  wrong examples (`{!record.Id}` in SOQL, not Flow or Apex bind forms), and Source Query Field help
+  matches the bare `COUNT()` versus aliased-aggregate rule. Message and display-field help also name
+  `{!rhcResult.foundValue}` / `{!rhcResult.expectedValue}` so authors do not confuse merge tokens with
+  Flow `evaluation.found` or card display wording.
+- Administrator AI drafting lives in one folder, [Draft configuration with AI](./docs/build-checks/draft-with-ai/),
+  with separate copy-paste prompts for Formula, Query, Compare two queries, and Apex. Those prompts
+  include exact Custom Metadata API names, Setup-label-to-stored-value maps, and Salesforce formula
+  syntax rules so low-cost assistants do not invent field names or use `&&` in Pass Condition.
+  Each prompt is self-contained and now offers every Check and Check Set field, so an assistant that
+  cannot follow links can still propose applicability, prerequisites, categories, severity, display
+  formatting, and card behavior instead of a bare pass/fail rule. `npm run check:ai-prompts` reads
+  the prompts against the Custom Metadata and fails on an invented field, a Setup label stored where
+  a stored value belongs, a capability no prompt offers, or a prompt that drifted from the shared
+  rules. The same gate re-validates recorded low-cost-model answers for all four Evaluation Types in
+  `tests/ai-drafts`, and refuses evidence recorded from an older version of a prompt. A reviewed
+  prompt change deliberately re-records that evidence with `npm run check:ai-model-drafts`; ordinary
+  release preflight checks the saved examples and does not require a third-party model credential.
+- Merge-token guidance now distinguishes transient raw query rows from values intentionally copied
+  into rendered messages, labels, and URLs, including their browser, API, and diagnostics exposure.
+- Query-row merge tokens use zero-based collection indexes: `sourceRows[0]` and
+  `comparisonRows[0]` address the first returned row, matching Apex and JavaScript conventions.
+- Merge tokens in a query Check are checked against what the query actually addresses. An
+  unselected field, a missing row, or an unstable row order is reported by the metadata validator,
+  and a Check that still has one returns `UNABLE_TO_EVALUATE` naming it instead of rendering a
+  blank value.
+- The Agentforce actions and the REST tool resource share one description of a valid request. A
+  generated correlation identifier now combines its millisecond timestamp with a full 128-bit
+  random suffix; previously two requests in the same millisecond received the same identifier.
+- Allowed configuration values are read from the Custom Metadata picklists that store them rather
+  than restated in Apex, so a new picklist value cannot be accepted by one layer and refused by
+  another.
+- A record-page tooltip waits before opening using the browser's own transition timing, which
+  honors the reader's reduced-motion setting without a script.
+- Setup list views show more of what an administrator sorts by: Check Sets list When Checks Run
+  beside Active, and the All Checks list shows Evaluation Order the example lists already showed.
+- The record-page loading spinner is the same grey as the per-Check spinner it hands over to,
+  instead of starting blue and changing colour mid-load.
+- The release browser gate now checks the record-page card on every run: the card body must stay
+  painted through load, run, and completion, and Rerun must reread Check Set configuration.
+- The record-page card always shows its body, not just the grey header. A Check Set with no
+  active checks, a card with no record, and a card with no Check Set selected each explain
+  themselves in the body instead of rendering an empty strip, and the loading spinner now covers
+  the Check Set shell request as well as the definition request.
+- Run and Rerun on the record page read the Check Set configuration again before evaluating.
+  Activating a Check, deactivating one, or changing a threshold, label, or display setting now
+  takes effect on the next run instead of waiting for the reader to reload the page, which
+  matters most in a console where a record tab can stay open for days. The card keeps its
+  previous results and the Rerun label on screen while it rereads, and reports an error rather
+  than evaluating against configuration that has already changed.
 
 ### Release safeguards
 
 - All subscriber Apex tests, including actual Flow interviews, run through an exact inventory.
   Browser evidence is isolated per invocation and rejects skips, incomplete results, and flaky retries.
-- Source and installed on-load fixtures prove all four Check types. Clean installation and upgrades
-  from both 2.0.6.2 and 2.0.4.2 are required under LWS and Locker.
-- Promotion requires successful named hosted jobs, current retained artifacts, and recorded acceptance
-  of the affected CPQ page and representative customer configuration. Dependency, toolchain, coverage,
-  and documented release-owner controls remain blocking; no runtime pass is implied by these changes.
+- Source fixtures cover all four Check types. When a release owner authorizes scratch-org testing,
+  the same scenarios can also verify clean installation, reviewed upgrades, Lightning Web Security,
+  and Lightning Locker.
+- Package creation and promotion require the local source gates, exact commit and package provenance,
+  Salesforce package validation, and release-owner approval. Scratch-org testing is additional
+  evidence and never starts without explicit authorization for that run.
 
 ## Version 2.0.6
 

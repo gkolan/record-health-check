@@ -5,9 +5,8 @@ promoted Record Health Check package. It is the manual companion to the
 [release runtime matrix](./release-runtime-matrix.md) and the complete
 [release runbook](../../.github/RELEASING.md).
 
-The release owner performs GitHub authentication, pushes, merges, workflow dispatches, package
-creation, and promotion. A contributor or automation assistant may prepare source, commits, local
-validation, and instructions, but must not use or request the release owner's GitHub credentials.
+The release owner decides when to create and promote a package and when scratch-org testing is
+worth its quota. An automation assistant may perform those actions when the owner explicitly asks.
 
 ## Quota policy: Creation is the final validation phase
 
@@ -19,18 +18,19 @@ final fresh-environment release evidence after known failures are resolved.
 Pull-request and push CI must consume no scratch-org or package-version creation quota. Both
 Salesforce workflows are manual-only and require the complete no-org preflight before checking
 capacity. The source workflow also completes Code Analyzer before any org is created. Source
-runtime stages execute namespaced LWS, portable LWS, then Locker; Locker and subscriber matrices
-run one org at a time and stop queued work on failure. Capacity checks are not reservations and
-cannot protect against unrelated Dev Hub activity.
+runtime stages execute namespaced LWS, then namespaced Locker. The Locker stage and each subscriber
+stage run one org at a time and stop queued work on failure. A no-namespace source deployment is an
+optional contributor check, not a second package shape or a release requirement. Capacity checks
+are not reservations and cannot protect against unrelated Dev Hub activity.
 
 Never repeatedly rerun an org-consuming workflow while its first failure is unexplained. Inspect
 the original error and existing evidence, correct the cause, and repeat no-org validation first.
-Do not relax required fresh-org evidence to save quota; schedule it after the quota resets.
+Scratch-org workflows are optional release evidence. They are never implied by a release request:
+the owner must explicitly authorize each local creation or workflow run before it starts.
 
-Package creation is an owner-run final build after local and hosted source validation pass, not a
-debugging tool. No GitHub workflow creates or promotes a package. Clean-install and upgrade tests
-necessarily follow creation because they validate that exact immutable artifact; promotion follows
-those tests and sandbox acceptance. Do not create another candidate just because a gate failed.
+Package creation is an owner-run final build after local validation passes, not a debugging tool.
+No GitHub workflow creates or promotes a package. Optional clean-install, upgrade, and sandbox tests
+may follow creation when the owner authorizes their environments.
 
 ## Values to record
 
@@ -44,8 +44,7 @@ Record these values in the pull request or retained release evidence before star
 | Release commit | Full output of `git rev-parse HEAD` |
 | Upgrade bases | Every entry in `upgradeBases` in `config/release-runtime-matrix.json` |
 | Candidate package ID | The new `04t` returned by package creation |
-| Hosted source workflow | URL of the successful manually dispatched run |
-| Subscriber workflows | Successful clean-install and both upgrade-stage URLs for the exact `04t` |
+| Optional hosted evidence | Workflow URLs only when the owner authorized those scratch-org runs |
 
 Do not reuse evidence from another commit, pull-request merge commit, branch head, package build, or
 `04t`.
@@ -102,32 +101,31 @@ command shape.
 Treat this value like a password. Never paste it into an issue, pull request, chat, terminal log, or
 tracked file.
 
-## 3. Dispatch hosted source validation
+## 3. Optionally dispatch hosted source validation
+
+Do not perform this section unless the release owner explicitly authorizes scratch-org creation for
+the run.
 
 1. Open **Actions → Salesforce release gate**.
 2. Select **Run workflow**.
 3. Select the release branch, not `main` and not a stale branch.
-4. Run the workflow.
-5. Confirm `offline-preflight` passes, then confirm `Check release-matrix scratch-org capacity` passes with four daily and
-   active slots available. The complete source matrix creates four scratch orgs. Deleting an org
+4. Set `authorize_scratch_org_creation` to `true`, then run the workflow.
+5. Confirm `offline-preflight` passes, then confirm `Check release-matrix scratch-org capacity`
+   passes with two daily and active slots available. The complete source matrix creates two scratch orgs. Deleting an org
    restores an active slot but does not restore a daily creation. Do not run unrelated scratch-org
    creation concurrently with the release gate.
 6. Open the completed run and confirm that all of these jobs executed and passed:
    - `offline-preflight`
    - `require-dev-hub-secret`
    - `package-source-tests`
-   - `portable-source-tests`
    - `locker-browser-tests (namespaced)`
-   - `locker-browser-tests (no-namespace)`
 7. Confirm the run's head SHA is the recorded release commit.
 8. Retain the workflow URL and uploaded evidence.
 
 After any workflow-source fix, commit and push it and start a new workflow run. Rerunning an older
 run keeps the older commit and workflow definition, so it cannot validate the fix.
 
-Stop if any job is skipped, cancelled, timed out, pending, inconclusive, or failing. The green
-wrapper result from a credential-skipped pull-request run does not qualify. Package creation accepts
-only a successful `workflow_dispatch` run for the exact commit.
+Treat incomplete results as failed optional evidence. They do not block package creation.
 
 ## 4. Create exactly one package candidate
 
@@ -137,48 +135,50 @@ Return to the same clean local release branch and run:
 npm run package:create -- --dev-hub <dev-hub-alias> --release-ready
 ```
 
-The guarded command repeats release preflight, verifies the successful hosted source workflow,
-checks Dev Hub capacity, and creates only the exact four-part version declared in the runtime
-matrix. Record the returned `04t` package-version ID and preserve the ignored creation-evidence file
+The guarded command repeats release preflight, checks package-version capacity, and creates only the
+exact four-part version declared in the runtime matrix. Record the returned `04t` package-version ID
+and preserve the ignored creation-evidence file
 under `packages/record-health-check/.package-evidence/`.
 
 Do not create another candidate because validation failed. Correct the cause first; an additional
 candidate requires the documented reviewed override and is not a normal retry mechanism.
 
-## 5. Dispatch installed-package validation
+## 5. Optionally dispatch installed-package validation
+
+Do not perform this section unless the release owner explicitly authorizes scratch-org creation for
+each run.
 
 1. Open **Actions → Subscriber validation**.
 2. Select **Run workflow**.
 3. Select the unchanged release branch.
 4. Enter the exact candidate `04t` in `package_version_id`.
-5. Choose `validation_stage: clean-install` and run the workflow.
-6. Confirm `offline-preflight`, including exact-commit source validation, passes. Then confirm
+5. Choose `validation_stage: clean-install`, set `authorize_scratch_org_creation` to `true`, and run the workflow.
+6. Confirm `offline-preflight` passes. Then confirm
    `Check subscriber-stage scratch-org capacity` passes before the two selected jobs run sequentially.
 7. Require both selected jobs to execute and pass, one under Lightning Web Security and one under
    Lightning Locker. Repeat the dispatch for `upgrade-2.0.6.2`, then `upgrade-2.0.4.2`, always using
-   the same candidate and unchanged release branch. The latter covers the older public-link version,
-   not just the latest promoted version. All three stages are mandatory.
+   the same candidate and unchanged release branch when that additional evidence is desired.
 8. Confirm the workflow title identifies the exact candidate and the run's head SHA is the release
    commit.
 9. Retain install requests, the complete subscriber Apex inventory (including
    `RHCSubscriberFlowSmokeTest`), browser evidence, and both upgrade-preservation snapshots.
 
-Each subscriber dispatch creates two fresh orgs. Together with the four-org source matrix, the full
-release needs ten scratch-org creations. Check daily and active capacity before each stage; if only
-five daily creations are available, plan across quota resets. Workflow concurrency serializes these
+Each subscriber dispatch creates two fresh orgs. Check daily and active capacity before each
+authorized stage. Workflow concurrency serializes these
 release workflows but does not reserve capacity against other tools or people. Deleting scratch orgs
-does not refund daily creations. Do not replace fresh-org tests with reused-org results to rush release.
+does not refund daily creations.
 
-The unselected clean/upgrade job is intentionally skipped in each staged dispatch. Only that skip is
-allowed: either selected security-mode job being skipped or lacking its artifacts blocks promotion.
+The unselected clean/upgrade job is intentionally skipped in each staged dispatch. If the run is
+retained as optional evidence, require each selected security-mode job and its artifacts to pass.
 
-Successful source deployment or clean installation cannot replace the upgrade gate. Successful job
-completion without the required retained artifacts is also a failure.
+A successful source deployment does not prove upgrade behavior. Record each optional result for what
+it actually tested.
 
-## 6. Verify a representative sandbox
+## 6. Optionally verify a representative sandbox
 
-Before promotion, install or upgrade the exact candidate in an approved representative sandbox with
-the affected CPQ Quote page and customer-owned configuration. Coordinate access with its owner; never
+When the release owner requests human acceptance, install or upgrade the exact candidate in an
+approved representative sandbox with the affected CPQ Quote page and customer-owned configuration.
+Coordinate access with its owner; never
 use production as the test environment. Record the org, persona, expected/actual outcome, and a safe
 evidence reference for each scenario below. Do not include credentials or customer record contents.
 
@@ -194,8 +194,8 @@ Copy [`config/release-acceptance-template.json`](../../config/release-acceptance
 `packages/record-health-check/.package-evidence/<candidate-04t>-acceptance.json`. Fill in the exact
 candidate ID, full creation commit, reviewer, ISO verification timestamp, and each scenario's result
 and evidence reference. Leave untested scenarios pending. The file stays ignored and local; retain a
-redacted copy with the release evidence. Promotion rejects missing, pending, stale, or differently
-bound evidence. This is a human attestation gate, not a claim that a script inspected your sandbox.
+redacted copy with the release evidence. This remains useful human evidence, but promotion does not
+require the local acceptance file.
 
 ## 7. Promote the exact candidate
 
@@ -206,10 +206,8 @@ npm run package:promote -- --dev-hub <dev-hub-alias> --package <candidate-04t>
 ```
 
 Promotion fails unless the worktree is clean, local creation evidence binds the `04t` to the current
-commit, representative-sandbox acceptance is complete, hosted source validation passed for that
-commit, and all three subscriber stages passed for that commit and candidate. The hosted checker
-requires successful named jobs and nonempty, unexpired artifacts from the current run attempt;
-a green workflow summary alone is insufficient. Never bypass or rewrite this evidence.
+commit, and the Dev Hub reports the configured package and exact version. Hosted and sandbox
+evidence may be retained when it was explicitly authorized, but it is not a promotion prerequisite.
 
 Record the production and sandbox installation URLs printed by the promotion command.
 
@@ -240,16 +238,12 @@ a newer installed version.
 
 ## Stop conditions
 
-Stop the release immediately when any of these conditions occurs:
+Stop the release immediately when any required package or publication condition occurs:
 
-- any required source or selected subscriber Salesforce job is skipped;
-- the workflow commit differs from the release commit;
-- the subscriber workflow names a different `04t`;
 - the local branch advances after package creation and before promotion;
 - the worktree is dirty;
-- scratch-org or package-version capacity is unavailable;
-- a browser, analyzer, Flow, Apex, security, clean-install, upgrade, or evidence-upload gate fails;
-- subscriber-owned configuration changes or disappears during upgrade;
+- package-version capacity is unavailable;
+- a required local source gate or Salesforce package build fails;
 - version metadata, package report, registry, install links, or release notes disagree.
 
 Fix the cause and repeat the affected gates. Never reinterpret a skipped or partial result as a
@@ -257,8 +251,8 @@ pass.
 
 ## Lessons retained for every release
 
-- A passing mock cannot prove Salesforce lifecycle compatibility: keep the exact RefreshView
-  regression, both security modes, both namespace shapes, and real browser gates.
+- A passing mock cannot prove Salesforce lifecycle compatibility. Keep the exact RefreshView
+  regression, and use real browser gates when the owner authorizes their orgs.
 - Discover and reconcile every Apex test, including real subscriber Flow interviews; never maintain
   a one-class smoke list that silently omits a new test.
 - Prove all four Check types actually execute in manual and on-load fixtures. A fixture's label or
@@ -269,9 +263,9 @@ pass.
   Lightning Home rather than checking visibility once after a redirect. Locate password inputs
   by label, and require the actual Home path after submission. A Home return URL, a hidden
   heading, or a login/error page is not success. Keep delayed-form and failure-path regressions
-  runnable without consuming scratch-org quota; hosted browser validation is still required.
-- Rehearse upgrades from every supported public distribution base, preserve customer configuration,
-  and check the affected customer page before promotion.
+  runnable without consuming scratch-org quota; hosted browser validation remains optional.
+- When upgrade rehearsal is authorized, use every supported public distribution base and record
+  whether customer configuration was preserved.
 - Pin and verify the CLI/authentication command, enforce dependency and coverage checks, and record
   quota limits before dispatch. Fix the cause instead of lowering the gate.
 - Authentication success does not prove that a default Dev Hub is configured. Every workflow

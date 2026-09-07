@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Example: Account Apex</label>
+    <label>Example: Account Apex Checks</label>
     <protected>false</protected>
     <values>
         <field>PublishErrorLogEvent__c</field>
@@ -16,7 +16,7 @@
     </values>
     <values>
         <field>CardTitle__c</field>
-        <value xsi:type="xsd:string">Example: Apex Checks</value>
+        <value xsi:type="xsd:string">Example: Account Apex Checks</value>
     </values>
     <values>
         <field>CardSubtitle__c</field>

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ComparisonDisplayMode__c</fullName>
+    <label>Show Found and Expected</label>
+    <description
+  >Which comparison evidence the Lightning card may show for this Check. "Automatic" (the default, and the same as leaving this blank) keeps the existing card behavior. "Found only" and "Expected only" allow just that side. "Hidden" removes both Found and Expected from the card. This setting changes presentation only: it does not change the evaluation outcome, the stored Found and Expected values, merge tokens, diagnostics, events, or API results, and it is not a field-level security control.</description>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>AUTOMATIC</fullName><label
+        >Automatic</label><default>true</default></value><value><fullName
+        >FOUND_ONLY</fullName><label>Found only</label><default
+        >false</default></value><value><fullName>EXPECTED_ONLY</fullName><label
+        >Expected only</label><default>false</default></value><value><fullName
+        >HIDDEN</fullName><label>Hidden</label><default
+        >false</default></value></valueSetDefinition>
+    </valueSet>
+        <inlineHelpText
+  >Presentation only. "Automatic" (or blank) keeps today's behavior. "Hidden" removes Found and Expected from the card but does not hide or secure the underlying values.</inlineHelpText>
+    <required>false</required>
+</CustomField>

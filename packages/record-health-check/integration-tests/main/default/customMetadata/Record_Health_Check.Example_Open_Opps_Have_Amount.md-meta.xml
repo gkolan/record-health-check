@@ -116,6 +116,10 @@
     </values>
 
     <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
         <field>DisplayValueFormat__c</field>
         <value xsi:type="xsd:string">TEXT</value>
     </values>
@@ -131,7 +135,7 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.totalRecordCount} exceptions</value>
+    >Proposal opportunities needing review: {!rhcResult.totalRecordCount}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>

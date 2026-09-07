@@ -28,7 +28,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT Email FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
@@ -74,13 +74,13 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.failedRecordCount} contacts are missing an email address</value>
+    >Contacts missing an email address: {!rhcResult.failedRecordCount}. Second Contact in ID order: {!rhcQuery.sourceRows[1].Email fallback="email not available"}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
         <value
       xsi:type="xsd:string"
-    >All {!rhcResult.totalRecordCount} contacts need an email address</value>
+    >Contacts reviewed: {!rhcResult.totalRecordCount}, each with an email address</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -115,5 +115,9 @@
     <values>
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">COMPLETENESS</value>
     </values>
 </CustomMetadata>

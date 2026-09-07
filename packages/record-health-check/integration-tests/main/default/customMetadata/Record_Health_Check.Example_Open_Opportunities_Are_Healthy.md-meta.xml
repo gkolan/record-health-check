@@ -62,4 +62,38 @@
       xsi:type="xsd:string"
     >One or more open opportunities are stale, missing a Next Step, or have no close date this quarter.</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >An Apex check weighing several signals at once. Passes when the class judges the open opportunities healthy.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the AccountOpenOpportunityHealthCheck class is deployed and the running user can access it, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Work through the opportunities the class flagged: the amount, the close date, or the next step is missing on at least one.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review opportunities on {!record.Name fallback="this account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Opportunities/view</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">READINESS</value>
+    </values>
 </CustomMetadata>

@@ -54,8 +54,8 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       'Known plugin failures need a verification step.'
     );
     Assert.isTrue(
-      incident.diagnosticId.startsWith('RHC-'),
-      'The incident must have a searchable ID.'
+      Pattern.matches('^RHC-[0-9]+-[0-9a-fA-F]{32}$', incident.diagnosticId),
+      'The searchable incident ID must include a full 128-bit random suffix.'
     );
     Assert.areEqual(
       24,

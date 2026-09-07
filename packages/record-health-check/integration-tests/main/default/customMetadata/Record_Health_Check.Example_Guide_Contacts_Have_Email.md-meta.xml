@@ -126,6 +126,10 @@
     </values>
 
     <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
         <field>DisplayValueFormat__c</field>
         <value xsi:type="xsd:string">TEXT</value>
     </values>
@@ -135,8 +139,6 @@
     </values>
     <values>
         <field>ApplicabilityNotMetMessage__c</field>
-        <value
-      xsi:type="xsd:string"
-    >{!record.Name fallback="This Account"} has no open escalated Case to review.</value>
+        <value xsi:nil="true" />
     </values>
 </CustomMetadata>

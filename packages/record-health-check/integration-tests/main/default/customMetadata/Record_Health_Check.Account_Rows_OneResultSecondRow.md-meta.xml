@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Rows OneResultSecondRow</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Account_Row_Tokens_Negative</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Refused: OneResultSecondRow</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Index 1 on a One Result Check. Evaluation refuses the moment a second row arrives, so the token could never render even when the data has two. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+    <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT Id, LastName FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id</value></values>
+    <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >Id</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >IS_NOT_BLANK</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Second contact is {!rhcQuery.sourceRows[1].LastName}.</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >This Check is misconfigured and was not evaluated.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >90</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

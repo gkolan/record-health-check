@@ -4,17 +4,17 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 >
-    <label>Review: Label-Only Pass</label>
+    <label>Review: Run Button With Label Only</label>
     <protected>false</protected>
     <values><field>ObjectApiName__c</field><value
       xsi:type="xsd:string"
     >Account</value></values>
     <values><field>CardTitle__c</field><value
       xsi:type="xsd:string"
-    >Label-Only Run and Rerun</value></values>
+    >Review: Run Button With Label Only</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Run one passing Account check and compare the distinct text used for the first run and subsequent runs.</value></values>
+    >One passing Account Check, shown so you can compare the Run and Rerun wording when the action is text with no icon.</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>

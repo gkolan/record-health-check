@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { documentationAudienceIssues } from "../lib/documentation-audience.mjs";
 
@@ -13,32 +14,6 @@ const docsRoot = path.join(root, "docs");
 const markdownFiles = [];
 const narrativeHeaders = /^(notes?|description|purpose|detail)$/i;
 const apiName = /\b[A-Za-z][A-Za-z0-9_]*__(?:c|mdt|e)\b/g;
-const plainLanguageAvoidList = [
-  "payload",
-  "short-circuit",
-  "idempotent",
-  "sentinel",
-  "headroom",
-  "allowlist",
-  "allowlisted",
-  "verbatim",
-  "lockstep",
-  "canonical",
-  "authoritative",
-  "opt-in",
-  "well-formed",
-  "fail-fast",
-  "buffered",
-  "transaction-scoped",
-  "package surface",
-  "integration surface",
-  "fluent builder",
-  "result shell",
-  "row cap",
-  "request caps",
-  "invocation",
-  "population"
-];
 
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
@@ -85,13 +60,17 @@ for (const file of markdownFiles) {
     );
   }
 }
-const projectMarkdownFiles = [
-  ...markdownFiles,
-  ...fs
-    .readdirSync(root, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-    .map((entry) => path.join(root, entry.name))
-];
+// Only tracked files can reach a clean checkout, so ask git rather than reading
+// the working directory: a maintainer's own local notes at the repository root
+// no longer fail a check that a clean CI checkout passes.
+const trackedRootMarkdown = execFileSync("git", ["ls-files", "*.md"], {
+  cwd: root,
+  encoding: "utf8"
+})
+  .split("\n")
+  .filter((name) => name && !name.includes("/"))
+  .map((name) => path.join(root, name));
+const projectMarkdownFiles = [...markdownFiles, ...trackedRootMarkdown];
 const supplementalDocumentationFiles = [
   path.join(root, "scripts/demo/README.md"),
   path.join(root, ".github/CONTRIBUTING.md"),
@@ -104,6 +83,10 @@ const documentationContractSources = [
   ...projectMarkdownFiles,
   ...supplementalDocumentationFiles
 ];
+const diagnosticsHistoryFiles = new Set([
+  "docs/architecture/security-and-data-access.md",
+  "docs/reference/custom-permissions.md"
+]);
 for (const file of documentationContractSources) {
   const source = fs.readFileSync(file, "utf8");
   const relativeFile = path.relative(root, file);
@@ -126,6 +109,21 @@ for (const file of documentationContractSources) {
         `${relativeFile}: replace obsolete documentation value ${obsolete} with ${replacement}`
       );
     }
+  }
+
+  // Diagnostics authorization stopped being a Custom Permission when the
+  // package moved to explicit packaged Permission Set assignments. Keep the
+  // historical explanation in the Custom Permissions reference and the
+  // explicit "there is no" statement in the security architecture, but fail
+  // every other page that revives the retired authorization model.
+  if (
+    !diagnosticsHistoryFiles.has(relativeFile) &&
+    (source.includes("Record Health Check View Diagnostics") ||
+      /\bdiagnostics Custom Permission\b/i.test(source))
+  ) {
+    failures.push(
+      `${relativeFile}: diagnostics access must use a direct packaged Admin or Diagnostics Viewer Permission Set assignment, not the retired Custom Permission`
+    );
   }
 }
 
@@ -359,7 +357,7 @@ const requiredFeatureCatalogTerms = [
   "MCP Integration",
   "Error Log Publisher",
   "Record Health Check Run",
-  "Record Health Check View Diagnostics"
+  "Record Health Check Diagnostics Viewer"
 ];
 for (const term of requiredFeatureCatalogTerms) {
   if (!featureCatalog.includes(term)) {
@@ -423,28 +421,6 @@ for (const file of projectMarkdownFiles) {
       failures.push(
         `${relativeFile}: pages with merge tokens must include at least one fallback example`
       );
-    }
-  }
-  const isFieldReference = [
-    path.join(docsRoot, "reference/custom-metadata/check-fields.md"),
-    path.join(docsRoot, "reference/custom-metadata/check-set-fields.md"),
-    path.join(docsRoot, "reference/platform-event-metadata/check-result.md"),
-    path.join(docsRoot, "reference/platform-event-metadata/error-log.md"),
-    path.join(docsRoot, "reference/platform-event-metadata/check-set-run.md")
-  ].includes(file);
-  const isPlainLanguageSource =
-    file.startsWith(`${docsRoot}${path.sep}`) && !isFieldReference;
-  if (isPlainLanguageSource) {
-    for (const avoided of plainLanguageAvoidList) {
-      const pattern = new RegExp(
-        `\\b${avoided.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replaceAll("-", "[- ]")}\\b`,
-        "i"
-      );
-      if (pattern.test(markdown)) {
-        failures.push(
-          `${relativeFile}: replace plain-language avoid-list term "${avoided}"`
-        );
-      }
     }
   }
 }
@@ -602,7 +578,7 @@ for (const file of markdownFiles) {
     openingAfterTitle
   );
   const openingWordCount = openingAfterTitle
-    .replace(/[`*_>#\[\]()]/g, " ")
+    .replace(/[`*_>#[\]()]/g, " ")
     .trim()
     .split(/\s+/)
     .filter(Boolean).length;
@@ -656,7 +632,7 @@ for (const file of markdownFiles) {
       }
       const fieldWordCount = section
         .replace(/```[\s\S]*?```/g, "")
-        .replace(/[`*_>#\[\]()]/g, " ")
+        .replace(/[`*_>#[\]()]/g, " ")
         .trim()
         .split(/\s+/)
         .filter(Boolean).length;

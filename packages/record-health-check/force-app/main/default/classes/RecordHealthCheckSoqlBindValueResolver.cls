@@ -208,18 +208,7 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
    * @return Loaded field value, or null when a parent relationship is blank.
    */
   public static Object resolveFieldPath(SObject record, String fieldPath) {
-    if (!fieldPath.contains('.')) {
-      return record.get(fieldPath);
-    }
-    List<String> parts = fieldPath.split('\\.');
-    SObject current = record;
-    for (Integer i = 0; i < parts.size() - 1; i++) {
-      current = current.getSObject(parts[i]);
-      if (current == null) {
-        return null;
-      }
-    }
-    return current.get(parts[parts.size() - 1]);
+    return RecordHealthCheckValueResolver.valueAtFieldPath(record, fieldPath);
   }
 
   private static Schema.SObjectField relationshipField(

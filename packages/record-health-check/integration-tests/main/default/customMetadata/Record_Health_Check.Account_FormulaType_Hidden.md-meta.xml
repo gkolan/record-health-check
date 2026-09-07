@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account FormulaType Hidden</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Account_Formula_Display_Types</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Account Has an Industry (Card Shows neither)</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Show Found and Expected is HIDDEN. Presentation only: the card shows neither, while the evaluation result, the merge tokens, and the API still carry both values.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+    <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >ISPICKVAL(Industry, "Manufacturing")</value></values>
+    <values><field>FormulaResultType__c</field><value
+      xsi:type="xsd:string"
+    >BOOLEAN</value></values>
+    <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >TEXT(Industry)</value></values>
+    <values><field>ComparisonDisplayMode__c</field><value
+      xsi:type="xsd:string"
+    >HIDDEN</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >INFO</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Name} is not a manufacturer, and this Check still reports what it found.</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Could not read the industry for this account.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >50</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

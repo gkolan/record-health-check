@@ -50,7 +50,7 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >{!rhcResult.foundValue} open high-priority cases</value>
+    >{!rhcResult.foundValue} open high-priority case{!rhcResult.foundValuePluralSuffix}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>
@@ -66,7 +66,7 @@
         <field>FailureMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >{!record.Name fallback="This account"} has {!rhcResult.foundValue} open high-priority case record(s) requiring immediate attention.</value>
+    >{!record.Name fallback="This account"} has {!rhcResult.foundValue} open high-priority case{!rhcResult.foundValuePluralSuffix} requiring immediate attention.</value>
     </values>
     <values>
         <field>UnableToEvaluateMessage__c</field>
@@ -103,5 +103,9 @@
     <values>
         <field>IsActive__c</field>
         <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">RISK</value>
     </values>
 </CustomMetadata>

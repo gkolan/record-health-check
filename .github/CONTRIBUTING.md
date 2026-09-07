@@ -61,17 +61,26 @@ Redact screenshots and console output before attaching them.
    git checkout -b fix/short-description
    ```
 3. **Make your change.** Keep it small and include tests for every behavior change.
-4. **Run the local gates** before you push (all must pass):
+4. **Run the local gates** before you push. One command runs every gate CI runs, in the
+   same order:
+
    ```bash
-   npm run prettier:verify
-   npm run lint
-   npm test                    # LWC Jest unit tests
-   npm run test:unit:coverage  # enforces LWC coverage thresholds
+   npm run ci:gates
    ```
+
+   Run it until it is green. Running a hand-picked subset is the most common reason a PR
+   fails CI on a check the author never ran.
+
+   While iterating you can run a single gate by name — `npm run lint`,
+   `npm run test:unit:coverage`, and so on — or a subset with
+   `npm run ci:gates -- --only lint,check:docs`. The full run is still the authority
+   before you push.
+
    These `npm` commands work the same on Windows, macOS, and Linux. Pass Dev Hub aliases with
    `--dev-hub` rather than a `VAR=value` prefix. On Windows, use PowerShell, cmd, or Git Bash; do
    not call the Windows `sf` CLI from WSL bash. See
    [Source development](../docs/contributing/source-development.md#windows-and-shell-notes).
+
 5. **Commit and push** to your fork:
    ```bash
    git commit -m "Fix: short description of the change"

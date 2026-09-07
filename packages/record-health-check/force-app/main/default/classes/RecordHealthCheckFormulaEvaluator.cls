@@ -412,6 +412,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
         .withRecord(record)
         .withCheck(check)
         .withResult(result, resultFinalized)
+        .withQueryRows(result?.querySourceRows, result?.queryComparisonRows)
         .withRun(runContext)
     );
   }
@@ -441,6 +442,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
         .withRecord(record)
         .withCheck(check)
         .withResult(result, true)
+        .withQueryRows(result?.querySourceRows, result?.queryComparisonRows)
         .withRun(runContext)
     );
   }

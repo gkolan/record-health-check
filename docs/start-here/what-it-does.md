@@ -98,10 +98,12 @@ use Flow, Apex, Agentforce, REST, Queueable, Batch, or Scheduled entry points re
 Check User**. Administrators who configure Checks receive **Record Health Check Admin** plus the
 Salesforce Setup access needed for the work. Add **Record Health Check Diagnostics Viewer**
 temporarily to a Card User or User who must reproduce an unexpected result without receiving Admin
-access. If Diagnostics Viewer is absent from Setup, use an org-owned
-Permission Set with the existing View Diagnostics Custom Permission as explained in
-[Permission Sets](../reference/permission-sets.md). None of these permission sets grants access to your Account, Contact,
+access. None of these permission sets grants access to your Account, Contact,
 Opportunity, Case, or custom-object data.
+
+Diagnostics access comes from that packaged assignment itself, so an org-owned Permission Set cannot
+grant it. If Diagnostics Viewer is absent from Setup, assign **Record Health Check Admin** or upgrade
+the installed package, as explained in [Permission Sets](../reference/permission-sets.md).
 
 Assign them from **Setup → Permission Sets**, open the permission set appropriate to the person's
 role, and select **Manage Assignments**.
@@ -112,8 +114,8 @@ remain off during normal use.
 
 **Show Diagnostics** is a field on the Record Health Check Set Custom Metadata record. In Setup,
 open **Custom Metadata Types → Record Health Check Set → Manage Records**, edit the Check Set used by
-the card, and select **Show Diagnostics** only for the investigation. The viewer must also have the
-**Record Health Check View Diagnostics** Custom Permission.
+the card, and select **Show Diagnostics** only for the investigation. The viewer must also be
+assigned **Record Health Check Admin** or **Record Health Check Diagnostics Viewer**.
 
 ### First troubleshooting checks
 

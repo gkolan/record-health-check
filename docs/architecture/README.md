@@ -10,6 +10,7 @@ security. These pages explain the system; they are not implementation walkthroug
 | Running identity, permissions, and data visibility | [Security and data access](./security-and-data-access.md) |
 | Agentforce and MCP trust boundaries | [Agentforce and MCP threat model](./agentforce-and-mcp-threat-model.md) |
 | Package Apex layers, entry points, evaluators, and shared services | [Apex implementation](./apex-implementation/README.md) |
+| Record-page card rendering and configuration reread behavior | [Record-page card contract](./record-page-card-contract.md) |
 
 ## Related
 

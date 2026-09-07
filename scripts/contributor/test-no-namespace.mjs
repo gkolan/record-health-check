@@ -9,7 +9,7 @@ function parseArgs(argv) {
   const options = {
     alias: process.env.RHC_PORTABLE_ALIAS ?? "rhc-portable",
     devHub: process.env.DEV_HUB_ALIAS ?? "",
-    durationDays: "30"
+    durationDays: "1"
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -19,6 +19,9 @@ function parseArgs(argv) {
       index += 1;
     } else if (token === "--dev-hub") {
       options.devHub = argv[index + 1];
+      index += 1;
+    } else if (token === "--duration-days") {
+      options.durationDays = argv[index + 1];
       index += 1;
     }
   }
@@ -50,6 +53,11 @@ function main() {
   }
 
   ensureAliasAvailable(options.alias);
+  const durationDays = Number.parseInt(options.durationDays, 10);
+  if (durationDays !== 1) {
+    console.error("Portable source scratch orgs must use a one-day duration.");
+    process.exit(1);
+  }
   assertScratchCapacity(options.devHub);
 
   console.log(
@@ -70,7 +78,7 @@ function main() {
     "--target-dev-hub",
     options.devHub,
     "--duration-days",
-    options.durationDays,
+    String(durationDays),
     "--no-namespace",
     "--wait",
     "30"

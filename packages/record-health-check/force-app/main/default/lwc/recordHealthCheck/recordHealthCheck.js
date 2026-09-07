@@ -33,9 +33,6 @@ import {
   supportCheckDiagnosticsReport
 } from "./healthCheckDiagnostics";
 
-// Pointer hover waits before the tooltip fades in so quick row scans do not flash
-// popovers. Keyboard focus keeps a shorter CSS dwell (see recordHealthCheck.css).
-const TOOLTIP_HOVER_DWELL_MS = 1000;
 const RECORD_REFRESH_DEBOUNCE_MS = 250;
 const ESTIMATED_TOOLTIP_HEIGHT = 180;
 const DEFAULT_RUN_BUTTON_DISPLAY = "LABEL_AND_ICON";
@@ -171,8 +168,6 @@ export default class RecordHealthCheck extends LightningElement {
   _loadToken = 0;
   _cancelInitialLoad = null;
   _tooltipListenersBound = false;
-  _tooltipDwellTimers = new WeakMap();
-  _pendingTooltipAnchors = new Set();
   _summaryStatsSource = null;
   _summaryStatsTooltipSignature = "";
   _inactiveStatSignature = "";
@@ -183,6 +178,10 @@ export default class RecordHealthCheck extends LightningElement {
   _resizeFrame;
   _cancelAutomaticRun = null;
   _definitionLoadInProgress = false;
+  // True once a definition response has been applied for the active record and
+  // Check Set. Reset with the load token so a superseded response cannot leave
+  // it set for the record that replaced it.
+  _definitionsResolved = false;
   _canViewDetails = false;
   _refreshHandlerRegistration = null;
   _recordRefreshTimer = null;
@@ -253,6 +252,7 @@ export default class RecordHealthCheck extends LightningElement {
     this._cancelScheduledAutomaticRun();
     this._runner.invalidate();
     this._definitionLoadInProgress = false;
+    this._definitionsResolved = false;
 
     // Current Lightning App Builder versions can supply a sample recordId to
     // record-page previews. Detect the supported Builder container itself so
@@ -312,6 +312,11 @@ export default class RecordHealthCheck extends LightningElement {
       this._prepareNoRecordShell();
       return;
     }
+    // The shell request is a full Apex round trip and the scheduled-load handle
+    // has already been cleared, so without this the card would sit as a
+    // header-only strip for the whole call. Every branch below either resolves
+    // the shell or hands off to _loadDefinitions, which owns the flag from there.
+    this.isLoading = true;
     let shellConfig = null;
     try {
       shellConfig = await getCheckSetShellConfig({
@@ -351,9 +356,10 @@ export default class RecordHealthCheck extends LightningElement {
     this.builderCountsAvailable = false;
     this.triggerMode = null;
     this.displayTitle = "Record Health Check";
-    this.displayDescription = this.checkSetName
-      ? "Runs when a record is available."
-      : "Select a Check Set in the component properties.";
+    // The status line renders in the body (see emptyBodyNotice) rather than the
+    // header description, so the card keeps a body instead of collapsing to a
+    // header-only strip.
+    this.displayDescription = null;
     this.isLoading = false;
     this._clearComponentError();
     this.checks = [];
@@ -482,24 +488,11 @@ export default class RecordHealthCheck extends LightningElement {
     this._runner.invalidate();
     if (this._tooltipListenersBound) {
       this.template.removeEventListener("mouseover", this._positionTooltip);
-      this.template.removeEventListener(
-        "mouseover",
-        this._handleTooltipMouseOver
-      );
       this.template.removeEventListener("focusin", this._positionTooltip);
       this.template.removeEventListener("mouseout", this._clearTooltipFlip);
-      this.template.removeEventListener(
-        "mouseout",
-        this._handleTooltipMouseOut
-      );
       this.template.removeEventListener("focusout", this._clearTooltipFlip);
-      this.template.removeEventListener(
-        "focusout",
-        this._handleTooltipFocusOut
-      );
       this._tooltipListenersBound = false;
     }
-    this._clearAllTooltipDwells();
   }
 
   _handleRefreshView = () => {
@@ -570,12 +563,9 @@ export default class RecordHealthCheck extends LightningElement {
     // being clipped. Delegated on the template root — mouseover and focusin both
     // bubble, so one listener pair covers every check row and summary pill.
     this.template.addEventListener("mouseover", this._positionTooltip);
-    this.template.addEventListener("mouseover", this._handleTooltipMouseOver);
     this.template.addEventListener("focusin", this._positionTooltip);
     this.template.addEventListener("mouseout", this._clearTooltipFlip);
-    this.template.addEventListener("mouseout", this._handleTooltipMouseOut);
     this.template.addEventListener("focusout", this._clearTooltipFlip);
-    this.template.addEventListener("focusout", this._handleTooltipFocusOut);
   }
 
   // Removes the flip-up modifier once the pointer/focus leaves the anchor entirely
@@ -618,91 +608,18 @@ export default class RecordHealthCheck extends LightningElement {
     anchor.classList.toggle("rhc-tooltip-anchor--flip-up", flipUp);
   };
 
-  _findTooltipAnchor(event) {
-    const target = event.target;
-    return target && target.closest
-      ? target.closest(".rhc-tooltip-anchor")
-      : null;
-  }
-
-  _isTooltipAnchorExit(event, anchor) {
-    const movingTo = event.relatedTarget;
-    return !(movingTo && anchor.contains(movingTo));
-  }
-
-  _tooltipHoverDwellMs() {
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return 0;
-    }
-    return TOOLTIP_HOVER_DWELL_MS;
-  }
-
-  _clearTooltipDwell(anchor) {
-    const timer = this._tooltipDwellTimers.get(anchor);
-    if (timer != null) {
-      clearTimeout(timer);
-      this._tooltipDwellTimers.delete(anchor);
-    }
-    this._pendingTooltipAnchors.delete(anchor);
-    anchor.classList.remove("rhc-tooltip-anchor--dwell");
-  }
-
-  _clearAllTooltipDwells() {
-    for (const anchor of this._pendingTooltipAnchors) {
-      this._clearTooltipDwell(anchor);
-    }
-    this._pendingTooltipAnchors.clear();
-  }
-
-  _scheduleTooltipDwell(anchor, delayMs) {
-    this._clearTooltipDwell(anchor);
-    // LWS safely virtualizes this component-owned dwell timer.
-    // eslint-disable-next-line @lwc/lwc/no-async-operation, @locker/locker/distorted-window-set-timeout
-    const timer = setTimeout(() => {
-      this._tooltipDwellTimers.delete(anchor);
-      this._pendingTooltipAnchors.delete(anchor);
-      anchor.classList.add("rhc-tooltip-anchor--dwell");
-    }, delayMs);
-    this._tooltipDwellTimers.set(anchor, timer);
-    this._pendingTooltipAnchors.add(anchor);
-  }
-
-  _handleTooltipMouseOver = (event) => {
-    const anchor = this._findTooltipAnchor(event);
-    if (!anchor) {
-      return;
-    }
-    const from = event.relatedTarget;
-    if (from && anchor.contains(from)) {
-      return;
-    }
-    if (this._tooltipDwellTimers.has(anchor)) {
-      return;
-    }
-    this._scheduleTooltipDwell(anchor, this._tooltipHoverDwellMs());
-  };
-
-  _handleTooltipMouseOut = (event) => {
-    const anchor = this._findTooltipAnchor(event);
-    if (!anchor || !this._isTooltipAnchorExit(event, anchor)) {
-      return;
-    }
-    this._clearTooltipDwell(anchor);
-  };
-
-  _handleTooltipFocusOut = (event) => {
-    const anchor = this._findTooltipAnchor(event);
-    if (!anchor || !this._isTooltipAnchorExit(event, anchor)) {
-      return;
-    }
-    this._clearTooltipDwell(anchor);
-  };
-
-  async _loadDefinitions(runSource = null) {
+  /**
+   * Fetches Check Set configuration and rebuilds the check rows.
+   *
+   * `preserveRows` keeps the previous run's rows, the Rerun label, and the
+   * resolved-definitions flag in place while the request is in flight. A
+   * user-initiated Rerun is a refresh of an already-populated card, so blanking
+   * it and reverting the button to "Run" would read as the component losing its
+   * state rather than reloading it. The rows are replaced from the response the
+   * moment it lands, and a failed request still surfaces the component error.
+   */
+  async _loadDefinitions(runSource = null, preserveRows = false) {
+    const keepRows = preserveRows && this.checks.length > 0;
     this._canViewDetails = false;
     const loadToken = ++this._loadToken;
     const requestedCheckSetName = this.checkSetName;
@@ -717,16 +634,25 @@ export default class RecordHealthCheck extends LightningElement {
     // (the run token guards stale results, and B reuses A's Check identities),
     // and a leftover in-progress run would suppress B's Automatic run entirely.
     this._runner.invalidate();
-    this.runComplete = false;
-    this.hasCompletedRunOnce = false;
-    this.completedCheckCount = 0;
-    this.checks = [];
+    if (!keepRows) {
+      this.runComplete = false;
+      this.hasCompletedRunOnce = false;
+      this.completedCheckCount = 0;
+      this.checks = [];
+    }
     // Per-row expand state belongs to the previous record's rows; clear it so a
     // new record starts from the placement default rather than inheriting stale
     // carets keyed by reused qualified API names.
     this._expandedNames = emptyExpandedState();
 
     this.isLoading = true;
+    // isCardLoading short-circuits on _definitionsResolved, so holding it true
+    // is what keeps the full-card spinner from replacing the rows we are
+    // deliberately keeping on screen. The button still reads as busy through
+    // _definitionLoadInProgress.
+    if (!keepRows) {
+      this._definitionsResolved = false;
+    }
     this._clearComponentError();
     this.completionWarning = null;
     this.completionWarningDiagnosticCode = null;
@@ -868,11 +794,13 @@ export default class RecordHealthCheck extends LightningElement {
         dependsOnCheckDeveloperName: def.dependsOnCheckDeveloperName || null,
         dependsOnCheckQualifiedApiName:
           def.dependsOnCheckQualifiedApiName || null,
+        comparisonDisplayMode: def.comparisonDisplayMode || null,
         uiState: "PENDING",
         result: null
       }));
 
       this.isLoading = false;
+      this._definitionsResolved = true;
       this._clearComponentError();
 
       if (runSource) {
@@ -978,6 +906,45 @@ export default class RecordHealthCheck extends LightningElement {
 
   get hasComponentError() {
     return !!this.componentError;
+  }
+
+  /**
+   * Locked decision 10 (specs/implementation-playbook.md): the card-body
+   * spinner is a single derived condition tied to the current load token and
+   * component lifecycle, never an independent timer-owned Boolean. It covers
+   * both the scheduled initial/automatic definition-load interval (the handles
+   * `_cancelInitialLoad` / `_cancelAutomaticRun`, which `_restartConfiguredLifecycle`,
+   * `_loadDefinitions`, and `disconnectedCallback` already cancel with the load
+   * token) and the in-flight `getCheckDefinitions` request. There is no
+   * artificial minimum display time: a fast response removes it immediately.
+   */
+  get isCardLoading() {
+    if (
+      !this._connected ||
+      this.isBuilderPreview ||
+      this.hasComponentError ||
+      !this.recordId
+    ) {
+      return false;
+    }
+    // Once a definition response has been applied the card is no longer
+    // loading, whatever it contains. An empty Check Set is a finished answer,
+    // and `_cancelAutomaticRun` is reused for the queued evaluation run, so
+    // testing the handles alone would leave the spinner up over the established
+    // empty state.
+    if (this._definitionsResolved) {
+      return false;
+    }
+    if (this.isLoading || this._definitionLoadInProgress) {
+      return true;
+    }
+    // Definitions are not loaded yet, so a pending idle handle here is always a
+    // scheduled definition load rather than a scheduled evaluation run.
+    return Boolean(this._cancelInitialLoad || this._cancelAutomaticRun);
+  }
+
+  get cardLoadingLabel() {
+    return "Loading health checks";
   }
 
   /**
@@ -1402,6 +1369,7 @@ export default class RecordHealthCheck extends LightningElement {
       this.triggerMode === "Manual" &&
       this.showActionButton &&
       !this.isLoading &&
+      !this.isCardLoading &&
       !this.runComplete &&
       !this._runner.isRunning &&
       this.totalCheckCount > 0
@@ -1449,6 +1417,42 @@ export default class RecordHealthCheck extends LightningElement {
     return `Evaluating ${this.checkCountPhrase}.`;
   }
 
+  /**
+   * The card body must never collapse to a header-only strip.
+   *
+   * Rather than enumerate the states that leave it empty — a Check Set with no
+   * active checks, a card with no record, a shell that reports zero checks —
+   * this is the negation of every other body block: when nothing else renders
+   * below the header, this does. A state added later cannot reintroduce the
+   * header-only card without also being listed here.
+   */
+  get showEmptyBodyNotice() {
+    return (
+      !this.isBuilderPreview &&
+      !this.isCardLoading &&
+      !this.completionWarning &&
+      !this.showPreRunHint &&
+      !this.showHiddenEvaluationHint &&
+      !this.showSummaryStatsAbove &&
+      !this.showSummaryStatsBelow &&
+      !this.showHiddenResultsNotice &&
+      !this.showDiagnosticsConsoleHint &&
+      this.visibleChecks.length === 0
+    );
+  }
+
+  get emptyBodyNotice() {
+    if (!this.recordId) {
+      return this.checkSetName
+        ? "Runs when a record is available."
+        : "Select a Check Set in the component properties.";
+    }
+    if (this.totalCheckCount === 0) {
+      return "This Check Set has no active checks.";
+    }
+    return "No results to display.";
+  }
+
   get showSummaryStats() {
     return this.runComplete && this.summaryGroups.length > 0;
   }
@@ -1490,7 +1494,10 @@ export default class RecordHealthCheck extends LightningElement {
   get actionTitle() {
     // Check count lives in the hover tooltip; while a run is in flight the title
     // carries the busy state because the visible label stays "Run" / "Rerun".
-    if (this._runner.isRunning) {
+    // A user-initiated run opens with the definition refetch, so the busy window
+    // starts at _definitionLoadInProgress rather than at the first evaluation —
+    // actionButtonBusy is the same condition that raises the button spinner.
+    if (this.actionButtonBusy) {
       return this.hasCompletedRunOnce
         ? `Re-running ${this.checkCountLabel}`
         : `Running ${this.checkCountLabel}`;
@@ -1509,7 +1516,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get actionButtonAriaLabel() {
-    if (this._runner.isRunning) {
+    if (this.actionButtonBusy) {
       return this.actionTitle;
     }
     return this.actionButtonLabel;
@@ -1541,16 +1548,18 @@ export default class RecordHealthCheck extends LightningElement {
     // previous run should collapse back to the placement default rather than
     // linger open over rows whose values are being recomputed.
     this._expandedNames = emptyExpandedState();
-    if (this.checks.length === 0 && this.triggerMode === "Manual") {
-      this._definitionLoadInProgress = true;
-      try {
-        await this._loadDefinitions("USER_INITIATED");
-      } finally {
-        this._definitionLoadInProgress = false;
-      }
-      return;
+    // Every user-initiated run re-reads the Check Set configuration before
+    // evaluating. Console record tabs stay open for days, so definitions
+    // captured at page load go stale as soon as an admin edits a Check or Check
+    // Set; without this refetch Rerun would keep replaying the configuration
+    // that happened to be current when the tab was opened. _loadDefinitions
+    // starts the run itself once the response is applied.
+    this._definitionLoadInProgress = true;
+    try {
+      await this._loadDefinitions("USER_INITIATED", true);
+    } finally {
+      this._definitionLoadInProgress = false;
     }
-    this._runner.run(false, "USER_INITIATED");
   }
 
   get summaryGroups() {

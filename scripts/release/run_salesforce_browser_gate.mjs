@@ -10,6 +10,7 @@ import {
   redactBrowserEvidence,
   browserEvidenceHtml
 } from "../lib/browser-evidence.mjs";
+import { createScratchUserNewPassword } from "../lib/salesforce-first-login.mjs";
 
 process.env.SF_DISABLE_LOG_FILE ??= "true";
 
@@ -137,7 +138,7 @@ try {
     throw new Error("Salesforce did not return the generated test password.");
   }
   restrictedCurrentPassword = generatedPassword;
-  restrictedNewPassword = `${generatedPassword}Rhc9`;
+  restrictedNewPassword = createScratchUserNewPassword(generatedPassword);
   const cardPermission = executeJson("sf", [
     "data",
     "query",
@@ -314,6 +315,21 @@ try {
       RHC_SECURITY_MODE: securityMode,
       RHC_SECOND_ACCOUNT_ID: secondAccountId,
       RHC_SECOND_ACCOUNT_NAME: secondAccountName
+    });
+
+    // Record-page card contract: the card body must stay painted through every
+    // frame, and Rerun must reread Check Set configuration. See
+    // docs/architecture/record-page-card-contract.md.
+    // Each Playwright process needs a fresh single-use frontdoor URL; reusing
+    // the release-matrix URL would send this second process to Salesforce's
+    // login page after the first process consumed its session handoff.
+    const cardContractUrl = frontdoorUrl(
+      targetOrg,
+      `/lightning/r/Account/${accountId}/view`
+    );
+    runBrowserSpec(browser, "tests/browser/card-contract.spec.mjs", {
+      RHC_BROWSER_URL: cardContractUrl,
+      RHC_SECURITY_MODE: securityMode
     });
 
     const builderUrl = frontdoorUrl(

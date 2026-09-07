@@ -3,11 +3,11 @@
     <fullName>FailureMessage__c</fullName>
     <label>Message When Failed</label>
     <description
-  >The message users see when this check results in Fail. Insert values from the current record with merge tokens like {!record.Name} or {!record.BillingCity}. Press Enter to start a new line; each line is shown as a separate line on the card.</description>
+  >The message users see when this check results in Fail. Insert record values with {!record.Name} and completed result values with {!rhcResult.foundValue} or {!rhcResult.expectedValue}. Press Enter to start a new line; each line is shown as a separate line on the card.</description>
     <type>LongTextArea</type>
     <length>32768</length>
     <visibleLines>3</visibleLines>
-        <inlineHelpText
-  >Shown when the check fails. Use {!record.FieldApiName} to insert record values, e.g. "{!record.Name} is missing a Billing City". Press Enter for a new line.</inlineHelpText>
+    <inlineHelpText
+  >Shown when the check fails. Tokens: {!record.FieldApiName}, {!rhcResult.foundValue}, {!rhcResult.expectedValue}. Press Enter for a new line.</inlineHelpText>
     <required>false</required>
 </CustomField>

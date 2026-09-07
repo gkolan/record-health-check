@@ -130,17 +130,18 @@ Currency ISO Code**, and that declaration participates in the same guard.
 `SUM`, `AVG`, `MIN`, and `MAX` collapse the source rows before Apex receives the result, so a
 corporate-currency display label is not evidence that the inputs shared a unit. Metadata validation
 therefore rejects an aggregate over a Currency field unless the query groups by `CurrencyIsoCode`
-or a conjunctive outer predicate fixes `CurrencyIsoCode` to one literal ISO code. The bounded
-equality form preserves a one-row aggregate result; outer-predicate `OR` or `NOT` operators fail
-closed because the equality may not constrain every contributing row. Operators and equalities
-inside semi-joins do not alter that outer proof. Grouping changes the result shape.
+or its outer `WHERE` clause requires `CurrencyIsoCode` to equal one literal ISO code. Requiring one
+ISO code preserves a one-row aggregate result. An `OR` or `NOT` in the outer `WHERE` clause means
+the equality might not apply to every contributing row, so Record Health Check rejects the Check.
+Conditions inside semi-joins do not change that decision. Grouping changes the result shape.
 
 An alternative is a custom Apex Check that explicitly owns and carries unit semantics. Formula
 Checks cannot reliably inspect `CurrencyIsoCode` and are not covered by this guard. Single-currency
 orgs have no row ISO field and are unaffected.
 
-For the supported flat and aggregate query subset, selected fields and aggregate operands are
-describe-validated before execution. This preserves locale-independent `FIELD_NOT_ACCESSIBLE`,
+For the supported flat and aggregate query subset, Record Health Check checks selected fields and
+the fields used by aggregate functions against Salesforce field definitions before execution. This
+preserves locale-independent `FIELD_NOT_ACCESSIBLE`,
 `FIELD_NOT_RESOLVED`, and relationship classifications for aliased aggregate results.
 
 ## SOQL templates and security

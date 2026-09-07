@@ -84,4 +84,38 @@
         <field>ComparisonQueryField__c</field>
         <value xsi:type="xsd:string">MailingCity</value>
     </values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Compare Two Queries check comparing two lists. Passes when every contact mailing city also appears among the parent account's contact cities.</value>
+    </values>
+    <values>
+        <field>UnableToEvaluateMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Could not evaluate this Check for {!record.Name}. Confirm the running user can read Contacts on this account and on its parent account and the fields this Check selects, then run the Check again.</value>
+    </values>
+    <values>
+        <field>FixMessage__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Add the missing cities to the parent account's contacts, or correct the contacts here that sit outside the parent's footprint.</value>
+    </values>
+    <values>
+        <field>ActionLabel__c</field>
+        <value
+      xsi:type="xsd:string"
+    >Review contacts on {!record.Name fallback="this account"}</value>
+    </values>
+    <values>
+        <field>ActionUrl__c</field>
+        <value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/related/Contacts/view</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">CONSISTENCY</value>
+    </values>
 </CustomMetadata>

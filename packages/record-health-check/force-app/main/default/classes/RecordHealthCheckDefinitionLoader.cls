@@ -102,7 +102,8 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         CheckDescription__c,
         Category__c,
         EvaluationOrder__c,
-        PrerequisiteCheck__c
+        PrerequisiteCheck__c,
+        ComparisonDisplayMode__c
       FROM Record_Health_Check__mdt
       WHERE
         Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
@@ -174,22 +175,14 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     Map<String, String> categoryLabels = categoryLabelsByValue();
 
     for (Record_Health_Check__mdt check : checksForRun) {
-      RecordHealthCheckDefinition def = new RecordHealthCheckDefinition();
-      def.qualifiedApiName = check.QualifiedApiName;
-      def.developerName = check.DeveloperName;
-      def.label = check.CheckTitle__c;
-      def.description = check.CheckDescription__c;
-      def.category = check.Category__c;
-      def.categoryLabel = categoryLabelFor(categoryLabels, check.Category__c);
-      def.priority = check.EvaluationOrder__c;
-      def.dependsOnCheckDeveloperName = normalizedPrerequisite(
-        check.PrerequisiteCheck__c
+      response.checks.add(
+        RecordHealthCheckDefinition.fromMetadata(
+          check,
+          allChecks,
+          categoryLabelFor(categoryLabels, check.Category__c),
+          normalizedPrerequisite(check.PrerequisiteCheck__c)
+        )
       );
-      def.dependsOnCheckQualifiedApiName = RHCDefinitionDependencyIdentity.resolve(
-        check,
-        allChecks
-      );
-      response.checks.add(def);
     }
 
     return response;

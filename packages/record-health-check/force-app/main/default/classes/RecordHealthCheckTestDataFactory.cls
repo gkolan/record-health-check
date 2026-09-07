@@ -247,25 +247,6 @@ public class RecordHealthCheckTestDataFactory {
     return opportunityFixture(opportunity(fields));
   }
 
-  public static void opportunitiesFixture(List<Opportunity> records) {
-    List<SObject> values = new List<SObject>();
-    values.addAll(records);
-    recordsFixture(values);
-  }
-
-  public static Task completedTaskFixture(Id whatId) {
-    return taskFixture(
-      task(
-        new Map<String, Object>{
-          'Subject' => 'Coverage Task',
-          'WhatId' => whatId,
-          'Status' => 'Completed',
-          'ActivityDate' => Date.today()
-        }
-      )
-    );
-  }
-
   public static Task taskFixture(Task taskRecord) {
     assignSyntheticId(taskRecord);
     return taskRecord;
@@ -275,49 +256,10 @@ public class RecordHealthCheckTestDataFactory {
     return taskFixture(task(fields));
   }
 
-  public static Event eventFixture(Event eventRecord) {
-    assignSyntheticId(eventRecord);
-    return eventRecord;
-  }
-
-  public static Event eventFixture(Map<String, Object> fields) {
-    return eventFixture(event(fields));
-  }
-
   public static void recordsFixture(List<SObject> records) {
     for (SObject record : records) {
       assignSyntheticId(record);
     }
-  }
-
-  public static void emailCoverageContactsFixture(Id accountId) {
-    contactsFixture(
-      new List<Contact>{
-        contact(new Map<String, Object>{ 'AccountId' => accountId }),
-        contact(
-          new Map<String, Object>{
-            'AccountId' => accountId,
-            'Email' => 'healthy@example.com'
-          }
-        )
-      }
-    );
-  }
-
-  public static void matchingCityContactsFixture(
-    Id accountId,
-    String mailingCity
-  ) {
-    contactsFixture(
-      new List<Contact>{
-        contact(
-          new Map<String, Object>{
-            'AccountId' => accountId,
-            'MailingCity' => mailingCity
-          }
-        )
-      }
-    );
   }
 
   public static Account healthyAccountFixture() {
