@@ -6,14 +6,8 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.6-2`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.8-1`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
-
-**Distribution notice (September 2, 2026):** the public install redirects currently target 2.0.4.2,
-not the latest promoted artifact. The 2.0.6 line has a reported RefreshView component-loading
-regression. The corrective 2.0.7.2 package was released on September 3, 2026 under an approved
-one-time exception and is not yet the configured stable release; see
-[Choose a package version](./docs/install/choose-a-package-version.md) before installing or upgrading.
 
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
 > included in Run All Tests, or source-deployed into a customized org and subscriber validation
@@ -22,8 +16,8 @@ one-time exception and is not yet the configured stable release; see
 > version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current stable release: `Record Health Check@2.0.6-2` (`04tak000000eM53AAE`).
-- Previous stable release: `Record Health Check@2.0.5-1` (`04tak000000eIO1AAM`).
+- Current stable release: `Record Health Check@2.0.8-1` (`04tak000000g1R7AAI`).
+- Previous stable release: `Record Health Check@2.0.6-2` (`04tak000000eM53AAE`).
 
 ### Evaluation and integration
 
@@ -75,10 +69,13 @@ For installation and verification, start with
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
-## Unreleased: 2.0.8
+## Version 2.0.8
 
-This is a candidate source description, not a release-readiness claim. Hosted source validation,
-exact-package clean/upgrade stages, and representative-sandbox acceptance must pass before promotion.
+Released package version: **2.0.8.1** (`04tak000000g1R7AAI`). Salesforce reports 99% package
+coverage and no skipped validation. Use the [2.0.8.1 sandbox install
+link](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000g1R7AAI) or the
+[2.0.8.1 production install
+link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000g1R7AAI).
 
 ### Fixed
 
@@ -164,11 +161,12 @@ exact-package clean/upgrade stages, and representative-sandbox acceptance must p
 
 - All subscriber Apex tests, including actual Flow interviews, run through an exact inventory.
   Browser evidence is isolated per invocation and rejects skips, incomplete results, and flaky retries.
-- Source and installed on-load fixtures prove all four Check types. Clean installation and upgrades
-  from both 2.0.6.2 and 2.0.4.2 are required under LWS and Locker.
-- Promotion requires successful named hosted jobs, current retained artifacts, and recorded acceptance
-  of the affected CPQ page and representative customer configuration. Dependency, toolchain, coverage,
-  and documented release-owner controls remain blocking; no runtime pass is implied by these changes.
+- Source fixtures cover all four Check types. When a release owner authorizes scratch-org testing,
+  the same scenarios can also verify clean installation, reviewed upgrades, Lightning Web Security,
+  and Lightning Locker.
+- Package creation and promotion require the local source gates, exact commit and package provenance,
+  Salesforce package validation, and release-owner approval. Scratch-org testing is additional
+  evidence and never starts without explicit authorization for that run.
 
 ## Version 2.0.6
 
