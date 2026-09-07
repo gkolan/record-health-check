@@ -59,7 +59,7 @@ for (const [directory, prefix, setName] of [
     `${setName} actual on-load types`
   );
 }
-for (const topology of ["namespaced", "no-namespace"]) {
+for (const topology of ["namespaced"]) {
   requireText(
     `packages/record-health-check/integration-tests/browser-fixtures/${topology}/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml`,
     ["Release_On_Load"]
@@ -241,11 +241,7 @@ function requireUniqueRegionNames(file) {
 }
 
 requireEqual(matrix.evaluationTypes, expectedTypes, "Evaluation types");
-requireEqual(
-  matrix.sourceTopologies,
-  ["namespaced", "no-namespace"],
-  "Source topologies"
-);
+requireEqual(matrix.sourceTopologies, ["namespaced"], "Source topologies");
 requireEqual(
   matrix.lightningSecurityModes,
   ["LWS", "Locker"],
@@ -310,20 +306,13 @@ for (const entryPoint of matrix.entryPoints) {
 requireText(".github/workflows/salesforce-validate.yml", [
   "npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-package --scope package",
   "npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-full --scope full",
-  "npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-package --scope package",
-  "npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-full --scope full",
   "apex-inventory-namespaced-package",
   "apex-inventory-namespaced-full",
-  "apex-inventory-no-namespace-package",
-  "apex-inventory-no-namespace-full",
   "--namespace rhc",
-  '--namespace ""',
   "--security-mode LWS",
   "--security-mode Locker",
   "topology: namespaced",
-  "topology: no-namespace",
   "browser-fixtures/namespaced/main/default/flexipages",
-  "browser-fixtures/no-namespace/main/default/flexipages",
   "matrix.browser_fixture",
   "npx playwright install --with-deps chromium firefox",
   "--workspace subscriber-app",
@@ -354,7 +343,7 @@ for (const workflow of [
 }
 requireSecureDevHubAuthentication(
   ".github/workflows/salesforce-validate.yml",
-  4
+  3
 );
 requireSecureDevHubAuthentication(
   ".github/workflows/subscriber-validate.yml",
@@ -362,7 +351,7 @@ requireSecureDevHubAuthentication(
 );
 requireText(".github/workflows/salesforce-validate.yml", [
   "Check release-matrix scratch-org capacity",
-  "npm run check:scratch-capacity -- --dev-hub devhub --required 4"
+  "npm run check:scratch-capacity -- --dev-hub devhub --required 2"
 ]);
 requireText(".github/workflows/subscriber-validate.yml", [
   "Check subscriber-stage scratch-org capacity",
@@ -595,14 +584,6 @@ const browserPages = [
       "<value>rhc__Example_Account_Check_Builder_Guide</value>",
       "<value>rhc__Release_On_Load</value>"
     ]
-  },
-  {
-    file: "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
-    markers: [
-      "<componentName>c:recordHealthCheck</componentName>",
-      "<value>Example_Account_Check_Builder_Guide</value>",
-      "<value>Release_On_Load</value>"
-    ]
   }
 ];
 for (const { file, markers } of browserPages) {
@@ -617,14 +598,6 @@ for (const { file, markers } of [
       "<componentName>rhc:recordHealthCheck</componentName>",
       "<value>rhc__Example_Account_Check_Builder_Guide</value>",
       "rhc_recordHealthCheck_builderUnconfigured"
-    ]
-  },
-  {
-    file: "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixBuilderPage.flexipage-meta.xml",
-    markers: [
-      "<componentName>c:recordHealthCheck</componentName>",
-      "<value>Example_Account_Check_Builder_Guide</value>",
-      "c_recordHealthCheck_builderUnconfigured"
     ]
   },
   {

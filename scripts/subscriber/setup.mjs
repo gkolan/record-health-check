@@ -19,7 +19,7 @@ function parseArgs(argv) {
   const options = {
     alias: process.env.RHC_ORG_ALIAS ?? "rhc-demo",
     devHub: process.env.DEV_HUB_ALIAS ?? "",
-    durationDays: process.env.RHC_SCRATCH_DAYS ?? "30"
+    durationDays: process.env.RHC_SCRATCH_DAYS ?? "7"
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -78,12 +78,8 @@ function main() {
   ensureSfInstalled();
   ensureAliasAvailable(options.alias);
   const durationDays = Number.parseInt(options.durationDays, 10);
-  if (
-    !Number.isInteger(durationDays) ||
-    durationDays < 1 ||
-    durationDays > 30
-  ) {
-    console.error("Scratch-org duration must be between 1 and 30 days.");
+  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 7) {
+    console.error("Demo scratch-org duration must be between 1 and 7 days.");
     process.exit(1);
   }
   assertScratchCapacity(options.devHub);

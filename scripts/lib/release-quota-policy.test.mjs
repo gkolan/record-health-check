@@ -19,10 +19,40 @@ const workflows = fs
   .readdirSync(directory)
   .filter((file) => /\.ya?ml$/.test(file))
   .map((file) => fs.readFileSync(new URL(file, directory), "utf8"));
+const contributorSetup = fs.readFileSync(
+  new URL("../contributor/setup.mjs", import.meta.url),
+  "utf8"
+);
+const portableSetup = fs.readFileSync(
+  new URL("../contributor/test-no-namespace.mjs", import.meta.url),
+  "utf8"
+);
+const subscriberSetup = fs.readFileSync(
+  new URL("../subscriber/setup.mjs", import.meta.url),
+  "utf8"
+);
+const packageVerifier = fs.readFileSync(
+  new URL("../release/verify-package-version.mjs", import.meta.url),
+  "utf8"
+);
+
+test("local scratch org defaults are short and can be selected explicitly", () => {
+  assert.match(contributorSetup, /durationDays: "7"/);
+  assert.match(contributorSetup, /token === "--duration-days"/);
+  assert.match(portableSetup, /durationDays: "1"/);
+  assert.match(portableSetup, /token === "--duration-days"/);
+  assert.match(subscriberSetup, /process\.env\.RHC_SCRATCH_DAYS \?\? "7"/);
+  assert.equal(
+    [...packageVerifier.matchAll(/"--duration-days",\s*"1"/g)].length,
+    2
+  );
+  assert.match(packageVerifier, /process\.once\("exit"/);
+  assert.match(packageVerifier, /for \(const \[signal, exitCode\]/);
+});
 
 test("every direct scratch creation explicitly selects the authenticated Dev Hub", () => {
   const creations = [...source.matchAll(/sf org create scratch[^\n]*/g)];
-  assert.equal(creations.length, 3);
+  assert.equal(creations.length, 2);
   for (const [command] of creations) {
     const broken = source.replace(
       command,
@@ -57,12 +87,21 @@ test("release workflows protect quota before starting fresh-org validation", () 
     assertReleaseQuotaPolicy(source, subscriber, workflows)
   );
   assert.doesNotMatch(source, /ANTHROPIC_API_KEY|check:ai-model-drafts/);
+  assert.doesNotMatch(source, /--no-namespace|portable-source-tests/);
+  assert.match(
+    source,
+    /check:scratch-capacity -- --dev-hub devhub --required 2/
+  );
+  for (const command of source.matchAll(/sf org create scratch[^\n]*/g)) {
+    assert.match(command[0], /--duration-days 1/);
+  }
+  assert.equal([...source.matchAll(/sf org delete scratch[^\n]*/g)].length, 2);
   for (const broken of [
     source.replace("on:\n", "on:\n  pull_request:\n"),
     source.replace("on:\n", "on:\n  repository_dispatch:\n"),
     source.replace("needs: offline-preflight", "needs: something-else"),
     source.replace(
-      "needs: [require-dev-hub-secret, portable-source-tests]",
+      "needs: [require-dev-hub-secret, package-source-tests]",
       "needs: require-dev-hub-secret"
     ),
     source.replace("max-parallel: 1", "max-parallel: 2"),

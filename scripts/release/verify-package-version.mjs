@@ -469,7 +469,7 @@ function main() {
     "--target-dev-hub",
     devHub,
     "--duration-days",
-    "30",
+    "1",
     "--no-namespace",
     "--wait",
     "30"
@@ -568,7 +568,7 @@ function runUpgradeGate(
     "--target-dev-hub",
     devHub,
     "--duration-days",
-    "30",
+    "1",
     "--no-namespace",
     "--wait",
     "30"

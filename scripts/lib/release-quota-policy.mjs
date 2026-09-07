@@ -71,12 +71,8 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
     "needs: require-dev-hub-secret"
   );
   requireText(
-    job(source, "portable-source-tests"),
-    "needs: [require-dev-hub-secret, package-source-tests]"
-  );
-  requireText(
     job(source, "locker-browser-tests"),
-    "needs: [require-dev-hub-secret, portable-source-tests]"
+    "needs: [require-dev-hub-secret, package-source-tests]"
   );
   requireText(
     job(subscriber, "offline-preflight"),

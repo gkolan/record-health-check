@@ -32,7 +32,7 @@ candidate's gate.
 | Stage | Required result | Failure behavior |
 | --- | --- | --- |
 | Pull request and committed source | Every tracked check in `.github/workflows/ci.yml` passes | Do not merge or call the source CI-ready |
-| Hosted source validation | Namespaced and no-namespace jobs pass for the exact commit | Do not create a package version |
+| Hosted source validation | Namespaced LWS and Locker jobs pass for the exact commit | Do not create a package version |
 | Package creation | Code coverage, artifact membership, version identity, and dependency checks pass | Do not publish a candidate for subscriber testing |
 | Clean subscriber installation | Exact candidate installs and all installed-surface gates pass | Do not promote |
 | Subscriber upgrade | Every reviewed base in `upgradeBases` upgrades to the exact candidate; customer-owned configuration survives; all installed-surface gates pass again | Do not promote |
@@ -47,18 +47,17 @@ diagnostic evidence, but it cannot replace the hosted jobs. Every required artif
 
 ## Salesforce environment matrix
 
-Source validation must cover all four combinations:
+Source validation uses the package's real namespace in both supported Lightning security modes:
 
 | Namespace topology | Lightning security mode | Browser engines |
 | --- | --- | --- |
 | `rhc` namespaced | Lightning Web Security | Chromium and Firefox |
 | `rhc` namespaced | Lightning Locker | Chromium and Firefox |
-| No namespace | Lightning Web Security | Chromium and Firefox |
-| No namespace | Lightning Locker | Chromium and Firefox |
 
 Each org must be newly created from the tracked scratch definition. The workflow records the org
 shape, deploy result, test result, and browser artifacts. Reusing an org is not evidence for the
-hosted release gate.
+hosted release gate. A no-namespace deployment of unpackaged source remains an optional contributor
+portability check; it is not another form of the released `rhc` package.
 
 ## Evaluation and entry-point matrix
 
@@ -77,7 +76,7 @@ The required entry points are:
 | Lightning Web Component, run on load | Initial shell remains quiet, deferred run completes, and no manual Run button is shown |
 | Apex API | Public Apex API returns all four evaluation types |
 | Flow | A real Flow interview invokes the packaged action and returns all four types |
-| REST/MCP | Authenticated REST request and MCP contract return all four types in both namespace shapes |
+| REST/MCP | Authenticated REST request and MCP contract return all four types through the namespaced package API |
 | Native Agentforce actions | The packaged Check Set action crosses the invocable boundary and accounts for every Check in the four-type set |
 | Platform Events | `ALL` publication emits one Check Result per executed Check and one Set Run event, and subscriber-owned triggers receive them |
 | Queueable | Job completes and its Check Set covers all four types |
@@ -100,7 +99,7 @@ reported `Invalid contextElement` failure, incomplete runs, and persistent spinn
 - RefreshView registration and refresh execution;
 - record-to-record navigation without a full browser reload;
 - component disconnect/reconnect without stale handlers or duplicate work;
-- LWS and Locker in both namespace shapes;
+- LWS and Locker with the package's `rhc` namespace;
 - Chromium and Firefox;
 - administrator and restricted-permission personas;
 - post-install and post-upgrade rendering.
@@ -125,15 +124,15 @@ a temporary directory outside the upload paths and is removed when the browser p
 
 ## Apex and server-side gates
 
-Both namespace shapes run two explicit, reconciled inventories: package-only tests before fixtures,
-then the final package-plus-integration identity set after the harness is deployed.
+The namespaced source org runs two explicit, reconciled inventories: package-only tests before
+fixtures, then the final package-plus-integration identity set after the harness is deployed.
 `npm run test:apex:exact` inventories every repository class with a real class-level `@IsTest`
 annotation, passes every discovered class explicitly to Salesforce, and reconciles the returned
 methods and class names against that inventory. A missing, unexpected, skipped, failing, or
 unreported class fails the gate.
 
-The raw Salesforce result and reconciliation verdict are kept for 90 days as four artifacts:
-namespaced package, namespaced full, no-namespace package, and no-namespace full. The 18 test
+The raw Salesforce result and reconciliation verdict are kept for 90 days as two artifacts:
+namespaced package and namespaced full. The 18 test
 identities intentionally overlaid by fixture-aware integration variants are pinned in
 `config/apex-test-overlays.json`; the package variant runs in the first phase and the integration
 variant runs in the second. Any new duplicate identity or missing side of an approved overlay fails
@@ -145,7 +144,7 @@ before Salesforce is called. The gate includes:
 - all public Apex entry points and invocable actions;
 - Queueable, Batch, Scheduled, REST, and platform-event behavior;
 - positive, negative, null, malformed, unauthorized, and partial-failure paths;
-- package namespace resolution and no-namespace portability;
+- package namespace resolution, with optional no-namespace portability available to contributors;
 - blocking Code Analyzer `AppExchange`, `Recommended:Security`, and every Flow Scanner rule for
   package, integration, and subscriber-harness source, plus an all-rules advisory report;
 - exact package test coverage, with no coverage bypass.
@@ -265,7 +264,8 @@ or fails an entry point is a failed release.
 The subscriber workflow runs three separate dispatch stages: `clean-install`, `upgrade-2.0.6.2`, and
 `upgrade-2.0.4.2`. Each creates two fresh orgs (LWS and Locker). All three stages must pass on the same
 commit and candidate. Only the unselected job's skip is expected. Together with source validation,
-this requires ten scratch-org creations; daily quotas may require more than one day. Shared workflow
+this requires eight scratch-org creations; daily quotas require the staged plan in the
+[scratch org lifecycle](./scratch-org-lifecycle.md). Shared workflow
 concurrency prevents release workflows from overlapping but does not reserve Dev Hub quota.
 
 Before promotion, complete the five representative-sandbox scenarios in the
@@ -310,5 +310,6 @@ it must not be done to make a failing candidate pass.
 
 - [Manual release-owner checklist](./manual-release-owner-checklist.md)
 - [Package testing and upgrades](./package-testing-and-upgrades.md)
+- [Scratch org lifecycle and release plan](./scratch-org-lifecycle.md)
 - [Platform conformance](./platform-conformance.md)
 - [Releasing](../../.github/RELEASING.md)

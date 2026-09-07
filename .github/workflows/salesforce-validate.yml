@@ -116,7 +116,7 @@ jobs:
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
       - name: Check release-matrix scratch-org capacity
         if: steps.credentials.outputs.available == 'true'
-        run: npm run check:scratch-capacity -- --dev-hub devhub --required 4
+        run: npm run check:scratch-capacity -- --dev-hub devhub --required 2
 
   package-source-tests:
     needs: require-dev-hub-secret
@@ -147,7 +147,7 @@ jobs:
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
       - name: Create namespaced package-source scratch org
         working-directory: packages/record-health-check
-        run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --target-dev-hub devhub --set-default --duration-days 30 --wait 15
+        run: sf org create scratch --definition-file config/project-scratch-def.json --alias rhc-ci --target-dev-hub devhub --set-default --duration-days 1 --wait 15
       - name: Dry-run production package deployment
         working-directory: packages/record-health-check
         # Check-only tests run before a newly validated Custom Permission is
@@ -241,122 +241,10 @@ jobs:
             echo "No rhc-ci scratch org authorization found; skipping cleanup"
           fi
 
-  portable-source-tests:
-    needs: [require-dev-hub-secret, package-source-tests]
-    if: needs.require-dev-hub-secret.outputs.available == 'true' && needs.package-source-tests.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      # Source gates already ran in offline-preflight; see package-source-tests.
-      - run: npm install --global @salesforce/cli@2.150.6
-      - run: npm run check:toolchain
-      - name: Authenticate Dev Hub
-        env:
-          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
-        run: |
-          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
-          trap 'rm -f "$auth_file"' EXIT
-          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
-          chmod 600 "$auth_file"
-          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Create clean no-namespace scratch org
-        working-directory: packages/record-health-check
-        run: sf org create scratch --definition-file ../../config/subscriber-scratch-def.json --alias rhc-ci-portable --target-dev-hub devhub --duration-days 30 --no-namespace --wait 15
-      - name: Dry-run portable production deployment
-        working-directory: packages/record-health-check
-        run: sf project deploy start --source-dir force-app --target-org rhc-ci-portable --test-level NoTestRun --dry-run --wait 30
-      - name: Deploy portable package source
-        working-directory: packages/record-health-check
-        run: |
-          sf project deploy start --source-dir force-app --target-org rhc-ci-portable --test-level NoTestRun --wait 30
-          sf org assign permset --name Record_Health_Check_Admin --target-org rhc-ci-portable
-      - name: Run every portable package-source Apex test
-        run: npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-package --scope package
-      - name: Upload no-namespace package-only Apex inventory evidence
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: apex-inventory-no-namespace-package
-          path: test-results/apex/no-namespace-package/
-          if-no-files-found: error
-          retention-days: 90
-      - name: Enforce portable-source Apex coverage class by class
-        run: npm run check:apex-coverage -- rhc-ci-portable --list
-      - name: Dry-run portable integration harness
-        working-directory: packages/record-health-check
-        run: |
-          source_args=()
-          while IFS= read -r -d '' directory; do
-            source_args+=(--source-dir "$directory")
-          done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
-          sf project deploy start "${source_args[@]}" --target-org rhc-ci-portable --test-level NoTestRun --dry-run --wait 30
-      - name: Deploy portable integration harness
-        working-directory: packages/record-health-check
-        run: |
-          source_args=()
-          while IFS= read -r -d '' directory; do
-            source_args+=(--source-dir "$directory")
-          done < <(find integration-tests/main/default -mindepth 1 -maxdepth 1 -type d ! -name testSuites -print0)
-          sf project deploy start "${source_args[@]}" --target-org rhc-ci-portable --test-level NoTestRun --wait 30
-      - name: Deploy no-namespace browser page
-        working-directory: packages/record-health-check
-        run: sf project deploy start --source-dir integration-tests/browser-fixtures/no-namespace/main/default/flexipages --target-org rhc-ci-portable --test-level NoTestRun --wait 30
-      - name: Activate no-namespace browser page
-        working-directory: packages/record-health-check
-        run: sf project deploy start --source-dir integration-tests/browser-fixtures/no-namespace/main/default/objects --target-org rhc-ci-portable --test-level NoTestRun --wait 30
-      - name: Assign portable integration harness permissions
-        run: sf org assign permset --name Record_Health_Check_Integration_Harness --target-org rhc-ci-portable
-      - name: Install release browser engines
-        run: npx playwright install --with-deps chromium firefox
-      - name: Exercise portable LWC manual and on-load behavior under LWS
-        run: npm run test:browser:salesforce -- --target-org rhc-ci-portable --security-mode LWS
-      - name: Upload no-namespace LWS browser evidence
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: browser-evidence-no-namespace-lws
-          path: |
-            playwright-report/
-            test-results/browser/
-          if-no-files-found: error
-          retention-days: 90
-      - name: Verify portable live MCP-to-Apex REST contract
-        run: npm run contract:org --prefix packages/record-health-check-mcp -- --target-org rhc-ci-portable --namespace ""
-      - name: Run and reconcile every no-namespace source Apex test
-        run: npm run test:apex:exact -- --target-org rhc-ci-portable --topology no-namespace-full --scope full
-      - name: Upload no-namespace Apex inventory evidence
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: apex-inventory-no-namespace-full
-          path: test-results/apex/no-namespace-full/
-          if-no-files-found: error
-          retention-days: 90
-      - name: Re-enforce portable Apex coverage after integration deployment
-        run: npm run check:apex-coverage -- rhc-ci-portable --list
-      - name: Delete no-namespace scratch org
-        if: always()
-        continue-on-error: true
-        run: |
-          if ! command -v sf >/dev/null 2>&1; then
-            echo "sf CLI was never installed; skipping scratch org cleanup"
-            exit 0
-          fi
-          if sf org display --target-org rhc-ci-portable >/dev/null 2>&1; then
-            sf org delete scratch --target-org rhc-ci-portable --no-prompt
-          else
-            echo "No rhc-ci-portable scratch org authorization found; skipping cleanup"
-          fi
-
   locker-browser-tests:
     name: locker-browser-tests (${{ matrix.topology }})
-    needs: [require-dev-hub-secret, portable-source-tests]
-    if: needs.require-dev-hub-secret.outputs.available == 'true' && needs.portable-source-tests.result == 'success'
+    needs: [require-dev-hub-secret, package-source-tests]
+    if: needs.require-dev-hub-secret.outputs.available == 'true' && needs.package-source-tests.result == 'success'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -367,10 +255,6 @@ jobs:
             alias: rhc-ci-locker-ns
             no_namespace: false
             browser_fixture: namespaced
-          - topology: no-namespace
-            alias: rhc-ci-locker-portable
-            no_namespace: true
-            browser_fixture: no-namespace
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -392,14 +276,9 @@ jobs:
       - name: Create ${{ matrix.topology }} Lightning Locker org
         working-directory: packages/record-health-check
         env:
-          NO_NAMESPACE: ${{ matrix.no_namespace }}
           ORG_ALIAS: ${{ matrix.alias }}
         run: |
-          extra_args=()
-          if [ "$NO_NAMESPACE" = "true" ]; then
-            extra_args+=(--no-namespace)
-          fi
-          sf org create scratch --definition-file ../../config/locker-scratch-def.json --alias "$ORG_ALIAS" --target-dev-hub devhub --duration-days 1 --wait 15 "${extra_args[@]}"
+          sf org create scratch --definition-file ../../config/locker-scratch-def.json --alias "$ORG_ALIAS" --target-dev-hub devhub --duration-days 1 --wait 15
       - name: Deploy production package source
         working-directory: packages/record-health-check
         run: sf project deploy start --source-dir force-app --target-org "${{ matrix.alias }}" --test-level NoTestRun --wait 30

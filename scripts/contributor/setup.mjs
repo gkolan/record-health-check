@@ -11,7 +11,7 @@ function parseArgs(argv) {
   const options = {
     alias: process.env.RHC_DEV_ALIAS ?? "rhc-dev",
     devHub: process.env.DEV_HUB_ALIAS ?? "",
-    durationDays: "30"
+    durationDays: "7"
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -21,6 +21,9 @@ function parseArgs(argv) {
       index += 1;
     } else if (token === "--dev-hub") {
       options.devHub = argv[index + 1];
+      index += 1;
+    } else if (token === "--duration-days") {
+      options.durationDays = argv[index + 1];
       index += 1;
     }
   }
@@ -52,6 +55,13 @@ function main() {
   }
 
   ensureAliasAvailable(options.alias);
+  const durationDays = Number.parseInt(options.durationDays, 10);
+  if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 7) {
+    console.error(
+      "Contributor scratch-org duration must be between 1 and 7 days."
+    );
+    process.exit(1);
+  }
   assertScratchCapacity(options.devHub);
 
   console.log(
@@ -81,7 +91,7 @@ function main() {
       "--target-dev-hub",
       options.devHub,
       "--duration-days",
-      options.durationDays,
+      String(durationDays),
       "--wait",
       "30"
     ],

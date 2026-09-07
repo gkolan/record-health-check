@@ -55,7 +55,7 @@ test("green workflow alone is insufficient without every job and artifact", () =
 });
 
 test("source and each subscriber stage require their own evidence", () => {
-  assert.equal(hostedEvidenceContract().jobs.length, 6);
+  assert.equal(hostedEvidenceContract().jobs.length, 4);
   assert.equal(hostedEvidenceContract("04t", "clean-install").jobs.length, 4);
   assert.equal(
     hostedEvidenceContract("04t", "upgrade-2.0.4.2").artifacts.length,

@@ -87,14 +87,20 @@ package test utility, not a public extension point.
 
 ## For package contributors
 
-### Why two Salesforce org shapes are tested
+### Namespace coverage
 
-The source must compile and work in both forms:
+The released 2GP artifact always uses the `rhc` namespace. Blocking source validation therefore
+uses namespaced orgs for both Lightning Web Security and Lightning Locker. The candidate is then
+installed into ordinary subscriber orgs that have no namespace of their own; the installed package
+still uses `rhc`.
+
+An unpackaged no-namespace source deployment is retained as an optional contributor portability
+check:
 
 | Test org | What it proves |
 | --- | --- |
 | Namespaced `rhc` scratch org | Package source compiles when Salesforce applies the package namespace |
-| No-namespace scratch org | The same source remains portable for the repository's no-namespace verification gate |
+| No-namespace scratch org | Optional proof that unpackaged repository source remains portable; this is not a second package shape |
 
 Never build a Qualified API Name by adding `rhc__`. Tests query Salesforce for
 `QualifiedApiName`, and Apex uses schema describe results when an object or field name can differ by
@@ -110,7 +116,7 @@ For each proposed version, maintainers must:
 
 1. Run the repository release preflight on the exact committed source.
 2. Prove the source in a namespaced scratch org.
-3. Prove the source in a clean no-namespace scratch org.
+3. Prove browser behavior in a second namespaced source org with Lightning Locker.
 4. Confirm Dev Hub scratch-org and package-version capacity.
 5. Create one package candidate with code coverage enabled.
 6. Retrieve the package artifact and confirm that every Custom Metadata member has a physical file.
@@ -129,6 +135,10 @@ package artifact contains every intended file.
 
 See [Releasing](../../.github/RELEASING.md) for commands, required evidence, and scratch-org
 cleanup rules.
+
+The authoritative org purposes, lifetimes, ownership rules, daily creation budget, human demo
+path, and orphan-recovery procedure are in the
+[scratch org lifecycle and release plan](./scratch-org-lifecycle.md).
 
 The complete fail-closed environment, entry-point, lifecycle, server-side, upgrade, and evidence
 requirements are defined in the [Release runtime matrix](./release-runtime-matrix.md). That matrix

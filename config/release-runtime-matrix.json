@@ -10,7 +10,7 @@
     { "version": "2.0.4.2", "subscriberPackageVersionId": "04tak000000cZBFAA2" }
   ],
   "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
-  "sourceTopologies": ["namespaced", "no-namespace"],
+  "sourceTopologies": ["namespaced"],
   "lightningSecurityModes": ["LWS", "Locker"],
   "browserEngines": ["chromium", "firefox"],
   "allTypeCheckSet": "Example_Account_Check_Builder_Guide",
@@ -34,8 +34,7 @@
       "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
       "evidence": [
         "tests/browser/release-matrix.spec.mjs",
-        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
-        "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
+        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
       ]
     },
     {
@@ -43,8 +42,7 @@
       "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
       "evidence": [
         "tests/browser/release-matrix.spec.mjs",
-        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml",
-        "packages/record-health-check/integration-tests/browser-fixtures/no-namespace/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
+        "packages/record-health-check/integration-tests/browser-fixtures/namespaced/main/default/flexipages/RHCReleaseMatrixRecordPage.flexipage-meta.xml"
       ]
     },
     {

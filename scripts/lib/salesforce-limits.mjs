@@ -8,6 +8,18 @@ function requiredLimit(records, name) {
   return limit;
 }
 
+export function formatScratchCapacity(devHub, active, daily) {
+  const activeUsed = active.max - active.remaining;
+  const dailyUsed = daily.max - daily.remaining;
+  return (
+    `Scratch-org capacity on ${devHub}: ` +
+    `${activeUsed} of ${active.max} active orgs are in use; ` +
+    `${active.remaining} active slots are available. ` +
+    `Today, ${dailyUsed} of ${daily.max} creations have been used; ` +
+    `${daily.remaining} creations are available.`
+  );
+}
+
 export function assertScratchCapacity(devHub, required = 1) {
   const payload = runJson("sf", [
     "limits",
@@ -19,24 +31,17 @@ export function assertScratchCapacity(devHub, required = 1) {
   const records = payload.result ?? [];
   const active = requiredLimit(records, "ActiveScratchOrgs");
   const daily = requiredLimit(records, "DailyScratchOrgs");
+  const capacity = formatScratchCapacity(devHub, active, daily);
 
   if (active.remaining < required || daily.remaining < required) {
-    console.error(
-      `Scratch-org capacity is insufficient on ${devHub}: ` +
-        `${active.remaining}/${active.max} active slots and ` +
-        `${daily.remaining}/${daily.max} daily creates remain; ${required} required.`
-    );
+    console.error(`${capacity} This stage requires ${required} fresh orgs.`);
     console.error(
       "Reuse or delete an existing project org when appropriate, or wait for the daily limit to reset."
     );
     process.exit(1);
   }
 
-  console.log(
-    `Scratch-org capacity confirmed on ${devHub}: ` +
-      `${active.remaining}/${active.max} active slots and ` +
-      `${daily.remaining}/${daily.max} daily creates remain.`
-  );
+  console.log(`${capacity} This stage requires ${required} fresh orgs.`);
 }
 
 export function assertPackageVersionCapacity(devHub) {

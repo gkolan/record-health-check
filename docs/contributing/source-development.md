@@ -52,7 +52,7 @@ npm run dev:setup -- --dev-hub my-dev-hub --alias rhc-dev
 ```
 
 Before creating the org, the command confirms that the Dev Hub has both an available active scratch
-org and an available scratch-org creation for the day. It then creates a 30-day scratch org. The
+org and an available scratch-org creation for the day. It then creates a seven-day scratch org. The
 command refuses to overwrite an existing alias, so choose a new alias when `rhc-dev` already
 exists.
 
@@ -112,12 +112,11 @@ npm run demo:verify-source -- --alias rhc-dev
 See [readiness scenarios and cleanup](../install/install-demo-in-a-scratch-org.md#readiness-scenarios)
 for the expected results, record markers, and safe removal order.
 
-## Step 3: Prove portable (no-namespace) source deploy
+## Optional: Prove portable no-namespace source deployment
 
-Before opening a pull request that changes package Apex, also prove that the same `force-app`
-deploys into a scratch org with **no** namespace. The command checks Dev Hub capacity, creates a
-30-day org, deploys the package source, and runs local Apex tests. This catches source that
-incorrectly assumes the `rhc` namespace is always present.
+Use this contributor check when you deliberately support unpackaged source outside the `rhc`
+package. It deploys the same `force-app` into a one-day scratch org with no namespace and runs local
+Apex tests. It is not a blocking 2GP release shape because the released package always uses `rhc`.
 
 ```bash
 npm run dev:test-no-namespace -- --dev-hub my-dev-hub --alias rhc-portable

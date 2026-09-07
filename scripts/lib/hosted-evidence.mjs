@@ -5,20 +5,14 @@ export function hostedEvidenceContract(candidate = "", stage = "") {
         "offline-preflight",
         "require-dev-hub-secret",
         "package-source-tests",
-        "portable-source-tests",
-        "locker-browser-tests (namespaced)",
-        "locker-browser-tests (no-namespace)"
+        "locker-browser-tests (namespaced)"
       ],
       artifacts: [
         "code-analyzer-evidence",
         "apex-inventory-namespaced-package",
         "apex-inventory-namespaced-full",
-        "apex-inventory-no-namespace-package",
-        "apex-inventory-no-namespace-full",
         "browser-evidence-namespaced-lws",
-        "browser-evidence-no-namespace-lws",
-        "browser-evidence-namespaced-locker",
-        "browser-evidence-no-namespace-locker"
+        "browser-evidence-namespaced-locker"
       ]
     };
   const clean = stage === "clean-install";

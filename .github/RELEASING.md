@@ -46,12 +46,12 @@ Before creating a release candidate:
    not require a third-party model credential.
 2. Run Code Analyzer and resolve every unsuppressed release finding.
 3. Run the package-source org gate in CI (`salesforce-validate.yml`).
-4. After both namespaced and no-namespace source tests complete, run
-   `npm run check:apex-coverage -- <org-alias>` for each org and retain the lower Framework result.
-   Run `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
-   `npm run check:quality-metrics -- --apex-org <org-alias>` against both orgs. The gate treats the
-   published Apex value as the conservative cross-shape floor: both orgs must meet or exceed it.
-   Published coverage must describe the candidate being released, not a prior package.
+4. After the namespaced source tests complete, run
+   `npm run check:apex-coverage -- <org-alias>` and retain the Framework result. Run
+   `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
+   `npm run check:quality-metrics -- --apex-org <org-alias>`. Published coverage must describe the
+   candidate being released, not a prior package. A no-namespace source run can provide additional
+   contributor evidence, but it is not another released package shape.
 
 After creating the single candidate and before promotion:
 
@@ -67,8 +67,8 @@ Before any Salesforce operation, run `npm run check:toolchain`. Before creating 
 package candidate, the repository scripts check the Dev Hub limits and stop rather
 than consume the last required capacity. Package verification deletes only the orgs it created; use
 `--keep-org` solely for an intentional, time-bounded investigation and delete that org afterward.
-See [source development](../docs/contributing/source-development.md) for the public contributor workflow and
-scratch-org lifecycle checks.
+See the [scratch org lifecycle and release plan](../docs/quality-gates/scratch-org-lifecycle.md)
+for the approved org set, daily creation budget, reuse rules, demo verification, and cleanup.
 
 ## Create a package candidate
 
