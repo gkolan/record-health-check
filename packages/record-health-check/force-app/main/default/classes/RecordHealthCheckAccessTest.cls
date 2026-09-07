@@ -68,4 +68,34 @@ private class RecordHealthCheckAccessTest {
       Test.stopTest();
     }
   }
+
+  @IsTest
+  static void derivesPackageIdentityInBothDeploymentTopologies() {
+    Assert.isNull(
+      RecordHealthCheckAccess.packageNamespaceForTypeName(
+        'Record_Health_Check__mdt'
+      ),
+      'Unpackaged metadata has no namespace.'
+    );
+    Assert.areEqual(
+      'rhc',
+      RecordHealthCheckAccess.packageNamespaceForTypeName(
+        'rhc__Record_Health_Check__mdt'
+      ),
+      'Packaged metadata must authorize only this package namespace.'
+    );
+  }
+
+  @IsTest
+  static void inabilityToReadAssignmentsFailsClosed() {
+    RecordHealthCheckAccess.diagnosticsQueryExceptionForTest = true;
+    try {
+      Assert.isFalse(
+        RecordHealthCheckAccess.canViewDetails(),
+        'A Setup metadata query failure must never reveal diagnostics.'
+      );
+    } finally {
+      RecordHealthCheckAccess.diagnosticsQueryExceptionForTest = null;
+    }
+  }
 }

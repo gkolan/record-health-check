@@ -13,6 +13,11 @@
  * a sentence with a hole in it, or worse, a plausible wrong number.
  */
 public with sharing class RecordHealthCheckQueryTokenRules {
+  @TestVisible
+  // Classic encrypted fields are customer-created, so package-only orgs need a
+  // describe-type seam to exercise the rule without shipping artificial schema.
+  private static Schema.DisplayType fieldTypeOverrideForTest;
+
   /**
    * Checks every {!rhcQuery...} token in a Check against the query it addresses.
    *
@@ -296,8 +301,10 @@ public with sharing class RecordHealthCheckQueryTokenRules {
     if (objectType == null) {
       return null;
     }
-    Schema.DisplayType fieldType = new RecordHealthCheckFieldPlanner()
-      .resolvedDisplayType(objectType, shape.fieldPath);
+    Schema.DisplayType fieldType = fieldTypeOverrideForTest == null
+      ? new RecordHealthCheckFieldPlanner()
+          .resolvedDisplayType(objectType, shape.fieldPath)
+      : fieldTypeOverrideForTest;
     if (fieldType != Schema.DisplayType.ENCRYPTEDSTRING) {
       return null;
     }

@@ -151,6 +151,48 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
   }
 
   @IsTest
+  static void readsScalarUnitsAndRejectsMissingScalarEvidence() {
+    RecordHealthCheckDisplayCurrencyResolver.multiCurrency = true;
+    RecordHealthCheckCurrencySupport.scalarUnitFieldPathOverrideForTest = 'Name';
+    try {
+      Account usd = RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{ 'Name' => 'USD', 'AnnualRevenue' => 10 }
+      );
+      RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+        'SELECT AnnualRevenue, CurrencyIsoCode FROM Account',
+        'AnnualRevenue',
+        new List<SObject>{ usd },
+        null,
+        null,
+        null,
+        'USD'
+      );
+
+      try {
+        RecordHealthCheckCurrencySupport.requireCompatibleQueryUnits(
+          'SELECT AnnualRevenue FROM Account',
+          'AnnualRevenue',
+          new List<SObject>{
+            RecordHealthCheckTestDataFactory.account(
+              new Map<String, Object>{ 'AnnualRevenue' => 10 }
+            )
+          },
+          null,
+          null,
+          null,
+          null
+        );
+        Assert.fail('A scalar Currency row without its ISO unit must fail.');
+      } catch (RecordHealthCheckEvaluatorException expected) {
+        Assert.areEqual('CURRENCY_UNIT_UNKNOWN', expected.reasonCode);
+      }
+    } finally {
+      RecordHealthCheckCurrencySupport.scalarUnitFieldPathOverrideForTest = null;
+      RecordHealthCheckDisplayCurrencyResolver.multiCurrency = null;
+    }
+  }
+
+  @IsTest
   static void readsInMemoryAggregateAndRelationshipEvidence() {
     AggregateResult aggregateRow = [
       SELECT MAX(LocaleSidKey) CurrencyIsoCode
@@ -234,10 +276,13 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
     child.putSObject('Parent', parent);
     Assert.areEqual(
       'Parent evidence',
-      RecordHealthCheckCurrencySupport.readPath(child, 'Parent.Name')
+      RecordHealthCheckValueResolver.valueAtFieldPath(child, 'Parent.Name')
     );
     Assert.isNull(
-      RecordHealthCheckCurrencySupport.readPath(child, 'Parent.Parent.Name')
+      RecordHealthCheckValueResolver.valueAtFieldPath(
+        child,
+        'Parent.Parent.Name'
+      )
     );
     Assert.isNull(
       RecordHealthCheckCurrencySupport.currencyIsoFieldPath(

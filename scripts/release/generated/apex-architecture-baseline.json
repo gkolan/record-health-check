@@ -32,8 +32,8 @@
   },
   "testVisible": {
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAccess.cls": {
-      "maximum": 2,
-      "category": "authorization test-only access"
+      "maximum": 3,
+      "category": "authorization and deployment-topology test-only access"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckCompareQueriesEvaluator.cls": {
       "maximum": 3,
@@ -57,7 +57,7 @@
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckCurrencySupport.cls": {
       "maximum": 2,
-      "category": "cross-shape currency evidence test-only access"
+      "category": "cross-shape and org-topology currency evidence test-only access"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFieldPlanner.cls": {
       "maximum": 2,
@@ -148,8 +148,8 @@
       "category": "scratch-org test-only access"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckQueryTokenRules.cls": {
-      "maximum": 1,
-      "category": "Testability: the multi-currency condition is passed in so the rule can be proved on both sides of it in any org."
+      "maximum": 2,
+      "category": "Testability: multi-currency and encrypted-field rules are proved in every org topology."
     }
   },
   "testRuntimeBranches": {},

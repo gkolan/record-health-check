@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RecordHealthCheckCurrencySupport {
+  @TestVisible
+  // Lets every org topology prove scalar-unit handling even when the platform
+  // omits CurrencyIsoCode entirely from a single-currency org's Account schema.
+  private static String scalarUnitFieldPathOverrideForTest;
+
   private static final Pattern CURRENCY_AGGREGATE_PATTERN = Pattern.compile(
     '(?is)\\b(?:SUM|AVG|MIN|MAX)\\s*\\(\\s*([A-Za-z0-9_.]+)\\s*\\)'
   );
@@ -231,7 +236,12 @@ public with sharing class RecordHealthCheckCurrencySupport {
     for (SObject row : rows) {
       Object unit = RecordHealthCheckSoqlTemplate.isAggregateQuery(query)
         ? aggregateCurrencyUnit(query, row)
-        : readPath(row, isoFieldPath(fieldPath));
+        : readPath(
+            row,
+            scalarUnitFieldPathOverrideForTest == null
+              ? isoFieldPath(fieldPath)
+              : scalarUnitFieldPathOverrideForTest
+          );
       String isoCode = unit == null ? null : String.valueOf(unit);
       if (String.isNotBlank(isoCode)) {
         isoCodes.add(isoCode.trim().toUpperCase());
@@ -268,7 +278,11 @@ public with sharing class RecordHealthCheckCurrencySupport {
     ) {
       return false;
     }
-    String unitFieldPath = aggregateQuery ? null : isoFieldPath(fieldPath);
+    String unitFieldPath = aggregateQuery
+      ? null
+      : scalarUnitFieldPathOverrideForTest == null
+          ? isoFieldPath(fieldPath)
+          : scalarUnitFieldPathOverrideForTest;
     for (SObject row : rows) {
       if (
         (aggregateQuery
@@ -416,7 +430,6 @@ public with sharing class RecordHealthCheckCurrencySupport {
     return false;
   }
 
-  @TestVisible
   private static Object readPath(SObject row, String fieldPath) {
     return RecordHealthCheckValueResolver.valueAtFieldPath(row, fieldPath);
   }

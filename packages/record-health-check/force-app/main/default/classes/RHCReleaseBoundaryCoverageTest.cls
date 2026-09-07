@@ -1,6 +1,39 @@
 /** Focused portable coverage for release-blocking defensive boundaries. */
 @IsTest
 private with sharing class RHCReleaseBoundaryCoverageTest {
+  @IsTest
+  static void preservesTypedMachineOperandsAcrossFlowBoundaries() {
+    RecordHealthCheckValue fallback = RecordHealthCheckQueryEvaluatorSupport.machineValue(
+      null,
+      false,
+      'card text'
+    );
+    Assert.areEqual(RecordHealthCheckValue.TYPE_STRING, fallback.dataType);
+    Assert.areEqual('card text', fallback.storedValue);
+
+    RecordHealthCheckValue booleanValue = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      true
+    );
+    Assert.areEqual(RecordHealthCheckValue.TYPE_BOOLEAN, booleanValue.dataType);
+    Assert.areEqual('true', booleanValue.storedValue);
+
+    RecordHealthCheckValue integerValue = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      7
+    );
+    Assert.areEqual(RecordHealthCheckValue.TYPE_NUMBER, integerValue.dataType);
+    Assert.areEqual('7', integerValue.storedValue);
+
+    Id accountId = RecordHealthCheckTestDataFactory.accountFixture(
+        'Typed operand'
+      )
+      .Id;
+    RecordHealthCheckValue idValue = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
+      accountId
+    );
+    Assert.areEqual(RecordHealthCheckValue.TYPE_ID, idValue.dataType);
+    Assert.areEqual(String.valueOf(accountId), idValue.storedValue);
+  }
+
   @TestSetup
   static void setupRunPermission() {
     RecordHealthCheckTestDataFactory.assignRunPermissionToCurrentUser();

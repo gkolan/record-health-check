@@ -411,6 +411,29 @@ private class RecordHealthCheckQueryTokenRulesTest {
   }
 
   @IsTest
+  static void refusesEncryptedFieldsInEveryOrgTopology() {
+    RecordHealthCheckQueryTokenRules.fieldTypeOverrideForTest = Schema.DisplayType.ENCRYPTEDSTRING;
+    try {
+      RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(
+        check(
+          'SELECT Id, Name FROM Account ORDER BY Id',
+          '{!rhcQuery.sourceRows[0].Name}'
+        )
+      );
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.FIELD_TYPE_NOT_SUPPORTED,
+        issue?.reasonCode
+      );
+      Assert.isTrue(
+        issue.message.contains('encrypted field'),
+        'The author receives a specific, actionable safety explanation.'
+      );
+    } finally {
+      RecordHealthCheckQueryTokenRules.fieldTypeOverrideForTest = null;
+    }
+  }
+
+  @IsTest
   static void toleratesAQueryWhoseObjectCannotBeResolved() {
     // A root object the describe cache cannot resolve leaves the type-based
     // rules with nothing to inspect. They decline rather than throw, and do not

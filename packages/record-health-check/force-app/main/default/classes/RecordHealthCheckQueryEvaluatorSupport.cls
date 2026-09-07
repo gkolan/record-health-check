@@ -88,9 +88,6 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
     if (raw instanceof Decimal) {
       return RecordHealthCheckValue.ofNumber((Decimal) raw);
     }
-    if (raw instanceof Integer) {
-      return RecordHealthCheckValue.ofNumber((Integer) raw);
-    }
     if (raw instanceof Date) {
       return RecordHealthCheckValue.ofDate((Date) raw);
     }

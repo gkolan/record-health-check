@@ -6,7 +6,10 @@
 /** Central authorization checks for privileged Record Health Check features. */
 public with sharing class RecordHealthCheckAccess {
   @TestVisible
-  private static Boolean runPermissionOverride;
+  // The second value proves the fail-closed QueryException path without relying
+  // on an org-specific Setup-object failure that Apex tests cannot manufacture.
+  private static Boolean runPermissionOverride,
+    diagnosticsQueryExceptionForTest;
 
   private static Map<Id, Boolean> detailsByUser = new Map<Id, Boolean>();
 
@@ -65,14 +68,15 @@ public with sharing class RecordHealthCheckAccess {
         SObjectDescribeOptions.DEFERRED
       )
       .getName();
-    String packageNamespace = typeName == 'Record_Health_Check__mdt'
-      ? null
-      : typeName.substringBefore('__');
+    String packageNamespace = packageNamespaceForTypeName(typeName);
     Set<String> names = new Set<String>{
       'Record_Health_Check_Admin',
       'Record_Health_Check_Diagnostics_Viewer'
     };
     try {
+      if (diagnosticsQueryExceptionForTest == true) {
+        throw new QueryException('Forced diagnostics authorization failure.');
+      }
       return ![
           SELECT Id
           FROM PermissionSetAssignment
@@ -91,5 +95,13 @@ public with sharing class RecordHealthCheckAccess {
       // Inability to verify an assignment must never disclose restricted detail.
       return false;
     }
+  }
+
+  /** Keeps package and unpackaged authorization on the same implementation. */
+  @TestVisible
+  private static String packageNamespaceForTypeName(String typeName) {
+    return typeName == 'Record_Health_Check__mdt'
+      ? null
+      : typeName.substringBefore('__');
   }
 }
