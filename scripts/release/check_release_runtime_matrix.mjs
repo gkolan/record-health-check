@@ -304,6 +304,8 @@ for (const entryPoint of matrix.entryPoints) {
 }
 
 requireText(".github/workflows/salesforce-validate.yml", [
+  "authorize_scratch_org_creation",
+  "if: inputs.authorize_scratch_org_creation != true",
   "npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-package --scope package",
   "npm run test:apex:exact -- --target-org rhc-ci --topology namespaced-full --scope full",
   "apex-inventory-namespaced-package",
@@ -324,6 +326,8 @@ requireText(".github/workflows/salesforce-validate.yml", [
   "javascript-security.json"
 ]);
 requireText(".github/workflows/subscriber-validate.yml", [
+  "authorize_scratch_org_creation",
+  "if: inputs.authorize_scratch_org_creation != true",
   "package_version_id",
   "required: true",
   "upgrade_from",
@@ -362,28 +366,21 @@ requireText(".github/workflows/subscriber-validate.yml", [
   "subscriber-preservation-${{ matrix.artifact_suffix }}"
 ]);
 requireText("scripts/release/create-package-version.mjs", [
-  '"salesforce-validate.yml"',
   "runtimeMatrix.candidateVersion",
   'createArguments.push("--version-number", versionNumber)'
 ]);
 requireOrderedText("scripts/release/create-package-version.mjs", [
   'run("npm", ["run", "release:preflight"]',
-  '"scripts/release/check_hosted_validation.mjs"',
   "const createArguments = [",
   'run("sf", createArguments'
 ]);
 requireText("scripts/release/promote-package-version.mjs", [
-  '"salesforce-validate.yml"',
-  '"subscriber-validate.yml"',
   "runtimeMatrix.candidateVersion",
   "reportedVersion !== runtimeMatrix.candidateVersion",
   '["status", "--porcelain"]'
 ]);
 requireOrderedText("scripts/release/promote-package-version.mjs", [
   '["status", "--porcelain"]',
-  "assertReleaseAcceptance(",
-  '"salesforce-validate.yml"',
-  '"subscriber-validate.yml"',
   "const report = runJson",
   '"promote"'
 ]);

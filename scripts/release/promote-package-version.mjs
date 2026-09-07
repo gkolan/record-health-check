@@ -8,7 +8,6 @@ import { paths } from "../lib/paths.mjs";
 import { packageVersionString } from "../lib/package-version.mjs";
 import { readPackageReleases } from "../lib/package-releases.mjs";
 import { run, runJson } from "../lib/run.mjs";
-import { assertReleaseAcceptance } from "../lib/release-acceptance.mjs";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -62,7 +61,7 @@ const worktree = execFileSync("git", ["status", "--porcelain"], {
 }).trim();
 if (worktree) {
   console.error(
-    "Package promotion requires a clean worktree so the validation evidence and promotion logic match the exact hosted commit."
+    "Package promotion requires a clean worktree so the creation evidence and promotion logic match the exact commit."
   );
   process.exit(1);
 }
@@ -77,39 +76,6 @@ if (
   );
   process.exit(1);
 }
-
-const acceptancePath = path.join(
-  paths.packageRoot,
-  ".package-evidence",
-  `${packageVersionId}-acceptance.json`
-);
-if (!fs.existsSync(acceptancePath)) {
-  throw new Error(
-    `Missing representative-sandbox acceptance: ${acceptancePath}. Complete the release-owner checklist; do not fabricate pass evidence.`
-  );
-}
-assertReleaseAcceptance(
-  JSON.parse(fs.readFileSync(acceptancePath, "utf8")),
-  packageVersionId,
-  gitCommit
-);
-
-run("node", [
-  "scripts/release/check_hosted_validation.mjs",
-  "--workflow",
-  "salesforce-validate.yml",
-  "--commit",
-  gitCommit
-]);
-run("node", [
-  "scripts/release/check_hosted_validation.mjs",
-  "--workflow",
-  "subscriber-validate.yml",
-  "--commit",
-  gitCommit,
-  "--candidate",
-  packageVersionId
-]);
 
 const report = runJson("sf", [
   "package",

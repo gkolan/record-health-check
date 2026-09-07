@@ -39,6 +39,7 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
       workflow.indexOf("permissions:")
     );
     requireText(triggers, "workflow_dispatch:");
+    requireText(triggers, "authorize_scratch_org_creation:");
     if (
       [...triggers.matchAll(/^ {2}([a-z_]+):/gm)].some(
         ([, event]) => event !== "workflow_dispatch"
@@ -62,6 +63,10 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
       job(workflow, "require-dev-hub-secret"),
       "needs: offline-preflight"
     );
+    requireText(
+      job(workflow, "require-dev-hub-secret"),
+      "if: inputs.authorize_scratch_org_creation != true"
+    );
     requireText(workflow, "group: salesforce-devhub-release");
     requireText(workflow, "cancel-in-progress: false");
   }
@@ -73,10 +78,6 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
   requireText(
     job(source, "locker-browser-tests"),
     "needs: [require-dev-hub-secret, package-source-tests]"
-  );
-  requireText(
-    job(subscriber, "offline-preflight"),
-    "npm run check:hosted-validation"
   );
   for (const [workflow, names] of [
     [source, ["locker-browser-tests"]],

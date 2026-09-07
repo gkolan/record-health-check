@@ -52,6 +52,6 @@ if (values.only) {
   console.log(
     environment === "ci"
       ? `\nAll ${gates.length} source gates passed.`
-      : "\nLocal release preflight passed. Package creation still requires exact-commit hosted Salesforce validation."
+      : "\nLocal release preflight passed. Package creation is ready when the release owner approves it."
   );
 }

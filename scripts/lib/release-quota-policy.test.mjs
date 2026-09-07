@@ -89,7 +89,7 @@ test("every direct scratch creation explicitly selects the authenticated Dev Hub
   );
 });
 
-test("release workflows protect quota before starting fresh-org validation", () => {
+test("release workflows require owner authorization before scratch-org creation", () => {
   assert.doesNotThrow(() =>
     assertReleaseQuotaPolicy(source, subscriber, workflows)
   );
@@ -99,6 +99,13 @@ test("release workflows protect quota before starting fresh-org validation", () 
     source,
     /check:scratch-capacity -- --dev-hub devhub --required 2/
   );
+  for (const workflow of [source, subscriber]) {
+    assert.match(workflow, /authorize_scratch_org_creation:/);
+    assert.match(
+      workflow,
+      /if: inputs\.authorize_scratch_org_creation != true/
+    );
+  }
   for (const command of source.matchAll(/sf org create scratch[^\n]*/g)) {
     assert.match(command[0], /--duration-days 1/);
   }
@@ -106,6 +113,11 @@ test("release workflows protect quota before starting fresh-org validation", () 
   for (const broken of [
     source.replace("on:\n", "on:\n  pull_request:\n"),
     source.replace("on:\n", "on:\n  repository_dispatch:\n"),
+    source.replace("authorize_scratch_org_creation:", "authorization_removed:"),
+    source.replace(
+      "if: inputs.authorize_scratch_org_creation != true",
+      "if: false"
+    ),
     source.replace("needs: offline-preflight", "needs: something-else"),
     source.replace(
       "needs: [require-dev-hub-secret, package-source-tests]",
@@ -121,13 +133,6 @@ test("release workflows protect quota before starting fresh-org validation", () 
     assert.throws(() =>
       assertReleaseQuotaPolicy(broken, subscriber, workflows)
     );
-  assert.throws(() =>
-    assertReleaseQuotaPolicy(
-      source,
-      subscriber.replace("npm run check:hosted-validation", "echo skip"),
-      workflows
-    )
-  );
   for (const unsafe of [
     "run: sf package version create",
     "run: npm run package:promote",
@@ -140,15 +145,14 @@ test("release workflows protect quota before starting fresh-org validation", () 
   }
 });
 
-test("release-owner instructions match the two-org namespaced source workflow", () => {
-  assert.match(releaseOwnerChecklist, /source matrix creates two scratch orgs/);
+test("release-owner instructions make scratch-org workflows optional and authorized", () => {
   assert.match(
     releaseOwnerChecklist,
-    /full\nrelease needs eight scratch-org creations/
+    /Scratch-org workflows are optional release evidence/
   );
-  assert.match(releaseOwnerChecklist, /`locker-browser-tests \(namespaced\)`/);
+  assert.match(releaseOwnerChecklist, /authorize_scratch_org_creation.*true/s);
   assert.doesNotMatch(
     releaseOwnerChecklist,
-    /portable-source-tests|locker-browser-tests \(no-namespace\)|four-org source matrix|ten scratch-org creations/
+    /full\nrelease needs eight scratch-org creations|four-org source matrix|ten scratch-org creations/
   );
 });

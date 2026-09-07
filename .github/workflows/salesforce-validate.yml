@@ -2,6 +2,12 @@ name: Salesforce release gate
 
 on:
   workflow_dispatch:
+    inputs:
+      authorize_scratch_org_creation:
+        description: I authorize this run to create up to two one-day scratch orgs
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -85,6 +91,11 @@ jobs:
     outputs:
       available: ${{ steps.credentials.outputs.available }}
     steps:
+      - name: Require explicit scratch-org authorization
+        if: inputs.authorize_scratch_org_creation != true
+        run: |
+          echo "::error::Scratch-org creation was not explicitly authorized for this workflow run."
+          exit 1
       - name: Require hosted Salesforce credentials
         id: credentials
         env:

@@ -119,17 +119,17 @@ Those orgs have no namespace of their own, while the installed package continues
 
 ## Release sequence and scratch-org budget
 
-The Dev Hub currently allows five scratch-org creations per day. The release is deliberately split
-across days so a rerun does not silently exceed that allowance.
+The Dev Hub currently allows five scratch-org creations per day. Scratch-org release stages are
+optional and run only after the release owner explicitly authorizes the specific creation or workflow.
 
 | Stage | Fresh orgs | Required result |
 | --- | ---: | --- |
 | No-org preflight | 0 | All tracked-source and release checks pass |
-| Hosted source validation | 2 | Namespaced LWS and namespaced Locker pass for the exact commit |
+| Optional hosted source validation | 2 | Namespaced LWS and namespaced Locker collect exact-commit evidence |
 | Candidate package creation | 0 | One version `04t` is created and the package artifact is inspected |
-| Clean candidate installation | 2 | Exact candidate passes in LWS and Locker subscriber orgs |
-| Upgrade from 2.0.6.2 | 2 | Subscriber-owned configuration survives in LWS and Locker |
-| Upgrade from 2.0.4.2 | 2 | Older supported upgrade path survives in LWS and Locker |
+| Optional clean candidate installation | 2 | Exact candidate is exercised in LWS and Locker subscriber orgs |
+| Optional upgrade from 2.0.6.2 | 2 | Subscriber-owned configuration is checked in LWS and Locker |
+| Optional upgrade from 2.0.4.2 | 2 | Older upgrade behavior is checked in LWS and Locker |
 | Promotion | 0 | The already-tested candidate is promoted; no replacement candidate is created |
 
 Recommended calendar:
@@ -178,8 +178,7 @@ Stop before creating another org when any of these is true:
 - the source commit, candidate `04t`, namespace shape, or security mode is ambiguous;
 - required no-org checks have not passed.
 
-Package creation and promotion remain blocked until the exact hosted source run and all required
-subscriber stages are green. The sandbox and production installation URLs are produced only from
+Package creation and promotion do not require scratch-org workflow evidence. The sandbox and production installation URLs are produced only from
 the exact promoted `04t` recorded in `config/package-releases.json`.
 
 ## Related

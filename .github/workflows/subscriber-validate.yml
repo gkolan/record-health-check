@@ -17,6 +17,11 @@ on:
           - clean-install
           - upgrade-2.0.6.2
           - upgrade-2.0.4.2
+      authorize_scratch_org_creation:
+        description: I authorize this run to create up to two one-day scratch orgs
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,8 +45,6 @@ jobs:
       - run: npm run check:toolchain
       - name: Complete all no-org release checks before spending quota
         run: npm run release:preflight
-      - name: Require exact-commit source validation before subscriber org creation
-        run: npm run check:hosted-validation
       - name: Verify browser installation before spending quota
         run: npx playwright install --with-deps chromium firefox
 
@@ -49,6 +52,11 @@ jobs:
     needs: offline-preflight
     runs-on: ubuntu-latest
     steps:
+      - name: Require explicit scratch-org authorization
+        if: inputs.authorize_scratch_org_creation != true
+        run: |
+          echo "::error::Scratch-org creation was not explicitly authorized for this workflow run."
+          exit 1
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:

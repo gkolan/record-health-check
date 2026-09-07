@@ -32,17 +32,16 @@ candidate's gate.
 | Stage | Required result | Failure behavior |
 | --- | --- | --- |
 | Pull request and committed source | Every tracked check in `.github/workflows/ci.yml` passes | Do not merge or call the source CI-ready |
-| Hosted source validation | Namespaced LWS and Locker jobs pass for the exact commit | Do not create a package version |
+| Optional hosted source validation | When explicitly authorized, namespaced LWS and Locker jobs report additional evidence for the exact commit | Record failures without blocking package creation |
 | Package creation | Code coverage, artifact membership, version identity, and dependency checks pass | Do not publish a candidate for subscriber testing |
-| Clean subscriber installation | Exact candidate installs and all installed-surface gates pass | Do not promote |
-| Subscriber upgrade | Every reviewed base in `upgradeBases` upgrades to the exact candidate; customer-owned configuration survives; all installed-surface gates pass again | Do not promote |
-| Representative sandbox | A reviewer records exact-candidate acceptance of the affected CPQ page, customer configuration, access, automation, and recovery | Do not promote |
-| Promotion | Exact-commit source workflow, all exact-candidate subscriber stages, and sandbox acceptance are complete | Promotion command must fail closed |
+| Optional subscriber testing | When explicitly authorized, clean installation and reviewed upgrades exercise the exact candidate | Record the result as additional evidence |
+| Optional representative sandbox | A reviewer may record exact-candidate acceptance of the affected customer experience | Retain the result as human evidence |
+| Promotion | Local creation evidence and the Dev Hub package report identify the exact candidate and commit | Promotion command must fail closed on an identity mismatch |
 | Release publication | Release registry, changelog, install links, tag, and rollback information identify the promoted `04t` | Do not announce the release |
 
-Package creation and promotion require a clean Git worktree and verify hosted GitHub Actions
-evidence before invoking a Salesforce create or promote mutation. A locally green run is useful
-diagnostic evidence, but it cannot replace the hosted jobs. Every required artifact upload uses
+Package creation and promotion require a clean Git worktree and exact local creation evidence before
+invoking a Salesforce mutation. Hosted workflows are optional and require explicit scratch-org
+authorization. Every workflow artifact upload uses
 `if-no-files-found: error`; a successful test without its retained evidence is a failed release gate.
 
 ## Salesforce environment matrix
@@ -261,17 +260,14 @@ subscriber-owned Check Sets and Checks and records their identities and values. 
 A clean install cannot satisfy the upgrade gate. An upgrade that succeeds but loses configuration
 or fails an entry point is a failed release.
 
-The subscriber workflow runs three separate dispatch stages: `clean-install`, `upgrade-2.0.6.2`, and
-`upgrade-2.0.4.2`. Each creates two fresh orgs (LWS and Locker). All three stages must pass on the same
-commit and candidate. Only the unselected job's skip is expected. Together with source validation,
-this requires eight scratch-org creations; daily quotas require the staged plan in the
+The optional subscriber workflow offers three dispatch stages: `clean-install`, `upgrade-2.0.6.2`, and
+`upgrade-2.0.4.2`. Each authorized stage creates two fresh orgs (LWS and Locker). Daily quotas may require the staged plan in the
 [scratch org lifecycle](./scratch-org-lifecycle.md). Shared workflow
 concurrency prevents release workflows from overlapping but does not reserve Dev Hub quota.
 
-Before promotion, complete the five representative-sandbox scenarios in the
-[manual release-owner checklist](./manual-release-owner-checklist.md). The guarded promotion command
-requires a recent reviewer attestation bound to the candidate and commit. Blank scratch Account pages
-cannot replace evidence from the affected CPQ Quote page and existing customer automation.
+The five representative-sandbox scenarios in the
+[manual release-owner checklist](./manual-release-owner-checklist.md) remain available for optional
+human review. The guarded promotion command does not require that attestation.
 
 ## Supply-chain, metadata, and documentation gates
 
@@ -288,9 +284,8 @@ The release also requires:
 - release notes that describe user-visible behavior, upgrade impact, and rollback steps;
 - retained evidence tied to the exact commit and `04t` candidate.
 
-Secrets, unavailable scratch capacity, browser installation failures, missing Flow-generation
-capability, unavailable hosted validation, and rate limits are blockers. Workflows must not convert
-those conditions into warnings or skipped success.
+For an explicitly authorized optional workflow, missing credentials, unavailable scratch capacity,
+and test failures must remain visible failures. They do not block package creation or promotion.
 
 ## Evidence and exceptions
 

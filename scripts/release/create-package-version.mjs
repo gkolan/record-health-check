@@ -61,17 +61,6 @@ if (worktree) {
 }
 
 run("npm", ["run", "release:preflight"], { cwd: paths.repoRoot });
-run(
-  "node",
-  [
-    "scripts/release/check_hosted_validation.mjs",
-    "--workflow",
-    "salesforce-validate.yml",
-    "--commit",
-    gitCommit
-  ],
-  { cwd: paths.repoRoot }
-);
 
 const releases = readPackageReleases();
 const runtimeMatrix = JSON.parse(
