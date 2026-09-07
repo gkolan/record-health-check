@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   completeScratchUserFirstLogin,
+  createScratchUserNewPassword,
   firstLoginState,
   isLightningHome
 } from "./salesforce-first-login.mjs";
@@ -14,6 +15,18 @@ const credentials = {
   newPassword: "fake-new"
 };
 const options = { timeout: 200, intervals: [1, 2, 5] };
+
+test("creates an independent password for mandatory scratch-user setup", () => {
+  const currentPassword = "uuTwmjnubcr3uidyds!w";
+  const newPassword = createScratchUserNewPassword(
+    currentPassword,
+    "0123456789abcdef"
+  );
+  assert.match(newPassword, /[A-Za-z]/);
+  assert.match(newPassword, /\d/);
+  assert.ok(newPassword.length >= 8);
+  assert.ok(!newPassword.includes(currentPassword));
+});
 
 function fakePage(states, destination = home) {
   const fields = [

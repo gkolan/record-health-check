@@ -1,4 +1,26 @@
 import { expect } from "@playwright/test";
+import { randomBytes } from "node:crypto";
+
+export function createScratchUserNewPassword(
+  currentPassword,
+  entropy = randomBytes(12).toString("hex")
+) {
+  if (!currentPassword) {
+    throw new Error("The current scratch-user password is required.");
+  }
+  const safeEntropy = String(entropy).replace(/[^A-Za-z0-9]/g, "");
+  if (!safeEntropy) {
+    throw new Error("Password entropy must contain a letter or number.");
+  }
+  const newPassword = `Rhc9!${safeEntropy.slice(0, 32)}zQ`;
+  if (
+    newPassword.includes(currentPassword) ||
+    currentPassword.includes(newPassword)
+  ) {
+    throw new Error("The new scratch-user password must be independent.");
+  }
+  return newPassword;
+}
 
 export function isLightningHome(url) {
   try {

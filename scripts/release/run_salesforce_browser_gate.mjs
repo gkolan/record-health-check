@@ -10,6 +10,7 @@ import {
   redactBrowserEvidence,
   browserEvidenceHtml
 } from "../lib/browser-evidence.mjs";
+import { createScratchUserNewPassword } from "../lib/salesforce-first-login.mjs";
 
 process.env.SF_DISABLE_LOG_FILE ??= "true";
 
@@ -137,7 +138,7 @@ try {
     throw new Error("Salesforce did not return the generated test password.");
   }
   restrictedCurrentPassword = generatedPassword;
-  restrictedNewPassword = `${generatedPassword}Rhc9`;
+  restrictedNewPassword = createScratchUserNewPassword(generatedPassword);
   const cardPermission = executeJson("sf", [
     "data",
     "query",
