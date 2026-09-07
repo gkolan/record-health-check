@@ -6,8 +6,9 @@
  * produces saveable Check configuration from the current prompts. Recorded
  * answers prove that only for the prompt they were recorded from, so an edit to
  * a prompt makes its recording evidence of nothing. Comparing fingerprints
- * turns that into a failure a release cannot walk past: re-record with
- * `npm run check:ai-model-drafts`, which calls the model for real.
+ * turns that into a failure a change cannot walk past. When a prompt changes,
+ * re-record it deliberately with `npm run check:ai-model-drafts`, which calls
+ * the model for real.
  *
  * This runs offline. The live call belongs to the recording script; this only
  * refuses to believe a recording that no longer matches its prompt.
@@ -20,7 +21,7 @@
  *   promptSha256: string}>}} manifest The recorded evidence manifest.
  * @param {Map<string, string>} fingerprints Evaluation Type slug to the
  *   fingerprint of the prompt block in the working tree.
- * @param {string} lowestCostModel The model the release gate holds prompts to.
+ * @param {string} lowestCostModel The model used for the committed baseline.
  * @param {(file: string) => boolean} exists Whether a recorded file is present.
  * @returns {string[]} Human-readable problems.
  */
@@ -59,7 +60,7 @@ export function freshnessProblems(
       problems.push(
         `The ${type} prompt changed since ${recording.file} was recorded on ` +
           `${recording.recordedAt ?? "an unrecorded date"}; re-record it with ` +
-          `npm run check:ai-model-drafts before releasing`
+          `npm run check:ai-model-drafts after reviewing the prompt change`
       );
     }
   }

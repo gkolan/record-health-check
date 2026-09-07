@@ -2,23 +2,23 @@
 
 /**
  * Records what the lowest-cost model returns from the AI drafting prompts, so
- * the release gate can hold the prompts to the model an administrator is most
- * likely to be using rather than to the model that wrote them.
+ * reviewers can test the prompts with the model an administrator is most
+ * likely to use rather than the model that wrote them.
  *
  * Each run saves the model's complete answer under `tests/ai-drafts` and
  * records, in `recorded.json`, which model answered and the fingerprint of the
  * exact prompt block it answered. `npm run check:ai-prompts` fails when a
  * prompt changes and its recording was not remade, which is what stops a
- * release from shipping evidence that describes an older prompt.
+ * a prompt change from shipping evidence that describes an older prompt.
  *
  * Usage:
  *   ANTHROPIC_API_KEY=... node scripts/release/draft_with_model.mjs --all
  *   ANTHROPIC_API_KEY=... node scripts/release/draft_with_model.mjs \
  *     --type query --model <model id>
  *
- * `--all` records every Evaluation Type with the lowest-cost model, which is
- * what the release gate runs. `--model` records an additional model beside it;
- * the file name keeps each model's evidence separate.
+ * `--all` deliberately refreshes every Evaluation Type with the lowest-cost
+ * model after a reviewed prompt change. `--model` records an additional model
+ * beside it; the file name keeps each model's evidence separate.
  */
 
 import fs from "node:fs";
@@ -56,7 +56,7 @@ if (!key) {
   console.error(
     "ANTHROPIC_API_KEY is not set. Recording what the lowest-cost model " +
       "returns is a live call to that model; there is no offline substitute " +
-      "for it, because the point of the gate is what the model really does."
+      "for it, because the point of the recording is what the model really does."
   );
   process.exit(1);
 }

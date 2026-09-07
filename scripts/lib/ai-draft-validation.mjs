@@ -20,9 +20,9 @@ import { createHash } from "node:crypto";
  * The cheapest model an administrator is realistically drafting with.
  *
  * The prompts exist to make that model produce Check configuration that saves,
- * so this is the model the release gate holds them to. Raising it to a more
- * capable model would make the gate easier to pass and prove less; change it
- * only when the cheapest model an administrator can reach actually changes.
+ * so committed prompt evidence uses this model as its baseline. Raising it to
+ * a more capable model would make the evidence easier to produce and prove
+ * less; change it only when the cheapest available model actually changes.
  */
 export const LOWEST_COST_MODEL = "claude-haiku-4-5-20251001";
 

@@ -48,22 +48,12 @@ export const sourceGates = [
 ];
 
 /**
- * Gates that a release runs and an ordinary pull request does not, because they
- * spend something a contributor's pull request should not spend.
- *
- * `check:ai-model-drafts` calls the lowest-cost Claude model once per Evaluation
- * Type and re-records what it returns. The product claim behind
- * `docs/build-checks/draft-with-ai` is that an administrator drafting with the
- * cheapest model available to them gets Check configuration that saves, and
- * only a live call to that model can test it. Running it per release, against
- * the prompts being released, is what keeps that claim current; the source gate
- * `check:ai-prompts` then refuses any release whose recorded evidence was made
- * from an older prompt.
- *
- * It needs ANTHROPIC_API_KEY and fails loudly without one. That is deliberate:
- * a release that cannot check this claim should not quietly skip it.
+ * Optional release-only gates belong here when they are deterministic and do
+ * not depend on a vendor credential. AI drafting evidence is instead recorded
+ * deliberately when its prompts change; `check:ai-prompts` remains a mandatory
+ * source gate and rejects missing, stale, or invalid committed evidence.
  */
-export const releaseGates = ["check:ai-model-drafts"];
+export const releaseGates = [];
 
 /**
  * Narrows `gates` to the exactly-named `requested` gates, preserving the

@@ -124,10 +124,9 @@ exact-package clean/upgrade stages, and representative-sandbox acceptance must p
   the prompts against the Custom Metadata and fails on an invented field, a Setup label stored where
   a stored value belongs, a capability no prompt offers, or a prompt that drifted from the shared
   rules. The same gate re-validates recorded low-cost-model answers for all four Evaluation Types in
-  `tests/ai-drafts`, and refuses evidence recorded from an older version of a prompt. Every release
-  re-records that evidence: `npm run release:preflight` runs `check:ai-model-drafts`, which asks the
-  lowest-cost Claude model to draft each Evaluation Type from the prompts in that commit and fails
-  when what comes back is not configuration an administrator could save.
+  `tests/ai-drafts`, and refuses evidence recorded from an older version of a prompt. A reviewed
+  prompt change deliberately re-records that evidence with `npm run check:ai-model-drafts`; ordinary
+  release preflight remains deterministic and does not require a third-party model credential.
 - Merge-token guidance now distinguishes transient raw query rows from values intentionally copied
   into rendered messages, labels, and URLs, including their browser, API, and diagnostics exposure.
 - Query-row merge tokens use zero-based collection indexes: `sourceRows[0]` and

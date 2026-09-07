@@ -56,6 +56,7 @@ test("release workflows protect quota before starting fresh-org validation", () 
   assert.doesNotThrow(() =>
     assertReleaseQuotaPolicy(source, subscriber, workflows)
   );
+  assert.doesNotMatch(source, /ANTHROPIC_API_KEY|check:ai-model-drafts/);
   for (const broken of [
     source.replace("on:\n", "on:\n  pull_request:\n"),
     source.replace("on:\n", "on:\n  repository_dispatch:\n"),
