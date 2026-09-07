@@ -28,7 +28,7 @@
         <field>SourceQuery__c</field>
         <value
       xsi:type="xsd:string"
-    >SELECT Email FROM Contact WHERE AccountId = {!record.Id}</value>
+    >SELECT Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id</value>
     </values>
     <values>
         <field>ComparisonQuery__c</field>
@@ -74,7 +74,7 @@
         <field>DisplayFoundText__c</field>
         <value
       xsi:type="xsd:string"
-    >Contacts missing an email address: {!rhcResult.failedRecordCount}</value>
+    >Contacts missing an email address: {!rhcResult.failedRecordCount}. Second Contact in ID order: {!rhcQuery.sourceRows[1].Email fallback="email not available"}</value>
     </values>
     <values>
         <field>DisplayExpectedText__c</field>

@@ -50,8 +50,10 @@ snippets. For example:
 
 - **Example: No High-Priority Issues** uses the value found and its plural suffix to show “1 open
   high-priority case” or “2 open high-priority cases.”
-- **Example: Contacts Have Email Addresses** shows the number of Contacts reviewed and the number
-  missing an email address.
+- **Example: Contacts Have Email Addresses** shows the number of Contacts reviewed, the number
+  missing an email address, and the second Contact's email from
+  `{!rhcQuery.sourceRows[1].Email fallback="email not available"}`. Its Source Query uses `ORDER BY
+  Id`, so “second” has a stable meaning. Query-row indexes start at 0, making `[1]` the second row.
 - **Example: Average Deal vs Largest Deal** inserts the values that the Check compared into Found
   and Expected.
 

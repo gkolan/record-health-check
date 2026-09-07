@@ -128,7 +128,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "force-app",
-    "soql": "SELECT Email FROM Contact WHERE AccountId = {!record.Id}",
+    "soql": "SELECT Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1690,7 +1690,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Email FROM Contact WHERE AccountId = {!record.Id}",
+    "soql": "SELECT Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
     "strategy": "CHILD_DIRECT"
   },
   {
