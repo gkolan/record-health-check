@@ -1,5 +1,19 @@
 @IsTest
 private class RecordHealthCheckControllerIT {
+  private class InteractivePublicationSettingsProvider extends RecordHealthCheckSettingsProvider {
+    public override Boolean isRunPublicationEnabled(
+      String checkSetQualifiedApiName
+    ) {
+      return true;
+    }
+
+    public override Set<String> publishedCheckNames(
+      String checkSetQualifiedApiName
+    ) {
+      return new Set<String>();
+    }
+  }
+
   static {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
   }
@@ -418,6 +432,10 @@ private class RecordHealthCheckControllerIT {
   @IsTest
   static void lwcPublicationRequiresUserInitiationAndMetadataOptIn() {
     Account accountRecord = RHCIntegrationTestDataFactory.getHealthyAccount();
+    // Public examples intentionally ship with publication disabled. Opt in
+    // through the test seam so this test covers behavior without adding a
+    // packaged side effect.
+    RecordHealthCheckLifecyclePublisher.settingsProvider = new InteractivePublicationSettingsProvider();
     Integer beforeDml = Limits.getDmlStatements();
 
     RecordHealthCheckController.evaluateCheck(
