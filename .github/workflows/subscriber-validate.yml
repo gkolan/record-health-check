@@ -111,9 +111,11 @@ jobs:
             echo "::error::Candidate package version is not a 15- or 18-character 04t ID."
             exit 1
           fi
-          printf 'id=%s\n' "$package_id" >> "$GITHUB_OUTPUT"
-          printf 'upgrade_from=%s\n' "$upgrade_from" >> "$GITHUB_OUTPUT"
-          printf 'release_alias=%s\n' "$release_alias" >> "$GITHUB_OUTPUT"
+          {
+            printf 'id=%s\n' "$package_id"
+            printf 'upgrade_from=%s\n' "$upgrade_from"
+            printf 'release_alias=%s\n' "$release_alias"
+          } >> "$GITHUB_OUTPUT"
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
