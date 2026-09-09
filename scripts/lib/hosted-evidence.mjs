@@ -15,27 +15,18 @@ export function hostedEvidenceContract(candidate = "", stage = "") {
         "browser-evidence-namespaced-locker"
       ]
     };
-  const clean = stage === "clean-install";
-  if (!clean && !/^upgrade-\d+\.\d+\.\d+\.\d+$/.test(stage)) {
-    throw new Error("Subscriber evidence requires an exact validation stage.");
-  }
+  if (stage !== "release-pair")
+    throw new Error("Subscriber evidence requires the release-pair stage.");
   return {
     jobs: [
       "offline-preflight",
       "require-dev-hub-secret",
-      ...["LWS", "Locker"].map(
-        (mode) =>
-          `${clean ? "subscriber-clean-install" : "subscriber-upgrade"} (${mode})`
-      )
+      ...["LWS", "Locker"].map((mode) => `subscriber-release-pair (${mode})`)
     ],
     artifacts: ["lws", "locker"].flatMap((mode) => [
-      clean
-        ? `subscriber-clean-install-${mode}-${candidate}`
-        : `subscriber-upgrade-evidence-${mode}-${candidate}-${stage}`,
-      `subscriber-apex-${mode}-${candidate}-${stage}`,
-      ...(clean
-        ? []
-        : [`subscriber-preservation-${mode}-${candidate}-${stage}`])
+      `subscriber-release-pair-browser-${mode}-${candidate}`,
+      `subscriber-release-pair-apex-${mode}-${candidate}`,
+      `subscriber-release-pair-preservation-${mode}-${candidate}`
     ])
   };
 }

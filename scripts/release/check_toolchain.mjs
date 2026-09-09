@@ -47,15 +47,14 @@ if (!releaseWorkflow.includes(`code-analyzer@${policy.codeAnalyzerPlugin}`)) {
 
 if (
   !subscriberWorkflow.includes("required: true") ||
-  !subscriberWorkflow.includes("scripts/release/resolve_upgrade_base.mjs")
+  !subscriberWorkflow.includes("config/release-runtime-matrix.json")
 ) {
   fail(
     ".github/workflows/subscriber-validate.yml must require an explicit candidate and resolve the tracked stable upgrade base."
   );
 }
 for (const expectedCommand of [
-  'npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --skip-upgrade',
-  'npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --upgrade-from "${{ steps.rhc-package.outputs.upgrade_from }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --upgrade-only'
+  'npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --upgrade-from "${{ steps.rhc-package.outputs.upgrade_from }}" --alias "rhc-${{ steps.rhc-package.outputs.release_alias }}-${{ matrix.artifact_suffix }}" --security-mode "${{ matrix.security_mode }}" --release-pair --keep-org'
 ]) {
   if (!subscriberWorkflow.includes(expectedCommand)) {
     fail(

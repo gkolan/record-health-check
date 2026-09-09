@@ -6,12 +6,7 @@
     {
       "version": "2.0.8.1",
       "subscriberPackageVersionId": "04tak000000g1R7AAI"
-    },
-    {
-      "version": "2.0.6.2",
-      "subscriberPackageVersionId": "04tak000000eM53AAE"
-    },
-    { "version": "2.0.4.2", "subscriberPackageVersionId": "04tak000000cZBFAA2" }
+    }
   ],
   "evaluationTypes": ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"],
   "sourceTopologies": ["namespaced"],

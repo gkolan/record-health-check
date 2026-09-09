@@ -32,11 +32,11 @@ contributor portability check, not another package shape.
 
 | Org use | Salesforce shape | Normal lifetime | Cleanup owner | Contents |
 | --- | --- | ---: | --- | --- |
-| Namespaced source development | `rhc`, LWS | 7 days | Person or agent that created it | Package source, package tests, integration-test Check Sets and Checks, optional deterministic demo data |
-| Installed-package demonstration | Subscriber org without its own namespace, LWS | 7 days | Person or agent that created it | Exact promoted or candidate `04t`, subscriber-owned test harness, packaged examples, deterministic demo data |
+| Namespaced source development | `rhc`, LWS | 7 days | Person or agent that created it | Package source, package tests, integration-test Check Sets and Checks, optional deterministic demo data; not part of a release pair |
+| Installed-package demonstration | Subscriber org without its own namespace, LWS | 7 days | Person or agent that created it | Exact promoted or candidate `04t`, subscriber-owned test harness, packaged examples, deterministic demo data; not part of a release pair |
 | Source Locker check | `rhc`, Locker | 1 day | Creating command or workflow | Package source, required integration fixture, browser tests |
 | Optional portability check | No namespace, normally LWS | 1 day | Creating command or workflow | Unpackaged source and focused tests only |
-| Hosted candidate install or upgrade | Subscriber org without its own namespace, LWS or Locker | 1 day | Subscriber validation workflow | Exact candidate `04t`, subscriber-owned fixtures, browser and API checks |
+| Hosted candidate release pair | Two subscriber orgs without their own namespace: one LWS and one Locker | Up to 30 days | Release owner | Clean-install evidence, reset, exact stable-to-candidate upgrade, subscriber-owned fixtures, browser and API checks |
 
 One reusable source-development org and one installed-package demonstration org are normally enough
 for everyday work. A new agent uses the existing aliases when they still match the work. Integration
@@ -102,7 +102,7 @@ boundary.
 
 ## Lightning Web Security and Lightning Locker
 
-The blocking source release gate uses two clean `rhc` orgs:
+Source validation can use two clean `rhc` orgs during contributor work:
 
 | Org | What it proves |
 | --- | --- |
@@ -114,34 +114,35 @@ fresh org for each mode so metadata, sessions, browser state, and cached Lightni
 leak from one run to the other. Both orgs use the `rhc` namespace. The optional no-namespace source
 deployment remains a contributor check and does not block creation of the namespaced 2GP artifact.
 
-The candidate package is separately installed into ordinary subscriber orgs under LWS and Locker.
-Those orgs have no namespace of their own, while the installed package continues to use `rhc`.
+Those disposable source orgs are not a release pair and must not be created as an additional release
+stage. A release uses only the two ordinary subscriber orgs created by the subscriber release-pair
+workflow. The installed package continues to use `rhc` even though those orgs have no namespace of
+their own.
 
-## Release sequence and scratch-org budget
+## Rolling two-release org window
 
-The Dev Hub currently allows five scratch-org creations per day. Scratch-org release stages are
-optional and run only after the release owner explicitly authorizes the specific creation or workflow.
+Every release owns exactly two retained scratch-org slots: one LWS org and one Locker org. The
+release-pair workflow uses each org first for a clean candidate installation, removes the subscriber
+harness, uninstalls the candidate, installs the exact current stable version, and then upgrades that
+same org to the candidate. Clean-install and upgrade evidence therefore do not require separate
+orgs.
 
-| Stage | Fresh orgs | Required result |
-| --- | ---: | --- |
-| No-org preflight | 0 | All tracked-source and release checks pass |
-| Optional hosted source validation | 2 | Namespaced LWS and namespaced Locker collect exact-commit evidence |
-| Candidate package creation | 0 | One version `04t` is created and the package artifact is inspected |
-| Optional clean candidate installation | 2 | Exact candidate is exercised in LWS and Locker subscriber orgs |
-| Optional upgrade from 2.0.8.1 | 2 | Current stable upgrade and subscriber configuration preservation are checked in LWS and Locker |
-| Optional upgrade from 2.0.6.2 | 2 | Subscriber-owned configuration is checked in LWS and Locker |
-| Optional upgrade from 2.0.4.2 | 2 | Older upgrade behavior is checked in LWS and Locker |
-| Promotion | 0 | The already-tested candidate is promoted; no replacement candidate is created |
+Keep at most two release pairs, or four retained scratch orgs, at one time:
 
-Recommended calendar:
+1. Release `N` creates its LWS and Locker pair, validates the candidate, and retains the pair.
+2. Release `N+1` creates a new pair, installs promoted `N` as its upgrade base, upgrades to `N+1`,
+   and retains both release pairs.
+3. When work starts on `N+2`, delete the `N` pair before authorizing creation of the `N+2` pair.
+4. For example, 2.0.9 retains two orgs; 2.0.10 creates two more and verifies the 2.0.9-to-2.0.10
+   upgrade; when 2.0.11 work starts, delete both 2.0.9 orgs before creating the 2.0.11 pair.
 
-1. Day one: run the no-org preflight and the two source orgs, then create the candidate.
-2. Day two: run clean installation and the 2.0.8.1 upgrade, using four creations.
-3. Day three: run the 2.0.6.2 and 2.0.4.2 upgrades, review all exact-commit evidence, and promote.
+Scratch orgs expire after at most 30 days. If a retained pair expires before `N+2` begins, record the
+expiry and do not recreate it merely to satisfy the retention window. Use sandboxes instead when a
+release comparison must remain available longer than 30 days.
 
-Do not compress the stages by substituting unpackaged source tests for an installed-package test.
-If a stage fails after creating an org, investigate and clean up that org, then wait for enough daily
-creation allowance before rerunning.
+The executable values live in `config/release-org-policy.json`. Any exception or replacement still
+requires explicit release-owner authorization. Never create a third active org for the same release;
+retire the unusable member of the pair first.
 
 ## Cleanup and orphan recovery
 

@@ -1,10 +1,10 @@
-name: Salesforce release gate
+name: Salesforce source validation (non-release)
 
 on:
   workflow_dispatch:
     inputs:
       authorize_scratch_org_creation:
-        description: I authorize this run to create up to two one-day scratch orgs
+        description: I authorize this non-release contributor run to create up to two one-day scratch orgs
         required: true
         type: boolean
         default: false

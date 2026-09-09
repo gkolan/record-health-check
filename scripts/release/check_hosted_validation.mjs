@@ -3,17 +3,12 @@
 import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
-import fs from "node:fs";
-import path from "node:path";
 import {
   assertHostedEvidence,
   hostedEvidenceContract
 } from "../lib/hosted-evidence.mjs";
 
-export function selectSuccessfulRun(
-  runs,
-  { commit, candidate = "", stage = "" }
-) {
+export function selectSuccessfulRun(runs, { commit, candidate = "" }) {
   return runs.find((run) => {
     if (run.head_sha !== commit || run.status !== "completed") return false;
     if (run.conclusion !== "success") return false;
@@ -21,7 +16,7 @@ export function selectSuccessfulRun(
     if (
       candidate &&
       String(run.display_title ?? "") !==
-        `Subscriber validation · ${candidate}${stage ? ` · ${stage}` : ""}`
+        `Subscriber release pair · ${candidate}`
     ) {
       return false;
     }
@@ -64,7 +59,7 @@ if (values["self-test"]) {
         head_sha: "abc",
         status: "completed",
         conclusion: "failure",
-        display_title: "Subscriber validation · 04tFAIL"
+        display_title: "Subscriber release pair · 04tFAIL"
       },
       {
         id: 2,
@@ -72,7 +67,7 @@ if (values["self-test"]) {
         status: "completed",
         conclusion: "success",
         event: "workflow_dispatch",
-        display_title: "Subscriber validation · 04tPASS"
+        display_title: "Subscriber release pair · 04tPASS"
       }
     ],
     { commit: "abc", candidate: "04tPASS" }
@@ -89,7 +84,7 @@ if (values["self-test"]) {
           status: "completed",
           conclusion: "success",
           event: "workflow_dispatch",
-          display_title: "Subscriber validation · 04tPASS"
+          display_title: "Subscriber release pair · 04tPASS"
         }
       ],
       { commit: "abc", candidate: "04tPASS" }
@@ -106,7 +101,7 @@ if (values["self-test"]) {
           status: "completed",
           conclusion: "success",
           event: "workflow_dispatch",
-          display_title: "Subscriber validation · 04tPASS-extra"
+          display_title: "Subscriber release pair · 04tPASS-extra"
         }
       ],
       { commit: "abc", candidate: "04tPASS" }
@@ -125,7 +120,7 @@ if (values["self-test"]) {
           status: "completed",
           conclusion: "success",
           event: "pull_request",
-          display_title: "Subscriber validation · 04tPASS"
+          display_title: "Subscriber release pair · 04tPASS"
         }
       ],
       { commit: "abc", candidate: "04tPASS" }
@@ -133,35 +128,6 @@ if (values["self-test"]) {
   ) {
     throw new Error(
       "Hosted validation must reject credential-skipped pull request runs."
-    );
-  }
-  const staged = {
-    id: 6,
-    head_sha: "abc",
-    status: "completed",
-    conclusion: "success",
-    event: "workflow_dispatch",
-    display_title: "Subscriber validation · 04tPASS · upgrade-2.0.4.2"
-  };
-  if (
-    selectSuccessfulRun([staged], {
-      commit: "abc",
-      candidate: "04tPASS",
-      stage: "clean-install"
-    }) ||
-    selectSuccessfulRun([staged], {
-      commit: "abc",
-      candidate: "04tPASS",
-      stage: "upgrade-2.0.6.2"
-    }) ||
-    !selectSuccessfulRun([staged], {
-      commit: "abc",
-      candidate: "04tPASS",
-      stage: "upgrade-2.0.4.2"
-    })
-  ) {
-    throw new Error(
-      "Hosted validation must bind each subscriber dispatch to its exact stage."
     );
   }
   console.log("Hosted Salesforce validation selector self-test passed.");
@@ -219,18 +185,7 @@ async function fetchAll(url, field) {
     if (result[field].length < 100) return records;
   }
 }
-const matrix = JSON.parse(
-  fs.readFileSync(
-    path.join(paths.repoRoot, "config/release-runtime-matrix.json"),
-    "utf8"
-  )
-);
-const stages = values.candidate
-  ? [
-      "clean-install",
-      ...matrix.upgradeBases.map((base) => `upgrade-${base.version}`)
-    ]
-  : [""];
+const stages = values.candidate ? ["release-pair"] : [""];
 for (const stage of stages) {
   const selected = selectSuccessfulRun(payload.workflow_runs ?? [], {
     commit,

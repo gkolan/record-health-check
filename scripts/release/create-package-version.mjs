@@ -224,8 +224,9 @@ console.log(`04t: ${latest.SubscriberPackageVersionId}`);
 console.log(`Redacted creation evidence: ${evidencePath}`);
 console.log("");
 console.log(
-  "Next: npm run package:verify -- --package " +
-    latest.SubscriberPackageVersionId
+  "Next: dispatch Subscriber release-pair validation once for " +
+    latest.SubscriberPackageVersionId +
+    " after the release owner explicitly authorizes its LWS and Locker pair."
 );
 console.log(
   "Do not update config/package-releases.json until clean install, upgrade, and promote gates pass."

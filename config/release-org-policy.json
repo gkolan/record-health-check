@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "scratchOrgsPerRelease": 2,
+  "securityModes": ["LWS", "Locker"],
+  "retainedReleasePairs": 2,
+  "retireReleaseOffset": 2,
+  "maximumLifetimeDays": 30
+}
