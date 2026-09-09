@@ -151,6 +151,15 @@ function requireText(file, snippets) {
   }
 }
 
+function forbidText(file, snippets) {
+  const text = fs.readFileSync(path.join(root, file), "utf8");
+  for (const snippet of snippets) {
+    if (text.includes(snippet)) {
+      errors.push(`${file} contains forbidden release-gate marker: ${snippet}`);
+    }
+  }
+}
+
 function requireOrderedText(file, snippets) {
   const text = fs.readFileSync(path.join(root, file), "utf8");
   let cursor = -1;
@@ -563,8 +572,13 @@ requireText(
   [
     "<componentName>rhc:recordHealthCheck</componentName>",
     "<value>rhc__Example_Account_Check_Builder_Guide</value>",
-    "<value>Subscriber_On_Load</value>"
+    "<value>Subscriber_On_Load</value>",
+    "<fieldItem>Record.Website</fieldItem>"
   ]
+);
+forbidText(
+  "subscriber-app/main/default/flexipages/RHCSubscriberReleaseMatrixRecordPage.flexipage-meta.xml",
+  ["<fieldItem>Record.BillingCity</fieldItem>"]
 );
 
 for (const file of [
