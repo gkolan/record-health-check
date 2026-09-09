@@ -80,6 +80,15 @@ test("release scratch orgs use a rolling two-version LWS and Locker window", () 
   assert.doesNotMatch(subscriber, /sf org delete scratch/);
   assert.match(packageVerifier, /function resetReleasePairForUpgrade/);
   assert.match(packageVerifier, /function assertReleasePairSlotAvailable/);
+  assert.match(
+    packageVerifier,
+    /SELECT Id, Description, Status FROM ScratchOrgInfo WHERE Status = 'Active'/
+  );
+  assert.doesNotMatch(
+    packageVerifier,
+    /WHERE Status = 'Active' AND Description LIKE/,
+    "ScratchOrgInfo.Description is not filterable; release-pair descriptions must be filtered locally."
+  );
   assert.match(packageVerifier, /Two release pairs are already retained/);
   assert.match(packageVerifier, /"package",\s*"uninstall"/);
   assert.ok(

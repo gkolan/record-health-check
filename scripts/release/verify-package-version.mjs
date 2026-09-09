@@ -138,7 +138,7 @@ function assertReleasePairSlotAvailable(devHub, runtimeMatrix, securityMode) {
       "--target-org",
       devHub,
       "--query",
-      "SELECT Id, Description, Status FROM ScratchOrgInfo WHERE Status = 'Active' AND Description LIKE 'Record Health Check % release pair'"
+      "SELECT Id, Description, Status FROM ScratchOrgInfo WHERE Status = 'Active'"
     ]).result?.records ?? [];
   if (records.some((record) => record.Description === description)) {
     console.error(
