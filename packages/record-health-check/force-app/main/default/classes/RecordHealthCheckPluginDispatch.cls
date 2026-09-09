@@ -88,9 +88,11 @@ public with sharing class RecordHealthCheckPluginDispatch {
     if (constructionFailure != null) {
       throw constructionFailure;
     }
-    return instance instanceof RecordHealthCheckPlugin
-      ? (RecordHealthCheckPlugin) instance
-      : null;
+    try {
+      return (RecordHealthCheckPlugin) instance;
+    } catch (TypeException ex) {
+      return null;
+    }
   }
 
   /**

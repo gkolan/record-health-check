@@ -65,16 +65,22 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
 
   private static void assertChecksOnBothSurfaces(List<String> developerNames) {
     Map<String, String> identities = checkIdentities(developerNames);
+    Map<String, String> reasons = expectedReasons();
     for (String developerName : developerNames) {
       String qualifiedName = identities.get(developerName);
-      assertAgentCheck(qualifiedName, developerName);
-      assertMcpCheck(qualifiedName, developerName);
+      assertAgentCheck(
+        qualifiedName,
+        developerName,
+        reasons.get(developerName)
+      );
+      assertMcpCheck(qualifiedName, developerName, reasons.get(developerName));
     }
   }
 
   private static void assertAgentCheck(
     String qualifiedName,
-    String fixtureName
+    String fixtureName,
+    String expectedReason
   ) {
     RecordHealthCheckRunCheckAgentAction.Request input = new RecordHealthCheckRunCheckAgentAction.Request();
     input.recordId = fixtureRecordId();
@@ -95,13 +101,14 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
       'Agentforce Check ' + fixtureName
     );
     Assert.areEqual('RUN_CHECK', output.operation, fixtureName + ' operation');
-    Assert.isTrue(
-      String.isNotBlank(output.reasonCode),
-      fixtureName + ' reason'
-    );
+    Assert.areEqual(expectedReason, output.reasonCode, fixtureName + ' reason');
   }
 
-  private static void assertMcpCheck(String qualifiedName, String fixtureName) {
+  private static void assertMcpCheck(
+    String qualifiedName,
+    String fixtureName,
+    String expectedReason
+  ) {
     RecordHealthCheckAgentRestResource.AgentToolResponse output = postMcp(
       'RUN_CHECK',
       qualifiedName,
@@ -123,10 +130,7 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
       'MCP Check ' + fixtureName
     );
     Assert.areEqual('RUN_CHECK', output.operation, fixtureName + ' operation');
-    Assert.isTrue(
-      String.isNotBlank(output.reasonCode),
-      fixtureName + ' reason'
-    );
+    Assert.areEqual(expectedReason, output.reasonCode, fixtureName + ' reason');
   }
 
   private static void assertSetOnBothSurfaces(String developerName) {
@@ -268,6 +272,26 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
       'Every requested diagnostic fixture must be deployed.'
     );
     return identities;
+  }
+
+  private static Map<String, String> expectedReasons() {
+    return new Map<String, String>{
+      'RHC_Diag_Formula_Missing' => 'INVALID_FORMULA',
+      'RHC_Diag_Formula_Syntax' => 'INVALID_FORMULA',
+      'RHC_Diag_Formula_Null_Rel' => 'FIELD_NOT_RESOLVED',
+      'RHC_Diag_Query_Missing_Object' => 'OBJECT_NOT_RESOLVED',
+      'RHC_Diag_Query_Missing_Field' => 'FIELD_NOT_RESOLVED',
+      'RHC_Diag_Query_Bad_Token' => 'INVALID_CONFIG',
+      'RHC_Diag_Query_System_Mode' => 'INVALID_SOQL_TEMPLATE',
+      'RHC_Diag_Query_Max_Rows' => 'GOVERNOR_LIMIT_RISK',
+      'RHC_Diag_Compare_Missing' => 'INVALID_SOQL_TEMPLATE',
+      'RHC_Diag_Apex_Missing_Class' => 'APEX_CLASS_NOT_FOUND',
+      'RHC_Diag_Apex_Wrong_Interface' => 'PLUGIN_INTERFACE_INVALID',
+      'RHC_Diag_Apex_Bad_Json' => 'INVALID_APEX_PARAMETERS',
+      'RHC_Diag_Apex_Constructor' => 'PLUGIN_CONSTRUCTOR_FAILED',
+      'RHC_Diag_Apex_Throws' => 'PLUGIN_THREW',
+      'RHC_Diag_Apex_Missing_Result' => 'PLUGIN_RESULT_MISSING'
+    };
   }
 
   private static Id fixtureRecordId() {

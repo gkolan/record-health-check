@@ -69,6 +69,17 @@ For installation and verification, start with
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
+## Unreleased
+
+### Fixed
+
+- Custom Apex Check loading now uses a guarded interface cast after constructor side-effect checks,
+  including subscriber and package namespace boundaries. Validation preserves distinct missing,
+  invalid-name, load, constructor, interface, and parameter failures instead of mapping an
+  incompatible or throwing class to `APEX_CLASS_NOT_FOUND`. Constructor configuration failures now
+  remain `UNABLE_TO_EVALUATE`, and authorized diagnostics retain the resolved type and original
+  ordinary constructor exception where Salesforce provides them.
+
 ## Version 2.0.8
 
 Released package version: **2.0.8.1** (`04tak000000g1R7AAI`). Salesforce reports 99% package

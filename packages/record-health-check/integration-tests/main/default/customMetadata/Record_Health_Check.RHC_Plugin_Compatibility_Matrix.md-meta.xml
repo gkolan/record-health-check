@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>RHC Plugin Compatibility Matrix</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_Plugin_Compatibility</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Plugin constructs and evaluates</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >A deterministic Apex fixture returns PASS, FAIL, SKIPPED, or UNABLE_TO_EVALUATE from the Account name marker.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >APEX</value></values>
+    <values><field>ApexClass__c</field><value
+      xsi:type="xsd:string"
+    >RHCPluginCompatibilityFixture</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >The compatibility fixture returned its controlled needs-review result.</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The compatibility fixture returned its controlled unavailable-data result.</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >10</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+    <values><field>Category__c</field><value
+      xsi:type="xsd:string"
+    >READINESS</value></values>
+</CustomMetadata>

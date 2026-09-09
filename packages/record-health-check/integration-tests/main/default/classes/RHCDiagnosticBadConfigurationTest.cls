@@ -113,7 +113,7 @@ private class RHCDiagnosticBadConfigurationTest {
     assertDiagnostic(
       'RHC_Diag_Apex_Wrong_Interface',
       'UNABLE_TO_EVALUATE',
-      'APEX_CLASS_NOT_FOUND',
+      'PLUGIN_INTERFACE_INVALID',
       'APEX_CONFIGURATION'
     );
   }
@@ -133,7 +133,7 @@ private class RHCDiagnosticBadConfigurationTest {
     assertDiagnostic(
       'RHC_Diag_Apex_Constructor',
       'UNABLE_TO_EVALUATE',
-      'APEX_CLASS_NOT_FOUND',
+      'PLUGIN_CONSTRUCTOR_FAILED',
       'APEX_CONFIGURATION'
     );
   }

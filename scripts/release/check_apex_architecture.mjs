@@ -9,7 +9,9 @@ const baselinePath = path.join(
 const baseline = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
 const sourceRoots = [
   "packages/record-health-check/force-app",
-  "packages/record-health-check/integration-tests"
+  "packages/record-health-check/integration-tests",
+  "subscriber-app",
+  "namespace-fixture/force-app"
 ];
 const failures = [];
 

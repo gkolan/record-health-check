@@ -43,6 +43,10 @@
       "maximum": 1,
       "category": "configuration validation test-only access"
     },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckApexPluginResolver.cls": {
+      "maximum": 1,
+      "category": "forced platform type-load failure"
+    },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckController.cls": {
       "maximum": 2,
       "category": "controller failure and completion-boundary test-only access"

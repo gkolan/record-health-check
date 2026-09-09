@@ -15,6 +15,7 @@ on:
         default: clean-install
         options:
           - clean-install
+          - upgrade-2.0.8.1
           - upgrade-2.0.6.2
           - upgrade-2.0.4.2
       authorize_scratch_org_creation:

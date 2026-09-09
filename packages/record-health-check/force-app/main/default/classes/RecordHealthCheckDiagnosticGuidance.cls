@@ -55,12 +55,10 @@ public with sharing class RecordHealthCheckDiagnosticGuidance {
         : 'ADMINISTRATOR',
       false
     );
-    incident.status = reason ==
-      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
-      ? 'ERROR'
-      : 'UNABLE_TO_EVALUATE';
-    incident.severity = incident.status == 'ERROR' ? 'CRITICAL' : 'WARNING';
-    incident.configurationField = reason == 'INVALID_APEX_PARAMETERS'
+    incident.status = 'UNABLE_TO_EVALUATE';
+    incident.severity = 'WARNING';
+    incident.configurationField = reason ==
+      RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS
       ? 'ApexParametersJson__c'
       : 'ApexClass__c';
     incident.summary = pluginConfigurationSummary(reason);
@@ -70,11 +68,11 @@ public with sharing class RecordHealthCheckDiagnosticGuidance {
     );
     addAction(
       incident,
-      reason == 'INVALID_APEX_PARAMETERS'
+      reason == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS
         ? 'EDIT_CONFIGURATION'
         : 'VERIFY_APEX_CLASS',
       'Correct the Apex Check configuration',
-      reason == 'INVALID_APEX_PARAMETERS'
+      reason == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS
         ? 'Edit Apex Parameters JSON so it contains one valid JSON object accepted by the plugin.'
         : 'Verify the class API name, namespace, deployment, constructor, and RecordHealthCheckPlugin implementation.',
       incident.configurationField,
@@ -261,7 +259,7 @@ public with sharing class RecordHealthCheckDiagnosticGuidance {
   }
 
   private static String pluginConfigurationSummary(String reason) {
-    if (reason == 'INVALID_APEX_PARAMETERS') {
+    if (reason == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS) {
       return 'The custom Apex Check parameters are not a valid JSON object.';
     }
     if (reason == RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID) {
@@ -270,7 +268,13 @@ public with sharing class RecordHealthCheckDiagnosticGuidance {
     if (reason == RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED) {
       return 'The configured Apex class failed during construction.';
     }
-    return 'The configured Apex class could not be found.';
+    if (reason == RecordHealthCheckReasonCodes.APEX_CLASS_INVALID) {
+      return 'The configured Apex class name has invalid syntax.';
+    }
+    if (reason == RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED) {
+      return 'The configured Apex class could not be loaded.';
+    }
+    return 'The configured Apex class could not be found or is not visible.';
   }
 
   private static String causeOr(

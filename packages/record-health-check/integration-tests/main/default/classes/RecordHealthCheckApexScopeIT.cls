@@ -107,9 +107,7 @@ private with sharing class RecordHealthCheckApexScopeIT {
         )
         .get(accountRecord.Id);
       Boolean constructorFailure = className == 'String';
-      String expectedStatus = constructorFailure
-        ? RecordHealthCheckStatus.ERROR
-        : RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+      String expectedStatus = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
       String expectedReason = constructorFailure
         ? RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
         : className == 'RecordHealthCheckConstants'

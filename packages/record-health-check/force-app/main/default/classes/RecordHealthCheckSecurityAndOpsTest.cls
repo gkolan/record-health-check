@@ -38,6 +38,11 @@ private class RecordHealthCheckSecurityAndOpsTest {
 
   @IsTest
   static void sharedValidatorCoversObjectsPluginsAndJson() {
+    Assert.areEqual(
+      0,
+      RecordHealthCheckConfigValidator.templateSurfaces(null).size(),
+      'A missing Check has no template surfaces.'
+    );
     Assert.isTrue(
       RecordHealthCheckConfigValidator.isValidObjectApiName('Account'),
       'A standard object API name must be recognized.'
@@ -90,6 +95,170 @@ private class RecordHealthCheckSecurityAndOpsTest {
       'FUTURE_TYPE',
       RecordHealthCheckConstants.toLwcEvaluatorType('FUTURE_TYPE'),
       'Unknown evaluator values must pass through for forward compatibility.'
+    );
+  }
+
+  @IsTest
+  static void structuredPluginValidationRetainsPhaseAndOriginalFailure() {
+    Test.startTest();
+    RecordHealthCheckConfigValidator.ApexPluginValidation wrongInterface = RecordHealthCheckConfigValidator.validateApexPlugin(
+      'RecordHealthCheckConstants'
+    );
+    RecordHealthCheckConfigValidator.ApexPluginValidation constructorFailure = RecordHealthCheckConfigValidator.validateApexPlugin(
+      'RecordHealthCheckConstructorFailureCheck'
+    );
+    Test.stopTest();
+
+    Assert.isFalse(wrongInterface.isValid, 'An unrelated class must fail.');
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID,
+      wrongInterface.reasonCode
+    );
+    Assert.areEqual('PLUGIN_RESOLVE', wrongInterface.phase);
+    Assert.isFalse(
+      String.isBlank(wrongInterface.resolvedTypeIdentity),
+      'A resolved incompatible type must retain its identity.'
+    );
+    Assert.isNull(
+      wrongInterface.originalException,
+      'A completed incompatible cast has no constructor exception.'
+    );
+
+    Assert.isFalse(constructorFailure.isValid, 'A throwing constructor fails.');
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
+      constructorFailure.reasonCode
+    );
+    Assert.areEqual('PLUGIN_CONSTRUCT', constructorFailure.phase);
+    Assert.isFalse(
+      String.isBlank(constructorFailure.resolvedTypeIdentity),
+      'A resolved type must remain identifiable after its constructor fails.'
+    );
+    Assert.isNotNull(
+      constructorFailure.originalException,
+      'Authorized diagnostics need the original constructor exception.'
+    );
+    Assert.isTrue(
+      constructorFailure.originalException.getMessage()
+        .contains('Expected constructor failure'),
+      'The structured result must retain the original failure context.'
+    );
+  }
+
+  @IsTest
+  static void pluginValidationRejectsNullCheckAndInvalidQualifiedSyntax() {
+    RecordHealthCheckConfigValidator.ApexPluginValidation nullCheck = RecordHealthCheckConfigValidator.validateApexPlugin(
+      (Record_Health_Check__mdt) null
+    );
+    Assert.isFalse(nullCheck.isValid);
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND,
+      nullCheck.reasonCode
+    );
+    Assert.areEqual('PLUGIN_RESOLVE', nullCheck.phase);
+
+    try {
+      RecordHealthCheckApexPluginResolver.configuredType(
+        'namespace.too.many.parts'
+      );
+      Assert.fail('Invalid qualified class syntax must be rejected.');
+    } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException expected) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.APEX_CLASS_INVALID,
+        expected.reasonCode
+      );
+    }
+  }
+
+  @IsTest
+  static void apexConfigSupportCoversValidationAndAuthoringTaxonomy() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => 'Apex_Support',
+        'EvaluationType__c' => 'APEX',
+        'ApexParametersJson__c' => '{}'
+      }
+    );
+
+    Test.startTest();
+    List<RecordHealthCheckValidator.Finding> missing = RecordHealthCheckApexConfigSupport.findings(
+      check
+    );
+    check.ApexClass__c = 'Bad Class Name';
+    List<RecordHealthCheckValidator.Finding> invalid = RecordHealthCheckApexConfigSupport.findings(
+      check
+    );
+    check.ApexClass__c = 'AccountHasRecentActivityCheck';
+    List<RecordHealthCheckValidator.Finding> valid = RecordHealthCheckApexConfigSupport.findings(
+      check
+    );
+
+    List<RecordHealthCheckValidator.FindingCode> codes = new List<RecordHealthCheckValidator.FindingCode>{
+      RecordHealthCheckValidator.FindingCode.APEX_CLASS_MISSING,
+      RecordHealthCheckValidator.FindingCode.APEX_CLASS_INVALID,
+      RecordHealthCheckValidator.FindingCode.APEX_CLASS_NOT_FOUND,
+      RecordHealthCheckValidator.FindingCode.APEX_CLASS_LOAD_FAILED,
+      RecordHealthCheckValidator.FindingCode.APEX_PLUGIN_INTERFACE_INVALID,
+      RecordHealthCheckValidator.FindingCode.APEX_PLUGIN_CONSTRUCTOR_FAILED,
+      RecordHealthCheckValidator.FindingCode.APEX_PARAMS_INVALID
+    };
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new List<RecordHealthCheckMetadataValidator.ValidationIssue>();
+    for (RecordHealthCheckValidator.FindingCode code : codes) {
+      issues.add(
+        RecordHealthCheckApexConfigSupport.metadataIssue(
+          check,
+          new RecordHealthCheckValidator.Finding(code, null)
+        )
+      );
+    }
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckValidator.FindingCode.APEX_CLASS_MISSING,
+      missing[0].code
+    );
+    Assert.areEqual(
+      RecordHealthCheckValidator.FindingCode.APEX_CLASS_INVALID,
+      invalid[0].code
+    );
+    Assert.areEqual(0, valid.size(), 'A valid plugin must have no findings.');
+    Assert.areEqual(7, issues.size(), 'Every Apex authoring reason must map.');
+    Assert.areEqual('ApexClass__c', issues[0].fieldName);
+    Assert.areEqual('ApexParametersJson__c', issues[6].fieldName);
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
+      issues[5].reasonCode
+    );
+  }
+
+  @IsTest
+  static void failedPluginValidationClearsAStaleExactConfigurationCache() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => 'Stale_Plugin',
+        'EvaluationType__c' => 'APEX',
+        'ApexClass__c' => 'RecordHealthCheckConstants',
+        'ApexParametersJson__c' => '{}'
+      }
+    );
+    RecordHealthCheckConfigValidator.cachePluginForTest(
+      'Stale_Plugin|RecordHealthCheckConstants|{}',
+      new AccountHasRecentActivityCheck()
+    );
+
+    Test.startTest();
+    RecordHealthCheckConfigValidator.ApexPluginValidation validation = RecordHealthCheckConfigValidator.validateApexPlugin(
+      check
+    );
+    RecordHealthCheckPlugin staleInstance = RecordHealthCheckConfigValidator.takeValidatedPlugin(
+      check
+    );
+    Test.stopTest();
+
+    Assert.isFalse(validation.isValid, 'The incompatible class must fail.');
+    Assert.isNull(
+      staleInstance,
+      'Failed validation must not leave a stale success for the same key.'
     );
   }
 

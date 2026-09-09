@@ -11,7 +11,7 @@
     >Subscriber_Smoke_Extension</value></values>
     <values><field>rhc__CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >Subscriber plugin resolves</value></values>
+    >Subscriber plugin compatibility</value></values>
     <values><field>rhc__EvaluationType__c</field><value
       xsi:type="xsd:string"
     >APEX</value></values>
@@ -23,10 +23,10 @@
     >WARNING</value></values>
     <values><field>rhc__FailureMessage__c</field><value
       xsi:type="xsd:string"
-    >The subscriber plugin did not pass.</value></values>
+    >The subscriber plugin returned its controlled needs-review result.</value></values>
     <values><field>rhc__UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
-    >The subscriber plugin could not run.</value></values>
+    >The subscriber plugin returned its controlled unavailable-data result.</value></values>
     <values><field>rhc__ApplicabilityMode__c</field><value
       xsi:type="xsd:string"
     >ALL_RECORDS</value></values>

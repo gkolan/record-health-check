@@ -156,8 +156,9 @@ each run.
 6. Confirm `offline-preflight` passes. Then confirm
    `Check subscriber-stage scratch-org capacity` passes before the two selected jobs run sequentially.
 7. Require both selected jobs to execute and pass, one under Lightning Web Security and one under
-   Lightning Locker. Repeat the dispatch for `upgrade-2.0.6.2`, then `upgrade-2.0.4.2`, always using
-   the same candidate and unchanged release branch when that additional evidence is desired.
+   Lightning Locker. Repeat the dispatch for `upgrade-2.0.8.1`, then the older reviewed bases
+   `upgrade-2.0.6.2` and `upgrade-2.0.4.2`, always using the same candidate and unchanged release
+   branch when that additional evidence is desired.
 8. Confirm the workflow title identifies the exact candidate and the run's head SHA is the release
    commit.
 9. Retain install requests, the complete subscriber Apex inventory (including

@@ -27,6 +27,10 @@ public class RecordHealthCheckReasonCodes {
   public static final String NOT_APPLICABLE_BY_COUNT = 'NOT_APPLICABLE_BY_COUNT';
   public static final String PREREQUISITE_NOT_MET = 'PREREQUISITE_NOT_MET';
   public static final String DEPENDENCY_NOT_IN_RUN = 'DEPENDENCY_NOT_IN_RUN';
+  public static final String APEX_CLASS_INVALID = 'APEX_CLASS_INVALID';
+  public static final String APEX_CLASS_NOT_FOUND = 'APEX_CLASS_NOT_FOUND';
+  public static final String APEX_CLASS_LOAD_FAILED = 'APEX_CLASS_LOAD_FAILED';
+  public static final String INVALID_APEX_PARAMETERS = 'INVALID_APEX_PARAMETERS';
 
   // ─── Extension contract ────────────────────────────────────────────────────
   // Engine-generated outcomes for a custom Apex Check that broke its contract.

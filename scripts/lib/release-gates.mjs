@@ -28,6 +28,7 @@ export const sourceGates = [
   "check:code-analyzer-suppressions",
   "check:code-analyzer-inline-suppressions",
   "check:plugin-sharing",
+  "check:plugin-interface-boundary",
   "check:version-sync",
   "check:product-version-language",
   "check:docs",

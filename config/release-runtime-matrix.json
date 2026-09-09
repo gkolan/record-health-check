@@ -1,8 +1,12 @@
 {
   "schemaVersion": 1,
-  "candidateVersion": "2.0.8.1",
-  "upgradeFromVersion": "2.0.6.2",
+  "candidateVersion": "2.0.9.1",
+  "upgradeFromVersion": "2.0.8.1",
   "upgradeBases": [
+    {
+      "version": "2.0.8.1",
+      "subscriberPackageVersionId": "04tak000000g1R7AAI"
+    },
     {
       "version": "2.0.6.2",
       "subscriberPackageVersionId": "04tak000000eM53AAE"
@@ -131,7 +135,7 @@
     "record-navigation",
     "component-disconnect-reconnect",
     "fresh-package-install",
-    "upgrade-2.0.6.2-to-2.0.8.1",
+    "upgrade-2.0.8.1-to-2.0.9.1",
     "post-install-lwc",
     "post-upgrade-lwc",
     "post-install-apex-api",
@@ -183,7 +187,7 @@
       "tests/browser/lifecycle.mjs"
     ],
     "fresh-package-install": ["scripts/release/verify-package-version.mjs"],
-    "upgrade-2.0.6.2-to-2.0.8.1": [
+    "upgrade-2.0.8.1-to-2.0.9.1": [
       "scripts/release/verify-package-version.mjs"
     ],
     "post-install-lwc": [

@@ -30,7 +30,7 @@ assertReleaseQuotaPolicy(
 releaseUpgradeBases(matrix, readPackageReleases());
 requireEqual(
   matrix.upgradeBases.map((base) => base.version),
-  ["2.0.6.2", "2.0.4.2"],
+  ["2.0.8.1", "2.0.6.2", "2.0.4.2"],
   "Required upgrade origins"
 );
 // Inspect the actual on-load definitions, not just a declared list of types.
@@ -89,7 +89,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.6.2-to-2.0.8.1",
+  "upgrade-2.0.8.1-to-2.0.9.1",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -263,11 +263,11 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.8.1") {
-  errors.push("Candidate version must be exactly 2.0.8.1.");
+if (matrix.candidateVersion !== "2.0.9.1") {
+  errors.push("Candidate version must be exactly 2.0.9.1.");
 }
-if (matrix.upgradeFromVersion !== "2.0.6.2") {
-  errors.push("Upgrade base version must be exactly 2.0.6.2.");
+if (matrix.upgradeFromVersion !== "2.0.8.1") {
+  errors.push("Upgrade base version must be exactly 2.0.8.1.");
 }
 for (const scenario of requiredScenarios) {
   const evidence = matrix.lifecycleEvidence?.[scenario];
@@ -360,6 +360,7 @@ requireText(".github/workflows/salesforce-validate.yml", [
 requireText(".github/workflows/subscriber-validate.yml", [
   "Check subscriber-stage scratch-org capacity",
   "npm run check:scratch-capacity -- --dev-hub devhub --required 2",
+  "upgrade-2.0.8.1",
   "upgrade-2.0.6.2",
   "upgrade-2.0.4.2",
   "subscriber-apex-${{ matrix.artifact_suffix }}",

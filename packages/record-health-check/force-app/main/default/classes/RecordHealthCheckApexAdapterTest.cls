@@ -20,6 +20,36 @@ private with sharing class RecordHealthCheckApexAdapterTest {
   }
 
   @IsTest
+  static void configuredTypePreservesAPlatformLoadFailure() {
+    RecordHealthCheckApexPluginResolver.configuredTypeFailureForTest = new RecordHealthCheckApexPluginResolver.PluginConfigurationException(
+      'Expected platform type-load failure.'
+    );
+    try {
+      RecordHealthCheckApexPluginResolver.configuredType(
+        'AccountHasRecentActivityCheck'
+      );
+      Assert.fail('A platform type-load failure must remain distinguishable.');
+    } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException expected) {
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED,
+        expected.reasonCode
+      );
+      Assert.isTrue(
+        expected.originalExceptionType.endsWith(
+          'RecordHealthCheckApexPluginResolver.PluginConfigurationException'
+        ),
+        'The original failure type may carry the package namespace.'
+      );
+      Assert.areEqual(
+        'Expected platform type-load failure.',
+        expected.originalExceptionMessage
+      );
+    } finally {
+      RecordHealthCheckApexPluginResolver.configuredTypeFailureForTest = null;
+    }
+  }
+
+  @IsTest
   static void evaluateReturnsClassNotFoundWhenClassNameBlank() {
     Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Blank class'
@@ -160,15 +190,19 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
-    Assert.areEqual(RecordHealthCheckStatus.ERROR, result.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      result.status,
+      'A plugin that cannot be constructed is a configuration failure, not an executed system error.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
       result.reasonCode
     );
     Assert.areEqual(
-      'A system error prevented this check from completing. An authorized administrator can open the diagnosis.',
+      'This check could not be evaluated. Contact your administrator.',
       result.message,
-      'A constructor failure must use the safe fallback when no Check message is configured.'
+      'A constructor configuration failure must use the safe unable message when no Check message is configured.'
     );
     Assert.isTrue(
       result.detailMessage.contains('Expected constructor failure'),

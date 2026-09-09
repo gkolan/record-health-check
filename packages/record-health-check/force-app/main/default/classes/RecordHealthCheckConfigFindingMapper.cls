@@ -322,14 +322,42 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
       when APEX_CLASS_INVALID {
         return buildUnableResult(
           check,
-          'APEX_CLASS_NOT_FOUND',
-          'Apex Class Name must identify an instantiable class implementing RecordHealthCheck.'
+          RecordHealthCheckReasonCodes.APEX_CLASS_INVALID,
+          'Apex Class Name must be a class name or namespace-qualified class name.'
+        );
+      }
+      when APEX_CLASS_NOT_FOUND {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND,
+          'Apex Class Name did not identify a visible class.'
+        );
+      }
+      when APEX_CLASS_LOAD_FAILED {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED,
+          'Apex Class Name could not be loaded.'
+        );
+      }
+      when APEX_PLUGIN_INTERFACE_INVALID {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID,
+          'The configured class does not implement RecordHealthCheckPlugin.'
+        );
+      }
+      when APEX_PLUGIN_CONSTRUCTOR_FAILED {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
+          'The configured Apex Check could not be constructed.'
         );
       }
       when APEX_PARAMS_INVALID {
         return buildUnableResult(
           check,
-          'INVALID_APEX_PARAMETERS',
+          RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS,
           'Apex Parameters must contain valid JSON object syntax.'
         );
       }

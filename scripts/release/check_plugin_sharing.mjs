@@ -4,13 +4,15 @@ import path from "node:path";
 const roots = [
   "packages/record-health-check/force-app/main/default/classes",
   "packages/record-health-check/integration-tests/main/default/classes",
+  "subscriber-app/main/default/classes",
+  "namespace-fixture/force-app/main/default/classes",
   "scripts/templates"
 ];
 
 function classify(source) {
   const declarations = [
     ...source.matchAll(
-      /\b(global|public|private)\s+(?:(with|without|inherited)\s+sharing\s+)?class\s+(\w+)[^{]*\bimplements\s+RecordHealthCheckPlugin\b/g
+      /\b(global|public|private)\s+(?:(with|without|inherited)\s+sharing\s+)?class\s+(\w+)[^{]*\bimplements\s+(?:\w+\.)?RecordHealthCheckPlugin\b/g
     )
   ];
   return declarations.map((match) => ({

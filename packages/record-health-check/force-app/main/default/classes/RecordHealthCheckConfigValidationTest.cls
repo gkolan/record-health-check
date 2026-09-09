@@ -120,10 +120,10 @@ private class RecordHealthCheckConfigValidationTest {
       'INVALID_SOQL_TEMPLATE'
     );
 
-    check = apexCheck('Apex_Invalid_Class', 'String', '{}');
+    check = apexCheck('Apex_Invalid_Class', 'RecordHealthCheckConstants', '{}');
     assertUnable(
       service.validateCheckForEvaluation(check),
-      'APEX_CLASS_NOT_FOUND'
+      RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID
     );
     check = apexCheck(
       'Apex_Invalid_Json',
@@ -149,6 +149,46 @@ private class RecordHealthCheckConfigValidationTest {
       service.validateCheckForEvaluation(check),
       'INVALID_SOQL_TEMPLATE'
     );
+  }
+
+  @IsTest
+  static void apexValidationPreservesFailureTaxonomyAndParameterPrecedence() {
+    RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
+
+    Test.startTest();
+    assertUnable(
+      service.validateCheckForEvaluation(
+        apexCheck('Apex_Missing_Class', 'Class_That_Does_Not_Exist', '{}')
+      ),
+      'APEX_CLASS_NOT_FOUND'
+    );
+    assertUnable(
+      service.validateCheckForEvaluation(
+        apexCheck('Apex_Wrong_Interface', 'RecordHealthCheckConstants', '{}')
+      ),
+      RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID
+    );
+    assertUnable(
+      service.validateCheckForEvaluation(
+        apexCheck(
+          'Apex_Constructor_Failed',
+          'RecordHealthCheckConstructorFailureCheck',
+          '{}'
+        )
+      ),
+      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
+    );
+    assertUnable(
+      service.validateCheckForEvaluation(
+        apexCheck(
+          'Apex_Params_Precede_Construction',
+          'RecordHealthCheckConstructorFailureCheck',
+          '[]'
+        )
+      ),
+      'INVALID_APEX_PARAMETERS'
+    );
+    Test.stopTest();
   }
   @IsTest
   static void checkSetValidationRejectsEveryInvalidSetting() {

@@ -17,6 +17,28 @@ subscriber-owned metadata and runs `RHCSubscriberSmokeTest`.
 | `RHCSubscriberPlugin`          | Proves a subscriber-owned global Apex plugin resolves from installed namespaced package code                  |
 | `Subscriber_Smoke_Extension`   | Proves subscriber-owned Custom Metadata can coexist with package-owned Example records and survive an upgrade |
 
+## Subscriber plugin outcome matrix
+
+The single `Subscriber_Unmanaged_Apex` Check is data-driven so the installed-package test covers
+ordinary and non-success outcomes without introducing invalid metadata:
+
+| Account name                                            | Expected status      | Expected reason                      |
+| ------------------------------------------------------- | -------------------- | ------------------------------------ |
+| `Subscriber Plugin Compatibility Healthy`               | `PASS`               | `SUBSCRIBER_PLUGIN_PASS`             |
+| `Subscriber Plugin Compatibility [FAIL] Needs Review`   | `FAIL`               | `SUBSCRIBER_PLUGIN_NEEDS_REVIEW`     |
+| `Subscriber Plugin Compatibility [SKIP] Not Applicable` | `SKIPPED`            | `SUBSCRIBER_PLUGIN_NOT_APPLICABLE`   |
+| `Subscriber Plugin Compatibility [UNABLE] Missing Data` | `UNABLE_TO_EVALUATE` | `SUBSCRIBER_PLUGIN_DATA_UNAVAILABLE` |
+
+`RHCSubscriberPluginCompatibilityTest.subscriberPluginPreservesControlledOutcomeMatrix` creates these records,
+calls the installed package through its public Apex Check Set API, asserts every exact result, and
+proves that validation plus execution construct the subscriber class once and evaluate the complete
+scope once. The existing healthy smoke method retains `SUBSCRIBER_PLUGIN_PASS` as its evaluate-entry
+marker.
+
+For manual review, create the four named Accounts, put a Record Health Check card configured with
+`Subscriber_Smoke_Extension` on the Account page, and compare every result with the table. Record
+the installed `04t`, RHC version, source commit, org namespace, test run ID, and actual reasons.
+
 This directory is not package source, not production customer metadata, and not the broad
 maintainer integration-test suite. Keep it outside every package directory and deploy it only after
 the promoted or candidate package is installed.

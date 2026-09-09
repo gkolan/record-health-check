@@ -6,6 +6,17 @@
 /** Shared validation helpers used at runtime and in CI; they do not change org data. */
 public with sharing class RecordHealthCheckConfigValidator {
   private static Map<String, RecordHealthCheckPlugin> validatedPluginInstances = new Map<String, RecordHealthCheckPlugin>();
+
+  /** Structured result for one protected plugin validation attempt. */
+  public class ApexPluginValidation {
+    public Boolean isValid = false;
+    public RecordHealthCheckPlugin instance;
+    public String reasonCode;
+    public String phase;
+    public String configuredClassName;
+    public String resolvedTypeIdentity;
+    public Exception originalException;
+  }
   /**
    * Every template field on a Check, paired with the surface whose token rules
    * govern it. Declared once here because two validators walk the same fields:
@@ -92,38 +103,127 @@ public with sharing class RecordHealthCheckConfigValidator {
   }
 
   public static Boolean isValidApexPlugin(String className) {
-    return validateApexPlugin(className, null);
+    return validateApexPlugin(className).isValid;
   }
 
   /** Validates and caches a plugin for one exact Check configuration. */
   public static Boolean isValidApexPlugin(Record_Health_Check__mdt check) {
-    return check != null &&
-      validateApexPlugin(check.ApexClass__c, pluginCacheKey(check));
+    return validateApexPlugin(check).isValid;
   }
 
-  private static Boolean validateApexPlugin(String className, String cacheKey) {
-    if (String.isBlank(className)) {
-      return false;
+  /** Returns the exact result of validating one class name without caching it. */
+  public static ApexPluginValidation validateApexPlugin(String className) {
+    return inspectApexPlugin(className, null);
+  }
+
+  /** Validates and caches a typed plugin for one exact Check configuration. */
+  public static ApexPluginValidation validateApexPlugin(
+    Record_Health_Check__mdt check
+  ) {
+    if (check == null) {
+      return failedPluginValidation(
+        null,
+        RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND,
+        'PLUGIN_RESOLVE',
+        null
+      );
     }
+    return inspectApexPlugin(check.ApexClass__c, pluginCacheKey(check));
+  }
+
+  /** Accepts only the supported simple or namespace-qualified class syntax. */
+  public static Boolean isValidApexClassNameSyntax(String className) {
+    return String.isNotBlank(className) &&
+      Pattern.matches(
+        '^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)?$',
+        className.trim()
+      );
+  }
+
+  private static ApexPluginValidation inspectApexPlugin(
+    String className,
+    String cacheKey
+  ) {
+    if (cacheKey != null) {
+      validatedPluginInstances.remove(cacheKey);
+    }
+    if (String.isBlank(className)) {
+      return failedPluginValidation(
+        className,
+        RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND,
+        'PLUGIN_RESOLVE',
+        null
+      );
+    }
+    ApexPluginValidation validation = new ApexPluginValidation();
+    validation.configuredClassName = className.trim();
+    Type pluginType;
     try {
-      Type pluginType = RecordHealthCheckApexPluginResolver.configuredType(
+      pluginType = RecordHealthCheckApexPluginResolver.configuredType(
         className
       );
-      RecordHealthCheckPlugin instance = RecordHealthCheckPluginDispatch.instantiate(
+      validation.resolvedTypeIdentity = String.valueOf(pluginType);
+    } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException ex) {
+      return failedPluginValidation(
+        validation.configuredClassName,
+        ex.reasonCode,
+        'PLUGIN_RESOLVE',
+        ex
+      );
+    }
+    try {
+      validation.instance = RecordHealthCheckPluginDispatch.instantiate(
         pluginType
       );
-      if (instance == null) {
-        return false;
-      }
-      if (cacheKey != null) {
-        validatedPluginInstances.put(cacheKey, instance);
-      }
-      return true;
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {
-      return false;
+      return markPluginValidationFailed(
+        validation,
+        RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
+        'PLUGIN_CONSTRUCT',
+        ex
+      );
     }
+    if (validation.instance == null) {
+      return markPluginValidationFailed(
+        validation,
+        RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID,
+        'PLUGIN_RESOLVE',
+        null
+      );
+    }
+    validation.isValid = true;
+    if (cacheKey != null) {
+      validatedPluginInstances.put(cacheKey, validation.instance);
+    }
+    return validation;
+  }
+
+  private static ApexPluginValidation failedPluginValidation(
+    String className,
+    String reasonCode,
+    String phase,
+    Exception originalException
+  ) {
+    ApexPluginValidation validation = new ApexPluginValidation();
+    validation.configuredClassName = className;
+    validation.reasonCode = reasonCode;
+    validation.phase = phase;
+    validation.originalException = originalException;
+    return validation;
+  }
+
+  private static ApexPluginValidation markPluginValidationFailed(
+    ApexPluginValidation validation,
+    String reasonCode,
+    String phase,
+    Exception originalException
+  ) {
+    validation.reasonCode = reasonCode;
+    validation.phase = phase;
+    validation.originalException = originalException;
+    return validation;
   }
 
   public static RecordHealthCheckPlugin takeValidatedPlugin(

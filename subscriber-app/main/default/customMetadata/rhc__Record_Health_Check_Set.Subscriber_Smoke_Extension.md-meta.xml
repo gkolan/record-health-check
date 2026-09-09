@@ -14,7 +14,7 @@
     >Subscriber-owned Check Set</value></values>
     <values><field>rhc__CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Coexists with packaged Demo Check Sets after install.</value></values>
+    >Coexists with packaged Check Sets and verifies PASS, FAIL, SKIPPED, and UNABLE outcomes.</value></values>
     <values><field>rhc__CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>

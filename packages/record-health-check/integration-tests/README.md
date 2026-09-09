@@ -65,6 +65,10 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   [bad-configuration-diagnostic-fixtures.md](./bad-configuration-diagnostic-fixtures.md)
 - `RHC_Negative_Conformance`: an Apex test suite that gathers the deterministic schema, query,
   currency, access, polymorphism, null, diagnostics, and boundary tests used by the negative gate
+- `RHC_Plugin_Compatibility`: a valid Apex-plugin Check Set whose four named Account states produce
+  exact PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE results while its automated test proves one
+  protected construction handoff and one bulk evaluation; see
+  [plugin-compatibility-fixtures.md](./plugin-compatibility-fixtures.md)
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
   `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
 - `npm run test:war-room -- --alias <alias>`: cross-platform deploy-optional runner for the negative
