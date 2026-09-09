@@ -128,6 +128,7 @@ optional and run only after the release owner explicitly authorizes the specific
 | Optional hosted source validation | 2 | Namespaced LWS and namespaced Locker collect exact-commit evidence |
 | Candidate package creation | 0 | One version `04t` is created and the package artifact is inspected |
 | Optional clean candidate installation | 2 | Exact candidate is exercised in LWS and Locker subscriber orgs |
+| Optional upgrade from 2.0.8.1 | 2 | Current stable upgrade and subscriber configuration preservation are checked in LWS and Locker |
 | Optional upgrade from 2.0.6.2 | 2 | Subscriber-owned configuration is checked in LWS and Locker |
 | Optional upgrade from 2.0.4.2 | 2 | Older upgrade behavior is checked in LWS and Locker |
 | Promotion | 0 | The already-tested candidate is promoted; no replacement candidate is created |
@@ -135,8 +136,8 @@ optional and run only after the release owner explicitly authorizes the specific
 Recommended calendar:
 
 1. Day one: run the no-org preflight and the two source orgs, then create the candidate.
-2. Day two: run clean installation and the 2.0.6.2 upgrade, using four creations.
-3. Day three: run the 2.0.4.2 upgrade, review all exact-commit evidence, and promote.
+2. Day two: run clean installation and the 2.0.8.1 upgrade, using four creations.
+3. Day three: run the 2.0.6.2 and 2.0.4.2 upgrades, review all exact-commit evidence, and promote.
 
 Do not compress the stages by substituting unpackaged source tests for an installed-package test.
 If a stage fails after creating an org, investigate and clean up that org, then wait for enough daily

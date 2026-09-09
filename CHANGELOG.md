@@ -79,6 +79,27 @@ For installation and verification, start with
   incompatible or throwing class to `APEX_CLASS_NOT_FOUND`. Constructor configuration failures now
   remain `UNABLE_TO_EVALUATE`, and authorized diagnostics retain the resolved type and original
   ordinary constructor exception where Salesforce provides them.
+- AI Check drafts now use the deployable `AUTO` stored value for Formula Result Type on every
+  Evaluation Type, including Apex. The prompt and executable validator reject `N/A` as metadata and
+  require unused fields to be omitted from generated XML.
+
+### Changed
+
+- Installed and documented examples ship with diagnostics, user-run events, result events, error
+  events, and stop-on-system-error behavior off. These capabilities are opt-in so installing an
+  example cannot create diagnostic exposure or automation side effects.
+- The Advanced Approvals inactive-approver recipe and its integration-only fixtures were removed.
+  Public examples now rely only on standard Salesforce objects available in an ordinary org.
+
+### Release safeguards
+
+- The package-boundary gate rejects diagnostic or event publication enabled on any public Example
+  Check or Check Set, and rejects third-party namespace metadata in the public example library.
+- The AI evidence gate retains `N/A` values long enough to reject them, requires
+  `FormulaResultType__c` on every draft, and remains part of every CI and release preflight.
+- A dependency-isolated DLRS 2.25 gate resolves `dlrs.RollupService` from a real foreign managed
+  namespace and requires the exact `PLUGIN_INTERFACE_INVALID` reason, preventing namespace lookup
+  failures from being mislabeled as missing-class or constructor failures.
 
 ## Version 2.0.8
 
@@ -131,10 +152,9 @@ link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000
   formatting, and card behavior instead of a bare pass/fail rule. `npm run check:ai-prompts` reads
   the prompts against the Custom Metadata and fails on an invented field, a Setup label stored where
   a stored value belongs, a capability no prompt offers, or a prompt that drifted from the shared
-  rules. The same gate re-validates recorded low-cost-model answers for all four Evaluation Types in
-  `tests/ai-drafts`, and refuses evidence recorded from an older version of a prompt. A reviewed
-  prompt change deliberately re-records that evidence with `npm run check:ai-model-drafts`; ordinary
-  release preflight checks the saved examples and does not require a third-party model credential.
+  rules. The same gate validates provider-neutral reference answers for all four Evaluation Types in
+  `tests/ai-drafts`. The release path is fully offline and does not depend on a provider SDK, live
+  model call, paid account, or model credential.
 - Merge-token guidance now distinguishes transient raw query rows from values intentionally copied
   into rendered messages, labels, and URLs, including their browser, API, and diagnostics exposure.
 - Query-row merge tokens use zero-based collection indexes: `sourceRows[0]` and

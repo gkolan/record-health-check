@@ -89,7 +89,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.8.1-to-2.0.9.1",
+  "upgrade-2.0.8.1-to-2.0.9.2",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -263,8 +263,8 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.9.1") {
-  errors.push("Candidate version must be exactly 2.0.9.1.");
+if (matrix.candidateVersion !== "2.0.9.2") {
+  errors.push("Candidate version must be exactly 2.0.9.2.");
 }
 if (matrix.upgradeFromVersion !== "2.0.8.1") {
   errors.push("Upgrade base version must be exactly 2.0.8.1.");

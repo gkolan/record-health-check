@@ -138,6 +138,123 @@ const fixtureCoreExamples = fixtureExamples.filter((name) =>
 );
 const failures = [];
 
+const exampleDocsDirectory = path.join(root, "docs/examples");
+const safeDocumentationFieldLabels = new Set([
+  "Show Diagnostics",
+  "Publish User Run Event",
+  "Publish User Result Event",
+  "Publish Error Log Event",
+  "Stop after a system error"
+]);
+const unsafeDocumentationDefault = (line) => {
+  const cells = line
+    .split("|")
+    .slice(1, -1)
+    .map((cell) => cell.trim());
+  const fieldIndex = cells.findIndex((cell) =>
+    [...safeDocumentationFieldLabels].some((label) =>
+      cell.includes(`**${label}**`)
+    )
+  );
+  if (fieldIndex < 0 || fieldIndex === cells.length - 1) return false;
+  const configuredValue = cells.at(-1).replaceAll("`", "").trim();
+  return /^(?:checked|enabled|yes|true)\b/i.test(configuredValue);
+};
+for (const [line, expected] of [
+  ["| **Show Diagnostics** | Checked |", true],
+  ["| **Publish User Result Event** | API name | `true` |", true],
+  [
+    "| **Show Diagnostics** | Unchecked; enable only for troubleshooting |",
+    false
+  ]
+]) {
+  if (unsafeDocumentationDefault(line) !== expected) {
+    failures.push(
+      "Package-boundary self-test failed for public example side-effect documentation."
+    );
+  }
+}
+const markdownFilesUnder = (directory) =>
+  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const child = path.join(directory, entry.name);
+    return entry.isDirectory()
+      ? markdownFilesUnder(child)
+      : entry.name.endsWith(".md")
+        ? [child]
+        : [];
+  });
+for (const file of markdownFilesUnder(exampleDocsDirectory)) {
+  const text = fs.readFileSync(file, "utf8");
+  for (const [index, line] of text.split("\n").entries()) {
+    if (unsafeDocumentationDefault(line)) {
+      failures.push(
+        `${path.relative(root, file)}:${index + 1} must keep diagnostics and event ` +
+          "publication unchecked in public example configuration tables"
+      );
+    }
+  }
+  const foreignPrefixes = [
+    ...text.matchAll(
+      /\b([A-Za-z][A-Za-z0-9_]*)__[A-Za-z][A-Za-z0-9_]*__(?:c|e|mdt|r)\b/g
+    )
+  ]
+    .map((match) => match[1])
+    .filter((prefix) => prefix.toLowerCase() !== "rhc");
+  if (foreignPrefixes.length > 0) {
+    failures.push(
+      `${path.relative(root, file)} must use metadata available in an ordinary org; ` +
+        `found third-party namespace ${[...new Set(foreignPrefixes)].join(", ")}`
+    );
+  }
+}
+
+const safeExampleDefaults = new Map([
+  [
+    "Record_Health_Check_Set.",
+    [
+      "ShowDiagnostics__c",
+      "PublishUserRunEvent__c",
+      "PublishErrorLogEvent__c",
+      "StopOnSystemError__c"
+    ]
+  ],
+  ["Record_Health_Check.", ["PublishUserResultEvent__c"]]
+]);
+
+for (const directory of [coreDirectory, fixtureDirectory]) {
+  for (const fileName of files(directory).filter((name) =>
+    name.startsWith("Record_Health_Check.")
+  )) {
+    const values = customMetadataValues(directory, fileName);
+    if (
+      values.get("EvaluationType__c") === "APEX" &&
+      values.get("FormulaResultType__c") !== "AUTO"
+    ) {
+      failures.push(
+        `${path.relative(root, path.join(directory, fileName))} must set ` +
+          `FormulaResultType__c to AUTO so Apex metadata remains deployable`
+      );
+    }
+  }
+  for (const fileName of files(directory).filter((name) =>
+    examplePattern.test(name)
+  )) {
+    const values = customMetadataValues(directory, fileName);
+    const fields =
+      [...safeExampleDefaults].find(([prefix]) =>
+        fileName.startsWith(prefix)
+      )?.[1] ?? [];
+    for (const field of fields) {
+      if (values.get(field) === "true") {
+        failures.push(
+          `${path.relative(root, path.join(directory, fileName))} ${field} ` +
+            `must not be true; public examples are side-effect-free and diagnostics are opt-in`
+        );
+      }
+    }
+  }
+}
+
 const resultTokenChecks = coreRecords
   .filter((fileName) => fileName.startsWith("Record_Health_Check."))
   .map((fileName) => ({
@@ -533,5 +650,5 @@ console.log(
   `Verified package boundary: ${coreRecords.length} shipped Example_ records in force-app ` +
     `with matching integration-tests fixtures, ${resultTokenChecks.length} Checks using result ` +
     `merge tokens, one Check reading a returned query row, the 30-Check LWC ceiling example, ` +
-    `and Example: card titles.`
+    `side-effect-free example defaults, portable example documentation, and Example: card titles.`
 );

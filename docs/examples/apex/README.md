@@ -21,9 +21,8 @@ It must return one result for every record ID.
 | [Recent Account activity](./recent-activity.md) | Does the Account have a recent completed Task or Event? | Reads two objects and accepts a configurable number of days | Included with the installed package |
 | [Open Opportunity health](./open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Applies several conditions to each related record | Source example for package development and testing; not installed |
 | [Strategic Account readiness](./strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Calculates a score using several configurable values | Source example for package development and testing; not installed |
-| [Inactive approval participants](./inactive-approver.md) | Is a pending approval assigned to an inactive user? | Checks optional product objects and reports when they are unavailable | Source example for package development and testing; not installed |
 
-Only **Recent Account activity** is ready to use after package installation. The other classes live
+Only **Recent Account activity** is ready to use after package installation. The other two classes live
 under `packages/record-health-check/integration-tests` and are not installed. Their pages explain
 how to build a subscriber-owned class from the pattern by using the public `rhc.*` Apex types. Do
 not copy an integration-test class unchanged into an org with the installed package.

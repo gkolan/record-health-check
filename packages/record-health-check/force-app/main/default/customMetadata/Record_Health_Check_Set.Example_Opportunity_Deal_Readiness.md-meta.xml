@@ -33,7 +33,7 @@
     >SHOW_EACH_CHECK</value></values>
     <values><field>PublishUserRunEvent__c</field><value
       xsi:type="xsd:boolean"
-    >true</value></values>
+    >false</value></values>
     <values><field>StopOnSystemError__c</field><value
       xsi:type="xsd:boolean"
     >false</value></values>

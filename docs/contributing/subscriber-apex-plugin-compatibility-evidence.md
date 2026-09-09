@@ -4,8 +4,9 @@ Use this verification-standard ledger to review the evidence behind the 2.0.9 su
 plugin repair. It separates source evidence from installed-package evidence so a source test cannot
 be mistaken for a released package result.
 
-Verified on 2026-09-08 from commit `07d68b607e3998e42cf93d1bcded5e63a6d145ce` plus the tracked
-2.0.9 working-tree changes described here. No scratch org or package version was created.
+Originally verified from commit `07d68b607e3998e42cf93d1bcded5e63a6d145ce`; the source evidence
+below was refreshed on 2026-09-09 from candidate commit
+`d3edc7d1d0659569504df0f0d8b86a1810cfa031`.
 
 ## Red and green regression evidence
 
@@ -16,6 +17,7 @@ Verified on 2026-09-08 from commit `07d68b607e3998e42cf93d1bcded5e63a6d145ce` pl
 | Forced platform-load failure | Same org | The first dry-run, `0AfRL00000hYCXS0A4`, failed because the assertion did not allow the package namespace on the exception type. After making that assertion namespace-portable, dry-run `0AfRL00000hYGG50AO` and deployment `0AfRL00000hYGO90AO` passed all 12 focused methods. The preserved test proves that an exception from platform type loading remains `APEX_CLASS_LOAD_FAILED` and retains the original exception type and message. |
 | Green complete inventory | Fresh namespaced LWS release org `rhc-209-lws-codex-20260909` | Final run `707Ru000029xCTZ` passed 182 test classes, 1,257 test methods, and 44 setup methods: 1,301 Salesforce tests with no failures. Production-source coverage was 99.60% (11,826/11,874), and every executable production class exceeded 98%. |
 | Focused compatibility matrix | Same org | Run `707RL00001g1UAG` passed 58 methods, including PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, constructor/evaluate counts, and exact diagnostic reason codes. |
+| DLRS fixture red/green | Reused project-owned namespaced org `rhc-208-ns-20260906` | The first test run, `707RL00001g2o9H`, failed in the fixture because its selective Custom Metadata query omitted `QualifiedApiName`; it did not reach the product assertion. After adding every field consumed by the evaluator, dry-run `0AfRL00000hYP4s0AG`, deployment `0AfRL00000hYV8f0AG`, and test run `707RL00001g3CVm` succeeded. The preserved test requires the real foreign class to resolve and the evaluator to return exactly `PLUGIN_INTERFACE_INVALID`. |
 
 The complete inventory is the reusable guard: reverting the reason mapping makes the former sibling
 assertions fail, while restoring either rejected interface predicate is caught by the seven-case
@@ -27,7 +29,8 @@ source mutation guard.
 | --- | --- | --- |
 | Released RHC plus subscriber-owned empty-namespace plugin | Focused dry-run `0Afdh000009zYKXCA2` passed against installed RHC 2.0.6.2. | This is a valid public-surface compatibility control. It does not reproduce the reported customer failure and does not prove the separate-managed-namespace topology. |
 | Namespaced RHC source plus installed `SBQQ` | CPQ 240.5 install request `0HfRL0000067hrC0AQ`; `SBQQ.ServiceRouter` resolved and produced `PLUGIN_CONSTRUCTOR_FAILED`. | This proves qualified foreign-namespace lookup and correct failure provenance. The CPQ class does not implement the RHC plugin interface, so it is not an NS-03 success. |
-| RHC 2.0.9 candidate plus a plugin owned by a second managed namespace | `namespace-fixture/` contains the repeatable source and install procedure. | Not run. It requires a registered partner namespace, a real 2.0.9 candidate `04t`, and release-owner authorization to create the two candidate artifacts. |
+| Namespaced RHC source plus installed `dlrs` | [DLRS 2.25](https://github.com/SFDO-Community/declarative-lookup-rollup-summaries/releases/tag/release%2F2.25) (`04tKA000000cCA1YAM`) installed successfully as request `0HfRL0000067uel0AA`. Dependency-isolated fixture `RHCForeignApexNamespaceIT` uses the global `dlrs.RollupService` class. | Test run `707RL00001g3CVm` proves the class resolves and produces `PLUGIN_INTERFACE_INVALID`, excluding false `APEX_CLASS_NOT_FOUND` and `PLUGIN_CONSTRUCTOR_FAILED` results. DLRS does not implement the RHC interface and therefore cannot satisfy NS-03. |
+| RHC 2.0.9 candidate plus a plugin owned by a second managed namespace | `namespace-fixture/` contains the repeatable source and install procedure. | Not run. The Dev Hub inventory contains only the `rhc` namespace. A different registered namespace is still required; a third-party package cannot be relabeled as a compatible RHC plugin. |
 | Original legacy Advanced Approvals preview | No installable SBAA artifact or customer org is available. | Not run. The source fixtures deliberately isolate the framework boundary without pretending to validate the unavailable approval product. |
 
 ## Static and configuration coverage
@@ -37,6 +40,9 @@ source mutation guard.
   suppressions. The final machine-readable scan is
   `reports/code-analyzer-results-20260909-032500.json`; it was interpreted only through the
   repository's required results parser.
+- The added DLRS fixture received a focused Recommended-rules scan with `--include-fixes`:
+  `reports/code-analyzer-results-20260909-012011.json` contains zero violations and was also
+  interpreted only through the required results parser.
 - `RHC_Plugin_Compatibility` is the source integration Check Set. Its four records produce PASS,
   FAIL, SKIPPED, and UNABLE_TO_EVALUATE, and its Apex test proves one construction and one
   evaluation for the bulk scope.
@@ -49,11 +55,13 @@ source mutation guard.
 
 ## Upgrade boundary
 
-The stable released artifact is 2.0.8.1 (`04tak000000g1R7AAI`). The repository now describes
-2.0.9 development source; no 2.0.9 package candidate exists yet. Therefore an exact
-2.0.8.1-to-2.0.9 installed-package upgrade cannot be claimed. Once a release owner authorizes
-candidate creation, run the documented subscriber upgrade workflow and append the candidate ID,
-install request, pre/post results, and rollback evidence here before promotion.
+The stable released artifact is 2.0.8.1 (`04tak000000g1R7AAI`). Candidate 2.0.9.1
+(`04tak000000gEmXAAU`) was created from `d3edc7d1d0659569504df0f0d8b86a1810cfa031` and remains
+unpromoted. It was superseded before subscriber validation because the documentation and packaged
+example review found unsafe event/diagnostic defaults and non-deployable AI guidance. The exact
+2.0.8.1-to-2.0.9.2 installed-package upgrade remains pending until the replacement candidate exists;
+record its package ID, install request, pre/post results, and rollback evidence here before
+promotion.
 
 ## Related
 

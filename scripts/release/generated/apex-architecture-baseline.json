@@ -139,10 +139,6 @@
       "maximum": 1,
       "category": "integration-test sample test-only access"
     },
-    "packages/record-health-check/integration-tests/main/default/classes/ApprovalInactiveApproverCheck.cls": {
-      "maximum": 8,
-      "category": "integration-test sample test-only access"
-    },
     "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckBenchmarkSeeder.cls": {
       "maximum": 1,
       "category": "benchmark test-only access"

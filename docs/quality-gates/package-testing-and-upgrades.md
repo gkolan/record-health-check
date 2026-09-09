@@ -119,9 +119,11 @@ For each proposed version, maintainers must:
 3. Retrieve the package artifact and confirm that every Custom Metadata member has a physical file.
 4. When the release owner explicitly authorizes scratch-org testing, optionally prove the source and browser behavior in namespaced LWS and Locker orgs.
 5. When authorized, optionally install the candidate in a clean org and run the installation smoke tests.
-6. When authorized, optionally install the previous promoted version in a separate clean org, create representative
-   customer-owned Check Sets and Checks, and upgrade that org to the candidate.
-7. Record whether the optional upgrade retained customer-owned Custom Metadata.
+6. When authorized, optionally install every reviewed version in `upgradeBases` in its own clean
+   org, create representative customer-owned Check Sets and Checks, and upgrade that org to the
+   candidate under both LWS and Locker. For 2.0.9 the bases are 2.0.8.1, 2.0.6.2, and 2.0.4.2.
+7. Record whether every optional upgrade retained customer-owned Custom Metadata; do not infer an
+   older-base result from the current-stable upgrade.
 8. Promote the exact candidate after its package report and creation evidence are verified.
 9. Move the former stable version to `previous`, record the new promoted `04t` and installation
     links in `config/package-releases.json`, update `CHANGELOG.md`, and create the matching release

@@ -1,8 +1,8 @@
 # Separate-namespace Apex plugin fixture
 
 This is the package-ready source for topology NS-03: an installed `rhc` package calling a global
-plugin installed from a different managed namespace. It is deliberately independent of CPQ,
-Advanced Approvals, subscriber fields, locale, currency, and time zone.
+plugin installed from a different managed namespace. It is deliberately independent of optional
+third-party products, subscriber fields, locale, currency, and time zone.
 
 The tracked project file is a template because Salesforce namespaces and `04t` dependencies are
 real registry assets, not names this repository can invent. Before use, a release owner supplies a

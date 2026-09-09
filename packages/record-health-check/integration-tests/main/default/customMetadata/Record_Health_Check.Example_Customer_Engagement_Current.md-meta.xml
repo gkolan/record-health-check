@@ -24,6 +24,9 @@
         <field>EvaluationType__c</field>
         <value xsi:type="xsd:string">APEX</value>
     </values>
+    <values><field>FormulaResultType__c</field><value
+      xsi:type="xsd:string"
+    >AUTO</value></values>
     <values>
         <field>ApexClass__c</field>
         <value xsi:type="xsd:string">AccountHasRecentActivityCheck</value>

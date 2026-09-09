@@ -41,9 +41,8 @@ Checks:
 Before creating a release candidate:
 
 1. Run every local gate, including docs, query shapes, permissions, formatting, lint, and Jest.
-   `check:ai-prompts` confirms that the saved low-cost-model examples match the current prompts and
-   Custom Metadata fields. Re-record them deliberately when a prompt changes. A normal release does
-   not require a third-party model credential.
+   `check:ai-prompts` confirms that provider-neutral reference drafts match the current prompt and
+   Custom Metadata contracts. It is fully offline and has no provider credential requirement.
 2. Run Code Analyzer and resolve every unsuppressed release finding.
 3. When the release owner explicitly authorizes scratch-org creation, the optional
    `salesforce-validate.yml` workflow can collect additional namespaced LWS and Locker evidence.

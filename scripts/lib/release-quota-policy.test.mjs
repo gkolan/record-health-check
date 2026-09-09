@@ -93,7 +93,7 @@ test("release workflows require owner authorization before scratch-org creation"
   assert.doesNotThrow(() =>
     assertReleaseQuotaPolicy(source, subscriber, workflows)
   );
-  assert.doesNotMatch(source, /ANTHROPIC_API_KEY|check:ai-model-drafts/);
+  assert.doesNotMatch(source, /[A-Z][A-Z0-9]+_API_KEY|model-drafts/);
   assert.doesNotMatch(source, /--no-namespace|portable-source-tests/);
   assert.match(
     source,

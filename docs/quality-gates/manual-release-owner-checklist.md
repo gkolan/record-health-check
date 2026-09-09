@@ -67,6 +67,13 @@ Do not reuse evidence from another commit, pull-request merge commit, branch hea
 
 6. Stop if the worktree is not clean. Preserve local test and analyzer evidence under its approved
    ignored evidence directory; do not delete evidence merely to satisfy the clean-worktree gate.
+7. Confirm `check:package-boundary` reports side-effect-free example defaults and portable example
+   documentation. No public Example Check or Check Set may enable diagnostics or event publication,
+   and no public example may require a third-party namespace.
+8. When an AI prompt or metadata contract changed, confirm the four provider-neutral reference
+   drafts pass `check:ai-prompts`, contain `FormulaResultType__c=AUTO` for every Evaluation Type
+   unless a reviewed Formula needs an explicit type, and use `(omit from metadata)` rather than a
+   literal `N/A` value for unused fields. This check is offline and requires no model credential.
 
 A green pull request summary is source evidence only. A pull-request run in which Salesforce jobs
 were skipped is not hosted release evidence.
@@ -126,6 +133,30 @@ After any workflow-source fix, commit and push it and start a new workflow run. 
 run keeps the older commit and workflow definition, so it cannot validate the fix.
 
 Treat incomplete results as failed optional evidence. They do not block package creation.
+
+When the release changes Apex plugin discovery or namespace handling, install one currently
+available public namespaced package in one of the authorized source orgs and exercise a qualified
+class name from it. Record the install ID and exact RHC reason code. This proves foreign-namespace
+resolution and rejection provenance only; it does not prove NS-03 unless that package implements
+`rhc.RecordHealthCheckPlugin`. Keep the successful compatible-plugin topology pending until the Dev
+Hub has a genuinely different registered namespace. For 2.0.9, the selected public control is DLRS
+2.25 (`04tKA000000cCA1YAM`), and `RHCForeignApexNamespaceIT` must prove that
+`dlrs.RollupService` resolves and returns `PLUGIN_INTERFACE_INVALID`.
+
+## 3a. Complete the human documentation review
+
+Before package creation, a named reviewer other than the author must read the affected user pages
+in navigation order and record the review in the pull request or retained release evidence. For
+2.0.9, the reviewer must confirm:
+
+- every published example uses objects and fields available in an ordinary Salesforce org;
+- examples show diagnostics, run events, result events, and error events off by default;
+- the Apex AI prompt proposes `FormulaResultType__c=AUTO` and never exports `N/A`;
+- PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR guidance matches the runtime contract; and
+- installation, upgrade, rollback, and troubleshooting links lead to one maintained owner page.
+
+Automated documentation checks prove structure and known invariants, not human usefulness. Do not
+record this step complete without the reviewer's name and review date.
 
 ## 4. Create exactly one package candidate
 
@@ -284,6 +315,10 @@ pass.
   this unsupported object/list-view representation before another package build is attempted.
 - Bind every release decision to the same commit and immutable package ID. A green PR, old artifact,
   or source deployment is not proof that the package is ready.
+- Keep public examples inert on install. The package-boundary gate must reject diagnostics or event
+  publication enabled by default and third-party namespace dependencies in the example library.
+- Treat AI output as deployable metadata, not prose. Literal `N/A` is never a stored value; unused
+  fields are omitted, and every drafted Check carries an explicit Formula Result Type.
 
 These controls reduce regression risk; they cannot promise that an unknown defect will never occur.
 

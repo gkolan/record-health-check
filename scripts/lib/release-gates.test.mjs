@@ -1,4 +1,5 @@
 import { strict as assert } from "node:assert";
+import fs from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -19,10 +20,14 @@ test("every environment runs the source gates behind its toolchain gate", () => 
   ]);
 });
 
-test("release preflight is deterministic and does not require a paid model call", () => {
+test("release preflight uses only deterministic provider-neutral AI fixtures", () => {
   assert.deepEqual(releaseGates, []);
   assert.ok(sourceGates.includes("check:ai-prompts"));
-  assert.ok(!gatesFor("local").includes("check:ai-model-drafts"));
+  assert.ok(
+    !Object.keys(
+      JSON.parse(fs.readFileSync("package.json", "utf8")).scripts
+    ).some((name) => name.includes("model-drafts"))
+  );
 });
 
 test("selection keeps declared order, not the order requested", () => {

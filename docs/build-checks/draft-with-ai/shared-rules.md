@@ -49,9 +49,9 @@ Fill in every field the Evaluation Type reads. An unfinished draft costs an admi
 than a debatable one: a value can be edited, a blank has to be researched. Propose a value for
 every field, and leave a field unset only when this Evaluation Type never reads it.
 A field that has a default is still a field you decide. Write the default value itself, so
-MaxQueryRows__c is 200 and EmptyValueHandling__c carries its own stored value; never answer N/A
-for a field the Evaluation Type reads just because its default would do. N/A is reserved for a
-field this Evaluation Type never reads at all.
+MaxQueryRows__c is 200 and EmptyValueHandling__c carries its own stored value. Never write N/A as
+a proposed value: N/A is not deployable metadata. For a field this Evaluation Type never reads,
+write `(omit from metadata)` in the proposal and ensure an exporter omits the field from XML.
 "Confirm in Salesforce Setup" belongs only on an object, field, relationship, or Apex class API
 name the administrator did not supply. It is never the answer for a label, a name, a description,
 a message, a category, a severity, an order, or a display choice; write those from the
@@ -70,7 +70,7 @@ ALL_RECORDS, and leave it blank when it is, because a Check that always applies 
 as not applicable.
 Propose CardSubtitle__c with wording that suits this requirement. Propose RunButtonLabel__c,
 RerunButtonLabel__c, and RunButtonIcon__c when RunButtonDisplay__c is not HIDE, so the administrator
-can read and edit what the card will show. Mark those three rows N/A when the button is hidden;
+can read and edit what the card will show. Mark those three rows `(omit from metadata)` when the button is hidden;
 saved values there are ignored configuration.
 Write the titles and messages the way the shipped examples do, not as field names restated:
 - CheckTitle__c states the claim being tested, so the row reads as a result: "Complete Billing
@@ -104,7 +104,7 @@ Use this output order:
    Check Set field listed below, in that order, including the ones you leave at their default.
    Never drop a row because the default is fine; say that the default is the choice.
 4. Check table: Setup label, API field name, proposed value, and why. Give one row for every Check
-   field listed below, in that order, and mark N/A, with a one-line reason, only the ones this
+   field listed below, in that order, and mark `(omit from metadata)`, with a one-line reason, only the ones this
    Evaluation Type never reads. Every other row carries a value the administrator can save.
 5. What users see for PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR.
 6. Permissions and sharing assumptions that an administrator must test.
@@ -148,6 +148,9 @@ Check fields that every Evaluation Type uses (Record_Health_Check__mdt):
 - CheckTitle__c: Text(255), the row heading on the card. CheckDescription__c: Text(255), the
   explanation under it.
 - EvaluationType__c: required, no default. FORMULA, QUERY, COMPARE_TWO_QUERIES, or APEX.
+- FormulaResultType__c: AUTO, BOOLEAN, NUMBER, DATE, DATETIME, or TEXT. Propose AUTO on every
+  Check unless a verified formula result requires an explicit type. AUTO is the portable default,
+  including for APEX Checks, and prevents an exporter from substituting a non-deployable N/A.
 - Category__c: optional. COMPLETENESS, CONSISTENCY, TIMELINESS, ELIGIBILITY, READINESS, RISK,
   COMPLIANCE, or RELATIONSHIP_COVERAGE. Categories group the card summary; they never change a
   result.
@@ -192,7 +195,7 @@ Fill the proposal like a published example, not a bare pass/fail rule:
   fill ApplicabilityNotMetMessage__c the same way.
 - For FORMULA Checks, also fill DisplayFoundFormula__c and DisplayExpectedFormula__c when they
   help the user see what is missing, as the published Formula examples do.
-- Leave blank only fields that truly do not apply (mark those N/A) or Run button labels when
+- Leave blank only fields that truly do not apply (mark those `(omit from metadata)`) or Run button labels when
   RunButtonDisplay__c is HIDE. Do not omit FixMessage, UnableToEvaluateMessage, CheckDescription,
   or useful Found/Expected display text "because optional".
 

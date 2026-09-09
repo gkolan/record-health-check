@@ -550,5 +550,5 @@ test, threshold, and documentation updates.
 
 ## Related
 
-- [← Prev: Open Opportunity health](./open-opportunity-health.md) · [Next: Inactive approvers →](./inactive-approver.md)
+- [← Prev: Open Opportunity health](./open-opportunity-health.md)
 - [Browse Apex examples](./README.md)

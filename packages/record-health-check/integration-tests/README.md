@@ -100,6 +100,9 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
 - `foreign-namespace/`: a separately deployed, CPQ-dependent gate that proves full `SBQQ__` field
   API names through Formula, Query, and record merge surfaces in a namespaced `rhc` org; it is
   excluded from ordinary integration deployments
+- `foreign-apex-namespace/`: a separately deployed, DLRS-dependent gate that resolves global
+  class `dlrs.RollupService` and proves the exact `PLUGIN_INTERFACE_INVALID` reason without
+  claiming that DLRS implements the RHC plugin interface
 - Platform-event triggers used only in CI orgs
 - Apex classes that exercise the Framework against those samples
 

@@ -32,13 +32,13 @@
     >ON_DEMAND</value></values>
     <values><field>ShowDiagnostics__c</field><value
       xsi:type="xsd:boolean"
-    >true</value></values>
+    >false</value></values>
     <values><field>StopOnSystemError__c</field><value
       xsi:type="xsd:boolean"
     >false</value></values>
     <values><field>PublishErrorLogEvent__c</field><value
       xsi:type="xsd:boolean"
-    >true</value></values>
+    >false</value></values>
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>

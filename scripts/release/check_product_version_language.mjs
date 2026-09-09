@@ -26,10 +26,7 @@ const ignoredFiles = new Set([
   "LICENSE",
   "NOTICE",
   "PUBLISHING.md",
-  "package-lock.json",
-  // Calls the Anthropic Messages API, whose URL path carries that vendor's own
-  // interface version. That is not a Record Health Check product generation.
-  "draft_with_model.mjs"
+  "package-lock.json"
 ]);
 const textExtensions = new Set([
   ".apex",
