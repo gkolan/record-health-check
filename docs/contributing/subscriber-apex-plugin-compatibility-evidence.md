@@ -5,8 +5,8 @@ plugin repair. It separates source evidence from installed-package evidence so a
 be mistaken for a released package result.
 
 Originally verified from commit `07d68b607e3998e42cf93d1bcded5e63a6d145ce`; the source evidence
-below was refreshed on 2026-09-09 from candidate commit
-`d3edc7d1d0659569504df0f0d8b86a1810cfa031`.
+below was refreshed on 2026-09-09, and released package 2.0.9.2 was created from commit
+`407dfe6f31c6281d4771b56db36978e89144b410`.
 
 ## Red and green regression evidence
 
@@ -27,7 +27,7 @@ source mutation guard.
 
 | Topology | Evidence | Interpretation |
 | --- | --- | --- |
-| Released RHC plus subscriber-owned empty-namespace plugin | Focused dry-run `0Afdh000009zYKXCA2` passed against installed RHC 2.0.6.2. | This is a valid public-surface compatibility control. It does not reproduce the reported customer failure and does not prove the separate-managed-namespace topology. |
+| Released RHC 2.0.9.2 plus subscriber-owned empty-namespace plugin | In retained Locker subscriber org `rhc-2-0-9-locker`, focused test run `707E200002AydMm` passed against installed `04tak000000gX9FAAU`. The subscriber class was constructed once, `evaluate()` ran once, exact PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE outcomes matched, and the subscriber plugin had 100% coverage. | This proves the supported managed-package-to-subscriber interface boundary works in the released artifact. It disproves the proposed conclusion that the direct cast always fails in this topology; a separate managed-package namespace remains a different case. |
 | Namespaced RHC source plus installed `SBQQ` | CPQ 240.5 install request `0HfRL0000067hrC0AQ`; `SBQQ.ServiceRouter` resolved and produced `PLUGIN_CONSTRUCTOR_FAILED`. | This proves qualified foreign-namespace lookup and correct failure provenance. The CPQ class does not implement the RHC plugin interface, so it is not an NS-03 success. |
 | Namespaced RHC source plus installed `dlrs` | [DLRS 2.25](https://github.com/SFDO-Community/declarative-lookup-rollup-summaries/releases/tag/release%2F2.25) (`04tKA000000cCA1YAM`) installed successfully as request `0HfRL0000067uel0AA`. Dependency-isolated fixture `RHCForeignApexNamespaceIT` uses the global `dlrs.RollupService` class. | Test run `707RL00001g3CVm` proves the class resolves and produces `PLUGIN_INTERFACE_INVALID`, excluding false `APEX_CLASS_NOT_FOUND` and `PLUGIN_CONSTRUCTOR_FAILED` results. DLRS does not implement the RHC interface and therefore cannot satisfy NS-03. |
 | RHC 2.0.9 candidate plus a plugin owned by a second managed namespace | `namespace-fixture/` contains the repeatable source and install procedure. | Not run. The Dev Hub inventory contains only the `rhc` namespace. A different registered namespace is still required; a third-party package cannot be relabeled as a compatible RHC plugin. |
@@ -53,18 +53,24 @@ source mutation guard.
   `APEX_CLASS_NOT_FOUND`, `PLUGIN_INTERFACE_INVALID`, `PLUGIN_CONSTRUCTOR_FAILED`, and
   `INVALID_APEX_PARAMETERS`.
 
-## Upgrade boundary
+## Release and upgrade boundary
 
-The stable released artifact is 2.0.8.1 (`04tak000000g1R7AAI`). Candidate 2.0.9.1
-(`04tak000000gEmXAAU`) was created from `d3edc7d1d0659569504df0f0d8b86a1810cfa031` and remains
-unpromoted. It was superseded before subscriber validation because the documentation and packaged
-example review found unsafe event/diagnostic defaults and non-deployable AI guidance. The exact
-2.0.8.1-to-2.0.9.2 installed-package upgrade remains pending until the replacement candidate exists;
-record its package ID, install request, pre/post results, and rollback evidence here before
-promotion.
+The stable released artifact is 2.0.9.2 (`04tak000000gX9FAAU`). Candidate 2.0.9.1
+(`04tak000000gEmXAAU`) was superseded before promotion because documentation and packaged-example
+review found unsafe event/diagnostic defaults and non-deployable AI guidance. Salesforce reports
+2.0.9.2 as released with 99% package coverage and no skipped validation.
+
+Clean installation of 2.0.9.2 succeeded in both retained 30-day subscriber release orgs. The Locker
+org also passed subscriber metadata deployment, exact Apex inventory, MCP-to-Apex contract testing,
+and the focused subscriber plugin compatibility test. The automated browser lifecycle then failed
+to find Salesforce's Edit dialog, so the reset and exact 2.0.8.1-to-2.0.9.2 upgrade stages did not
+complete in that run. The release owner separately confirmed that the reported subscriber plugin
+works correctly and explicitly approved promotion. This approval is recorded as an exception; the
+incomplete automated stages are not represented as passing evidence.
 
 ## Related
 
+- [Release 2.0.9.2 record](../quality-gates/release-2.0.9.2-record.md)
 - [Compatibility implementation specification](./subscriber-apex-plugin-compatibility-spec.md)
 - [Plugin compatibility integration fixtures](../../packages/record-health-check/integration-tests/plugin-compatibility-fixtures.md)
 - [Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md)

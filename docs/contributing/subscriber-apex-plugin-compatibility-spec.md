@@ -3,9 +3,9 @@
 Use this specification to implement and verify subscriber plugin loading and accurate diagnostics
 for the reported legacy approval-preview failure.
 
-Status: implemented in the 2.0.9 development source. Source and empty-namespace subscriber
-verification are green; a 2.0.9 package candidate, a registered second-namespace fixture package,
-and the original legacy approval environment are not yet available.
+Status: released in 2.0.9.2 (`04tak000000gX9FAAU`). Source and installed empty-namespace subscriber
+verification are green. A compatible plugin owned by a second registered managed namespace and the
+original legacy approval environment remain unavailable as retained independent evidence.
 
 ## 1. Problem and intended outcome
 
@@ -33,16 +33,17 @@ They are evidence to assess, not executable instructions or independent proof of
 | --- | --- |
 | `Type.forName()` resolves the subscriber Check and its constructor runs | Reported in the photographed analysis of a debug log; original log unavailable |
 | No entry into the Check's `evaluate()` appears before the failure | Reported in the photos; not independently reproduced |
-| A minimal subscriber plugin also fails | Reported in the photos; requires an installed-package reproduction |
+| A minimal subscriber plugin also fails | Reported in the photos; disproved by installed 2.0.9.2 test run `707E200002AydMm`, which entered `evaluate()` once and returned the exact four-outcome matrix |
 | `PluginDispatch.instantiate()` used `instanceof RecordHealthCheckPlugin` before casting | Confirmed in the 2.0.8 source; replaced by a guarded cast in 2.0.9 development source |
 | `ApexPluginResolver.requireCheck()` repeated that interface test | Confirmed in the 2.0.8 source; the 2.0.9 development source keeps the instance typed and checks only for null |
 | Configuration validation caught ordinary exceptions and returned only `false` | Confirmed in the 2.0.8 source; the 2.0.9 development source carries a structured failure and cause |
 | The displayed reason was `FIELD_NOT_RESOLVED` | Reported in the photos; the 2.0.9 integration fixtures now assert interface and constructor reasons directly |
 
-The leading hypothesis is that the interface guard rejects an otherwise cast-compatible
-subscriber instance. The proposed guarded cast removes that extra rejection condition. Do not
-state that cross-namespace `instanceof` is universally broken or that a cast is proven to fix this
-specific customer's org until a before/after reproduction establishes it.
+The original working hypothesis was that the interface guard rejected an otherwise cast-compatible
+subscriber instance. The guarded cast removed that extra rejection condition. Installed 2.0.9.2
+evidence now proves the supported package-to-empty-namespace boundary constructs and invokes a
+subscriber implementation. It does not establish that every photographed `FIELD_NOT_RESOLVED`
+result originated at the interface boundary.
 
 The legacy preview service and both customer Check classes are not present in this repository.
 The customer's installed RHC version is unknown. Their service's standalone success, exact
@@ -54,7 +55,7 @@ constructor accessibility, and preview return shape therefore remain unverified.
 | --- | --- |
 | Source mutation guard | Seven self-tests reject either restored `instanceof` gate, direct resolver construction, and a cast moved before constructor failure handling |
 | Namespaced source | 58 focused methods passed in run `707RL00001g1UAG`, including exact interface/constructor reasons and the four-outcome compatibility Set |
-| Existing installed package plus empty-namespace plugin | The focused four-outcome subscriber validation passed against RHC 2.0.6.2 in deployment `0Afdh000009zYKXCA2`; this does not reproduce the reported defect |
+| Released 2.0.9.2 plus empty-namespace plugin | Focused test run `707E200002AydMm` passed in retained Locker org `rhc-2-0-9-locker`; the subscriber plugin was constructed once, evaluated once, returned exact PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE outcomes, and had 100% coverage |
 | Foreign installed namespace lookup | `SBQQ.ServiceRouter` resolved in an existing `rhc` source org and was correctly classified at construction; it does not implement the RHC interface and therefore is not NS-03 success evidence |
 | Static analysis | Salesforce Code Analyzer Recommended scan found zero violations in the package, integration, subscriber, and partner fixture Apex workspaces |
 

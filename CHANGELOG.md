@@ -6,7 +6,7 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.8-1`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.9-2`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
 
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
@@ -16,8 +16,8 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 > version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current stable release: `Record Health Check@2.0.8-1` (`04tak000000g1R7AAI`).
-- Previous stable release: `Record Health Check@2.0.6-2` (`04tak000000eM53AAE`).
+- Current stable release: `Record Health Check@2.0.9-2` (`04tak000000gX9FAAU`).
+- Previous stable release: `Record Health Check@2.0.8-1` (`04tak000000g1R7AAI`).
 
 ### Evaluation and integration
 
@@ -70,6 +70,16 @@ For installation and verification, start with
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
 ## Unreleased
+
+No changes yet.
+
+## Version 2.0.9
+
+Released package version: **2.0.9.2** (`04tak000000gX9FAAU`). Salesforce reports 99% package
+coverage and no skipped validation. Use the [2.0.9.2 sandbox install
+link](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000gX9FAAU) or the
+[2.0.9.2 production install
+link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000gX9FAAU).
 
 ### Fixed
 

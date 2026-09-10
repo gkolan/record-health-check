@@ -241,8 +241,8 @@ returns exit code zero and reports zero violations.
 
 ## Upgrade and data-preservation gates
 
-Each upgrade org starts with one exact reviewed released base from `upgradeBases`: 2.0.8.1, 2.0.6.2, and
-the older public-link version 2.0.4.2 for this release. Before upgrading, the workflow creates
+Each upgrade org starts with one exact reviewed released base from `upgradeBases`. For the 2.0.9.2
+release matrix, that base is 2.0.8.1. Before upgrading, the workflow creates
 subscriber-owned Check Sets and Checks and records their identities and values. It then:
 
 1. deploys only the subscriber-owned preservation fixture and proves the stable package global
@@ -260,9 +260,9 @@ subscriber-owned Check Sets and Checks and records their identities and values. 
 A clean install cannot satisfy the upgrade gate. An upgrade that succeeds but loses configuration
 or fails an entry point is a failed release.
 
-The optional subscriber workflow offers four dispatch stages: `clean-install`, `upgrade-2.0.8.1`,
-`upgrade-2.0.6.2`, and `upgrade-2.0.4.2`. Each authorized stage creates two fresh orgs (LWS and
-Locker). Daily quotas may require the staged plan in the
+The optional subscriber workflow offers the stages declared by `expectedStages`; the 2.0.9.2
+matrix contains `clean-install` and `upgrade-2.0.8.1`. Each authorized stage creates two fresh orgs
+(LWS and Locker). Daily quotas may require the staged plan in the
 [scratch org lifecycle](./scratch-org-lifecycle.md). Shared workflow
 concurrency prevents release workflows from overlapping but does not reserve Dev Hub quota.
 
