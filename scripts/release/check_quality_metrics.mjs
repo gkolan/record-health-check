@@ -34,10 +34,7 @@ function fixed(value) {
 const apexPercent = fixed(metrics.apex.sourceCoveragePercent);
 const packagePercent = fixed(metrics.apex.packageCoveragePercent);
 const lwcLines = fixed(metrics.lwc.linesPercent);
-const sourceVersion = metrics.apex.packageVersion
-  .split(".")
-  .slice(0, 3)
-  .join(".");
+const sourceVersion = metrics.apex.sourceVersion;
 for (const text of [
   `Apex_coverage-${apexPercent}%25-brightgreen`,
   `LWC_lines-${lwcLines}%25-brightgreen`,
@@ -163,13 +160,13 @@ if (apexOrg) {
     executable !== metrics.apex.executableLines
   ) {
     fail(
-      `Apex coverage in ${apexOrg} is ${fixed(current)}% (${covered}/${executable}); recorded 2.0.8 evidence is ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}). Rerun the complete inventory and publish one matching result.`
+      `Apex coverage in ${apexOrg} is ${fixed(current)}% (${covered}/${executable}); recorded ${sourceVersion} evidence is ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}). Rerun the complete inventory and publish one matching result.`
     );
   }
 }
 
 if (!process.exitCode) {
   console.log(
-    `Quality metrics match 2.0.8 evidence: Apex ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}), promoted package ${Number(packagePercent)}%, and LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
+    `Quality metrics match ${sourceVersion} source evidence: Apex ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}), stable ${metrics.apex.packageVersion} package ${Number(packagePercent)}%, and LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
   );
 }

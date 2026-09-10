@@ -81,7 +81,7 @@ export function assertReleaseQuotaPolicy(source, subscriber, workflows) {
   );
   for (const [workflow, names] of [
     [source, ["locker-browser-tests"]],
-    [subscriber, ["subscriber-clean-install", "subscriber-upgrade"]]
+    [subscriber, ["subscriber-release-pair"]]
   ]) {
     for (const name of names) {
       const section = job(workflow, name);

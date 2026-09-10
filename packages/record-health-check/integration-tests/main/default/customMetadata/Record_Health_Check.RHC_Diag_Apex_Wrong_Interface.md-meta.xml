@@ -17,6 +17,9 @@
   <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >APEX</value></values>
+    <values><field>FormulaResultType__c</field><value
+      xsi:type="xsd:string"
+    >AUTO</value></values>
   <values><field>ApexClass__c</field><value
       xsi:type="xsd:string"
     >RHCDiagnosticWrongInterface</value></values>
@@ -36,6 +39,6 @@
         <field>UnableToEvaluateMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >Unable to evaluate is the expected result here: this fixture names a class that does not implement the Check interface. Open Diagnostics on this card to read the Apex-class-not-found detail the framework recorded.</value>
+    >Unable to evaluate is the expected result here: this fixture names a class that does not implement RecordHealthCheckPlugin. Open Diagnostics on this card to confirm the PLUGIN_INTERFACE_INVALID reason.</value>
     </values>
 </CustomMetadata>

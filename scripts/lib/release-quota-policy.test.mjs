@@ -42,6 +42,62 @@ const releaseOwnerChecklist = fs.readFileSync(
   ),
   "utf8"
 );
+const lifecycleGuide = fs.readFileSync(
+  new URL("../../docs/quality-gates/scratch-org-lifecycle.md", import.meta.url),
+  "utf8"
+);
+
+function releaseOrgPolicy() {
+  return JSON.parse(
+    fs.readFileSync(
+      new URL("../../config/release-org-policy.json", import.meta.url),
+      "utf8"
+    )
+  );
+}
+
+test("release scratch orgs use a rolling two-version LWS and Locker window", () => {
+  const policy = releaseOrgPolicy();
+  assert.equal(policy.scratchOrgsPerRelease, 2);
+  assert.deepEqual(policy.securityModes, ["LWS", "Locker"]);
+  assert.equal(policy.retainedReleasePairs, 2);
+  assert.equal(policy.retireReleaseOffset, 2);
+  assert.equal(policy.maximumLifetimeDays, 30);
+  assert.match(lifecycleGuide, /2\.0\.11.*delete.*2\.0\.9/is);
+  assert.match(lifecycleGuide, /four retained scratch orgs/i);
+  assert.match(source, /name: Salesforce source validation \(non-release\)/);
+  assert.match(subscriber, /--release-pair/);
+  assert.match(subscriber, /--keep-org/);
+  assert.doesNotMatch(subscriber, /validation_stage:/);
+  assert.equal(
+    [...subscriber.matchAll(/security_mode: (?:LWS|Locker)/g)].length,
+    2
+  );
+  assert.equal(
+    [...subscriber.matchAll(/npm run package:verify --/g)].length,
+    1
+  );
+  assert.doesNotMatch(subscriber, /sf org delete scratch/);
+  assert.match(packageVerifier, /function resetReleasePairForUpgrade/);
+  assert.match(packageVerifier, /function assertReleasePairSlotAvailable/);
+  assert.match(
+    packageVerifier,
+    /SELECT Id, Description, Status FROM ScratchOrgInfo WHERE Status = 'Active'/
+  );
+  assert.doesNotMatch(
+    packageVerifier,
+    /WHERE Status = 'Active' AND Description LIKE/,
+    "ScratchOrgInfo.Description is not filterable; release-pair descriptions must be filtered locally."
+  );
+  assert.match(packageVerifier, /Two release pairs are already retained/);
+  assert.match(packageVerifier, /"package",\s*"uninstall"/);
+  assert.ok(
+    packageVerifier.indexOf("Clean subscriber install gate passed.") <
+      packageVerifier.lastIndexOf(
+        "resetReleasePairForUpgrade(alias, candidateId)"
+      )
+  );
+});
 
 test("local scratch org defaults are short and can be selected explicitly", () => {
   assert.match(contributorSetup, /durationDays: "7"/);
@@ -51,8 +107,9 @@ test("local scratch org defaults are short and can be selected explicitly", () =
   assert.match(subscriberSetup, /process\.env\.RHC_SCRATCH_DAYS \?\? "7"/);
   assert.equal(
     [...packageVerifier.matchAll(/"--duration-days",\s*"1"/g)].length,
-    2
+    1
   );
+  assert.match(packageVerifier, /values\["release-pair"\] \? "30" : "1"/);
   assert.match(packageVerifier, /process\.once\("exit"/);
   assert.match(packageVerifier, /for \(const \[signal, exitCode\]/);
 });
@@ -93,7 +150,7 @@ test("release workflows require owner authorization before scratch-org creation"
   assert.doesNotThrow(() =>
     assertReleaseQuotaPolicy(source, subscriber, workflows)
   );
-  assert.doesNotMatch(source, /ANTHROPIC_API_KEY|check:ai-model-drafts/);
+  assert.doesNotMatch(source, /[A-Z][A-Z0-9]+_API_KEY|model-drafts/);
   assert.doesNotMatch(source, /--no-namespace|portable-source-tests/);
   assert.match(
     source,

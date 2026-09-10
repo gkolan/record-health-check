@@ -368,29 +368,14 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
         );
       }
       // ── Apex ──
-      when APEX_CLASS_MISSING {
-        return issue(
-          check,
-          'ApexClass__c',
-          'Apex Class Name is required for Apex checks.',
-          'APEX_CLASS_NOT_FOUND'
-        );
-      }
-      when APEX_CLASS_INVALID {
-        return issue(
-          check,
-          'ApexClass__c',
-          'Apex Class Name must identify an instantiable class implementing RecordHealthCheck.',
-          'APEX_CLASS_NOT_FOUND'
-        );
-      }
-      when APEX_PARAMS_INVALID {
-        return issue(
-          check,
-          'ApexParametersJson__c',
-          'Apex Parameters must contain a valid JSON object.',
-          'INVALID_APEX_PARAMETERS'
-        );
+      when APEX_CLASS_MISSING,
+        APEX_CLASS_INVALID,
+        APEX_CLASS_NOT_FOUND,
+        APEX_CLASS_LOAD_FAILED,
+        APEX_PLUGIN_INTERFACE_INVALID,
+        APEX_PLUGIN_CONSTRUCTOR_FAILED,
+        APEX_PARAMS_INVALID {
+        return RecordHealthCheckApexConfigSupport.metadataIssue(check, finding);
       }
       // ── Cross-type ──
       when MAX_ROWS_INVALID {

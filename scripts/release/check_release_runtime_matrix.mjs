@@ -11,6 +11,9 @@ const root = process.cwd();
 const matrix = JSON.parse(
   fs.readFileSync(path.join(root, "config/release-runtime-matrix.json"), "utf8")
 );
+const releaseOrgPolicy = JSON.parse(
+  fs.readFileSync(path.join(root, "config/release-org-policy.json"), "utf8")
+);
 const errors = [];
 const workflowsDirectory = path.join(root, ".github/workflows");
 assertReleaseQuotaPolicy(
@@ -30,8 +33,23 @@ assertReleaseQuotaPolicy(
 releaseUpgradeBases(matrix, readPackageReleases());
 requireEqual(
   matrix.upgradeBases.map((base) => base.version),
-  ["2.0.6.2", "2.0.4.2"],
+  ["2.0.8.1"],
   "Required upgrade origins"
+);
+if (
+  releaseOrgPolicy.scratchOrgsPerRelease !== 2 ||
+  releaseOrgPolicy.retainedReleasePairs !== 2 ||
+  releaseOrgPolicy.retireReleaseOffset !== 2 ||
+  releaseOrgPolicy.maximumLifetimeDays !== 30
+) {
+  errors.push(
+    "Release org policy must retain two two-org release pairs and retire N-2 within Salesforce's 30-day ceiling."
+  );
+}
+requireEqual(
+  releaseOrgPolicy.securityModes,
+  ["LWS", "Locker"],
+  "Release org security modes"
 );
 // Inspect the actual on-load definitions, not just a declared list of types.
 for (const [directory, prefix, setName] of [
@@ -89,7 +107,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.6.2-to-2.0.8.1",
+  "upgrade-2.0.8.1-to-2.0.9.2",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -129,6 +147,15 @@ function requireText(file, snippets) {
   for (const snippet of snippets) {
     if (!text.includes(snippet)) {
       errors.push(`${file} is missing release-gate marker: ${snippet}`);
+    }
+  }
+}
+
+function forbidText(file, snippets) {
+  const text = fs.readFileSync(path.join(root, file), "utf8");
+  for (const snippet of snippets) {
+    if (text.includes(snippet)) {
+      errors.push(`${file} contains forbidden release-gate marker: ${snippet}`);
     }
   }
 }
@@ -263,11 +290,11 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.8.1") {
-  errors.push("Candidate version must be exactly 2.0.8.1.");
+if (matrix.candidateVersion !== "2.0.9.2") {
+  errors.push("Candidate version must be exactly 2.0.9.2.");
 }
-if (matrix.upgradeFromVersion !== "2.0.6.2") {
-  errors.push("Upgrade base version must be exactly 2.0.6.2.");
+if (matrix.upgradeFromVersion !== "2.0.8.1") {
+  errors.push("Upgrade base version must be exactly 2.0.8.1.");
 }
 for (const scenario of requiredScenarios) {
   const evidence = matrix.lifecycleEvidence?.[scenario];
@@ -332,12 +359,12 @@ requireText(".github/workflows/subscriber-validate.yml", [
   "required: true",
   "upgrade_from",
   "--upgrade-from",
-  "--upgrade-only",
+  "--release-pair",
+  "--keep-org",
   "security_mode: LWS",
   "security_mode: Locker",
   'security-mode "${{ matrix.security_mode }}"',
-  "subscriber-clean-install-${{ matrix.artifact_suffix }}",
-  "subscriber-upgrade-evidence-${{ matrix.artifact_suffix }}"
+  "subscriber-release-pair-browser-${{ matrix.artifact_suffix }}"
 ]);
 for (const workflow of [
   ".github/workflows/salesforce-validate.yml",
@@ -351,7 +378,7 @@ requireSecureDevHubAuthentication(
 );
 requireSecureDevHubAuthentication(
   ".github/workflows/subscriber-validate.yml",
-  3
+  2
 );
 requireText(".github/workflows/salesforce-validate.yml", [
   "Check release-matrix scratch-org capacity",
@@ -360,10 +387,8 @@ requireText(".github/workflows/salesforce-validate.yml", [
 requireText(".github/workflows/subscriber-validate.yml", [
   "Check subscriber-stage scratch-org capacity",
   "npm run check:scratch-capacity -- --dev-hub devhub --required 2",
-  "upgrade-2.0.6.2",
-  "upgrade-2.0.4.2",
-  "subscriber-apex-${{ matrix.artifact_suffix }}",
-  "subscriber-preservation-${{ matrix.artifact_suffix }}"
+  "subscriber-release-pair-apex-${{ matrix.artifact_suffix }}",
+  "subscriber-release-pair-preservation-${{ matrix.artifact_suffix }}"
 ]);
 requireText("scripts/release/create-package-version.mjs", [
   "runtimeMatrix.candidateVersion",
@@ -385,10 +410,9 @@ requireOrderedText("scripts/release/promote-package-version.mjs", [
   '"promote"'
 ]);
 requireText("scripts/release/check_hosted_validation.mjs", [
-  "matrix.upgradeBases.map(",
   "assertHostedEvidence(",
   "hostedEvidenceContract(",
-  '"clean-install"',
+  '"release-pair"',
   "/attempts/${selected.run_attempt}/jobs"
 ]);
 requireText("playwright.config.mjs", ['retainedReleaseEvidence ? "off"']);
@@ -397,6 +421,10 @@ requireText("scripts/release/run_salesforce_browser_gate.mjs", [
   "browserEvidenceHtml("
 ]);
 requireText("scripts/release/verify-package-version.mjs", [
+  "function resetReleasePairForUpgrade(alias, candidateId)",
+  "function assertReleasePairSlotAvailable(devHub, runtimeMatrix, securityMode)",
+  '"package",\n      "uninstall"',
+  'values["release-pair"] ? "30" : "1"',
   "runInstalledSurfaceGates(alias, securityMode)",
   "const configurationBeforeUpgrade = subscriberConfiguration(alias)",
   "deployUpgradePreservationFixture(alias)",
@@ -544,8 +572,13 @@ requireText(
   [
     "<componentName>rhc:recordHealthCheck</componentName>",
     "<value>rhc__Example_Account_Check_Builder_Guide</value>",
-    "<value>Subscriber_On_Load</value>"
+    "<value>Subscriber_On_Load</value>",
+    "<fieldItem>Record.Website</fieldItem>"
   ]
+);
+forbidText(
+  "subscriber-app/main/default/flexipages/RHCSubscriberReleaseMatrixRecordPage.flexipage-meta.xml",
+  ["<fieldItem>Record.BillingCity</fieldItem>"]
 );
 
 for (const file of [

@@ -89,10 +89,10 @@ package test utility, not a public extension point.
 
 ### Namespace coverage
 
-The released 2GP artifact always uses the `rhc` namespace. Blocking source validation therefore
-uses namespaced orgs for both Lightning Web Security and Lightning Locker. The candidate is then
-installed into ordinary subscriber orgs that have no namespace of their own; the installed package
-still uses `rhc`.
+The released 2GP artifact always uses the `rhc` namespace. Contributor source validation can use a
+namespaced org, but it is not an additional release stage. The release pair consists of two ordinary
+subscriber orgs without their own namespace, one LWS and one Locker. The installed package still
+uses `rhc`.
 
 An unpackaged no-namespace source deployment is retained as an optional contributor portability
 check:
@@ -117,19 +117,19 @@ For each proposed version, maintainers must:
 1. Run the repository release preflight on the exact committed source.
 2. Create one package candidate with code coverage enabled.
 3. Retrieve the package artifact and confirm that every Custom Metadata member has a physical file.
-4. When the release owner explicitly authorizes scratch-org testing, optionally prove the source and browser behavior in namespaced LWS and Locker orgs.
-5. When authorized, optionally install the candidate in a clean org and run the installation smoke tests.
-6. When authorized, optionally install the previous promoted version in a separate clean org, create representative
-   customer-owned Check Sets and Checks, and upgrade that org to the candidate.
-7. Record whether the optional upgrade retained customer-owned Custom Metadata.
+4. When the release owner explicitly authorizes scratch-org testing, create exactly one LWS and one
+   Locker subscriber org for the release.
+5. In each org, clean-install and verify the candidate, remove the subscriber harness, uninstall the
+   candidate, install the immediately preceding promoted release, and upgrade to the candidate.
+6. Record that customer-owned Custom Metadata survived the exact previous-to-candidate upgrade.
 8. Promote the exact candidate after its package report and creation evidence are verified.
 9. Move the former stable version to `previous`, record the new promoted `04t` and installation
     links in `config/package-releases.json`, update `CHANGELOG.md`, and create the matching release
     tag.
 
-These are separate checks. A successful clean installation does not prove that an upgrade preserves
-an administrator's Custom Metadata, and a successful source deployment does not prove that the
-package artifact contains every intended file.
+These are separate assertions executed sequentially in the same two orgs. A successful clean
+installation does not prove that an upgrade preserves an administrator's Custom Metadata, and a
+successful source deployment does not prove that the package artifact contains every intended file.
 
 See [Releasing](../../.github/RELEASING.md) for commands, required evidence, and scratch-org
 cleanup rules.

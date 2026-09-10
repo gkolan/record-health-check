@@ -33,7 +33,7 @@ records.
 
 ## Codebase size and verification
 
-The current source contains 243 packaged Apex classes, including 126 `@IsTest` classes and one
+The current source contains 244 packaged Apex classes, including 126 `@IsTest` classes and one
 global contract-test support class. Tests and contract support cover dynamic SOQL, formulas,
 metadata validation, security boundaries, bulk execution, asynchronous entry points, integrations,
 and failure diagnostics; those classes verify behavior rather than run ordinary health checks.
@@ -156,6 +156,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | --- | --- | --- |
 | L2 | [`RecordHealthCheckConfigService`](./configuration-and-validation.md#recordhealthcheckconfigservice) | Loads Check Sets and Checks, builds definitions, and reports configuration problems found while a Check runs |
 | L2 | [`RecordHealthCheckValidator`](./configuration-and-validation.md#recordhealthcheckvalidator) | Shared per-Evaluation-Type Check field validation |
+| L2 | [`RecordHealthCheckApexConfigSupport`](./configuration-and-validation.md#recordhealthcheckapexconfigsupport) | Apex Check validation precedence and authoring issue taxonomy |
 | L2 | [`RecordHealthCheckMetadataValidator`](./configuration-and-validation.md#recordhealthcheckmetadatavalidator) | Deploy-time / CI audit of Custom Metadata |
 | L2 | [`RecordHealthCheckConfigValidator`](./configuration-and-validation.md#recordhealthcheckconfigvalidator) | Shared validation helpers (object names, plugins, JSON, tokens) |
 | L2 | [`RecordHealthCheckConstants`](./configuration-and-validation.md#recordhealthcheckconstants) | Allowed values and numeric limits (single source of truth) |

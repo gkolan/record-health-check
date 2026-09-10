@@ -123,7 +123,7 @@ private class RecordHealthCheckConfigValidationIT {
     check = apexCheck('Apex_Invalid_Class', 'String', '{}');
     assertUnable(
       service.validateCheckForEvaluation(check),
-      'APEX_CLASS_NOT_FOUND'
+      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
     );
     check = apexCheck(
       'Apex_Invalid_Json',

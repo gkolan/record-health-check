@@ -9,7 +9,7 @@ export function releaseUpgradeBases(matrix, releases) {
       : releases.stable;
   if (
     !Array.isArray(bases) ||
-    bases.length === 0 ||
+    bases.length !== 1 ||
     new Set(bases.map((b) => b.version)).size !== bases.length ||
     new Set(bases.map((b) => b.subscriberPackageVersionId)).size !==
       bases.length ||
@@ -20,7 +20,7 @@ export function releaseUpgradeBases(matrix, releases) {
     )
   ) {
     throw new Error(
-      "Release upgrade bases must have unique exact versions and 18-character 04t IDs."
+      "A release must name exactly one upgrade base: the immediately preceding promoted version and its 18-character 04t ID."
     );
   }
   if (

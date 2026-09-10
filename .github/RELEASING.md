@@ -41,12 +41,12 @@ Checks:
 Before creating a release candidate:
 
 1. Run every local gate, including docs, query shapes, permissions, formatting, lint, and Jest.
-   `check:ai-prompts` confirms that the saved low-cost-model examples match the current prompts and
-   Custom Metadata fields. Re-record them deliberately when a prompt changes. A normal release does
-   not require a third-party model credential.
+   `check:ai-prompts` confirms that provider-neutral reference drafts match the current prompt and
+   Custom Metadata contracts. It is fully offline and has no provider credential requirement.
 2. Run Code Analyzer and resolve every unsuppressed release finding.
-3. When the release owner explicitly authorizes scratch-org creation, the optional
-   `salesforce-validate.yml` workflow can collect additional namespaced LWS and Locker evidence.
+3. Contributor source scratch-org validation is not an additional release stage. When the release
+   owner authorizes the release pair, use only `subscriber-validate.yml` to create one retained LWS
+   and one retained Locker subscriber org.
 4. When source-org tests are authorized and run, record their Apex and LWC coverage separately; run
    `npm run check:apex-coverage -- <namespaced-org-alias>` and retain the Framework result. Run
    `npm run test:unit:coverage`, update `config/quality-metrics.json` and the README, then run
@@ -56,8 +56,9 @@ Before creating a release candidate:
 
 After creating the single candidate and before promotion:
 
-1. Run `npm run package:verify` against its explicit `04t`.
-2. Confirm clean install, every reviewed upgrade base, and subscriber-owned Custom Metadata preservation gates.
+1. Run the subscriber release-pair workflow against its explicit `04t`.
+2. Confirm clean installation and the exact immediately-previous-release upgrade preserve
+   subscriber-owned Custom Metadata in both retained orgs.
 3. Run `npm run release:preflight` again from the final committed release source.
 4. Confirm the pull request's complete GitHub Actions **CI** workflow is green. Do not promote while
    CI is absent, pending, cancelled, or failing.
@@ -66,8 +67,9 @@ Never discard deploy, test, package, or install output. Archive JSON results wit
 
 Before any Salesforce operation, run `npm run check:toolchain`. Never create a scratch org or
 dispatch an org-creating workflow unless the release owner explicitly authorizes that specific run.
-Package creation does not imply scratch-org authorization. Authorized package verification deletes only the orgs it created; use
-`--keep-org` solely for an intentional, time-bounded investigation and delete that org afterward.
+Package creation does not imply scratch-org authorization. Release-pair verification uses
+`--release-pair --keep-org`, retains the pair for at most 30 days, and deletes release `N` when work
+starts on `N+2`.
 See the [scratch org lifecycle and release plan](../docs/quality-gates/scratch-org-lifecycle.md)
 for the approved org set, daily creation budget, reuse rules, demo verification, and cleanup.
 
@@ -179,7 +181,6 @@ npm run check:toolchain
 npm run check:toolchain-latest
 npm run release:preflight
 npm run package:create -- --dev-hub <dev-hub> --release-ready
-npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
 ```
 
 Run the commands from a clean, committed release branch. `package:create` repeats the release
@@ -188,8 +189,8 @@ The Salesforce package-version Branch field records the stable Git release branc
 include a commit suffix. Exact commit provenance lives in the ignored creation evidence. This
 unlocked-package project does not declare managed-package `ancestorVersion` metadata; supported
 upgrade paths are verified by installing the exact released base IDs from the runtime matrix.
-`package:verify` treats installation into a clean subscriber org as the authoritative validation of
-the immutable server artifact. ZIP retrieval can be retained as optional diagnostic evidence, but
+The subscriber release-pair workflow treats installation into clean subscriber orgs as the
+authoritative validation of the immutable server artifact. ZIP retrieval can be retained as optional diagnostic evidence, but
 Salesforce reporting a generated ZIP as unretrievable does not block install verification.
 
 Preserve the ignored
@@ -211,9 +212,8 @@ creation or promotion prerequisite.
 
 ## Verify before promote
 
-```bash
-npm run package:verify -- --dev-hub <dev-hub> --package <candidate-04t>
-```
+Dispatch **Subscriber release-pair validation** once with the exact candidate and explicit
+authorization for its LWS and Locker pair.
 
 This runs:
 
@@ -223,9 +223,9 @@ This runs:
   `RHCSubscriberFlowSmokeTest`
 - Upgrade rehearsal from the explicitly selected reviewed base
 
-This command creates scratch orgs. Run it only after the release owner explicitly authorizes the
-specific verification run. The hosted subscriber matrix and representative-sandbox review remain
-available as optional evidence; neither is required by `package:promote`.
+The workflow creates exactly two scratch orgs and retains them for the rolling two-release window.
+Run it only after the release owner explicitly authorizes that pair. Representative-sandbox review
+remains optional evidence and is not required by `package:promote`.
 
 ## Promote and publish
 

@@ -111,7 +111,7 @@ alongside Card User or User. Admin already includes diagnostic access. Follow [T
 | The four Check Set records on this page | Yes, after package installation | Verify installation and inspect working metadata; use the example for the same Salesforce object as the record page |
 | Pages under `docs/examples/` | No | Copy a pattern and adapt it to an approved business requirement |
 | Apex class `AccountHasRecentActivityCheck` | Yes | Demonstrate a packaged custom Apex Check |
-| Strategic readiness and inactive approver Apex classes | No; test fixtures only | Developer examples that require review, deployment, and tests |
+| Strategic readiness and open opportunity health Apex classes | No; test fixtures only | Developer examples that require review, deployment, and tests |
 
 ## Next steps
 

@@ -172,6 +172,14 @@ private class RecordHealthCheckDiagnosticFactoryTest {
         'PLUGIN_CONSTRUCT'
       ),
       contextFor('APEX_CLASS_NOT_FOUND', 'PLUGIN_RESOLVE'),
+      contextFor(
+        RecordHealthCheckReasonCodes.APEX_CLASS_INVALID,
+        'PLUGIN_RESOLVE'
+      ),
+      contextFor(
+        RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED,
+        'PLUGIN_RESOLVE'
+      ),
       contextFor('INVALID_CONFIG', 'CONFIG_VALIDATE'),
       contextFor('INVALID_FORMULA', 'PASS_FORMULA'),
       contextFor('QUERY_FAILED', 'SOURCE_QUERY'),
@@ -205,18 +213,51 @@ private class RecordHealthCheckDiagnosticFactoryTest {
     }
     Assert.areEqual(
       'LIMIT',
-      incidents[13].category,
+      incidents[15].category,
       'Limit failures need their own category.'
     );
     Assert.areEqual(
       'FRAMEWORK',
-      incidents[14].category,
+      incidents[16].category,
       'Unknown failures need framework guidance.'
     );
     Assert.isTrue(
-      incidents[15].summary.contains('record'),
+      incidents[17].summary.contains('record'),
       'Record access needs record-specific guidance.'
     );
+  }
+
+  @IsTest
+  static void pluginConfigurationWrapperRetainsOriginalConstructorEvidence() {
+    RecordHealthCheckApexPluginResolver.PluginConfigurationException error = new RecordHealthCheckApexPluginResolver.PluginConfigurationException(
+      'The plugin could not be constructed.'
+    );
+    error.reasonCode = RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED;
+    error.originalExceptionType = 'Subscriber.ConstructorFailure';
+    error.originalExceptionMessage = 'Expected subscriber constructor failure.';
+    error.originalStackTrace = 'Class.Subscriber.Plugin.construct: line 42, column 1';
+    error.originalLineNumber = 42;
+    RecordHealthCheckDiagnosticContext context = contextFor(
+      error.reasonCode,
+      'PLUGIN_CONSTRUCT'
+    );
+    context.component = 'Subscriber.Plugin';
+
+    Test.startTest();
+    RecordHealthCheckDiagnosticIncident incident = RecordHealthCheckDiagnosticFactory.fromException(
+      error,
+      context
+    );
+    Test.stopTest();
+
+    Assert.areEqual('Subscriber.ConstructorFailure', incident.exceptionType);
+    Assert.areEqual(
+      'Expected subscriber constructor failure.',
+      incident.exceptionMessage
+    );
+    Assert.areEqual('Subscriber.Plugin', incident.topFrameClass);
+    Assert.areEqual('construct', incident.topFrameMethod);
+    Assert.areEqual(42, incident.topFrameLine);
   }
 
   @IsTest

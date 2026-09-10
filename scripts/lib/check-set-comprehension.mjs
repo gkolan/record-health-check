@@ -83,6 +83,7 @@ export const PURPOSES = {
   RHC_Negative_Runtime: "diagnostics",
   RHC_No_Active_Checks: "diagnostics",
   RHC_Persona_Access: "coverage",
+  RHC_Plugin_Compatibility: "coverage",
   RHC_Stop_On_System_Error: "diagnostics",
   Release_On_Load: "business",
   Review_Label_Icon_Pass: "review",

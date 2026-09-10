@@ -2,6 +2,8 @@
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { parseArgs } from "node:util";
 import { paths } from "../lib/paths.mjs";
 import { seedDemoData } from "../lib/demo-data.mjs";
@@ -27,6 +29,7 @@ const { values } = parseArgs({
     "upgrade-from": { type: "string", default: "" },
     "skip-upgrade": { type: "boolean", default: false },
     "upgrade-only": { type: "boolean", default: false },
+    "release-pair": { type: "boolean", default: false },
     "security-mode": { type: "string", default: "LWS" },
     "keep-org": { type: "boolean", default: false }
   }
@@ -121,6 +124,47 @@ function assertPackageVersion(
   }
 }
 
+function releaseVersion(runtimeMatrix) {
+  return runtimeMatrix.candidateVersion.split(".").slice(0, 3).join(".");
+}
+
+function assertReleasePairSlotAvailable(devHub, runtimeMatrix, securityMode) {
+  const version = releaseVersion(runtimeMatrix);
+  const description = `Record Health Check ${version} ${securityMode} release pair`;
+  const records =
+    runJson("sf", [
+      "data",
+      "query",
+      "--target-org",
+      devHub,
+      "--query",
+      "SELECT Id, Description, Status FROM ScratchOrgInfo WHERE Status = 'Active'"
+    ]).result?.records ?? [];
+  if (records.some((record) => record.Description === description)) {
+    console.error(
+      `The ${version} ${securityMode} release-pair slot already has an active scratch org. Reuse or explicitly retire it; do not create a duplicate.`
+    );
+    process.exit(1);
+  }
+  const retainedVersions = new Set(
+    records
+      .map((record) =>
+        String(record.Description ?? "").match(
+          /^Record Health Check (\d+\.\d+\.\d+) (?:LWS|Locker) release pair$/
+        )
+      )
+      .filter(Boolean)
+      .map((match) => match[1])
+  );
+  if (!retainedVersions.has(version) && retainedVersions.size >= 2) {
+    console.error(
+      `Two release pairs are already retained (${[...retainedVersions].join(", ")}). Delete the pair two releases behind before creating ${version}.`
+    );
+    process.exit(1);
+  }
+  return description;
+}
+
 function installPackage(packageVersionId, alias) {
   run("sf", [
     "package",
@@ -139,6 +183,54 @@ function installPackage(packageVersionId, alias) {
     "30",
     "--no-prompt"
   ]);
+}
+
+function resetReleasePairForUpgrade(alias, candidateId) {
+  const manifestDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), "rhc-subscriber-delete-")
+  );
+  try {
+    run("sf", [
+      "project",
+      "generate",
+      "manifest",
+      "--source-dir",
+      paths.subscriberApp,
+      "--type",
+      "destroy",
+      "--output-dir",
+      manifestDirectory
+    ]);
+    fs.writeFileSync(
+      path.join(manifestDirectory, "package.xml"),
+      '<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata"><version>66.0</version></Package>\n'
+    );
+    run("sf", [
+      "project",
+      "deploy",
+      "start",
+      "--manifest",
+      path.join(manifestDirectory, "package.xml"),
+      "--target-org",
+      alias,
+      "--test-level",
+      "NoTestRun",
+      "--wait",
+      "30"
+    ]);
+    run("sf", [
+      "package",
+      "uninstall",
+      "--package",
+      candidateId,
+      "--target-org",
+      alias,
+      "--wait",
+      "30"
+    ]);
+  } finally {
+    fs.rmSync(manifestDirectory, { recursive: true, force: true });
+  }
 }
 
 function assignAdmin(alias, releases) {
@@ -196,7 +288,7 @@ function runUpgradeBaseVerification(alias) {
   ]);
 }
 
-function runSubscriberSmoke(alias) {
+function runSubscriberSmoke(alias, phase) {
   // Discover and reconcile every subscriber test, including the real Flow
   // interview. A class existing on disk is not evidence that it executed.
   run(
@@ -208,7 +300,7 @@ function runSubscriberSmoke(alias) {
       "--scope",
       "subscriber",
       "--topology",
-      alias,
+      `${alias}-${phase}`,
       "--wait",
       "60"
     ],
@@ -403,6 +495,15 @@ function main() {
     );
     process.exit(1);
   }
+  if (
+    values["release-pair"] &&
+    (values["skip-upgrade"] || values["upgrade-only"] || !values["keep-org"])
+  ) {
+    console.error(
+      "--release-pair requires --keep-org and performs both clean-install and upgrade validation in the same org."
+    );
+    process.exit(1);
+  }
   const candidateId = values.package;
   if (!/^04t[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(candidateId)) {
     console.error(
@@ -455,7 +556,13 @@ function main() {
   }
 
   console.log(`Creating no-namespace verification org '${alias}'...`);
-  assertScratchCapacity(devHub, needsUpgradeOrg ? 2 : 1);
+  const releaseDescription = values["release-pair"]
+    ? assertReleasePairSlotAvailable(devHub, runtimeMatrix, securityMode)
+    : "";
+  assertScratchCapacity(
+    devHub,
+    values["release-pair"] ? 1 : needsUpgradeOrg ? 2 : 1
+  );
   run("sf", [
     "org",
     "create",
@@ -469,7 +576,8 @@ function main() {
     "--target-dev-hub",
     devHub,
     "--duration-days",
-    "1",
+    values["release-pair"] ? "30" : "1",
+    ...(values["release-pair"] ? ["--description", releaseDescription] : []),
     "--no-namespace",
     "--wait",
     "30"
@@ -492,7 +600,7 @@ function main() {
   }
 
   assertNoInternalFactory(alias);
-  runSubscriberSmoke(alias);
+  runSubscriberSmoke(alias, "clean-install");
   runInstalledSurfaceGates(alias, securityMode);
   console.log("Clean subscriber install gate passed.");
 
@@ -506,7 +614,9 @@ function main() {
     alias,
     devHub,
     releases,
-    securityMode
+    securityMode,
+    false,
+    values["release-pair"]
   );
 }
 
@@ -517,7 +627,8 @@ function runUpgradeGate(
   devHub,
   releases,
   securityMode,
-  required = false
+  required = false,
+  reuseReleaseOrg = false
 ) {
   if (!upgradeFromId.startsWith("04t") || upgradeFromId === candidateId) {
     if (required) {
@@ -543,7 +654,18 @@ function runUpgradeGate(
     return;
   }
 
-  if (!aliasAvailable(alias)) {
+  if (reuseReleaseOrg) {
+    if (!createdAliases.has(alias) || aliasAvailable(alias)) {
+      console.error(
+        `Release-pair upgrade expected the clean-install org '${alias}' created by this process.`
+      );
+      process.exit(1);
+    }
+    console.log(
+      `Resetting ${alias} after clean-install evidence so the same release org can rehearse the upgrade...`
+    );
+    resetReleasePairForUpgrade(alias, candidateId);
+  } else if (!aliasAvailable(alias)) {
     deleteOwnedScratchOrg(alias);
     if (!aliasAvailable(alias)) {
       console.error(
@@ -553,27 +675,29 @@ function runUpgradeGate(
     }
   }
 
-  console.log(`Creating no-namespace upgrade org '${alias}'...`);
-  assertScratchCapacity(devHub);
-  run("sf", [
-    "org",
-    "create",
-    "scratch",
-    "--definition-file",
-    securityMode === "Locker"
-      ? paths.lockerScratchDef
-      : paths.subscriberScratchDef,
-    "--alias",
-    alias,
-    "--target-dev-hub",
-    devHub,
-    "--duration-days",
-    "1",
-    "--no-namespace",
-    "--wait",
-    "30"
-  ]);
-  createdAliases.add(alias);
+  if (!reuseReleaseOrg) {
+    console.log(`Creating no-namespace upgrade org '${alias}'...`);
+    assertScratchCapacity(devHub);
+    run("sf", [
+      "org",
+      "create",
+      "scratch",
+      "--definition-file",
+      securityMode === "Locker"
+        ? paths.lockerScratchDef
+        : paths.subscriberScratchDef,
+      "--alias",
+      alias,
+      "--target-dev-hub",
+      devHub,
+      "--duration-days",
+      "1",
+      "--no-namespace",
+      "--wait",
+      "30"
+    ]);
+    createdAliases.add(alias);
+  }
 
   console.log(
     `Installing promoted base version ${upgradeFromId} for upgrade rehearsal...`
@@ -618,7 +742,7 @@ function runUpgradeGate(
     configurationAfterUpgrade
   );
   deploySubscriberHarness(alias);
-  runSubscriberSmoke(alias);
+  runSubscriberSmoke(alias, "upgrade");
   runInstalledSurfaceGates(alias, securityMode);
   if (process.env.RHC_SKIP_DEMO_DATA !== "1") {
     runDemoVerification(alias);

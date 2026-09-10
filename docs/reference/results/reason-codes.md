@@ -144,14 +144,16 @@ a custom Apex Check.
 
 | Code | Typical status | Meaning |
 | --- | --- | --- |
-| `APEX_CLASS_NOT_FOUND` | `UNABLE_TO_EVALUATE` | `ApexClass__c` could not be resolved to an `rhc.RecordHealthCheckPlugin`. Confirm the class API name, packaging namespace, and interface implementation. |
+| `APEX_CLASS_INVALID` | `UNABLE_TO_EVALUATE` | `ApexClass__c` is not a simple class name or exactly `namespace.ClassName`. Remove embedded whitespace, extra dots, generic syntax, paths, or appended code. |
+| `APEX_CLASS_NOT_FOUND` | `UNABLE_TO_EVALUATE` | `ApexClass__c` did not resolve to a visible Apex type. Confirm the class API name, packaging namespace, installation, and caller visibility. |
+| `APEX_CLASS_LOAD_FAILED` | `UNABLE_TO_EVALUATE` | Salesforce raised an ordinary exception while loading the configured type. Authorized diagnostics retain the available cause. |
 | `INVALID_APEX_PARAMETERS` | `UNABLE_TO_EVALUATE` | `ApexParametersJson__c` is not valid JSON object input. |
 | `APEX_EVALUATOR_ERROR` | `ERROR` / `UNABLE_TO_EVALUATE` | Plugin returned an illegal status or omitted required Found/Expected on `PASS`/`FAIL`. |
 | `PLUGIN_RESULT_MISSING` | `ERROR` (per record) or thrown Apex exception | The plugin returned no entry for a requested record, or returned a null map for the whole request. Cover every requested ID. An empty request should return an empty map. |
 | `PLUGIN_RESULT_UNKNOWN_KEY` | Thrown Apex exception | The plugin returned an outcome for a record ID that was not requested. The complete custom Apex Check call fails. |
 | `PLUGIN_THREW` | Thrown Apex exception | The plugin threw an unhandled exception that cannot be assigned to one record. |
-| `PLUGIN_CONSTRUCTOR_FAILED` | `ERROR` | The configured class was found, but Record Health Check could not construct it. Confirm that the class has an accessible no-argument constructor and that initialization does not throw. |
-| `PLUGIN_INTERFACE_INVALID` | `ERROR` | The configured class does not implement `rhc.RecordHealthCheckPlugin` in the form required by the installed package version. |
+| `PLUGIN_CONSTRUCTOR_FAILED` | `UNABLE_TO_EVALUATE` | The configured class was found, but Record Health Check could not construct it. Confirm that the class has an accessible no-argument constructor and that initialization does not throw. |
+| `PLUGIN_INTERFACE_INVALID` | `UNABLE_TO_EVALUATE` | The class constructed but could not be cast to `rhc.RecordHealthCheckPlugin` in the form required by the installed package version. |
 | `PLUGIN_STATUS_INVALID` | `ERROR` | The plugin returned a status other than `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`. |
 | `PLUGIN_REASON_CODE_INVALID` | `ERROR` | The plugin returned a blank, overlong, or otherwise invalid Reason Code. Return a stable nonblank code of at most 80 characters. |
 | `PLUGIN_VALUES_MISSING` | `ERROR` | A `PASS` or `FAIL` outcome omitted the required Found or Expected value. |

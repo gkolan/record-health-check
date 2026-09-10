@@ -8,25 +8,25 @@ promoted Record Health Check package. It is the manual companion to the
 The release owner decides when to create and promote a package and when scratch-org testing is
 worth its quota. An automation assistant may perform those actions when the owner explicitly asks.
 
-## Quota policy: Creation is the final validation phase
+## Quota policy: One retained pair per release
 
-The release owner's daily scratch-org allowance is five. Do not create scratch orgs to investigate
-an error or test a workflow edit. Use local checks and already authorized, suitable existing orgs
-for diagnosis. A check-only deployment does not require a new org. New orgs are reserved for the
-final fresh-environment release evidence after known failures are resolved.
+Each release may own only two active release scratch orgs: one LWS and one Locker subscriber org.
+The same org performs clean-install validation, is reset by uninstalling the candidate, and then
+performs the exact current-stable-to-candidate upgrade. Do not create separate source, clean-install,
+or older-base orgs for a release.
 
-Pull-request and push CI must consume no scratch-org or package-version creation quota. Both
-Salesforce workflows are manual-only and require the complete no-org preflight before checking
-capacity. The source workflow also completes Code Analyzer before any org is created. Source
-runtime stages execute namespaced LWS, then namespaced Locker. The Locker stage and each subscriber
-stage run one org at a time and stop queued work on failure. A no-namespace source deployment is an
-optional contributor check, not a second package shape or a release requirement. Capacity checks
-are not reservations and cannot protect against unrelated Dev Hub activity.
+Pull-request and push CI consume no scratch-org or package-version creation quota. The subscriber
+release-pair workflow is manual-only, requires the complete no-org preflight, and runs LWS and then
+Locker one at a time. The source workflow is for contributor investigation outside the release
+pair; do not dispatch it as an additional release stage. Capacity checks are not reservations and
+cannot protect against unrelated Dev Hub activity.
 
 Never repeatedly rerun an org-consuming workflow while its first failure is unexplained. Inspect
 the original error and existing evidence, correct the cause, and repeat no-org validation first.
 Scratch-org workflows are optional release evidence. They are never implied by a release request:
-the owner must explicitly authorize each local creation or workflow run before it starts.
+the owner must explicitly authorize the release-pair workflow before it starts. Retain at most two
+release pairs. When work starts on `N+2`, delete the `N` pair before creating the new pair. An org
+that expires within Salesforce's 30-day maximum is not recreated merely for retention.
 
 Package creation is an owner-run final build after local validation passes, not a debugging tool.
 No GitHub workflow creates or promotes a package. Optional clean-install, upgrade, and sandbox tests
@@ -67,6 +67,13 @@ Do not reuse evidence from another commit, pull-request merge commit, branch hea
 
 6. Stop if the worktree is not clean. Preserve local test and analyzer evidence under its approved
    ignored evidence directory; do not delete evidence merely to satisfy the clean-worktree gate.
+7. Confirm `check:package-boundary` reports side-effect-free example defaults and portable example
+   documentation. No public Example Check or Check Set may enable diagnostics or event publication,
+   and no public example may require a third-party namespace.
+8. When an AI prompt or metadata contract changed, confirm the four provider-neutral reference
+   drafts pass `check:ai-prompts`, contain `FormulaResultType__c=AUTO` for every Evaluation Type
+   unless a reviewed Formula needs an explicit type, and use `(omit from metadata)` rather than a
+   literal `N/A` value for unused fields. This check is offline and requires no model credential.
 
 A green pull request summary is source evidence only. A pull-request run in which Salesforce jobs
 were skipped is not hosted release evidence.
@@ -101,12 +108,12 @@ command shape.
 Treat this value like a password. Never paste it into an issue, pull request, chat, terminal log, or
 tracked file.
 
-## 3. Optionally dispatch hosted source validation
+## 3. Optional contributor source validation outside a release
 
-Do not perform this section unless the release owner explicitly authorizes scratch-org creation for
-the run.
+Do not dispatch this workflow as additional release evidence after adopting the two-org release
+pair. It remains available for explicitly authorized contributor investigation outside a release.
 
-1. Open **Actions → Salesforce release gate**.
+1. Open **Actions → Salesforce source validation (non-release)**.
 2. Select **Run workflow**.
 3. Select the release branch, not `main` and not a stale branch.
 4. Set `authorize_scratch_org_creation` to `true`, then run the workflow.
@@ -127,6 +134,30 @@ run keeps the older commit and workflow definition, so it cannot validate the fi
 
 Treat incomplete results as failed optional evidence. They do not block package creation.
 
+When the release changes Apex plugin discovery or namespace handling, install one currently
+available public namespaced package in one of the authorized source orgs and exercise a qualified
+class name from it. Record the install ID and exact RHC reason code. This proves foreign-namespace
+resolution and rejection provenance only; it does not prove NS-03 unless that package implements
+`rhc.RecordHealthCheckPlugin`. Keep the successful compatible-plugin topology pending until the Dev
+Hub has a genuinely different registered namespace. For 2.0.9, the selected public control is DLRS
+2.25 (`04tKA000000cCA1YAM`), and `RHCForeignApexNamespaceIT` must prove that
+`dlrs.RollupService` resolves and returns `PLUGIN_INTERFACE_INVALID`.
+
+## 3a. Complete the human documentation review
+
+Before package creation, a named reviewer other than the author must read the affected user pages
+in navigation order and record the review in the pull request or retained release evidence. For
+2.0.9, the reviewer must confirm:
+
+- every published example uses objects and fields available in an ordinary Salesforce org;
+- examples show diagnostics, run events, result events, and error events off by default;
+- the Apex AI prompt proposes `FormulaResultType__c=AUTO` and never exports `N/A`;
+- PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR guidance matches the runtime contract; and
+- installation, upgrade, rollback, and troubleshooting links lead to one maintained owner page.
+
+Automated documentation checks prove structure and known invariants, not human usefulness. Do not
+record this step complete without the reviewer's name and review date.
+
 ## 4. Create exactly one package candidate
 
 Return to the same clean local release branch and run:
@@ -143,33 +174,29 @@ under `packages/record-health-check/.package-evidence/`.
 Do not create another candidate because validation failed. Correct the cause first; an additional
 candidate requires the documented reviewed override and is not a normal retry mechanism.
 
-## 5. Optionally dispatch installed-package validation
+## 5. Optionally dispatch the retained installed-package pair
 
-Do not perform this section unless the release owner explicitly authorizes scratch-org creation for
-each run.
+Do not perform this section unless the release owner explicitly authorizes creation of the exact
+two-org pair for this release.
 
-1. Open **Actions → Subscriber validation**.
-2. Select **Run workflow**.
-3. Select the unchanged release branch.
+1. Before creation, delete the pair two releases behind. For 2.0.11, delete both 2.0.9 orgs.
+2. Open **Actions → Subscriber release-pair validation**.
+3. Select **Run workflow** and choose the unchanged release branch.
 4. Enter the exact candidate `04t` in `package_version_id`.
-5. Choose `validation_stage: clean-install`, set `authorize_scratch_org_creation` to `true`, and run the workflow.
+5. Set `authorize_scratch_org_creation` to `true`, then run the workflow once.
 6. Confirm `offline-preflight` passes. Then confirm
    `Check subscriber-stage scratch-org capacity` passes before the two selected jobs run sequentially.
-7. Require both selected jobs to execute and pass, one under Lightning Web Security and one under
-   Lightning Locker. Repeat the dispatch for `upgrade-2.0.6.2`, then `upgrade-2.0.4.2`, always using
-   the same candidate and unchanged release branch when that additional evidence is desired.
+7. Require both jobs to execute and pass, one under Lightning Web Security and one under Lightning
+   Locker. Each job proves a clean candidate install, resets that org, installs the exact current
+   stable version, and upgrades it to the candidate while preserving subscriber configuration.
 8. Confirm the workflow title identifies the exact candidate and the run's head SHA is the release
    commit.
 9. Retain install requests, the complete subscriber Apex inventory (including
    `RHCSubscriberFlowSmokeTest`), browser evidence, and both upgrade-preservation snapshots.
 
-Each subscriber dispatch creates two fresh orgs. Check daily and active capacity before each
-authorized stage. Workflow concurrency serializes these
-release workflows but does not reserve capacity against other tools or people. Deleting scratch orgs
-does not refund daily creations.
-
-The unselected clean/upgrade job is intentionally skipped in each staged dispatch. If the run is
-retained as optional evidence, require each selected security-mode job and its artifacts to pass.
+The one subscriber dispatch creates and retains exactly two orgs for up to 30 days. Workflow
+concurrency serializes creation but does not reserve capacity against other tools or people.
+Deleting scratch orgs does not refund daily creations.
 
 A successful source deployment does not prove upgrade behavior. Record each optional result for what
 it actually tested.
@@ -264,7 +291,7 @@ pass.
   by label, and require the actual Home path after submission. A Home return URL, a hidden
   heading, or a login/error page is not success. Keep delayed-form and failure-path regressions
   runnable without consuming scratch-org quota; hosted browser validation remains optional.
-- When upgrade rehearsal is authorized, use every supported public distribution base and record
+- When upgrade rehearsal is authorized, use the immediately preceding promoted release and record
   whether customer configuration was preserved.
 - Pin and verify the CLI/authentication command, enforce dependency and coverage checks, and record
   quota limits before dispatch. Fix the cause instead of lowering the gate.
@@ -283,6 +310,10 @@ pass.
   this unsupported object/list-view representation before another package build is attempted.
 - Bind every release decision to the same commit and immutable package ID. A green PR, old artifact,
   or source deployment is not proof that the package is ready.
+- Keep public examples inert on install. The package-boundary gate must reject diagnostics or event
+  publication enabled by default and third-party namespace dependencies in the example library.
+- Treat AI output as deployable metadata, not prose. Literal `N/A` is never a stored value; unused
+  fields are omitted, and every drafted Check carries an explicit Formula Result Type.
 
 These controls reduce regression risk; they cannot promise that an unknown defect will never occur.
 

@@ -1,10 +1,10 @@
-name: Salesforce release gate
+name: Salesforce source validation (non-release)
 
 on:
   workflow_dispatch:
     inputs:
       authorize_scratch_org_creation:
-        description: I authorize this run to create up to two one-day scratch orgs
+        description: I authorize this non-release contributor run to create up to two one-day scratch orgs
         required: true
         type: boolean
         default: false
@@ -31,14 +31,14 @@ jobs:
       - run: npm run check:toolchain
       - name: Complete all no-org release checks before spending quota
         run: npm run release:preflight
-      # `check:ai-prompts` validates the committed recordings against the exact
-      # prompt fingerprints and current metadata contract. Preserve those inputs
-      # so release reviewers can inspect the same deterministic evidence.
+      # `check:ai-prompts` validates provider-neutral reference drafts against
+      # the current prompt and metadata contracts. Preserve those deterministic
+      # inputs so release reviewers can inspect the same evidence.
       - name: Keep the reviewed AI drafting evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: ai-drafting-evidence
+          name: ai-drafting-reference-fixtures
           path: tests/ai-drafts/
           if-no-files-found: error
           retention-days: 90

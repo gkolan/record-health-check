@@ -196,7 +196,6 @@ install them. They become available only if your team deliberately deploys that 
 | --- | --- | --- |
 | `AccountOpenOpportunityHealthCheck` | Open Opportunities that are stale, missing Next Step, and not closing this quarter | `{"staleDays": 30}` |
 | `AccountStrategicReadinessCheck` | Weighted readiness score (contacts, pipeline, activity, billing) | `{"minScore": 80, "activityDaysBack": 60}` |
-| `ApprovalInactiveApproverCheck` | Pending approval steps assigned to inactive users (dynamic object/field names for Advanced Approvals) | Object/field/status overrides; returns `UNABLE_TO_EVALUATE` when the approval object is absent |
 
 **See also:** [Apex examples](../../examples/apex/README.md)
 

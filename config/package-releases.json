@@ -3,18 +3,18 @@
   "package2Id": "0Hoak0000004kKPCAY",
   "namespace": "rhc",
   "stable": {
+    "version": "2.0.9.2",
+    "subscriberPackageVersionId": "04tak000000gX9FAAU"
+  },
+  "previous": {
     "version": "2.0.8.1",
     "subscriberPackageVersionId": "04tak000000g1R7AAI"
   },
-  "previous": {
-    "version": "2.0.6.2",
-    "subscriberPackageVersionId": "04tak000000eM53AAE"
-  },
   "candidate": {
-    "version": "2.0.8.1",
-    "subscriberPackageVersionId": "04tak000000g1R7AAI",
+    "version": "2.0.9.2",
+    "subscriberPackageVersionId": "04tak000000gX9FAAU",
     "status": "released",
-    "sandboxInstallUrl": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000g1R7AAI"
+    "sandboxInstallUrl": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000gX9FAAU"
   },
   "permissionSets": {
     "card": "Record_Health_Check_Card_User",
@@ -23,7 +23,7 @@
     "mcp": "Record_Health_Check_MCP_Integration"
   },
   "installUrl": {
-    "production": "https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000g1R7AAI",
-    "sandbox": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000g1R7AAI"
+    "production": "https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000gX9FAAU",
+    "sandbox": "https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000gX9FAAU"
   }
 }

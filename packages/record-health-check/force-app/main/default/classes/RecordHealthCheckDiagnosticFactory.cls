@@ -31,6 +31,25 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
       stackTrace = String.isBlank(contractError.originalStackTrace)
         ? stackTrace
         : contractError.originalStackTrace;
+    } else if (
+      error instanceof RecordHealthCheckApexPluginResolver.PluginConfigurationException
+    ) {
+      RecordHealthCheckApexPluginResolver.PluginConfigurationException configurationError = (RecordHealthCheckApexPluginResolver.PluginConfigurationException) error;
+      incident.exceptionType = String.isBlank(
+          configurationError.originalExceptionType
+        )
+        ? incident.exceptionType
+        : configurationError.originalExceptionType;
+      incident.exceptionMessage = String.isBlank(
+          configurationError.originalExceptionMessage
+        )
+        ? incident.exceptionMessage
+        : sanitizeMessage(configurationError.originalExceptionMessage);
+      incident.topFrameLine = configurationError.originalLineNumber ??
+        incident.topFrameLine;
+      stackTrace = String.isBlank(configurationError.originalStackTrace)
+        ? stackTrace
+        : configurationError.originalStackTrace;
     }
     incident.apexClass = isPluginPhase(context?.phase)
       ? context?.component
@@ -227,10 +246,12 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
   }
 
   private static Boolean isPluginConfigurationReason(String reason) {
-    return reason == 'APEX_CLASS_NOT_FOUND' ||
+    return reason == RecordHealthCheckReasonCodes.APEX_CLASS_INVALID ||
+      reason == RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND ||
+      reason == RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED ||
       reason == RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED ||
       reason == RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID ||
-      reason == 'INVALID_APEX_PARAMETERS';
+      reason == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS;
   }
 
   private static Boolean isPluginPhase(String phase) {

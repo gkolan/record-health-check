@@ -14,18 +14,6 @@
  * proposed value, why - so an unparseable draft is itself a prompt failure.
  */
 
-import { createHash } from "node:crypto";
-
-/**
- * The cheapest model an administrator is realistically drafting with.
- *
- * The prompts exist to make that model produce Check configuration that saves,
- * so committed prompt evidence uses this model as its baseline. Raising it to
- * a more capable model would make the evidence easier to produce and prove
- * less; change it only when the cheapest available model actually changes.
- */
-export const LOWEST_COST_MODEL = "claude-haiku-4-5-20251001";
-
 /** The four Evaluation Types a release must have recorded evidence for. */
 export const EVALUATION_TYPES = {
   formula: "FORMULA",
@@ -47,17 +35,6 @@ export function promptBlock(page) {
 }
 
 /**
- * Identifies the exact prompt a recording was made from, so a later edit to
- * that prompt makes the recording provably stale instead of quietly outdated.
- *
- * @param {string} prompt The prompt block.
- * @returns {string} A hex SHA-256 digest.
- */
-export function promptFingerprint(prompt) {
-  return createHash("sha256").update(prompt, "utf8").digest("hex");
-}
-
-/**
  * Capabilities every Check has, whatever its Evaluation Type. A draft that
  * never mentions one of these is not wrong so much as narrow: the assistant
  * proposed a bare pass/fail rule and left applicability, prerequisites,
@@ -66,6 +43,7 @@ export function promptFingerprint(prompt) {
  */
 export const CROSS_CUTTING = [
   "EvaluationType__c",
+  "FormulaResultType__c",
   "CheckTitle__c",
   "CheckDescription__c",
   "Category__c",
@@ -131,11 +109,7 @@ export const MUST_FILL = CROSS_CUTTING.filter(
  * so the saved Check shows an administrator the whole surface of its type.
  */
 const TYPE_MUST_FILL = {
-  FORMULA: [
-    "FormulaResultType__c",
-    "DisplayFoundFormula__c",
-    "DisplayExpectedFormula__c"
-  ],
+  FORMULA: ["DisplayFoundFormula__c", "DisplayExpectedFormula__c"],
   QUERY: ["SourceQueryField__c", "EmptyValueHandling__c", "MaxQueryRows__c"],
   COMPARE_TWO_QUERIES: [
     "SourceQueryField__c",
@@ -257,8 +231,8 @@ const NO_EXPECTED_VALUE = ["IS_BLANK", "IS_NOT_BLANK"];
  * proposed and only its value is open.
  */
 const UNSET = [
-  /^[(*_\s]*(n\/a|none|blank|empty|leave (it )?blank|-|—)[)*_.\s]*$/i,
-  /^[(*_\s]*(n\/a|not used|not needed|not required|not applicable|unused|omit)\b/i
+  /^[(*_\s]*(none|blank|empty|leave (it )?blank|-|—)[)*_.\s]*$/i,
+  /^[(*_\s]*(not used|not needed|not required|unused|omit)\b/i
 ];
 
 /**
@@ -388,7 +362,6 @@ export function typeExpectations(fields) {
   const handling = fields.get("QueryResultHandling__c") ?? "";
   const formulaOnly = [
     "PassConditionFormula__c",
-    "FormulaResultType__c",
     "DisplayFoundFormula__c",
     "DisplayExpectedFormula__c"
   ];

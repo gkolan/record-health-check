@@ -111,7 +111,7 @@ for every requested record and did not perform a prohibited database write.
 
 | Member | Purpose |
 | --- | --- |
-| `APEX_CLASS_NOT_FOUND`, `INVALID_APEX_PARAMETERS`, `APEX_EVALUATOR_ERROR` | Typical failure reason codes |
+| `APEX_CLASS_INVALID`, `APEX_CLASS_NOT_FOUND`, `APEX_CLASS_LOAD_FAILED`, `PLUGIN_CONSTRUCTOR_FAILED`, `PLUGIN_INTERFACE_INVALID`, `INVALID_APEX_PARAMETERS`, `APEX_EVALUATOR_ERROR` | Typical failure reason codes |
 
 **Notable behavior:**
 
@@ -119,6 +119,9 @@ for every requested record and did not perform a prohibited database write.
   for records that were not requested. Missing or extra record IDs, prohibited database writes, and
   invalid results become `ERROR`. A configuration or data condition that prevents a safe answer
   becomes `UNABLE_TO_EVALUATE`.
+- **Plugin loading:** class-name syntax and parameter-object shape are checked before construction.
+  Resolution, construction, and interface acceptance retain distinct reason codes and phases; an
+  incompatible class is accepted or rejected by a guarded cast after constructor safety checks.
 
 **See also:** [Reference: Apex](../../developer-guides/write-an-apex-check.md)
 

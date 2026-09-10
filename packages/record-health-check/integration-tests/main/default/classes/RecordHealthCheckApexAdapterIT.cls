@@ -158,15 +158,15 @@ private with sharing class RecordHealthCheckApexAdapterIT {
       .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
-    Assert.areEqual(RecordHealthCheckStatus.ERROR, result.status);
+    Assert.areEqual(RecordHealthCheckStatus.UNABLE_TO_EVALUATE, result.status);
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
       result.reasonCode
     );
     Assert.areEqual(
-      'A system error prevented this check from completing. An authorized administrator can open the diagnosis.',
+      'This check could not be evaluated. Contact your administrator.',
       result.message,
-      'A constructor failure must use the safe fallback when no Check message is configured.'
+      'A constructor configuration failure must use the safe unable message when no Check message is configured.'
     );
     Assert.isTrue(
       result.detailMessage.contains('Expected constructor failure'),

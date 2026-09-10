@@ -13,6 +13,7 @@ import {
 const schema = {
   declared: new Set([
     "EvaluationType__c",
+    "FormulaResultType__c",
     "CheckTitle__c",
     "PassConditionFormula__c",
     "SourceQuery__c",
@@ -33,6 +34,7 @@ const schema = {
   ]),
   picklists: new Map([
     ["EvaluationType__c", ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"]],
+    ["FormulaResultType__c", ["AUTO", "BOOLEAN", "TEXT"]],
     ["NoRowsResult__c", ["PASS", "FAIL", "SKIP", "UNABLE_TO_EVALUATE"]],
     [
       "QueryResultHandling__c",
@@ -55,7 +57,7 @@ const formula = () =>
     ["PassConditionFormula__c", "NOT(ISBLANK(BillingCity))"]
   ]);
 
-test("the mandated table shape is what the parser reads", () => {
+test("N/A is retained so a non-deployable metadata value is rejected", () => {
   const fields = draftFields(
     [
       "| Setup label | API field name | Proposed value | Why |",
@@ -70,7 +72,22 @@ test("the mandated table shape is what the parser reads", () => {
     fields.get("PassConditionFormula__c"),
     "NOT(ISBLANK(BillingCity))"
   );
-  assert.ok(!fields.has("SourceQuery__c"), "N/A rows are not proposed values");
+  assert.equal(fields.get("SourceQuery__c"), "N/A");
+  assert.ok(
+    draftProblems(fields, schema).some((problem) =>
+      /FORMULA must not set SourceQuery__c/.test(problem)
+    )
+  );
+});
+
+test("FormulaResultType is a cross-cutting safe default for every type", () => {
+  assert.ok(MUST_FILL.includes("FormulaResultType__c"));
+  for (const type of ["FORMULA", "QUERY", "COMPARE_TWO_QUERIES", "APEX"]) {
+    const { forbidden } = typeExpectations(
+      new Map([["EvaluationType__c", type]])
+    );
+    assert.ok(!forbidden.includes("FormulaResultType__c"));
+  }
 });
 
 test("Prettier-escaped Custom Metadata API names remain readable", () => {

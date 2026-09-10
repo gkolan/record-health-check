@@ -84,6 +84,17 @@ problems together. Both paths therefore use the same validity rules.
  same field problem twice. Mutually exclusive choices use one decision chain so the audit returns
  at most one finding for a field.
 
+### `RecordHealthCheckApexConfigSupport`
+
+**Role:** Keep Apex Check validation precedence and authoring issue mapping consistent.
+
+**Type:** Shared helper · `public with sharing`
+
+Returns Apex-specific `RecordHealthCheckValidator.Finding` values in class-name, parameter, resolve,
+constructor, and interface order. It also maps those findings to metadata-audit fields, messages,
+and stable Reason Codes. Separating this concern keeps both shared validator classes below their
+review-size ceiling without creating a second decision tree.
+
 ### `RecordHealthCheckMetadataValidator`
 
 **Role:** Audit all active Check Set and Check Custom Metadata before a release.

@@ -1,0 +1,23 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true,
+      "package": "RHC Partner Namespace Fixture",
+      "versionName": "Compatibility Fixture 1.0",
+      "versionNumber": "1.0.0.NEXT",
+      "dependencies": [
+        {
+          "package": "Record Health Check@2.0.9"
+        }
+      ]
+    }
+  ],
+  "name": "RHCPartnerNamespaceFixture",
+  "namespace": "REPLACE_WITH_REGISTERED_PARTNER_NAMESPACE",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "66.0",
+  "packageAliases": {
+    "Record Health Check@2.0.9": "REPLACE_WITH_2_0_9_04T"
+  }
+}

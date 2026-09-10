@@ -1,6 +1,6 @@
 {
-  "checkCount": 138,
-  "inventorySha256": "b8d245d9a0af7b6973bd7282bec90805c2c8aa4fad3d91deece80b5917c7ac34",
+  "checkCount": 158,
+  "inventorySha256": "e46ae531342dd483958fcbd386570cb33d9bd96d635396daa826775d423610b1",
   "results": [
     {
       "check": "Account_Active_Signed_Contract",
@@ -483,6 +483,13 @@
       "status": "SKIPPED"
     },
     {
+      "check": "Account_QC_ExpectedDatetime",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
       "check": "Account_QC_GreaterThan",
       "queryFields": [
         "SourceQuery__c"
@@ -570,11 +577,133 @@
       "status": "PASS"
     },
     {
-      "check": "Example_Account_Owner_Active",
+      "check": "Account_Rows_ActionLink",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_Rows_AggregateAlias",
       "queryFields": [
         "SourceQuery__c"
       ],
       "status": "PASS"
+    },
+    {
+      "check": "Account_Rows_BeyondQueryLimit",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_ComparisonRows",
+      "queryFields": [
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_Rows_ComparisonWithoutQuery",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_CountQueryRowCount",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_EncryptedField",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_FormattedRowValue",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Account_Rows_MissingRow",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_Rows_NoRowsReturned",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_Rows_NoStableOrder",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_OneResultSecondRow",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_SecondContactEmail",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_Rows_SetAndRunTokens",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "Account_Rows_SubqueryProjection",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_UnknownFormat",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Account_Rows_UnselectedField",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
     },
     {
       "check": "Example_Account_Source_Not_Manually_Set",
@@ -867,16 +996,15 @@
         "ComparisonQuery__c",
         "SourceQuery__c"
       ],
-      "reasonCode": "APPLICABILITY_NOT_MET",
-      "status": "SKIPPED"
+      "status": "FAIL"
     },
     {
       "check": "Example_Open_Opportunities_Are_Healthy",
       "queryFields": [
         "ApplicabilityCountQuery__c"
       ],
-      "reasonCode": "APEX_PASS",
-      "status": "PASS"
+      "reasonCode": "APEX_FAIL",
+      "status": "FAIL"
     },
     {
       "check": "Example_Open_Opportunities_Have_Amount",
@@ -1100,8 +1228,31 @@
         "SourceQuery__c"
       ],
       "threw": true
+    },
+    {
+      "check": "RHC_Stop_First_System_Error",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "OBJECT_NOT_RESOLVED",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "Release_On_Load_Compare",
+      "queryFields": [
+        "ComparisonQuery__c",
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "Release_On_Load_Query",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "PASS"
     }
   ],
   "schemaVersion": 1,
-  "templateCount": 269
+  "templateCount": 290
 }

@@ -28,6 +28,7 @@ export const sourceGates = [
   "check:code-analyzer-suppressions",
   "check:code-analyzer-inline-suppressions",
   "check:plugin-sharing",
+  "check:plugin-interface-boundary",
   "check:version-sync",
   "check:product-version-language",
   "check:docs",
@@ -49,10 +50,9 @@ export const sourceGates = [
 ];
 
 /**
- * Optional release-only gates belong here when they are deterministic and do
- * not depend on a vendor credential. AI drafting evidence is instead recorded
- * deliberately when its prompts change; `check:ai-prompts` remains a mandatory
- * source gate and rejects missing, stale, or invalid committed evidence.
+ * Optional release-only gates belong here when they are deterministic. AI
+ * drafting uses provider-neutral reference fixtures; `check:ai-prompts` remains
+ * a mandatory offline source gate and rejects missing or invalid fixtures.
  */
 export const releaseGates = [];
 

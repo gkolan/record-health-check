@@ -120,15 +120,14 @@ that the other Evaluation Types cannot express clearly. Apex examples require de
 coverage before deployment.
 
 `AccountHasRecentActivityCheck` is included in the managed package. The strategic-readiness and
-inactive-approver classes are integration-test examples and are not installed in a subscriber org.
-The open-opportunity example is also a source-development recipe unless your team deploys it.
+open-opportunity classes are source-development recipes unless your team reviews, tests, and
+deploys them.
 
 | Example | What it checks | What you will learn |
 | --- | --- | --- |
 | [Recent Account activity](./apex/recent-activity.md) | An Account has a recent completed Task or Event whose `WhatId` is the Account | Combine WhatId-scoped Task/Event results and accept a configurable date window |
 | [Open Opportunity health](./apex/open-opportunity-health.md) | An open Opportunity does not have several warning signs at once | Apply several conditions to the same related record |
 | [Strategic Account readiness](./apex/strategic-readiness.md) | A Strategic Account meets a weighted readiness score | Calculate and explain a configurable score |
-| [Inactive approval participants](./apex/inactive-approver.md) | An approval assignment does not include an inactive user | Inspect approval data while accounting for licensed product objects |
 
 ## What makes each example different
 
@@ -155,7 +154,6 @@ object without repeating the same configuration pattern.
 | [Recent Account activity](./apex/recent-activity.md) | Apex across Task and Event with a limited date range configured in JSON |
 | [Open Opportunity health](./apex/open-opportunity-health.md) | Apex applying several conditions to each related record plus count-query applicability |
 | [Strategic Account readiness](./apex/strategic-readiness.md) | Weighted Apex score, multiple JSON parameters, and formula applicability |
-| [Inactive approval participants](./apex/inactive-approver.md) | Dynamic object and field names, defensive `UNABLE_TO_EVALUATE`, and stop-after-`ERROR` behavior |
 
 The reference pages document additional operators and limits that do not need separate examples.
 

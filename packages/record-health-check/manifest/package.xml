@@ -275,6 +275,7 @@
         <members>RecordHealthCheckAgentRestResource</members>
         <members>RecordHealthCheckAgentRestResourceTest</members>
         <members>RecordHealthCheckApexAdapterTest</members>
+        <members>RecordHealthCheckApexConfigSupport</members>
         <members>RecordHealthCheckApexEvaluator</members>
         <members>RecordHealthCheckApexPluginResolver</members>
         <members>RecordHealthCheckApexResultFinalizer</members>

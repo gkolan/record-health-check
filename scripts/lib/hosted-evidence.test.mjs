@@ -54,16 +54,13 @@ test("green workflow alone is insufficient without every job and artifact", () =
   }
 });
 
-test("source and each subscriber stage require their own evidence", () => {
+test("source and the two-org subscriber release pair require their own evidence", () => {
   assert.equal(hostedEvidenceContract().jobs.length, 4);
-  assert.equal(hostedEvidenceContract("04t", "clean-install").jobs.length, 4);
+  assert.equal(hostedEvidenceContract("04t", "release-pair").jobs.length, 4);
   assert.equal(
-    hostedEvidenceContract("04t", "upgrade-2.0.4.2").artifacts.length,
+    hostedEvidenceContract("04t", "release-pair").artifacts.length,
     6
   );
-  assert.notDeepEqual(
-    hostedEvidenceContract("04t", "upgrade-2.0.4.2").artifacts,
-    hostedEvidenceContract("04t", "upgrade-2.0.6.2").artifacts
-  );
   assert.throws(() => hostedEvidenceContract("04t"));
+  assert.throws(() => hostedEvidenceContract("04t", "clean-install"));
 });

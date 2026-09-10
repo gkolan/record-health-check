@@ -1,5 +1,5 @@
-name: Subscriber validation
-run-name: Subscriber validation · ${{ inputs.package_version_id }} · ${{ inputs.validation_stage }}
+name: Subscriber release-pair validation
+run-name: Subscriber release pair · ${{ inputs.package_version_id }}
 
 on:
   workflow_dispatch:
@@ -8,17 +8,8 @@ on:
         description: Candidate 04t to validate; required before promotion
         required: true
         type: string
-      validation_stage:
-        description: Run all three stages on the same commit and candidate before promotion
-        required: true
-        type: choice
-        default: clean-install
-        options:
-          - clean-install
-          - upgrade-2.0.6.2
-          - upgrade-2.0.4.2
       authorize_scratch_org_creation:
-        description: I authorize this run to create up to two one-day scratch orgs
+        description: I authorize this release to create its retained LWS and Locker org pair
         required: true
         type: boolean
         default: false
@@ -83,9 +74,8 @@ jobs:
       - name: Check subscriber-stage scratch-org capacity
         run: npm run check:scratch-capacity -- --dev-hub devhub --required 2
 
-  subscriber-clean-install:
-    name: subscriber-clean-install (${{ matrix.security_mode }})
-    if: inputs.validation_stage == 'clean-install'
+  subscriber-release-pair:
+    name: subscriber-release-pair (${{ matrix.security_mode }})
     needs: require-dev-hub-secret
     runs-on: ubuntu-latest
     strategy:
@@ -94,83 +84,8 @@ jobs:
       matrix:
         include:
           - security_mode: LWS
-            alias: rhc-ci-subscriber-lws
             artifact_suffix: lws
           - security_mode: Locker
-            alias: rhc-ci-subscriber-locker
-            artifact_suffix: locker
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm ci --prefix packages/record-health-check-mcp
-      - run: npx playwright install --with-deps chromium firefox
-      - run: npm install --global @salesforce/cli@2.150.6
-      - run: npm run check:toolchain
-      - name: Validate explicit candidate package version
-        id: rhc-package
-        shell: bash
-        env:
-          CANDIDATE_PACKAGE_ID: ${{ inputs.package_version_id }}
-        run: |
-          package_id="$CANDIDATE_PACKAGE_ID"
-          if [[ ! "$package_id" =~ ^04t[[:alnum:]]{12}([[:alnum:]]{3})?$ ]]; then
-            echo "::error::Candidate package version is not a 15- or 18-character 04t ID."
-            exit 1
-          fi
-          printf 'id=%s\n' "$package_id" >> "$GITHUB_OUTPUT"
-      - name: Authenticate Dev Hub
-        env:
-          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
-        run: |
-          auth_file="$RUNNER_TEMP/devhub-auth-url.txt"
-          trap 'rm -f "$auth_file"' EXIT
-          printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
-          chmod 600 "$auth_file"
-          sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Clean subscriber install and smoke test
-        env:
-          DEV_HUB_ALIAS: devhub
-          RHC_SKIP_DEMO_DATA: "1"
-        run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --skip-upgrade
-      - name: Upload clean-install browser evidence
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: subscriber-clean-install-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}
-          path: |
-            playwright-report/
-            test-results/browser/
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload reconciled subscriber Apex inventory
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
-          path: test-results/apex/
-          if-no-files-found: error
-          retention-days: 90
-
-  subscriber-upgrade:
-    name: subscriber-upgrade (${{ matrix.security_mode }})
-    if: inputs.validation_stage != 'clean-install'
-    needs: require-dev-hub-secret
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      max-parallel: 1
-      matrix:
-        include:
-          - security_mode: LWS
-            alias: rhc-ci-upgrade-lws
-            artifact_suffix: lws
-          - security_mode: Locker
-            alias: rhc-ci-upgrade-locker
             artifact_suffix: locker
     steps:
       - uses: actions/checkout@v5
@@ -187,17 +102,20 @@ jobs:
         id: rhc-package
         shell: bash
         env:
-          VALIDATION_STAGE: ${{ inputs.validation_stage }}
           CANDIDATE_PACKAGE_ID: ${{ inputs.package_version_id }}
         run: |
           package_id="$CANDIDATE_PACKAGE_ID"
-          upgrade_from="$(node scripts/release/resolve_upgrade_base.mjs "$VALIDATION_STAGE")"
+          upgrade_from="$(node -e 'const fs=require("fs"); const m=JSON.parse(fs.readFileSync("config/release-runtime-matrix.json")); const b=m.upgradeBases.find((entry)=>entry.version===m.upgradeFromVersion); if(!b) process.exit(1); process.stdout.write(b.subscriberPackageVersionId)')"
+          release_alias="$(node -e 'const fs=require("fs"); const v=JSON.parse(fs.readFileSync("config/release-runtime-matrix.json")).candidateVersion.split(".").slice(0,3).join("-"); process.stdout.write(v)')"
           if [[ ! "$package_id" =~ ^04t[[:alnum:]]{12}([[:alnum:]]{3})?$ ]]; then
             echo "::error::Candidate package version is not a 15- or 18-character 04t ID."
             exit 1
           fi
-          printf 'id=%s\n' "$package_id" >> "$GITHUB_OUTPUT"
-          printf 'upgrade_from=%s\n' "$upgrade_from" >> "$GITHUB_OUTPUT"
+          {
+            printf 'id=%s\n' "$package_id"
+            printf 'upgrade_from=%s\n' "$upgrade_from"
+            printf 'release_alias=%s\n' "$release_alias"
+          } >> "$GITHUB_OUTPUT"
       - name: Authenticate Dev Hub
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
@@ -207,15 +125,15 @@ jobs:
           printf '%s' "$SFDX_AUTH_URL" > "$auth_file"
           chmod 600 "$auth_file"
           sf org login sfdx-url --sfdx-url-file "$auth_file" --alias devhub --set-default-dev-hub
-      - name: Exact subscriber upgrade gate
+      - name: Clean install, reset, and exact upgrade in the retained release org
         env:
           DEV_HUB_ALIAS: devhub
-        run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --upgrade-from "${{ steps.rhc-package.outputs.upgrade_from }}" --alias "${{ matrix.alias }}" --security-mode "${{ matrix.security_mode }}" --upgrade-only
-      - name: Upload upgrade preservation and browser evidence
+        run: npm run package:verify -- --package "${{ steps.rhc-package.outputs.id }}" --upgrade-from "${{ steps.rhc-package.outputs.upgrade_from }}" --alias "rhc-${{ steps.rhc-package.outputs.release_alias }}-${{ matrix.artifact_suffix }}" --security-mode "${{ matrix.security_mode }}" --release-pair --keep-org
+      - name: Upload clean-install and upgrade browser evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: subscriber-upgrade-evidence-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          name: subscriber-release-pair-browser-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}
           path: |
             playwright-report/
             test-results/browser/
@@ -226,7 +144,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: subscriber-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          name: subscriber-release-pair-apex-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}
           path: test-results/apex/
           if-no-files-found: error
           retention-days: 90
@@ -235,7 +153,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: subscriber-preservation-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}-${{ inputs.validation_stage }}
+          name: subscriber-release-pair-preservation-${{ matrix.artifact_suffix }}-${{ inputs.package_version_id }}
           path: packages/record-health-check/.package-evidence/*-upgrade-preservation.json
           # This exact test-evidence path is hidden; do not widen the upload scope.
           include-hidden-files: true

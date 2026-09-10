@@ -124,6 +124,8 @@ name in Check metadata. See the [Apex prompt](./prompt-apex.md) and
 - [ ] The Check uses the simplest Evaluation Type that meets the requirement, and
   **Evaluation Type** is set.
 - [ ] Every picklist value in the draft is the stored value, not the Setup label.
+- [ ] **Formula Result Type** is explicitly `AUTO` unless a verified formula needs another type;
+      no proposed value is the literal text `N/A`.
 - [ ] The Check Set and Check names are administrator-created names unless the exact installed
   package metadata is intentionally reused.
 - [ ] No one added or removed the `rhc__` namespace prefix manually.
@@ -147,6 +149,7 @@ name in Check metadata. See the [Apex prompt](./prompt-apex.md) and
 | It assumes zero query rows should pass or fail | Ask the business owner; then configure **If Query Finds No Records** where the Evaluation Type uses it. |
 | It omits **Evaluation Type** | Every Check needs `EvaluationType__c`. There is no default. |
 | It stores a Setup label instead of the stored value | Enter the stored value: **Skip** is `SKIP`, and **When a count query matches** is `WHEN_COUNT_QUERY_MATCHES`. Confirm each one in [Check fields](../../reference/custom-metadata/check-fields.md). |
+| It proposes `N/A` for Formula Result Type or another metadata field | Use the field's deployable stored value, or omit an unused field from metadata. Use `AUTO` for Formula Result Type unless a verified formula requires another type. |
 | It recommends Record Health Check to prevent a save | Use a Validation Rule, Flow custom error, or Apex trigger. |
 | It recommends an Apex example class that is not installed | Create, test, and deploy the class, or choose a metadata-only Evaluation Type. |
 | It says a hidden related record is clean data | Correct the wording: the Check evaluates only records visible to the running user. |

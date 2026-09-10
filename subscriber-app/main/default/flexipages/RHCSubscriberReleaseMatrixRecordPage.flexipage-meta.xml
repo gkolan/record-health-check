@@ -169,8 +169,8 @@
                     <name>uiBehavior</name>
                     <value>none</value>
                 </fieldInstanceProperties>
-                <fieldItem>Record.BillingCity</fieldItem>
-                <identifier>RecordBillingCityColumn2Field1</identifier>
+                <fieldItem>Record.Website</fieldItem>
+                <identifier>RecordWebsiteColumn2Field1</identifier>
             </fieldInstance>
         </itemInstances>
 

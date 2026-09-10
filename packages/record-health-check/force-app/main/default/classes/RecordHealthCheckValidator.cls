@@ -71,6 +71,10 @@ public with sharing class RecordHealthCheckValidator {
     // Apex
     APEX_CLASS_MISSING,
     APEX_CLASS_INVALID,
+    APEX_CLASS_NOT_FOUND,
+    APEX_CLASS_LOAD_FAILED,
+    APEX_PLUGIN_INTERFACE_INVALID,
+    APEX_PLUGIN_CONSTRUCTOR_FAILED,
     APEX_PARAMS_INVALID,
     // Cross-type
     MAX_ROWS_INVALID,
@@ -85,6 +89,8 @@ public with sharing class RecordHealthCheckValidator {
   public class Finding {
     public FindingCode code;
     public String offendingValue;
+    public String phase;
+    public Exception originalException;
     public Finding(FindingCode code, String offendingValue) {
       this.code = code;
       this.offendingValue = offendingValue;
@@ -177,20 +183,7 @@ public with sharing class RecordHealthCheckValidator {
   }
 
   public static List<Finding> apexFindings(Record_Health_Check__mdt check) {
-    List<Finding> out = new List<Finding>();
-    if (String.isBlank(check.ApexClass__c)) {
-      out.add(f(FindingCode.APEX_CLASS_MISSING));
-    } else if (!RecordHealthCheckConfigValidator.isValidApexPlugin(check)) {
-      out.add(f(FindingCode.APEX_CLASS_INVALID));
-    }
-    if (
-      !RecordHealthCheckConfigValidator.isJsonObject(
-        check.ApexParametersJson__c
-      )
-    ) {
-      out.add(f(FindingCode.APEX_PARAMS_INVALID));
-    }
-    return out;
+    return RecordHealthCheckApexConfigSupport.findings(check);
   }
 
   /**

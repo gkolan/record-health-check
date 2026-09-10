@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Partner Namespace Plugin</label>
+    <protected>false</protected>
+    <values><field>rhc__Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Partner_Namespace_Compatibility</value></values>
+    <values><field>rhc__CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Partner plugin resolves</value></values>
+    <values><field>rhc__CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Calls a minimal plugin installed under a separately registered namespace.</value></values>
+    <values><field>rhc__EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >APEX</value></values>
+    <values><field>rhc__ApexClass__c</field><value
+      xsi:type="xsd:string"
+    >REPLACE_WITH_REGISTERED_PARTNER_NAMESPACE.RHCPartnerCompatibilityPlugin</value></values>
+    <values><field>rhc__FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>rhc__FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >The partner namespace plugin did not return its marker pass.</value></values>
+    <values><field>rhc__UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The partner namespace plugin could not be loaded or evaluated.</value></values>
+    <values><field>rhc__ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>rhc__EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >10</value></values>
+    <values><field>rhc__IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+</CustomMetadata>

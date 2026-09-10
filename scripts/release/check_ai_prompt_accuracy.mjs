@@ -18,16 +18,13 @@ import { fieldLength, picklistValues } from "../lib/fixture-value-coverage.mjs";
 import {
   CROSS_CUTTING,
   EVALUATION_TYPES,
-  LOWEST_COST_MODEL,
   coverageGaps,
   draftFields,
   draftNarrativeProblems,
   inventedNameProblems,
   draftProblems,
-  promptBlock,
-  promptFingerprint
+  promptBlock
 } from "../lib/ai-draft-validation.mjs";
-import { freshnessProblems } from "../lib/ai-draft-freshness.mjs";
 import {
   capabilityGaps,
   fieldNameProblems,
@@ -118,47 +115,63 @@ const problems = [
   ...capabilityGaps(pages, [...declared], WITHHELD)
 ];
 
-// Recorded answers from a low-cost model, one per Evaluation Type. They are the
-// evidence that the prompts work for the models an administrator is most likely
-// to have, and re-validating them here means a later metadata change that would
-// have invalidated that evidence fails the gate instead of ageing quietly.
+// A release must never regain a provider-specific credential or live-model
+// requirement. Keep this policy on the user-facing and executable release
+// surfaces; the gate itself remains an offline metadata-and-fixture validator.
+const providerCredential = /\b[A-Z][A-Z0-9]*_API_KEY\b/;
+const releaseSurfaces = [
+  "package.json",
+  ".github/RELEASING.md",
+  ".github/workflows/salesforce-validate.yml",
+  "docs/quality-gates/manual-release-owner-checklist.md",
+  "tests/ai-drafts/README.md"
+];
+for (const file of releaseSurfaces) {
+  const source = fs.readFileSync(path.join(paths.repoRoot, file), "utf8");
+  if (providerCredential.test(source)) {
+    problems.push(
+      `${file} must not require a provider API key for AI prompt validation`
+    );
+  }
+}
+
+// Provider-neutral reference answers, one per Evaluation Type. They keep the
+// prompt's required output contract executable without making a network call or
+// requiring a vendor credential. Reviewers may try any assistant separately;
+// release correctness depends only on these deterministic fixtures.
 const draftsDirectory = path.join(paths.repoRoot, "tests/ai-drafts");
 const schema = { declared, picklists, lengths };
 const drafts = fs
   .readdirSync(draftsDirectory)
-  .filter((fileName) => fileName.endsWith(".md") && fileName !== "README.md")
+  .filter(
+    (fileName) => fileName.startsWith("reference-") && fileName.endsWith(".md")
+  )
   .sort();
 
-// Evidence is only evidence of the prompt it was recorded from. Fingerprinting
-// each prompt block against `recorded.json` is what makes "the lowest-cost
-// model can do this" a claim about the code being released rather than about
-// whatever the prompts said when someone last ran the model.
-const fingerprints = new Map(
-  Object.keys(EVALUATION_TYPES).map((type) => {
-    const page = pages.find((candidate) =>
-      candidate.file.endsWith(`prompt-${type}.md`)
+const expectedDrafts = Object.keys(EVALUATION_TYPES).map(
+  (type) => `reference-${type}.md`
+);
+for (const fileName of expectedDrafts) {
+  if (!drafts.includes(fileName)) {
+    problems.push(
+      `Missing provider-neutral AI fixture tests/ai-drafts/${fileName}`
     );
-    return [type, promptFingerprint(promptBlock(page?.text ?? "") ?? "")];
-  })
-);
-const manifestFile = path.join(draftsDirectory, "recorded.json");
-problems.push(
-  ...freshnessProblems(
-    fs.existsSync(manifestFile)
-      ? JSON.parse(fs.readFileSync(manifestFile, "utf8"))
-      : null,
-    fingerprints,
-    LOWEST_COST_MODEL,
-    (file) => fs.existsSync(path.join(draftsDirectory, file))
-  )
-);
+  }
+}
+for (const fileName of drafts) {
+  if (!expectedDrafts.includes(fileName)) {
+    problems.push(
+      `Unexpected provider-neutral AI fixture tests/ai-drafts/${fileName}`
+    );
+  }
+}
 
 const types = new Set();
 for (const fileName of drafts) {
   const draft = fs.readFileSync(path.join(draftsDirectory, fileName), "utf8");
   const normalizedDraft = draft.replaceAll("\\_", "_");
   const fields = draftFields(draft);
-  // `<model>-<type>.md`, and the longest matching slug wins so that
+  // `reference-<type>.md`, and the longest matching slug wins so that
   // "compare-two-queries" is not read as "queries".
   const slug = Object.keys(EVALUATION_TYPES)
     .filter((type) => fileName.endsWith(`-${type}.md`))
@@ -212,7 +225,9 @@ for (const fileName of drafts) {
 }
 for (const type of Object.values(EVALUATION_TYPES)) {
   if (!types.has(type)) {
-    problems.push(`No recorded model draft covers EvaluationType__c ${type}`);
+    problems.push(
+      `No provider-neutral reference draft covers EvaluationType__c ${type}`
+    );
   }
 }
 
@@ -225,8 +240,7 @@ if (problems.length > 0) {
 }
 
 console.log(
-  `Verified ${pages.length} AI drafting pages and ${drafts.length} recorded ` +
-    `${LOWEST_COST_MODEL} drafts against ${declared.size} declared fields ` +
-    `and ${picklists.size} picklists, each recorded from the prompt now in ` +
-    `the working tree.`
+  `Verified ${pages.length} AI drafting pages and ${drafts.length} provider-neutral ` +
+    `reference drafts against ${declared.size} declared fields and ` +
+    `${picklists.size} picklists without a live model or provider credential.`
 );
