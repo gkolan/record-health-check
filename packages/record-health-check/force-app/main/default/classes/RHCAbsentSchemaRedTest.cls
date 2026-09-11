@@ -22,7 +22,7 @@ private class RHCAbsentSchemaRedTest {
   @IsTest
   static void shouldClassifyAbsentRelationshipSegment() {
     assertUnresolvedReason(
-      formulaCheck(ABSENT_RELATIONSHIP + ' = \'value\''),
+      formulaCheck(ABSENT_RELATIONSHIP + ' = "value"'),
       ABSENT_RELATIONSHIP,
       'RELATIONSHIP_NOT_RESOLVED'
     );

@@ -43,6 +43,22 @@ public with sharing class RecordHealthCheckDiagnosticGuidance {
     );
   }
 
+  public static void pluginUnable(
+    RecordHealthCheckDiagnosticIncident incident
+  ) {
+    setUnable(incident, 'APEX_RESULT', 'ADMINISTRATOR');
+    incident.summary = 'The custom Apex Check could not reach a verdict.';
+    incident.likelyCause = 'The plugin reported an ordinary unable-to-evaluate outcome.';
+    addAction(
+      incident,
+      'REVIEW_PLUGIN_OUTCOME',
+      'Review the plugin outcome',
+      'Review the stable reason code and the data or access prerequisite it represents.',
+      incident.component,
+      'Correct the prerequisite and rerun the same Check as the same principal.'
+    );
+  }
+
   public static void pluginConfiguration(
     RecordHealthCheckDiagnosticIncident incident,
     String reason

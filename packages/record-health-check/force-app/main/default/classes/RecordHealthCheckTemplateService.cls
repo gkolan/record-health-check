@@ -129,6 +129,63 @@ public class RecordHealthCheckTemplateService {
     return resolve(template, context, true);
   }
 
+  /** Resolves one inline-link href under the strict component policy. */
+  public static String resolveInlineUrl(
+    String template,
+    RecordHealthCheckMergeContext context
+  ) {
+    if (String.isBlank(template)) {
+      return null;
+    }
+    assertValid(template, SURFACE_URL);
+    RecordHealthCheckTokenIssue authoredIssue = RecordHealthCheckInlineUrlPolicy.validateAuthored(
+      template
+    );
+    if (authoredIssue != null) {
+      return null;
+    }
+    String authored = template.trim();
+    List<RecordHealthCheckToken> tokens = parse(authored);
+    if (tokens.size() == 1 && tokens[0].expression == authored) {
+      Object wholeRaw = RecordHealthCheckTemplateValueResolver.valueFor(
+        tokens[0],
+        context
+      );
+      String wholeValue = wholeRaw == null ? null : formatValue(wholeRaw);
+      return RecordHealthCheckInlineUrlPolicy.sanitizeComplete(wholeValue);
+    }
+    String resolved = '';
+    Integer cursor = 0;
+    Integer queryStart = authored.indexOf('?');
+    Integer fragmentStart = authored.indexOf('#');
+    for (RecordHealthCheckToken token : tokens) {
+      Object raw = RecordHealthCheckTemplateValueResolver.valueFor(
+        token,
+        context
+      );
+      String value = raw == null ? '' : formatValue(raw);
+      if (String.isBlank(value)) {
+        value = token.fallbackValue;
+      }
+      if (String.isBlank(value)) {
+        return null;
+      }
+      String encoded = EncodingUtil.urlEncode(value, 'UTF-8');
+      Boolean queryValue =
+        queryStart >= 0 &&
+        token.startIndex > queryStart &&
+        (fragmentStart < 0 ||
+        token.startIndex < fragmentStart);
+      if (!queryValue) {
+        encoded = encoded.replace('+', '%20');
+      }
+      resolved += authored.substring(cursor, token.startIndex) + encoded;
+      cursor = token.endIndex;
+    }
+    resolved += authored.substring(cursor);
+    return RecordHealthCheckInlineUrlPolicy.sanitizeComplete(resolved);
+  }
+
   private static String resolve(
     String template,
     RecordHealthCheckMergeContext context,
@@ -138,9 +195,19 @@ public class RecordHealthCheckTemplateService {
       return template;
     }
     assertValid(template, urlEncode ? SURFACE_URL : SURFACE_DISPLAY);
+    String authoredTemplate = template;
+    if (!urlEncode) {
+      RecordHealthCheckInlineLinkParser.Result linkResult = RecordHealthCheckInlineLinkParser.scan(
+        template
+      );
+      authoredTemplate = RecordHealthCheckInlineLinkParser.flattenToLabels(
+        template,
+        linkResult.links
+      );
+    }
     String resolved = '';
     Integer lastEnd = 0;
-    for (RecordHealthCheckToken token : parse(template)) {
+    for (RecordHealthCheckToken token : parse(authoredTemplate)) {
       Object raw = RecordHealthCheckTemplateValueResolver.valueFor(
         token,
         context
@@ -166,10 +233,10 @@ public class RecordHealthCheckTemplateService {
       if (urlEncode && String.isNotBlank(value)) {
         value = EncodingUtil.urlEncode(value, 'UTF-8');
       }
-      resolved += template.substring(lastEnd, token.startIndex) + value;
+      resolved += authoredTemplate.substring(lastEnd, token.startIndex) + value;
       lastEnd = token.endIndex;
     }
-    resolved += template.substring(lastEnd);
+    resolved += authoredTemplate.substring(lastEnd);
     if (resolved.length() > MAX_RESOLVED_LENGTH) {
       TemplateException ex = new TemplateException(
         'The resolved template exceeds 20,000 characters.'

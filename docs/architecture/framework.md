@@ -376,6 +376,8 @@ results, Platform Events, custom Apex Checks, and Action URLs, see
 | Lightning event input | `completeRun` accepts only a button-initiated run, the current record, and one result for each configured Check; it calculates counts from the accepted results |
 | Error messages | Public responses return a safe message and a Reason Code; exception text stays in authorized diagnostics |
 
+Seven Permission Sets ship with the package.
+
 The installed **Card User**, **User**, and **Admin** Permission Sets include the **Record Health
 Check Run** Custom Permission and the Apex access appropriate to their surfaces. **Record Health Check Admin**
 (`rhc__Record_Health_Check_Admin`) also authorizes diagnostics, setup
@@ -384,6 +386,9 @@ access for the Custom Metadata, and Apex class access for the package metadata v
 (`rhc__Record_Health_Check_Diagnostics_Viewer`) authorizes only diagnostics and must be combined
 with an appropriate runner Permission Set. Diagnostics is authorized by the assignment itself, not
 by a Custom Permission, so a cloned or org-owned Permission Set cannot grant it.
+
+**Record Health Check Readiness Auditor** grants read-only access to private readiness receipts;
+it does not grant permission to run Checks, preview drafts, or activate metadata.
 
 ## 10. Limits
 

@@ -2,6 +2,10 @@
  * Stable response envelope shared by Check and Check Set selections.
  */
 global class RecordHealthCheckResponse {
+  /** Server-only ordered sources retained only when diagnostic 2.0 was requested. */
+  public transient List<RecordHealthCheckResultItem> diagnosticItems;
+  /** Server-only authorization outcome for the requested diagnostic projection. */
+  public transient Boolean diagnosticProjectionAuthorized = false;
   @AuraEnabled
   /** Correlation identifier for the evaluation. */
   global String runId;
@@ -17,4 +21,11 @@ global class RecordHealthCheckResponse {
   @AuraEnabled
   /** Aggregate terminal-status counts. */
   global RecordHealthCheckRunSummary summary = new RecordHealthCheckRunSummary();
+
+  /** Returns authorized diagnostic contract 2.0, or null when it was not requested or authorized. */
+  global RecordHealthCheckDiagnosticResponse diagnostics() {
+    return diagnosticProjectionAuthorized && diagnosticItems != null
+      ? RecordHealthCheckDiagnosticProjection.project(diagnosticItems)
+      : null;
+  }
 }

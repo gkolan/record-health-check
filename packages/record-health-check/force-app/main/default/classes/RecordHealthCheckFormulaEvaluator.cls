@@ -417,6 +417,26 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
     );
   }
 
+  /** Resolves a card-only authored display field into validated nodes. */
+  public List<RecordHealthCheckDisplayNode> resolveDisplayNodes(
+    String template,
+    String surface,
+    SObject record,
+    Record_Health_Check__mdt check,
+    RecordHealthCheckInternalResult result
+  ) {
+    return RecordHealthCheckDisplayComposer.compose(
+      template,
+      surface,
+      new RecordHealthCheckMergeContext()
+        .withRecord(record)
+        .withCheck(check)
+        .withResult(result, true)
+        .withQueryRows(result?.querySourceRows, result?.queryComparisonRows)
+        .withRun(runContext)
+    );
+  }
+
   /**
    * Like resolveMergeFields, but URL-encodes each substituted value so a token
    * such as {!record.Name} (which may contain spaces or reserved characters) is safe to

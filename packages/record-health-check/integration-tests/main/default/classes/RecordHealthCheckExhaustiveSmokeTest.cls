@@ -150,28 +150,22 @@ private class RecordHealthCheckExhaustiveSmokeTest {
   }
 
   @IsTest
-  static void enqueueEntryPointsReturnTraceableJobs() {
+  static void enqueueSetEntryPointReturnsTraceableJobs() {
     Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
-      'Exhaustive enqueue'
+      'Exhaustive set enqueue'
     );
     RHCIntegrationTestDataFactory.contact(
       accountRecord.Id,
-      'Exhaustive enqueue'
+      'Exhaustive set enqueue'
     );
     RHCIntegrationTestDataFactory.opportunity(
       accountRecord.Id,
-      'Exhaustive enqueue'
+      'Exhaustive set enqueue'
     );
-    Integer checkCount = [SELECT COUNT() FROM Record_Health_Check__mdt];
-    Integer finalCheckOffset = checkCount > 0 ? checkCount - 1 : 0;
 
     Test.startTest();
     List<Id> setJobs = RecordHealthCheckExhaustiveSmoke.startSets(
       accountRecord.Id
-    );
-    List<Id> checkJobs = RecordHealthCheckExhaustiveSmoke.startChecks(
-      accountRecord.Id,
-      finalCheckOffset
     );
     Test.stopTest();
 
@@ -179,13 +173,38 @@ private class RecordHealthCheckExhaustiveSmokeTest {
       setJobs.isEmpty(),
       'Configured Check Sets should enqueue traceable jobs.'
     );
-    Assert.isFalse(
-      checkJobs.isEmpty(),
-      'The final configured Check should enqueue a traceable job.'
-    );
     Assert.isNotNull(
       setJobs[0],
       'A Set job should expose its AsyncApexJob identity.'
+    );
+  }
+
+  @IsTest
+  static void enqueueCheckEntryPointReturnsTraceableJobs() {
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
+      'Exhaustive check enqueue'
+    );
+    RHCIntegrationTestDataFactory.contact(
+      accountRecord.Id,
+      'Exhaustive check enqueue'
+    );
+    RHCIntegrationTestDataFactory.opportunity(
+      accountRecord.Id,
+      'Exhaustive check enqueue'
+    );
+    Integer checkCount = [SELECT COUNT() FROM Record_Health_Check__mdt];
+    Integer finalCheckOffset = checkCount > 0 ? checkCount - 1 : 0;
+
+    Test.startTest();
+    List<Id> checkJobs = RecordHealthCheckExhaustiveSmoke.startChecks(
+      accountRecord.Id,
+      finalCheckOffset
+    );
+    Test.stopTest();
+
+    Assert.isFalse(
+      checkJobs.isEmpty(),
+      'The final configured Check should enqueue a traceable job.'
     );
     Assert.isNotNull(
       checkJobs[0],

@@ -9,6 +9,13 @@ const DEFAULT = path.join(
   "default"
 );
 const PERMISSION_SETS = path.join(DEFAULT, "permissionsets");
+const READINESS_IMMUTABILITY_RULE = path.join(
+  DEFAULT,
+  "objects",
+  "Record_Health_Check_Readiness__c",
+  "validationRules",
+  "Prevent_Receipt_Modification.validationRule-meta.xml"
+);
 const MAX_SALESFORCE_DESCRIPTION = 255;
 const PROJECT_DESCRIPTION_BUDGET = 200;
 
@@ -20,6 +27,7 @@ const expected = {
       "RecordHealthCheckBatch",
       "RecordHealthCheckController",
       "RecordHealthCheckMetadataValidator",
+      "RecordHealthCheckPreviewController",
       "RecordHealthCheckValidateMetadataAction",
       "RecordHealthCheckRunCheckAgentAction",
       "RecordHealthCheckRunCheckFlowAction",
@@ -31,8 +39,34 @@ const expected = {
     ],
     objects: [
       "Record_Health_Check_Result__e",
-      "Record_Health_Check_Set_Run__e"
+      "Record_Health_Check_Set_Run__e",
+      "Record_Health_Check_Readiness__c"
     ],
+    fields: [
+      "Actor__c",
+      "CapabilitiesJson__c",
+      "CheckIdentity__c",
+      "ContractVersion__c",
+      "ErrorCount__c",
+      "ExpiresAt__c",
+      "FailCount__c",
+      "Fingerprint__c",
+      "Mode__c",
+      "OrgIdentity__c",
+      "PassCount__c",
+      "ScopeCount__c",
+      "ScopeDigest__c",
+      "SetIdentity__c",
+      "SkippedCount__c",
+      "UnableCount__c",
+      "VerifiedAt__c"
+    ].map((field) => `Record_Health_Check_Readiness__c.${field}`),
+    objectPolicies: {
+      Record_Health_Check_Readiness__c: {
+        allowDelete: "true",
+        allowEdit: "true"
+      }
+    },
     customPermissions: ["Record_Health_Check_Run"],
     tabs: [],
     customMetadataTypes: [
@@ -98,6 +132,35 @@ const expected = {
     customPermissions: [],
     customMetadataTypes: [],
     tabs: []
+  },
+  Record_Health_Check_Readiness_Auditor: {
+    classes: [],
+    objects: ["Record_Health_Check_Readiness__c"],
+    fields: [
+      "Actor__c",
+      "CapabilitiesJson__c",
+      "CheckIdentity__c",
+      "ContractVersion__c",
+      "ErrorCount__c",
+      "ExpiresAt__c",
+      "FailCount__c",
+      "Fingerprint__c",
+      "Mode__c",
+      "OrgIdentity__c",
+      "PassCount__c",
+      "ScopeCount__c",
+      "ScopeDigest__c",
+      "SetIdentity__c",
+      "SkippedCount__c",
+      "UnableCount__c",
+      "VerifiedAt__c"
+    ].map((field) => `Record_Health_Check_Readiness__c.${field}`),
+    objectPolicies: {
+      Record_Health_Check_Readiness__c: { allowCreate: "false" }
+    },
+    customPermissions: [],
+    customMetadataTypes: [],
+    tabs: []
   }
 };
 
@@ -136,6 +199,7 @@ const allowedTopLevelElements = new Set([
   "label",
   "description",
   "hasActivationRequired",
+  "fieldPermissions",
   "classAccesses",
   "customPermissions",
   "customMetadataTypeAccesses",
@@ -178,7 +242,7 @@ function validateEnabledBlocks(name, xml, blockName, identityTag) {
   }
 }
 
-function validateObjectBlocks(name, xml) {
+function validateObjectBlocks(name, xml, contract) {
   const expectedBooleans = {
     allowCreate: "true",
     allowDelete: "false",
@@ -194,7 +258,11 @@ function validateObjectBlocks(name, xml) {
   ]);
   for (const block of blocks(xml, "objectPermissions")) {
     const objectName = childValue(block, "object") ?? "unknown";
-    for (const [tag, expectedValue] of Object.entries(expectedBooleans)) {
+    const policy = {
+      ...expectedBooleans,
+      ...(contract.objectPolicies?.[objectName] || {})
+    };
+    for (const [tag, expectedValue] of Object.entries(policy)) {
       if (childValue(block, tag) !== expectedValue) {
         errors.push(
           `${name} object ${objectName} must set ${tag}=${expectedValue}.`
@@ -214,6 +282,40 @@ function validateObjectBlocks(name, xml) {
         );
       }
     }
+  }
+}
+
+function validateFieldBlocks(name, xml, contract) {
+  for (const block of blocks(xml, "fieldPermissions")) {
+    const field = childValue(block, "field") ?? "unknown";
+    if (childValue(block, "readable") !== "true") {
+      errors.push(`${name} field ${field} must be readable.`);
+    }
+    const editable =
+      name === "Record_Health_Check_Readiness_Auditor" ? "false" : "true";
+    if (childValue(block, "editable") !== editable) {
+      errors.push(`${name} field ${field} must set editable=${editable}.`);
+    }
+  }
+  const actualFields = blockValues(xml, "fieldPermissions", "field");
+  if (!same(actualFields, contract.fields || [])) {
+    errors.push(`${name} field access is out of date.`);
+  }
+}
+
+if (!fs.existsSync(READINESS_IMMUTABILITY_RULE)) {
+  errors.push(
+    "Readiness receipts require the Prevent_Receipt_Modification validation rule."
+  );
+} else {
+  const rule = fs.readFileSync(READINESS_IMMUTABILITY_RULE, "utf8");
+  if (
+    childValue(rule, "active") !== "true" ||
+    childValue(rule, "errorConditionFormula") !== "NOT(ISNEW())"
+  ) {
+    errors.push(
+      "Prevent_Receipt_Modification must be active and reject every record update."
+    );
   }
 }
 
@@ -248,7 +350,8 @@ for (const [name, contract] of Object.entries(expected)) {
   validateEnabledBlocks(name, xml, "classAccesses", "apexClass");
   validateEnabledBlocks(name, xml, "customPermissions", "name");
   validateEnabledBlocks(name, xml, "customMetadataTypeAccesses", "name");
-  validateObjectBlocks(name, xml);
+  validateObjectBlocks(name, xml, contract);
+  validateFieldBlocks(name, xml, contract);
 
   const actualClasses = values(xml, "apexClass");
   const actualObjects = values(xml, "object");

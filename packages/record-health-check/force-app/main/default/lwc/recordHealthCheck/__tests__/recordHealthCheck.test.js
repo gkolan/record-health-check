@@ -9,7 +9,9 @@ import {
   annotateCheck,
   buildSummaryGroups,
   buildSummaryStats,
+  normalizeDisplayContent,
   normalizeComparisonDisplayMode,
+  safeInlineUrl,
   splitMessageLines,
   safeActionUrl
 } from "../healthCheckPresentation";
@@ -232,6 +234,60 @@ const makeDefinitions = (overrides = {}) => {
   }));
   return definition;
 };
+
+async function renderCompletedManualCard(result) {
+  getCheckDefinitions.mockResolvedValue(
+    makeDefinitions({
+      totalAvailableCheckCount: 1,
+      checks: [
+        {
+          developerName: "Check_A",
+          qualifiedApiName: "Check_A",
+          label: "Check A",
+          description: null,
+          priority: 1,
+          dependsOnCheckDeveloperName: null
+        }
+      ]
+    })
+  );
+  evaluateCheck.mockResolvedValue(result);
+  const element = createComponent();
+  await appendAndLoad(element);
+  await clickRun(element);
+  return element;
+}
+
+function makeStructuredEvidenceResult(overrides = {}) {
+  return {
+    status: "FAIL",
+    severity: "WARNING",
+    message: "Approval routing needs attention.",
+    actualValue: "11 inactive approvers",
+    expectedValue: "No inactive approvers",
+    evidence: {
+      version: "1.0",
+      runId: "run/evidence:1",
+      checkIdentity: "Check_A",
+      recordId: "001000000000001AAA",
+      summary: "11 inactive approvers across 2 approval rules",
+      columns: [
+        { key: "stepNumber", label: "Step", dataType: "NUMBER" },
+        { key: "ruleName", label: "Rule", dataType: "STRING" }
+      ],
+      rows: Array.from({ length: 11 }, (_, index) => [
+        index < 6 ? 2 : 10,
+        index < 6 ? "Manager Approval" : "Executive Approval"
+      ]),
+      returnedItemCount: 11,
+      totalItemCount: 11,
+      completeness: "COMPLETE",
+      omittedItemCount: 0,
+      groupKeys: ["stepNumber", "ruleName"],
+      ...overrides
+    }
+  };
+}
 
 function createComponent() {
   const el = createElement("c-record-health-check", { is: RecordHealthCheck });
@@ -4034,6 +4090,172 @@ describe("annotateCheck — comparison disclosure matrix", () => {
   });
 });
 
+describe("annotateCheck — structured evidence", () => {
+  const check = {
+    qualifiedApiName: "RHC_SP_Evidence_Items",
+    uiState: "RESOLVED",
+    label: "Website uses HTTPS",
+    description: null,
+    result: {
+      status: "FAIL",
+      severity: "WARNING",
+      evidence: {
+        version: "1.0",
+        runId: "run-evidence-1",
+        checkIdentity: "RHC_SP_Evidence_Items",
+        recordId: "001000000000001AAA",
+        summary: "11 inactive approvers across 2 approval rules",
+        columns: [
+          { key: "stepNumber", label: "Step", dataType: "NUMBER" },
+          { key: "ruleName", label: "Rule", dataType: "STRING" }
+        ],
+        rows: Array.from({ length: 11 }, (_, index) => [
+          index < 6 ? 2 : 10,
+          index < 6 ? "Manager Approval" : "Executive Approval"
+        ]),
+        returnedItemCount: 11,
+        totalItemCount: 11,
+        completeness: "COMPLETE",
+        omittedItemCount: 0,
+        groupKeys: ["stepNumber", "ruleName"]
+      }
+    }
+  };
+
+  it("shows ten rows first, groups numeric steps, and labels complete downloads", () => {
+    const collapsed = annotateCheck(check, false, "OnDemand", false);
+    expect(collapsed.showEvidence).toBe(true);
+    expect(collapsed.evidenceExpanded).toBe(false);
+    expect(collapsed.evidenceDownloadLabel).toBe("Download full details");
+
+    const expanded = annotateCheck(
+      { ...check, evidenceExpanded: true },
+      false,
+      "OnDemand",
+      false
+    );
+    expect(expanded.evidenceVisibleRowCount).toBe(10);
+    expect(expanded.showAllEvidence).toBe(true);
+    expect(expanded.evidenceGroups.map((group) => group.step)).toEqual([2, 10]);
+  });
+
+  it("falls back locally for unknown evidence versions", () => {
+    const annotated = annotateCheck(
+      {
+        ...check,
+        result: {
+          ...check.result,
+          evidence: { ...check.result.evidence, version: "9.0" }
+        }
+      },
+      false,
+      "OnDemand",
+      false
+    );
+    expect(annotated.showEvidence).toBe(true);
+    expect(annotated.evidenceUnavailable).toBe(true);
+    expect(annotated.evidenceSummary).toBe("Details unavailable.");
+  });
+});
+
+describe("c-record-health-check — structured evidence interactions", () => {
+  it("expands ten rows, shows all rows, and restores focus on collapse", async () => {
+    const element = await renderCompletedManualCard(
+      makeStructuredEvidenceResult()
+    );
+    let toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
+
+    toggle.click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelectorAll(".rhc-evidence tbody tr")
+    ).toHaveLength(10);
+
+    element.shadowRoot.querySelector(".rhc-evidence__show-all").click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelectorAll(".rhc-evidence tbody tr")
+    ).toHaveLength(11);
+
+    toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
+    toggle.click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector(".rhc-evidence__region")
+    ).toBeNull();
+    expect(element.shadowRoot.activeElement).toBe(
+      element.shadowRoot.querySelector("[data-evidence-toggle]")
+    );
+    document.body.removeChild(element);
+  });
+
+  it("downloads the exact complete envelope with a filesystem-safe name", async () => {
+    const originalCreateObjectUrl = window.URL.createObjectURL;
+    const originalRevokeObjectUrl = window.URL.revokeObjectURL;
+    window.URL.createObjectURL = jest.fn(() => "blob:rhc-evidence");
+    window.URL.revokeObjectURL = jest.fn();
+    const clickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+    const element = await renderCompletedManualCard(
+      makeStructuredEvidenceResult()
+    );
+
+    const download = [...element.shadowRoot.querySelectorAll("button")].find(
+      (button) => button.textContent.trim() === "Download full details"
+    );
+    download.click();
+    await flushPromises();
+
+    expect(window.URL.createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = window.URL.createObjectURL.mock.calls[0][0];
+    expect(blob.type).toBe("application/json;charset=utf-8");
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(
+      "blob:rhc-evidence"
+    );
+
+    clickSpy.mockRestore();
+    window.URL.createObjectURL = originalCreateObjectUrl;
+    window.URL.revokeObjectURL = originalRevokeObjectUrl;
+    document.body.removeChild(element);
+  });
+
+  it("labels incomplete evidence as partial and cleans retained URLs on disconnect", async () => {
+    const originalRevokeObjectUrl = window.URL.revokeObjectURL;
+    window.URL.revokeObjectURL = jest.fn();
+    const element = await renderCompletedManualCard(
+      makeStructuredEvidenceResult({
+        completeness: "TRUNCATED",
+        returnedItemCount: 11,
+        totalItemCount: 15,
+        omittedItemCount: 4
+      })
+    );
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-evidence").textContent
+    ).toContain("Download returned details");
+    const originalCreateObjectUrl = window.URL.createObjectURL;
+    window.URL.createObjectURL = jest.fn(() => "blob:retained-evidence");
+    const clickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+    const download = [...element.shadowRoot.querySelectorAll("button")].find(
+      (button) => button.textContent.trim() === "Download returned details"
+    );
+    download.click();
+    document.body.removeChild(element);
+    await flushPromises();
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(
+      "blob:retained-evidence"
+    );
+    clickSpy.mockRestore();
+    window.URL.createObjectURL = originalCreateObjectUrl;
+    window.URL.revokeObjectURL = originalRevokeObjectUrl;
+  });
+});
+
 describe("annotateCheck — guided remediation", () => {
   const resolved = (result) => ({
     uiState: "RESOLVED",
@@ -4799,6 +5021,186 @@ describe("safeActionUrl — client-side scheme guard (HI-3)", () => {
     // The instructions survive independently so the user isn't left stranded.
     expect(a.showFixInstructions).toBe(true);
     expect(a.showActionBlock).toBe(true);
+  });
+});
+
+describe("structured display content — inline URL contract", () => {
+  const fallback = {
+    message: "Plain message",
+    fix: "Plain fix",
+    found: "Plain found",
+    expected: "Plain expected"
+  };
+
+  it("accepts strict same-org and HTTPS destinations", () => {
+    expect(safeInlineUrl("/lightning/r/Account/001/view?x=a%20b")).toBe(
+      "/lightning/r/Account/001/view?x=a%20b"
+    );
+    expect(safeInlineUrl("https://example.com:443/a?q=1#part")).toBe(
+      "https://example.com:443/a?q=1#part"
+    );
+    expect(safeInlineUrl("https://intranet/path")).toBe(
+      "https://intranet/path"
+    );
+    expect(safeInlineUrl("https://127.0.0.1:443/path")).toBe(
+      "https://127.0.0.1:443/path"
+    );
+    expect(safeInlineUrl("https://xn--bcher-kva.example/path")).toBe(
+      "https://xn--bcher-kva.example/path"
+    );
+  });
+
+  it.each([
+    "//evil.example/path",
+    "http://example.com",
+    "HTTPS://example.com/path",
+    "https://localhost/path",
+    "https://user@example.com/path",
+    "https://example.com:444/path",
+    "https://example.com/%2e%2e/private",
+    "/a/../private",
+    "/a/%5cprivate",
+    "/a/%25payload",
+    "/a/%0d%0apayload",
+    "/a/☃"
+  ])("rejects unsafe destination %s", (url) => {
+    expect(safeInlineUrl(url)).toBeNull();
+  });
+
+  it("validates all fields and falls back only the malformed field", () => {
+    const normalized = normalizeDisplayContent(
+      {
+        version: 1,
+        message: [
+          { kind: "text", text: "Review " },
+          { kind: "link", text: "account", href: "/001" }
+        ],
+        fix: [
+          {
+            kind: "link",
+            text: "unsafe",
+            href: `${"javascript"}:alert(1)`
+          }
+        ],
+        found: [
+          { kind: "text", text: "Step 1" },
+          { kind: "break" },
+          { kind: "text", text: "Step 2" }
+        ],
+        expected: []
+      },
+      fallback
+    );
+
+    expect(normalized.message.map((node) => node.kind)).toEqual([
+      "text",
+      "link"
+    ]);
+    expect(normalized.fix).toEqual([
+      expect.objectContaining({ kind: "text", text: "Plain fix" })
+    ]);
+    expect(normalized.found.map((node) => node.kind)).toEqual([
+      "text",
+      "break",
+      "text"
+    ]);
+    expect(normalized.expected).toEqual([]);
+  });
+
+  it("fails closed at every payload and size boundary", () => {
+    expect(safeInlineUrl("https://example.com:999999/path")).toBeNull();
+
+    for (const message of [
+      [null],
+      [{ kind: "text", text: 7 }],
+      [{ kind: "text", text: "x".repeat(20001) }]
+    ]) {
+      expect(
+        normalizeDisplayContent({ version: 1, message }, fallback).message
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ text: "Plain message" })
+        ])
+      );
+    }
+
+    const unicode = normalizeDisplayContent(
+      {
+        version: 1,
+        message: [{ kind: "text", text: "é東😀" }]
+      },
+      fallback
+    );
+    expect(unicode.message.map((node) => node.text).join("")).toBe("é東😀");
+
+    expect(
+      normalizeDisplayContent(
+        { version: 1, message: [{ kind: "text", text: "😀".repeat(17000) }] },
+        fallback
+      ).message
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ text: "Plain message" })
+      ])
+    );
+
+    expect(
+      normalizeDisplayContent({ version: 1, message: 1n }, fallback).message
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ text: "Plain message" })
+      ])
+    );
+  });
+
+  it("rejects unknown versions, envelope keys, node kinds, and attributes", () => {
+    for (const content of [
+      { version: 2, message: [] },
+      { version: 1, message: [], surprise: true },
+      { version: 1, message: [{ kind: "html", text: "<b>x</b>" }] },
+      {
+        version: 1,
+        message: [{ kind: "link", text: "x", href: "/001", onclick: "x" }]
+      }
+    ]) {
+      expect(normalizeDisplayContent(content, fallback)).toEqual(
+        expect.objectContaining({
+          message: [expect.objectContaining({ text: "Plain message" })]
+        })
+      );
+    }
+  });
+
+  it("renders real safe anchors and breaks without interpreting markup", async () => {
+    const element = await renderCompletedManualCard({
+      status: "FAIL",
+      severity: "ERROR",
+      message: "Plain message",
+      actualValue: "Plain found",
+      expectedValue: "Plain expected",
+      displayContent: {
+        version: 1,
+        message: [
+          { kind: "text", text: "Review <b>" },
+          { kind: "link", text: "account", href: "/001" }
+        ],
+        found: [
+          { kind: "text", text: "Step 1" },
+          { kind: "break" },
+          { kind: "text", text: "Step 2" }
+        ]
+      }
+    });
+
+    const link = element.shadowRoot.querySelector(".rhc-inline-link");
+    expect(link).not.toBeNull();
+    expect(link.getAttribute("href")).toBe("/001");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(link.getAttribute("aria-label")).toContain("new tab");
+    expect(element.shadowRoot.querySelector(".rhc-row__message b")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-cmp__val br")).not.toBeNull();
+    document.body.removeChild(element);
   });
 });
 
@@ -5611,10 +6013,11 @@ describe("c-record-health-check — defensive UI permutations", () => {
     const row = element.shadowRoot.querySelector("li.rhc-tooltip-anchor");
     row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     window.dispatchEvent(new CustomEvent("resize"));
+    const callsAfterFirstResize = animationFrame.mock.calls.length;
     window.dispatchEvent(new CustomEvent("resize"));
     document.body.removeChild(element);
 
-    expect(animationFrame).toHaveBeenCalledTimes(2);
+    expect(animationFrame).toHaveBeenCalledTimes(callsAfterFirstResize);
     expect(cancelFrame).toHaveBeenCalledWith(42);
   });
 

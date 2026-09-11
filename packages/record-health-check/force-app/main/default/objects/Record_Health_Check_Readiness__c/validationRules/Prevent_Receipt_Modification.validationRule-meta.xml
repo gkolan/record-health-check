@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Prevent_Receipt_Modification</fullName>
+    <active>true</active>
+    <description
+  >Readiness receipts are immutable after creation; administrators may delete expired receipts.</description>
+    <errorConditionFormula>NOT(ISNEW())</errorConditionFormula>
+    <errorMessage
+  >Readiness receipts cannot be modified after creation.</errorMessage>
+</ValidationRule>

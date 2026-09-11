@@ -91,9 +91,27 @@
         <members>Record_Health_Check_Log__e</members>
         <members>Record_Health_Check_Result__e</members>
         <members>Record_Health_Check_Set_Run__e</members>
+        <members>Record_Health_Check_Readiness__c</members>
         <name>CustomObject</name>
     </types>
     <types>
++        <members>Record_Health_Check_Readiness__c.Actor__c</members>
+        <members>Record_Health_Check_Readiness__c.CapabilitiesJson__c</members>
+        <members>Record_Health_Check_Readiness__c.CheckIdentity__c</members>
+        <members>Record_Health_Check_Readiness__c.ContractVersion__c</members>
+        <members>Record_Health_Check_Readiness__c.ErrorCount__c</members>
+        <members>Record_Health_Check_Readiness__c.ExpiresAt__c</members>
+        <members>Record_Health_Check_Readiness__c.FailCount__c</members>
+        <members>Record_Health_Check_Readiness__c.Fingerprint__c</members>
+        <members>Record_Health_Check_Readiness__c.Mode__c</members>
+        <members>Record_Health_Check_Readiness__c.OrgIdentity__c</members>
+        <members>Record_Health_Check_Readiness__c.PassCount__c</members>
+        <members>Record_Health_Check_Readiness__c.ScopeCount__c</members>
+        <members>Record_Health_Check_Readiness__c.ScopeDigest__c</members>
+        <members>Record_Health_Check_Readiness__c.SetIdentity__c</members>
+        <members>Record_Health_Check_Readiness__c.SkippedCount__c</members>
+        <members>Record_Health_Check_Readiness__c.UnableCount__c</members>
+        <members>Record_Health_Check_Readiness__c.VerifiedAt__c</members>
         <members>Record_Health_Check_Set__mdt.ObjectApiName__c</members>
         <members>Record_Health_Check_Set__mdt.CardTitle__c</members>
         <members>Record_Health_Check_Set__mdt.CardSubtitle__c</members>
@@ -264,8 +282,64 @@
         <members>RHCSoqlEvaluatorBehaviorTest</members>
         <members>RHCSoqlEvaluatorEdgeBehaviorTest</members>
         <members>RHCValidateMetadataActionTest</members>
+        <members>RHCDiagnosticProjectionBudgetTest</members>
+        <members>RHCFormulaCompilerCacheTest</members>
+        <members>RHCFormulaDependencyBoundaryTest</members>
+        <members>RHCFormulaFindingOrderTest</members>
+        <members>RHCFormulaTokenizerGrammarTest</members>
+        <members>RHCSubscriberDefinitionSpecTest</members>
+        <members>RHCSubscriberDiagnosticSpecTest</members>
+        <members>RHCSubscriberEvidenceSpecTest</members>
+        <members>RHCSubscriberFormulaSpecTest</members>
+        <members>RHCSubscriberValueSpecTest</members>
+        <members>RecordHealthCheckDefTestPlugin</members>
+        <members>RecordHealthCheckDiagContextSupport</members>
+        <members>RecordHealthCheckDiagModeTestPlugin</members>
+        <members>RecordHealthCheckDiagThrowTestPlugin</members>
+        <members>RecordHealthCheckDiagnosticEnvelope</members>
+        <members>RecordHealthCheckDiagnosticErrorDetail</members>
+        <members>RecordHealthCheckDiagnosticProjection</members>
+        <members>RecordHealthCheckDiagnosticResponse</members>
+        <members>RecordHealthCheckDiagnosticRuntime</members>
+        <members>RecordHealthCheckDiagnosticTraceEntry</members>
+        <members>RecordHealthCheckExecutionTrace</members>
+        <members>RecordHealthCheckFatalFailure</members>
+        <members>RecordHealthCheckFormulaDepsPlanner</members>
+        <members>RecordHealthCheckFormulaMetadataAdapter</members>
+        <members>RecordHealthCheckFormulaPlanService</members>
+        <members>RecordHealthCheckFormulaTokenizer</members>
+        <members>RecordHealthCheckMergeFindingService</members>
+        <members>RecordHealthCheckOutcomeBuilderException</members>
+        <members>RecordHealthCheckOutcomeValidator</members>
+        <members>RecordHealthCheckPluginDefinition</members>
+        <members>RecordHealthCheckPluginDefinitionService</members>
+        <members>RecordHealthCheckPluginDefinitionSource</members>
+        <members>RecordHealthCheckPluginTest</members>
+        <members>RecordHealthCheckPluginVerification</members>
+        <members>RecordHealthCheckPreviewRequest</members>
+        <members>RecordHealthCheckPreviewRequestTest</members>
+        <members>RecordHealthCheckPreviewFinding</members>
+        <members>RecordHealthCheckPreviewController</members>
+        <members>RecordHealthCheckPreviewControllerTest</members>
+        <members>RecordHealthCheckPreviewParameter</members>
+        <members>RecordHealthCheckPreviewFingerprint</members>
+        <members>RecordHealthCheckPreviewFingerprintTest</members>
+        <members>RecordHealthCheckPreviewParameter</members>
+        <members>RecordHealthCheckPreviewResponse</members>
+        <members>RecordHealthCheckPreviewService</members>
+        <members>RecordHealthCheckPreviewServiceTest</members>
+        <members>RecordHealthCheckReadinessReceipt</members>
+        <members>RecordHealthCheckReadinessService</members>
+        <members>RecordHealthCheckReadinessState</members>
+        <members>RecordHealthCheckReadinessStateTest</members>
+        <members>RecordHealthCheckRecordEvaluator</members>
+        <members>RecordHealthCheckResponseFinalizer</members>
+        <members>RecordHealthCheckScopeRecordLoader</members>
+        <members>RecordHealthCheckScopeResultCoordinator</members>
+        <members>RecordHealthCheckScopeRuntime</members>
         <members>RecordHealthCheck</members>
         <members>RecordHealthCheckAccess</members>
+        <members>RecordHealthCheckActionUrlPolicy</members>
         <members>RecordHealthCheckAccessTest</members>
         <members>RecordHealthCheckAdminDetail</members>
         <members>RecordHealthCheckAdversarialBoundaryTest</members>
@@ -277,6 +351,7 @@
         <members>RecordHealthCheckApexAdapterTest</members>
         <members>RecordHealthCheckApexConfigSupport</members>
         <members>RecordHealthCheckApexEvaluator</members>
+        <members>RecordHealthCheckApexDisplaySupport</members>
         <members>RecordHealthCheckApexPluginResolver</members>
         <members>RecordHealthCheckApexResultFinalizer</members>
         <members>RecordHealthCheckApexResultFinalizerTest</members>
@@ -331,7 +406,17 @@
         <members>RecordHealthCheckDiagnosticGuidance</members>
         <members>RecordHealthCheckDiagnosticIncident</members>
         <members>RecordHealthCheckDiagnosticTrace</members>
+        <members>RecordHealthCheckDetachedValidator</members>
         <members>RecordHealthCheckDiagnosticTraceTest</members>
+        <members>RecordHealthCheckDisplayGroup</members>
+        <members>RecordHealthCheckDisplayGroupTest</members>
+        <members>RecordHealthCheckDisplayNode</members>
+        <members>RecordHealthCheckDisplayComposer</members>
+        <members>RecordHealthCheckDisplayContent</members>
+        <members>RecordHealthCheckDisplayOverride</members>
+        <members>RecordHealthCheckDisplayPlugin</members>
+        <members>RecordHealthCheckDisplayText</members>
+        <members>RecordHealthCheckDisplayTextTest</members>
         <members>RecordHealthCheckDisplayCurrencyRenderer</members>
         <members>RecordHealthCheckDisplayCurrencyResolver</members>
         <members>RecordHealthCheckDisplayCurrencyTest</members>
@@ -345,6 +430,11 @@
         <members>RecordHealthCheckDisplayTextRenderer</members>
         <members>RecordHealthCheckDisplayTextRendererTest</members>
         <members>RecordHealthCheckEvaluationResult</members>
+        <members>RecordHealthCheckEvidence</members>
+        <members>RecordHealthCheckEvidenceCell</members>
+        <members>RecordHealthCheckEvidenceColumn</members>
+        <members>RecordHealthCheckEvidenceEnvelope</members>
+        <members>RecordHealthCheckEvidenceProjection</members>
         <members>RecordHealthCheckEvaluatorBehaviorTest</members>
         <members>RecordHealthCheckEvaluatorException</members>
         <members>RecordHealthCheckEvaluatorRegistry</members>
@@ -364,6 +454,9 @@
         <members>RecordHealthCheckFormulaSyntax</members>
         <members>RecordHealthCheckFormulaSyntaxTest</members>
         <members>RecordHealthCheckIncidentRecorder</members>
+        <members>RecordHealthCheckInlineLinkParserTest</members>
+        <members>RecordHealthCheckInlineLinkParser</members>
+        <members>RecordHealthCheckInlineUrlPolicy</members>
         <members>RecordHealthCheckIgnoredConfig</members>
         <members>RecordHealthCheckIgnoredConfigTest</members>
         <members>RecordHealthCheckInternalResult</members>
@@ -383,6 +476,7 @@
         <members>RecordHealthCheckPersonaTestDataFactory</members>
         <members>RecordHealthCheckPlugin</members>
         <members>RecordHealthCheckPluginDispatch</members>
+        <members>RecordHealthCheckPluginDisplayDispatch</members>
         <members>RecordHealthCheckPluginDispatchTest</members>
         <members>RecordHealthCheckQualifiedIdentity</members>
         <members>RecordHealthCheckQueryEvaluatorSupport</members>
@@ -420,6 +514,7 @@
         <members>RecordHealthCheckScopePlannerTest</members>
         <members>RecordHealthCheckScopePrerequisiteTest</members>
         <members>RecordHealthCheckScopeResultSupport</members>
+        <members>RecordHealthCheckStructuredDisplay</members>
         <members>RecordHealthCheckSecurityAndOpsTest</members>
         <members>RecordHealthCheckSelection</members>
         <members>RecordHealthCheckSetAvailability</members>
@@ -463,6 +558,7 @@
     </types>
     <types>
         <members>recordHealthCheck</members>
+        <members>recordHealthCheckPreview</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
@@ -475,6 +571,7 @@
         <members>Record_Health_Check_Diagnostics_Viewer</members>
         <members>Record_Health_Check_Error_Log_Publisher</members>
         <members>Record_Health_Check_MCP_Integration</members>
+        <members>Record_Health_Check_Readiness_Auditor</members>
         <members>Record_Health_Check_User</members>
         <name>PermissionSet</name>
     </types>

@@ -13,17 +13,21 @@ global class RecordHealthCheckOptions {
   global String runId { get; private set; }
   /** Caller context attributed to execution monitoring. */
   global RecordHealthCheckExecutionOrigin executionOrigin { get; private set; }
+  /** Explicit opt-in diagnostic response contract, or null for legacy behavior. */
+  global String diagnosticContractVersion { get; private set; }
 
   private RecordHealthCheckOptions(
     RecordHealthCheckResultMode resultMode,
     RecordHealthCheckEventPublication eventPublication,
     String runId,
-    RecordHealthCheckExecutionOrigin executionOrigin
+    RecordHealthCheckExecutionOrigin executionOrigin,
+    String diagnosticContractVersion
   ) {
     this.resultMode = resultMode;
     this.eventPublication = eventPublication;
     this.runId = runId;
     this.executionOrigin = executionOrigin;
+    this.diagnosticContractVersion = diagnosticContractVersion;
   }
 
   /** @return Options that return evaluation data and publish no events. */
@@ -32,7 +36,8 @@ global class RecordHealthCheckOptions {
       RecordHealthCheckResultMode.EVALUATION,
       RecordHealthCheckEventPublication.NONE,
       null,
-      RecordHealthCheckExecutionOrigin.APEX_API
+      RecordHealthCheckExecutionOrigin.APEX_API,
+      null
     );
   }
 
@@ -50,7 +55,8 @@ global class RecordHealthCheckOptions {
       value,
       eventPublication,
       runId,
-      executionOrigin
+      executionOrigin,
+      diagnosticContractVersion
     );
   }
 
@@ -70,7 +76,8 @@ global class RecordHealthCheckOptions {
       resultMode,
       value,
       runId,
-      executionOrigin
+      executionOrigin,
+      diagnosticContractVersion
     );
   }
 
@@ -83,7 +90,8 @@ global class RecordHealthCheckOptions {
       resultMode,
       eventPublication,
       RecordHealthCheckLogger.normalizeIdentifier(value, 120),
-      executionOrigin
+      executionOrigin,
+      diagnosticContractVersion
     );
   }
 
@@ -103,7 +111,19 @@ global class RecordHealthCheckOptions {
       resultMode,
       eventPublication,
       runId,
-      value
+      value,
+      diagnosticContractVersion
+    );
+  }
+
+  /** Returns a copy requesting an explicit diagnostic projection version. */
+  global RecordHealthCheckOptions withDiagnosticContractVersion(String value) {
+    return new RecordHealthCheckOptions(
+      resultMode,
+      eventPublication,
+      runId,
+      executionOrigin,
+      String.isBlank(value) ? null : value.trim()
     );
   }
 

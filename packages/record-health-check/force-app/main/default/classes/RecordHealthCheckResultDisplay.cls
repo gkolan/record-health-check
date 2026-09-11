@@ -3,6 +3,12 @@
  */
 global class RecordHealthCheckResultDisplay {
   @AuraEnabled
+  /** Card-only versioned structured rendering; null for legacy responses. */
+  global RecordHealthCheckDisplayContent displayContent;
+  @AuraEnabled
+  /** Optional validated structured evidence for the interactive card. */
+  global RecordHealthCheckEvidenceEnvelope evidence;
+  @AuraEnabled
   /** Rendered outcome message. */
   global String renderedMessage;
   @AuraEnabled

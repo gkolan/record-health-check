@@ -15,7 +15,7 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
       SELECT QualifiedApiName
       FROM Record_Health_Check_Set__mdt
       ORDER BY DeveloperName
-      LIMIT 50000
+      LIMIT 50
     ]) {
       // code-analyzer-suppress-next-line OperationWithLimitsInLoop: Queueable Apex exposes only a single-job enqueue API; this scratch-org harness is bounded by the platform's 50-job transaction limit.
       jobs.add(

@@ -29,6 +29,12 @@ public class RecordHealthCheckInternalResult {
   // read them, and nothing may retain them past this transaction.
   public transient List<SObject> querySourceRows;
   public transient List<SObject> queryComparisonRows;
+  /** Transaction-local structured presentation projected only to the card. */
+  public transient RecordHealthCheckDisplayContent displayContent;
+  /** Server-only typed evidence awaiting authorized card projection. */
+  public transient RecordHealthCheckEvidence evidence;
+  /** Validated card-only evidence projection. */
+  public transient RecordHealthCheckEvidenceEnvelope evidenceEnvelope;
   @AuraEnabled
   public String label;
   @AuraEnabled
@@ -84,6 +90,16 @@ public class RecordHealthCheckInternalResult {
   public String fixInstructions; // optional guidance shown beside the remediation link — from FixMessage__c
   @AuraEnabled
   public String reasonCode;
+  // Server-only producer provenance for opt-in diagnostic contracts.
+  public transient String reasonOrigin;
+  // Server-only plugin reason replaced by a framework contract failure.
+  public transient String priorReasonCode;
+  // Server-only observation of whether plugin evaluate(scope) was entered.
+  public transient Boolean pluginInvoked;
+  // Server-only structured detail for a missing Found/Expected contract violation.
+  public transient RecordHealthCheckOutcomeValidator.Violation pluginValueViolation;
+  // Server-only observed lifecycle; projected only by diagnostic contract 2.0.
+  public transient RecordHealthCheckExecutionTrace executionTrace;
   @AuraEnabled
   public Decimal priority;
   @AuraEnabled

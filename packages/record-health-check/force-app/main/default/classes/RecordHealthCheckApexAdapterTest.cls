@@ -204,9 +204,13 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       result.message,
       'A constructor configuration failure must use the safe unable message when no Check message is configured.'
     );
-    Assert.isTrue(
+    Assert.isFalse(
       result.detailMessage.contains('Expected constructor failure'),
-      'Administrator detail must retain the constructor failure cause.'
+      'Arbitrary subscriber exception text must remain withheld.'
+    );
+    Assert.isTrue(
+      result.detailMessage.contains('[message withheld]'),
+      'Administrator detail retains a fixed disclosure-safe marker.'
     );
   }
 
@@ -322,8 +326,8 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       missingActualResult,
       RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING
     );
-    Assert.isTrue(
-      missingActualResult.detailMessage.contains('result.actualValue'),
+    Assert.areEqual(
+      'A PASS outcome must include a nonblank Found value.',
       missingActualResult.detailMessage
     );
 
@@ -340,8 +344,8 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       missingExpectedResult,
       RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING
     );
-    Assert.isTrue(
-      missingExpectedResult.detailMessage.contains('result.expectedValue'),
+    Assert.areEqual(
+      'A FAIL outcome must include a nonblank Expected value.',
       missingExpectedResult.detailMessage
     );
 

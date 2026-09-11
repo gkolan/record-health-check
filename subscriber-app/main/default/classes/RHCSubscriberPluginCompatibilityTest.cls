@@ -71,6 +71,33 @@ private class RHCSubscriberPluginCompatibilityTest {
     );
   }
 
+  @IsTest
+  static void subscriberCanUsePluginTestFacade() {
+    Account accountRecord = RHCSubscriberTestDataFactory.createAccount(
+      'Subscriber Plugin Facade Healthy'
+    );
+    RHCSubscriberPlugin.evaluateCount = 0;
+    rhc.RecordHealthCheckScope scope = new rhc.RecordHealthCheckScope(
+      'Account',
+      new List<Id>{ accountRecord.Id },
+      new Map<String, Object>(),
+      'Subscriber_Facade_Check',
+      'Subscriber_Facade_Set',
+      'subscriber-facade-test'
+    );
+
+    rhc.RecordHealthCheckPluginTest.verify(new RHCSubscriberPlugin(), scope)
+      .assertComplete()
+      .assertNoSideEffects()
+      .assertRenderable();
+
+    System.assertEquals(
+      1,
+      RHCSubscriberPlugin.evaluateCount,
+      'The cross-namespace facade must evaluate the subscriber plugin once.'
+    );
+  }
+
   private static void assertPluginOutcome(
     rhc.RecordHealthCheckEvaluationResult result,
     String expectedStatus,

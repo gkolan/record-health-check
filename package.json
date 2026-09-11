@@ -1,7 +1,7 @@
 {
   "name": "record-health-check",
   "private": true,
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "Metadata-driven, extensible record health checks for Salesforce",
   "license": "Apache-2.0",
   "author": "Gautam Kolan (https://github.com/gkolan)",
@@ -101,7 +101,10 @@
     "prettier:verify": "prettier --check --no-error-on-unmatched-pattern \"packages/record-health-check/force-app/**/*.{cls,css,html,js,trigger,xml}\" \"packages/record-health-check/integration-tests/**/*.{cls,css,html,js,trigger,xml}\" \"subscriber-app/**/*.{cls,css,html,js,trigger,xml}\" \"namespace-fixture/**/*.{cls,json,md,xml}\" \"scripts/**/*.{apex,js,json,md,mjs,xml,yaml,yml}\" \"packages/record-health-check/manifest/**/*.xml\" \"config/**/*.json\" \"*.{js,json,md,xml,yaml,yml}\" \".github/**/*.{md,yaml,yml}\"",
     "prepare": "husky || true",
     "precommit": "lint-staged",
-    "demo:verify-source": "node scripts/contributor/setup-demo.mjs --verify-only"
+    "demo:verify-source": "node scripts/contributor/setup-demo.mjs --verify-only",
+    "verify:url-story": "node scripts/release/verify_url_story.mjs",
+    "verify:url-story:browser": "node scripts/release/run_url_story_browser.mjs",
+    "lint:rhc": "node scripts/validation/lint-rhc.mjs"
   },
   "devDependencies": {
     "@locker/eslint-config-locker": "^0.28.9",

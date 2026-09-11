@@ -34,6 +34,218 @@ export function safeActionUrl(url) {
   return null;
 }
 
+const DISPLAY_FIELDS = ["message", "fix", "found", "expected"];
+const DISPLAY_ENVELOPE_KEYS = new Set(["version", ...DISPLAY_FIELDS]);
+const MAX_DISPLAY_NODES = 1000;
+const MAX_DISPLAY_TEXT = 20000;
+const MAX_INLINE_LABEL = 2000;
+const MAX_INLINE_URL = 2000;
+const MAX_DISPLAY_BYTES = 64 * 1024;
+
+/* The payload DTO also calls its visible-string property `text`. It is a plain
+ * JSON object, never an HTMLScriptElement; suppress the Locker rule's name-only
+ * false positive for this bounded validator. */
+/* eslint-disable @locker/locker/distorted-html-script-element-text-getter */
+
+function utf8Length(value) {
+  let bytes = 0;
+  for (const character of value) {
+    const codePoint = character.codePointAt(0);
+    if (codePoint <= 0x7f) bytes += 1;
+    else if (codePoint <= 0x7ff) bytes += 2;
+    else if (codePoint <= 0xffff) bytes += 3;
+    else bytes += 4;
+  }
+  return bytes;
+}
+
+function hasOnlyKeys(value, allowed) {
+  return Object.keys(value).every((key) => allowed.has(key));
+}
+
+function hasTraversalSegment(url) {
+  const pathStart = url.startsWith("/")
+    ? 0
+    : url.indexOf("/", "https://".length);
+  const path = (pathStart < 0 ? "" : url.slice(pathStart)).split(/[?#]/, 1)[0];
+  return path.split("/").some((segment) => {
+    const dots = segment.replace(/%2e/gi, ".");
+    return dots === "." || dots === "..";
+  });
+}
+
+/** Strict, no-network inline-link destination validator shared with Apex vectors. */
+export function safeInlineUrl(url) {
+  if (typeof url !== "string") return null;
+  const trimmed = url.replace(/^[\t\n\f\r ]+|[\t\n\f\r ]+$/g, "");
+  if (
+    trimmed === "" ||
+    trimmed.length > MAX_INLINE_URL ||
+    /[^\x20-\x7e]/.test(trimmed) ||
+    /[\s\\]/.test(trimmed) ||
+    /%(?![0-9a-f]{2})/i.test(trimmed) ||
+    /%(?:0[0-9a-f]|1[0-9a-f]|7f|25|5c)/i.test(trimmed) ||
+    hasTraversalSegment(trimmed)
+  ) {
+    return null;
+  }
+  if (trimmed.startsWith("/")) {
+    return trimmed.startsWith("//") ? null : trimmed;
+  }
+  if (!/^https:\/\//.test(trimmed)) return null;
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.username ||
+    parsed.password ||
+    (parsed.port && parsed.port !== "443") ||
+    parsed.hostname === "localhost" ||
+    !/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?))*$/i.test(
+      parsed.hostname
+    )
+  ) {
+    return null;
+  }
+  return trimmed;
+}
+
+function plainDisplayNodes(value) {
+  if (value == null) return [];
+  const original = String(value);
+  if (original === "") return [{ kind: "text", text: "" }];
+  const lines = original
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n");
+  while (lines.length && lines[0].trim() === "") lines.shift();
+  while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
+  const nodes = [];
+  lines.forEach((line, index) => {
+    if (index > 0) nodes.push({ kind: "break" });
+    if (line !== "") nodes.push({ kind: "text", text: line });
+  });
+  return nodes;
+}
+
+function decorateNodes(nodes, field) {
+  return nodes.map((displayNode, index) => ({
+    ...displayNode,
+    key: `${field}-${index}`,
+    isText: displayNode.kind === "text",
+    isLink: displayNode.kind === "link",
+    isBreak: displayNode.kind === "break",
+    linkAriaLabel:
+      displayNode.kind === "link"
+        ? `${displayNode.text} (opens in a new tab)`
+        : null
+  }));
+}
+
+function nodesToPlainText(nodes) {
+  return nodes
+    .map((displayNode) => {
+      return displayNode.kind === "break" ? "\n" : displayNode.text;
+    })
+    .join("");
+}
+
+function validateDisplayField(nodes) {
+  if (!Array.isArray(nodes) || nodes.length > MAX_DISPLAY_NODES) return null;
+  const accepted = [];
+  let visibleLength = 0;
+  for (const displayNode of nodes) {
+    if (
+      !displayNode ||
+      typeof displayNode !== "object" ||
+      Array.isArray(displayNode)
+    )
+      return null;
+    if (displayNode.kind === "break") {
+      if (!hasOnlyKeys(displayNode, new Set(["kind"]))) return null;
+      accepted.push({ kind: "break" });
+      visibleLength += 1;
+    } else if (displayNode.kind === "text") {
+      if (
+        !hasOnlyKeys(displayNode, new Set(["kind", "text"])) ||
+        typeof displayNode.text !== "string"
+      ) {
+        return null;
+      }
+      const expanded = plainDisplayNodes(displayNode.text);
+      accepted.push(...expanded);
+      visibleLength += displayNode.text.length;
+    } else if (displayNode.kind === "link") {
+      if (
+        !hasOnlyKeys(displayNode, new Set(["kind", "text", "href"])) ||
+        typeof displayNode.text !== "string" ||
+        displayNode.text.length > MAX_INLINE_LABEL
+      ) {
+        return null;
+      }
+      const href = safeInlineUrl(displayNode.href);
+      if (!href) return null;
+      accepted.push({ kind: "link", text: displayNode.text, href });
+      visibleLength += displayNode.text.length;
+    } else {
+      return null;
+    }
+    if (
+      accepted.length > MAX_DISPLAY_NODES ||
+      visibleLength > MAX_DISPLAY_TEXT
+    ) {
+      return null;
+    }
+  }
+  const visible = accepted.some(
+    (displayNode) =>
+      displayNode.kind !== "break" && displayNode.text.trim() !== ""
+  );
+  return visible ? accepted : [];
+}
+
+/** Validate the complete versioned envelope before returning any bindable href. */
+export function normalizeDisplayContent(content, fallback = {}) {
+  const fallbackResult = Object.fromEntries(
+    DISPLAY_FIELDS.map((field) => [
+      field,
+      decorateNodes(plainDisplayNodes(fallback[field]), field)
+    ])
+  );
+  if (content == null) return fallbackResult;
+  if (
+    typeof content !== "object" ||
+    Array.isArray(content) ||
+    content.version !== 1 ||
+    !hasOnlyKeys(content, DISPLAY_ENVELOPE_KEYS)
+  ) {
+    return fallbackResult;
+  }
+  try {
+    if (utf8Length(JSON.stringify(content)) > MAX_DISPLAY_BYTES) {
+      return fallbackResult;
+    }
+  } catch {
+    return fallbackResult;
+  }
+  const validated = {};
+  for (const field of DISPLAY_FIELDS) {
+    if (content[field] == null) {
+      validated[field] = fallbackResult[field];
+      continue;
+    }
+    const nodes = validateDisplayField(content[field]);
+    validated[field] =
+      nodes == null ? fallbackResult[field] : decorateNodes(nodes, field);
+  }
+  return validated;
+}
+/* eslint-enable @locker/locker/distorted-html-script-element-text-getter */
+
 /** View-formatting helpers: map check results into template-ready flags and classes. */
 const OUTCOME_STYLES = {
   pass: { label: "Pass", modifier: "pass", message: false },
@@ -170,6 +382,115 @@ export function normalizeComparisonDisplayMode(configuredMode) {
     : "AUTOMATIC";
 }
 
+const EVIDENCE_TYPES = new Set([
+  "STRING",
+  "ID",
+  "NUMBER",
+  "BOOLEAN",
+  "DATE",
+  "DATETIME"
+]);
+
+function unavailableEvidence() {
+  return {
+    unavailable: true,
+    summary: "Details unavailable.",
+    columns: [],
+    rows: [],
+    completeness: "UNKNOWN",
+    returnedItemCount: 0,
+    totalItemCount: null,
+    omittedItemCount: null,
+    groupKeys: []
+  };
+}
+
+function normalizeEvidence(value) {
+  if (!value || typeof value !== "object") return null;
+  if (
+    value.version !== "1.0" ||
+    !Array.isArray(value.columns) ||
+    !Array.isArray(value.rows) ||
+    value.columns.length > 20 ||
+    !["COMPLETE", "TRUNCATED", "UNKNOWN"].includes(value.completeness)
+  ) {
+    return unavailableEvidence();
+  }
+  const seen = new Set();
+  const columns = [];
+  for (const column of value.columns) {
+    const type = column?.type || column?.dataType;
+    if (
+      !column ||
+      typeof column.key !== "string" ||
+      !/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(column.key) ||
+      seen.has(column.key) ||
+      typeof column.label !== "string" ||
+      column.label.trim() === "" ||
+      column.label.length > 80 ||
+      !EVIDENCE_TYPES.has(type)
+    ) {
+      return unavailableEvidence();
+    }
+    seen.add(column.key);
+    columns.push({ ...column, type });
+  }
+  const rows = [];
+  for (let rowIndex = 0; rowIndex < value.rows.length; rowIndex += 1) {
+    const row = value.rows[rowIndex];
+    if (!Array.isArray(row) || row.length !== columns.length) {
+      return unavailableEvidence();
+    }
+    const cells = row.map((cell, columnIndex) => ({
+      key: `${rowIndex}-${columns[columnIndex].key}`,
+      value: cell == null ? "—" : String(cell),
+      raw: cell
+    }));
+    rows.push({ key: `evidence-row-${rowIndex}`, cells, raw: row });
+  }
+  return {
+    ...value,
+    unavailable: false,
+    columns,
+    rows,
+    groupKeys: Array.isArray(value.groupKeys) ? value.groupKeys : []
+  };
+}
+
+function evidenceGroups(evidence, rows) {
+  const [stepKey, ruleKey] = evidence.groupKeys;
+  const stepIndex = evidence.columns.findIndex(
+    (column) => column.key === stepKey
+  );
+  const ruleIndex = evidence.columns.findIndex(
+    (column) => column.key === ruleKey
+  );
+  if (stepIndex < 0 || ruleIndex < 0) {
+    return [{ key: "all", label: null, step: null, rows }];
+  }
+  const groups = new Map();
+  for (const row of rows) {
+    const step = row.raw[stepIndex];
+    const rule = row.raw[ruleIndex];
+    const key = `${step == null ? "null" : step}\u0000${rule == null ? "" : rule}`;
+    if (!groups.has(key)) groups.set(key, { key, step, rule, rows: [] });
+    groups.get(key).rows.push(row);
+  }
+  return [...groups.values()]
+    .sort((left, right) => {
+      if (left.step == null) return right.step == null ? 0 : 1;
+      if (right.step == null) return -1;
+      const stepDifference = Number(left.step) - Number(right.step);
+      return (
+        stepDifference || String(left.rule).localeCompare(String(right.rule))
+      );
+    })
+    .map((group) => ({
+      ...group,
+      label: `Step ${group.step == null ? "—" : group.step} · ${group.rule == null ? "—" : group.rule} (${group.rows.length} returned)`
+    }));
+}
+
 export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
   const uiState = c.uiState;
   const result = c.result || {};
@@ -211,10 +532,6 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
 
   const tabIndex = c.description ? 0 : -1;
 
-  const showMessage = isResolved && !isPass && !!(c.result && c.result.message);
-
-  const messageLines = showMessage ? splitMessageLines(c.result.message) : [];
-
   const mode = normalizeComparisonMode(comparisonMode);
   const rowExpanded = isExpanded === true;
   // Per-Check comparison visibility (ComparisonDisplayMode__c). This filters
@@ -235,7 +552,29 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     isResolved && expectedAllowed && result.expectedValue != null
       ? result.expectedValue
       : null;
-  const hasValues = actualValue != null || expectedValue != null;
+  const fallbackFixInstructions =
+    isResolved && result.fixInstructions ? result.fixInstructions : null;
+  const displayNodes = normalizeDisplayContent(result.displayContent, {
+    message: result.message,
+    fix: fallbackFixInstructions,
+    found: actualValue,
+    expected: expectedValue
+  });
+  const messageNodes = displayNodes.message;
+  const fixNodes = displayNodes.fix;
+  const foundNodes = foundAllowed ? displayNodes.found : [];
+  const expectedNodes = expectedAllowed ? displayNodes.expected : [];
+  const foundText = nodesToPlainText(foundNodes);
+  const expectedText = nodesToPlainText(expectedNodes);
+  const showMessage = isResolved && !isPass && messageNodes.length > 0;
+  const showStructuredMessage = messageNodes.some(
+    (displayNode) => displayNode.isLink
+  );
+  const showStructuredFix = fixNodes.some((displayNode) => displayNode.isLink);
+  const messageLines = showMessage
+    ? splitMessageLines(nodesToPlainText(messageNodes))
+    : [];
+  const hasValues = foundNodes.length > 0 || expectedNodes.length > 0;
 
   // The Expected side normally reads "Expected"; a Formula check echoing its
   // pass/fail condition (rather than a comparison value) overrides this with its
@@ -255,30 +594,43 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
   const detailExpanded = showCaret && rowExpanded;
 
   // Inline chips
-  const showActual = showInlineComparison && actualValue != null;
-  const showExpected = showInlineComparison && expectedValue != null;
+  const showActual = showInlineComparison && foundNodes.length > 0;
+  const showExpected = showInlineComparison && expectedNodes.length > 0;
 
   // Expanded region: values only when they were not already inline. Value-source
   // stays out of the card view and is logged through run diagnostics instead.
   const showExpandedActual =
-    detailExpanded && valuesBehindCaret && actualValue != null;
+    detailExpanded && valuesBehindCaret && foundNodes.length > 0;
   const showExpandedExpected =
-    detailExpanded && valuesBehindCaret && expectedValue != null;
+    detailExpanded && valuesBehindCaret && expectedNodes.length > 0;
   const inlineComparisonValues = [
-    showActual ? { key: "found", label: "Found", value: actualValue } : null,
+    showActual
+      ? { key: "found", label: "Found", value: foundText, nodes: foundNodes }
+      : null,
     showExpected
-      ? { key: "expected", label: expectedKeyLabel, value: expectedValue }
+      ? {
+          key: "expected",
+          label: expectedKeyLabel,
+          value: expectedText,
+          nodes: expectedNodes
+        }
       : null
   ].filter(Boolean);
   const expandedComparisonValues = [
     showExpandedActual
-      ? { key: "found-expanded", label: "Found", value: actualValue }
+      ? {
+          key: "found-expanded",
+          label: "Found",
+          value: foundText,
+          nodes: foundNodes
+        }
       : null,
     showExpandedExpected
       ? {
           key: "expected-expanded",
           label: expectedKeyLabel,
-          value: expectedValue
+          value: expectedText,
+          nodes: expectedNodes
         }
       : null
   ].filter(Boolean);
@@ -288,8 +640,7 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
   // may stand alone when the link was omitted or failed sanitization server-side.
   const actionUrl = isResolved ? safeActionUrl(result.actionUrl) : null;
   const actionLabel = actionUrl ? result.actionLabel || "Fix this" : null;
-  const fixInstructions =
-    isResolved && result.fixInstructions ? result.fixInstructions : null;
+  const fixInstructions = nodesToPlainText(fixNodes) || null;
   const showAction = actionUrl != null;
   const showFixInstructions = fixInstructions != null;
   const showActionBlock = showAction || showFixInstructions;
@@ -324,9 +675,9 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     accessibleMessage,
     previewForSpeech(fixInstructions),
     actionLabel ? `Link: ${actionLabel}` : null,
-    comparisonAudible && actualValue != null ? `Found ${actualValue}` : null,
-    comparisonAudible && expectedValue != null
-      ? `${expectedKeyLabel} ${expectedValue}`
+    comparisonAudible && foundNodes.length > 0 ? `Found ${foundText}` : null,
+    comparisonAudible && expectedNodes.length > 0
+      ? `${expectedKeyLabel} ${expectedText}`
       : null
   ]
     .filter(Boolean)
@@ -376,6 +727,22 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
       : "";
   const showDiagnosticsMeta = !!diagnosticsMeta;
   const showRowAccent = !!rowAccentClass;
+  const evidence = isResolved ? normalizeEvidence(result.evidence) : null;
+  const showEvidence = evidence != null;
+  const evidenceExpanded = showEvidence && c.evidenceExpanded === true;
+  const evidenceRows = evidence?.rows || [];
+  const visibleEvidenceRows = c.evidenceShowAll
+    ? evidenceRows
+    : evidenceRows.slice(0, 10);
+  const showAllEvidence =
+    evidenceExpanded && !c.evidenceShowAll && evidenceRows.length > 10;
+  const evidenceRegionId = showEvidence
+    ? `rhc-evidence-${String(evidence.runId || "run").replace(/[^A-Za-z0-9_-]/g, "-")}-${String(c.qualifiedApiName || c.developerName || "check").replace(/[^A-Za-z0-9_-]/g, "-")}`
+    : null;
+  const evidenceDownloadLabel =
+    evidence?.completeness === "COMPLETE"
+      ? "Download full details"
+      : "Download returned details";
 
   return {
     ...c,
@@ -391,7 +758,9 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     rowAccentClass,
     messageClass,
     showMessage,
+    showStructuredMessage,
     messageLines,
+    messageNodes,
     actualValue,
     expectedValue,
     expectedKeyLabel,
@@ -401,6 +770,8 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     actionUrl,
     actionLabel,
     fixInstructions,
+    fixNodes,
+    showStructuredFix,
     showAction,
     showFixInstructions,
     showActionBlock,
@@ -419,6 +790,23 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     showDiagnosis,
     diagnosticsMeta,
     showDiagnosticsMeta,
+    showEvidence,
+    evidenceUnavailable: evidence?.unavailable === true,
+    evidenceSummary: evidence?.summary,
+    evidenceExpanded,
+    evidenceExpandLabel: evidenceExpanded ? "Hide details" : "Show details",
+    evidenceRegionId,
+    evidenceColumns: evidence?.columns || [],
+    evidenceGroups: evidence
+      ? evidenceGroups(evidence, visibleEvidenceRows)
+      : [],
+    evidenceVisibleRowCount: visibleEvidenceRows.length,
+    showAllEvidence,
+    evidenceShowAllLabel: `Show all ${evidenceRows.length} returned items`,
+    evidenceDownloadLabel,
+    evidenceDownloadJson: evidence?.unavailable
+      ? null
+      : JSON.stringify(result.evidence),
     accessibleLabel
   };
 }

@@ -4,6 +4,28 @@ public with sharing class RecordHealthCheckApexConfigSupport {
   public static List<RecordHealthCheckValidator.Finding> findings(
     Record_Health_Check__mdt check
   ) {
+    List<RecordHealthCheckValidator.Finding> out = structuralFindings(check);
+    if (!out.isEmpty()) {
+      return out;
+    }
+    RecordHealthCheckConfigValidator.ApexPluginValidation validation = RecordHealthCheckConfigValidator.validateApexPlugin(
+      check
+    );
+    if (!validation.isValid) {
+      RecordHealthCheckValidator.Finding invalidPlugin = finding(
+        findingCode(validation.reasonCode)
+      );
+      invalidPlugin.phase = validation.phase;
+      invalidPlugin.originalException = validation.originalException;
+      out.add(invalidPlugin);
+    }
+    return out;
+  }
+
+  /** Validates an Apex Check without loading or constructing subscriber code. */
+  public static List<RecordHealthCheckValidator.Finding> structuralFindings(
+    Record_Health_Check__mdt check
+  ) {
     List<RecordHealthCheckValidator.Finding> out = new List<RecordHealthCheckValidator.Finding>();
     if (String.isBlank(check.ApexClass__c)) {
       out.add(
@@ -30,17 +52,6 @@ public with sharing class RecordHealthCheckApexConfigSupport {
         finding(RecordHealthCheckValidator.FindingCode.APEX_PARAMS_INVALID)
       );
       return out;
-    }
-    RecordHealthCheckConfigValidator.ApexPluginValidation validation = RecordHealthCheckConfigValidator.validateApexPlugin(
-      check
-    );
-    if (!validation.isValid) {
-      RecordHealthCheckValidator.Finding invalidPlugin = finding(
-        findingCode(validation.reasonCode)
-      );
-      invalidPlugin.phase = validation.phase;
-      invalidPlugin.originalException = validation.originalException;
-      out.add(invalidPlugin);
     }
     return out;
   }
@@ -78,6 +89,11 @@ public with sharing class RecordHealthCheckApexConfigSupport {
         message = 'The configured Apex Check could not be constructed.';
         reasonCode = RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED;
       }
+      when APEX_PLUGIN_DEFINITION_INVALID {
+        fieldName = 'ApexParametersJson__c';
+        message = 'The configured Apex Check definition is invalid.';
+        reasonCode = RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID;
+      }
       when else {
         fieldName = 'ApexParametersJson__c';
         message = 'Apex Parameters must contain a valid JSON object.';
@@ -106,7 +122,9 @@ public with sharing class RecordHealthCheckApexConfigSupport {
       RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND => RecordHealthCheckValidator.FindingCode.APEX_CLASS_NOT_FOUND,
       RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED => RecordHealthCheckValidator.FindingCode.APEX_CLASS_LOAD_FAILED,
       RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID => RecordHealthCheckValidator.FindingCode.APEX_PLUGIN_INTERFACE_INVALID,
-      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED => RecordHealthCheckValidator.FindingCode.APEX_PLUGIN_CONSTRUCTOR_FAILED
+      RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED => RecordHealthCheckValidator.FindingCode.APEX_PLUGIN_CONSTRUCTOR_FAILED,
+      RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID => RecordHealthCheckValidator.FindingCode.APEX_PLUGIN_DEFINITION_INVALID,
+      RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS => RecordHealthCheckValidator.FindingCode.APEX_PARAMS_INVALID
     };
     RecordHealthCheckValidator.FindingCode code = codesByReason.get(reasonCode);
     return code == null

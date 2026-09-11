@@ -1,0 +1,88 @@
+{
+  "findings": [
+    {
+      "path": "blank.md-meta.xml",
+      "ruleId": "RHC012",
+      "configurationField": "DisplayFoundFormula__c",
+      "count": 1
+    },
+    {
+      "path": "class.md-meta.xml",
+      "ruleId": "RHC006",
+      "configurationField": "ApexClass__c",
+      "count": 1
+    },
+    {
+      "path": "comparison.md-meta.xml",
+      "ruleId": "RHC011",
+      "configurationField": "ComparisonOperator__c",
+      "count": 1
+    },
+    {
+      "path": "function.md-meta.xml",
+      "ruleId": "RHC002",
+      "configurationField": "PassConditionFormula__c",
+      "count": 1
+    },
+    {
+      "path": "inaccessible.md-meta.xml",
+      "ruleId": "RHC004",
+      "configurationField": "ApplicabilityFormula__c",
+      "count": 1
+    },
+    {
+      "path": "interface.md-meta.xml",
+      "ruleId": "RHC007",
+      "configurationField": "ApexClass__c",
+      "count": 1
+    },
+    {
+      "path": "literal.md-meta.xml",
+      "ruleId": "RHC001",
+      "configurationField": "ApplicabilityFormula__c",
+      "count": 1
+    },
+    {
+      "path": "literal-cdata.md-meta.xml",
+      "ruleId": "RHC001",
+      "configurationField": "ApplicabilityFormula__c",
+      "count": 1
+    },
+    {
+      "path": "merge.md-meta.xml",
+      "ruleId": "RHC005",
+      "configurationField": "FailureMessage__c",
+      "count": 1
+    },
+    {
+      "path": "parameters.md-meta.xml",
+      "ruleId": "RHC008",
+      "configurationField": "ApexParametersJson__c",
+      "count": 1
+    },
+    {
+      "path": "Record_Health_Check.RHC_SP_Cycle_A.md-meta.xml",
+      "ruleId": "RHC010",
+      "configurationField": "PrerequisiteCheck__c",
+      "count": 1
+    },
+    {
+      "path": "Record_Health_Check.RHC_SP_Cycle_B.md-meta.xml",
+      "ruleId": "RHC010",
+      "configurationField": "PrerequisiteCheck__c",
+      "count": 1
+    },
+    {
+      "path": "Record_Health_Check.RHC_SP_Uses_Inactive.md-meta.xml",
+      "ruleId": "RHC009",
+      "configurationField": "PrerequisiteCheck__c",
+      "count": 1
+    },
+    {
+      "path": "unresolved.md-meta.xml",
+      "ruleId": "RHC003",
+      "configurationField": "ApplicabilityFormula__c",
+      "count": 1
+    }
+  ]
+}

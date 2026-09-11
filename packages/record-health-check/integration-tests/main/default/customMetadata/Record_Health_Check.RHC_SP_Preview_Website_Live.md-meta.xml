@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>Website uses HTTPS live control</label>
+  <protected>false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_SP_Preview_Live</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Website uses HTTPS live control</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Verify this fixture Account's Website uses HTTPS.</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >10</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+  <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >WHEN_FORMULA_TRUE</value></values>
+  <values><field>ApplicabilityFormula__c</field><value
+      xsi:type="xsd:string"
+    >NOT(ISPICKVAL(Industry, &quot;Banking&quot;))</value></values>
+  <values><field>ApplicabilityNotMetMessage__c</field><value
+      xsi:type="xsd:string"
+    >This fixture Account is outside the Check scope.</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Website must start with https://.</value></values>
+  <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Website could not be evaluated.</value></values>
+  <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Correct Website and rerun this Check.</value></values>
+  <values><field>PublishUserResultEvent__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+  <values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >BEGINS(Website, &quot;https://&quot;)</value></values>
+  <values><field>DisplayFoundFormula__c</field><value
+      xsi:type="xsd:string"
+    >Website</value></values>
+  <values><field>DisplayExpectedFormula__c</field><value
+      xsi:type="xsd:string"
+    >&quot;https://&quot;</value></values>
+</CustomMetadata>

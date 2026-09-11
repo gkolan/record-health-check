@@ -35,17 +35,17 @@ The Scope contains the information supplied to the custom Apex Check.
 
 `rhc.RecordHealthCheckScope` provides:
 
-| Property | Meaning |
-| --- | --- |
-| `objectApiName` | Object shared by the requested IDs |
-| `recordIds` | Copy of all requested record IDs in order |
-| `recordIdAt(index)` | One ID at a numbered position, without creating another list copy |
-| `parameters` | Parsed Check parameter JSON |
-| `checkDeveloperName` | Unqualified Check Developer Name |
-| `checkQualifiedApiName` | Selected Check identity |
-| `checkSetDeveloperName` | Unqualified parent Check Set Developer Name |
-| `checkSetQualifiedApiName` | Parent Check Set identity |
-| `runId` | ID that connects results, logs, and events from the same run |
+| Property                   | Meaning                                                           |
+| -------------------------- | ----------------------------------------------------------------- |
+| `objectApiName`            | Object shared by the requested IDs                                |
+| `recordIds`                | Copy of all requested record IDs in order                         |
+| `recordIdAt(index)`        | One ID at a numbered position, without creating another list copy |
+| `parameters`               | Parsed Check parameter JSON                                       |
+| `checkDeveloperName`       | Unqualified Check Developer Name                                  |
+| `checkQualifiedApiName`    | Selected Check identity                                           |
+| `checkSetDeveloperName`    | Unqualified parent Check Set Developer Name                       |
+| `checkSetQualifiedApiName` | Parent Check Set identity                                         |
+| `runId`                    | ID that connects results, logs, and events from the same run      |
 
 The class cannot change the package's original request. Read `recordIds` into a local variable once,
 query for all IDs together, organize the query results in a map, and then build one outcome per
@@ -97,6 +97,49 @@ the non-blocking `APEX_DISPLAY_TEXT_IGNORED` warning. Put the values in the cust
 `.withFound()`, `.withExpected()`, or `.withComparison()`; use the Check failure message when
 administrators need configurable explanatory wording.
 
+### Add clickable record collections to Found or Expected
+
+For interactive record-page runs, a custom Check may also implement
+`rhc.RecordHealthCheckDisplayPlugin`. Let the plugin decide which records belong to each business
+group, then let the display API own label/item separators and line breaks. The default item separator
+is comma-space, and every saved record receives its own canonical Lightning record link.
+
+```apex
+List<SObject> stepOneRecords = new List<SObject>();
+stepOneRecords.addAll(stepOneUsers);
+List<SObject> stepTwoRecords = new List<SObject>();
+stepTwoRecords.addAll(stepTwoUsers);
+List<SObject> stepThreeRecords = new List<SObject>();
+stepThreeRecords.addAll(stepThreeUsers);
+
+List<rhc.RecordHealthCheckDisplayGroup> groups =
+  new List<rhc.RecordHealthCheckDisplayGroup>{
+    new rhc.RecordHealthCheckDisplayGroup('step-1')
+      .withLabel(new rhc.RecordHealthCheckDisplayText().link('Step 1', stepOneUrl))
+      .withItems(new rhc.RecordHealthCheckDisplayText().recordLinks(stepOneRecords, User.Name)),
+    new rhc.RecordHealthCheckDisplayGroup('step-2')
+      .withLabel(new rhc.RecordHealthCheckDisplayText().link('Step 2', stepTwoUrl))
+      .withItems(new rhc.RecordHealthCheckDisplayText().recordLinks(stepTwoRecords, User.Name)),
+    new rhc.RecordHealthCheckDisplayGroup('step-3')
+      .withLabel(new rhc.RecordHealthCheckDisplayText().link('Step 3', stepThreeUrl))
+      .withItems(new rhc.RecordHealthCheckDisplayText().recordLinks(stepThreeRecords, User.Name))
+  };
+
+rhc.RecordHealthCheckDisplayText found =
+  new rhc.RecordHealthCheckDisplayText().groups(groups);
+
+return new rhc.RecordHealthCheckDisplayOverride().withFound(found);
+```
+
+The input lists may have different sizes, for example one, two, and three Users. The resulting groups
+render on separate lines, and both each Step label and each saved User are independently clickable.
+Group keys must be unique and nonblank. Group and item order are preserved, including duplicates.
+Empty groups are hidden by default; add
+`.withEmptyState(new rhc.RecordHealthCheckDisplayText().text('No users'))` to show one. Use
+`.withSeparator(' -> ')` to replace the default colon-space between the label and items. Null records
+and records with blank labels are skipped. Records without an Id render as plain text because
+Salesforce has no record page to open.
+
 ## Bulk pattern
 
 This example checks whether each Account has at least one Contact. It first creates a FAIL outcome
@@ -104,25 +147,20 @@ with a count of zero for every Account. One grouped query finds Accounts that ha
 code replaces only those outcomes with PASS. Accounts with no query row still have a result.
 
 ```apex
-global with sharing class ContactPresenceCheck
-  implements rhc.RecordHealthCheckPlugin {
+global with sharing class ContactPresenceCheck implements rhc.RecordHealthCheckPlugin {
   global Map<Id, rhc.RecordHealthCheckOutcome> evaluate(
     rhc.RecordHealthCheckScope scope
   ) {
     // Read the property once because it returns a new list copy each time.
     List<Id> accountIds = scope.recordIds;
 
-    Map<Id, rhc.RecordHealthCheckOutcome> outcomes =
-      new Map<Id, rhc.RecordHealthCheckOutcome>();
+    Map<Id, rhc.RecordHealthCheckOutcome> outcomes = new Map<Id, rhc.RecordHealthCheckOutcome>();
     for (Id accountId : accountIds) {
       outcomes.put(
         accountId,
         rhc.RecordHealthCheckOutcome.fail('NO_CONTACTS')
           .withFound(rhc.RecordHealthCheckValue.ofCount(0))
-          .withComparison(
-            'GREATER_THAN',
-            rhc.RecordHealthCheckValue.ofCount(0)
-          )
+          .withComparison('GREATER_THAN', rhc.RecordHealthCheckValue.ofCount(0))
       );
     }
 
@@ -140,10 +178,7 @@ global with sharing class ContactPresenceCheck
         recordId,
         rhc.RecordHealthCheckOutcome.pass('CONTACTS_FOUND')
           .withFound(rhc.RecordHealthCheckValue.ofCount(total))
-          .withComparison(
-            'GREATER_THAN',
-            rhc.RecordHealthCheckValue.ofCount(0)
-          )
+          .withComparison('GREATER_THAN', rhc.RecordHealthCheckValue.ofCount(0))
       );
     }
     return outcomes;

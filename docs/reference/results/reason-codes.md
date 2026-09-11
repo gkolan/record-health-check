@@ -154,6 +154,8 @@ a custom Apex Check.
 | `PLUGIN_THREW` | Thrown Apex exception | The plugin threw an unhandled exception that cannot be assigned to one record. |
 | `PLUGIN_CONSTRUCTOR_FAILED` | `UNABLE_TO_EVALUATE` | The configured class was found, but Record Health Check could not construct it. Confirm that the class has an accessible no-argument constructor and that initialization does not throw. |
 | `PLUGIN_INTERFACE_INVALID` | `UNABLE_TO_EVALUATE` | The class constructed but could not be cast to `rhc.RecordHealthCheckPlugin` in the form required by the installed package version. |
+| `PLUGIN_DEFINITION_INVALID` | `UNABLE_TO_EVALUATE` | The optional plugin definition provider returned no definition, threw, queried business data, or declared an invalid schema. Correct the provider before evaluation. |
+| `PLUGIN_SCOPE_LIMIT_EXCEEDED` | `UNABLE_TO_EVALUATE` | The applicable record scope exceeded the plugin definition's declared capacity. Reduce the applicable scope or revise the reviewed capacity declaration. |
 | `PLUGIN_STATUS_INVALID` | `ERROR` | The plugin returned a status other than `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`. |
 | `PLUGIN_REASON_CODE_INVALID` | `ERROR` | The plugin returned a blank, overlong, or otherwise invalid Reason Code. Return a stable nonblank code of at most 80 characters. |
 | `PLUGIN_VALUES_MISSING` | `ERROR` | A `PASS` or `FAIL` outcome omitted the required Found or Expected value. |

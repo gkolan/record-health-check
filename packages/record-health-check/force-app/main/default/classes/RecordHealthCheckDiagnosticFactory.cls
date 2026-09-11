@@ -9,9 +9,7 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
   ) {
     RecordHealthCheckDiagnosticIncident incident = baseIncident(context);
     incident.exceptionType = error == null ? null : error.getTypeName();
-    incident.exceptionMessage = error == null
-      ? null
-      : sanitizeMessage(error.getMessage());
+    incident.exceptionMessage = error == null ? null : '[message withheld]';
     incident.topFrameLine = error == null ? null : error.getLineNumber();
     String stackTrace = error == null ? null : error.getStackTraceString();
     if (error instanceof RecordHealthCheckPluginDispatch.ContractException) {
@@ -25,7 +23,7 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
           contractError.originalExceptionMessage
         )
         ? incident.exceptionMessage
-        : sanitizeMessage(contractError.originalExceptionMessage);
+        : '[message withheld]';
       incident.topFrameLine = contractError.originalLineNumber ??
         incident.topFrameLine;
       stackTrace = String.isBlank(contractError.originalStackTrace)
@@ -44,7 +42,7 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
           configurationError.originalExceptionMessage
         )
         ? incident.exceptionMessage
-        : sanitizeMessage(configurationError.originalExceptionMessage);
+        : '[message withheld]';
       incident.topFrameLine = configurationError.originalLineNumber ??
         incident.topFrameLine;
       stackTrace = String.isBlank(configurationError.originalStackTrace)
@@ -88,15 +86,29 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
       ? 'CRITICAL'
       : context.severity;
     incident.phase = String.isBlank(context?.phase) ? 'UNKNOWN' : context.phase;
+    incident.pluginInvoked = context?.pluginInvoked;
+    incident.valueSide = context?.valueSide;
+    incident.valueDeclaredType = context?.valueDeclaredType;
+    incident.valueMemberCount = context?.valueMemberCount;
+    incident.valueRenderedBlank = context?.valueRenderedBlank;
     incident.component = context?.component;
     incident.evaluatorType = context?.evaluatorType;
     incident.checkSetQualifiedApiName = context?.checkSetQualifiedApiName;
     incident.checkQualifiedApiName = context?.checkQualifiedApiName;
     incident.configurationField = context?.configurationField;
+    incident.offendingToken = context?.offendingToken;
+    incident.tokenStart = context?.tokenStart;
+    incident.tokenEnd = context?.tokenEnd;
+    incident.baseObject = context?.baseObject;
+    incident.dependencyPath = context?.dependencyPath;
     incident.querySide = context?.querySide;
     incident.reasonCode = String.isBlank(context?.reasonCode)
       ? RecordHealthCheckReasonCodes.FRAMEWORK_UNEXPECTED
       : context.reasonCode;
+    incident.reasonOrigin = String.isBlank(context?.reasonOrigin)
+      ? 'FRAMEWORK'
+      : context.reasonOrigin;
+    incident.priorReasonCode = context?.priorReasonCode;
     incident.exceptionMessage = sanitizeMessage(context?.technicalMessage);
     incident.affectedRecordCount = context?.affectedRecordCount;
     incident.scopeImpact = context?.scopeImpact;
@@ -129,12 +141,30 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
     } else if (isPluginConfigurationReason(reason)) {
       RecordHealthCheckDiagnosticGuidance.pluginConfiguration(incident, reason);
     } else if (
+      incident.reasonOrigin == 'PLUGIN' &&
+      String.isBlank(incident.exceptionType)
+    ) {
+      RecordHealthCheckDiagnosticGuidance.pluginUnable(incident);
+    } else if (
       reason == RecordHealthCheckReasonCodes.PLUGIN_THREW ||
       isPluginPhase(incident.phase)
     ) {
       RecordHealthCheckDiagnosticGuidance.pluginRuntime(incident);
     } else if (isAccessReason(reason)) {
       RecordHealthCheckDiagnosticGuidance.accessFailure(incident, reason);
+    } else if (isPlanningReason(reason)) {
+      if (
+        isQueryConfigurationField(incident.configurationField) ||
+        incident.evaluatorType == 'QUERY' ||
+        incident.evaluatorType == 'COMPARE_TWO_QUERIES'
+      ) {
+        RecordHealthCheckDiagnosticGuidance.queryFailure(incident);
+      } else {
+        RecordHealthCheckDiagnosticGuidance.formulaFailure(incident);
+      }
+      if (incident.configurationField == 'ApplicabilityFormula__c') {
+        incident.summary = 'The check could not start because its applicability formula referenced an unresolved token.';
+      }
     } else if (isConfigurationPhase(incident.phase)) {
       RecordHealthCheckDiagnosticGuidance.configurationFailure(incident);
     } else if (isFormulaPhase(incident.phase)) {
@@ -152,6 +182,15 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
     } else {
       RecordHealthCheckDiagnosticGuidance.frameworkFailure(incident);
     }
+  }
+
+  private static Boolean isQueryConfigurationField(String fieldName) {
+    return new Set<String>{
+        'SourceQuery__c',
+        'ComparisonQuery__c',
+        'ApplicabilityCountQuery__c'
+      }
+      .contains(fieldName);
   }
 
   private static void pluginResultGuidance(
@@ -250,6 +289,7 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
       reason == RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND ||
       reason == RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED ||
       reason == RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED ||
+      reason == RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID ||
       reason == RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID ||
       reason == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS;
   }
@@ -278,5 +318,11 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
     return reason == RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE ||
       reason == RecordHealthCheckReasonCodes.RECORD_NOT_ACCESSIBLE ||
       reason == 'RECORD_NOT_VISIBLE';
+  }
+
+  private static Boolean isPlanningReason(String reason) {
+    return reason == RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED ||
+      reason == RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED ||
+      reason == RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED;
   }
 }

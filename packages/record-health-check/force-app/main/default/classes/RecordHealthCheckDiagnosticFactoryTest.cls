@@ -251,10 +251,7 @@ private class RecordHealthCheckDiagnosticFactoryTest {
     Test.stopTest();
 
     Assert.areEqual('Subscriber.ConstructorFailure', incident.exceptionType);
-    Assert.areEqual(
-      'Expected subscriber constructor failure.',
-      incident.exceptionMessage
-    );
+    Assert.areEqual('[message withheld]', incident.exceptionMessage);
     Assert.areEqual('Subscriber.Plugin', incident.topFrameClass);
     Assert.areEqual('construct', incident.topFrameMethod);
     Assert.areEqual(42, incident.topFrameLine);

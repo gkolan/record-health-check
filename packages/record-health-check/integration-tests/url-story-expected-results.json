@@ -1,0 +1,159 @@
+{
+  "checkSet": "RHC_Link_Conditions",
+  "checks": [
+    "RHC_Link_Metadata",
+    "RHC_Link_Apex_Legacy",
+    "RHC_Link_Apex_Structured"
+  ],
+  "records": [
+    {
+      "name": "RHC Link Healthy",
+      "status": "PASS",
+      "reasons": {
+        "RHC_Link_Metadata": null,
+        "RHC_Link_Apex_Legacy": "APPROVALS_ACTIVE",
+        "RHC_Link_Apex_Structured": "APPROVALS_ACTIVE"
+      },
+      "summary": {
+        "pass": 3,
+        "fail": 0,
+        "skip": 0,
+        "unable": 0,
+        "systemError": 0
+      }
+    },
+    {
+      "name": "RHC Link Needs Review",
+      "status": "FAIL",
+      "reasons": {
+        "RHC_Link_Metadata": null,
+        "RHC_Link_Apex_Legacy": "APPROVAL_REVIEW_REQUIRED",
+        "RHC_Link_Apex_Structured": "APPROVAL_REVIEW_REQUIRED"
+      },
+      "summary": {
+        "pass": 0,
+        "fail": 3,
+        "skip": 0,
+        "unable": 0,
+        "systemError": 0
+      }
+    },
+    {
+      "name": "RHC Link Not Applicable",
+      "status": "SKIPPED",
+      "reasons": {
+        "RHC_Link_Metadata": "APPLICABILITY_NOT_MET",
+        "RHC_Link_Apex_Legacy": "APPLICABILITY_NOT_MET",
+        "RHC_Link_Apex_Structured": "APPLICABILITY_NOT_MET"
+      },
+      "summary": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 3,
+        "unable": 0,
+        "systemError": 0
+      }
+    },
+    {
+      "name": "RHC Link Missing Data",
+      "status": "UNABLE_TO_EVALUATE",
+      "reasons": {
+        "RHC_Link_Metadata": "NO_ROWS_RETURNED",
+        "RHC_Link_Apex_Legacy": "APPROVAL_DATA_MISSING",
+        "RHC_Link_Apex_Structured": "APPROVAL_DATA_MISSING"
+      },
+      "summary": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "unable": 3,
+        "systemError": 0
+      }
+    },
+    {
+      "name": "RHC Link Missing Destination",
+      "status": "FAIL",
+      "reasons": {
+        "RHC_Link_Metadata": null,
+        "RHC_Link_Apex_Legacy": "APPROVAL_REVIEW_REQUIRED",
+        "RHC_Link_Apex_Structured": "APPROVAL_REVIEW_REQUIRED"
+      },
+      "summary": {
+        "pass": 0,
+        "fail": 3,
+        "skip": 0,
+        "unable": 0,
+        "systemError": 0
+      }
+    },
+    {
+      "name": "RHC Link Unsafe Destination",
+      "status": "FAIL",
+      "reasons": {
+        "RHC_Link_Metadata": null,
+        "RHC_Link_Apex_Legacy": "APPROVAL_REVIEW_REQUIRED",
+        "RHC_Link_Apex_Structured": "APPROVAL_REVIEW_REQUIRED"
+      },
+      "summary": {
+        "pass": 0,
+        "fail": 3,
+        "skip": 0,
+        "unable": 0,
+        "systemError": 0
+      }
+    },
+    {
+      "name": "RHC Link Healthy Unsafe Destination",
+      "status": "PASS",
+      "reasons": {
+        "RHC_Link_Metadata": null,
+        "RHC_Link_Apex_Legacy": "APPROVALS_ACTIVE",
+        "RHC_Link_Apex_Structured": "APPROVALS_ACTIVE"
+      },
+      "summary": {
+        "pass": 3,
+        "fail": 0,
+        "skip": 0,
+        "unable": 0,
+        "systemError": 0
+      }
+    }
+  ],
+  "displayCases": [
+    {
+      "record": "RHC Link Needs Review",
+      "check": "RHC_Link_Apex_Structured",
+      "groupedLinks": true
+    },
+    {
+      "record": "RHC Link Needs Review",
+      "check": "RHC_Link_Apex_Legacy",
+      "structured": false,
+      "foundText": "Step 1 - Payment Term Approvals\nStep 2 - Finance Approval"
+    },
+    {
+      "record": "RHC Link Needs Review",
+      "check": "RHC_Link_Metadata",
+      "guideKind": "link"
+    },
+    {
+      "record": "RHC Link Missing Destination",
+      "check": "RHC_Link_Metadata",
+      "guideKind": "text"
+    },
+    {
+      "record": "RHC Link Unsafe Destination",
+      "check": "RHC_Link_Metadata",
+      "guideKind": "text"
+    },
+    {
+      "record": "RHC Link Healthy Unsafe Destination",
+      "check": "RHC_Link_Metadata",
+      "guideKind": "text"
+    }
+  ],
+  "transition": {
+    "record": "RHC Link Healthy",
+    "statuses": ["PASS", "FAIL", "PASS"]
+  }
+}

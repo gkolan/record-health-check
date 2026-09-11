@@ -15,9 +15,21 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     RecordHealthCheckInternalResult result,
     Boolean showDiagnostics
   ) {
+    finalizeDisplay(check, record, result, showDiagnostics, false);
+  }
+
+  /** Finalizes legacy strings and optionally supplies card-only display nodes. */
+  public void finalizeDisplay(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult result,
+    Boolean showDiagnostics,
+    Boolean includeStructuredDisplay
+  ) {
     if (result == null) {
       return;
     }
+    String authoredMessage = result.message;
     if (record != null && String.isNotBlank(result.message)) {
       result.message = formulaEvaluator.resolveMergeFields(
         result.message,
@@ -83,26 +95,13 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     if (restricted) {
       result.reasonCode = RecordHealthCheckReasonCodes.CANNOT_EVALUATE;
     }
+    if (includeStructuredDisplay) {
+      new RecordHealthCheckStructuredDisplay(formulaEvaluator)
+        .attach(check, record, result, authoredMessage);
+    }
   }
-
   public String sanitizeActionUrl(String value) {
-    if (String.isBlank(value)) {
-      return null;
-    }
-    String url = value.trim();
-    if (
-      url.length() > 2000 ||
-      url.contains('\n') ||
-      url.contains('\r') ||
-      url.contains('\t') ||
-      url.contains('\\') ||
-      url.startsWith('//')
-    ) {
-      return null;
-    }
-    return url.startsWith('/') || url.toLowerCase().startsWith('https://')
-      ? url
-      : null;
+    return RecordHealthCheckActionUrlPolicy.sanitize(value);
   }
 
   public RecordHealthCheckInternalResult findPrerequisiteBlock(
@@ -463,6 +462,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     }
 
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
+    item.diagnosticSource = internalResult;
     item.evaluation = evaluation;
     if (resultMode == RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY) {
       RecordHealthCheckResultDisplay display = new RecordHealthCheckResultDisplay();
@@ -486,6 +486,8 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       display.actionLabel = internalResult.actionLabel;
       display.actionUrl = internalResult.actionUrl;
       display.adminDetail = internalResult.adminDetail;
+      display.displayContent = internalResult.displayContent;
+      display.evidence = internalResult.evidenceEnvelope;
       item.display = display;
     }
     return item;

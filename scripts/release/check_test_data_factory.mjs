@@ -27,6 +27,7 @@ const forceAppFactoryAllowlist = new Set([
   "contact",
   "contactFixture",
   "contactsFixture",
+  "createReadinessReceipt",
   "currentUser",
   "deletedAccountFixture",
   "event",
@@ -38,6 +39,7 @@ const forceAppFactoryAllowlist = new Set([
   "prepareTestFixtures",
   "qualifiedCheckName",
   "qualifiedCheckSetName",
+  "readinessReceipt",
   "syntheticId",
   "task",
   "taskFixture"

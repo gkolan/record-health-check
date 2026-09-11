@@ -69,6 +69,33 @@ public class RHCIntegrationTestDataFactory {
     return accountRecord;
   }
 
+  /** Creates the four owned Account records for detached-preview verification. */
+  public static Map<String, Account> createPreviewAccounts() {
+    Map<String, Account> records = new Map<String, Account>{
+      'healthy' => new Account(
+        Name = 'SP-A-Healthy',
+        Industry = 'Manufacturing',
+        Website = 'https://example.test'
+      ),
+      'unhealthy' => new Account(
+        Name = 'SP-A-Unhealthy',
+        Industry = 'Manufacturing',
+        Website = 'http://example.test'
+      ),
+      'skipped' => new Account(
+        Name = 'SP-A-Skipped',
+        Industry = 'Banking',
+        Website = 'https://example.test'
+      ),
+      'missing' => new Account(
+        Name = 'SP-A-Missing',
+        Industry = 'Manufacturing'
+      )
+    };
+    createAccounts(records.values());
+    return records;
+  }
+
   public static Account createDeletedAccount(String name) {
     Account accountRecord = createAccount(name);
     delete accountRecord;
@@ -79,6 +106,11 @@ public class RHCIntegrationTestDataFactory {
     List<SObject> values = new List<SObject>();
     values.addAll(records);
     createRecords(values);
+  }
+
+  /** Updates one fixture-owned Account for transition assertions. */
+  public static void updateAccount(Account accountRecord) {
+    update accountRecord;
   }
 
   public static Contact createContact(Contact contactRecord) {

@@ -113,6 +113,38 @@ uses `rhc__RHC_Persona_Record__c` and `rhc__Accessible_Value__c` / `rhc__Restric
 integration tests remain useful, but those four persona methods correctly reject the unavailable
 namespaced object instead of proving the intended field-access scenario.
 
+## URL-story merge and inline-link verification
+
+The `RHC_Link_Conditions` Check Set contains the metadata, legacy Apex, and structured Apex Checks
+used by the merge/link contract. Seed its seven deterministic Account records and verify the exact
+21-result matrix against an existing source org:
+
+```bash
+sf apex run \
+  --file packages/record-health-check/integration-tests/scripts/setup-url-story.apex \
+  --target-org <existing-source-org>
+npm run verify:url-story -- --target-org <existing-source-org>
+```
+
+The verifier reads `url-story-expected-results.json`; missing or extra results, wrong statuses or
+reason codes, a malformed 1/2/3 grouped display, unsafe-link activation, or an incomplete
+PASS→FAIL→PASS transition fails the command. The transition restores the original employee count in
+an Apex `finally` block. Passing evidence is written beneath the ignored `reports/url-story/`
+directory.
+
+After assigning the URL-story Check Set to an Account record page, run the real-browser contract:
+
+```bash
+npm run verify:url-story:browser -- \
+  --target-org <existing-source-org> \
+  --security-mode LWS
+```
+
+The Chromium and Firefox run verifies separate Step lines, nine independently clickable links,
+protected new-tab attributes, dotted row discovery, a solid underline on only the hovered/focused
+link, legacy newline compatibility, and missing/HTTP destination fallback. `Locker` is a separate
+required run and must name an existing Locker org; these commands never create an org.
+
 ## Display-format scratch orgs and deterministic data
 
 Run the maintained sample in both currency modes. Both commands deploy Framework and the integration

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>URL Story: Structured Apex links</label>
+  <protected>false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_Link_Conditions</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Structured Apex links</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Exercises the optional Apex display interface using the evaluated scope.</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >30</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >APEX</value></values>
+  <values><field>FormulaResultType__c</field><value
+      xsi:type="xsd:string"
+    >AUTO</value></values>
+  <values><field>ApexClass__c</field><value
+      xsi:type="xsd:string"
+    >RHCLinkStructuredPlugin</value></values>
+  <values><field>ApexParametersJson__c</field><value
+      xsi:type="xsd:string"
+    >{}</value></values>
+  <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >WHEN_FORMULA_TRUE</value></values>
+  <values><field>ApplicabilityFormula__c</field><value
+      xsi:type="xsd:string"
+    >Site = &quot;RHC_LINK_FIXTURE&quot;</value></values>
+  <values><field>ApplicabilityNotMetMessage__c</field><value
+      xsi:type="xsd:string"
+    >This Account is outside the URL-story fixture.</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >The structured Apex Check found inactive synthetic approvers.</value></values>
+  <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Approval data is missing; add Number of Employees and rerun.</value></values>
+  <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Open {!link label=&quot;the approval guide&quot; href=&quot;{!record.Website}&quot;} and restore both synthetic approvers.</value></values>
+  <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >View account</value></values>
+  <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/view</value></values>
+  <values><field>PublishUserResultEvent__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+</CustomMetadata>

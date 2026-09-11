@@ -692,6 +692,63 @@
   height: var(--slds-g-sizing-3, 0.5rem);
 }
 
+/* Structured display links deliberately look like the surrounding evidence at
+   rest. Row hover/focus reveals authorship without changing outcome colors. */
+.rhc-inline-link,
+.rhc-inline-link:visited {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
+
+.rhc-row:hover .rhc-inline-link,
+.rhc-row:focus-within .rhc-inline-link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: #000000;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.rhc-inline-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+@media (hover: none) {
+  .rhc-inline-link,
+  .rhc-inline-link:visited {
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: #000000;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  .rhc-row:hover .rhc-inline-link,
+  .rhc-row:focus-within .rhc-inline-link,
+  .rhc-inline-link,
+  .rhc-inline-link:visited {
+    text-decoration-color: LinkText;
+  }
+}
+
+/* Keep sibling links dotted while the exact mouse or keyboard target receives
+   the stronger conventional link affordance. Include the row state in these
+   selectors so this rule has strictly greater specificity than the dotted
+   discovery rule in every supported shadow-DOM runtime. */
+.rhc-row:hover .rhc-inline-link:hover,
+.rhc-row:focus-within .rhc-inline-link:focus-visible {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
 /* Shared disclosure frame for verbose user messages, remediation guidance,
    diagnostics, and Found/Expected values. Each content type chooses its own
    line limit while retaining the same compact +/- control. */
@@ -1282,4 +1339,46 @@
   .rhc-tooltip-anchor::after {
     transition: none;
   }
+}
+
+.rhc-evidence {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--slds-g-color-border-base-1, #c9c9c9);
+}
+
+.rhc-evidence__summary,
+.rhc-evidence__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rhc-evidence__label,
+.rhc-evidence__group-heading {
+  font-weight: 700;
+}
+
+.rhc-evidence__actions,
+.rhc-evidence__region,
+.rhc-evidence__group + .rhc-evidence__group {
+  margin-top: 0.5rem;
+}
+
+.rhc-evidence__group-heading {
+  margin-bottom: 0.25rem;
+}
+
+.rhc-evidence__table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.rhc-evidence__table-scroll table {
+  min-width: max-content;
+}
+
+.rhc-evidence__show-all {
+  margin-top: 0.5rem;
 }

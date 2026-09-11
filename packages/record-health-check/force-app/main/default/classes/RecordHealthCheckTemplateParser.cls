@@ -16,6 +16,12 @@ public class RecordHealthCheckTemplateParser {
     Matcher matcher = TOKEN_PATTERN.matcher(template);
     while (matcher.find()) {
       String body = matcher.group(1).trim();
+      // The generic token regex sees a static inline link as one large token.
+      // Inline links have their own grammar; only the value tokens nested in
+      // their attributes belong in this token inventory.
+      if (body == 'link' || body.startsWith('link ')) {
+        continue;
+      }
       Integer firstSpace = firstWhitespaceIndex(body);
       String reference = firstSpace < 0 ? body : body.substring(0, firstSpace);
       String attributes = firstSpace < 0 ? '' : body.substring(firstSpace);
@@ -101,8 +107,60 @@ public class RecordHealthCheckTemplateParser {
     if (String.isBlank(template)) {
       return issues;
     }
+    RecordHealthCheckInlineLinkParser.Result linkResult = RecordHealthCheckInlineLinkParser.scan(
+      template
+    );
+    if (!linkResult.issues.isEmpty()) {
+      issues.addAll(linkResult.issues);
+      return issues;
+    }
+    if (
+      !linkResult.links.isEmpty() &&
+      !RecordHealthCheckInlineLinkParser.isAllowedSurface(surface)
+    ) {
+      issues.add(
+        issue(
+          'INLINE_LINK_NOT_ALLOWED_ON_SURFACE',
+          linkResult.links[0].expression,
+          'Inline links are allowed only on authored display-message surfaces.'
+        )
+      );
+      return issues;
+    }
+    for (RecordHealthCheckInlineLinkParser.Link link : linkResult.links) {
+      List<RecordHealthCheckTokenIssue> labelIssues = validate(
+        link.labelTemplate,
+        surface
+      );
+      List<RecordHealthCheckTokenIssue> hrefIssues = validate(
+        link.hrefTemplate,
+        RecordHealthCheckTemplateService.SURFACE_URL
+      );
+      if (!labelIssues.isEmpty()) {
+        issues.addAll(labelIssues);
+      }
+      if (!hrefIssues.isEmpty()) {
+        issues.addAll(hrefIssues);
+      } else {
+        RecordHealthCheckTokenIssue urlIssue = RecordHealthCheckInlineUrlPolicy.validateAuthored(
+          link.hrefTemplate
+        );
+        if (urlIssue != null) {
+          urlIssue.attribute = 'href';
+          urlIssue.token = link.expression;
+          issues.add(urlIssue);
+        }
+      }
+    }
+    if (!issues.isEmpty()) {
+      return issues;
+    }
     List<RecordHealthCheckToken> tokens = parse(template);
-    if (containsStrayBrace(template, tokens)) {
+    String braceSource = RecordHealthCheckInlineLinkParser.maskLinks(
+      template,
+      linkResult.links
+    );
+    if (containsStrayBrace(braceSource, tokens)) {
       issues.add(
         issue(
           'MALFORMED_TOKEN',

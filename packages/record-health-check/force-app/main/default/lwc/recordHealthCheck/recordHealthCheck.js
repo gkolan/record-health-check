@@ -160,6 +160,7 @@ export default class RecordHealthCheck extends LightningElement {
   // the visibleChecks getter re-annotates. Lives outside `checks` because the
   // runner rebuilds that array on every result; expand state must survive that.
   @track _expandedNames = emptyExpandedState();
+  _evidenceBlobUrls = new Set();
 
   // Run orchestration (result buffer, reveal pointer, concurrency pool, run id,
   // and the run token that discards stale in-flight results) lives in the runner;
@@ -251,6 +252,10 @@ export default class RecordHealthCheck extends LightningElement {
     this._cancelScheduledRecordRefresh();
     this._cancelScheduledAutomaticRun();
     this._runner.invalidate();
+    for (const url of this._evidenceBlobUrls) {
+      window.URL.revokeObjectURL(url);
+    }
+    this._evidenceBlobUrls.clear();
     this._definitionLoadInProgress = false;
     this._definitionsResolved = false;
 
@@ -1235,6 +1240,89 @@ export default class RecordHealthCheck extends LightningElement {
     this._expandedNames = expandedNames;
   }
 
+  handleToggleEvidence(event) {
+    const identity = event.currentTarget.dataset.check;
+    const current = this.checks.find(
+      (check) => checkIdentity(check) === identity
+    );
+    const nextExpanded = current?.evidenceExpanded !== true;
+    this.checks = this.checks.map((check) => {
+      if (checkIdentity(check) !== identity) return check;
+      return {
+        ...check,
+        evidenceExpanded: nextExpanded,
+        evidenceShowAll: nextExpanded ? check.evidenceShowAll : false
+      };
+    });
+    if (!nextExpanded) {
+      Promise.resolve().then(() => {
+        this.template
+          .querySelector(`[data-evidence-toggle="${identity}"]`)
+          ?.focus();
+      });
+    }
+  }
+
+  handleShowAllEvidence(event) {
+    const identity = event.currentTarget.dataset.check;
+    this.checks = this.checks.map((check) => {
+      return checkIdentity(check) === identity
+        ? { ...check, evidenceShowAll: true }
+        : check;
+    });
+  }
+
+  handleDownloadEvidence(event) {
+    const identity = event.currentTarget.dataset.check;
+    const check = this.checks.find(
+      (candidate) => checkIdentity(candidate) === identity
+    );
+    const evidence = check?.result?.evidence;
+    if (!evidence || evidence.version !== "1.0") return;
+    const blob = new Blob([JSON.stringify(evidence)], {
+      type: "application/json;charset=utf-8"
+    });
+    // Blob URLs are required for the bounded, user-initiated JSON export. LWS
+    // virtualizes this API; retain the URL only until the synchronous click.
+    // eslint-disable-next-line @locker/locker/distorted-url-create-object-url
+    const url = window.URL.createObjectURL(blob);
+    this._evidenceBlobUrls.add(url);
+    const link = [
+      ...this.template.querySelectorAll("[data-evidence-download]")
+    ].find((candidate) => candidate.dataset.check === identity);
+    if (!link) {
+      window.URL.revokeObjectURL(url);
+      this._evidenceBlobUrls.delete(url);
+      return;
+    }
+    const safeRunId = String(evidence.runId || "run").replace(
+      /[^A-Za-z0-9_-]/g,
+      "-"
+    );
+    link.href = url;
+    link.download = `rhc-evidence-${safeRunId}.json`;
+    link.click();
+    Promise.resolve().then(() => {
+      if (this._evidenceBlobUrls.delete(url)) {
+        window.URL.revokeObjectURL(url);
+      }
+    });
+  }
+
+  handleInlineLinkClick(event) {
+    // Inline anchors are navigation only. Keep their click from reaching any
+    // surrounding row/disclosure behavior in current or future containers.
+    event.stopPropagation();
+  }
+
+  _setClampLinkAccess(container, enabled) {
+    const links = container.querySelectorAll("[data-inline-link]");
+    for (const link of links) {
+      link.tabIndex = enabled ? 0 : -1;
+    }
+    return links.length > 0;
+  }
+
   // Found/Expected values, user messages, fix guidance, and diagnostic detail
   // share one four-line disclosure interaction. This layout pass decides only
   // whether the control is necessary.
@@ -1256,6 +1344,14 @@ export default class RecordHealthCheck extends LightningElement {
       }
       const overflowing = content.scrollHeight - content.clientHeight > 1;
       toggle.hidden = !overflowing;
+      const hasLinks = this._setClampLinkAccess(
+        container,
+        !overflowing ||
+          content.classList.contains("rhc-expandable__content--expanded")
+      );
+      if (overflowing && hasLinks) {
+        toggle.ariaLabel = "Expand to access links";
+      }
     }
   }
 
@@ -1287,13 +1383,24 @@ export default class RecordHealthCheck extends LightningElement {
     if (!content) {
       return;
     }
+    const wasExpanded = content.classList.contains(
+      "rhc-expandable__content--expanded"
+    );
+    if (wasExpanded) {
+      // Move focus before removing the expanded anchors from keyboard order.
+      toggle.focus();
+    }
     const expanded = content.classList.toggle(
       "rhc-expandable__content--expanded"
     );
+    const hasLinks = this._setClampLinkAccess(container, expanded);
     const label = toggle.dataset.expandLabel || "content";
     toggle.dataset.symbol = expanded ? "−" : "+";
     toggle.ariaExpanded = expanded ? "true" : "false";
-    toggle.ariaLabel = `${expanded ? "Collapse" : "Expand"} ${label}`;
+    toggle.ariaLabel =
+      !expanded && hasLinks
+        ? "Expand to access links"
+        : `${expanded ? "Collapse" : "Expand"} ${label}`;
   }
 
   get checkCountLabel() {

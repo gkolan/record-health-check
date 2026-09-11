@@ -31,6 +31,56 @@ private class RecordHealthCheckPluginDispatchTest {
     }
   }
 
+  /** Supplies optional display without repeating evaluation or querying. */
+  private class DisplayCheck implements RecordHealthCheckPlugin, RecordHealthCheckDisplayPlugin {
+    public Integer evaluationCalls = 0;
+    public Integer displayCalls = 0;
+    public Id extraKey;
+    public Boolean queryDuringDisplay = false;
+
+    public Map<Id, RecordHealthCheckOutcome> evaluate(
+      RecordHealthCheckScope scope
+    ) {
+      evaluationCalls++;
+      Map<Id, RecordHealthCheckOutcome> values = new Map<Id, RecordHealthCheckOutcome>();
+      for (Id recordId : scope.recordIds) {
+        values.put(recordId, RecordHealthCheckOutcome.pass('OK'));
+      }
+      return values;
+    }
+
+    public Map<Id, RecordHealthCheckDisplayOverride> getDisplay(
+      RecordHealthCheckScope scope
+    ) {
+      displayCalls++;
+      if (queryDuringDisplay) {
+        List<Account> queriedAccounts = [
+          SELECT Id
+          FROM Account
+          WITH USER_MODE
+          LIMIT 1
+        ];
+        queriedAccounts.clear();
+      }
+      Map<Id, RecordHealthCheckDisplayOverride> values = new Map<Id, RecordHealthCheckDisplayOverride>();
+      for (Id recordId : scope.recordIds) {
+        values.put(
+          recordId,
+          new RecordHealthCheckDisplayOverride()
+            .withFound(
+              new RecordHealthCheckDisplayText()
+                .text('Step ')
+                .link('one', '/one')
+            )
+        );
+      }
+      if (extraKey != null) {
+        values.put(extraKey, new RecordHealthCheckDisplayOverride());
+      }
+      return values;
+    }
+  }
+
   /** Throws, but changes nothing. Attributable to the check, so it may become results. */
   private class ThrowingCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
@@ -193,6 +243,104 @@ private class RecordHealthCheckPluginDispatchTest {
       outcomes.size(),
       'The fence must not fire on a check that behaves.'
     );
+  }
+
+  @IsTest
+  static void optionalDisplayRunsOnceOnSameInstanceAndReturnsCopies() {
+    List<Account> accounts = makeAccounts(2);
+    DisplayCheck plugin = new DisplayCheck();
+    RecordHealthCheckScope scope = scopeFor(accounts);
+
+    RecordHealthCheckPluginDispatch.run(plugin, scope);
+    Map<Id, RecordHealthCheckDisplayOverride> display = RecordHealthCheckPluginDisplayDispatch.run(
+      plugin,
+      scope
+    );
+
+    Assert.areEqual(1, plugin.evaluationCalls);
+    Assert.areEqual(1, plugin.displayCalls);
+    Assert.areEqual(2, display.size());
+    Assert.areEqual(
+      'link',
+      display.get(accounts[0].Id).found.copyNodes()[1].kind
+    );
+  }
+
+  @IsTest
+  static void optionalDisplayRejectsQueriesAndUnknownRecordKeys() {
+    List<Account> accounts = makeAccounts(2);
+    DisplayCheck querying = new DisplayCheck();
+    querying.queryDuringDisplay = true;
+    String queryReason;
+    try {
+      RecordHealthCheckPluginDisplayDispatch.run(querying, scopeFor(accounts));
+    } catch (RecordHealthCheckPluginDisplayDispatch.DisplayException ex) {
+      queryReason = ex.reasonCode;
+    }
+    Assert.areEqual('PLUGIN_DISPLAY_QUERIED', queryReason);
+
+    Account foreign = makeAccounts(1)[0];
+    DisplayCheck extra = new DisplayCheck();
+    extra.extraKey = foreign.Id;
+    String keyReason;
+    try {
+      RecordHealthCheckPluginDisplayDispatch.run(extra, scopeFor(accounts));
+    } catch (RecordHealthCheckPluginDisplayDispatch.DisplayException ex) {
+      keyReason = ex.reasonCode;
+    }
+    Assert.areEqual('PLUGIN_DISPLAY_UNKNOWN_KEY', keyReason);
+  }
+
+  @IsTest
+  static void optionalDisplayFailurePreservesCompletedEvaluation() {
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
+      'Display failure'
+    );
+    RecordHealthCheckDiagModeTestPlugin.mode = 'DISPLAY_THROW_SECRET';
+
+    try {
+      Test.startTest();
+      RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
+        .withCardPresentation(true)
+        .evaluate(
+          RecordHealthCheckTestDataFactory.check(
+            new Map<String, Object>{
+              'DeveloperName' => 'Display_Failure',
+              'QualifiedApiName' => 'Display_Failure',
+              'EvaluationType__c' => 'APEX',
+              'ApexClass__c' => 'RecordHealthCheckDiagModeTestPlugin',
+              'ApexParametersJson__c' => '{}'
+            }
+          ),
+          record.Id,
+          record
+        );
+      Test.stopTest();
+
+      Assert.areEqual(
+        RecordHealthCheckStatus.PASS,
+        result.status,
+        'Optional presentation failure must not replace a completed verdict.'
+      );
+      Assert.areEqual('DISPLAY_EVALUATION_PRESERVED', result.reasonCode);
+      Assert.areEqual('Evaluated found', result.actualValue);
+      Assert.areEqual('Evaluated found', result.expectedValue);
+      Assert.areEqual(
+        'PLUGIN_DISPLAY_THREW',
+        result.detailMessage,
+        'Only the bounded framework reason may describe display failure.'
+      );
+      Assert.isFalse(
+        result.detailMessage.contains('display-secret'),
+        'Subscriber exception text must not leak into the result.'
+      );
+      Assert.isNull(
+        result.displayContent,
+        'Rejected display content must fall back to the original value.'
+      );
+    } finally {
+      RecordHealthCheckDiagModeTestPlugin.mode = null;
+    }
   }
 
   @IsTest

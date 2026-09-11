@@ -4,17 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RecordHealthCheckFormulaFieldScanner {
-  private static final Pattern PATTERN_DOT_PATH = Pattern.compile(
-    '\\b([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]+)+)\\b'
-  );
-  private static final Pattern PATTERN_WORD = Pattern.compile(
-    '\\b[A-Za-z_][A-Za-z0-9_]*\\b'
-  );
   private static final Pattern PATTERN_COLON_PATH = Pattern.compile(
     '\\b([A-Za-z_][A-Za-z0-9_]*):([A-Za-z_][A-Za-z0-9_]*)((?:\\.[A-Za-z_][A-Za-z0-9_]*)+)\\b'
-  );
-  private static final Pattern PATTERN_DOLLAR_GLOBAL = Pattern.compile(
-    '\\$[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*'
   );
   private static Map<String, Schema.SObjectField> nameEntityFields;
 
@@ -30,52 +21,29 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
   ) {
     List<FieldReference> tokens = new List<FieldReference>();
     Set<String> seen = new Set<String>();
-    String scannable = maskFormulaStringLiterals(formula);
-    scannable = PATTERN_DOLLAR_GLOBAL.matcher(scannable).replaceAll(' ');
-
-    Matcher colonMatcher = PATTERN_COLON_PATH.matcher(scannable);
-    List<String> maskedParts = new List<String>();
-    Integer lastEnd = 0;
-    while (colonMatcher.find()) {
-      maskedParts.add(scannable.substring(lastEnd, colonMatcher.start()));
-      maskedParts.add(
-        ''.rightPad(colonMatcher.end() - colonMatcher.start(), ' ')
-      );
-      lastEnd = colonMatcher.end();
-      FieldReference normalizedPath = resolveColonReference(
-        resolveType,
-        colonMatcher.group(1),
-        colonMatcher.group(2),
-        colonMatcher.group(3)
-      );
-      if (normalizedPath != null && seen.add(normalizedPath.path)) {
-        tokens.add(normalizedPath);
+    for (
+      RecordHealthCheckFormulaTokenizer.Token token : RecordHealthCheckFormulaTokenizer.tokenize(
+          formula
+        )
+        .tokens
+    ) {
+      if (token.kind != 'FIELD_PATH' || token.text.startsWith('$')) {
+        continue;
       }
-    }
-    maskedParts.add(scannable.substring(lastEnd));
-    scannable = String.join(maskedParts, '');
-
-    Matcher dotMatcher = PATTERN_DOT_PATH.matcher(scannable);
-    maskedParts = new List<String>();
-    lastEnd = 0;
-    while (dotMatcher.find()) {
-      maskedParts.add(scannable.substring(lastEnd, dotMatcher.start()));
-      maskedParts.add(''.rightPad(dotMatcher.end() - dotMatcher.start(), ' '));
-      lastEnd = dotMatcher.end();
-      if (seen.add(dotMatcher.group(1))) {
-        tokens.add(new FieldReference(dotMatcher.group(1), null, null));
+      FieldReference reference;
+      Matcher colonMatcher = PATTERN_COLON_PATH.matcher(token.text);
+      if (colonMatcher.matches()) {
+        reference = resolveColonReference(
+          resolveType,
+          colonMatcher.group(1),
+          colonMatcher.group(2),
+          colonMatcher.group(3)
+        );
+      } else {
+        reference = new FieldReference(token.text, null, null);
       }
-    }
-    maskedParts.add(scannable.substring(lastEnd));
-    scannable = String.join(maskedParts, '');
-
-    Matcher wordMatcher = PATTERN_WORD.matcher(scannable);
-    while (wordMatcher.find()) {
-      String word = wordMatcher.group(0);
-      if (
-        !RecordHealthCheckFormulaSyntax.isSyntaxWord(word) && seen.add(word)
-      ) {
-        tokens.add(new FieldReference(word, null, null));
+      if (reference != null && seen.add(reference.path)) {
+        tokens.add(reference);
       }
     }
     return tokens;
@@ -132,21 +100,6 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
     String firstPathPart = childPath.substringBefore('.');
     return nameEntityFields.get(firstPathPart) != null ||
       findRelationshipField(nameEntityFields, firstPathPart) != null;
-  }
-
-  private static String maskFormulaStringLiterals(String formula) {
-    List<String> masked = new List<String>();
-    Boolean inQuote = false;
-    for (Integer i = 0; i < formula.length(); i++) {
-      String character = formula.substring(i, i + 1);
-      if (character == '"' && (i == 0 || formula.substring(i - 1, i) != '\\')) {
-        inQuote = !inQuote;
-        masked.add('"');
-      } else {
-        masked.add(inQuote ? ' ' : character);
-      }
-    }
-    return String.join(masked, '');
   }
 
   private static Schema.SObjectField findRelationshipField(

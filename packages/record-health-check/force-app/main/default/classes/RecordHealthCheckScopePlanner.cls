@@ -42,6 +42,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata is framework configuration; the selected business records are loaded separately WITH USER_MODE.
     List<Record_Health_Check_Set__mdt> sets = [
       SELECT
+        Id,
         QualifiedApiName,
         DeveloperName,
         IsActive__c,

@@ -2543,6 +2543,17 @@
   {
     "aggregate": false,
     "bareCount": false,
+    "check": "RHC_Link_Metadata",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects Id but orders by Id",
+    "package": "integration-tests",
+    "soql": "SELECT Id, Name, NumberOfEmployees, OwnerId, Owner.Name, Website FROM Account WHERE Id = {!record.Id} AND NumberOfEmployees != null ORDER BY Id LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
     "check": "Account_Country_Not_Restricted",
     "correlation": "-",
     "field": "ComparisonQuery__c",

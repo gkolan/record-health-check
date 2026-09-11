@@ -273,10 +273,40 @@
                   <template if:true={check.showMessage}>
                     <span class="rhc-expandable" data-expandable>
                       <span class={check.messageClass} data-clampcontent>
-                        <template for:each={check.messageLines} for:item="line">
-                          <span key={line.key} class={line.lineClass}
-                            >{line.text}</span
+                        <template if:false={check.showStructuredMessage}>
+                          <template
+                            for:each={check.messageLines}
+                            for:item="line"
                           >
+                            <span key={line.key} class={line.lineClass}
+                              >{line.text}</span
+                            >
+                          </template>
+                        </template>
+                        <template if:true={check.showStructuredMessage}>
+                          <template
+                            for:each={check.messageNodes}
+                            for:item="node"
+                          >
+                            <span key={node.key}>
+                              <template if:true={node.isText}
+                                >{node.text}</template
+                              >
+                              <template if:true={node.isBreak}><br /></template>
+                              <template if:true={node.isLink}>
+                                <a
+                                  class="rhc-inline-link"
+                                  href={node.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={node.linkAriaLabel}
+                                  data-inline-link
+                                  onclick={handleInlineLinkClick}
+                                  >{node.text}</a
+                                >
+                              </template>
+                            </span>
+                          </template>
                         </template>
                       </span>
                       <button
@@ -308,8 +338,38 @@
                           <span
                             class="rhc-row__fix-instructions rhc-expandable__content rhc-expandable__content--guidance"
                             data-clampcontent
-                            >{check.fixInstructions}</span
                           >
+                            <template if:false={check.showStructuredFix}
+                              >{check.fixInstructions}</template
+                            >
+                            <template if:true={check.showStructuredFix}>
+                              <template
+                                for:each={check.fixNodes}
+                                for:item="node"
+                              >
+                                <span key={node.key}>
+                                  <template if:true={node.isText}
+                                    >{node.text}</template
+                                  >
+                                  <template if:true={node.isBreak}
+                                    ><br
+                                  /></template>
+                                  <template if:true={node.isLink}>
+                                    <a
+                                      class="rhc-inline-link"
+                                      href={node.href}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      aria-label={node.linkAriaLabel}
+                                      data-inline-link
+                                      onclick={handleInlineLinkClick}
+                                      >{node.text}</a
+                                    >
+                                  </template>
+                                </span>
+                              </template>
+                            </template>
+                          </span>
                           <button
                             class="rhc-cmp__toggle"
                             type="button"
@@ -345,8 +405,33 @@
                               <span
                                 class="rhc-cmp__val rhc-cmp__val--clampable"
                                 data-clampcontent
-                                >{comparison.value}</span
                               >
+                                <template
+                                  for:each={comparison.nodes}
+                                  for:item="node"
+                                >
+                                  <span key={node.key}>
+                                    <template if:true={node.isText}
+                                      >{node.text}</template
+                                    >
+                                    <template if:true={node.isBreak}
+                                      ><br
+                                    /></template>
+                                    <template if:true={node.isLink}>
+                                      <a
+                                        class="rhc-inline-link"
+                                        href={node.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label={node.linkAriaLabel}
+                                        data-inline-link
+                                        onclick={handleInlineLinkClick}
+                                        >{node.text}</a
+                                      >
+                                    </template>
+                                  </span>
+                                </template>
+                              </span>
                               <button
                                 class="rhc-cmp__toggle"
                                 type="button"
@@ -381,8 +466,33 @@
                               <span
                                 class="rhc-cmp__val rhc-cmp__val--clampable"
                                 data-clampcontent
-                                >{comparison.value}</span
                               >
+                                <template
+                                  for:each={comparison.nodes}
+                                  for:item="node"
+                                >
+                                  <span key={node.key}>
+                                    <template if:true={node.isText}
+                                      >{node.text}</template
+                                    >
+                                    <template if:true={node.isBreak}
+                                      ><br
+                                    /></template>
+                                    <template if:true={node.isLink}>
+                                      <a
+                                        class="rhc-inline-link"
+                                        href={node.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label={node.linkAriaLabel}
+                                        data-inline-link
+                                        onclick={handleInlineLinkClick}
+                                        >{node.text}</a
+                                      >
+                                    </template>
+                                  </span>
+                                </template>
+                              </span>
                               <button
                                 class="rhc-cmp__toggle"
                                 type="button"
@@ -399,6 +509,115 @@
                         </span>
                       </template>
                     </div>
+                  </template>
+                  <template if:true={check.showEvidence}>
+                    <section
+                      class="rhc-evidence"
+                      aria-label="Structured evidence"
+                    >
+                      <div class="rhc-evidence__summary">
+                        <span class="rhc-evidence__label">Summary</span>
+                        <span>{check.evidenceSummary}</span>
+                      </div>
+                      <div class="rhc-evidence__actions">
+                        <button
+                          type="button"
+                          class="slds-button slds-button_neutral"
+                          data-check={check.qualifiedApiName}
+                          data-evidence-toggle={check.qualifiedApiName}
+                          aria-expanded={check.evidenceExpanded}
+                          aria-controls={check.evidenceRegionId}
+                          onclick={handleToggleEvidence}
+                        >
+                          {check.evidenceExpandLabel}
+                        </button>
+                        <template if:false={check.evidenceUnavailable}>
+                          <button
+                            type="button"
+                            class="slds-button slds-button_neutral"
+                            data-check={check.qualifiedApiName}
+                            onclick={handleDownloadEvidence}
+                          >
+                            {check.evidenceDownloadLabel}
+                          </button>
+                          <a
+                            class="slds-assistive-text"
+                            data-check={check.qualifiedApiName}
+                            data-evidence-download={check.qualifiedApiName}
+                            tabindex="-1"
+                            aria-hidden="true"
+                          ></a>
+                        </template>
+                      </div>
+                      <template if:true={check.evidenceExpanded}>
+                        <div
+                          id={check.evidenceRegionId}
+                          class="rhc-evidence__region"
+                        >
+                          <template
+                            for:each={check.evidenceGroups}
+                            for:item="group"
+                          >
+                            <section
+                              key={group.key}
+                              class="rhc-evidence__group"
+                            >
+                              <template if:true={group.label}>
+                                <h4 class="rhc-evidence__group-heading">
+                                  {group.label}
+                                </h4>
+                              </template>
+                              <div class="rhc-evidence__table-scroll">
+                                <table
+                                  class="slds-table slds-table_cell-buffer slds-table_bordered"
+                                >
+                                  <thead>
+                                    <tr>
+                                      <template
+                                        for:each={check.evidenceColumns}
+                                        for:item="column"
+                                      >
+                                        <th key={column.key} scope="col">
+                                          {column.label}
+                                        </th>
+                                      </template>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <template
+                                      for:each={group.rows}
+                                      for:item="evidenceRow"
+                                    >
+                                      <tr key={evidenceRow.key}>
+                                        <template
+                                          for:each={evidenceRow.cells}
+                                          for:item="cell"
+                                        >
+                                          <td key={cell.key}>{cell.value}</td>
+                                        </template>
+                                      </tr>
+                                    </template>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </section>
+                          </template>
+                          <template if:true={check.showAllEvidence}>
+                            <button
+                              type="button"
+                              class="slds-button slds-button_neutral rhc-evidence__show-all"
+                              data-check={check.qualifiedApiName}
+                              onclick={handleShowAllEvidence}
+                            >
+                              {check.evidenceShowAllLabel}
+                            </button>
+                          </template>
+                        </div>
+                      </template>
+                      <span class="slds-assistive-text" aria-live="polite">
+                        {check.evidenceSummary}
+                      </span>
+                    </section>
                   </template>
                   <template if:true={check.showDiagnosticsMeta}>
                     <span class="rhc-debug-meta">{check.diagnosticsMeta}</span>
