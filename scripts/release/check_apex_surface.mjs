@@ -74,17 +74,26 @@ for (const file of fs
   ) {
     discoveredExternalEntryClasses.add(className);
   }
-  const systemModeUses = (source.match(/\bAccessLevel\.SYSTEM_MODE\b/g) ?? [])
-    .length;
-  if (systemModeUses > 0) {
-    if (file !== "RecordHealthCheckScopePlanner.cls" || systemModeUses !== 1) {
+  const systemModeDmlUses = (
+    source.match(/\bAccessLevel\.SYSTEM_MODE\b/g) ?? []
+  ).length;
+  const systemModeQueryUses = (
+    source.match(/^\s*WITH SYSTEM_MODE\b/gm) ?? []
+  ).length;
+  const expectedSystemModeUses = {
+    "RecordHealthCheckAccess.cls": { dml: 0, query: 1 },
+    "RecordHealthCheckReadinessService.cls": { dml: 1, query: 2 },
+    "RecordHealthCheckScopePlanner.cls": { dml: 1, query: 0 }
+  }[file] ?? { dml: 0, query: 0 };
+  if (
+    systemModeDmlUses !== expectedSystemModeUses.dml ||
+    systemModeQueryUses !== expectedSystemModeUses.query
+  ) {
       failures.push(
-        `${relative}: SYSTEM_MODE is allowed exactly once, only for package Custom Metadata discovery in RecordHealthCheckScopePlanner.`
+        `${relative}: expected ${expectedSystemModeUses.dml} AccessLevel.SYSTEM_MODE and ${expectedSystemModeUses.query} WITH SYSTEM_MODE uses; found ${systemModeDmlUses} and ${systemModeQueryUses}.`
       );
-    } else {
-      approvedSystemModeUses += systemModeUses;
-    }
   }
+  approvedSystemModeUses += systemModeDmlUses + systemModeQueryUses;
 
   for (let index = 0; index < lines.length; index++) {
     if (!/^\s*global\s/.test(lines[index])) continue;
@@ -206,9 +215,9 @@ for (const file of fs
   }
 }
 
-if (approvedSystemModeUses !== 1) {
+if (approvedSystemModeUses !== 5) {
   failures.push(
-    `Expected exactly one reviewed Custom Metadata SYSTEM_MODE query; found ${approvedSystemModeUses}.`
+    `Expected exactly five reviewed SYSTEM_MODE operations; found ${approvedSystemModeUses}.`
   );
 }
 const missingExternalEntries = [...expectedExternalEntryClasses].filter(

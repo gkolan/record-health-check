@@ -1,13 +1,5 @@
 @IsTest
 private class RecordHealthCheckPreviewControllerTest {
-  @TestSetup
-  static void assignAdministratorAccess() {
-    RecordHealthCheckTestDataFactory.assignPermissionSet(
-      RecordHealthCheckTestDataFactory.currentUser(),
-      'Record_Health_Check_Admin'
-    );
-  }
-
   @IsTest
   static void returnsJsonContractForExplicitValidation() {
     RecordHealthCheckAccess.setRunPermissionForTest(true);

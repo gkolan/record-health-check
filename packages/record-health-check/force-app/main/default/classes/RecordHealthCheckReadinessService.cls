@@ -71,6 +71,10 @@ public with sharing class RecordHealthCheckReadinessService {
     String orgIdentity = UserInfo.getOrganizationId();
     Id actorId = UserInfo.getUserId();
     String currentScopeDigest = scopeDigest(recordIds);
+    // The public preview boundary has already required both administrator and
+    // runner entitlements. These private, immutable receipts are service-owned;
+    // package tests cannot receive package permission-set assignments, and the
+    // query remains bounded to this actor, org, definition, and record scope.
     List<Record_Health_Check_Readiness__c> receipts = [
       SELECT
         Fingerprint__c,
@@ -92,7 +96,7 @@ public with sharing class RecordHealthCheckReadinessService {
         AND OrgIdentity__c = :orgIdentity
         AND Fingerprint__c = :response.definitionFingerprint
         AND ScopeDigest__c = :currentScopeDigest
-      WITH USER_MODE
+      WITH SYSTEM_MODE
       ORDER BY VerifiedAt__c DESC
       LIMIT 200
     ];
@@ -122,11 +126,14 @@ public with sharing class RecordHealthCheckReadinessService {
       );
     }
     Datetime nowAt = System.now();
+    // The public preview boundary authorizes cleanup before this service-owned
+    // query and delete. This with-sharing class retains row visibility, while
+    // the explicit system access handles the deliberately immutable evidence.
     List<Record_Health_Check_Readiness__c> expired = [
       SELECT Id
       FROM Record_Health_Check_Readiness__c
       WHERE ExpiresAt__c <= :nowAt
-      WITH USER_MODE
+      WITH SYSTEM_MODE
       ORDER BY ExpiresAt__c ASC
       LIMIT 200
     ];
@@ -135,7 +142,7 @@ public with sharing class RecordHealthCheckReadinessService {
     }
     List<Database.DeleteResult> deleted = Database.delete(
       expired,
-      AccessLevel.USER_MODE
+      AccessLevel.SYSTEM_MODE
     );
     Integer count = 0;
     for (Database.DeleteResult result : deleted) {
