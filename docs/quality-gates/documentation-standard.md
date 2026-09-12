@@ -200,6 +200,24 @@ If a documentation check fails, correct the page structure or broken statement i
 the check. If source behavior is unclear, stop and verify the Apex implementation before describing
 it. Do not guess at a permission, limit, object, field, return value, or Setup path.
 
+## Carry verified lessons into the owning guidance
+
+When a review or runtime test disproves a claim, update the page that owns it and every affected
+example, API contract and contributor rule. Record the input, observed mismatch, corrected behavior,
+named regression and remaining evidence boundary. A passing formatter or link gate does not verify
+that a limit, method, fallback, permission or instruction is true.
+
+Keep reusable implementation and testing rules in the
+[regression testing standard](./regression-testing-standard.md), with short pointers from AGENTS.md.
+Feature-specific decisions belong in the local specification; org identities, ownership and local
+reporting limitations belong in internal agent notes. Keep session chronology and historical findings
+in evidence, visibly superseded where necessary, rather than copying them into user walkthroughs.
+
+Review examples for complete callable signatures and required methods. Mark excerpts as excerpts.
+Distinguish business results from test/job outcomes, optional display from evaluation, per-field from
+request limits, and source behavior from installed-package availability. Do not convert a planned
+procedure, source inspection or live API test into a claim that the browser journey was verified.
+
 ## Related
 
 - [Source development](../contributing/source-development.md)

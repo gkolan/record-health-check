@@ -31,6 +31,15 @@ public with sharing class RecordHealthCheckPluginDefinitionService {
         throw invalid('Apex parameters contain an unknown key.');
       }
     }
+    normalizeDeclaredParameters(stable, supplied, normalized);
+    return normalized;
+  }
+
+  private static void normalizeDeclaredParameters(
+    RecordHealthCheckPluginDefinition stable,
+    Map<String, Object> supplied,
+    Map<String, Object> normalized
+  ) {
     for (String key : stable.parameterKeys()) {
       RecordHealthCheckPluginDefinition.ParameterDefinition parameter = stable.parameter(
         key
@@ -53,7 +62,6 @@ public with sharing class RecordHealthCheckPluginDefinitionService {
       }
       normalized.put(key, normalizeValue(parameter, value));
     }
-    return normalized;
   }
 
   private static Object normalizeValue(
@@ -61,37 +69,7 @@ public with sharing class RecordHealthCheckPluginDefinitionService {
     Object value
   ) {
     if (parameter.typeName == 'INTEGER') {
-      Decimal numeric;
-      if (
-        value instanceof Integer ||
-        value instanceof Long ||
-        value instanceof Decimal
-      ) {
-        numeric = Decimal.valueOf(String.valueOf(value));
-      } else {
-        throw invalid('An Apex parameter has the wrong type.');
-      }
-      if (numeric.scale() > 0 && numeric.stripTrailingZeros().scale() > 0) {
-        throw invalid('An integer Apex parameter must be integral.');
-      }
-      Integer integerValue;
-      try {
-        integerValue = Integer.valueOf(String.valueOf(numeric.setScale(0)));
-      } catch (Exception ex) {
-        throw invalid(
-          'An integer Apex parameter is outside the supported range.'
-        );
-      }
-      if (
-        (parameter.minValue != null && integerValue < parameter.minValue) ||
-        (parameter.maxValue != null &&
-        integerValue > parameter.maxValue)
-      ) {
-        throw invalid(
-          'An integer Apex parameter is outside its declared bounds.'
-        );
-      }
-      return integerValue;
+      return normalizeInteger(parameter, value);
     }
     if (parameter.typeName == 'BOOLEAN') {
       if (!(value instanceof Boolean)) {
@@ -114,6 +92,43 @@ public with sharing class RecordHealthCheckPluginDefinitionService {
       throw invalid('An Apex parameter exceeds its declared maximum length.');
     }
     return stringValue;
+  }
+
+  private static Integer normalizeInteger(
+    RecordHealthCheckPluginDefinition.ParameterDefinition parameter,
+    Object value
+  ) {
+    Decimal numeric;
+    if (
+      value instanceof Integer ||
+      value instanceof Long ||
+      value instanceof Decimal
+    ) {
+      numeric = Decimal.valueOf(String.valueOf(value));
+    } else {
+      throw invalid('An Apex parameter has the wrong type.');
+    }
+    if (numeric.scale() > 0 && numeric.stripTrailingZeros().scale() > 0) {
+      throw invalid('An integer Apex parameter must be integral.');
+    }
+    Integer integerValue;
+    try {
+      integerValue = Integer.valueOf(String.valueOf(numeric.setScale(0)));
+    } catch (Exception ex) {
+      throw invalid(
+        'An integer Apex parameter is outside the supported range.'
+      );
+    }
+    if (
+      (parameter.minValue != null && integerValue < parameter.minValue) ||
+      (parameter.maxValue != null &&
+      integerValue > parameter.maxValue)
+    ) {
+      throw invalid(
+        'An integer Apex parameter is outside its declared bounds.'
+      );
+    }
+    return integerValue;
   }
 
   private static void rejectDuplicateKeys(String source) {

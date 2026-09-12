@@ -24,8 +24,9 @@ Queueable, or Scheduled Apex.
 
 **Type:** `global with sharing`; implements `Database.Batchable<Id>`
 
-Runs a Check or Check Set when Apex already has the record IDs. `run(...)` starts the Batch with the
-default 100 records per transaction or a caller-selected number from 1 through 200. See
+Runs a Check Set when Apex already has the record IDs. `run(...)` chooses an automatic formula-safe
+scope of 1–100 records per transaction. The explicit scope overload accepts a caller-selected number
+from 1 through 200 and validates the formula budget before submission. See
 [Batch Apex](../../developer-guides/async-apex/batch.md) for examples and guidance on choosing that number.
 
 ### `RecordHealthCheckQueueable`
@@ -101,8 +102,14 @@ Check.
 
 ### `RecordHealthCheckSoqlEvaluation`
 
-Runs the prepared SOQL for a Query Check, determines Found and Expected values, compares them, and
-builds the internal result.
+Coordinates resolved Query Check inputs, compares Found and Expected values, and builds the internal
+result with display formatting and value provenance.
+
+### `RecordHealthCheckSoqlValueResolver`
+
+Resolves the primary and comparison query or formula inputs. Retains queried rows before cardinality
+errors, distinguishes empty comparison queries from null values, and returns the configured early
+result when a single-row primary query has no matching rows.
 
 ### `RecordHealthCheckSoqlTokenBinder`
 

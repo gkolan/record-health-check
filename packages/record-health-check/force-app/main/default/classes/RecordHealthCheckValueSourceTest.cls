@@ -26,7 +26,8 @@ private class RecordHealthCheckValueSourceTest {
     );
     Assert.areEqual(
       'NumberOfEmployees → null (blank treated as 0)',
-      RecordHealthCheckValueSource.render(d)
+      RecordHealthCheckValueSource.render(d),
+      'Source rendering must retain the raw value and coercion note.'
     );
   }
 
@@ -39,7 +40,8 @@ private class RecordHealthCheckValueSourceTest {
     );
     Assert.areEqual(
       'Contacts → 0 rows',
-      RecordHealthCheckValueSource.render(d)
+      RecordHealthCheckValueSource.render(d),
+      'Source rendering must retain the raw value without an absent coercion note.'
     );
   }
 
@@ -52,7 +54,8 @@ private class RecordHealthCheckValueSourceTest {
     );
     Assert.areEqual(
       'Pass/Fail condition',
-      RecordHealthCheckValueSource.render(d)
+      RecordHealthCheckValueSource.render(d),
+      'Source-only detail must render without an arrow or empty suffix.'
     );
   }
 
@@ -63,7 +66,11 @@ private class RecordHealthCheckValueSourceTest {
       '42',
       null
     );
-    Assert.areEqual('42', RecordHealthCheckValueSource.render(d));
+    Assert.areEqual(
+      '42',
+      RecordHealthCheckValueSource.render(d),
+      'A blank source must leave the raw value visible.'
+    );
   }
 
   @IsTest
@@ -75,13 +82,18 @@ private class RecordHealthCheckValueSourceTest {
     );
     Assert.areEqual(
       '(blank treated as 0)',
-      RecordHealthCheckValueSource.render(d)
+      RecordHealthCheckValueSource.render(d),
+      'A coercion-only detail must render safely.'
     );
   }
 
   @IsTest
   static void returnsNullForNullDetail() {
-    Assert.areEqual(null, RecordHealthCheckValueSource.render(null));
+    Assert.areEqual(
+      null,
+      RecordHealthCheckValueSource.render(null),
+      'A null detail must render as null.'
+    );
   }
 
   @IsTest
@@ -100,13 +112,21 @@ private class RecordHealthCheckValueSourceTest {
 
   @IsTest
   static void rowCountPluralizesCorrectly() {
-    Assert.areEqual('0 rows', RecordHealthCheckValueSource.rowCount(0));
+    Assert.areEqual(
+      '0 rows',
+      RecordHealthCheckValueSource.rowCount(0),
+      'Zero rows must use the plural form.'
+    );
     Assert.areEqual(
       '1 row',
       RecordHealthCheckValueSource.rowCount(1),
       'A single row uses the singular unit, not "1 row(s)".'
     );
-    Assert.areEqual('3 rows', RecordHealthCheckValueSource.rowCount(3));
+    Assert.areEqual(
+      '3 rows',
+      RecordHealthCheckValueSource.rowCount(3),
+      'Multiple rows must use the plural form.'
+    );
     Assert.areEqual(
       '0 rows',
       RecordHealthCheckValueSource.rowCount(null),

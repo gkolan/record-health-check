@@ -187,6 +187,31 @@ export function currentContractProblems(pages) {
     }
   }
 
+  const readme = pages.find((page) =>
+    page.file.endsWith("draft-with-ai/README.md")
+  );
+  if (readme) {
+    for (const concept of [
+      "Give this README link to an AI",
+      "assistant chooses the simplest Evaluation Type",
+      "open the chosen Evaluation Type prompt",
+      "{!record.Amount format=",
+      "{!rhcCheck.checkTitle}",
+      "{!rhcSet.cardTitle}",
+      "{!rhcResult.foundValue}",
+      "{!rhcRun.runId}",
+      "{!rhcQuery.sourceRows[0].Name",
+      "{!link label=",
+      "representative, not the complete token reference"
+    ]) {
+      if (!readme.text.includes(concept)) {
+        problems.push(
+          `${readme.file} does not support link-first AI routing or current merge examples: ${concept}`
+        );
+      }
+    }
+  }
+
   const execution = pages.find((page) =>
     page.file.endsWith("execution-workflow-generator.md")
   );

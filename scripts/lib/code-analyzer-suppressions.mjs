@@ -1,5 +1,9 @@
 export const EXPECTED_CODE_ANALYZER_SUPPRESSIONS = new Map([
   [
+    "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Readiness__c/fields/PassCount__c.field-meta.xml",
+    { rule: "pmd:ProtectSensitiveData", maximum: 1 }
+  ],
+  [
     "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Set__mdt/fields/PassedChecksDisplay__c.field-meta.xml",
     { rule: "pmd:ProtectSensitiveData", maximum: 1 }
   ],

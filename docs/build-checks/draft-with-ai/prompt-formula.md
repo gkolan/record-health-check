@@ -381,12 +381,12 @@ Rules for this Evaluation Type (EvaluationType__c = FORMULA):
 
 ## Confirm the draft against
 
-| Topic | Page |
-| --- | --- |
-| Working Formula patterns | [Formula examples](../../examples/formula/README.md) |
+| Topic                               | Page                                                            |
+| ----------------------------------- | --------------------------------------------------------------- |
+| Working Formula patterns            | [Formula examples](../../examples/formula/README.md)            |
 | Pass Condition and display formulas | [Check fields](../../reference/custom-metadata/check-fields.md) |
-| Message and Action URL tokens | [Merge syntax](../../reference/merge-syntax/README.md) |
-| Shared AI rules | [Shared rules](./shared-rules.md) |
+| Message and Action URL tokens       | [Merge syntax](../../reference/merge-syntax/README.md)          |
+| Shared AI rules                     | [Shared rules](./shared-rules.md)                               |
 
 ## Related
 

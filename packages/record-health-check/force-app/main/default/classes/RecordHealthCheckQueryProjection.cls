@@ -226,6 +226,10 @@ public with sharing class RecordHealthCheckQueryProjection {
       addAlias(tail);
       return;
     }
+    absorbScalarPath(head, tail);
+  }
+
+  private void absorbScalarPath(String head, String tail) {
     if (!SIMPLE_PATH.matcher(head).matches()) {
       reject();
       return;

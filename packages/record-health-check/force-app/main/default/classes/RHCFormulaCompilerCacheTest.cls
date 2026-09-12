@@ -72,7 +72,11 @@ private class RHCFormulaCompilerCacheTest {
       'NUMBER'
     );
 
-    Assert.areEqual(1, plan.findings.size());
+    Assert.areEqual(
+      1,
+      plan.findings.size(),
+      'A Boolean formula declared NUMBER must produce one finding.'
+    );
     Assert.areEqual(
       'INVALID_FORMULA',
       plan.findings[0].code,
@@ -97,7 +101,10 @@ private class RHCFormulaCompilerCacheTest {
     );
     Test.stopTest();
 
-    Assert.isTrue(detail.startsWith('DECIMAL:'));
+    Assert.isTrue(
+      detail.startsWith('DECIMAL:'),
+      'A compile diagnostic must identify the attempted return type.'
+    );
     Assert.isTrue(
       detail.length() <= 120,
       'Diagnostics must have a hard bound.'
@@ -139,13 +146,19 @@ private class RHCFormulaCompilerCacheTest {
         'AUTO'
       );
 
-      Assert.areEqual(1, plan.findings.size());
+      Assert.areEqual(
+        1,
+        plan.findings.size(),
+        'A failed formula plan must produce one finding.'
+      );
       Assert.areEqual(
         'BOOLEAN:FORMULA_COMPILE_REJECTED; DECIMAL:FORMULA_COMPILE_REJECTED',
-        plan.findings[0].diagnosticDetail
+        plan.findings[0].diagnosticDetail,
+        'A failed formula plan must retain the safe probe categories.'
       );
       Assert.isFalse(
-        plan.findings[0].diagnosticDetail.contains('private-literal')
+        plan.findings[0].diagnosticDetail.contains('private-literal'),
+        'Probe diagnostics must not expose the private formula literal.'
       );
     } finally {
       RecordHealthCheckFormulaPlanService.compilerOverride = null;
@@ -169,12 +182,20 @@ private class RHCFormulaCompilerCacheTest {
         Account.SObjectType
       );
 
-      Assert.areEqual(1, issues.size());
+      Assert.areEqual(
+        1,
+        issues.size(),
+        'The metadata adapter must return one compiler issue.'
+      );
       Assert.areEqual(
         'BOOLEAN:FORMULA_COMPILE_REJECTED; DECIMAL:FORMULA_COMPILE_REJECTED',
-        issues[0].diagnosticDetail
+        issues[0].diagnosticDetail,
+        'The metadata adapter must preserve the safe probe categories.'
       );
-      Assert.isFalse(issues[0].message.contains('private-literal'));
+      Assert.isFalse(
+        issues[0].message.contains('private-literal'),
+        'The metadata issue message must not expose the private formula literal.'
+      );
     } finally {
       RecordHealthCheckFormulaPlanService.compilerOverride = null;
     }

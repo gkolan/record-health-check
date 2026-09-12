@@ -37,19 +37,19 @@ Approved AI client
 
 The gates are cumulative. Passing an outer gate never bypasses a later gate.
 
-| Gate | What it proves |
-| ---: | --- |
-| 1 | Only approved HTTP hosts and browser origins reach the service. |
-| 2 | Production uses HTTPS and cannot disable authentication. |
-| 3 | The inbound bearer token was signed by the trusted identity provider. |
-| 4 | The token was issued for this service, is current, identifies a subject, and has `rhc.run`. |
-| 5 | The MCP client can discover only the two intended tools. |
-| 6 | A tool call contains one safe record ID and one exact Qualified API Name. |
-| 7 | Load, retries, timeouts, response size, and emergency shutdown are bounded. |
-| 8 | The service can call only approved HTTPS Salesforce hosts. |
-| 9 | Salesforce authenticates the dedicated integration user. |
-| 10 | The integration user has the package's run entitlement. |
-| 11 | Salesforce data security permits the requested record and fields. |
+| Gate | What it proves                                                                              |
+| ---: | ------------------------------------------------------------------------------------------- |
+|    1 | Only approved HTTP hosts and browser origins reach the service.                             |
+|    2 | Production uses HTTPS and cannot disable authentication.                                    |
+|    3 | The inbound bearer token was signed by the trusted identity provider.                       |
+|    4 | The token was issued for this service, is current, identifies a subject, and has `rhc.run`. |
+|    5 | The MCP client can discover only the two intended tools.                                    |
+|    6 | A tool call contains one safe record ID and one exact Qualified API Name.                   |
+|    7 | Load, retries, timeouts, response size, and emergency shutdown are bounded.                 |
+|    8 | The service can call only approved HTTPS Salesforce hosts.                                  |
+|    9 | Salesforce authenticates the dedicated integration user.                                    |
+|   10 | The integration user has the package's run entitlement.                                     |
+|   11 | Salesforce data security permits the requested record and fields.                           |
 
 ## Before you start
 
@@ -73,18 +73,18 @@ integration user. A request must pass both.
 
 Record these non-secret values before proceeding:
 
-| Name used below | Example | Where it comes from |
-| --- | --- | --- |
-| MCP host | `mcp.example.com` | DNS and hosting configuration |
-| MCP endpoint | `https://mcp.example.com/mcp` | MCP host plus `/mcp` |
-| issuer | `https://identity.example.com` | Inbound identity provider |
-| audience | `record-health-check` | Inbound OAuth resource configuration |
-| JWKS URL | `https://identity.example.com/.well-known/jwks.json` | Identity provider |
-| Salesforce login URL | `https://example.my.salesforce.com` | The org's My Domain URL |
-| Salesforce username | `record-health-mcp@example.com` | Dedicated integration user |
-| readable record ID | A 15- or 18-character ID | Test record visible to the integration user |
-| denied record ID | A 15- or 18-character ID | Test record hidden from the integration user |
-| Check Set name | `My_Account_Checks` | Exact `QualifiedApiName` from Setup |
+| Name used below      | Example                                              | Where it comes from                          |
+| -------------------- | ---------------------------------------------------- | -------------------------------------------- |
+| MCP host             | `mcp.example.com`                                    | DNS and hosting configuration                |
+| MCP endpoint         | `https://mcp.example.com/mcp`                        | MCP host plus `/mcp`                         |
+| issuer               | `https://identity.example.com`                       | Inbound identity provider                    |
+| audience             | `record-health-check`                                | Inbound OAuth resource configuration         |
+| JWKS URL             | `https://identity.example.com/.well-known/jwks.json` | Identity provider                            |
+| Salesforce login URL | `https://example.my.salesforce.com`                  | The org's My Domain URL                      |
+| Salesforce username  | `record-health-mcp@example.com`                      | Dedicated integration user                   |
+| readable record ID   | A 15- or 18-character ID                             | Test record visible to the integration user  |
+| denied record ID     | A 15- or 18-character ID                             | Test record hidden from the integration user |
+| Check Set name       | `My_Account_Checks`                                  | Exact `QualifiedApiName` from Setup          |
 
 Never put client secrets, access tokens, session IDs, or production record IDs in this worksheet,
 source control, screenshots, tickets, or command history.
@@ -320,15 +320,15 @@ Signature verification alone does not prove that a token belongs to this service
 
 Obtain synthetic tokens that vary one claim at a time and verify these results:
 
-| Token | Expected result |
-| --- | --- |
-| Correct issuer, audience, subject, expiry, and `rhc.run` | Accepted |
-| Wrong issuer | Rejected |
-| Wrong audience | Rejected |
-| Missing subject | Rejected |
-| Expired token | Rejected |
-| Missing `rhc.run` | Rejected |
-| `rhc.run` present among other space-separated scopes | Accepted |
+| Token                                                    | Expected result |
+| -------------------------------------------------------- | --------------- |
+| Correct issuer, audience, subject, expiry, and `rhc.run` | Accepted        |
+| Wrong issuer                                             | Rejected        |
+| Wrong audience                                           | Rejected        |
+| Missing subject                                          | Rejected        |
+| Expired token                                            | Rejected        |
+| Missing `rhc.run`                                        | Rejected        |
+| `rhc.run` present among other space-separated scopes     | Accepted        |
 
 Confirm that every rejected request stops before a Salesforce token request or Apex REST call.
 
@@ -583,21 +583,21 @@ configured.
 
 Before production, test these cases end to end through the actual client:
 
-| Case | Expected behavior |
-| --- | --- |
-| Known `PASS` Check | Client reports that the requirement passed. |
-| Known `FAIL` Check | Client reports a business condition requiring attention. |
-| `SKIPPED` Check | Client says the Check did not apply or run. |
-| Missing required access | Client does not claim a reliable result. |
-| Unknown valid Qualified API Name | Safe not-found/configuration response. |
-| Malformed Qualified API Name | Rejected at the request-contract gate. |
-| Denied record | No record health data is disclosed. |
-| Expired inbound token | Rejected before Salesforce. |
-| Missing `rhc.run` | Rejected before Salesforce. |
-| Invented MCP tool | Rejected before Salesforce. |
-| Kill switch enabled | Both tools unavailable; Salesforce call count unchanged. |
-| Prompt-like text in record data | Treated as data, not as new instructions. |
-| Unrelated user question | Neither health-check tool is selected. |
+| Case                             | Expected behavior                                        |
+| -------------------------------- | -------------------------------------------------------- |
+| Known `PASS` Check               | Client reports that the requirement passed.              |
+| Known `FAIL` Check               | Client reports a business condition requiring attention. |
+| `SKIPPED` Check                  | Client says the Check did not apply or run.              |
+| Missing required access          | Client does not claim a reliable result.                 |
+| Unknown valid Qualified API Name | Safe not-found/configuration response.                   |
+| Malformed Qualified API Name     | Rejected at the request-contract gate.                   |
+| Denied record                    | No record health data is disclosed.                      |
+| Expired inbound token            | Rejected before Salesforce.                              |
+| Missing `rhc.run`                | Rejected before Salesforce.                              |
+| Invented MCP tool                | Rejected before Salesforce.                              |
+| Kill switch enabled              | Both tools unavailable; Salesforce call count unchanged. |
+| Prompt-like text in record data  | Treated as data, not as new instructions.                |
+| Unrelated user question          | Neither health-check tool is selected.                   |
 
 Retain redacted evidence containing the build ID, test case, expected result, actual result, time,
 and approver. Do not retain tool arguments or Salesforce data.
@@ -623,19 +623,19 @@ for incident response, telemetry rules, evidence, rotation, and rollback exercis
 
 ## Troubleshooting by gate
 
-| Symptom | First gate to inspect | What to check |
-| --- | ---: | --- |
-| Request rejected immediately by hostname | 1 | Public hostname, proxy forwarding, `ALLOWED_HOSTS` |
-| Service will not start in production | 2 | HTTPS URLs, `AUTH_MODE`, missing JWT values, `BUILD_ID` |
-| Every bearer token is invalid | 3 | JWKS reachability, signing algorithm, active key ID |
-| Token is signed but rejected | 4 | Exact issuer, audience, subject, expiry, `rhc.run` |
-| Unexpected tools appear | 5 | Deployed source and image digest |
-| One tool call is rejected before Salesforce | 6 | Field names, record ID, Qualified API Name, extra fields |
-| Requests time out or receive unavailable | 7 | Kill switch, concurrency, timeout, retry and response limits |
-| OAuth works but the instance call returns `VALIDATION` and is blocked | 8 | Returned instance hostname in `SALESFORCE_ALLOWED_HOSTS`; this is destination policy, not an OAuth authorization failure |
-| Salesforce returns authentication failure | 9 | Client ID, rotated secret, app policy, run-as user |
-| Salesforce user authenticates but cannot run package | 10 | Record Health Check MCP Integration assignment and run permission |
-| One record or Check cannot be evaluated | 11 | Object, field, sharing, restriction, and scoping-rule access |
+| Symptom                                                               | First gate to inspect | What to check                                                                                                            |
+| --------------------------------------------------------------------- | --------------------: | ------------------------------------------------------------------------------------------------------------------------ |
+| Request rejected immediately by hostname                              |                     1 | Public hostname, proxy forwarding, `ALLOWED_HOSTS`                                                                       |
+| Service will not start in production                                  |                     2 | HTTPS URLs, `AUTH_MODE`, missing JWT values, `BUILD_ID`                                                                  |
+| Every bearer token is invalid                                         |                     3 | JWKS reachability, signing algorithm, active key ID                                                                      |
+| Token is signed but rejected                                          |                     4 | Exact issuer, audience, subject, expiry, `rhc.run`                                                                       |
+| Unexpected tools appear                                               |                     5 | Deployed source and image digest                                                                                         |
+| One tool call is rejected before Salesforce                           |                     6 | Field names, record ID, Qualified API Name, extra fields                                                                 |
+| Requests time out or receive unavailable                              |                     7 | Kill switch, concurrency, timeout, retry and response limits                                                             |
+| OAuth works but the instance call returns `VALIDATION` and is blocked |                     8 | Returned instance hostname in `SALESFORCE_ALLOWED_HOSTS`; this is destination policy, not an OAuth authorization failure |
+| Salesforce returns authentication failure                             |                     9 | Client ID, rotated secret, app policy, run-as user                                                                       |
+| Salesforce user authenticates but cannot run package                  |                    10 | Record Health Check MCP Integration assignment and run permission                                                        |
+| One record or Check cannot be evaluated                               |                    11 | Object, field, sharing, restriction, and scoping-rule access                                                             |
 
 Change one gate at a time during diagnosis. Broadening several approved host lists or permissions at once
 makes the final security boundary impossible to prove.

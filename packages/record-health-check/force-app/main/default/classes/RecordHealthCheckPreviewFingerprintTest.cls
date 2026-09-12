@@ -151,6 +151,36 @@ private class RecordHealthCheckPreviewFingerprintTest {
     );
   }
 
+  @IsTest
+  static void changingOnlyCardHeadingInvalidatesReadinessFingerprint() {
+    Record_Health_Check__mdt draft = check(
+      new Map<String, Object>{ 'DeveloperName' => 'Draft' }
+    );
+    Record_Health_Check_Set__mdt visible = checkSet();
+    visible.CardHeadingDisplay__c = 'TITLE_AND_SUBTITLE';
+    Record_Health_Check_Set__mdt hidden = visible.clone(true, true, true, true);
+    hidden.CardHeadingDisplay__c = 'HIDE';
+    Test.startTest();
+    String before = RecordHealthCheckPreviewFingerprint.compute(
+      draft,
+      visible,
+      null,
+      null
+    );
+    String after = RecordHealthCheckPreviewFingerprint.compute(
+      draft,
+      hidden,
+      null,
+      null
+    );
+    Test.stopTest();
+    Assert.areNotEqual(
+      before,
+      after,
+      'A heading-only configuration change must invalidate prior readiness.'
+    );
+  }
+
   private static Record_Health_Check__mdt check(Map<String, Object> fields) {
     return RecordHealthCheckTestDataFactory.check(fields);
   }

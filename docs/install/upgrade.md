@@ -113,16 +113,16 @@ macOS, and Linux. The first command confirms the target org before the upgrade c
 
 ## Step 3: Revalidate what people use
 
-| What to verify | What success looks like |
-| --- | --- |
-| Lightning pages | Each page still shows the intended Check Set |
-| Passing scenario | The expected Checks pass |
-| Attention scenario | The same guidance, severity, Found, Expected, and action remain meaningful |
-| Regular user | The user can run the card without seeing diagnostic detail |
-| Record Health Check administrator | Show Diagnostics is available only when intentionally enabled |
-| Configuration created by administrators in your org | Check Sets and Checks match the approved pre-upgrade configuration |
-| Flow or Apex automation | Every caller still receives and handles the expected outcomes |
-| Platform Event automation | The intended Flow, Apex trigger, or integration receives events and does not repeat follow-up work |
+| What to verify                                      | What success looks like                                                                            |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Lightning pages                                     | Each page still shows the intended Check Set                                                       |
+| Passing scenario                                    | The expected Checks pass                                                                           |
+| Attention scenario                                  | The same guidance, severity, Found, Expected, and action remain meaningful                         |
+| Regular user                                        | The user can run the card without seeing diagnostic detail                                         |
+| Record Health Check administrator                   | Show Diagnostics is available only when intentionally enabled                                      |
+| Configuration created by administrators in your org | Check Sets and Checks match the approved pre-upgrade configuration                                 |
+| Flow or Apex automation                             | Every caller still receives and handles the expected outcomes                                      |
+| Platform Event automation                           | The intended Flow, Apex trigger, or integration receives events and does not repeat follow-up work |
 
 For Flow verification, open **Setup → Flows**, open the approved Flow version, and use **Debug** with
 a retained test record. Confirm that `FAIL` follows the health-result decision path rather than the
@@ -151,13 +151,13 @@ release outcome; a working user experience is.
 Stop before production. Preserve the installation result and the evidence from the affected Check
 Set.
 
-| What changed | What to inspect first |
-| --- | --- |
-| The package did not install | The first Salesforce installation error and any missing org feature or dependency it names |
-| A Check Set is missing | The configuration export, Active setting, target object, and Lightning page selection |
-| A Check changed outcome | The underlying record data, the user's access, and the Check configuration |
-| A user lost access | Permission-set assignments and the user's record, object, and field access |
-| Automation stopped working | The Flow or Apex error, the outcome it received, and its permission assignments |
+| What changed                | What to inspect first                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| The package did not install | The first Salesforce installation error and any missing org feature or dependency it names                          |
+| A Check Set is missing      | The configuration export, Active setting, target object, and Lightning page selection                               |
+| A Check changed outcome     | The underlying record data, the user's access, and the Check configuration                                          |
+| A user lost access          | Permission-set assignments and the user's record, object, and field access                                          |
+| Automation stopped working  | The Flow or Apex error, the outcome it received, and its permission assignments                                     |
 | Platform Event work changed | Event publication settings, repeated-event handling, and errors in the receiving Flow, Apex trigger, or integration |
 
 Use [Show Diagnostics](../diagnostics/browser-console.md) when the card result needs
@@ -184,10 +184,10 @@ not use it without a verified configuration backup and an approved dependency-re
 
 ## Next steps
 
-| Your next goal | Continue with |
-| --- | --- |
-| Operate the verified installation | [Operate in production](../production-operations/operate-in-production.md) |
-| Investigate a result | [Troubleshoot Record Health Check](../diagnostics/browser-console.md) |
-| Remove Record Health Check | [Uninstall and rollback](./uninstall.md) |
-| Review connected surfaces | [Integration overview](../developer-guides/integration-options.md) |
-| Back up or restore configuration | [Configuration backup and restore](../production-operations/back-up-configuration.md) |
+| Your next goal                    | Continue with                                                                         |
+| --------------------------------- | ------------------------------------------------------------------------------------- |
+| Operate the verified installation | [Operate in production](../production-operations/operate-in-production.md)            |
+| Investigate a result              | [Troubleshoot Record Health Check](../diagnostics/browser-console.md)                 |
+| Remove Record Health Check        | [Uninstall and rollback](./uninstall.md)                                              |
+| Review connected surfaces         | [Integration overview](../developer-guides/integration-options.md)                    |
+| Back up or restore configuration  | [Configuration backup and restore](../production-operations/back-up-configuration.md) |

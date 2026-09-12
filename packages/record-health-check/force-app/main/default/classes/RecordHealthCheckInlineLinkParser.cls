@@ -123,13 +123,13 @@ public class RecordHealthCheckInlineLinkParser {
 
   private static ParseAttempt parseOne(String source, Integer startIndex) {
     ParseAttempt attempt = new ParseAttempt();
-    Integer cursor = startIndex + 6;
-    Map<String, String> attributes = new Map<String, String>();
-    Map<String, List<Span>> spansByAttribute = new Map<String, List<Span>>();
+    ParseState state = new ParseState();
+    state.cursor = startIndex + 6;
+    Boolean linkClosed = false;
 
-    while (cursor < source.length()) {
-      cursor = skipWhitespace(source, cursor);
-      if (cursor >= source.length()) {
+    while (state.cursor < source.length()) {
+      state.cursor = skipWhitespace(source, state.cursor);
+      if (state.cursor >= source.length()) {
         return failed(
           attempt,
           'INLINE_LINK_MALFORMED',
@@ -139,169 +139,272 @@ public class RecordHealthCheckInlineLinkParser {
           'The inline link is incomplete; close its attributes and final brace.'
         );
       }
-      if (source.substring(cursor, cursor + 1) == '}') {
-        cursor++;
+      if (source.substring(state.cursor, state.cursor + 1) == '}') {
+        linkClosed = true;
+        state.cursor++;
         break;
       }
-      Integer nameStart = cursor;
-      while (
-        cursor < source.length() &&
-        isAttributeNameUnit(source.substring(cursor, cursor + 1))
-      ) {
-        cursor++;
+      ParseAttempt attributeFailure = readAttribute(
+        source,
+        startIndex,
+        attempt,
+        state
+      );
+      if (attributeFailure != null) {
+        return attributeFailure;
       }
-      if (cursor == nameStart) {
-        return failed(
-          attempt,
-          'INLINE_LINK_MALFORMED',
-          startIndex,
-          cursor + 1,
-          null,
-          'Inline-link attributes must use lowercase name="value" syntax.'
-        );
-      }
-      String attributeName = source.substring(nameStart, cursor);
-      if (
-        cursor + 1 >= source.length() ||
-        source.substring(cursor, cursor + 2) != '="'
-      ) {
-        return failed(
-          attempt,
-          'INLINE_LINK_MALFORMED',
-          nameStart,
-          Math.min(source.length(), cursor + 2),
-          attributeName,
-          'Inline-link attributes must use lowercase name="value" syntax.'
-        );
-      }
-      if (attributeName != 'label' && attributeName != 'href') {
-        return failed(
-          attempt,
-          'INLINE_LINK_UNKNOWN_ATTRIBUTE',
-          nameStart,
-          cursor,
-          attributeName,
-          'Only the label and href attributes are supported.'
-        );
-      }
-      if (attributes.containsKey(attributeName)) {
-        return failed(
-          attempt,
-          'INLINE_LINK_DUPLICATE_ATTRIBUTE',
-          nameStart,
-          cursor,
-          attributeName,
-          'Each inline-link attribute may appear only once.'
-        );
-      }
-      cursor += 2;
-      List<String> valueUnits = new List<String>();
-      List<Span> valueSpans = new List<Span>();
-      Boolean closed = false;
-      while (cursor < source.length()) {
-        String unit = source.substring(cursor, cursor + 1);
-        if (unit == '"') {
-          closed = true;
-          cursor++;
-          break;
-        }
-        if (unit == '\\') {
-          if (cursor + 1 >= source.length()) {
-            break;
-          }
-          String escaped = source.substring(cursor + 1, cursor + 2);
-          if (escaped != '"' && escaped != '\\') {
-            return failed(
-              attempt,
-              'INLINE_LINK_MALFORMED_ESCAPE',
-              cursor,
-              cursor + 2,
-              attributeName,
-              'Inline-link attributes escape only a quote or backslash.'
-            );
-          }
-          valueUnits.add(escaped);
-          cursor += 2;
-          continue;
-        }
-        if (
-          cursor + 1 < source.length() &&
-          source.substring(cursor, cursor + 2) == '{!'
-        ) {
-          Integer tokenEnd = findValueTokenEnd(source, cursor);
-          if (
-            tokenEnd < 0 ||
-            source.substring(cursor, Math.min(source.length(), cursor + 6)) ==
-            '{!link'
-          ) {
-            return failed(
-              attempt,
-              'INLINE_LINK_NESTING_INVALID',
-              cursor,
-              tokenEnd < 0 ? source.length() : tokenEnd,
-              attributeName,
-              'A link may contain value tokens, but not another link or incomplete token.'
-            );
-          }
-          valueUnits.add(
-            RecordHealthCheckTemplateParser.unescapeAttribute(
-              source.substring(cursor, tokenEnd)
-            )
-          );
-          valueSpans.add(new Span(cursor, tokenEnd));
-          cursor = tokenEnd;
-          continue;
-        }
-        if (unit == '{' || unit == '}') {
-          return failed(
-            attempt,
-            'INLINE_LINK_NESTING_INVALID',
-            cursor,
-            cursor + 1,
-            attributeName,
-            'Braces inside a link attribute must form one complete value token.'
-          );
-        }
-        valueUnits.add(unit);
-        cursor++;
-      }
-      if (!closed) {
-        return failed(
-          attempt,
-          'INLINE_LINK_MALFORMED',
-          nameStart,
-          source.length(),
-          attributeName,
-          'The inline-link attribute is missing its closing double quote.'
-        );
-      }
-      attributes.put(attributeName, String.join(valueUnits, ''));
-      spansByAttribute.put(attributeName, valueSpans);
     }
 
-    if (!attributes.containsKey('label') || !attributes.containsKey('href')) {
+    if (!linkClosed) {
+      return failed(
+        attempt,
+        'INLINE_LINK_MALFORMED',
+        startIndex,
+        source.length(),
+        null,
+        'The inline link is incomplete; close its attributes and final brace.'
+      );
+    }
+
+    if (
+      !state.attributes.containsKey('label') ||
+      !state.attributes.containsKey('href')
+    ) {
       return failed(
         attempt,
         'INLINE_LINK_REQUIRED_ATTRIBUTE_MISSING',
         startIndex,
-        cursor,
-        attributes.containsKey('label') ? 'href' : 'label',
+        state.cursor,
+        state.attributes.containsKey('label') ? 'href' : 'label',
         'Inline links require one label and one href attribute.'
       );
     }
     Link link = new Link();
-    link.expression = source.substring(startIndex, cursor);
-    link.labelTemplate = attributes.get('label');
-    link.hrefTemplate = attributes.get('href');
+    link.expression = source.substring(startIndex, state.cursor);
+    link.labelTemplate = state.attributes.get('label');
+    link.hrefTemplate = state.attributes.get('href');
     link.startIndex = startIndex;
-    link.endIndex = cursor;
-    link.valueTokenSpans.addAll(spansByAttribute.get('label'));
-    link.valueTokenSpans.addAll(spansByAttribute.get('href'));
+    link.endIndex = state.cursor;
+    link.valueTokenSpans.addAll(state.spansByAttribute.get('label'));
+    link.valueTokenSpans.addAll(state.spansByAttribute.get('href'));
     attempt.link = link;
-    attempt.nextIndex = cursor;
+    attempt.nextIndex = state.cursor;
     return attempt;
   }
 
+  private class ParseState {
+    public Integer cursor;
+    public Boolean attributeClosed;
+    public List<String> valueUnits;
+    public List<Span> valueSpans;
+    public Map<String, String> attributes = new Map<String, String>();
+    public Map<String, List<Span>> spansByAttribute = new Map<String, List<Span>>();
+  }
+  private static ParseAttempt readAttribute(
+    String source,
+    Integer startIndex,
+    ParseAttempt attempt,
+    ParseState state
+  ) {
+    Integer nameStart = state.cursor;
+    while (
+      state.cursor < source.length() &&
+      isAttributeNameUnit(source.substring(state.cursor, state.cursor + 1))
+    ) {
+      state.cursor++;
+    }
+    if (state.cursor == nameStart) {
+      return failed(
+        attempt,
+        'INLINE_LINK_MALFORMED',
+        startIndex,
+        state.cursor + 1,
+        null,
+        'Inline-link attributes must use lowercase name="value" syntax.'
+      );
+    }
+    String attributeName = source.substring(nameStart, state.cursor);
+    if (
+      state.cursor + 1 >= source.length() ||
+      source.substring(state.cursor, state.cursor + 2) != '="'
+    ) {
+      return failed(
+        attempt,
+        'INLINE_LINK_MALFORMED',
+        nameStart,
+        Math.min(source.length(), state.cursor + 2),
+        attributeName,
+        'Inline-link attributes must use lowercase name="value" syntax.'
+      );
+    }
+    if (attributeName != 'label' && attributeName != 'href') {
+      return failed(
+        attempt,
+        'INLINE_LINK_UNKNOWN_ATTRIBUTE',
+        nameStart,
+        state.cursor,
+        attributeName,
+        'Only the label and href attributes are supported.'
+      );
+    }
+    if (state.attributes.containsKey(attributeName)) {
+      return failed(
+        attempt,
+        'INLINE_LINK_DUPLICATE_ATTRIBUTE',
+        nameStart,
+        state.cursor,
+        attributeName,
+        'Each inline-link attribute may appear only once.'
+      );
+    }
+    state.cursor += 2;
+    return readAttributeValue(source, nameStart, attributeName, attempt, state);
+  }
+  private static ParseAttempt readAttributeValue(
+    String source,
+    Integer nameStart,
+    String attributeName,
+    ParseAttempt attempt,
+    ParseState state
+  ) {
+    state.valueUnits = new List<String>();
+    state.valueSpans = new List<Span>();
+    state.attributeClosed = false;
+    ParseAttempt valueFailure = readValueUnits(
+      source,
+      attributeName,
+      attempt,
+      state
+    );
+    if (valueFailure != null) {
+      return valueFailure;
+    }
+    if (!state.attributeClosed) {
+      return failed(
+        attempt,
+        'INLINE_LINK_MALFORMED',
+        nameStart,
+        source.length(),
+        attributeName,
+        'The inline-link attribute is missing its closing double quote.'
+      );
+    }
+    state.attributes.put(attributeName, String.join(state.valueUnits, ''));
+    state.spansByAttribute.put(attributeName, state.valueSpans);
+    return null;
+  }
+
+  private static ParseAttempt readValueUnits(
+    String source,
+    String attributeName,
+    ParseAttempt attempt,
+    ParseState state
+  ) {
+    while (state.cursor < source.length()) {
+      String unit = source.substring(state.cursor, state.cursor + 1);
+      if (unit == '"') {
+        state.attributeClosed = true;
+        state.cursor++;
+        break;
+      }
+      if (unit == '\\') {
+        if (state.cursor + 1 >= source.length()) {
+          break;
+        }
+        if (readEscapedUnit(source, attributeName, attempt, state) != null) {
+          return attempt;
+        }
+        continue;
+      }
+      if (
+        state.cursor + 1 < source.length() &&
+        source.substring(state.cursor, state.cursor + 2) == '{!'
+      ) {
+        if (readNestedValue(source, attributeName, attempt, state) != null) {
+          return attempt;
+        }
+        continue;
+      }
+      if (readPlainUnit(unit, attributeName, attempt, state) != null) {
+        return attempt;
+      }
+    }
+    return null;
+  }
+  /** Rejects isolated braces, then appends and advances one ordinary character. */
+  private static ParseAttempt readPlainUnit(
+    String unit,
+    String attributeName,
+    ParseAttempt attempt,
+    ParseState state
+  ) {
+    if (unit == '{' || unit == '}') {
+      return failed(
+        attempt,
+        'INLINE_LINK_NESTING_INVALID',
+        state.cursor,
+        state.cursor + 1,
+        attributeName,
+        'Braces inside a link attribute must form one complete value token.'
+      );
+    }
+    state.valueUnits.add(unit);
+    state.cursor++;
+    return null;
+  }
+  private static ParseAttempt readEscapedUnit(
+    String source,
+    String attributeName,
+    ParseAttempt attempt,
+    ParseState state
+  ) {
+    String escaped = source.substring(state.cursor + 1, state.cursor + 2);
+    if (escaped != '"' && escaped != '\\') {
+      return failed(
+        attempt,
+        'INLINE_LINK_MALFORMED_ESCAPE',
+        state.cursor,
+        state.cursor + 2,
+        attributeName,
+        'Inline-link attributes escape only a quote or backslash.'
+      );
+    }
+    state.valueUnits.add(escaped);
+    state.cursor += 2;
+    return null;
+  }
+  private static ParseAttempt readNestedValue(
+    String source,
+    String attributeName,
+    ParseAttempt attempt,
+    ParseState state
+  ) {
+    Integer tokenEnd = findValueTokenEnd(source, state.cursor);
+    if (
+      tokenEnd < 0 ||
+      source.substring(
+        state.cursor,
+        Math.min(source.length(), state.cursor + 6)
+      ) == '{!link'
+    ) {
+      return failed(
+        attempt,
+        'INLINE_LINK_NESTING_INVALID',
+        state.cursor,
+        tokenEnd < 0 ? source.length() : tokenEnd,
+        attributeName,
+        'A link may contain value tokens, but not another link or incomplete token.'
+      );
+    }
+    state.valueUnits.add(
+      RecordHealthCheckTemplateParser.unescapeAttribute(
+        source.substring(state.cursor, tokenEnd)
+      )
+    );
+    state.valueSpans.add(new Span(state.cursor, tokenEnd));
+    state.cursor = tokenEnd;
+    return null;
+  }
   private static Integer findValueTokenEnd(String source, Integer startIndex) {
     Boolean inQuote = false;
     Boolean escaped = false;

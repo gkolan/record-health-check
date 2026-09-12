@@ -136,6 +136,70 @@
       "supported": true,
       "reason": null,
       "requiredConjunct": null
+    },
+    {
+      "id": "R12_NESTED_BEFORE",
+      "query": "SELECT Id FROM Contact WHERE (LastName = 'A' AND FirstName = 'B') AND AccountId = {!record.Id}",
+      "classification": "CHILD_DIRECT",
+      "supported": true,
+      "reason": null,
+      "requiredConjunct": "AccountId = {!record.Id}"
+    },
+    {
+      "id": "R12_NESTED_AFTER",
+      "query": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND (LastName = 'A' AND FirstName = 'B')",
+      "classification": "CHILD_DIRECT",
+      "supported": true,
+      "reason": null,
+      "requiredConjunct": "AccountId = {!record.Id}"
+    },
+    {
+      "id": "R12_MULTIPLE_NESTED",
+      "query": "SELECT Id FROM Contact WHERE ((LastName = 'A' AND FirstName = 'B') AND (Email != null AND Phone != null)) AND AccountId = {!record.Id}",
+      "classification": "CHILD_DIRECT",
+      "supported": true,
+      "reason": null,
+      "requiredConjunct": "AccountId = {!record.Id}"
+    },
+    {
+      "id": "R13_LIMIT_N",
+      "query": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate LIMIT 5",
+      "classification": "ORDERED_PICK_IN_MEMORY",
+      "supported": true,
+      "reason": null,
+      "requiredConjunct": "AccountId = {!record.Id}"
+    },
+    {
+      "id": "R13_MULTI_ORDER",
+      "query": "SELECT Id FROM Contact WHERE AccountId = {!record.Id} ORDER BY LastName, FirstName LIMIT 2",
+      "classification": "ORDERED_PICK_IN_MEMORY",
+      "supported": true,
+      "reason": null,
+      "requiredConjunct": "AccountId = {!record.Id}"
+    },
+    {
+      "id": "R14_INNER_ORDER_LIMIT",
+      "query": "SELECT Id, (SELECT Id FROM Cases ORDER BY CreatedDate LIMIT 2) FROM Contact WHERE AccountId = {!record.Id}",
+      "classification": "CHILD_DIRECT",
+      "supported": true,
+      "reason": null,
+      "requiredConjunct": "AccountId = {!record.Id}"
+    },
+    {
+      "id": "R14_INNER_ORDER_OUTER_LIMIT",
+      "query": "SELECT Id, (SELECT Id FROM Cases ORDER BY CreatedDate LIMIT 2) FROM Contact WHERE AccountId = {!record.Id} LIMIT 3",
+      "classification": "UNCLASSIFIED",
+      "supported": false,
+      "reason": "UNSUPPORTED_BULK_QUERY_SHAPE",
+      "requiredConjunct": "AccountId = {!record.Id}"
+    },
+    {
+      "id": "R13_INDIRECT_BARE_LIMIT",
+      "query": "SELECT Id FROM Contact WHERE AccountId = {!record.ParentId} LIMIT 3",
+      "classification": "UNCLASSIFIED",
+      "supported": false,
+      "reason": "UNSUPPORTED_BULK_QUERY_SHAPE",
+      "requiredConjunct": "AccountId = {!record.ParentId}"
     }
   ]
 }

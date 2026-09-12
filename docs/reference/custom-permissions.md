@@ -15,8 +15,8 @@ If **Diagnostics Viewer** or the **Record Health Check** list view is absent fro
 
 ## Installed Custom Permissions
 
-| Custom Permission label | API name | What it controls |
-| --- | --- | --- |
+| Custom Permission label     | API name                       | What it controls                                                  |
+| --------------------------- | ------------------------------ | ----------------------------------------------------------------- |
 | **Record Health Check Run** | `rhc__Record_Health_Check_Run` | Whether a package entry point may start a Record Health Check run |
 
 The `rhc__` prefix is the installed package namespace. Copy the API name shown in Setup or package
@@ -32,14 +32,14 @@ The Custom Permission is necessary but not sufficient by itself. The running use
 to the Apex entry-point class for the selected way of running Record Health Check. The packaged runner Permission Sets combine
 the Custom Permission with the appropriate class access:
 
-| Packaged Permission Set | Contains Run | Authorized entry point |
-| --- | :---: | --- |
-| **Record Health Check Card User** | Yes | Lightning record-page card and App Builder picker |
-| **Record Health Check User** | Yes | Lightning, Flow, Apex, Agentforce, REST, Queueable, Batch, and Scheduled Apex |
-| **Record Health Check Admin** | Yes | Runtime surfaces plus administration and diagnostics |
-| **Record Health Check MCP Integration** | Yes | Versioned Apex REST adapter only |
-| **Record Health Check Diagnostics Viewer** | No | Diagnostic authorization only; combine it with a runner Permission Set |
-| **Record Health Check Error Log Publisher** | No | Restricted Log Platform Event publication only; it cannot start a run |
+| Packaged Permission Set                     | Contains Run | Authorized entry point                                                        |
+| ------------------------------------------- | :----------: | ----------------------------------------------------------------------------- |
+| **Record Health Check Card User**           |     Yes      | Lightning record-page card and App Builder picker                             |
+| **Record Health Check User**                |     Yes      | Lightning, Flow, Apex, Agentforce, REST, Queueable, Batch, and Scheduled Apex |
+| **Record Health Check Admin**               |     Yes      | Runtime surfaces plus administration and diagnostics                          |
+| **Record Health Check MCP Integration**     |     Yes      | Versioned Apex REST adapter only                                              |
+| **Record Health Check Diagnostics Viewer**  |      No      | Diagnostic authorization only; combine it with a runner Permission Set        |
+| **Record Health Check Error Log Publisher** |      No      | Restricted Log Platform Event publication only; it cannot start a run         |
 
 The Run Custom Permission does not grant access to business records or fields. Record Health Check
 continues to enforce the running user's object, field, record-sharing, restriction-rule, and

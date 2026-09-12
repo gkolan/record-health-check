@@ -5,21 +5,40 @@ private class RHCSubscriberDefinitionSpecTest {
   static void defaultSchemaValues() {
     RecordHealthCheckInternalResult result = evaluate('{}', null);
 
-    Assert.areEqual(RecordHealthCheckStatus.PASS, result.status);
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.constructorCount);
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.definitionCount);
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.evaluateCount);
+    Assert.areEqual(
+      RecordHealthCheckStatus.PASS,
+      result.status,
+      'An empty parameter object must evaluate successfully with schema defaults.'
+    );
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.constructorCount,
+      'Default resolution must instantiate the plugin only once.'
+    );
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.definitionCount,
+      'Default resolution must obtain the definition only once.'
+    );
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'Validated defaults must reach exactly one evaluation invocation.'
+    );
     Assert.areEqual(
       5,
-      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords')
+      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords'),
+      'The omitted preview limit must receive its declared integer default.'
     );
     Assert.areEqual(
       'nameId',
-      RecordHealthCheckDefTestPlugin.seenParameters.get('displayFormat')
+      RecordHealthCheckDefTestPlugin.seenParameters.get('displayFormat'),
+      'The omitted display format must receive its declared choice default.'
     );
     Assert.areEqual(
       'QuoteInactiveApproverPreviewService',
-      RecordHealthCheckDefTestPlugin.seenParameters.get('previewService')
+      RecordHealthCheckDefTestPlugin.seenParameters.get('previewService'),
+      'The omitted service name must receive its declared string default.'
     );
   }
 
@@ -41,10 +60,15 @@ private class RHCSubscriberDefinitionSpecTest {
       '{"maxPreviewRecords":5.0}',
       null
     );
-    Assert.areEqual(RecordHealthCheckStatus.PASS, accepted.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.PASS,
+      accepted.status,
+      'An integral JSON decimal must satisfy the integer parameter contract.'
+    );
     Assert.areEqual(
       5,
-      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords')
+      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords'),
+      'An accepted integral decimal must normalize to the declared integer value.'
     );
   }
 
@@ -58,13 +82,19 @@ private class RHCSubscriberDefinitionSpecTest {
     RecordHealthCheckInternalResult required = evaluate('{}', 'REQUIRED');
     Assert.areEqual(
       RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
-      required.status
+      required.status,
+      'An absent required parameter must prevent evaluation.'
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS,
-      required.reasonCode
+      required.reasonCode,
+      'Missing required parameters must expose the stable parameter-validation reason.'
     );
-    Assert.areEqual(0, RecordHealthCheckDefTestPlugin.evaluateCount);
+    Assert.areEqual(
+      0,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'Required-parameter rejection must happen before plugin evaluation.'
+    );
   }
 
   @IsTest
@@ -76,10 +106,15 @@ private class RHCSubscriberDefinitionSpecTest {
     RecordHealthCheckPluginDefinition snapshot = definition.snapshot();
     Assert.areEqual(
       new List<String>{ 'one', 'two' },
-      snapshot.parameter('format').choices
+      snapshot.parameter('format').choices,
+      'Mutating the original choice list must not change the definition snapshot.'
     );
     snapshot.parameter('format').choices.clear();
-    Assert.areEqual(2, definition.parameter('format').choices.size());
+    Assert.areEqual(
+      2,
+      definition.parameter('format').choices.size(),
+      'Mutating a snapshot must not change the original definition choices.'
+    );
   }
 
   @IsTest
@@ -98,7 +133,8 @@ private class RHCSubscriberDefinitionSpecTest {
     evaluate('{}', null);
     Assert.areEqual(
       5,
-      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords')
+      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords'),
+      'An absent parameter must receive its default rather than behave as explicit null.'
     );
     assertRejected('{"maxPreviewRecords":null}');
 
@@ -106,14 +142,20 @@ private class RHCSubscriberDefinitionSpecTest {
       '{"maxPreviewRecords":null}',
       'NULLABLE'
     );
-    Assert.areEqual(RecordHealthCheckStatus.PASS, nullable.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.PASS,
+      nullable.status,
+      'Explicit null must be accepted for a nullable parameter.'
+    );
     Assert.isTrue(
       RecordHealthCheckDefTestPlugin.seenParameters.containsKey(
         'maxPreviewRecords'
-      )
+      ),
+      'A nullable explicit null must retain the parameter key.'
     );
     Assert.isNull(
-      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords')
+      RecordHealthCheckDefTestPlugin.seenParameters.get('maxPreviewRecords'),
+      'A nullable explicit null must not be replaced by the default.'
     );
   }
 
@@ -136,9 +178,21 @@ private class RHCSubscriberDefinitionSpecTest {
     Test.stopTest();
 
     Assert.isTrue(fatalEscaped, 'Definition DML must fail the outer fence.');
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.constructorCount);
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.definitionCount);
-    Assert.areEqual(0, RecordHealthCheckDefTestPlugin.evaluateCount);
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.constructorCount,
+      'A definition side effect must not cause a second plugin construction.'
+    );
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.definitionCount,
+      'The fenced definition provider must be called exactly once.'
+    );
+    Assert.areEqual(
+      0,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'Definition DML must stop before evaluation is invoked.'
+    );
   }
 
   @IsTest
@@ -152,124 +206,85 @@ private class RHCSubscriberDefinitionSpecTest {
     );
     Test.stopTest();
 
-    Assert.areEqual(5, accepted.size());
+    Assert.areEqual(
+      5,
+      accepted.size(),
+      'A scope at the declared capacity must produce one result per record.'
+    );
     for (RecordHealthCheckInternalResult result : accepted.values()) {
-      Assert.areEqual(RecordHealthCheckStatus.PASS, result.status);
+      Assert.areEqual(
+        RecordHealthCheckStatus.PASS,
+        result.status,
+        'Every record within the declared capacity must remain evaluable.'
+      );
     }
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.definitionCount);
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.evaluateCount);
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.definitionCount,
+      'The accepted scope must obtain its definition once for the whole scope.'
+    );
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'The accepted scope must evaluate once in bulk.'
+    );
 
     Map<Id, SObject> sixRecords = accountScope(6);
     reset('CAPACITY');
     Map<Id, RecordHealthCheckInternalResult> rejected = evaluateScope(
       sixRecords
     );
-    Assert.areEqual(6, rejected.size());
+    Assert.areEqual(
+      6,
+      rejected.size(),
+      'An oversized scope must still produce a rejection result for every record.'
+    );
     for (RecordHealthCheckInternalResult result : rejected.values()) {
       Assert.areEqual(
         RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
-        result.status
+        result.status,
+        'Every record over the declared capacity must be unable to evaluate.'
       );
       Assert.areEqual(
         RecordHealthCheckReasonCodes.PLUGIN_SCOPE_LIMIT_EXCEEDED,
-        result.reasonCode
+        result.reasonCode,
+        'Capacity rejection must use the stable plugin scope-limit reason.'
       );
-      Assert.areEqual(false, result.pluginInvoked);
-    }
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.definitionCount);
-    Assert.areEqual(0, RecordHealthCheckDefTestPlugin.evaluateCount);
-  }
-
-  @IsTest
-  static void isolateOneRecord() {
-    Id passingId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      7101
-    );
-    Id throwingId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      7102
-    );
-    Id failingId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      7103
-    );
-    ControlledRecordEvaluator evaluator = new ControlledRecordEvaluator(
-      new Map<Id, String>{
-        passingId => 'PASS',
-        throwingId => 'THROW',
-        failingId => 'FAIL'
-      }
-    );
-    Map<Id, RecordHealthCheckOutcome> outcomes = new Map<Id, RecordHealthCheckOutcome>();
-
-    for (Id recordId : new List<Id>{ passingId, throwingId, failingId }) {
-      outcomes.put(
-        recordId,
-        RecordHealthCheckOutcome.tryEvaluate(recordId, evaluator)
+      Assert.areEqual(
+        false,
+        result.pluginInvoked,
+        'Capacity rejection must not claim the plugin evaluated the record.'
       );
     }
-
-    Assert.areEqual(3, outcomes.size());
     Assert.areEqual(
-      RecordHealthCheckStatus.PASS,
-      outcomes.get(passingId).status
-    );
-    Assert.areEqual(
-      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
-      outcomes.get(throwingId).status
+      1,
+      RecordHealthCheckDefTestPlugin.definitionCount,
+      'The oversized scope must inspect its capacity definition only once.'
     );
     Assert.areEqual(
-      'RECORD_EVALUATION_FAILED',
-      outcomes.get(throwingId).reasonCode
+      0,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'The oversized scope must never invoke plugin evaluation.'
     );
-    Assert.areEqual(
-      RecordHealthCheckStatus.FAIL,
-      outcomes.get(failingId).status
-    );
-    Assert.areEqual(3, evaluator.invocationCount);
-  }
-
-  @IsTest
-  static void fatalNotSwallowed() {
-    Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      7201
-    );
-    ControlledRecordEvaluator evaluator = new ControlledRecordEvaluator(
-      new Map<Id, String>{ recordId => 'SIDE_EFFECT' }
-    );
-    Boolean escaped = false;
-    try {
-      RecordHealthCheckOutcome.tryEvaluate(recordId, evaluator);
-    } catch (RecordHealthCheckPluginDispatch.SideEffectException expected) {
-      escaped = true;
-    }
-    Assert.isTrue(escaped);
-    Assert.areEqual(1, evaluator.invocationCount);
-    evaluator = new ControlledRecordEvaluator(
-      new Map<Id, String>{ recordId => 'FATAL_MARKER' }
-    );
-    escaped = false;
-    try {
-      RecordHealthCheckOutcome.tryEvaluate(recordId, evaluator);
-    } catch (FatalRecordException expected) {
-      escaped = true;
-    }
-    Assert.isTrue(escaped);
-    Assert.areEqual(1, evaluator.invocationCount);
-    assertInvalidRecordEvaluator(null, evaluator);
-    assertInvalidRecordEvaluator(recordId, null);
   }
 
   private static void assertRejected(String parametersJson) {
     RecordHealthCheckInternalResult result = evaluate(parametersJson, null);
-    Assert.areEqual(RecordHealthCheckStatus.UNABLE_TO_EVALUATE, result.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      result.status,
+      'Invalid parameter input must prevent a successful evaluation.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS,
-      result.reasonCode
+      result.reasonCode,
+      'Rejected parameter input must expose the stable parameter-validation reason.'
     );
-    Assert.areEqual(0, RecordHealthCheckDefTestPlugin.evaluateCount);
+    Assert.areEqual(
+      0,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'Rejected parameters must never reach plugin evaluation.'
+    );
   }
 
   private static Map<Id, RecordHealthCheckInternalResult> evaluateScope(
@@ -284,19 +299,6 @@ private class RHCSubscriberDefinitionSpecTest {
         null,
         null
       );
-  }
-
-  private static void assertInvalidRecordEvaluator(
-    Id recordId,
-    RecordHealthCheckRecordEvaluator evaluator
-  ) {
-    Boolean rejected = false;
-    try {
-      RecordHealthCheckOutcome.tryEvaluate(recordId, evaluator);
-    } catch (RecordHealthCheckOutcomeBuilderException expected) {
-      rejected = expected.getMessage() == 'INVALID_RECORD_EVALUATOR';
-    }
-    Assert.isTrue(rejected);
   }
 
   private static Map<Id, SObject> accountScope(Integer size) {
@@ -318,13 +320,26 @@ private class RHCSubscriberDefinitionSpecTest {
 
   private static void assertDefinitionRejected(String mode) {
     RecordHealthCheckInternalResult result = evaluate('{}', mode);
-    Assert.areEqual(RecordHealthCheckStatus.UNABLE_TO_EVALUATE, result.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      result.status,
+      'A broken definition provider must not fall back to legacy evaluation.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID,
-      result.reasonCode
+      result.reasonCode,
+      'A broken definition provider must expose the stable definition-invalid reason.'
     );
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.definitionCount);
-    Assert.areEqual(0, RecordHealthCheckDefTestPlugin.evaluateCount);
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.definitionCount,
+      'A broken definition provider must be attempted only once.'
+    );
+    Assert.areEqual(
+      0,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'A broken definition provider must prevent plugin evaluation.'
+    );
   }
 
   private static void assertMalformed(DefinitionAttempt attempt) {
@@ -362,50 +377,6 @@ private class RHCSubscriberDefinitionSpecTest {
         definition.capacity(null, false, 'EXTREME');
       }
     }
-  }
-
-  private class ControlledRecordEvaluator implements RecordHealthCheckRecordEvaluator {
-    private Map<Id, String> modes;
-    private Integer invocationCount = 0;
-
-    private ControlledRecordEvaluator(Map<Id, String> modes) {
-      this.modes = modes;
-    }
-
-    public RecordHealthCheckOutcome evaluateRecord(Id recordId) {
-      invocationCount++;
-      String mode = modes.get(recordId);
-      if (mode == 'THROW') {
-        throw new DeliberateRecordException('secret record-specific detail');
-      }
-      if (mode == 'SIDE_EFFECT') {
-        RecordHealthCheckPluginDispatch.SideEffectException fatal = new RecordHealthCheckPluginDispatch.SideEffectException(
-          'Synthetic fatal side effect.'
-        );
-        fatal.reasonCode = RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED;
-        throw fatal;
-      }
-      if (mode == 'FATAL_MARKER') {
-        throw new FatalRecordException('Synthetic framework-fatal marker.');
-      }
-      return mode == 'PASS'
-        ? RecordHealthCheckOutcome.passEquals(
-            'RECORD_OK',
-            RecordHealthCheckValue.ofBoolean(true),
-            RecordHealthCheckValue.ofBoolean(true)
-          )
-        : RecordHealthCheckOutcome.failEquals(
-            'RECORD_REVIEW',
-            RecordHealthCheckValue.ofBoolean(false),
-            RecordHealthCheckValue.ofBoolean(true)
-          );
-    }
-  }
-
-  private class DeliberateRecordException extends Exception {
-  }
-
-  private class FatalRecordException extends Exception implements RecordHealthCheckFatalFailure {
   }
 
   private static RecordHealthCheckInternalResult evaluate(

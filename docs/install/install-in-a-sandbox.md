@@ -48,10 +48,10 @@ Accounts, Contacts, Opportunities, or other business data.
 
 Choose the destination that matches the org where you are signed in:
 
-| Destination | Use it when | Install |
-| --- | --- | --- |
-| Sandbox | You are installing or verifying the current release | [Install in Sandbox](https://recordhealthcheck.com/install/sandbox) |
-| Production or Developer Edition | You are installing the current release | [Install in Production](https://recordhealthcheck.com/install/production) |
+| Destination                     | Use it when                                         | Install                                                                   |
+| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
+| Sandbox                         | You are installing or verifying the current release | [Install in Sandbox](https://recordhealthcheck.com/install/sandbox)       |
+| Production or Developer Edition | You are installing the current release              | [Install in Production](https://recordhealthcheck.com/install/production) |
 
 Both links route to the latest Record Health Check package version. The different login domains
 send the same package version to the appropriate Salesforce environment.
@@ -77,12 +77,12 @@ The package includes permission sets so people receive only the access their wor
 
 If **Diagnostics Viewer** is absent from Setup, assign **Record Health Check Admin** alongside the runner permission set. An org-owned Permission Set cannot grant diagnostics.
 
-| Permission set | Assign it to | What it allows |
-| --- | --- | --- |
-| **Record Health Check Card User** | People who use only the Lightning record-page card | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
-| **Record Health Check User** | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | All packaged ways to run Record Health Check; do not assign it merely to display the card |
-| **Record Health Check Admin** | People who configure Check Sets or investigate unexpected results | User access plus package configuration and diagnostic access |
-| **Record Health Check Diagnostics Viewer** | An affected Card User or User who must reproduce an issue | Diagnostic visibility only; assign it temporarily alongside the existing runner Permission Set |
+| Permission set                             | Assign it to                                                                                            | What it allows                                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Record Health Check Card User**          | People who use only the Lightning record-page card                                                      | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
+| **Record Health Check User**               | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | All packaged ways to run Record Health Check; do not assign it merely to display the card      |
+| **Record Health Check Admin**              | People who configure Check Sets or investigate unexpected results                                       | User access plus package configuration and diagnostic access                                   |
+| **Record Health Check Diagnostics Viewer** | An affected Card User or User who must reproduce an issue                                               | Diagnostic visibility only; assign it temporarily alongside the existing runner Permission Set |
 
 To give a non-admin access after choosing **Install for Admins Only**:
 
@@ -173,17 +173,17 @@ around a decision your users actually make.
 
 ## If the result is not what you expected
 
-| What you see | What to check first |
-| --- | --- |
-| Installation cannot continue | Confirm that you are signed in to the intended org and can install packages |
-| Installation remains pending | Wait for the Salesforce completion email, then refresh **Setup → Installed Packages**. If it remains pending, give Salesforce Support the package version and target Org ID. |
-| Salesforce reports an `rhc` namespace conflict | Use an org that does not already contain the package or another package with the same namespace; do not rename packaged components. |
-| Record Health Check is missing in Lightning App Builder | Confirm the package appears in **Setup → Installed Packages**, then look under **Custom** components |
-| No Check Set is available | Use an Example Check Set for the same object as the record page, such as an Account Example Check Set on an Account page |
-| A user cannot see or run the card | Confirm that the user has **Record Health Check Card User** and can read the record and fields being checked |
-| A Check shows **Unable to Check** | Read the explanation on the card, then check the user's access and the Check configuration |
-| A Check shows **System Error** | Ask a Record Health Check administrator to enable Show Diagnostics temporarily and capture the diagnostic details |
-| Salesforce reports a conflict with `RecordHealthCheckController` | The org already contains an unpackaged copy of Record Health Check; install into an org that has not received that source deployment |
+| What you see                                                     | What to check first                                                                                                                                                          |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Installation cannot continue                                     | Confirm that you are signed in to the intended org and can install packages                                                                                                  |
+| Installation remains pending                                     | Wait for the Salesforce completion email, then refresh **Setup → Installed Packages**. If it remains pending, give Salesforce Support the package version and target Org ID. |
+| Salesforce reports an `rhc` namespace conflict                   | Use an org that does not already contain the package or another package with the same namespace; do not rename packaged components.                                          |
+| Record Health Check is missing in Lightning App Builder          | Confirm the package appears in **Setup → Installed Packages**, then look under **Custom** components                                                                         |
+| No Check Set is available                                        | Use an Example Check Set for the same object as the record page, such as an Account Example Check Set on an Account page                                                     |
+| A user cannot see or run the card                                | Confirm that the user has **Record Health Check Card User** and can read the record and fields being checked                                                                 |
+| A Check shows **Unable to Check**                                | Read the explanation on the card, then check the user's access and the Check configuration                                                                                   |
+| A Check shows **System Error**                                   | Ask a Record Health Check administrator to enable Show Diagnostics temporarily and capture the diagnostic details                                                            |
+| Salesforce reports a conflict with `RecordHealthCheckController` | The org already contains an unpackaged copy of Record Health Check; install into an org that has not received that source deployment                                         |
 
 For a guided investigation, see [Troubleshoot with Show
 Diagnostics](../diagnostics/browser-console.md).
@@ -207,12 +207,12 @@ to the installed package's permission-set API name. Do not remove it from this c
 
 ## Next steps
 
-| Your next goal | Continue with |
-| --- | --- |
-| Prove the complete prepared experience in a separate org | [Deploy to a demo scratch org](./install-demo-in-a-scratch-org.md) |
-| Build a small check that belongs to your organization | [Create your first Check](../step-by-step-guide/create-your-first-check.md) |
-| Inspect every packaged example | [Installed example Check Sets](./explore-installed-examples.md) |
-| Adapt a tested pattern | [Examples library](../examples/README.md) |
-| Review security before production | [Security and data access](../architecture/security-and-data-access.md) |
-| Revalidate after an upgrade | [Upgrade and revalidate](./upgrade.md) |
-| Remove the package | [Uninstall and rollback](./uninstall.md) |
+| Your next goal                                           | Continue with                                                               |
+| -------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Prove the complete prepared experience in a separate org | [Deploy to a demo scratch org](./install-demo-in-a-scratch-org.md)          |
+| Build a small check that belongs to your organization    | [Create your first Check](../step-by-step-guide/create-your-first-check.md) |
+| Inspect every packaged example                           | [Installed example Check Sets](./explore-installed-examples.md)             |
+| Adapt a tested pattern                                   | [Examples library](../examples/README.md)                                   |
+| Review security before production                        | [Security and data access](../architecture/security-and-data-access.md)     |
+| Revalidate after an upgrade                              | [Upgrade and revalidate](./upgrade.md)                                      |
+| Remove the package                                       | [Uninstall and rollback](./uninstall.md)                                    |

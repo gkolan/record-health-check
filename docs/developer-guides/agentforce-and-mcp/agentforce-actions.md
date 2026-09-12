@@ -10,10 +10,10 @@ This guide is for Agentforce administrators and developers.
 
 The package provides two native Agentforce actions:
 
-| Agentforce action | Apex class | Use |
-| --- | --- | --- |
-| **Run Record Health Check for Agentforce** | `RecordHealthCheckRunCheckAgentAction` | Evaluate one exact Check for one record |
-| **Run Record Health Check Set for Agentforce** | `RecordHealthCheckRunSetAgentAction` | Evaluate the complete active Check Set for one record |
+| Agentforce action                              | Apex class                             | Use                                                   |
+| ---------------------------------------------- | -------------------------------------- | ----------------------------------------------------- |
+| **Run Record Health Check for Agentforce**     | `RecordHealthCheckRunCheckAgentAction` | Evaluate one exact Check for one record               |
+| **Run Record Health Check Set for Agentforce** | `RecordHealthCheckRunSetAgentAction`   | Evaluate the complete active Check Set for one record |
 
 Use the Check Set action for a general record-health question. Use the Check action only when the
 agent must answer one named data-quality question.
@@ -66,14 +66,14 @@ Use instructions with these rules:
 
 This walkthrough uses these example choices:
 
-| Decision | Example choice |
-| --- | --- |
-| Agent | `Account Readiness Assistant` |
-| Target object | Account |
-| Check Set | An administrator-created Set named `My_Account_Checks` |
-| Normal action | **Run Record Health Check Set for Agentforce** |
-| Optional focused action | **Run Record Health Check for Agentforce** |
-| Result publication | None; native actions always use `NONE` |
+| Decision                | Example choice                                         |
+| ----------------------- | ------------------------------------------------------ |
+| Agent                   | `Account Readiness Assistant`                          |
+| Target object           | Account                                                |
+| Check Set               | An administrator-created Set named `My_Account_Checks` |
+| Normal action           | **Run Record Health Check Set for Agentforce**         |
+| Optional focused action | **Run Record Health Check for Agentforce**             |
+| Result publication      | None; native actions always use `NONE`                 |
 
 Replace `My_Account_Checks` with the exact **Check Set Qualified API Name** from your org. It is an
 example name, not metadata installed by Record Health Check.
@@ -217,17 +217,17 @@ for most record-health adoption scenarios.
 
 Open each action and confirm:
 
-| Item | Required configuration |
-| --- | --- |
-| Record ID | One Salesforce record ID; never a list |
-| Qualified API Name | Exact Check or Check Set name copied from Setup |
-| Correlation ID | Optional safe operational identifier, at most 120 characters |
-| Contract Version | Available to reasoning; current actions return `1.0` |
-| Success | Checked before the agent claims any health conclusion |
-| Status | Interpreted with the five-state table below |
-| Counts | Check Set action exposes passed, failed, skipped, unable, and system-error counts |
-| Bounded diagnosis | Optional diagnostic ID, category, summary, and recommended action for a completed evaluation |
-| Error fields | Used for a safe explanation, not rewritten as a health result |
+| Item               | Required configuration                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| Record ID          | One Salesforce record ID; never a list                                                       |
+| Qualified API Name | Exact Check or Check Set name copied from Setup                                              |
+| Correlation ID     | Optional safe operational identifier, at most 120 characters                                 |
+| Contract Version   | Available to reasoning; current actions return `1.0`                                         |
+| Success            | Checked before the agent claims any health conclusion                                        |
+| Status             | Interpreted with the five-state table below                                                  |
+| Counts             | Check Set action exposes passed, failed, skipped, unable, and system-error counts            |
+| Bounded diagnosis  | Optional diagnostic ID, category, summary, and recommended action for a completed evaluation |
+| Error fields       | Used for a safe explanation, not rewritten as a health result                                |
 
 The single-Check action also returns a reason code. The Check Set action returns counts instead of
 individual Check values or messages.
@@ -296,14 +296,14 @@ completed evaluation can also return bounded `diagnosticId`, `diagnosticCategory
 `diagnosticSummary`, and `recommendedAction` values. These fields are disclosure-safe guidance, not
 raw administrator diagnostics.
 
-| Output | Agent behavior |
-| --- | --- |
-| `success=false` | Report the safe adapter error. Do not claim any health status. |
-| `PASS` | State that the selected Check or Check Set passed. |
-| `FAIL` | State that evaluation completed and found a business condition requiring attention. |
-| `SKIPPED` | State that the Check did not apply or did not run. |
-| `UNABLE_TO_EVALUATE` | State that no reliable conclusion was reached. Never translate it to `PASS`. |
-| `ERROR` | State that a system or evaluator problem prevented a reliable result. Never translate it to `PASS`. |
+| Output               | Agent behavior                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------- |
+| `success=false`      | Report the safe adapter error. Do not claim any health status.                                      |
+| `PASS`               | State that the selected Check or Check Set passed.                                                  |
+| `FAIL`               | State that evaluation completed and found a business condition requiring attention.                 |
+| `SKIPPED`            | State that the Check did not apply or did not run.                                                  |
+| `UNABLE_TO_EVALUATE` | State that no reliable conclusion was reached. Never translate it to `PASS`.                        |
+| `ERROR`              | State that a system or evaluator problem prevented a reliable result. Never translate it to `PASS`. |
 
 The actions do not return Found or Expected values, display messages, action URLs, raw serialized
 results, queries, formulas, stack traces, record values, or administrator-only diagnostics. Report

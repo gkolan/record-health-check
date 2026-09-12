@@ -295,6 +295,183 @@ describe("c-record-health-check-preview", () => {
     });
     expect(element.shadowRoot.querySelector("[data-stale]")).not.toBeNull();
   });
+  it.each(["42", "true", '"text"', "null", "[]"])(
+    "rejects non-object draft %s before calling Apex",
+    async (draft) => {
+      const element = createComponent();
+      element.draftJson = draft;
+      element.shadowRoot.querySelector("[data-action='validate']").click();
+      await flushPromises();
+      expect(preview).not.toHaveBeenCalled();
+      expect(
+        element.shadowRoot.querySelector("[role='alert']").textContent
+      ).toContain("one object");
+    }
+  );
+
+  it("can run again after disconnecting while a request is pending", async () => {
+    let resolveOld;
+    preview.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveOld = resolve;
+      })
+    );
+    const element = createComponent();
+    element.shadowRoot.querySelector("[data-action='preview']").click();
+    await flushPromises();
+    document.body.removeChild(element);
+    document.body.appendChild(element);
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector("[data-action='preview']").disabled
+    ).toBe(false);
+    preview.mockResolvedValueOnce(
+      JSON.stringify({ ...VALID_RESPONSE, runId: "new-run" })
+    );
+    element.shadowRoot.querySelector("[data-action='preview']").click();
+    await flushPromises();
+    resolveOld(JSON.stringify({ ...VALID_RESPONSE, validationStatus: "OLD" }));
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector("[data-status]").textContent
+    ).not.toContain("OLD");
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+  });
+
+  it("shows an unsaved receipt warning and identifies each Check result", async () => {
+    preview.mockResolvedValue(
+      JSON.stringify({
+        ...VALID_RESPONSE,
+        readinessReceipt: {
+          receiptStatus: "NOT_SAVED",
+          warning: "Receipt storage unavailable."
+        },
+        results: ["ns__Prerequisite", "ns__Draft"].map(
+          (checkQualifiedApiName) => ({
+            evaluation: {
+              recordId: "001000000000001AAA",
+              checkQualifiedApiName,
+              status: "PASS"
+            }
+          })
+        )
+      })
+    );
+    const element = createComponent();
+    element.shadowRoot.querySelector("[data-action='preview']").click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector("[data-receipt-warning]")?.textContent
+    ).toContain("Receipt storage unavailable.");
+    const rows = [...element.shadowRoot.querySelectorAll("[data-result]")];
+    expect(rows[0].textContent).toContain("ns__Prerequisite");
+    expect(rows[1].textContent).toContain("ns__Draft");
+    element.draftJson = "{}";
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector("[data-receipt-warning]")
+    ).toBeNull();
+  });
+
+  it("omits a cleared integer without changing sibling parameters", async () => {
+    const element = await parameterComponent(
+      '{"maxPreviewRecords":5,"other":true}'
+    );
+    const control = element.shadowRoot.querySelector(
+      "[data-parameter-key='maxPreviewRecords']"
+    );
+    control.dispatchEvent(new CustomEvent("change", { detail: { value: "" } }));
+    await flushPromises();
+    expect(
+      JSON.parse(JSON.parse(element.draftJson).ApexParametersJson__c)
+    ).toEqual({ other: true });
+    expect(
+      element.shadowRoot.querySelector(
+        "[data-parameter-key='maxPreviewRecords']"
+      )
+    ).not.toBeNull();
+  });
+
+  it.each(["null", "[]", "42", "true", '"text"', "{"])(
+    "reports malformed parameter object %s without changing the draft",
+    async (parameters) => {
+      const element = await parameterComponent(parameters);
+      const before = element.draftJson;
+      element.shadowRoot
+        .querySelector("[data-parameter-key='maxPreviewRecords']")
+        .dispatchEvent(new CustomEvent("change", { detail: { value: "7" } }));
+      await flushPromises();
+      expect(element.draftJson).toBe(before);
+      expect(
+        element.shadowRoot.querySelector("[role='alert']").textContent
+      ).toContain("Apex Parameters JSON");
+    }
+  );
+
+  it("removes obsolete controls when raw draft JSON changes", async () => {
+    const element = await parameterComponent("{}");
+    const obsolete = element.shadowRoot.querySelector(
+      "[data-parameter-key='maxPreviewRecords']"
+    );
+    element.draftJson = "{";
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector("[data-plugin-parameter]")
+    ).toBeNull();
+    obsolete.dispatchEvent(
+      new CustomEvent("change", { detail: { value: "7" } })
+    );
+    await flushPromises();
+    expect(element.draftJson).toBe("{");
+  });
+
+  it("ignores cleanup completion from before a disconnect during a new Preview", async () => {
+    let finishCleanup;
+    let finishPreview;
+    LightningConfirm.open.mockResolvedValue(true);
+    deleteExpiredReceipts.mockReturnValue(
+      new Promise((resolve) => {
+        finishCleanup = resolve;
+      })
+    );
+    preview.mockReturnValue(
+      new Promise((resolve) => {
+        finishPreview = resolve;
+      })
+    );
+    const element = createComponent();
+    element.shadowRoot.querySelector("[data-action='delete-expired']").click();
+    await flushPromises();
+    document.body.removeChild(element);
+    document.body.appendChild(element);
+    element.shadowRoot.querySelector("[data-action='preview']").click();
+    await flushPromises();
+    finishCleanup(2);
+    await flushPromises();
+    expect(element.shadowRoot.querySelector("[data-cleanup]")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector("lightning-spinner")
+    ).not.toBeNull();
+    finishPreview(JSON.stringify(VALID_RESPONSE));
+    await flushPromises();
+    expect(element.shadowRoot.querySelector("lightning-spinner")).toBeNull();
+  });
+
+  it.each(["1.5", "NaN", "Infinity", "9007199254740992"])(
+    "does not write invalid integer %s into the draft",
+    async (value) => {
+      const element = await parameterComponent("{}");
+      const before = element.draftJson;
+      element.shadowRoot
+        .querySelector("[data-parameter-key='maxPreviewRecords']")
+        .dispatchEvent(new CustomEvent("change", { detail: { value } }));
+      await flushPromises();
+      expect(element.draftJson).toBe(before);
+      expect(
+        element.shadowRoot.querySelector("[role='alert']").textContent
+      ).toContain("whole number");
+    }
+  );
 });
 
 function createComponent() {
@@ -315,4 +492,28 @@ function change(element, name, value) {
   const input = element.shadowRoot.querySelector(`[data-input='${name}']`);
   input.value = value;
   input.dispatchEvent(new CustomEvent("change", { detail: { value } }));
+}
+
+async function parameterComponent(parameters) {
+  preview.mockResolvedValue(
+    JSON.stringify({
+      ...VALID_RESPONSE,
+      pluginParameters: [
+        {
+          key: "maxPreviewRecords",
+          typeName: "INTEGER",
+          label: "Maximum preview records",
+          currentValue: 5
+        }
+      ]
+    })
+  );
+  const element = createComponent();
+  element.draftJson = JSON.stringify({
+    ...JSON.parse(element.draftJson),
+    ApexParametersJson__c: parameters
+  });
+  element.shadowRoot.querySelector("[data-action='preview']").click();
+  await flushPromises();
+  return element;
 }

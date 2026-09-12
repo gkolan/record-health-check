@@ -104,9 +104,21 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     }
     Test.stopTest();
 
-    Assert.areEqual('Fix this', result.actionLabel);
-    Assert.areEqual('/lightning/page/home', result.actionUrl);
-    Assert.areEqual('Diagnostic detail', result.adminDetail.message);
+    Assert.areEqual(
+      'Fix this',
+      result.actionLabel,
+      'Finalization must retain the action label.'
+    );
+    Assert.areEqual(
+      '/lightning/page/home',
+      result.actionUrl,
+      'Finalization must retain the action URL.'
+    );
+    Assert.areEqual(
+      'Diagnostic detail',
+      result.adminDetail.message,
+      'Finalization must retain administrator diagnostic detail.'
+    );
     Assert.isTrue(
       result.adminDetail.configurationJson.contains('sourceQueryTemplate'),
       'Authorized diagnostics must include the authored query template.'
@@ -244,7 +256,7 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     );
     Test.stopTest();
 
-    Assert.areEqual(0, emptyCount);
+    Assert.areEqual(0, emptyCount, 'The empty scope must contain no records.');
     Assert.isNull(
       unsafeScheme,
       'Only relative and HTTPS action URLs are allowed.'

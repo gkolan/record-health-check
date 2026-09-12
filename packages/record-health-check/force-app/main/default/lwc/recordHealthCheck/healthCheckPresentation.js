@@ -40,7 +40,8 @@ const MAX_DISPLAY_NODES = 1000;
 const MAX_DISPLAY_TEXT = 20000;
 const MAX_INLINE_LABEL = 2000;
 const MAX_INLINE_URL = 2000;
-const MAX_DISPLAY_BYTES = 64 * 1024;
+const MAX_DISPLAY_FIELD_BYTES = 64 * 1024;
+const MAX_DISPLAY_RESPONSE_BYTES = 256 * 1024;
 
 /* The payload DTO also calls its visible-string property `text`. It is a plain
  * JSON object, never an HTMLScriptElement; suppress the Locker rule's name-only
@@ -51,10 +52,15 @@ function utf8Length(value) {
   let bytes = 0;
   for (const character of value) {
     const codePoint = character.codePointAt(0);
-    if (codePoint <= 0x7f) bytes += 1;
-    else if (codePoint <= 0x7ff) bytes += 2;
-    else if (codePoint <= 0xffff) bytes += 3;
-    else bytes += 4;
+    if (codePoint <= 0x7f) {
+      bytes += 1;
+    } else if (codePoint <= 0x7ff) {
+      bytes += 2;
+    } else if (codePoint <= 0xffff) {
+      bytes += 3;
+    } else {
+      bytes += 4;
+    }
   }
   return bytes;
 }
@@ -76,7 +82,9 @@ function hasTraversalSegment(url) {
 
 /** Strict, no-network inline-link destination validator shared with Apex vectors. */
 export function safeInlineUrl(url) {
-  if (typeof url !== "string") return null;
+  if (typeof url !== "string") {
+    return null;
+  }
   const trimmed = url.replace(/^[\t\n\f\r ]+|[\t\n\f\r ]+$/g, "");
   if (
     trimmed === "" ||
@@ -92,7 +100,9 @@ export function safeInlineUrl(url) {
   if (trimmed.startsWith("/")) {
     return trimmed.startsWith("//") ? null : trimmed;
   }
-  if (!/^https:\/\//.test(trimmed)) return null;
+  if (!/^https:\/\//.test(trimmed)) {
+    return null;
+  }
   let parsed;
   try {
     parsed = new URL(trimmed);
@@ -115,19 +125,31 @@ export function safeInlineUrl(url) {
 }
 
 function plainDisplayNodes(value) {
-  if (value == null) return [];
+  if (value == null) {
+    return [];
+  }
   const original = String(value);
-  if (original === "") return [{ kind: "text", text: "" }];
+  if (original === "") {
+    return [{ kind: "text", text: "" }];
+  }
   const lines = original
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
     .split("\n");
-  while (lines.length && lines[0].trim() === "") lines.shift();
-  while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
+  while (lines.length && lines[0].trim() === "") {
+    lines.shift();
+  }
+  while (lines.length && lines[lines.length - 1].trim() === "") {
+    lines.pop();
+  }
   const nodes = [];
   lines.forEach((line, index) => {
-    if (index > 0) nodes.push({ kind: "break" });
-    if (line !== "") nodes.push({ kind: "text", text: line });
+    if (index > 0) {
+      nodes.push({ kind: "break" });
+    }
+    if (line !== "") {
+      nodes.push({ kind: "text", text: line });
+    }
   });
   return nodes;
 }
@@ -155,7 +177,13 @@ function nodesToPlainText(nodes) {
 }
 
 function validateDisplayField(nodes) {
-  if (!Array.isArray(nodes) || nodes.length > MAX_DISPLAY_NODES) return null;
+  if (
+    !Array.isArray(nodes) ||
+    nodes.length > MAX_DISPLAY_NODES ||
+    utf8Length(JSON.stringify(nodes)) > MAX_DISPLAY_FIELD_BYTES
+  ) {
+    return null;
+  }
   const accepted = [];
   let visibleLength = 0;
   for (const displayNode of nodes) {
@@ -163,10 +191,13 @@ function validateDisplayField(nodes) {
       !displayNode ||
       typeof displayNode !== "object" ||
       Array.isArray(displayNode)
-    )
+    ) {
       return null;
+    }
     if (displayNode.kind === "break") {
-      if (!hasOnlyKeys(displayNode, new Set(["kind"]))) return null;
+      if (!hasOnlyKeys(displayNode, new Set(["kind"]))) {
+        return null;
+      }
       accepted.push({ kind: "break" });
       visibleLength += 1;
     } else if (displayNode.kind === "text") {
@@ -188,7 +219,9 @@ function validateDisplayField(nodes) {
         return null;
       }
       const href = safeInlineUrl(displayNode.href);
-      if (!href) return null;
+      if (!href) {
+        return null;
+      }
       accepted.push({ kind: "link", text: displayNode.text, href });
       visibleLength += displayNode.text.length;
     } else {
@@ -216,7 +249,9 @@ export function normalizeDisplayContent(content, fallback = {}) {
       decorateNodes(plainDisplayNodes(fallback[field]), field)
     ])
   );
-  if (content == null) return fallbackResult;
+  if (content == null) {
+    return fallbackResult;
+  }
   if (
     typeof content !== "object" ||
     Array.isArray(content) ||
@@ -226,7 +261,7 @@ export function normalizeDisplayContent(content, fallback = {}) {
     return fallbackResult;
   }
   try {
-    if (utf8Length(JSON.stringify(content)) > MAX_DISPLAY_BYTES) {
+    if (utf8Length(JSON.stringify(content)) > MAX_DISPLAY_RESPONSE_BYTES) {
       return fallbackResult;
     }
   } catch {
@@ -282,13 +317,19 @@ const SUMMARY_ROWS = [
 
 /** Split admin-authored messages on newlines for stacked display in the template. */
 export function splitMessageLines(message) {
-  if (message == null) return [];
+  if (message == null) {
+    return [];
+  }
   const lines = String(message)
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
     .split("\n");
-  while (lines.length && lines[0].trim() === "") lines.shift();
-  while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
+  while (lines.length && lines[0].trim() === "") {
+    lines.shift();
+  }
+  while (lines.length && lines[lines.length - 1].trim() === "") {
+    lines.pop();
+  }
   return lines.map((text, idx) => {
     const isBlank = text.trim() === "";
     return {
@@ -306,7 +347,9 @@ export function splitMessageLines(message) {
 function joinForSpeech(lines) {
   const parts = lines.map((line) => line.trim()).filter(Boolean);
   return parts.reduce((acc, part, idx) => {
-    if (idx === 0) return part;
+    if (idx === 0) {
+      return part;
+    }
     const sep = /[.!?:;]$/.test(acc) ? " " : ". ";
     return acc + sep + part;
   }, "");
@@ -334,8 +377,12 @@ function classifyOutcome(status, severity) {
       // Severity arrives in the vocabulary Setup stores, which is the same
       // vocabulary the docs and the Check Result event use. The card's own
       // words for these are a presentation choice and stay here.
-      if (severity === "WARNING") return "warning";
-      if (severity === "INFO") return "info";
+      if (severity === "WARNING") {
+        return "warning";
+      }
+      if (severity === "INFO") {
+        return "info";
+      }
       return "error";
     case "SKIPPED":
       return "skipped";
@@ -375,7 +422,9 @@ const COMPARISON_DISPLAY_MODES = [
  * @returns {string} One supported comparison display mode.
  */
 export function normalizeComparisonDisplayMode(configuredMode) {
-  if (typeof configuredMode !== "string") return "AUTOMATIC";
+  if (typeof configuredMode !== "string") {
+    return "AUTOMATIC";
+  }
   const normalized = configuredMode.trim().toUpperCase();
   return COMPARISON_DISPLAY_MODES.includes(normalized)
     ? normalized
@@ -406,7 +455,9 @@ function unavailableEvidence() {
 }
 
 function normalizeEvidence(value) {
-  if (!value || typeof value !== "object") return null;
+  if (!value || typeof value !== "object") {
+    return null;
+  }
   if (
     value.version !== "1.0" ||
     !Array.isArray(value.columns) ||
@@ -473,13 +524,19 @@ function evidenceGroups(evidence, rows) {
     const step = row.raw[stepIndex];
     const rule = row.raw[ruleIndex];
     const key = `${step == null ? "null" : step}\u0000${rule == null ? "" : rule}`;
-    if (!groups.has(key)) groups.set(key, { key, step, rule, rows: [] });
+    if (!groups.has(key)) {
+      groups.set(key, { key, step, rule, rows: [] });
+    }
     groups.get(key).rows.push(row);
   }
   return [...groups.values()]
     .sort((left, right) => {
-      if (left.step == null) return right.step == null ? 0 : 1;
-      if (right.step == null) return -1;
+      if (left.step == null) {
+        return right.step == null ? 0 : 1;
+      }
+      if (right.step == null) {
+        return -1;
+      }
       const stepDifference = Number(left.step) - Number(right.step);
       return (
         stepDifference || String(left.rule).localeCompare(String(right.rule))
@@ -824,16 +881,26 @@ export function buildSummaryStats(checks, tooltipKeys = new Set()) {
     systemError: []
   };
   for (const c of checks) {
-    if (!c.result) continue;
+    if (!c.result) {
+      continue;
+    }
     const outcome = classifyOutcome(c.result.status, c.result.severity);
     let key;
-    if (outcome === "pass") key = "pass";
-    else if (outcome === "error") key = "error";
-    else if (outcome === "warning") key = "warn";
-    else if (outcome === "info") key = "info";
-    else if (outcome === "skipped") key = "skip";
-    else if (outcome === "systemError") key = "systemError";
-    else key = "unable";
+    if (outcome === "pass") {
+      key = "pass";
+    } else if (outcome === "error") {
+      key = "error";
+    } else if (outcome === "warning") {
+      key = "warn";
+    } else if (outcome === "info") {
+      key = "info";
+    } else if (outcome === "skipped") {
+      key = "skip";
+    } else if (outcome === "systemError") {
+      key = "systemError";
+    } else {
+      key = "unable";
+    }
     buckets[key].push(c.label);
   }
 

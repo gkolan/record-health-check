@@ -132,6 +132,94 @@ private class RHCFormulaTokenizerGrammarTest {
     );
   }
 
+  @IsTest
+  static void loneOpeningQuoteIsNotExecutable() {
+    assertUnclosedLiteral('"');
+  }
+
+  @IsTest
+  static void escapedFinalQuoteIsNotAClosingDelimiter() {
+    assertUnclosedLiteral('"A' + '\\' + '"');
+  }
+
+  @IsTest
+  static void missingFinalQuoteKeepsBoundedOffsets() {
+    assertUnclosedLiteral('"A');
+    assertUnclosedLiteral('\'A');
+  }
+
+  @IsTest
+  static void closedEmptyAndEvenEscapeStringsRemainExecutable() {
+    for (String formula : new List<String>{ '""', '"A' + '\\' + '\\' + '"' }) {
+      RecordHealthCheckFormulaTokenizer.Result result = RecordHealthCheckFormulaTokenizer.tokenize(
+        formula
+      );
+      Assert.isTrue(
+        result.executable,
+        'A real closing delimiter must remain executable.'
+      );
+      Assert.isTrue(
+        result.findings.isEmpty(),
+        'Valid string boundaries must not produce findings.'
+      );
+      Assert.areEqual(
+        formula,
+        result.tokens[0].text,
+        'The complete literal spelling must be retained.'
+      );
+    }
+  }
+
+  @IsTest
+  static void unclosedLiteralPlanningRedactsItsContents() {
+    String formula = '"sensitive literal' + '\\' + '"';
+    RecordHealthCheckFormulaPlanService.FormulaPlan plan = RecordHealthCheckFormulaPlanService.plan(
+      formula,
+      Account.SObjectType,
+      'PassConditionFormula__c'
+    );
+    Assert.areEqual(
+      'INVALID_FORMULA_LITERAL',
+      plan.findings[0].code,
+      'Planning must retain the lexical failure code.'
+    );
+    Assert.areEqual(
+      '[redacted literal]',
+      plan.findings[0].offendingToken,
+      'Malformed literal text must not appear in the finding.'
+    );
+  }
+
+  private static void assertUnclosedLiteral(String formula) {
+    RecordHealthCheckFormulaTokenizer.Result result = RecordHealthCheckFormulaTokenizer.tokenize(
+      formula
+    );
+    Assert.isFalse(
+      result.executable,
+      'An unterminated string must not be executable.'
+    );
+    Assert.areEqual(
+      1,
+      result.findings.size(),
+      'An unterminated string must produce one lexical finding.'
+    );
+    Assert.areEqual(
+      'INVALID_FORMULA_LITERAL',
+      result.findings[0].code,
+      'The finding must identify the malformed literal.'
+    );
+    Assert.areEqual(
+      0,
+      result.findings[0].startOffset,
+      'The finding starts at the opening quote.'
+    );
+    Assert.areEqual(
+      formula.length(),
+      result.findings[0].endOffset,
+      'The finding covers the entire unterminated literal.'
+    );
+  }
+
   private static List<String> kinds(
     List<RecordHealthCheckFormulaTokenizer.Token> tokens
   ) {

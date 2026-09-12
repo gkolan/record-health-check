@@ -5,10 +5,10 @@ Start with this event when summary counts are enough.
 Use the **Record Health Check Set Run** Platform Event when a separate Flow, Apex trigger, or
 integration needs one summary for each Salesforce record after its Check Set finishes.
 
-| Setup value | Name |
-| --- | --- |
-| Platform Event label | Record Health Check Set Run |
-| API name | `Record_Health_Check_Set_Run__e` |
+| Setup value                          | Name                                  |
+| ------------------------------------ | ------------------------------------- |
+| Platform Event label                 | Record Health Check Set Run           |
+| API name                             | `Record_Health_Check_Set_Run__e`      |
 | Apex name after package installation | `rhc__Record_Health_Check_Set_Run__e` |
 
 For example, a scheduled Batch checks 5,000 Accounts every night. A Platform Event-triggered Flow
@@ -43,23 +43,23 @@ Create a custom object owned by your team, such as **Health Check Run History**
 
 Add the fields your reports and receiving automation need:
 
-| Destination field | Suggested type | Platform Event field or value |
-| --- | --- | --- |
-| Event ID | Text(80), Unique | `$Record.EventId__c` |
-| Run ID | Text(120) | `$Record.RunId__c` |
-| Check Set Qualified API Name | Text(80) | `$Record.CheckSetQualifiedApiName__c` |
-| Salesforce Record ID | Text(18) | `$Record.RecordId__c` |
-| Occurred At | Date/Time | `$Record.OccurredAt__c` |
-| Source | Text(30) | `$Record.Source__c` |
-| Overall Status | Text(30) or restricted picklist | Derived from the result counts |
-| Eligible Check Count | Number(5,0) | `$Record.EligibleCheckCount__c` |
-| Evaluated Check Count | Number(5,0) | `$Record.EvaluatedCheckCount__c` |
-| Passed Count | Number(5,0) | `$Record.PassedCount__c` |
-| Failed Count | Number(5,0) | `$Record.FailedCount__c` |
-| Skipped Count | Number(5,0) | `$Record.SkippedCount__c` |
-| Unable Count | Number(5,0) | `$Record.UnableCount__c` |
-| System Error Count | Number(5,0) | `$Record.SystemErrorCount__c` |
-| Contract Version | Text(10) | `$Record.ContractVersion__c` |
+| Destination field            | Suggested type                  | Platform Event field or value         |
+| ---------------------------- | ------------------------------- | ------------------------------------- |
+| Event ID                     | Text(80), Unique                | `$Record.EventId__c`                  |
+| Run ID                       | Text(120)                       | `$Record.RunId__c`                    |
+| Check Set Qualified API Name | Text(80)                        | `$Record.CheckSetQualifiedApiName__c` |
+| Salesforce Record ID         | Text(18)                        | `$Record.RecordId__c`                 |
+| Occurred At                  | Date/Time                       | `$Record.OccurredAt__c`               |
+| Source                       | Text(30)                        | `$Record.Source__c`                   |
+| Overall Status               | Text(30) or restricted picklist | Derived from the result counts        |
+| Eligible Check Count         | Number(5,0)                     | `$Record.EligibleCheckCount__c`       |
+| Evaluated Check Count        | Number(5,0)                     | `$Record.EvaluatedCheckCount__c`      |
+| Passed Count                 | Number(5,0)                     | `$Record.PassedCount__c`              |
+| Failed Count                 | Number(5,0)                     | `$Record.FailedCount__c`              |
+| Skipped Count                | Number(5,0)                     | `$Record.SkippedCount__c`             |
+| Unable Count                 | Number(5,0)                     | `$Record.UnableCount__c`              |
+| System Error Count           | Number(5,0)                     | `$Record.SystemErrorCount__c`         |
+| Contract Version             | Text(10)                        | `$Record.ContractVersion__c`          |
 
 Mark Event ID as **Unique**. One run can check many records, so Run ID is not the unique history key.
 
@@ -99,7 +99,7 @@ the example `Health_Check_Run_History__c` object. Replace these API names with t
 your team creates.
 
 ```apex
-trigger RecordHealthCheckSetRunTrigger on rhc__Record_Health_Check_Set_Run__e (
+trigger RecordHealthCheckSetRunTrigger on rhc__Record_Health_Check_Set_Run__e(
   after insert
 ) {
   RecordHealthCheckSetRunHandler.saveSummaries(Trigger.new);
@@ -125,8 +125,7 @@ public with sharing class RecordHealthCheckSetRunHandler {
       savedEventIds.add(savedRun.Event_Id__c);
     }
 
-    List<Health_Check_Run_History__c> runsToSave =
-      new List<Health_Check_Run_History__c>();
+    List<Health_Check_Run_History__c> runsToSave = new List<Health_Check_Run_History__c>();
 
     for (rhc__Record_Health_Check_Set_Run__e eventRecord : events) {
       if (savedEventIds.contains(eventRecord.EventId__c)) {
@@ -167,10 +166,17 @@ public with sharing class RecordHealthCheckSetRunHandler {
   private static String overallStatus(
     rhc__Record_Health_Check_Set_Run__e eventRecord
   ) {
-    if (eventRecord.SystemErrorCount__c != null && eventRecord.SystemErrorCount__c > 0) return 'ERROR';
-    if (eventRecord.UnableCount__c != null && eventRecord.UnableCount__c > 0) return 'UNABLE_TO_EVALUATE';
-    if (eventRecord.FailedCount__c != null && eventRecord.FailedCount__c > 0) return 'FAIL';
-    if (eventRecord.PassedCount__c != null && eventRecord.PassedCount__c > 0) return 'PASS';
+    if (
+      eventRecord.SystemErrorCount__c != null &&
+      eventRecord.SystemErrorCount__c > 0
+    )
+      return 'ERROR';
+    if (eventRecord.UnableCount__c != null && eventRecord.UnableCount__c > 0)
+      return 'UNABLE_TO_EVALUATE';
+    if (eventRecord.FailedCount__c != null && eventRecord.FailedCount__c > 0)
+      return 'FAIL';
+    if (eventRecord.PassedCount__c != null && eventRecord.PassedCount__c > 0)
+      return 'PASS';
     return 'SKIPPED';
   }
 }

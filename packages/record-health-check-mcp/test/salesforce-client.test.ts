@@ -677,3 +677,109 @@ describe("Salesforce client", () => {
     expect(secondBody.correlationId).not.toBe(firstBody.correlationId);
   });
 });
+
+describe("response stream failure cleanup", () => {
+  const input = {
+    operation: "RUN_CHECK" as const,
+    recordId: "001000000000001AAA",
+    qualifiedApiName: "Check_One",
+    correlationId: "corr-1"
+  };
+  const token = {
+    access_token: "token",
+    instance_url: "https://instance.salesforce.test"
+  };
+
+  it.each(["token", "evaluation"])(
+    "cancels an oversized declared %s body",
+    async (stage) => {
+      const cancel = vi.fn();
+      const response = new Response(new ReadableStream({ cancel }), {
+        headers: { "content-length": "2048" }
+      });
+      const fetcher = vi.fn<typeof fetch>();
+      if (stage === "evaluation") fetcher.mockResolvedValueOnce(json(token));
+      fetcher.mockResolvedValueOnce(response);
+      const config = testConfig();
+      config.salesforce.maxResponseBytes = 1024;
+      await expect(
+        new SalesforceClient(config, logger, fetcher).evaluate(input)
+      ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
+      expect(cancel).toHaveBeenCalledOnce();
+      expect(response.body?.locked).toBe(false);
+    }
+  );
+
+  it("cancels a rejected token body without masking authentication failure", async () => {
+    const cancel = vi
+      .fn()
+      .mockRejectedValue(new Error("private cleanup detail"));
+    const response = new Response(new ReadableStream({ cancel }), {
+      status: 401
+    });
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response);
+    await expect(
+      new SalesforceClient(testConfig(), logger, fetcher).evaluate(input)
+    ).rejects.toMatchObject({
+      code: "SALESFORCE_AUTH",
+      safeMessage: "Salesforce authentication failed."
+    });
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+
+  it.each(["token", "evaluation"])(
+    "maps interrupted %s reads safely and releases the next request",
+    async (stage) => {
+      const response = new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.error(
+              new DOMException("private stream detail", "AbortError")
+            );
+          }
+        })
+      );
+      const fetcher = vi.fn<typeof fetch>();
+      if (stage === "evaluation") fetcher.mockResolvedValueOnce(json(token));
+      fetcher.mockResolvedValueOnce(response);
+      if (stage === "token") fetcher.mockResolvedValueOnce(json(token));
+      fetcher.mockResolvedValueOnce(json(success));
+      const config = testConfig();
+      config.salesforce.maxConcurrentCalls = 1;
+      const client = new SalesforceClient(config, logger, fetcher);
+      const first = client.evaluate(input);
+      const next = client.evaluate(input);
+      await expect(first).rejects.toMatchObject({
+        code: "UPSTREAM_UNAVAILABLE",
+        safeMessage: "Salesforce is temporarily unavailable."
+      });
+      await expect(next).resolves.toEqual(success);
+      expect(response.body?.locked).toBe(false);
+    }
+  );
+
+  it("preserves the size error when stream cancellation rejects", async () => {
+    const cancel = vi
+      .fn()
+      .mockRejectedValue(new Error("private cancellation detail"));
+    const response = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(2048));
+        },
+        cancel
+      })
+    );
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(token))
+      .mockResolvedValueOnce(response);
+    const config = testConfig();
+    config.salesforce.maxResponseBytes = 1024;
+    await expect(
+      new SalesforceClient(config, logger, fetcher).evaluate(input)
+    ).rejects.toMatchObject({ code: "UPSTREAM_LIMIT" });
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(response.body?.locked).toBe(false);
+  });
+});

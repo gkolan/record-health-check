@@ -14,9 +14,9 @@ Use this page when a developer-owned job must run on a schedule.
 
 ## Choose the scheduling pattern
 
-| Example | Use | Why |
-| --- | --- | --- |
-| The same 400 Account IDs must run every day | Packaged daily scheduler | The IDs are known and intentionally stay the same. |
+| Example                                                      | Use                                               | Why                                                                    |
+| ------------------------------------------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------- |
+| The same 400 Account IDs must run every day                  | Packaged daily scheduler                          | The IDs are known and intentionally stay the same.                     |
 | Every night, check all Accounts modified in the last 30 days | Custom scheduler that starts a query-backed Batch | The matching Accounts change, so the Batch must query them each night. |
 
 The packaged schedule captures record IDs when the schedule is created. Records added later are
@@ -25,10 +25,10 @@ the list of records is intentionally fixed.
 
 Also decide where results go:
 
-| Scheduled work | Result choices |
-| --- | --- |
-| Packaged daily scheduler | Publish `ACTIONABLE` or `ALL` Platform Events, or use `NONE` when only job completion matters. |
-| Custom scheduler that starts a custom Batch | Save `response.results` directly, publish Platform Events, or retain no individual results. |
+| Scheduled work                              | Result choices                                                                                 |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Packaged daily scheduler                    | Publish `ACTIONABLE` or `ALL` Platform Events, or use `NONE` when only job completion matters. |
+| Custom scheduler that starts a custom Batch | Save `response.results` directly, publish Platform Events, or retain no individual results.    |
 
 ## Before you start
 
@@ -100,18 +100,14 @@ uses `NONE` and saves `response.results` directly. Then create a small scheduler
 to start that Batch:
 
 ```apex
-public with sharing class NightlyAccountHealthSchedule
-  implements Schedulable {
+public with sharing class NightlyAccountHealthSchedule implements Schedulable {
   public void execute(SchedulableContext context) {
     // Copy the exact Check Set Qualified API Name from Setup.
     String checkSetApiName = 'My_Account_Checks';
 
     // AccountHealthBatch queries current Accounts, publishes no result
     // events, and saves its response.results directly.
-    Database.executeBatch(
-      new AccountHealthBatch(checkSetApiName),
-      25
-    );
+    Database.executeBatch(new AccountHealthBatch(checkSetApiName), 25);
   }
 }
 ```
@@ -146,11 +142,11 @@ Confirm the job owner and next run before deleting it.
 
 A scheduled run has three different IDs:
 
-| ID | What it tracks |
-| --- | --- |
-| `CronTrigger` ID | The recurring schedule |
-| `AsyncApexJob` ID | The Batch or Queueable job started by one firing |
-| Record Health Check `runId` | The health-check results created by one run |
+| ID                          | What it tracks                                   |
+| --------------------------- | ------------------------------------------------ |
+| `CronTrigger` ID            | The recurring schedule                           |
+| `AsyncApexJob` ID           | The Batch or Queueable job started by one firing |
+| Record Health Check `runId` | The health-check results created by one run      |
 
 Save these IDs together only when staff must follow one run from its schedule to its health
 results. Check these failures separately:
@@ -175,14 +171,14 @@ equivalent access.
 
 ## Troubleshooting
 
-| Symptom | Check first |
-| --- | --- |
-| No `CronTrigger` is created | Custom Permission, job-name length, Check Set Qualified API Name, and record-ID count |
-| The schedule exists but no Batch starts | The scheduling user's current access and the latest Scheduled Apex failure |
+| Symptom                                      | Check first                                                                                         |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| No `CronTrigger` is created                  | Custom Permission, job-name length, Check Set Qualified API Name, and record-ID count               |
+| The schedule exists but no Batch starts      | The scheduling user's current access and the latest Scheduled Apex failure                          |
 | Batch completes but no outcomes are retained | Event-publication mode and the Flow, Apex trigger, integration, or storage that should receive them |
-| The same records run every day | Expected for the packaged scheduling class; use a query-backed Batch to query the records again |
-| The job runs at the wrong local time | The scheduling user's Salesforce time zone and CRON expression |
-| Duplicate schedules consume slots | Reuse one stable name and replace the known schedule deliberately |
+| The same records run every day               | Expected for the packaged scheduling class; use a query-backed Batch to query the records again     |
+| The job runs at the wrong local time         | The scheduling user's Salesforce time zone and CRON expression                                      |
+| Duplicate schedules consume slots            | Reuse one stable name and replace the known schedule deliberately                                   |
 
 ## Related
 

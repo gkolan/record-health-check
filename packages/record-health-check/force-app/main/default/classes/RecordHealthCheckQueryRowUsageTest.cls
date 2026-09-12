@@ -24,8 +24,8 @@ private class RecordHealthCheckQueryRowUsageTest {
    * is refused, because there is no syntax for indexing into a nested
    * collection and no way to prove what it selected.
    *
-   * "Second" means second in the query's own ORDER BY and nothing else, which
-   * is why the order is required to name Id.
+   * "Second" means second in the query's explicit business order. This example
+   * uses Id as a stable order; other explicit ORDER BY clauses are accepted.
    */
   @IsTest
   static void addressesTheSecondChildRecordByQueryingTheChild() {
@@ -72,7 +72,8 @@ private class RecordHealthCheckQueryRowUsageTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!rhcQuery.sourceRows[0].Email}',
         context
-      )
+      ),
+      'The first child-row token must resolve its selected email.'
     );
     Assert.areEqual(
       '2 contacts, second is Beta, email not listed',
@@ -191,17 +192,26 @@ private class RecordHealthCheckQueryRowUsageTest {
       DeveloperName = 'GroupedAggregate',
       EvaluationType__c = 'QUERY',
       SourceQuery__c = 'SELECT LeadSource, COUNT(Id) total FROM Lead ' +
-        'GROUP BY LeadSource ORDER BY LeadSource',
+        'GROUP BY LeadSource',
       FailureMessage__c = '{!rhcQuery.sourceRows[0].total}'
     );
     RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(
       grouped
     );
-    Assert.areEqual('QUERY_ORDER_NOT_DETERMINISTIC', issue?.reasonCode);
+    Assert.areEqual(
+      'QUERY_ORDER_NOT_DETERMINISTIC',
+      issue?.reasonCode,
+      'An unordered grouped row token must explain its missing order.'
+    );
     Assert.isFalse(
       issue.message.contains(', Id'),
       'SOQL rejects ordering a grouped query by Id, so never suggest it: ' +
       issue.message
+    );
+    grouped.SourceQuery__c += ' ORDER BY LeadSource';
+    Assert.isNull(
+      RecordHealthCheckQueryTokenRules.firstIssue(grouped),
+      'Ordering by the grouped field must make positional row access valid.'
     );
   }
 
@@ -238,7 +248,11 @@ private class RecordHealthCheckQueryRowUsageTest {
     RecordHealthCheckTokenIssue limitIssue = RecordHealthCheckQueryTokenRules.firstIssue(
       limited
     );
-    Assert.areEqual('TOKEN_ROW_INDEX_INVALID', limitIssue?.reasonCode);
+    Assert.areEqual(
+      'TOKEN_ROW_INDEX_INVALID',
+      limitIssue?.reasonCode,
+      'A row token beyond the query LIMIT must retain TOKEN_ROW_INDEX_INVALID.'
+    );
     Assert.isTrue(
       limitIssue.message.contains('LIMIT 1'),
       'The query LIMIT is the real ceiling, not Max Query Rows: ' +
@@ -274,7 +288,11 @@ private class RecordHealthCheckQueryRowUsageTest {
       Assert.isNull(issue, 'One currency means there is nothing to state.');
       return;
     }
-    Assert.areEqual('FIXED_CURRENCY_BASIS_MISSING', issue?.reasonCode);
+    Assert.areEqual(
+      'FIXED_CURRENCY_BASIS_MISSING',
+      issue?.reasonCode,
+      'A currency-formatted row without ISO evidence must retain the missing-basis reason.'
+    );
     check.SourceQuery__c = 'SELECT Id, AnnualRevenue, CurrencyIsoCode FROM Account ORDER BY Id';
     Assert.isNull(
       RecordHealthCheckQueryTokenRules.firstIssue(check),
@@ -346,7 +364,11 @@ private class RecordHealthCheckQueryRowUsageTest {
     RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(
       counting
     );
-    Assert.areEqual('QUERY_ROLE_NOT_AVAILABLE', issue?.reasonCode);
+    Assert.areEqual(
+      'QUERY_ROLE_NOT_AVAILABLE',
+      issue?.reasonCode,
+      'A bare COUNT query must not expose a row-count token.'
+    );
     Assert.isTrue(
       issue.message.contains('rhcResult.foundValue'),
       'The message names the token that does hold the count: ' + issue.message

@@ -7,22 +7,22 @@ private class RHCDisplayCurrencyRendererTest {
 
     System.runAs(localeUser) {
       Assert.areEqual(
-        '$1,234.50',
+        '$' + localizedAmount('1,234.50'),
         RecordHealthCheckDisplayCurrencyRenderer.render(1234.5, 'USD', false),
         'A single-currency display should use a known symbol.'
       );
       Assert.areEqual(
-        'USD 1,234.50',
+        'USD ' + localizedAmount('1,234.50'),
         RecordHealthCheckDisplayCurrencyRenderer.render(1234.5, 'USD', true),
         'A multi-currency display should use the unambiguous ISO code.'
       );
       Assert.areEqual(
-        'JPY 1,235',
+        'JPY ' + localizedAmount('1,235'),
         RecordHealthCheckDisplayCurrencyRenderer.render(1234.5, 'JPY', false),
         'A disambiguated zero-minor-unit currency should use ISO without decimals.'
       );
       Assert.areEqual(
-        'SAR 1,234.50',
+        'SAR ' + localizedAmount('1,234.50'),
         RecordHealthCheckDisplayCurrencyRenderer.render(1234.5, 'SAR', false),
         'A currency without a known symbol should use its ISO code.'
       );
@@ -37,7 +37,7 @@ private class RHCDisplayCurrencyRendererTest {
       'A null amount should use the shared blank placeholder.'
     );
     Assert.areEqual(
-      '-$10.00',
+      '-$' + localizedAmount('10.00'),
       RecordHealthCheckDisplayCurrencyRenderer.render(-10, 'USD', false),
       'The minus sign should precede the currency symbol.'
     );
@@ -46,5 +46,19 @@ private class RHCDisplayCurrencyRendererTest {
       RecordHealthCheckDisplayCurrencyRenderer.render(10, null, false),
       'An amount without a currency should remain a plain number.'
     );
+  }
+  /** Native positive samples provide punctuation without assuming the runner's locale. */
+  private static String localizedAmount(String expectedUsAmount) {
+    String groupingMark = Decimal.valueOf('1000')
+      .format()
+      .replace('1', '')
+      .replace('0', '');
+    String decimalMark = Decimal.valueOf('1.5')
+      .format()
+      .replace('1', '')
+      .replace('5', '');
+    return expectedUsAmount.replace('.', '|')
+      .replace(',', groupingMark)
+      .replace('|', decimalMark);
   }
 }

@@ -22,19 +22,19 @@ A seller is preparing an Account for a handoff or account review.
 
 ## What you will learn
 
-| Skill | How this example teaches it |
-| --- | --- |
-| Count related Salesforce records | SOQL counts Contacts related to the current Account. |
-| Compare against a minimum | The Check passes when the count is greater than zero. |
-| Show an actionable result | **Found** is the Contact count and **Expected** is the minimum. |
+| Skill                            | How this example teaches it                                     |
+| -------------------------------- | --------------------------------------------------------------- |
+| Count related Salesforce records | SOQL counts Contacts related to the current Account.            |
+| Compare against a minimum        | The Check passes when the count is greater than zero.           |
+| Show an actionable result        | **Found** is the Contact count and **Expected** is the minimum. |
 
 ## Why use Verify with a query
 
-| Evaluation Type | Why it fits |
-| --- | --- |
-| **Verify with a query** | Best fit. The query counts Contacts related to the Account and checks whether the count is greater than zero. |
-| **Verify with a formula** | An Account formula cannot count related Contacts unless the Account already has a roll-up summary field. |
-| **Verify with Apex** | Would require an Apex class to perform the same Contact count. |
+| Evaluation Type           | Why it fits                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Verify with a query**   | Best fit. The query counts Contacts related to the Account and checks whether the count is greater than zero. |
+| **Verify with a formula** | An Account formula cannot count related Contacts unless the Account already has a roll-up summary field.      |
+| **Verify with Apex**      | Would require an Apex class to perform the same Contact count.                                                |
 
 ## Why not use a Validation Rule or Report
 
@@ -70,59 +70,59 @@ Health Check User**, and test as the intended user. The card label is **Unable t
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
 create this Check Set:
 
-| Setup field | Value |
-| --- | --- |
-| **Label** | Account Related Record Review |
-| **Record Health Check Set Name** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | Related Record Review |
-| **Card Subtitle** | Confirm at least one related Contact exists for handoff. |
-| **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Show below checks |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each passed check |
-| **Skipped Checks** | Show each skipped check |
-| **Found/Expected Display** | Show on demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+| Setup field                      | Value                                                             |
+| -------------------------------- | ----------------------------------------------------------------- |
+| **Label**                        | Account Related Record Review                                     |
+| **Record Health Check Set Name** | `Account_Related_Record_Review`                                   |
+| **Object**                       | `Account`                                                         |
+| **Card Title**                   | Related Record Review                                             |
+| **Card Subtitle**                | Confirm at least one related Contact exists for handoff.          |
+| **When Checks Run**              | When the user clicks Run                                          |
+| **Summary Display**              | Show below checks                                                 |
+| **Reveal Mode**                  | One by one                                                        |
+| **Passed Checks**                | Show each passed check                                            |
+| **Skipped Checks**               | Show each skipped check                                           |
+| **Found/Expected Display**       | Show on demand                                                    |
+| **Stop after a system error**    | Unchecked                                                         |
+| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event**       | Unchecked                                                         |
+| **Active**                       | Checked                                                           |
 
 ## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Has_At_Least_One_Contact` |
-| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Has At Least One Contact |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Has At Least One Contact |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Greater than |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) | `0` |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200` (default; `COUNT()` returns one result) |
+| Setup field                   | API name                                                                                                                     | Value                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Developer Name**            | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                              | `Has_At_Least_One_Contact`                                   |
+| **Label**                     | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                           | Has At Least One Contact                                     |
+| **Check Set**                 | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)         | `Account_Related_Record_Review`                              |
+| **Check Title**               | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                 | Has At Least One Contact                                     |
+| **Evaluation Type**           | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                     | Verify with a query                                          |
+| **Source Query**              | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c)                              | `SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate                                         |
+| **Comparison Operator**       | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)         | Greater than                                                 |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value                                                  |
+| **Expected Value (Fixed)**    | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c)        | `0`                                                          |
+| **Max Query Rows (1-2000)**   | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c)                   | `200` (default; `COUNT()` returns one result)                |
 
 ## Optional configuration
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks whether the Account has at least one visible Contact. |
-| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Relationship coverage |
-| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has no Contacts. Add at least one Contact before continuing. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count Contacts. Confirm the user can read Contact and AccountId. |
-| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Add a Contact related to this Account. |
-| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review contacts` |
-| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Contacts/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `10` |
-| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| Setup field                         | API name                                                                                                                                   | Value                                                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks whether the Account has at least one visible Contact.                                         |
+| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Relationship coverage                                                                                |
+| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                              |
+| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has no Contacts. Add at least one Contact before continuing. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count Contacts. Confirm the user can read Contact and AccountId.                           |
+| **Applies To**                      | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                                  | All records                                                                                          |
+| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                          |
+| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Add a Contact related to this Account.                                                               |
+| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Review contacts`                                                                                    |
+| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/related/Contacts/view`                                            |
+| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `10`                                                                                                 |
+| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                              |
+| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                            |
 
 `COUNT()` always returns one aggregate result, even when the count is zero. Therefore **Source Query
 Field**, **If Query Finds No Records**, and **If Field Value Is Empty** do not apply. Comparison Query,
@@ -132,13 +132,13 @@ list, Formula, and Apex fields also do not apply.
 
 The Contact count produces these health results and card values:
 
-| Health result or card value | What the user sees |
-| --- | --- |
-| **`PASS`** | The Check passes when at least one visible related Contact exists. |
-| **`FAIL`** | A count of zero shows Needs attention with Warning severity. |
-| **`SKIPPED`** | Bare `COUNT()` returns zero rather than no rows, and this configuration has no applicability check or prerequisite, so it does not produce `SKIPPED`. |
-| **Found** | Found shows the visible related Contact count when Found/Expected display is enabled on the Check Set. |
-| **Expected** | Expected shows the fixed minimum required by the Check: `0` with the **Greater than** operator. |
+| Health result or card value | What the user sees                                                                                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`PASS`**                  | The Check passes when at least one visible related Contact exists.                                                                                    |
+| **`FAIL`**                  | A count of zero shows Needs attention with Warning severity.                                                                                          |
+| **`SKIPPED`**               | Bare `COUNT()` returns zero rather than no rows, and this configuration has no applicability check or prerequisite, so it does not produce `SKIPPED`. |
+| **Found**                   | Found shows the visible related Contact count when Found/Expected display is enabled on the Check Set.                                                |
+| **Expected**                | Expected shows the fixed minimum required by the Check: `0` with the **Greater than** operator.                                                       |
 
 ## Security and access
 
@@ -161,12 +161,11 @@ Before activation, run the no-Contact and has-Contact cases with the sharing acc
 
 ## Failures and remedies
 
-| What the user sees | What to check |
-| --- | --- |
-| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records. |
-| Empty results behave incorrectly | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**. |
-| **Unable to evaluate** | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
-
+| What the user sees                     | What to check                                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records.                      |
+| Empty results behave incorrectly       | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**.                         |
+| **Unable to evaluate**                 | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
 
 ## Related
 

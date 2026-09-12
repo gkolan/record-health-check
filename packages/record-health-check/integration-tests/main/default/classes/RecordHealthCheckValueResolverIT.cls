@@ -20,7 +20,8 @@ private class RecordHealthCheckValueResolverIT {
     );
     Assert.areEqual(
       'Acme',
-      RecordHealthCheckValueResolver.singleValueFromRow(a, 'Name')
+      RecordHealthCheckValueResolver.singleValueFromRow(a, 'Name'),
+      'A direct field must return its stored value.'
     );
   }
 
@@ -30,15 +31,18 @@ private class RecordHealthCheckValueResolverIT {
     AggregateResult unaliased = [SELECT COUNT(Id) FROM Account];
     Assert.areEqual(
       aliased.get('total'),
-      RecordHealthCheckValueResolver.singleValueFromRow(aliased, null)
+      RecordHealthCheckValueResolver.singleValueFromRow(aliased, null),
+      'A sole explicitly aliased aggregate must resolve without a requested alias.'
     );
     Assert.areEqual(
       unaliased.get('expr0'),
-      RecordHealthCheckValueResolver.singleValueFromRow(unaliased, null)
+      RecordHealthCheckValueResolver.singleValueFromRow(unaliased, null),
+      'A sole implicit aggregate must resolve through its generated alias.'
     );
     Assert.areEqual(
       aliased.get('total'),
-      RecordHealthCheckValueResolver.singleValueFromRow(aliased, 'total')
+      RecordHealthCheckValueResolver.singleValueFromRow(aliased, 'total'),
+      'An explicit requested aggregate alias must return that measure.'
     );
   }
 
@@ -64,7 +68,8 @@ private class RecordHealthCheckValueResolverIT {
     ];
     Assert.areEqual(
       grouped.get('total'),
-      RecordHealthCheckValueResolver.singleValueFromRow(grouped, null)
+      RecordHealthCheckValueResolver.singleValueFromRow(grouped, null),
+      'Ambiguous aggregate selection must be classified as invalid configuration.'
     );
   }
 
@@ -82,7 +87,11 @@ private class RecordHealthCheckValueResolverIT {
         'Multiple aggregate values must not use map iteration order.'
       );
     } catch (RecordHealthCheckValueResolver.ResolverException error) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', error.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        error.reasonCode,
+        'Relationship traversal must return the related record field.'
+      );
       Assert.isTrue(
         error.getMessage().contains('query field alias is required'),
         'The failure must tell the author how to select the intended measure.'
@@ -100,7 +109,8 @@ private class RecordHealthCheckValueResolverIT {
     );
     Assert.areEqual(
       'ParentCo',
-      RecordHealthCheckValueResolver.singleValueFromRow(a, 'Parent.Name')
+      RecordHealthCheckValueResolver.singleValueFromRow(a, 'Parent.Name'),
+      'An absent parent relationship must yield null rather than a template error.'
     );
   }
 
@@ -111,7 +121,8 @@ private class RecordHealthCheckValueResolverIT {
     );
     Assert.areEqual(
       null,
-      RecordHealthCheckValueResolver.singleValueFromRow(a, 'Parent.Name')
+      RecordHealthCheckValueResolver.singleValueFromRow(a, 'Parent.Name'),
+      'A nonexistent field must expose the stable invalid-template reason.'
     );
   }
 
@@ -124,7 +135,11 @@ private class RecordHealthCheckValueResolverIT {
       RecordHealthCheckValueResolver.singleValueFromRow(a, 'Not_A_Field__c');
       Assert.isTrue(false, 'Expected ResolverException.');
     } catch (RecordHealthCheckValueResolver.ResolverException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'Equal numeric magnitudes must compare equal across numeric types.'
+      );
     }
   }
 
@@ -132,19 +147,29 @@ private class RecordHealthCheckValueResolverIT {
 
   @IsTest
   static void valuesEqualNumericAcrossTypes() {
-    Assert.areEqual(true, RecordHealthCheckValueResolver.valuesEqual(1, 1.0));
-    Assert.areEqual(false, RecordHealthCheckValueResolver.valuesEqual(1, 2));
+    Assert.areEqual(
+      true,
+      RecordHealthCheckValueResolver.valuesEqual(1, 1.0),
+      'Different numeric magnitudes must not compare equal.'
+    );
+    Assert.areEqual(
+      false,
+      RecordHealthCheckValueResolver.valuesEqual(1, 2),
+      'Two absent operands must compare equal.'
+    );
   }
 
   @IsTest
   static void valuesEqualNullSafe() {
     Assert.areEqual(
       true,
-      RecordHealthCheckValueResolver.valuesEqual(null, null)
+      RecordHealthCheckValueResolver.valuesEqual(null, null),
+      'An absent operand must differ from present text.'
     );
     Assert.areEqual(
       false,
-      RecordHealthCheckValueResolver.valuesEqual(null, 'x')
+      RecordHealthCheckValueResolver.valuesEqual(null, 'x'),
+      'Equal native Dates must compare equal without timezone conversion.'
     );
   }
 
@@ -155,7 +180,8 @@ private class RecordHealthCheckValueResolverIT {
       RecordHealthCheckValueResolver.valuesEqual(
         Date.newInstance(2026, 1, 1),
         Date.newInstance(2026, 1, 1)
-      )
+      ),
+      'A larger numeric Found operand must satisfy GREATER_THAN.'
     );
   }
 
@@ -187,11 +213,13 @@ private class RecordHealthCheckValueResolverIT {
   static void orderedNumeric() {
     Assert.areEqual(
       true,
-      RecordHealthCheckValueResolver.applyOrdered('GREATER_THAN', 5, 3)
+      RecordHealthCheckValueResolver.applyOrdered('GREATER_THAN', 5, 3),
+      'Equal numeric operands must satisfy the inclusive lower comparison.'
     );
     Assert.areEqual(
       true,
-      RecordHealthCheckValueResolver.applyOrdered('LESS_THAN_OR_EQUAL', 3, 3)
+      RecordHealthCheckValueResolver.applyOrdered('LESS_THAN_OR_EQUAL', 3, 3),
+      'An earlier native Date must satisfy LESS_THAN.'
     );
   }
 
@@ -202,7 +230,8 @@ private class RecordHealthCheckValueResolverIT {
     Date later = Date.newInstance(2026, 6, 19);
     Assert.areEqual(
       true,
-      RecordHealthCheckValueResolver.applyOrdered('LESS_THAN', earlier, later)
+      RecordHealthCheckValueResolver.applyOrdered('LESS_THAN', earlier, later),
+      'An earlier native Date must not satisfy GREATER_THAN.'
     );
     Assert.areEqual(
       false,
@@ -210,18 +239,48 @@ private class RecordHealthCheckValueResolverIT {
         'GREATER_THAN',
         earlier,
         later
-      )
+      ),
+      'The earlier UTC instant must satisfy LESS_THAN in every user timezone.'
     );
   }
 
   @IsTest
   static void orderedDateTime() {
-    Datetime earlier = Datetime.newInstance(2026, 1, 1, 0, 0, 0);
+    Datetime earlier = Datetime.newInstanceGmt(2026, 1, 1, 0, 0, 0);
     Datetime later = Datetime.newInstanceGmt(2026, 1, 1, 10, 0, 0);
     Assert.areEqual(
       true,
-      RecordHealthCheckValueResolver.applyOrdered('LESS_THAN', earlier, later)
+      RecordHealthCheckValueResolver.applyOrdered('LESS_THAN', earlier, later),
+      'Unorderable text operands must expose incompatible types.'
     );
+  }
+
+  @IsTest
+  static void orderedDateTimeFixtureWorksInHawaii() {
+    User persona = RecordHealthCheckTestDataFactory.createUser(
+      RecordHealthCheckTestDataFactory.user(
+        new Map<String, Object>{
+          'Alias' => 'rhctz',
+          'LastName' => 'Timezone regression',
+          'Email' => 'rhc.timezone@example.invalid',
+          'Username' => 'rhc.timezone.' +
+          UserInfo.getOrganizationId() +
+          '.' +
+          String.valueOf(Crypto.getRandomLong()) +
+          '@example.invalid',
+          'ProfileId' => UserInfo.getProfileId(),
+          'TimeZoneSidKey' => 'Pacific/Honolulu',
+          'LocaleSidKey' => 'en_US',
+          'LanguageLocaleKey' => 'en_US',
+          'EmailEncodingKey' => 'UTF-8'
+        }
+      )
+    );
+    Test.startTest();
+    System.runAs(persona) {
+      orderedDateTime();
+    }
+    Test.stopTest();
   }
 
   @IsTest
@@ -269,7 +328,11 @@ private class RecordHealthCheckValueResolverIT {
       );
       Assert.isTrue(false, 'Expected INCOMPATIBLE_COMPARISON_TYPES.');
     } catch (RecordHealthCheckValueResolver.ResolverException ex) {
-      Assert.areEqual('INCOMPATIBLE_COMPARISON_TYPES', ex.reasonCode);
+      Assert.areEqual(
+        'INCOMPATIBLE_COMPARISON_TYPES',
+        ex.reasonCode,
+        'An Integer must be classified as a numeric object.'
+      );
     }
   }
 
@@ -277,9 +340,21 @@ private class RecordHealthCheckValueResolverIT {
 
   @IsTest
   static void isNumericObjectClassifies() {
-    Assert.areEqual(true, RecordHealthCheckValueResolver.isNumericObject(5));
-    Assert.areEqual(true, RecordHealthCheckValueResolver.isNumericObject(5.0));
-    Assert.areEqual(false, RecordHealthCheckValueResolver.isNumericObject('5'));
+    Assert.areEqual(
+      true,
+      RecordHealthCheckValueResolver.isNumericObject(5),
+      'A Decimal must be classified as a numeric object.'
+    );
+    Assert.areEqual(
+      true,
+      RecordHealthCheckValueResolver.isNumericObject(5.0),
+      'Numeric-looking text must remain a String rather than a numeric object.'
+    );
+    Assert.areEqual(
+      false,
+      RecordHealthCheckValueResolver.isNumericObject('5'),
+      'A malformed query must retain the invalid-template classification.'
+    );
   }
 
   @IsTest
@@ -288,7 +363,8 @@ private class RecordHealthCheckValueResolverIT {
       'INVALID_SOQL_TEMPLATE',
       RecordHealthCheckValueResolver.classifyQueryException(
         new TestQueryException('malformed query')
-      )
+      ),
+      'A local Datetime must equal matching local date-time text.'
     );
     Assert.areEqual(
       'INVALID_SOQL_TEMPLATE',
@@ -305,7 +381,11 @@ private class RecordHealthCheckValueResolverIT {
     Date earlierDate = Date.newInstance(2026, 1, 1);
 
     Assert.isTrue(
-      RecordHealthCheckValueResolver.valuesEqual(earlier, '2026-01-01 00:00:00')
+      RecordHealthCheckValueResolver.valuesEqual(
+        earlier,
+        '2026-01-01 00:00:00'
+      ),
+      'An unknown numeric comparison operator must expose INVALID_OPERATOR.'
     );
     assertIncompatibleEquality(earlier, 'not-a-datetime');
     assertIncompatibleEquality(earlierDate, 'not-a-date');
@@ -314,7 +394,11 @@ private class RecordHealthCheckValueResolverIT {
       RecordHealthCheckValueResolver.applyOrdered('Nope', 1, 1);
       Assert.isTrue(false, 'Expected an invalid ordered operator.');
     } catch (RecordHealthCheckValueResolver.ResolverException ex) {
-      Assert.areEqual('INVALID_OPERATOR', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_OPERATOR',
+        ex.reasonCode,
+        'Unparseable typed equality operands must expose incompatible types.'
+      );
     }
   }
 
@@ -323,7 +407,11 @@ private class RecordHealthCheckValueResolverIT {
       RecordHealthCheckValueResolver.valuesEqual(left, right);
       Assert.isTrue(false, 'Expected incompatible equality operands.');
     } catch (RecordHealthCheckValueResolver.ResolverException ex) {
-      Assert.areEqual('INCOMPATIBLE_COMPARISON_TYPES', ex.reasonCode);
+      Assert.areEqual(
+        'INCOMPATIBLE_COMPARISON_TYPES',
+        ex.reasonCode,
+        'Bulk correlation metadata must not be mistaken for the aggregate measure.'
+      );
     }
   }
 

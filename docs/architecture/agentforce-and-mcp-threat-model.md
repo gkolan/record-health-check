@@ -19,25 +19,25 @@ rotation, revocation, and audit trails. Neither credential represents the conver
 
 ## Threats and controls
 
-| Threat | Required control | Verification |
-| --- | --- | --- |
-| Arbitrary model input | Strict schema, no unknown fields, two-operation list | Invalid-schema tests |
-| Namespace guessing | Exact `QualifiedApiName`; no alternate-name retry | Namespaced tests |
-| Record probing | Salesforce sharing and user-mode access; rate limits; no denied-record disclosure | Access tests |
-| Service identity mistaken for user delegation | Setup documentation; prefer native action for in-org use | Identity review |
-| Prompt injection in stored text | Treat output as data; exclude display text; fixed agent instructions | Injection suite |
-| Tool side effects | Read-only operations; publication `NONE`; no generic Apex or SOQL | Mutation and event tests |
-| Diagnostics disclosure | Allow only four bounded, disclosure-safe diagnosis fields; exclude raw administrator diagnostics; integration user lacks diagnostics permission | Contract and restricted-user tests |
-| Credential theft | Managed secrets, narrow scopes, rotation, token validation, no token logs | Rotation and log tests |
-| Server-side request forgery | Salesforce host list, redirect refusal, outbound controls | Host tests |
-| Excessive calls | Per-client rate, concurrency, timeout, body, and response limits | Load tests |
-| Retry amplification | Retry only safe transient failures with capped backoff | Failure injection |
-| Malformed Salesforce response | Contract and size validation; fail closed | Response tests |
-| Cross-client response leak | Supported MCP SDK; isolated request state; concurrency tests | Parallel tests |
-| Sensitive telemetry | Log field list, no bodies, retention policy, canary scan | Telemetry scan |
-| Unexpected MCP tool | Agentforce Registry tool list; deployment inventory check | Tool-list test |
-| Supply-chain compromise | Locked dependencies, scans, SBOM, immutable artifact | Attestation |
-| Unsafe release | Staged rollout, kill switch, revocation, independent rollback | Rollback drill |
+| Threat                                        | Required control                                                                                                                                | Verification                       |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Arbitrary model input                         | Strict schema, no unknown fields, two-operation list                                                                                            | Invalid-schema tests               |
+| Namespace guessing                            | Exact `QualifiedApiName`; no alternate-name retry                                                                                               | Namespaced tests                   |
+| Record probing                                | Salesforce sharing and user-mode access; rate limits; no denied-record disclosure                                                               | Access tests                       |
+| Service identity mistaken for user delegation | Setup documentation; prefer native action for in-org use                                                                                        | Identity review                    |
+| Prompt injection in stored text               | Treat output as data; exclude display text; fixed agent instructions                                                                            | Injection suite                    |
+| Tool side effects                             | Read-only operations; publication `NONE`; no generic Apex or SOQL                                                                               | Mutation and event tests           |
+| Diagnostics disclosure                        | Allow only four bounded, disclosure-safe diagnosis fields; exclude raw administrator diagnostics; integration user lacks diagnostics permission | Contract and restricted-user tests |
+| Credential theft                              | Managed secrets, narrow scopes, rotation, token validation, no token logs                                                                       | Rotation and log tests             |
+| Server-side request forgery                   | Salesforce host list, redirect refusal, outbound controls                                                                                       | Host tests                         |
+| Excessive calls                               | Per-client rate, concurrency, timeout, body, and response limits                                                                                | Load tests                         |
+| Retry amplification                           | Retry only safe transient failures with capped backoff                                                                                          | Failure injection                  |
+| Malformed Salesforce response                 | Contract and size validation; fail closed                                                                                                       | Response tests                     |
+| Cross-client response leak                    | Supported MCP SDK; isolated request state; concurrency tests                                                                                    | Parallel tests                     |
+| Sensitive telemetry                           | Log field list, no bodies, retention policy, canary scan                                                                                        | Telemetry scan                     |
+| Unexpected MCP tool                           | Agentforce Registry tool list; deployment inventory check                                                                                       | Tool-list test                     |
+| Supply-chain compromise                       | Locked dependencies, scans, SBOM, immutable artifact                                                                                            | Attestation                        |
+| Unsafe release                                | Staged rollout, kill switch, revocation, independent rollback                                                                                   | Rollback drill                     |
 
 ## Invariants
 

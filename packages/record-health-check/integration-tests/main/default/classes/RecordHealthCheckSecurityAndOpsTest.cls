@@ -9,11 +9,13 @@ private class RecordHealthCheckSecurityAndOpsTest {
   static void structuredLogValuesCannotForgeNewLines() {
     Assert.areEqual(
       'ticket forged value',
-      RecordHealthCheckLogger.normalizeIdentifier('ticket\nforged\tvalue', 120)
+      RecordHealthCheckLogger.normalizeIdentifier('ticket\nforged\tvalue', 120),
+      'Log identifiers must normalize newline and tab characters to spaces.'
     );
     Assert.areEqual(
       '12345',
-      RecordHealthCheckLogger.normalizeIdentifier('123456789', 5)
+      RecordHealthCheckLogger.normalizeIdentifier('123456789', 5),
+      'Log identifiers must truncate at the requested character limit.'
     );
   }
 
@@ -30,10 +32,22 @@ private class RecordHealthCheckSecurityAndOpsTest {
     Set<String> fields = new RecordHealthCheckFieldPlanner()
       .collectRecordFields(check, Account.SObjectType);
 
-    Assert.isTrue(fields.contains('Website'));
-    Assert.isTrue(fields.contains('Parent.Name'));
-    Assert.isTrue(!fields.contains('example.com'));
-    Assert.isTrue(!fields.contains('Parent.Missing__c'));
+    Assert.isTrue(
+      fields.contains('Website'),
+      'The formula Website operand must enter the field plan.'
+    );
+    Assert.isTrue(
+      fields.contains('Parent.Name'),
+      'The formula Parent.Name operand must enter the field plan.'
+    );
+    Assert.isTrue(
+      !fields.contains('example.com'),
+      'A quoted formula literal must not become a field path.'
+    );
+    Assert.isTrue(
+      !fields.contains('Parent.Missing__c'),
+      'An unresolved message-only field must not enter the query plan.'
+    );
   }
 
   @IsTest
@@ -246,7 +260,10 @@ private class RecordHealthCheckSecurityAndOpsTest {
       }
       Assert.fail('An unknown ' + mapping + ' mode must be rejected.');
     } catch (IllegalArgumentException error) {
-      Assert.isTrue(error.getMessage().contains('Unknown'));
+      Assert.isTrue(
+        error.getMessage().contains('Unknown'),
+        'Unknown presentation modes must expose the explicit rejection explanation.'
+      );
     }
   }
 

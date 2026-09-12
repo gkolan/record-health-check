@@ -12,7 +12,11 @@ private with sharing class RecordHealthCheckBulkQueryRewriteIT {
     );
     Test.stopTest();
 
-    Assert.areEqual(original, rewritten);
+    Assert.areEqual(
+      original,
+      rewritten,
+      'An already grouped correlation field must leave the query unchanged.'
+    );
   }
 
   @IsTest
@@ -102,26 +106,30 @@ private with sharing class RecordHealthCheckBulkQueryRewriteIT {
       existingSelect,
       'An existing correlation field must not be selected twice.'
     );
-    try {
-      RecordHealthCheckBulkQueryRewriter.rewriteOrderedPickAggregate(
-        'SELECT CloseDate, Amount FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate LIMIT 1',
-        'AccountId'
-      );
-      Assert.fail(
-        'An ordered aggregate pick with two selected fields must fail.'
-      );
-    } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual(
-        'UNSUPPORTED_BULK_QUERY_SHAPE',
-        error.reasonCode,
-        'The malformed aggregate must use the stable shape reason code.'
-      );
-    }
+    Assert.areEqual(
+      RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
+      RecordHealthCheckBulkQuerySupport.classify(
+        'SELECT CloseDate, Amount FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate LIMIT 1'
+      ),
+      'Multiple selected fields must retain ordered-row selection rather than use an aggregate.'
+    );
     Test.stopTest();
 
-    Assert.areEqual('FROM Account', missingSelect);
-    Assert.areEqual('FROM Contact', missingAliasSelect);
-    Assert.areEqual('SELECT Name FROM Contact', unmatchedAliasPrefix);
+    Assert.areEqual(
+      'FROM Account',
+      missingSelect,
+      'A query without SELECT must remain unchanged by field injection.'
+    );
+    Assert.areEqual(
+      'FROM Contact',
+      missingAliasSelect,
+      'A query without SELECT must remain unchanged by alias insertion.'
+    );
+    Assert.areEqual(
+      'SELECT Name FROM Contact',
+      unmatchedAliasPrefix,
+      'An absent correlation prefix must not alter the SELECT list.'
+    );
     Assert.isTrue(
       grouped.contains('GROUP BY AccountId ORDER BY'),
       'GROUP BY must be inserted before the existing outer tail clause.'
@@ -137,7 +145,11 @@ private with sharing class RecordHealthCheckBulkQueryRewriteIT {
       extendedGroup.split('(?i)GROUP BY').size() - 1,
       'The scope rewrite must emit exactly one GROUP BY clause.'
     );
-    Assert.areEqual(0, missingFields.size());
+    Assert.areEqual(
+      0,
+      missingFields.size(),
+      'A missing SELECT list must produce no selected fields.'
+    );
   }
 
   @IsTest
@@ -149,7 +161,11 @@ private with sharing class RecordHealthCheckBulkQueryRewriteIT {
       );
       Assert.fail('ROLLUP cannot be safely extended for scope correlation.');
     } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual('UNSUPPORTED_BULK_QUERY_SHAPE', error.reasonCode);
+      Assert.areEqual(
+        'UNSUPPORTED_BULK_QUERY_SHAPE',
+        error.reasonCode,
+        'ROLLUP rejection must expose the stable unsupported-shape reason.'
+      );
     }
   }
 

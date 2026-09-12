@@ -18,7 +18,11 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
         check,
         RecordHealthCheckTestDataFactory.account(new Map<String, Object>())
       );
-    Assert.areEqual(null, result);
+    Assert.areEqual(
+      null,
+      result,
+      'An unrestricted Check must not produce an applicability block.'
+    );
   }
 
   static {
@@ -135,15 +139,27 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
     String safeUrl = resultSupport.sanitizeActionUrl('/lightning/page/home');
     Test.stopTest();
 
-    Assert.areEqual('APPLICABILITY_NOT_MIGRATED', notMigrated.reasonCode);
-    Assert.areEqual('Not applicable.', skipped.message);
+    Assert.areEqual(
+      'APPLICABILITY_NOT_MIGRATED',
+      notMigrated.reasonCode,
+      'Legacy applicability must retain its migration-required reason.'
+    );
+    Assert.areEqual(
+      'Not applicable.',
+      skipped.message,
+      'An inapplicable Check must retain the default skipped message.'
+    );
     Assert.isNull(invalidComparison, 'An unknown count operator is invalid.');
     Assert.isNull(blankUrl, 'A blank action URL must be omitted.');
     Assert.isNull(
       unsafeUrl,
       'A protocol-relative action URL must be rejected.'
     );
-    Assert.areEqual('/lightning/page/home', safeUrl);
+    Assert.areEqual(
+      '/lightning/page/home',
+      safeUrl,
+      'A safe relative Lightning action URL must remain unchanged.'
+    );
   }
 
   @IsTest
@@ -173,7 +189,8 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
 
     Assert.areEqual(
       'INVALID_SOQL_TEMPLATE',
-      results.get(account.Id).reasonCode
+      results.get(account.Id).reasonCode,
+      'A malformed applicability query must retain its template-error reason.'
     );
   }
 
@@ -204,7 +221,11 @@ private with sharing class RecordHealthCheckScopeApplicabilityTest {
       );
     Test.stopTest();
 
-    Assert.areEqual('INVALID_OPERATOR', results.get(account.Id).reasonCode);
+    Assert.areEqual(
+      'INVALID_OPERATOR',
+      results.get(account.Id).reasonCode,
+      'An invalid applicability operator must retain its operator-error reason.'
+    );
   }
 
   @IsTest

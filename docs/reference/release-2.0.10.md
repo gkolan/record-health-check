@@ -13,27 +13,29 @@ evaluation remains the authority for PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, an
 
 ## What changed
 
-| Area | 2.0.10 behavior | Start here |
-| --- | --- | --- |
-| Apex parameters | A plugin can declare typed parameters, defaults, bounds, administrator labels, and capacity | [Declare a plugin definition](#declare-a-plugin-definition) |
-| Outcome construction | Typed equality and list helpers reject contradictory outcomes while they are built | [Build typed outcomes](#build-typed-outcomes) |
-| Per-record recovery | One ordinary record failure can become UNABLE_TO_EVALUATE without discarding sibling results | [Recover per record](#recover-per-record) |
-| Evidence | A plugin can attach bounded, typed, permission-filtered rows | [Attach evidence](#attach-evidence) |
-| Presentation | Metadata and Apex can supply structured text, links, groups, actions, labels, and formats | [Add structured presentation](#add-structured-presentation) |
-| Formula planning | Draft validation resolves dependencies, offsets, access failures, and safe compiler categories | [Formula planning](#formula-planning-and-compiler-diagnostics) |
-| Diagnostics | Authorized callers can request a bounded 2.0 incident and trace projection | [Authorized diagnostics](#authorized-diagnostics) |
-| Draft preview | Administrators can validate or execute a detached Check without saving it first | [Detached preview](#detached-preview) |
-| Readiness | A successful preview can leave private, expiring evidence tied to the exact definition and scope | [Readiness receipts](#readiness-receipts) |
-| Check authoring | Business sorting, opaque child queries, dependency order, currency proof, and whole-set limits follow the authored intent | [Conventional Check authoring](#conventional-check-authoring) |
-| Card heading | Check Sets can show title and subtitle, title only, or hide the heading while controlling Run/Rerun separately | [Configure Check Set fields](./custom-metadata/check-set-fields.md#card-heading-display-cardheadingdisplay__c) |
+| Area                 | 2.0.10 behavior                                                                                                           | Start here                                                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Apex parameters      | A plugin can declare typed parameters, defaults, bounds, administrator labels, and capacity                               | [Declare a plugin definition](#declare-a-plugin-definition)                                                    |
+| Outcome construction | Typed equality and list helpers reject contradictory outcomes while they are built                                        | [Build typed outcomes](#build-typed-outcomes)                                                                  |
+| Per-record recovery  | One ordinary record failure can become UNABLE_TO_EVALUATE without discarding sibling results                              | [Recover per record](#recover-per-record)                                                                      |
+| Evidence             | A plugin can attach bounded, typed, permission-filtered rows                                                              | [Attach evidence](#attach-evidence)                                                                            |
+| Presentation         | Metadata and Apex can supply structured text, links, groups, actions, labels, and formats                                 | [Add structured presentation](#add-structured-presentation)                                                    |
+| Formula planning     | Draft validation resolves dependencies, offsets, access failures, and safe compiler categories                            | [Formula planning](#formula-planning-and-compiler-diagnostics)                                                 |
+| Diagnostics          | Authorized callers can request a bounded 2.0 incident and trace projection                                                | [Authorized diagnostics](#authorized-diagnostics)                                                              |
+| Draft preview        | Administrators can validate or execute a detached Check without saving it first                                           | [Detached preview](#detached-preview)                                                                          |
+| Readiness            | A successful preview can leave private, expiring evidence tied to the exact definition and scope                          | [Readiness receipts](#readiness-receipts)                                                                      |
+| Check authoring      | Business sorting, opaque child queries, dependency order, currency proof, and whole-set limits follow the authored intent | [Conventional Check authoring](#conventional-check-authoring)                                                  |
+| Card heading         | Check Sets can show title and subtitle, title only, or hide the heading while controlling Run/Rerun separately            | [Configure Check Set fields](./custom-metadata/check-set-fields.md#card-heading-display-cardheadingdisplay__c) |
 
 ## Declare a plugin definition
 
 Implement `RecordHealthCheckPluginDefinitionSource` in addition to `RecordHealthCheckPlugin`, then return a `RecordHealthCheckPluginDefinition` from `getDefinition()`.
 
+The following class excerpt shows only the definition method. Retain the required `evaluate`
+implementation in your existing plugin; this excerpt is not a complete, standalone class.
+
 ```apex
-global with sharing class MyCheck implements RecordHealthCheckPlugin,
-  RecordHealthCheckPluginDefinitionSource {
+global with sharing class MyCheck implements RecordHealthCheckPlugin, RecordHealthCheckPluginDefinitionSource {
   global RecordHealthCheckPluginDefinition getDefinition() {
     return new RecordHealthCheckPluginDefinition()
       .integerParameter('daysBack', 30, 1, 3650)
@@ -46,15 +48,15 @@ global with sharing class MyCheck implements RecordHealthCheckPlugin,
 
 The available builders are:
 
-| Builder | Accepted contract |
-| --- | --- |
-| `integerParameter(key, default, min, max)` | Integer values with inclusive optional bounds |
-| `choiceParameter(key, default, choices)` | One exact member of a nonempty ordered choice list |
-| `stringParameter(key, default, maxLength)` | String bounded to 1–4,096 characters |
-| `booleanParameter(key, default)` | JSON Boolean |
-| `required(key, value)` | Controls whether omission is rejected |
-| `nullable(key, value)` | Controls whether explicit JSON `null` is accepted |
-| `describe(key, label, helpText)` | Administrator label and help text |
+| Builder                                           | Accepted contract                                                                   |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `integerParameter(key, default, min, max)`        | Integer values with inclusive optional bounds                                       |
+| `choiceParameter(key, default, choices)`          | One exact member of a nonempty ordered choice list                                  |
+| `stringParameter(key, default, maxLength)`        | String bounded to 1–4,096 characters                                                |
+| `booleanParameter(key, default)`                  | JSON Boolean                                                                        |
+| `required(key, value)`                            | Controls whether omission is rejected                                               |
+| `nullable(key, value)`                            | Controls whether explicit JSON `null` is accepted                                   |
+| `describe(key, label, helpText)`                  | Administrator label and help text                                                   |
 | `capacity(maxScopeSize, bulkSafe, estimatedCost)` | Applicable-record cap, bulk-safety declaration, and `LOW`, `MEDIUM`, or `HIGH` cost |
 
 Definition limits and validation rules:
@@ -115,17 +117,17 @@ RecordHealthCheckEvidence evidence = new RecordHealthCheckEvidence(
 
 Evidence limits:
 
-| Limit | Value |
-| --- | ---: |
-| Summary | 512 characters |
-| Columns | 1–20 |
-| Rows returned | 100 |
-| Column key | Same 40-character key grammar as plugin parameters |
-| Column label | 80 characters |
-| String or ID cell | 1,024 characters |
-| Serialized evidence | 256 KiB per projected envelope |
+| Limit               |                                                            Value |
+| ------------------- | ---------------------------------------------------------------: |
+| Summary             |                                                   512 characters |
+| Columns             |                                                             1–20 |
+| Rows returned       |                                                              100 |
+| Column key          |               Same 40-character key grammar as plugin parameters |
+| Column label        |                                                    80 characters |
+| String or ID cell   |                                                 1,024 characters |
+| Serialized evidence | 256 KiB per envelope, also subject to the shared response budget |
 
-Evidence columns accept `STRING`, `ID`, `NUMBER`, `BOOLEAN`, `DATE`, and `DATETIME`. A `COUNT` value is projected through a `NUMBER` column. Rows must match the declared column count and types. `stepGroupKey`, when present, must name a `NUMBER` column; `ruleGroupKey` must name a `STRING` or `ID` column.
+Evidence columns accept `STRING`, `ID`, `NUMBER`, `BOOLEAN`, `DATE`, and `DATETIME`. A `COUNT` value is projected through a `NUMBER` column. Rows must match the declared column count and types, including null values. Use a null of the declared scalar type; LIST values are not scalar nulls and are not accepted in evidence columns. `stepGroupKey`, when present, must name a `NUMBER` column; `ruleGroupKey` must name a `STRING` or `ID` column.
 
 Use `RecordHealthCheckEvidenceCell.value` for synthetic values. Use `field(recordId, fieldPath, value)` for record-field provenance. Field cells are returned only when the source record is in the authorized evaluation map and the field is accessible. Unauthorized rows are omitted, counts become unknown when completeness cannot be established, and malformed evidence becomes a disclosure-safe “Details unavailable” envelope.
 
@@ -141,7 +143,13 @@ Review {!record.Name fallback="this record"}. {!link label="Open record" href="/
 
 Destinations must be a safe same-org path beginning with `/` or an absolute HTTPS URL. Unsafe schemes, credentials in URLs, control characters, malformed interpolation, and oversized content are rejected or reduced to safe plain text. Rendered links open in a new context with `noopener noreferrer` protection.
 
-Structured-display limits are 100 link tokens, 1,000 nodes, 20,000 visible characters, 64 KiB for one Check field, and 256 KiB for a complete response/display projection. Link labels and complete URLs may contain at most 2,000 characters.
+Structured-display limits are 100 link tokens, 1,000 nodes, 20,000 visible characters, and 64 KiB for one Check field. Link labels and complete URLs may contain at most 2,000 characters.
+
+A response shares 256 KiB across its optional structured display and evidence. This counts serialized UTF-8 JSON for the `displayContent` and `evidence` objects, their property names, and the enclosing projection objects and array. Machine evaluation facts and legacy plain-text fallbacks are separate from this optional-presentation limit; it is not a maximum size for the entire API response.
+
+Allocation follows selected Check order, then normalized record order. Within each result, message, fix, Found and Expected precede evidence. Oversized fields are omitted whole, preserving their original plain-text fallback. Evidence retains whole leading rows and updates returned, omitted and completeness information; unknown authorized totals remain unknown. Once the shared budget is exhausted, later optional content is omitted. An authorized diagnostic viewer receives at most one fixed omission warning in the existing admin-detail message. Existing diagnostic explanations and terminal reason codes are preserved; ordinary responses do not gain diagnostic details.
+
+For source validation, the integration-only [display-budget verification fixture](../quality-gates/display-budget-verification.md) exercises ordered fallback with PASS, FAIL, SKIPPED and UNABLE_TO_EVALUATE records. Browser verification remains a separate release step.
 
 ### Apex display overrides
 
@@ -161,7 +169,10 @@ global Map<Id, RecordHealthCheckDisplayOverride> getDisplay(
 
 An override can supply Found, Expected, outcome message, fix guidance, one atomic action label/destination pair, an Expected label, and Found/Expected display formats with optional currency ISO codes. `RecordHealthCheckDisplayText` supports `text`, `link`, `recordLinks`, `groups`, `lineBreak`, and `paragraphBreak`. Group keys are nonblank, unique within one `groups` call, and at most 255 characters; empty groups are omitted unless they define an empty state. Visible groups are separated by exactly one line break.
 
-Display execution is card-only and presentation-only. It runs at most once after evaluation, on the same instance, and may reuse state already computed by `evaluate`. It must not issue SOQL, DML, callouts, async work, email, or events. It cannot replace record/check identity, status, reason, severity, applicability, publication settings, or diagnostic facts.
+The framework also limits its detached copy of one `getDisplay` result to 256 KiB of serialized UTF-8 JSON, including record keys, object overhead, rich fields and presentation metadata. It allocates message, fix, Found and Expected in scope-record order, then the record's action, label and format metadata together. Once allocation is exhausted, later optional content is omitted; already accepted fields remain available. This bounds the framework's retained copy, not memory allocated inside subscriber code. The final response budget above still applies.
+
+Display execution is presentation-only and runs for `EVALUATION_WITH_DISPLAY` requests, including
+Apex callers that explicitly select that result mode. Evaluation-only requests omit the display hook. It runs at most once after evaluation, on the same instance, and may reuse state already computed by `evaluate`. It must not issue SOQL, DML, callouts, async work, email, or events. It cannot replace record/check identity, status, reason, severity, applicability, publication settings, or diagnostic facts.
 
 Invalid scope-wide display output falls back to metadata presentation for that scope. An invalid per-record override falls back only for that record. An omitted field falls back independently, so a plugin can override one value without taking ownership of every visible field. Unsafe links become readable text or the metadata action. Headless API evaluation remains stable because presentation does not alter evaluation data.
 
@@ -284,25 +295,25 @@ capability-to-fixture decision and deterministic data matrix.
 
 ## Verification matrix
 
-| Scenario | Shipped or integration fixture | Automated guard | Expected result |
-| --- | --- | --- | --- |
-| Ordinary positive cadence | `RHC Builder Ready Account` and `Acme Corporation` | `AccountHasRecentActivityCheckTest` plus `readiness-scenarios.json` | PASS with typed counts/evidence |
-| Ordinary negative cadence | `RHC Builder Needs Review Account` | Same guards | FAIL with remediation/action |
-| Empty related data | `RHC Builder Empty Account` | `accountsWithNoActivityStillReceiveAnOutcome` | FAIL, Found `0`, evidence present |
-| Threshold boundary | Two activities with minimum two | typed-evidence test and demo scenario | PASS at equality |
-| Stale activity | Task 400 days old | `activityOutsideWindowFails` | FAIL |
-| Wrong relationship | Contact-only WhoId Task | `whoOnlyContactTaskIsExplicitlyOutsideWhatIdContractRow22` | FAIL; activity excluded |
-| Invalid parameter | Wrong type, zero, or out-of-range value | `invalidDaysBackIsRejected` and definition-contract tests | Direct class defense uses `INVALID_CONFIG`; normal Record Health Check evaluation rejects it first as UNABLE_TO_EVALUATE / `INVALID_APEX_PARAMETERS` |
-| Bulk/governor | 1 versus 200 Accounts | `queryCountDoesNotGrowWithScopeSize` | Two queries in either scope |
-| Permission/access | least-privilege activity visibility and FLS planner fixtures | contract/security Apex tests and sandbox procedure | visible data only; inaccessible dependencies classified without disclosure |
-| Namespace | namespaced integration package metadata and qualified identities | namespace/source gates and hosted package validation | qualified identities remain distinct |
-| Inline-link success/failure | shipped cadence fallback plus `RHC_Link_Metadata` | `RHCLinkFixtureTest` and LWC tests | safe link clickable; unsafe destination becomes safe text/fallback |
-| Display override success/failure | shipped cadence plugin plus structured integration plugin | `AccountHasRecentActivityCheckTest`, `RecordHealthCheckScopeDisplayTest`, `RHCPresentationResolverTest` | valid fields override; invalid fields fall back without changing evaluation |
-| Evidence access and limits | subscriber evidence fixtures | `RHCSubscriberEvidenceSpecTest`, `RHCDiagnosticProjectionBudgetTest` | authorized bounded projection or disclosure-safe unavailable result |
-| Detached validate/execute | preview Apex fixtures | `RecordHealthCheckPreviewControllerTest` | deterministic findings; execution only in EXECUTE mode; no events |
-| Stale/tampered readiness | private readiness fixtures | preview and fingerprint tests | stale or noncurrent; draft-only counts remain isolated |
-| Formula relationship FLS | colon and ordinary relationship fixtures | `RHCFieldPlannerSecurityTest`, `RHCSubscriberFormulaSpecTest` | `FIELD_NOT_ACCESSIBLE`, never `FIELD_NOT_RESOLVED` for known inaccessible paths |
-| Compiler diagnostic probing | formula compiler cache fixtures | `RHCFormulaCompilerCacheTest` | bounded selected/final category without raw formula or wrong AUTO probe |
+| Scenario                         | Shipped or integration fixture                                   | Automated guard                                                                                         | Expected result                                                                                                                                      |
+| -------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ordinary positive cadence        | `RHC Builder Ready Account` and `Acme Corporation`               | `AccountHasRecentActivityCheckTest` plus `readiness-scenarios.json`                                     | PASS with typed counts/evidence                                                                                                                      |
+| Ordinary negative cadence        | `RHC Builder Needs Review Account`                               | Same guards                                                                                             | FAIL with remediation/action                                                                                                                         |
+| Empty related data               | `RHC Builder Empty Account`                                      | `accountsWithNoActivityStillReceiveAnOutcome`                                                           | FAIL, Found `0`, evidence present                                                                                                                    |
+| Threshold boundary               | Two activities with minimum two                                  | typed-evidence test and demo scenario                                                                   | PASS at equality                                                                                                                                     |
+| Stale activity                   | Task 400 days old                                                | `activityOutsideWindowFails`                                                                            | FAIL                                                                                                                                                 |
+| Wrong relationship               | Contact-only WhoId Task                                          | `whoOnlyContactTaskIsExplicitlyOutsideWhatIdContractRow22`                                              | FAIL; activity excluded                                                                                                                              |
+| Invalid parameter                | Wrong type, zero, or out-of-range value                          | `invalidDaysBackIsRejected` and definition-contract tests                                               | Direct class defense uses `INVALID_CONFIG`; normal Record Health Check evaluation rejects it first as UNABLE_TO_EVALUATE / `INVALID_APEX_PARAMETERS` |
+| Bulk/governor                    | 1 versus 200 Accounts                                            | `queryCountDoesNotGrowWithScopeSize`                                                                    | Two queries in either scope                                                                                                                          |
+| Permission/access                | least-privilege activity visibility and FLS planner fixtures     | contract/security Apex tests and sandbox procedure                                                      | visible data only; inaccessible dependencies classified without disclosure                                                                           |
+| Namespace                        | namespaced integration package metadata and qualified identities | namespace/source gates and hosted package validation                                                    | qualified identities remain distinct                                                                                                                 |
+| Inline-link success/failure      | shipped cadence fallback plus `RHC_Link_Metadata`                | `RHCLinkFixtureTest` and LWC tests                                                                      | safe link clickable; unsafe destination becomes safe text/fallback                                                                                   |
+| Display override success/failure | shipped cadence plugin plus structured integration plugin        | `AccountHasRecentActivityCheckTest`, `RecordHealthCheckScopeDisplayTest`, `RHCPresentationResolverTest` | valid fields override; invalid fields fall back without changing evaluation                                                                          |
+| Evidence access and limits       | subscriber evidence fixtures                                     | `RHCSubscriberEvidenceSpecTest`, `RHCDiagnosticProjectionBudgetTest`                                    | authorized bounded projection or disclosure-safe unavailable result                                                                                  |
+| Detached validate/execute        | preview Apex fixtures                                            | `RecordHealthCheckPreviewControllerTest`                                                                | deterministic findings; execution only in EXECUTE mode; no events                                                                                    |
+| Stale/tampered readiness         | private readiness fixtures                                       | preview and fingerprint tests                                                                           | stale or noncurrent; draft-only counts remain isolated                                                                                               |
+| Formula relationship FLS         | colon and ordinary relationship fixtures                         | `RHCFieldPlannerSecurityTest`, `RHCSubscriberFormulaSpecTest`                                           | `FIELD_NOT_ACCESSIBLE`, never `FIELD_NOT_RESOLVED` for known inaccessible paths                                                                      |
+| Compiler diagnostic probing      | formula compiler cache fixtures                                  | `RHCFormulaCompilerCacheTest`                                                                           | bounded selected/final category without raw formula or wrong AUTO probe                                                                              |
 
 LWS and Locker card rendering, managed-package namespace compilation, and real user-mode access are
 platform variations. Verify them in the retained release org pair when the release owner authorizes

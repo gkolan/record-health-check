@@ -70,6 +70,13 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
         'Optional plugin display was rejected.'
       );
     }
+    return validateAndCopy(returned, scope);
+  }
+
+  private static Map<Id, RecordHealthCheckDisplayOverride> validateAndCopy(
+    Map<Id, RecordHealthCheckDisplayOverride> returned,
+    RecordHealthCheckScope scope
+  ) {
     if (returned == null) {
       return null;
     }
@@ -83,9 +90,13 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
       }
     }
     Map<Id, RecordHealthCheckDisplayOverride> copy = new Map<Id, RecordHealthCheckDisplayOverride>();
+    CopyBudget budget = new CopyBudget(returned, scope.recordIds);
+    if (budget.exhausted) {
+      return null;
+    }
     for (Id recordId : scope.recordIds) {
       RecordHealthCheckDisplayOverride value = returned.get(recordId);
-      copy.put(recordId, value == null ? null : copyOverride(value));
+      copy.put(recordId, value == null ? null : copyOverride(value, budget));
     }
     return copy;
   }
@@ -117,25 +128,49 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
   }
 
   private static RecordHealthCheckDisplayOverride copyOverride(
-    RecordHealthCheckDisplayOverride source
+    RecordHealthCheckDisplayOverride source,
+    CopyBudget budget
   ) {
+    Boolean alreadyExhausted = budget.exhausted;
     RecordHealthCheckDisplayOverride copy = new RecordHealthCheckDisplayOverride()
-      .withFound(copyText(source.found))
-      .withExpected(copyText(source.expected))
-      .withMessage(copyText(source.message))
-      .withFix(copyText(source.fix))
-      .withAction(copyAction(source.action))
+      .withMessage(copyText(source.message, budget))
+      .withFix(copyText(source.fix, budget))
+      .withFound(copyText(source.found, budget))
+      .withExpected(copyText(source.expected, budget));
+    copyMetadata(source, copy, budget);
+    markInvalid(copy, source.found, 'found');
+    markInvalid(copy, source.expected, 'expected');
+    markInvalid(copy, source.message, 'message');
+    markInvalid(copy, source.fix, 'fix');
+    if (!alreadyExhausted && budget.exhausted) {
+      copy.invalidFields.add('displayBudget');
+    }
+    return copy;
+  }
+
+  private static void copyMetadata(
+    RecordHealthCheckDisplayOverride source,
+    RecordHealthCheckDisplayOverride target,
+    CopyBudget budget
+  ) {
+    RecordHealthCheckDisplayOverride metadata = new RecordHealthCheckDisplayOverride()
+      .withAction(source.action)
       .withExpectedLabel(source.expectedLabel)
       .withFoundFormat(source.foundFormat, source.foundCurrencyIsoCode)
       .withExpectedFormat(
         source.expectedFormat,
         source.expectedCurrencyIsoCode
       );
-    markInvalid(copy, source.found, 'found');
-    markInvalid(copy, source.expected, 'expected');
-    markInvalid(copy, source.message, 'message');
-    markInvalid(copy, source.fix, 'fix');
-    return copy;
+    if (!budget.acceptMetadata(metadata)) {
+      return;
+    }
+    target.withAction(copyAction(metadata.action))
+      .withExpectedLabel(metadata.expectedLabel)
+      .withFoundFormat(metadata.foundFormat, metadata.foundCurrencyIsoCode)
+      .withExpectedFormat(
+        metadata.expectedFormat,
+        metadata.expectedCurrencyIsoCode
+      );
   }
 
   private static void markInvalid(
@@ -157,13 +192,13 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
   }
 
   private static RecordHealthCheckDisplayText copyText(
-    RecordHealthCheckDisplayText source
+    RecordHealthCheckDisplayText source,
+    CopyBudget budget
   ) {
-    if (
-      source == null ||
-      source.valid == false ||
-      source.copyNodes().isEmpty()
-    ) {
+    if (source == null || source.valid == false || source.nodeCount() == 0) {
+      return null;
+    }
+    if (!budget.accept(Blob.valueOf(JSON.serialize(source)).size() - 4)) {
       return null;
     }
     RecordHealthCheckDisplayText copy = new RecordHealthCheckDisplayText();
@@ -179,6 +214,67 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
       }
     }
     return copy;
+  }
+
+  private class CopyBudget {
+    private Integer usedBytes;
+    private Integer emptyOverrideBytes;
+    public Boolean exhausted = false;
+
+    public CopyBudget(
+      Map<Id, RecordHealthCheckDisplayOverride> returned,
+      List<Id> recordIds
+    ) {
+      RecordHealthCheckDisplayOverride empty = new RecordHealthCheckDisplayOverride();
+      emptyOverrideBytes = Blob.valueOf(JSON.serialize(empty)).size();
+      Map<Id, RecordHealthCheckDisplayOverride> baseline = new Map<Id, RecordHealthCheckDisplayOverride>();
+      for (Id recordId : recordIds) {
+        baseline.put(recordId, returned.get(recordId) == null ? null : empty);
+      }
+      usedBytes = Blob.valueOf(JSON.serialize(baseline)).size();
+      exhausted = usedBytes > 256 * 1024;
+    }
+
+    public Boolean acceptMetadata(RecordHealthCheckDisplayOverride metadata) {
+      if (exhausted) {
+        return false;
+      }
+      Integer minimumBytes = 0;
+      for (
+        String value : new List<String>{
+          metadata.expectedLabel,
+          metadata.foundFormat,
+          metadata.foundCurrencyIsoCode,
+          metadata.expectedFormat,
+          metadata.expectedCurrencyIsoCode,
+          metadata.action?.label,
+          metadata.action?.destination
+        }
+      ) {
+        minimumBytes += value == null ? 0 : value.length();
+      }
+      // Null placeholders can shrink when replaced by short strings; their
+      // total baseline is bounded. Reject huge strings before serializing them.
+      if (minimumBytes > 256 * 1024 - usedBytes + emptyOverrideBytes) {
+        exhausted = true;
+        return false;
+      }
+      return accept(
+        Blob.valueOf(JSON.serialize(metadata)).size() - emptyOverrideBytes
+      );
+    }
+
+    public Boolean accept(Integer candidateBytes) {
+      if (exhausted) {
+        return false;
+      }
+      if (usedBytes + candidateBytes > 256 * 1024) {
+        exhausted = true;
+        return false;
+      }
+      usedBytes += candidateBytes;
+      return true;
+    }
   }
 
   private static DisplayException displayFailure(

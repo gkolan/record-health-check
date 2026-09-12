@@ -39,13 +39,11 @@ private with sharing class RecordHealthCheckAsyncTest {
       new List<Id>{ recordId },
       null
     );
-
     Test.startTest();
     Iterator<Id> recordIterator = batch.start(null).iterator();
     batch.execute(null, new List<Id>());
     batch.finish(null);
     Test.stopTest();
-
     Assert.isTrue(
       recordIterator.hasNext(),
       'The valid Batch population must remain iterable.'
@@ -116,7 +114,6 @@ private with sharing class RecordHealthCheckAsyncTest {
     ];
     System.abortJob(jobId);
     Test.stopTest();
-
     Assert.areEqual(
       RecordHealthCheckScheduled.CRON_DAILY_2AM,
       scheduled.CronExpression,
@@ -136,11 +133,9 @@ private with sharing class RecordHealthCheckAsyncTest {
       new List<Id>{ accountRecord.Id },
       RecordHealthCheckEventPublication.NONE
     );
-
     Test.startTest();
     scheduled.execute((SchedulableContext) null);
     Test.stopTest();
-
     List<AsyncApexJob> batchJobs = [
       SELECT Status, NumberOfErrors
       FROM AsyncApexJob
@@ -170,7 +165,6 @@ private with sharing class RecordHealthCheckAsyncTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Framework Queueable happy path'
     );
-
     Test.startTest();
     Id jobId = RecordHealthCheckQueueable.enqueue(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -180,7 +174,6 @@ private with sharing class RecordHealthCheckAsyncTest {
       RecordHealthCheckEventPublication.NONE
     );
     Test.stopTest();
-
     AsyncApexJob job = [
       SELECT Status, NumberOfErrors
       FROM AsyncApexJob
@@ -199,7 +192,6 @@ private with sharing class RecordHealthCheckAsyncTest {
     Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Framework Batch happy path'
     );
-
     Test.startTest();
     Id jobId = RecordHealthCheckBatch.run(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
@@ -209,7 +201,6 @@ private with sharing class RecordHealthCheckAsyncTest {
       RecordHealthCheckEventPublication.NONE
     );
     Test.stopTest();
-
     AsyncApexJob job = [
       SELECT Status, NumberOfErrors
       FROM AsyncApexJob
@@ -238,7 +229,6 @@ private with sharing class RecordHealthCheckAsyncTest {
       1
     );
     String identity = overlongIdentity();
-
     assertQualifiedIdentityRejected('QUEUEABLE', identity, recordId);
     assertQualifiedIdentityRejected('BATCH', identity, recordId);
     assertQualifiedIdentityRejected('SCHEDULED', identity, recordId);
@@ -270,7 +260,6 @@ private with sharing class RecordHealthCheckAsyncTest {
     List<Id> batchBoundary = syntheticAccountIds(
       RecordHealthCheckConstants.MAX_ASYNC_RECORDS
     );
-
     RecordHealthCheckQueueable.validateScope(VALID_CHECK_SET, queueBoundary);
     RecordHealthCheckBatch.validatePopulation(VALID_CHECK_SET, batchBoundary);
     RecordHealthCheckScheduled.validateSubmission(
@@ -278,14 +267,12 @@ private with sharing class RecordHealthCheckAsyncTest {
       VALID_CHECK_SET,
       batchBoundary
     );
-
     List<Id> duplicates = new List<Id>();
     for (Integer index = 0; index < 500; index++) {
       duplicates.add(queueBoundary[0]);
     }
     duplicates.add(null);
     RecordHealthCheckQueueable.validateScope(VALID_CHECK_SET, duplicates);
-
     assertQueueScopeRejected(
       syntheticAccountIds(RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE + 1)
     );
@@ -306,11 +293,9 @@ private with sharing class RecordHealthCheckAsyncTest {
     RecordHealthCheckAccess.setRunPermissionForTest(false);
     Integer jobsBefore = [SELECT COUNT() FROM AsyncApexJob];
     Integer schedulesBefore = [SELECT COUNT() FROM CronTrigger];
-
     assertAuthorizationDenied('QUEUEABLE', recordId);
     assertAuthorizationDenied('BATCH', recordId);
     assertAuthorizationDenied('SCHEDULED', recordId);
-
     Assert.areEqual(
       jobsBefore,
       [SELECT COUNT() FROM AsyncApexJob],
@@ -346,7 +331,6 @@ private with sharing class RecordHealthCheckAsyncTest {
       RecordHealthCheckEventPublication.NONE
     );
     RecordHealthCheckAccess.setRunPermissionForTest(false);
-
     assertExecutionAuthorizationDenied(queueable, null, null);
     assertExecutionAuthorizationDenied(null, batch, null);
     assertExecutionAuthorizationDenied(null, null, scheduled);
@@ -401,7 +385,8 @@ private with sharing class RecordHealthCheckAsyncTest {
       Assert.fail(adapter + ' must reject an overlong identity.');
     } catch (IllegalArgumentException expected) {
       Assert.isTrue(
-        expected.getMessage().contains('must not exceed 255 characters')
+        expected.getMessage().contains('must not exceed 255 characters'),
+        'An overlong async identity must explain its 255-character limit.'
       );
     }
   }
@@ -411,7 +396,10 @@ private with sharing class RecordHealthCheckAsyncTest {
       RecordHealthCheckQueueable.validateScope('Qualified_Set', recordIds);
       Assert.fail('One-over Queueable scope must be rejected.');
     } catch (IllegalArgumentException expected) {
-      Assert.isTrue(expected.getMessage().contains('suppliedCount=201'));
+      Assert.isTrue(
+        expected.getMessage().contains('suppliedCount=201'),
+        'An excessive Queueable scope must report 201 supplied records.'
+      );
     }
   }
 
@@ -420,7 +408,10 @@ private with sharing class RecordHealthCheckAsyncTest {
       RecordHealthCheckBatch.validatePopulation('Qualified_Set', recordIds);
       Assert.fail('One-over Batch population must be rejected.');
     } catch (IllegalArgumentException expected) {
-      Assert.isTrue(expected.getMessage().contains('suppliedCount=2001'));
+      Assert.isTrue(
+        expected.getMessage().contains('suppliedCount=2001'),
+        'An excessive Batch population must report 2001 supplied records.'
+      );
     }
   }
 
@@ -433,7 +424,10 @@ private with sharing class RecordHealthCheckAsyncTest {
       );
       Assert.fail('One-over Scheduled population must be rejected.');
     } catch (IllegalArgumentException expected) {
-      Assert.isTrue(expected.getMessage().contains('suppliedCount=2001'));
+      Assert.isTrue(
+        expected.getMessage().contains('suppliedCount=2001'),
+        'An excessive Scheduled population must report 2001 supplied records.'
+      );
     }
   }
 
@@ -461,7 +455,10 @@ private with sharing class RecordHealthCheckAsyncTest {
       }
       Assert.fail(adapter + ' submission must be denied.');
     } catch (RecordHealthCheckAccess.AuthorizationException expected) {
-      Assert.isTrue(expected.getMessage().contains('NOT_AUTHORIZED'));
+      Assert.isTrue(
+        expected.getMessage().contains('NOT_AUTHORIZED'),
+        'An unauthorized async submission must retain NOT_AUTHORIZED.'
+      );
     }
   }
 
@@ -511,7 +508,10 @@ private with sharing class RecordHealthCheckAsyncTest {
       }
       Assert.fail('Delayed execution must recheck authorization.');
     } catch (RecordHealthCheckAccess.AuthorizationException expected) {
-      Assert.isTrue(expected.getMessage().contains('NOT_AUTHORIZED'));
+      Assert.isTrue(
+        expected.getMessage().contains('NOT_AUTHORIZED'),
+        'Delayed async execution must retain NOT_AUTHORIZED.'
+      );
     }
   }
 }

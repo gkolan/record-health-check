@@ -21,13 +21,19 @@ private class RecordHealthCheckCompareQuerySupportTest {
         rows,
         false,
         false
-      )
+      ),
+      'Identical single values must compare equal.'
     );
 
     check.QueryResultHandling__c = 'COMPARE_AS_LISTS';
     check.ComparisonOperator__c = 'LISTS_MATCH_EXACTLY';
     Assert.isTrue(
-      RecordHealthCheckCompareQuerySupport.evaluateListVsList(check, rows, rows)
+      RecordHealthCheckCompareQuerySupport.evaluateListVsList(
+        check,
+        rows,
+        rows
+      ),
+      'Identical lists must match exactly.'
     );
   }
 
@@ -49,7 +55,11 @@ private class RecordHealthCheckCompareQuerySupportTest {
       'AS_NO_MATCH'
     );
 
-    Assert.areNotEqual(primary[0], comparison[0]);
+    Assert.areNotEqual(
+      primary[0],
+      comparison[0],
+      'Missing values from opposite sides must remain distinct.'
+    );
     Assert.isFalse(
       RecordHealthCheckCompareQuerySupport.frequencyMapsEqual(
         RecordHealthCheckCompareQuerySupport.toFrequencyMap(
@@ -58,7 +68,8 @@ private class RecordHealthCheckCompareQuerySupportTest {
         RecordHealthCheckCompareQuerySupport.toFrequencyMap(
           new List<String>{ 'a', 'a' }
         )
-      )
+      ),
+      'Different duplicate counts must not compare equal.'
     );
   }
 

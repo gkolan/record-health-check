@@ -63,13 +63,13 @@ exists.
 
 What success looks like:
 
-| Milestone | Expected result |
-| --- | --- |
-| Scratch org created | Alias `rhc-dev` (or the alias you chose) is Active |
-| Package source deployed | `packages/record-health-check/force-app` is in the org, including **Record Health Check Diagnostics Viewer** |
-| Administrator access assigned | **Record Health Check Admin** is assigned to the setup user and already includes diagnostic access |
-| Integration fixtures deployed | `packages/record-health-check/integration-tests` is in the org for maintainer gates |
-| Local tests ran | Package `RunLocalTests` completed during the package-source deploy |
+| Milestone                     | Expected result                                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Scratch org created           | Alias `rhc-dev` (or the alias you chose) is Active                                                           |
+| Package source deployed       | `packages/record-health-check/force-app` is in the org, including **Record Health Check Diagnostics Viewer** |
+| Administrator access assigned | **Record Health Check Admin** is assigned to the setup user and already includes diagnostic access           |
+| Integration fixtures deployed | `packages/record-health-check/integration-tests` is in the org for maintainer gates                          |
+| Local tests ran               | Package `RunLocalTests` completed during the package-source deploy                                           |
 
 To test diagnostics as a non-admin, assign **Record Health Check Diagnostics Viewer** alongside
 **Card User** or **User**, then enable **Show Diagnostics** on the selected Check Set. Follow
@@ -130,10 +130,10 @@ Apex tests. It is not a blocking 2GP release shape because the released package 
 npm run dev:test-no-namespace -- --dev-hub my-dev-hub --alias rhc-portable
 ```
 
-| Check | Command | Org shape |
-| --- | --- | --- |
-| Namespaced package development | `npm run dev:setup` | Uses the nested project's `rhc` namespace |
-| No-namespace portable deploy | `npm run dev:test-no-namespace` | Creates a scratch org with `--no-namespace` |
+| Check                          | Command                         | Org shape                                   |
+| ------------------------------ | ------------------------------- | ------------------------------------------- |
+| Namespaced package development | `npm run dev:setup`             | Uses the nested project's `rhc` namespace   |
+| No-namespace portable deploy   | `npm run dev:test-no-namespace` | Creates a scratch org with `--no-namespace` |
 
 ## Manual package-project commands
 
@@ -238,15 +238,15 @@ when both options exist.
 
 ## Troubleshooting
 
-| Symptom | What to check |
-| --- | --- |
-| `An org already uses alias '…'` | Confirm which org owns the alias. Choose a new `--alias`, or delete the old scratch org only when this work created it and it is no longer needed. |
-| Scratch-org capacity is insufficient | Reuse a suitable contributor org, delete an owned org that is no longer needed, or wait for the daily limit to reset |
-| Toolchain check reports another CLI version | Install the exact version shown in `config/toolchain.json`, then rerun `npm run check:toolchain` |
-| Deploy fails on currency field planner tests | In a multi-currency org, `CurrencyIsoCode` can appear in the field plan. Update a test that assumes only `Id` to reflect that org shape. |
-| `sf` not found on Windows | Confirm the Salesforce CLI install and that your shell session can resolve `sf` |
-| Need the subscriber demo instead | Use `npm run setup` and [Create the demo scratch org](../install/install-demo-in-a-scratch-org.md) |
-| Acme Corporation is missing from a source org | Run `npm run demo:setup-source -- --alias <source-org-alias>` |
+| Symptom                                       | What to check                                                                                                                                      |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `An org already uses alias '…'`               | Confirm which org owns the alias. Choose a new `--alias`, or delete the old scratch org only when this work created it and it is no longer needed. |
+| Scratch-org capacity is insufficient          | Reuse a suitable contributor org, delete an owned org that is no longer needed, or wait for the daily limit to reset                               |
+| Toolchain check reports another CLI version   | Install the exact version shown in `config/toolchain.json`, then rerun `npm run check:toolchain`                                                   |
+| Deploy fails on currency field planner tests  | In a multi-currency org, `CurrencyIsoCode` can appear in the field plan. Update a test that assumes only `Id` to reflect that org shape.           |
+| `sf` not found on Windows                     | Confirm the Salesforce CLI install and that your shell session can resolve `sf`                                                                    |
+| Need the subscriber demo instead              | Use `npm run setup` and [Create the demo scratch org](../install/install-demo-in-a-scratch-org.md)                                                 |
+| Acme Corporation is missing from a source org | Run `npm run demo:setup-source -- --alias <source-org-alias>`                                                                                      |
 
 ## Next steps
 

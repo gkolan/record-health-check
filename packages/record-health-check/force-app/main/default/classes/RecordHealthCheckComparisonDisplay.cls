@@ -6,7 +6,7 @@ public with sharing class RecordHealthCheckComparisonDisplay {
   // the check required, without an admin hand-authoring it into FailureMessage__c.
 
   /**
-   * Maps a operator API name to a sentence-friendly verb phrase. The phrases
+   * Maps an operator API name to a sentence-friendly verb phrase. The phrases
    * are designed to read naturally after the word "expected" when the LWC wraps
    * the comparison as "Found {actualValue}, expected {expectedValue}" — e.g.
    * "expected to equal …", "expected at least 2", "expected to be one of […]".
@@ -27,41 +27,7 @@ public with sharing class RecordHealthCheckComparisonDisplay {
     if (operator == 'GREATER_THAN') {
       return System.Label.RHC_Operator_GreaterThan;
     }
-    if (operator == 'GREATER_THAN_OR_EQUAL') {
-      return System.Label.RHC_Operator_GreaterThanOrEqual;
-    }
-    if (operator == 'LESS_THAN') {
-      return System.Label.RHC_Operator_LessThan;
-    }
-    if (operator == 'LESS_THAN_OR_EQUAL') {
-      return System.Label.RHC_Operator_LessThanOrEqual;
-    }
-    if (operator == 'IS_BLANK') {
-      return System.Label.RHC_Operator_IsBlank;
-    }
-    if (operator == 'IS_NOT_BLANK') {
-      return System.Label.RHC_Operator_IsNotBlank;
-    }
-    if (operator == 'LIST_CONTAINS_ANY') {
-      return System.Label.RHC_Operator_ListContainsAny;
-    }
-    if (operator == 'LIST_CONTAINS_NONE') {
-      return System.Label.RHC_Operator_ListContainsNone;
-    }
-    if (operator == 'LISTS_OVERLAP') {
-      return System.Label.RHC_Operator_ListsOverlap;
-    }
-    if (operator == 'LISTS_CONTAIN_ALL') {
-      return System.Label.RHC_Operator_ListsContainAll;
-    }
-    if (operator == 'LISTS_MATCH_EXACTLY') {
-      return System.Label.RHC_Operator_ListsMatchExactly;
-    }
-    // an unknown operator falls back to its
-    // raw API name. Config validation blocks unknown operators upstream, so this
-    // is purely defensive; surfacing the literal name keeps a misconfiguration
-    // diagnosable rather than dressing it up as a sentence fragment ("using …").
-    return operator;
+    return boundsOperatorLabel(operator);
   }
 
   /**
@@ -299,5 +265,47 @@ public with sharing class RecordHealthCheckComparisonDisplay {
     return operatorLabel(operator) +
       ' ' +
       formatList(comparison, displayFormat, isoCodes);
+  }
+
+  private static String boundsOperatorLabel(String operator) {
+    if (operator == 'GREATER_THAN_OR_EQUAL') {
+      return System.Label.RHC_Operator_GreaterThanOrEqual;
+    }
+    if (operator == 'LESS_THAN') {
+      return System.Label.RHC_Operator_LessThan;
+    }
+    if (operator == 'LESS_THAN_OR_EQUAL') {
+      return System.Label.RHC_Operator_LessThanOrEqual;
+    }
+    if (operator == 'IS_BLANK') {
+      return System.Label.RHC_Operator_IsBlank;
+    }
+    if (operator == 'IS_NOT_BLANK') {
+      return System.Label.RHC_Operator_IsNotBlank;
+    }
+    return listOperatorLabel(operator);
+  }
+
+  private static String listOperatorLabel(String operator) {
+    if (operator == 'LIST_CONTAINS_ANY') {
+      return System.Label.RHC_Operator_ListContainsAny;
+    }
+    if (operator == 'LIST_CONTAINS_NONE') {
+      return System.Label.RHC_Operator_ListContainsNone;
+    }
+    if (operator == 'LISTS_OVERLAP') {
+      return System.Label.RHC_Operator_ListsOverlap;
+    }
+    if (operator == 'LISTS_CONTAIN_ALL') {
+      return System.Label.RHC_Operator_ListsContainAll;
+    }
+    if (operator == 'LISTS_MATCH_EXACTLY') {
+      return System.Label.RHC_Operator_ListsMatchExactly;
+    }
+    // an unknown operator falls back to its
+    // raw API name. Config validation blocks unknown operators upstream, so this
+    // is purely defensive; surfacing the literal name keeps a misconfiguration
+    // diagnosable rather than dressing it up as a sentence fragment ("using …").
+    return operator;
   }
 }

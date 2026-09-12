@@ -19,6 +19,18 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
   ) {
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new List<RecordHealthCheckMetadataValidator.ValidationIssue>();
 
+    validateIdentityAndTitle(cs, issues);
+    validateCheckPresentation(cs, issues);
+    validateRunControls(cs, issues);
+    validateCardPresentation(cs, issues);
+
+    return issues;
+  }
+
+  private static void validateIdentityAndTitle(
+    Record_Health_Check_Set__mdt cs,
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues
+  ) {
     if (String.isBlank(cs.ObjectApiName__c)) {
       issues.add(
         new RecordHealthCheckMetadataValidator.ValidationIssue(
@@ -58,7 +70,12 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
         )
       );
     }
+  }
 
+  private static void validateCheckPresentation(
+    Record_Health_Check_Set__mdt cs,
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues
+  ) {
     if (!VALID_DISPLAY_MODES.contains(cs.PassedChecksDisplay__c)) {
       issues.add(
         new RecordHealthCheckMetadataValidator.ValidationIssue(
@@ -101,7 +118,12 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
         )
       );
     }
+  }
 
+  private static void validateRunControls(
+    Record_Health_Check_Set__mdt cs,
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues
+  ) {
     // Parity with RecordHealthCheckConfigService runtime validation so a Check
     // Set that deploys clean cannot still fail at definition-load time.
     if (!VALID_TRIGGER_MODES.contains(cs.CardRunMode__c)) {
@@ -161,7 +183,12 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
         )
       );
     }
+  }
 
+  private static void validateCardPresentation(
+    Record_Health_Check_Set__mdt cs,
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues
+  ) {
     String cardHeadingDisplay = RecordHealthCheckConstants.normalizedCardHeadingDisplay(
       cs.CardHeadingDisplay__c
     );
@@ -207,7 +234,5 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
         )
       );
     }
-
-    return issues;
   }
 }

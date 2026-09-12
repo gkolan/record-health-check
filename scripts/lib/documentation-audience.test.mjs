@@ -99,3 +99,26 @@ test("keeps installation defaults tied to maintained release and tool configurat
     );
   }
 });
+
+test("quality scoring checks visible link labels without mistaking destinations for prose", () => {
+  assert.deepEqual(
+    documentationAudienceIssues(
+      "docs/reference/release.md",
+      "See [display-budget verification](../quality-gates/display-budget-verification.md)."
+    ),
+    []
+  );
+  assert.deepEqual(
+    documentationAudienceIssues(
+      "docs/reference/release.md",
+      "See [Quality gates](../verification.md)."
+    ),
+    ["internal quality scoring"]
+  );
+  assert.ok(
+    documentationAudienceIssues(
+      "docs/install/demo.md",
+      "[Install](https://example.com/install?p0=04tABCDEFGHIJKLMNO)"
+    ).some((issue) => issue.startsWith("fixed release or tool version"))
+  );
+});

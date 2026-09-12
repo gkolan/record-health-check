@@ -389,13 +389,13 @@ Rules for this Evaluation Type (EvaluationType__c = QUERY):
 
 ## Confirm the draft against
 
-| Topic | Page |
-| --- | --- |
-| Working Query patterns | [Query examples](../../examples/query/README.md) |
-| Operators, no-row behavior, row limits | [Query reference](../../reference/evaluation/query.md) |
-| Source Query and comparison fields | [Check fields](../../reference/custom-metadata/check-fields.md) |
-| SOQL and message tokens | [Merge syntax](../../reference/merge-syntax/README.md) |
-| Shared AI rules | [Shared rules](./shared-rules.md) |
+| Topic                                  | Page                                                            |
+| -------------------------------------- | --------------------------------------------------------------- |
+| Working Query patterns                 | [Query examples](../../examples/query/README.md)                |
+| Operators, no-row behavior, row limits | [Query reference](../../reference/evaluation/query.md)          |
+| Source Query and comparison fields     | [Check fields](../../reference/custom-metadata/check-fields.md) |
+| SOQL and message tokens                | [Merge syntax](../../reference/merge-syntax/README.md)          |
+| Shared AI rules                        | [Shared rules](./shared-rules.md)                               |
 
 ## Related
 

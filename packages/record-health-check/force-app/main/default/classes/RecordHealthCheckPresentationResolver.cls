@@ -33,6 +33,7 @@ public with sharing class RecordHealthCheckPresentationResolver {
     RecordHealthCheckDisplayOverride presentation
   ) {
     if (presentation?.message != null) {
+      rememberFallback(result, 'message', result.message);
       ensureContent(result).message = presentation.message.copyNodes();
       result.message = RecordHealthCheckDisplayComposer.plain(
         result.displayContent.message
@@ -42,11 +43,23 @@ public with sharing class RecordHealthCheckPresentationResolver {
       result.status == RecordHealthCheckStatus.FAIL &&
       presentation?.fix != null
     ) {
+      rememberFallback(result, 'fix', result.fixInstructions);
       ensureContent(result).fix = presentation.fix.copyNodes();
       result.fixInstructions = RecordHealthCheckDisplayComposer.plain(
         result.displayContent.fix
       );
     }
+  }
+
+  private static void rememberFallback(
+    RecordHealthCheckInternalResult result,
+    String fieldName,
+    String value
+  ) {
+    if (result.presentationFallbacks == null) {
+      result.presentationFallbacks = new Map<String, String>();
+    }
+    result.presentationFallbacks.put(fieldName, value);
   }
 
   private static void applyAction(
@@ -118,6 +131,16 @@ public with sharing class RecordHealthCheckPresentationResolver {
       formatName = validConfiguredFormat(check.DisplayValueFormat__c);
       overrideIsoCode = null;
     }
+    applyResolvedFormat(check, result, formatName, overrideIsoCode, foundSide);
+  }
+
+  private static void applyResolvedFormat(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckInternalResult result,
+    String formatName,
+    String overrideIsoCode,
+    Boolean foundSide
+  ) {
     String isoCode = resolveIsoCode(
       result,
       formatName,

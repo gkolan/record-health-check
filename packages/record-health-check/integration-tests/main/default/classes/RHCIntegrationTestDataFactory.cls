@@ -400,6 +400,13 @@ public class RHCIntegrationTestDataFactory {
     if (fieldType == Schema.DisplayType.Url) {
       return 'https://' + uniqueToken().toLowerCase() + '.example.com';
     }
+    return nonTextSample(fieldDescribe, fieldType);
+  }
+
+  private static Object nonTextSample(
+    Schema.DescribeFieldResult fieldDescribe,
+    Schema.DisplayType fieldType
+  ) {
     if (fieldType == Schema.DisplayType.Boolean) {
       return false;
     }

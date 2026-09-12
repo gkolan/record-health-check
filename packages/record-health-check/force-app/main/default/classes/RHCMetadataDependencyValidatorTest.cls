@@ -169,8 +169,16 @@ private class RHCMetadataDependencyValidatorTest {
     Test.stopTest();
 
     Assert.areEqual(2, issues.size(), 'Every cycle member must be identified.');
-    Assert.areEqual('INVALID_DEPENDENCY', issues[0].reasonCode);
-    Assert.areEqual('INVALID_DEPENDENCY', issues[1].reasonCode);
+    Assert.areEqual(
+      'INVALID_DEPENDENCY',
+      issues[0].reasonCode,
+      'The first cycle member must report INVALID_DEPENDENCY.'
+    );
+    Assert.areEqual(
+      'INVALID_DEPENDENCY',
+      issues[1].reasonCode,
+      'The second cycle member must report INVALID_DEPENDENCY.'
+    );
   }
 
   private static Record_Health_Check__mdt check(

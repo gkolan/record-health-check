@@ -3,7 +3,7 @@
     <fullName>FormulaResultType__c</fullName>
     <label>Formula Result Type</label>
     <description
-  >Declares the data type your formulas return. It applies to all single-value formulas in this check - "Value to find in the list (formula)" and "Expected Value (Formula)", which affect pass/fail, as well as "Display: Found Formula" and "Display: Expected Formula", which are display only. Leave "Automatic" unless you know the return type; declaring it saves formula calls, but "Automatic" always resolves correctly. Choices: "Automatic", "Checkbox", "Number", "Date", "Date/Time", "Text".</description>
+  >Declares the return type for Query comparison formulas: Expected Value (Formula) and Value to find in the list (formula). Leave Automatic unless the shared type is verified. Pass Condition and applicability formulas return Checkbox; display formulas detect their own type.</description>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
@@ -20,6 +20,6 @@
         >Text</label><default>false</default></value></valueSetDefinition>
     </valueSet>
     <inlineHelpText
-  >The type your formulas return. Applies to every formula in the check (the list/expected value formulas and the display formulas). Leave "Automatic" unless you know the type - "Automatic" always works but uses more formula calls.</inlineHelpText>
+  >Leave Automatic unless you know the return type of your Query comparison formulas (expected value or value to find). Does not control Pass Condition, applicability, or display formulas.</inlineHelpText>
     <required>false</required>
 </CustomField>

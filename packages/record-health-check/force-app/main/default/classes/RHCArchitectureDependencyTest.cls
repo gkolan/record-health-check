@@ -7,7 +7,8 @@ private with sharing class RHCArchitectureDependencyTest {
       new Set<String>{ 'A', 'B' },
       RHCDefinitionDependencyIdentity.cycleMembers(
         new List<Record_Health_Check__mdt>{ check('A', 'B'), check('B', 'A') }
-      )
+      ),
+      'Both Checks in a mutual dependency must be cycle members.'
     );
   }
 
@@ -17,7 +18,8 @@ private with sharing class RHCArchitectureDependencyTest {
       new Set<String>{ 'A' },
       RHCDefinitionDependencyIdentity.cycleMembers(
         new List<Record_Health_Check__mdt>{ check('A', 'A') }
-      )
+      ),
+      'A self-dependent Check must be a cycle member.'
     );
   }
 
@@ -46,7 +48,8 @@ private with sharing class RHCArchitectureDependencyTest {
           check('B', 'A'),
           check('Control', null)
         }
-      )
+      ),
+      'An independent healthy branch must not enter the cycle.'
     );
   }
 
@@ -54,7 +57,8 @@ private with sharing class RHCArchitectureDependencyTest {
   static void caseD05HandlesNullInput() {
     Assert.areEqual(
       new Set<String>(),
-      RHCDefinitionDependencyIdentity.cycleMembers(null)
+      RHCDefinitionDependencyIdentity.cycleMembers(null),
+      'A null dependency graph must contain no cycle members.'
     );
   }
 
@@ -69,7 +73,11 @@ private with sharing class RHCArchitectureDependencyTest {
     List<Record_Health_Check__mdt> ordered = RHCDefinitionDependencyIdentity.orderForEvaluation(
       input
     );
-    Assert.areEqual('Control', ordered[0].QualifiedApiName);
+    Assert.areEqual(
+      'Control',
+      ordered[0].QualifiedApiName,
+      'The healthy control branch must be ordered before unresolved cyclic Checks.'
+    );
   }
 
   @IsTest
@@ -92,7 +100,8 @@ private with sharing class RHCArchitectureDependencyTest {
       new Set<String>(),
       RHCDefinitionDependencyIdentity.cycleMembers(
         new List<Record_Health_Check__mdt>{ check('A', 'Missing') }
-      )
+      ),
+      'A missing prerequisite must not create a cycle.'
     );
   }
 

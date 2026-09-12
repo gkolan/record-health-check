@@ -50,6 +50,35 @@ public with sharing class RecordHealthCheckFormulaPlanService {
       return plan;
     }
 
+    Set<String> selected = selectFields(
+      plan,
+      lexical,
+      baseType,
+      configurationField,
+      resolver
+    );
+    plan.selectedFields.addAll(selected);
+    plan.selectedFields.sort();
+    if (plan.findings.isEmpty()) {
+      addCompileFinding(
+        plan,
+        formula,
+        baseType,
+        configurationField,
+        normalizedReturnType(declaredReturnType, configurationField)
+      );
+    }
+    applyFindingLimit(plan);
+    return plan;
+  }
+
+  private static Set<String> selectFields(
+    FormulaPlan plan,
+    RecordHealthCheckFormulaTokenizer.Result lexical,
+    Schema.SObjectType baseType,
+    String configurationField,
+    RecordHealthCheckFieldPlanner resolver
+  ) {
     Set<String> selected = new Set<String>();
     resolver = resolver == null
       ? new RecordHealthCheckFieldPlanner()
@@ -141,19 +170,7 @@ public with sharing class RecordHealthCheckFormulaPlanService {
         );
       }
     }
-    plan.selectedFields.addAll(selected);
-    plan.selectedFields.sort();
-    if (plan.findings.isEmpty()) {
-      addCompileFinding(
-        plan,
-        formula,
-        baseType,
-        configurationField,
-        normalizedReturnType(declaredReturnType, configurationField)
-      );
-    }
-    applyFindingLimit(plan);
-    return plan;
+    return selected;
   }
 
   /** Plans with an inferred return type for the original shared API. */
@@ -407,7 +424,6 @@ public with sharing class RecordHealthCheckFormulaPlanService {
         RecordHealthCheckCompileDiagnostic.boundedCategories(diagnostics)
       );
     }
-
     private List<formulaeval.FormulaReturnType> returnTypes(
       String declaredReturnType
     ) {
@@ -452,7 +468,6 @@ public with sharing class RecordHealthCheckFormulaPlanService {
       }
     }
   }
-
   /** Detached planning result shared by metadata validation and runtime field loading. */
   public class FormulaPlan {
     public List<RecordHealthCheckFormulaTokenizer.Token> tokens {
@@ -462,7 +477,6 @@ public with sharing class RecordHealthCheckFormulaPlanService {
     public List<String> selectedFields { get; private set; }
     public List<Finding> findings { get; private set; }
     public Boolean findingsTruncated { get; private set; }
-
     private FormulaPlan() {
       tokens = new List<RecordHealthCheckFormulaTokenizer.Token>();
       selectedFields = new List<String>();
@@ -470,7 +484,6 @@ public with sharing class RecordHealthCheckFormulaPlanService {
       findingsTruncated = false;
     }
   }
-
   /** One formula finding retaining its authored source coordinates. */
   public class Finding {
     public String code { get; private set; }

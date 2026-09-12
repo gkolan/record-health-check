@@ -29,29 +29,44 @@ candidate's gate.
 
 ## Gate sequence
 
-| Stage | Required result | Failure behavior |
-| --- | --- | --- |
-| Pull request and committed source | Every tracked check in `.github/workflows/ci.yml` passes | Do not merge or call the source CI-ready |
-| Optional hosted source validation | When explicitly authorized, namespaced LWS and Locker jobs report additional evidence for the exact commit | Record failures without blocking package creation |
-| Package creation | Code coverage, artifact membership, version identity, and dependency checks pass | Do not publish a candidate for subscriber testing |
-| Optional subscriber testing | When explicitly authorized, clean installation and reviewed upgrades exercise the exact candidate | Record the result as additional evidence |
-| Optional representative sandbox | A reviewer may record exact-candidate acceptance of the affected customer experience | Retain the result as human evidence |
-| Promotion | Local creation evidence and the Dev Hub package report identify the exact candidate and commit | Promotion command must fail closed on an identity mismatch |
-| Release publication | Release registry, changelog, install links, tag, and rollback information identify the promoted `04t` | Do not announce the release |
+| Stage                             | Required result                                                                                            | Failure behavior                                           |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Pull request and committed source | Every tracked check in `.github/workflows/ci.yml` passes                                                   | Do not merge or call the source CI-ready                   |
+| Optional hosted source validation | When explicitly authorized, namespaced LWS and Locker jobs report additional evidence for the exact commit | Record failures without blocking package creation          |
+| Package creation                  | Code coverage, artifact membership, version identity, and dependency checks pass                           | Do not publish a candidate for subscriber testing          |
+| Optional subscriber testing       | When explicitly authorized, clean installation and reviewed upgrades exercise the exact candidate          | Record the result as additional evidence                   |
+| Optional representative sandbox   | A reviewer may record exact-candidate acceptance of the affected customer experience                       | Retain the result as human evidence                        |
+| Promotion                         | Local creation evidence and the Dev Hub package report identify the exact candidate and commit             | Promotion command must fail closed on an identity mismatch |
+| Release publication               | Release registry, changelog, install links, tag, and rollback information identify the promoted `04t`      | Do not announce the release                                |
 
 Package creation and promotion require a clean Git worktree and exact local creation evidence before
 invoking a Salesforce mutation. Hosted workflows are optional and require explicit scratch-org
 authorization. Every workflow artifact upload uses
 `if-no-files-found: error`; a successful test without its retained evidence is a failed release gate.
 
+## Apex result collection
+
+The exact-inventory runner requests global `--json` as well as JSON result files. Global JSON mode
+bypasses the Salesforce CLI's styled console formatter, which can exhaust the Node heap on large
+per-test coverage payloads even when stdout is ignored. Preserve that flag when changing the runner.
+The checked-in inventory and command-exit guards are the executable fixtures for this repository-only
+reporting behavior; no Check or Check Set configuration is involved.
+
+A passing result file does not turn an aborted CLI command into a successful invocation. Retain the
+failed command evidence, retrieve the same completed run with `sf apex get test --json`, and reconcile
+its class/method inventory and command exit. If Streaming API reporting stalls, retrieve
+`ApexTestRunResult` and `ApexTestResult` through the Tooling API and reconcile the actual class and
+method rows, including `IsTestSetup`; summary completion counters alone are not sufficient.
+Do not submit duplicate tests solely to recover a report.
+
 ## Salesforce environment matrix
 
 Source validation uses the package's real namespace in both supported Lightning security modes:
 
-| Namespace topology | Lightning security mode | Browser engines |
-| --- | --- | --- |
-| `rhc` namespaced | Lightning Web Security | Chromium and Firefox |
-| `rhc` namespaced | Lightning Locker | Chromium and Firefox |
+| Namespace topology | Lightning security mode | Browser engines      |
+| ------------------ | ----------------------- | -------------------- |
+| `rhc` namespaced   | Lightning Web Security  | Chromium and Firefox |
+| `rhc` namespaced   | Lightning Locker        | Chromium and Firefox |
 
 Each org must be newly created from the tracked scratch definition. The workflow records the org
 shape, deploy result, test result, and browser artifacts. Reusing an org is not evidence for the
@@ -69,18 +84,18 @@ Every entry point must execute a Check Set containing all four evaluation types:
 
 The required entry points are:
 
-| Entry point | Required live proof |
-| --- | --- |
-| Lightning Web Component, manual | Component renders without a page-level or component spinner, Run completes, and all four types return results |
-| Lightning Web Component, run on load | Initial shell remains quiet, deferred run completes, and no manual Run button is shown |
-| Apex API | Public Apex API returns all four evaluation types |
-| Flow | A real Flow interview invokes the packaged action and returns all four types |
-| REST/MCP | Authenticated REST request and MCP contract return all four types through the namespaced package API |
-| Native Agentforce actions | The packaged Check Set action crosses the invocable boundary and accounts for every Check in the four-type set |
-| Platform Events | `ALL` publication emits one Check Result per executed Check and one Set Run event, and subscriber-owned triggers receive them |
-| Queueable | Job completes and its Check Set covers all four types |
-| Batch | Job completes and its Check Set covers all four types |
-| Scheduled | Scheduled adapter launches the work, it completes, and its Check Set covers all four types |
+| Entry point                          | Required live proof                                                                                                           |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Lightning Web Component, manual      | Component renders without a page-level or component spinner, Run completes, and all four types return results                 |
+| Lightning Web Component, run on load | Initial shell remains quiet, deferred run completes, and no manual Run button is shown                                        |
+| Apex API                             | Public Apex API returns all four evaluation types                                                                             |
+| Flow                                 | A real Flow interview invokes the packaged action and returns all four types                                                  |
+| REST/MCP                             | Authenticated REST request and MCP contract return all four types through the namespaced package API                          |
+| Native Agentforce actions            | The packaged Check Set action crosses the invocable boundary and accounts for every Check in the four-type set                |
+| Platform Events                      | `ALL` publication emits one Check Result per executed Check and one Set Run event, and subscriber-owned triggers receive them |
+| Queueable                            | Job completes and its Check Set covers all four types                                                                         |
+| Batch                                | Job completes and its Check Set covers all four types                                                                         |
+| Scheduled                            | Scheduled adapter launches the work, it completes, and its Check Set covers all four types                                    |
 
 An Apex unit test that calls the shared service directly does not replace the Flow, REST, browser,
 or asynchronous adapter test. Every adapter must cross its real platform boundary.
@@ -232,7 +247,7 @@ returns exit code zero and reports zero violations.
   and `retire-js:Recommended`; the all-rules reports remain retained advisory evidence.
 - Analyzer JSON must be complete and every analyzer log must be free of engine processing errors and
   null-pointer failures. This prevents a scanner crash from becoming a false green release result.
-- `code-analyzer.yml` has an exact approved list of four file-scoped `ProtectSensitiveData` false
+- `code-analyzer.yml` has an exact approved list of five file-scoped `ProtectSensitiveData` false
   positives. Each permits one finding and carries a specific reason. A new path, a second finding,
   a widened limit, or globally disabling that security rule fails CI and release preflight.
 - Inline Apex suppressions remain visible beside the guarded statement and are reviewed with the
@@ -275,9 +290,10 @@ human review. The guarded promotion command does not require that attestation.
 The release also requires:
 
 - pinned Node, Salesforce CLI, Java, Python, and Code Analyzer policy versions;
-- production and development dependency audits with no known vulnerabilities; the patched
-  `@babel/core` transitive override is lockfile-pinned and must remain compatible with the Salesforce
-  LWC compiler and Jest suite;
+- separate audits of the root and MCP service lockfiles: production dependencies fail on any
+  known vulnerability, and the complete dependency trees fail on moderate or higher severity. Run
+  `npm run check:dependency-security` to audit both. The patched `@babel/core` transitive override
+  is lockfile-pinned and must remain compatible with the Salesforce LWC compiler and Jest suite;
 - package-boundary, manifest, converted-artifact, permission, namespace-token, API-surface, query,
   field-limit, XML, formatting, lint, SLDS, JavaScript, and documentation checks;
 - every intended Custom Metadata record in both the manifest and physical package artifact;

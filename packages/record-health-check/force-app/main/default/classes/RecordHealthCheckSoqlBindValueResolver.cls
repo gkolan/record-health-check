@@ -66,45 +66,7 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
     Schema.DisplayType fieldType = terminalFieldType(record, fieldPath);
     String trimmed = fallbackValue.trim();
     try {
-      if (fieldType == Schema.DisplayType.BOOLEAN) {
-        if (
-          trimmed.toLowerCase() != 'true' &&
-          trimmed.toLowerCase() != 'false'
-        ) {
-          throw new RecordHealthCheckEvaluatorException(
-            'MISSING_BIND_VALUE',
-            'Boolean fallback must be true or false.'
-          );
-        }
-        return Boolean.valueOf(trimmed);
-      }
-      if (fieldType == Schema.DisplayType.DATE) {
-        return Date.valueOf(trimmed);
-      }
-      if (fieldType == Schema.DisplayType.DATETIME) {
-        String normalized = trimmed.replace('T', ' ').replace('Z', '');
-        return Datetime.valueOfGmt(normalized);
-      }
-      if (fieldType == Schema.DisplayType.TIME) {
-        return parseTimeFallback(trimmed);
-      }
-      if (fieldType == Schema.DisplayType.INTEGER) {
-        return Integer.valueOf(trimmed);
-      }
-      if (
-        fieldType == Schema.DisplayType.ID ||
-        fieldType == Schema.DisplayType.REFERENCE
-      ) {
-        return Id.valueOf(trimmed);
-      }
-      if (
-        fieldType == Schema.DisplayType.CURRENCY ||
-        fieldType == Schema.DisplayType.DOUBLE ||
-        fieldType == Schema.DisplayType.PERCENT
-      ) {
-        return Decimal.valueOf(trimmed);
-      }
-      return fallbackValue;
+      return coerceTypedValue(fieldType, trimmed, fallbackValue);
     } catch (RecordHealthCheckEvaluatorException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -117,6 +79,53 @@ public with sharing class RecordHealthCheckSoqlBindValueResolver {
           '".'
       );
     }
+  }
+
+  private static Object coerceTypedValue(
+    Schema.DisplayType fieldType,
+    String trimmed,
+    String fallbackValue
+  ) {
+    if (fieldType == Schema.DisplayType.BOOLEAN) {
+      return coerceBoolean(trimmed);
+    }
+    if (fieldType == Schema.DisplayType.DATE) {
+      return Date.valueOf(trimmed);
+    }
+    if (fieldType == Schema.DisplayType.DATETIME) {
+      String normalized = trimmed.replace('T', ' ').replace('Z', '');
+      return Datetime.valueOfGmt(normalized);
+    }
+    if (fieldType == Schema.DisplayType.TIME) {
+      return parseTimeFallback(trimmed);
+    }
+    if (fieldType == Schema.DisplayType.INTEGER) {
+      return Integer.valueOf(trimmed);
+    }
+    if (
+      fieldType == Schema.DisplayType.ID ||
+      fieldType == Schema.DisplayType.REFERENCE
+    ) {
+      return Id.valueOf(trimmed);
+    }
+    if (
+      fieldType == Schema.DisplayType.CURRENCY ||
+      fieldType == Schema.DisplayType.DOUBLE ||
+      fieldType == Schema.DisplayType.PERCENT
+    ) {
+      return Decimal.valueOf(trimmed);
+    }
+    return fallbackValue;
+  }
+
+  private static Boolean coerceBoolean(String trimmed) {
+    if (trimmed.toLowerCase() != 'true' && trimmed.toLowerCase() != 'false') {
+      throw new RecordHealthCheckEvaluatorException(
+        'MISSING_BIND_VALUE',
+        'Boolean fallback must be true or false.'
+      );
+    }
+    return Boolean.valueOf(trimmed);
   }
 
   /**

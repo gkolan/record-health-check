@@ -17,6 +17,7 @@ export default class RecordHealthCheckPreview extends LightningElement {
   cleanupMessage;
   response;
   isStale = false;
+  parameterControlsStale = false;
   requestSequence = 0;
   connected = true;
 
@@ -53,6 +54,7 @@ export default class RecordHealthCheckPreview extends LightningElement {
   disconnectedCallback() {
     this.connected = false;
     this.requestSequence += 1;
+    this.isLoading = false;
   }
 
   handleInput(event) {
@@ -73,25 +75,46 @@ export default class RecordHealthCheckPreview extends LightningElement {
   }
 
   handlePluginParameter(event) {
+    if (this.parameterControlsStale) {
+      return;
+    }
     const key = event.target.dataset.parameterKey;
     const typeName = event.target.dataset.parameterType;
     const value =
       typeName === "BOOLEAN"
         ? (event.detail?.checked ?? event.target.checked)
         : (event.detail?.value ?? event.target.value);
-    const parsedDraft = JSON.parse(this.draftJson);
-    let parameters = {};
+    let parsedDraft;
+    let parameters;
     try {
+      parsedDraft = JSON.parse(this.draftJson);
+      if (!this.isObject(parsedDraft)) {
+        throw new Error("Invalid draft object");
+      }
       parameters = JSON.parse(parsedDraft.ApexParametersJson__c || "{}");
+      if (!this.isObject(parameters)) {
+        throw new Error("Invalid parameter object");
+      }
     } catch {
       this.errorMessage =
         "Apex Parameters JSON must be corrected before using generated controls.";
       return;
     }
-    parameters[key] = typeName === "INTEGER" ? Number(value) : value;
+    if (
+      typeName === "INTEGER" &&
+      (value == null || String(value).trim() === "")
+    ) {
+      delete parameters[key];
+    } else if (typeName === "INTEGER" && !Number.isSafeInteger(Number(value))) {
+      this.errorMessage = "Enter a whole number for this Apex parameter.";
+      return;
+    } else {
+      parameters[key] = typeName === "INTEGER" ? Number(value) : value;
+    }
+    this.errorMessage = undefined;
     parsedDraft.ApexParametersJson__c = JSON.stringify(parameters);
     this._draftJson = JSON.stringify(parsedDraft, null, 2);
-    this.markResponseStale();
+    this.markResponseStale(false);
   }
 
   handleActivation(event) {
@@ -115,13 +138,14 @@ export default class RecordHealthCheckPreview extends LightningElement {
   }
 
   async handleDeleteExpired() {
+    const sequence = ++this.requestSequence;
     // eslint-disable-next-line @locker/locker/distorted-xml-http-request-window-open -- LightningConfirm.open is the supported platform confirmation API, not Window.open.
     const confirmed = await LightningConfirm.open({
       label: "Delete expired readiness receipts",
       message: "Delete up to 200 expired readiness receipts visible to you?",
       theme: "warning"
     });
-    if (!confirmed || !this.connected) {
+    if (!confirmed || !this.connected || sequence !== this.requestSequence) {
       return;
     }
     this.errorMessage = undefined;
@@ -129,17 +153,17 @@ export default class RecordHealthCheckPreview extends LightningElement {
     this.isLoading = true;
     try {
       const count = await deleteExpiredReceipts({ confirmed: true });
-      if (this.connected) {
+      if (this.connected && sequence === this.requestSequence) {
         this.cleanupMessage = `${count} expired readiness receipt${
           count === 1 ? "" : "s"
         } deleted.`;
       }
     } catch (error) {
-      if (this.connected) {
+      if (this.connected && sequence === this.requestSequence) {
         this.errorMessage = this.messageFrom(error);
       }
     } finally {
-      if (this.connected) {
+      if (this.connected && sequence === this.requestSequence) {
         this.isLoading = false;
       }
     }
@@ -154,7 +178,7 @@ export default class RecordHealthCheckPreview extends LightningElement {
       this.errorMessage = "Draft Check JSON must be valid JSON.";
       return;
     }
-    if (!parsedDraft || Array.isArray(parsedDraft)) {
+    if (!this.isObject(parsedDraft)) {
       this.errorMessage = "Draft Check JSON must contain one object.";
       return;
     }
@@ -179,6 +203,7 @@ export default class RecordHealthCheckPreview extends LightningElement {
       }
       this.response = this.prepareResponse(JSON.parse(payload));
       this.isStale = snapshot !== this.currentSnapshot;
+      this.parameterControlsStale = this.isStale;
     } catch (error) {
       if (this.connected && sequence === this.requestSequence) {
         this.errorMessage = this.messageFrom(error);
@@ -217,6 +242,7 @@ export default class RecordHealthCheckPreview extends LightningElement {
       resultRows: (value.results ?? []).map((item, index) => ({
         key: `${item.evaluation?.recordId ?? "result"}-${index}`,
         recordId: item.evaluation?.recordId,
+        checkName: item.evaluation?.checkQualifiedApiName,
         status: item.evaluation?.status,
         message:
           item.display?.renderedMessage ?? item.evaluation?.reasonCode ?? ""
@@ -224,9 +250,16 @@ export default class RecordHealthCheckPreview extends LightningElement {
     };
   }
 
-  markResponseStale() {
+  isObject(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  }
+
+  markResponseStale(invalidateControls = true) {
     if (this.response) {
       this.isStale = true;
+      if (invalidateControls) {
+        this.parameterControlsStale = true;
+      }
     }
   }
 
@@ -266,7 +299,17 @@ export default class RecordHealthCheckPreview extends LightningElement {
   }
 
   get hasPluginParameters() {
-    return Boolean(this.response?.pluginParameterRows.length);
+    return (
+      !this.parameterControlsStale &&
+      Boolean(this.response?.pluginParameterRows.length)
+    );
+  }
+
+  get showReceiptWarning() {
+    return (
+      !this.isStale &&
+      this.response?.readinessReceipt?.receiptStatus === "NOT_SAVED"
+    );
   }
 
   get showCurrentReadiness() {

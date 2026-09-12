@@ -1,4 +1,4 @@
-/** Builds card-only envelopes from authored templates or legacy plain strings. */
+/** Builds structured display envelopes from authored templates or legacy plain strings. */
 public class RecordHealthCheckStructuredDisplay {
   private RecordHealthCheckFormulaEvaluator evaluator;
 
@@ -13,6 +13,25 @@ public class RecordHealthCheckStructuredDisplay {
     SObject record,
     RecordHealthCheckInternalResult result,
     String authoredMessage
+  ) {
+    attach(
+      check,
+      record,
+      result,
+      authoredMessage,
+      record == null ||
+        record.Id == null
+        ? new Map<Id, SObject>()
+        : new Map<Id, SObject>{ record.Id => record }
+    );
+  }
+
+  public void attach(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult result,
+    String authoredMessage,
+    Map<Id, SObject> recordsById
   ) {
     RecordHealthCheckDisplayContent content = result.displayContent == null
       ? new RecordHealthCheckDisplayContent()
@@ -39,6 +58,24 @@ public class RecordHealthCheckStructuredDisplay {
           )
         : null;
     }
+    attachComparison(check, record, result, content);
+    result.displayContent = content;
+    Id recordId = record == null ? null : (Id) record.get('Id');
+    result.evidenceEnvelope = RecordHealthCheckEvidenceProjection.project(
+      result.evidence,
+      result.runId,
+      check.QualifiedApiName,
+      recordId,
+      recordsById
+    );
+  }
+
+  private void attachComparison(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult result,
+    RecordHealthCheckDisplayContent content
+  ) {
     if (content.found == null) {
       content.found = nodes(
         check?.EvaluationType__c == 'APEX' ? null : check?.DisplayFoundText__c,
@@ -61,17 +98,6 @@ public class RecordHealthCheckStructuredDisplay {
         result
       );
     }
-    result.displayContent = content;
-    Id recordId = record == null ? null : (Id) record.get('Id');
-    result.evidenceEnvelope = RecordHealthCheckEvidenceProjection.project(
-      result.evidence,
-      result.runId,
-      check.QualifiedApiName,
-      recordId,
-      recordId == null
-        ? new Map<Id, SObject>()
-        : new Map<Id, SObject>{ recordId => record }
-    );
   }
 
   private List<RecordHealthCheckDisplayNode> nodes(

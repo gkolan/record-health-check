@@ -54,7 +54,6 @@ CHILD_DIRECT = "CHILD_DIRECT"
 CHILD_PATH = "CHILD_PATH"
 TOKEN_INDIRECT = "TOKEN_INDIRECT"
 SCOPE_INVARIANT = "SCOPE_INVARIANT"
-ORDERED_PICK_AGGREGATE = "ORDERED_PICK_AGGREGATE"
 ORDERED_PICK_IN_MEMORY = "ORDERED_PICK_IN_MEMORY"
 UNCLASSIFIED = "UNCLASSIFIED"
 
@@ -64,8 +63,7 @@ STRATEGY_SUMMARY = {
     CHILD_PATH: "Group child rows by the relationship path that carried the token",
     TOKEN_INDIRECT: "Collect distinct token values across the scope, query them once, map back",
     SCOPE_INVARIANT: "No record token; one query serves every record in the scope",
-    ORDERED_PICK_AGGREGATE: "ORDER BY + LIMIT 1 on the selected field becomes MIN/MAX with GROUP BY",
-    ORDERED_PICK_IN_MEMORY: "ORDER BY + LIMIT 1 on another field; rank per record in Apex",
+    ORDERED_PICK_IN_MEMORY: "ORDER BY + LIMIT N; rank and retain up to N rows per record in Apex",
 }
 
 # Strategies that resolve rows in Apex rather than in SOQL. These are the ones the
@@ -172,17 +170,35 @@ def split_top_level_and(value):
     parts = []
     start = 0
     depth = 0
+    scanned = 0
     for match in re.finditer(r"(?i)\bAND\b", value):
-        for character in value[start : match.start()]:
+        for character in value[scanned : match.start()]:
             if character == "(":
                 depth += 1
             elif character == ")":
                 depth -= 1
+        scanned = match.end()
         if depth == 0:
             parts.append(value[start : match.start()])
             start = match.end()
     parts.append(value[start:])
     return parts
+
+
+def outer_match(pattern, masked):
+    """Find a clause on the query itself, ignoring child-query clauses."""
+    depth = 0
+    scanned = 0
+    for match in pattern.finditer(masked):
+        for character in masked[scanned : match.start()]:
+            if character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+        if depth == 0:
+            return match
+        scanned = match.start()
+    return None
 
 
 def outer_where_expression(masked):
@@ -230,9 +246,8 @@ def direct_correlation(soql):
 def classify(soql):
     """Return (strategy, correlation, note) for one authored template."""
     direct, masked, tokens = direct_correlation(soql)
-    limit = RE_LIMIT.search(masked)
-    order_by = RE_ORDER_BY.search(masked)
-    order_clause = re.search(r"(?is)\bORDER\s+BY\s+(.+?)(?:\bLIMIT\b|$)", masked)
+    limit = outer_match(RE_LIMIT, masked)
+    order_by = outer_match(RE_ORDER_BY, masked)
 
     if not tokens and RE_TOKEN.search(soql):
         return (
@@ -251,13 +266,6 @@ def classify(soql):
     if len(tokens) != 1:
         return (UNCLASSIFIED, "-", "Exactly one executable record token is required")
 
-    if limit and order_clause and "," in order_clause.group(1):
-        return (
-            UNCLASSIFIED,
-            "-",
-            "Multi-field ORDER BY with LIMIT has no supported bulk form",
-        )
-
     if direct is None:
         return (
             UNCLASSIFIED,
@@ -271,12 +279,6 @@ def classify(soql):
     # ORDER BY + LIMIT is a per-record pick. A global LIMIT is not equivalent, so
     # this is classified before the plain correlation strategies.
     if limit and order_by:
-        if int(limit.group(1)) != 1:
-            return (
-                UNCLASSIFIED,
-                correlation,
-                f"Per-record LIMIT {limit.group(1)} has no supported bulk form",
-            )
         ordered_field = order_by.group(1)
         selected = select_fields(soql)
         return (
@@ -290,18 +292,18 @@ def classify(soql):
     if token == "Id" and field.lower() == "id":
         return (SELF, correlation, "Correlation column is Id; redundant LIMIT 1 dropped")
 
-    if token != "Id":
-        return (
-            TOKEN_INDIRECT,
-            correlation,
-            f"Reverse index on record.{token} values across the scope",
-        )
-
     if limit and int(limit.group(1)) != 1:
         return (
             UNCLASSIFIED,
             correlation,
             f"Per-record LIMIT {limit.group(1)} without ORDER BY has no supported bulk form",
+        )
+
+    if token != "Id":
+        return (
+            TOKEN_INDIRECT,
+            correlation,
+            f"Reverse index on record.{token} values across the scope",
         )
 
     if "." in field:
@@ -436,7 +438,7 @@ SELF_TEST_CASES = (
     (
         "SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} "
         "ORDER BY CloseDate DESC, Amount DESC LIMIT 1",
-        UNCLASSIFIED,
+        ORDERED_PICK_IN_MEMORY,
     ),
     (
         "SELECT Name FROM Contact WHERE AccountId = {!record.Id} "
@@ -447,11 +449,11 @@ SELF_TEST_CASES = (
         "SELECT Industry FROM Account WHERE Id != {!record.Id} AND Industry != null",
         UNCLASSIFIED,
     ),
-    # Must be rejected: a per-record LIMIT above 1 has no grouped equivalent, and a
-    # token used outside an equality gives the engine nothing to correlate on.
+    # Ordered LIMIT N is applied in memory; a bare LIMIT above 1 remains unsupported.
+    # A token used outside an equality gives the engine nothing to correlate on.
     (
         "SELECT Name FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate LIMIT 5",
-        UNCLASSIFIED,
+        ORDERED_PICK_IN_MEMORY,
     ),
     ("SELECT Name FROM Contact WHERE AccountId = {!record.Id} LIMIT 3", UNCLASSIFIED),
     ("SELECT Name FROM Contact WHERE AccountId LIKE {!record.Id}", UNCLASSIFIED),

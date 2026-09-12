@@ -78,7 +78,11 @@ private class RecordHealthCheckIntegrationCoverageTest {
     Test.stopTest();
 
     Assert.isFalse(outputs[0].isSuccess, 'The oversized Set must be rejected.');
-    Assert.areEqual('LIMIT', outputs[0].errorType);
+    Assert.areEqual(
+      'LIMIT',
+      outputs[0].errorType,
+      'An excessive request must return a LIMIT error.'
+    );
     Assert.isTrue(
       outputs[0].errorMessage.startsWith('FRAMEWORK_MAX_CHECKS_EXCEEDED:'),
       'Flow must retain the stable framework limit code.'
@@ -352,6 +356,47 @@ private class RecordHealthCheckIntegrationCoverageTest {
       2,
       RecordHealthCheckScaleBenchmark.units(201).size(),
       'Two insertion units should cover 201 records.'
+    );
+  }
+
+  @IsTest
+  static void factoryFillsRequiredScalarFields() {
+    Test.startTest();
+    Contact contactRecord = RHCIntegrationTestDataFactory.createContact(
+      new Map<String, Object>{ 'LastName' => null }
+    );
+    Opportunity opportunityRecord = RHCIntegrationTestDataFactory.createOpportunity(
+      new Map<String, Object>{
+        'Name' => null,
+        'StageName' => null,
+        'CloseDate' => null
+      }
+    );
+    Test.stopTest();
+    Assert.isTrue(
+      contactRecord.LastName.startsWith('Test '),
+      'Missing required text must receive a generated fixture value.'
+    );
+    Assert.isTrue(
+      opportunityRecord.Name.startsWith('Test '),
+      'Opportunity Name must receive a generated fixture value.'
+    );
+    Assert.areEqual(
+      Date.today(),
+      opportunityRecord.CloseDate,
+      'Missing required dates must default to today.'
+    );
+    Assert.isNotNull(
+      opportunityRecord.StageName,
+      'Missing required picklists must receive an active value.'
+    );
+    Assert.isNotNull(
+      contactRecord.Id,
+      'The completed Contact fixture must persist.'
+    );
+    Assert.isNotNull(
+      opportunityRecord.Id,
+      'The completed Opportunity fixture must persist.'
     );
   }
 

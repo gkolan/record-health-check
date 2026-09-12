@@ -150,39 +150,11 @@ public with sharing class RecordHealthCheckComparisonEngine {
     String mode = check.QueryResultHandling__c;
 
     if (mode == 'ANY_ROW_PASSES') {
-      Boolean sawEvaluableRecord = false;
-      for (Object val : primaryList) {
-        Boolean match = applyRecordComparison(check, val, comparisonValue);
-        if (match == null) {
-          continue;
-        }
-        sawEvaluableRecord = true;
-        if (match == true) {
-          return true;
-        }
-      }
-      if (!sawEvaluableRecord) {
-        return null;
-      }
-      return false;
+      return anyRowPasses(check, primaryList, comparisonValue);
     }
 
     if (mode == 'ALL_ROWS_PASS') {
-      Boolean sawEvaluableRecord = false;
-      for (Object val : primaryList) {
-        Boolean match = applyRecordComparison(check, val, comparisonValue);
-        if (match == null) {
-          continue;
-        }
-        sawEvaluableRecord = true;
-        if (match != true) {
-          return false;
-        }
-      }
-      if (!sawEvaluableRecord) {
-        return null;
-      }
-      return true;
+      return allRowsPass(check, primaryList, comparisonValue);
     }
 
     if (mode == 'COMPARE_AS_LISTS') {
@@ -284,6 +256,14 @@ public with sharing class RecordHealthCheckComparisonEngine {
         return null;
       }
     }
+    return compareListValues(operator, primaryValue, comparisonList);
+  }
+
+  private static Boolean compareListValues(
+    String operator,
+    Object primaryValue,
+    List<Object> comparisonList
+  ) {
     String pStr = String.valueOf(primaryValue);
 
     if (operator == 'LIST_CONTAINS_ANY') {
@@ -326,5 +306,49 @@ public with sharing class RecordHealthCheckComparisonEngine {
     // handled above. Preserve the skip fallback for an unset in-memory Check;
     // RHCEvaluatorEdgeBehaviorTest and RHCDualQueryEdgeBehaviorTest guard it.
     return null;
+  }
+
+  private static Boolean anyRowPasses(
+    Record_Health_Check__mdt check,
+    List<Object> primaryList,
+    Object comparisonValue
+  ) {
+    Boolean sawEvaluableRecord = false;
+    for (Object val : primaryList) {
+      Boolean match = applyRecordComparison(check, val, comparisonValue);
+      if (match == null) {
+        continue;
+      }
+      sawEvaluableRecord = true;
+      if (match == true) {
+        return true;
+      }
+    }
+    if (!sawEvaluableRecord) {
+      return null;
+    }
+    return false;
+  }
+
+  private static Boolean allRowsPass(
+    Record_Health_Check__mdt check,
+    List<Object> primaryList,
+    Object comparisonValue
+  ) {
+    Boolean sawEvaluableRecord = false;
+    for (Object val : primaryList) {
+      Boolean match = applyRecordComparison(check, val, comparisonValue);
+      if (match == null) {
+        continue;
+      }
+      sawEvaluableRecord = true;
+      if (match != true) {
+        return false;
+      }
+    }
+    if (!sawEvaluableRecord) {
+      return null;
+    }
+    return true;
   }
 }

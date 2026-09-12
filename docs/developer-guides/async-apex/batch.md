@@ -17,9 +17,9 @@ group so the Checks have enough room to run within Salesforce transaction limits
 
 First, decide how the Batch gets the Accounts:
 
-| What needs to happen? | Follow this example |
-| --- | --- |
-| A process modified Accounts or related records, such as Contacts, and the affected Accounts should be checked now | [Example: Check affected Accounts now](#example-check-affected-accounts-now) |
+| What needs to happen?                                                                                                  | Follow this example                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| A process modified Accounts or related records, such as Contacts, and the affected Accounts should be checked now      | [Example: Check affected Accounts now](#example-check-affected-accounts-now)                                 |
 | A scheduled process should find the matching Accounts and run Record Health Check automatically every night at 2:00 AM | [Example: Check recently changed Accounts every night](#example-check-recently-changed-accounts-every-night) |
 
 “Start now” means that Salesforce adds the Batch job to its background work immediately. It does
@@ -27,11 +27,11 @@ not mean that the health results are returned to the person before the Apex requ
 
 Next, decide where the health results go:
 
-| Result destination | What it requires |
-| --- | --- |
-| Save result records directly in Salesforce | A custom Batch that reads `response.results` during `execute()` |
-| Send results to another process | Platform Events and a receiving Flow, Apex trigger, or integration |
-| Keep no individual health results | `NONE`; monitor only whether the job completed in **Setup → Apex Jobs** |
+| Result destination                         | What it requires                                                        |
+| ------------------------------------------ | ----------------------------------------------------------------------- |
+| Save result records directly in Salesforce | A custom Batch that reads `response.results` during `execute()`         |
+| Send results to another process            | Platform Events and a receiving Flow, Apex trigger, or integration      |
+| Keep no individual health results          | `NONE`; monitor only whether the job completed in **Setup → Apex Jobs** |
 
 These decisions are independent. A Batch can start now or on a schedule. A custom Batch can save
 results directly or publish Platform Events. The packaged Batch can publish Platform Events, but it
@@ -39,10 +39,10 @@ cannot return individual results to the code that started it.
 
 Each example below is a complete workflow, so it combines several choices:
 
-| Example | How it gets Accounts | When it starts | Where results go |
-| --- | --- | --- | --- |
-| Check affected Accounts now | Uses Account IDs collected by the earlier process | Submitted immediately after that process | Publishes `ACTIONABLE` Platform Events |
-| Check recently changed Accounts every night | Queries Accounts modified in the last 30 days | Every night at 2:00 AM | Saves detailed and summary records directly |
+| Example                                     | How it gets Accounts                              | When it starts                           | Where results go                            |
+| ------------------------------------------- | ------------------------------------------------- | ---------------------------------------- | ------------------------------------------- |
+| Check affected Accounts now                 | Uses Account IDs collected by the earlier process | Submitted immediately after that process | Publishes `ACTIONABLE` Platform Events      |
+| Check recently changed Accounts every night | Queries Accounts modified in the last 30 days     | Every night at 2:00 AM                   | Saves detailed and summary records directly |
 
 These are example choices. The custom Batch can publish Platform Events instead of saving records.
 The packaged Batch can use `NONE` when only job completion matters.
@@ -58,6 +58,7 @@ The packaged Batch can use `NONE` when only job completion matters.
 
    The Custom Permission is included in either Permission Set and does not need a separate
    assignment.
+
 2. Confirm that the person can read the records and fields used by the Check Set.
 3. In Setup, go to **Custom Metadata Types → Record Health Check Set → Manage Records**.
 4. Find the Check Set and copy its **Qualified API Name**.
@@ -68,9 +69,9 @@ The packaged Batch can use `NONE` when only job completion matters.
 
 ### Which Check Set name belongs in the Apex code?
 
-| Check Set | Qualified API Name example |
-| --- | --- |
-| Created by an administrator in your org | `My_Account_Checks` |
+| Check Set                                               | Qualified API Name example                 |
+| ------------------------------------------------------- | ------------------------------------------ |
+| Created by an administrator in your org                 | `My_Account_Checks`                        |
 | Included with the installed Record Health Check package | `rhc__Example_Account_Check_Builder_Guide` |
 
 The code examples use `My_Account_Checks`. Replace it with the exact **Qualified API Name** shown in
@@ -125,13 +126,13 @@ Id jobId = rhc.RecordHealthCheckBatch.run(
 
 ### What each value means
 
-| Value | Meaning |
-| --- | --- |
-| `checkSetApiName` | The Check Set Salesforce runs |
-| `accountIdsToCheck` | The exact Accounts Salesforce checks |
-| `ACTIONABLE` | Publish only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` Check Results, plus a completed Check Set Run heartbeat for every scanned record |
-| `25` | Check no more than 25 Accounts in one Salesforce transaction |
-| `jobId` | The ID used to find this Batch job in **Setup → Apex Jobs** |
+| Value               | Meaning                                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkSetApiName`   | The Check Set Salesforce runs                                                                                                           |
+| `accountIdsToCheck` | The exact Accounts Salesforce checks                                                                                                    |
+| `ACTIONABLE`        | Publish only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` Check Results, plus a completed Check Set Run heartbeat for every scanned record |
+| `25`                | Check no more than 25 Accounts in one Salesforce transaction                                                                            |
+| `jobId`             | The ID used to find this Batch job in **Setup → Apex Jobs**                                                                             |
 
 The packaged Batch accepts 1–2,000 distinct record IDs. It removes null and repeated IDs before it
 checks that limit. Every remaining ID must match the selected Check Set object; one mismatch rejects
@@ -196,8 +197,7 @@ The names above are examples. If the org uses different names, replace every exa
 field API name with the exact API names from Object Manager.
 
 ```apex
-public with sharing class AccountHealthBatch
-  implements Database.Batchable<Account>, Database.Stateful {
+public with sharing class AccountHealthBatch implements Database.Batchable<Account>, Database.Stateful {
   private final String checkSetApiName;
 
   // Database.Stateful keeps these five small counters between execute() calls.
@@ -216,8 +216,8 @@ public with sharing class AccountHealthBatch
     // Salesforce runs this query again each time a new Batch job starts.
     return Database.getQueryLocator(
       'SELECT Id FROM Account ' +
-      'WHERE LastModifiedDate = LAST_N_DAYS:30 ' +
-      'WITH USER_MODE'
+        'WHERE LastModifiedDate = LAST_N_DAYS:30 ' +
+        'WITH USER_MODE'
     );
   }
 
@@ -231,26 +231,18 @@ public with sharing class AccountHealthBatch
     }
 
     rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
-      rhc.RecordHealthCheckRequest.forCheckSet(
-          checkSetApiName,
-          accountIds
-        )
+      rhc.RecordHealthCheckRequest.forCheckSet(checkSetApiName, accountIds)
         .withExecutionOrigin(rhc.RecordHealthCheckExecutionOrigin.BATCH)
-        .withRunId(
-          'batch-' + context.getJobId() + '-' + accountIds[0]
-        )
+        .withRunId('batch-' + context.getJobId() + '-' + accountIds[0])
         // NONE publishes no health-result Platform Events.
         // response.results still contains every status, including PASS.
-        .withEventPublication(
-          rhc.RecordHealthCheckEventPublication.NONE
-        )
+        .withEventPublication(rhc.RecordHealthCheckEventPublication.NONE)
     );
 
     // Save every detailed result now.
     // One Account can produce several rows because each Check has its own result.
     // Saved_Health_Check_Result__c is a custom object created in your org.
-    List<Saved_Health_Check_Result__c> recordsToInsert =
-      new List<Saved_Health_Check_Result__c>();
+    List<Saved_Health_Check_Result__c> recordsToInsert = new List<Saved_Health_Check_Result__c>();
 
     for (rhc.RecordHealthCheckResultItem item : response.results) {
       rhc.RecordHealthCheckEvaluationResult result = item.evaluation;
@@ -332,13 +324,13 @@ Record Health Check provides two ways for Batch code to receive results:
 Batch deliberately kept with `Database.Stateful`, records it queries after `execute()` saved them,
 or the Batch job ID from `context.getJobId()`.
 
-| Need | Where to handle it | What to do |
-| --- | --- | --- |
-| Keep every Check result for reporting | `execute()` | Convert `response.results` to custom-object records and insert each group immediately. |
-| Keep only one total for the complete Batch | `execute()` and `finish()` | Add `response.summary` counts to small `Database.Stateful` counters, then create one summary record in `finish()`. |
-| Update Accounts or start other business work for each group | `execute()` | Use `response.results` while the current group is in memory. Keep queries and record updates outside the result loop. |
-| Let a Flow, Apex trigger, or external integration receive results separately | Platform Events | Use `ACTIONABLE` or `ALL` and follow [Send results with Platform Events](#send-results-with-platform-events). |
-| Monitor only whether Salesforce completed the Batch | Apex Jobs | Use `NONE`, do not save result records, and monitor **Setup → Apex Jobs**. Individual health results will not be retained. |
+| Need                                                                         | Where to handle it         | What to do                                                                                                                 |
+| ---------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Keep every Check result for reporting                                        | `execute()`                | Convert `response.results` to custom-object records and insert each group immediately.                                     |
+| Keep only one total for the complete Batch                                   | `execute()` and `finish()` | Add `response.summary` counts to small `Database.Stateful` counters, then create one summary record in `finish()`.         |
+| Update Accounts or start other business work for each group                  | `execute()`                | Use `response.results` while the current group is in memory. Keep queries and record updates outside the result loop.      |
+| Let a Flow, Apex trigger, or external integration receive results separately | Platform Events            | Use `ACTIONABLE` or `ALL` and follow [Send results with Platform Events](#send-results-with-platform-events).              |
+| Monitor only whether Salesforce completed the Batch                          | Apex Jobs                  | Use `NONE`, do not save result records, and monitor **Setup → Apex Jobs**. Individual health results will not be retained. |
 
 Do not collect every detailed result in a class-level list and wait for `finish()` to insert it.
 Local variables from earlier `execute()` calls are not automatically available in `finish()`.
@@ -356,18 +348,14 @@ This scheduler reuses the `AccountHealthBatch` class above. It does not repeat t
 result-saving code.
 
 ```apex
-public with sharing class NightlyAccountHealthSchedule
-  implements Schedulable {
+public with sharing class NightlyAccountHealthSchedule implements Schedulable {
   public void execute(SchedulableContext context) {
     // Copy the exact Check Set Qualified API Name from Setup.
     String checkSetApiName = 'My_Account_Checks';
 
     // Start AccountHealthBatch with up to 25 Accounts at a time.
     // AccountHealthBatch uses NONE and saves response.results directly.
-    Database.executeBatch(
-      new AccountHealthBatch(checkSetApiName),
-      25
-    );
+    Database.executeBatch(new AccountHealthBatch(checkSetApiName), 25);
   }
 }
 ```
@@ -479,12 +467,12 @@ tested to confirm that they finish in the required time.
 
 Use this distinction when reading **Setup → Apex Jobs**:
 
-| Evidence | Meaning |
-| --- | --- |
-| Job Completed | Salesforce finished every Batch scope; records can still have health `FAIL` results |
-| Job Failed | An Apex scope or framework transaction failed; inspect the first exception |
-| `BATCH_SCOPE_FAILED` Log event | Structured error evidence for a failed scope, when Log publication succeeded |
-| Saved result or Result event with `ERROR` | Evaluation completed far enough to return an error health result |
+| Evidence                                  | Meaning                                                                             |
+| ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| Job Completed                             | Salesforce finished every Batch scope; records can still have health `FAIL` results |
+| Job Failed                                | An Apex scope or framework transaction failed; inspect the first exception          |
+| `BATCH_SCOPE_FAILED` Log event            | Structured error evidence for a failed scope, when Log publication succeeded        |
+| Saved result or Result event with `ERROR` | Evaluation completed far enough to return an error health result                    |
 
 One failed group does not remove results produced by earlier successful groups. Retrying a Batch
 can create the same saved result again or publish the same result again. Add a unique key to the
@@ -511,16 +499,16 @@ Test at least:
 
 ## Troubleshooting
 
-| What happened? | What to check |
-| --- | --- |
-| No Batch job was created | Confirm the user's Permission Set, the Check Set Qualified API Name, and the number of supplied IDs. |
-| The scheduled job exists, but no Batch starts | Confirm the scheduling user's current permissions and review the latest Scheduled Apex failure. |
-| The custom Batch completed, but no saved results appeared | Confirm that `response.results` was converted and inserted, and review failed groups in **Apex Jobs**. |
-| The packaged Batch completed, but no event results appeared | Confirm `ALL` or `ACTIONABLE`, the Check Set and Check publication settings, and the Flow, Apex trigger, or integration receiving the events. |
-| The Batch completed and records have `FAIL` results | The job worked; those records did not meet one or more Checks. Review the individual health results. |
-| A group reaches a formula or Salesforce transaction limit | Lower the number of records checked per transaction and test again. |
-| An affected Account is missing | Confirm that the earlier process added the Account ID directly or collected it from the modified related record. The Batch checks only the supplied Account IDs. |
-| A retry produced duplicate results | Confirm whether the original job already existed. Use a unique key on saved result records or `EventId__c` for Platform Events. |
+| What happened?                                              | What to check                                                                                                                                                    |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No Batch job was created                                    | Confirm the user's Permission Set, the Check Set Qualified API Name, and the number of supplied IDs.                                                             |
+| The scheduled job exists, but no Batch starts               | Confirm the scheduling user's current permissions and review the latest Scheduled Apex failure.                                                                  |
+| The custom Batch completed, but no saved results appeared   | Confirm that `response.results` was converted and inserted, and review failed groups in **Apex Jobs**.                                                           |
+| The packaged Batch completed, but no event results appeared | Confirm `ALL` or `ACTIONABLE`, the Check Set and Check publication settings, and the Flow, Apex trigger, or integration receiving the events.                    |
+| The Batch completed and records have `FAIL` results         | The job worked; those records did not meet one or more Checks. Review the individual health results.                                                             |
+| A group reaches a formula or Salesforce transaction limit   | Lower the number of records checked per transaction and test again.                                                                                              |
+| An affected Account is missing                              | Confirm that the earlier process added the Account ID directly or collected it from the modified related record. The Batch checks only the supplied Account IDs. |
+| A retry produced duplicate results                          | Confirm whether the original job already existed. Use a unique key on saved result records or `EventId__c` for Platform Events.                                  |
 
 ## Related
 

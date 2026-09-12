@@ -42,13 +42,13 @@ archive. See [Back up and restore configuration](../production-operations/back-u
 
 ## What each outcome means
 
-| Outcome | What it tells the user |
-| --- | --- |
-| **Pass** | The record meets the Check |
+| Outcome                              | What it tells the user                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| **Pass**                             | The record meets the Check                                                              |
 | **Failed**, **Warning**, or **Info** | The Check found something worth the user's attention; the label reflects its importance |
-| **Skipped** | The Check does not apply to this record or is waiting on another Check |
-| **Unable to Check** | Access, configuration, or available data prevented a reliable answer |
-| **System Error** | An unexpected technical problem prevented the check from completing |
+| **Skipped**                          | The Check does not apply to this record or is waiting on another Check                  |
+| **Unable to Check**                  | Access, configuration, or available data prevented a reliable answer                    |
+| **System Error**                     | An unexpected technical problem prevented the check from completing                     |
 
 These distinctions keep the result honest. A Check that does not apply is not treated as a pass, and
 a Check that could not be evaluated is not treated as a failure in the business data.
@@ -59,12 +59,12 @@ event, Agentforce, and REST values.
 
 ## Where a Check can find its answer
 
-| The question depends on | Use this Evaluation Type |
-| --- | --- |
-| Fields on the open record or its parent | Verify with a formula |
-| Contacts, Opportunities, Cases, Activities, or other related records | Verify with a query |
-| Two independently calculated results | Compare two queries |
-| A decision that needs purpose-built logic | Verify with Apex |
+| The question depends on                                              | Use this Evaluation Type |
+| -------------------------------------------------------------------- | ------------------------ |
+| Fields on the open record or its parent                              | Verify with a formula    |
+| Contacts, Opportunities, Cases, Activities, or other related records | Verify with a query      |
+| Two independently calculated results                                 | Compare two queries      |
+| A decision that needs purpose-built logic                            | Verify with Apex         |
 
 You do not need to choose an evaluation method before installing. Start with the business question;
 the [examples library](../examples/README.md) helps you choose the simplest reliable method later.
@@ -130,9 +130,9 @@ change the page they see.
 
 ## Next steps
 
-| Your next goal | Continue with |
-| --- | --- |
-| Add Record Health Check to an org you already use | [Install and verify in your org](../install/install-in-a-sandbox.md) |
-| Evaluate a prepared scenario in a separate org | [Deploy to a demo scratch org](../install/install-demo-in-a-scratch-org.md) |
-| Build one small check in Salesforce Setup | [Create your first Check](../step-by-step-guide/create-your-first-check.md) |
-| Compare this approach with blocking Salesforce tools | [Compare to native Salesforce](./when-to-use-record-health-check.md) |
+| Your next goal                                       | Continue with                                                               |
+| ---------------------------------------------------- | --------------------------------------------------------------------------- |
+| Add Record Health Check to an org you already use    | [Install and verify in your org](../install/install-in-a-sandbox.md)        |
+| Evaluate a prepared scenario in a separate org       | [Deploy to a demo scratch org](../install/install-demo-in-a-scratch-org.md) |
+| Build one small check in Salesforce Setup            | [Create your first Check](../step-by-step-guide/create-your-first-check.md) |
+| Compare this approach with blocking Salesforce tools | [Compare to native Salesforce](./when-to-use-record-health-check.md)        |

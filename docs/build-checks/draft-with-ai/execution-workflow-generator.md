@@ -188,17 +188,17 @@ Build the execution and result-delivery workflow for this approved Record Health
 
 ## Choose the generated artifact deliberately
 
-| Requirement | Preferred artifact |
-| --- | --- |
-| A Flow needs an immediate decision | Installed Check or Check Set Flow action |
-| Apex needs an immediate typed response | Public Apex API |
-| Up to 200 known IDs can run later and events/job status are sufficient | Packaged Queueable |
-| Up to 2,000 known IDs need multiple transactions | Packaged Batch with its formula-aware automatic scope, or an explicitly tested scope |
-| The same fixed population runs daily at 2:00 AM | Packaged Scheduled adapter |
-| Each run must query the current population | Custom Batch, optionally started by Scheduled Flow or a thin Schedulable |
-| Async code must save returned results directly | Custom Queueable or Batch plus a separate persistence service |
-| Another process must react after commit | Tested Platform Event receiver |
-| A simple Flow can query and invoke within its documented limits | Scheduled or autolaunched Flow |
+| Requirement                                                            | Preferred artifact                                                                   |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| A Flow needs an immediate decision                                     | Installed Check or Check Set Flow action                                             |
+| Apex needs an immediate typed response                                 | Public Apex API                                                                      |
+| Up to 200 known IDs can run later and events/job status are sufficient | Packaged Queueable                                                                   |
+| Up to 2,000 known IDs need multiple transactions                       | Packaged Batch with its formula-aware automatic scope, or an explicitly tested scope |
+| The same fixed population runs daily at 2:00 AM                        | Packaged Scheduled adapter                                                           |
+| Each run must query the current population                             | Custom Batch, optionally started by Scheduled Flow or a thin Schedulable             |
+| Async code must save returned results directly                         | Custom Queueable or Batch plus a separate persistence service                        |
+| Another process must react after commit                                | Tested Platform Event receiver                                                       |
+| A simple Flow can query and invoke within its documented limits        | Scheduled or autolaunched Flow                                                       |
 
 ## Human review boundary
 

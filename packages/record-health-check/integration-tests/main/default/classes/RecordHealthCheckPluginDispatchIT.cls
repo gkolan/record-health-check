@@ -226,19 +226,27 @@ private class RecordHealthCheckPluginDispatchIT {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       threw = true;
       reasonCode = ex.reasonCode;
-      Assert.areEqual('DML', ex.effect);
-      Assert.areEqual(true, ex.reversible);
+      Assert.areEqual(
+        'DML',
+        ex.effect,
+        'A mutating plugin must be classified as a DML side effect.'
+      );
+      Assert.areEqual(
+        true,
+        ex.reversible,
+        'The detected DML side effect must be reversible.'
+      );
     }
     Test.stopTest();
 
     Assert.areEqual(true, threw, 'A check that performs DML must fail.');
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-      reasonCode
+      reasonCode,
+      'Mutation rejection must retain PLUGIN_SIDE_EFFECT_DETECTED.'
     );
-    // The dispatcher throws rather than returning, which is what lets the
-    // caller abandon the transaction. Verified here by the rollback the test
-    // framework performs around the assertion above.
+    // The dispatcher rolls back its savepoint before throwing. This query
+    // checks persisted state after the caught exception, before test teardown.
     Assert.areEqual(
       null,
       [SELECT Rating FROM Account WHERE Id = :accountId].Rating,
@@ -374,7 +382,8 @@ private class RecordHealthCheckPluginDispatchIT {
 
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_UNKNOWN_KEY,
-      reasonCode
+      reasonCode,
+      'An unrequested result identity must retain PLUGIN_RESULT_UNKNOWN_KEY.'
     );
   }
 
@@ -395,11 +404,13 @@ private class RecordHealthCheckPluginDispatchIT {
     Assert.areEqual(4, outcomes.size(), 'Every requested Id is answered.');
     Assert.areEqual(
       RecordHealthCheckStatus.ERROR,
-      outcomes.get(dropped).status
+      outcomes.get(dropped).status,
+      'A dropped record must receive an ERROR result.'
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING,
-      outcomes.get(dropped).reasonCode
+      outcomes.get(dropped).reasonCode,
+      'A dropped record must retain PLUGIN_RESULT_MISSING.'
     );
     for (Integer i = 1; i < scope.recordIds.size(); i++) {
       Assert.areEqual(
@@ -425,7 +436,8 @@ private class RecordHealthCheckPluginDispatchIT {
 
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING,
-      reasonCode
+      reasonCode,
+      'A null plugin response must retain PLUGIN_RESULT_MISSING.'
     );
   }
 }

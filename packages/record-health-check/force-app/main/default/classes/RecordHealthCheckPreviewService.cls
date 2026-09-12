@@ -26,6 +26,10 @@ global with sharing class RecordHealthCheckPreviewService {
     RecordHealthCheckScopePipeline.SelectionContext context = planner.resolveCheckSet(
       request.qualifiedSetName
     );
+    // Authorization above permits previewing an inactive parent's detached draft.
+    // Only this private execution context is enabled; persisted metadata and the
+    // original Check Set used for the fingerprint retain their actual state.
+    context.checkSetActive = true;
     planner.validateScope(context, request.recordIds);
     List<Record_Health_Check__mdt> prerequisites = applyDraft(
       context,
@@ -107,6 +111,7 @@ global with sharing class RecordHealthCheckPreviewService {
         QualifiedApiName,
         DeveloperName,
         MasterLabel,
+        CardHeadingDisplay__c,
         CardRevealMode__c,
         CardRunMode__c,
         CardSubtitle__c,
@@ -254,6 +259,9 @@ global with sharing class RecordHealthCheckPreviewService {
           'A new detached Check cannot supply server-owned identity fields.'
         );
       }
+      // The caller omits server identity for a new Check, but execution maps and
+      // readiness still require one exact, stable identity on this detached copy.
+      draft.put('QualifiedApiName', draft.DeveloperName);
       return;
     }
     if (
@@ -268,6 +276,7 @@ global with sharing class RecordHealthCheckPreviewService {
         'The detached Check cannot overwrite server-owned identity fields.'
       );
     }
+    draft.put('QualifiedApiName', existing.QualifiedApiName);
   }
 
   private static RecordHealthCheckPreviewResponse baseResponse(
@@ -399,9 +408,7 @@ global with sharing class RecordHealthCheckPreviewService {
   }
 
   private static String identityOf(Record_Health_Check__mdt draft) {
-    return String.isBlank(draft.DeveloperName)
-      ? draft.QualifiedApiName
-      : draft.DeveloperName;
+    return draft.QualifiedApiName;
   }
 
   /** Invalid or unauthorized detached preview. */

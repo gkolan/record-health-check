@@ -41,8 +41,16 @@ private with sharing class RecordHealthCheckAgentRestDiagnosisIT {
     Test.stopTest();
 
     Assert.isTrue(output.success, 'The Check Set evaluation should complete.');
-    Assert.areNotEqual(null, output.diagnosticId);
-    Assert.areNotEqual(null, output.recommendedAction);
+    Assert.areNotEqual(
+      null,
+      output.diagnosticId,
+      'An unable Check Set outcome must expose its first diagnostic identifier.'
+    );
+    Assert.areNotEqual(
+      null,
+      output.recommendedAction,
+      'The first diagnosis must include a recommended administrator action.'
+    );
   }
 
   @IsTest
@@ -54,9 +62,20 @@ private with sharing class RecordHealthCheckAgentRestDiagnosisIT {
     );
     Test.stopTest();
 
-    Assert.areEqual(415, RestContext.response.statusCode);
-    Assert.isFalse(output.success);
-    Assert.areEqual('VALIDATION', output.errorType);
+    Assert.areEqual(
+      415,
+      RestContext.response.statusCode,
+      'A missing Content-Type must return HTTP 415.'
+    );
+    Assert.isFalse(
+      output.success,
+      'A request without Content-Type must not be reported as successful.'
+    );
+    Assert.areEqual(
+      'VALIDATION',
+      output.errorType,
+      'A missing Content-Type must retain the validation error category.'
+    );
   }
 
   private static RecordHealthCheckAgentRestResource.AgentToolResponse postJson(

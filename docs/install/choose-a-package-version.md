@@ -37,9 +37,9 @@ as an in-place downgrade path for an existing installation.
 
 Public install destinations:
 
-| Target environment | Install |
-| --- | --- |
-| Sandbox | [Open the public sandbox installer](https://recordhealthcheck.com/install/sandbox) |
+| Target environment              | Install                                                                                  |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| Sandbox                         | [Open the public sandbox installer](https://recordhealthcheck.com/install/sandbox)       |
 | Production or Developer Edition | [Open the public production installer](https://recordhealthcheck.com/install/production) |
 
 For a repeatable installation or upgrade, record the exact package ID from the release
@@ -84,12 +84,12 @@ version over a higher one.
 
 Use the recovery path that matches the situation:
 
-| Situation | Safe path |
-| --- | --- |
-| A new or clean org needs a specific release | Install its recorded `04t` package version ID. |
-| An upgrade has not reached production | Stop the rollout and keep production on its current installed version. |
-| An installed upgrade must be reversed | Preserve subscriber-owned Check Sets and Checks, then prefer a higher corrective package version. Validate the forward fix in a sandbox before production. |
-| The package must be removed | Follow [Uninstall and rollback](./uninstall.md), including configuration backup and dependency removal. Reinstall the desired release only after confirming that a clean reinstall is acceptable. |
+| Situation                                   | Safe path                                                                                                                                                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A new or clean org needs a specific release | Install its recorded `04t` package version ID.                                                                                                                                                    |
+| An upgrade has not reached production       | Stop the rollout and keep production on its current installed version.                                                                                                                            |
+| An installed upgrade must be reversed       | Preserve subscriber-owned Check Sets and Checks, then prefer a higher corrective package version. Validate the forward fix in a sandbox before production.                                        |
+| The package must be removed                 | Follow [Uninstall and rollback](./uninstall.md), including configuration backup and dependency removal. Reinstall the desired release only after confirming that a clean reinstall is acceptable. |
 
 Package rollback and configuration rollback are separate concerns. Before any upgrade or uninstall,
 back up organization-owned `Record_Health_Check_Set__mdt` and `Record_Health_Check__mdt` records and

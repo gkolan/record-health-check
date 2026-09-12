@@ -24,15 +24,19 @@ public class RecordHealthCheckApexDisplaySupport {
         continue;
       }
       RecordHealthCheckInternalResult result = results.get(recordId);
+      result.presentationFallbacks = new Map<String, String>{
+        'found' => result.actualValue,
+        'expected' => result.expectedValue
+      };
       result.presentationOverride = value;
       result.displayContent = new RecordHealthCheckDisplayContent();
-      if (value.found != null) {
+      if (value.found != null && value.found.nodeCount() > 0) {
         result.displayContent.found = value.found.copyNodes();
         result.actualValue = RecordHealthCheckDisplayComposer.plain(
           result.displayContent.found
         );
       }
-      if (value.expected != null) {
+      if (value.expected != null && value.expected.nodeCount() > 0) {
         result.displayContent.expected = value.expected.copyNodes();
         result.expectedValue = RecordHealthCheckDisplayComposer.plain(
           result.displayContent.expected

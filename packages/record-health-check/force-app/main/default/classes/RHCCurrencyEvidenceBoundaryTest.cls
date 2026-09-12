@@ -184,7 +184,11 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
         );
         Assert.fail('A Currency row without its ISO currency must fail.');
       } catch (RecordHealthCheckEvaluatorException expected) {
-        Assert.areEqual('CURRENCY_UNIT_UNKNOWN', expected.reasonCode);
+        Assert.areEqual(
+          'CURRENCY_UNIT_UNKNOWN',
+          expected.reasonCode,
+          'A scalar currency row without ISO evidence must retain the unknown-unit reason.'
+        );
       }
     } finally {
       RecordHealthCheckCurrencySupport.unitFieldPathOverrideForTest = null;
@@ -207,14 +211,16 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
         RecordHealthCheckCurrencySupport.aggregateCurrencyUnit(
           'SELECT SUM(AnnualRevenue), CurrencyIsoCode FROM Account GROUP BY CurrencyIsoCode',
           aggregateRow
-        )
+        ),
+        'A root aggregate must retain its explicit unit evidence.'
       );
       Assert.areEqual(
         aggregateUnit,
         RecordHealthCheckCurrencySupport.aggregateCurrencyUnit(
           'SELECT SUM(Account.AnnualRevenue), Account.CurrencyIsoCode FROM Opportunity GROUP BY Account.CurrencyIsoCode',
           aggregateRow
-        )
+        ),
+        'An unambiguous relationship aggregate must retain its unit evidence.'
       );
 
       AggregateResult usd = [
@@ -246,7 +252,8 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
       } catch (RecordHealthCheckEvaluatorException error) {
         Assert.areEqual(
           RecordHealthCheckReasonCodes.MIXED_CURRENCY,
-          error.reasonCode
+          error.reasonCode,
+          'Different explicit aggregate units must retain the mixed-currency reason.'
         );
       }
       try {
@@ -261,7 +268,11 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
         );
         Assert.fail('A currency value without unit evidence must be rejected.');
       } catch (RecordHealthCheckEvaluatorException error) {
-        Assert.areEqual('CURRENCY_UNIT_UNKNOWN', error.reasonCode);
+        Assert.areEqual(
+          'CURRENCY_UNIT_UNKNOWN',
+          error.reasonCode,
+          'An aggregate without unit evidence must retain the unknown-unit reason.'
+        );
       }
     } finally {
       RecordHealthCheckDisplayCurrencyResolver.multiCurrency = null;
@@ -276,25 +287,29 @@ private with sharing class RHCCurrencyEvidenceBoundaryTest {
     child.putSObject('Parent', parent);
     Assert.areEqual(
       'Parent evidence',
-      RecordHealthCheckValueResolver.valueAtFieldPath(child, 'Parent.Name')
+      RecordHealthCheckValueResolver.valueAtFieldPath(child, 'Parent.Name'),
+      'A loaded relationship field must retain its value.'
     );
     Assert.isNull(
       RecordHealthCheckValueResolver.valueAtFieldPath(
         child,
         'Parent.Parent.Name'
-      )
+      ),
+      'An unloaded ancestor must resolve to null.'
     );
     Assert.isNull(
       RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
         'SELECT Value__c FROM Missing_Object__c',
         'Value__c'
-      )
+      ),
+      'An unknown object must not produce an ISO field path.'
     );
     Assert.isNull(
       RecordHealthCheckCurrencySupport.currencyIsoFieldPath(
         'SELECT Owner.Profile FROM Account',
         'Owner.Profile'
-      )
+      ),
+      'A relationship without a currency leaf must not produce an ISO field path.'
     );
   }
 }

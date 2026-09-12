@@ -22,7 +22,7 @@ export function createToolServer(
 ): McpServer {
   const server = new McpServer({
     name: "record-health-check",
-    version: "1.0.0"
+    version: "0.1.0"
   });
   register(server, client, logger, "run_record_health_check", OPERATION_CHECK);
   register(

@@ -8,7 +8,6 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   public static final String CHILD_PATH = 'CHILD_PATH';
   public static final String INDIRECT_REFERENCE = 'TOKEN_INDIRECT';
   public static final String SCOPE_INVARIANT = 'SCOPE_INVARIANT';
-  public static final String ORDERED_PICK_AGGREGATE = 'ORDERED_PICK_AGGREGATE';
   public static final String ORDERED_PICK_IN_MEMORY = 'ORDERED_PICK_IN_MEMORY';
   public static final String UNCLASSIFIED = 'UNCLASSIFIED';
 
@@ -51,20 +50,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     );
     result.strategy = classify(soqlTemplate);
     Integer perRecordLimit = perRecordLimit(soqlTemplate, result.strategy);
-    if (result.strategy == UNCLASSIFIED) {
-      throw new RecordHealthCheckEvaluatorException(
-        'UNSUPPORTED_BULK_QUERY_SHAPE',
-        'The SOQL template cannot be evaluated once for a record scope.'
-      );
-    }
-    if (
-      RecordHealthCheckBulkQueryShape.countExecutableTokens(soqlTemplate) > 1
-    ) {
-      throw unsupportedShape(
-        'A scope-wide SOQL template may contain only one record token.'
-      );
-    }
-
+    validateCorrelatedTemplate(soqlTemplate, result);
     Integer rowBudget = maxRows == null ||
       maxRows <= 0
       ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
@@ -74,176 +60,38 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     String scopeSoql = soqlTemplate;
 
     if (result.strategy != SCOPE_INVARIANT) {
-      Set<Id> scopeValues = new Set<Id>();
-      if (result.strategy == INDIRECT_REFERENCE) {
-        for (Id recordId : loadedRecords.keySet()) {
-          Object tokenValue = readPath(
-            loadedRecords.get(recordId),
-            correlation.tokenPath
-          );
-          if (
-            (tokenValue == null ||
-            (tokenValue instanceof String &&
-            String.isBlank((String) tokenValue))) &&
-            correlation.fallbackValue != null
-          ) {
-            tokenValue = RecordHealthCheckSoqlBindValueResolver.coerceFallbackValue(
-              loadedRecords.get(recordId),
-              correlation.tokenPath,
-              correlation.fallbackValue
-            );
-          }
-          if (tokenValue == null) {
-            continue;
-          }
-          if (!(tokenValue instanceof Id)) {
-            throw unsupportedShape(
-              'Indirect scope correlation currently requires an Id-valued record token.'
-            );
-          }
-          Id tokenId = (Id) tokenValue;
-          scopeValues.add(tokenId);
-          String key = String.valueOf(tokenId);
-          if (!recordIdsByToken.containsKey(key)) {
-            recordIdsByToken.put(key, new List<Id>());
-          }
-          recordIdsByToken.get(key).add(recordId);
-        }
-      } else {
-        scopeValues.addAll(loadedRecords.keySet());
-      }
+      Set<Id> scopeValues = collectScopeValues(
+        loadedRecords,
+        correlation,
+        result,
+        recordIdsByToken
+      );
       if (scopeValues.isEmpty()) {
         return result;
       }
       binds.put('rhcScopeValues', scopeValues);
-      scopeSoql = replaceSpan(
+      scopeSoql = rewriteCorrelatedQuery(
         scopeSoql,
-        correlation.startIndex,
-        correlation.endIndex,
-        correlation.fieldPath + ' IN :rhcScopeValues'
+        correlation,
+        result,
+        perRecordLimit
       );
-      if (perRecordLimit != null) {
-        scopeSoql = removeOuterLimit(scopeSoql);
-      }
-
-      scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
-        scopeSoql,
-        correlation.fieldPath
-      );
-      if (RecordHealthCheckSoqlTemplate.isAggregateQuery(scopeSoql)) {
-        String countField = correlation.fieldPath.equalsIgnoreCase('Id')
-          ? 'CreatedDate'
-          : 'Id';
-        scopeSoql = scopeSoql.replaceFirst(
-          '(?i)\\bCOUNT\\s*\\(\\s*\\)',
-          'COUNT(' + countField + ')'
-        );
-        scopeSoql = RecordHealthCheckBulkQueryRewriter.aliasCorrelation(
-          scopeSoql,
-          correlation.fieldPath
-        );
-        scopeSoql = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
-          scopeSoql,
-          correlation.fieldPath
-        );
-      } else if (result.strategy == ORDERED_PICK_IN_MEMORY) {
-        String orderedField = firstGroup(scopeSoql, ORDER_BY, 1);
-        if (String.isNotBlank(orderedField)) {
-          scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
-            scopeSoql,
-            orderedField
-          );
-        }
-        scopeSoql = removeOuterLimit(scopeSoql);
-      } else if (result.strategy == SELF) {
-        scopeSoql = removeOuterLimit(scopeSoql);
-      }
     }
 
-    scopeSoql = RecordHealthCheckCurrencySupport.injectUnitEvidence(scopeSoql);
-
-    String prepared;
-    try {
-      prepared = RecordHealthCheckSoqlTemplate.prepareForExecution(
-        scopeSoql,
-        rowBudget + 1
-      );
-    } catch (RecordHealthCheckSoqlTemplate.TemplateException ex) {
-      throw new RecordHealthCheckEvaluatorException(
-        ex.reasonCode,
-        ex.getMessage()
-      );
-    }
-    prepared = RecordHealthCheckSoqlTemplate.removeOuterUserMode(prepared);
-    result.executedSoql = prepared;
-
-    Integer queryRowReservation = RecordHealthCheckQueryEvaluatorSupport.queryRowReservation(
-      prepared,
-      rowBudget
+    List<SObject> rows = executeScopedQuery(
+      scopeSoql,
+      binds,
+      rowBudget,
+      result
     );
-    Integer remainingQueryRows = remainingQueryRowsOverride == null
-      ? Limits.getLimitQueryRows() - Limits.getQueryRows()
-      : remainingQueryRowsOverride;
-    if (queryRowReservation > remainingQueryRows) {
-      throw new RecordHealthCheckEvaluatorException(
-        RecordHealthCheckReasonCodes.GOVERNOR_LIMIT_RISK,
-        'The query needs capacity for up to ' +
-          queryRowReservation +
-          ' rows, but only ' +
-          remainingQueryRows +
-          ' query rows remain in this transaction.'
-      );
-    }
 
-    List<SObject> rows;
-    try {
-      rows = Database.queryWithBinds(prepared, binds, AccessLevel.USER_MODE);
-    } catch (System.QueryException ex) {
-      throw new RecordHealthCheckEvaluatorException(
-        RecordHealthCheckValueResolver.classifyQueryException(ex),
-        ex.getMessage()
-      );
-    }
-    if (rows.size() > rowBudget) {
-      throw new RecordHealthCheckEvaluatorException(
-        RecordHealthCheckReasonCodes.SCOPE_ROW_CAP_EXCEEDED,
-        'The scope-wide query returned more than ' + rowBudget + ' rows.'
-      );
-    }
-
-    if (result.strategy == SCOPE_INVARIANT) {
-      for (Id recordId : result.rowsByRecordId.keySet()) {
-        result.rowsByRecordId.put(recordId, rows);
-      }
-      return result;
-    }
-    for (SObject row : rows) {
-      Object correlationValue = row instanceof AggregateResult
-        ? ((AggregateResult) row).get(CORRELATION_ALIAS)
-        : readPath(row, correlation.fieldPath);
-      if (result.strategy == INDIRECT_REFERENCE) {
-        List<Id> matching = recordIdsByToken.get(
-          String.valueOf(correlationValue)
-        );
-        if (matching != null) {
-          for (Id recordId : matching) {
-            List<SObject> perRecord = result.rowsByRecordId.get(recordId);
-            if (perRecordLimit == null || perRecord.size() < perRecordLimit) {
-              perRecord.add(row);
-            }
-          }
-        }
-      } else {
-        Id recordId = (Id) correlationValue;
-        if (result.rowsByRecordId.containsKey(recordId)) {
-          List<SObject> perRecord = result.rowsByRecordId.get(recordId);
-          if (perRecordLimit == null || perRecord.size() < perRecordLimit) {
-            perRecord.add(row);
-          }
-        }
-      }
-    }
-    return result;
+    return assignRows(
+      result,
+      rows,
+      correlation,
+      recordIdsByToken,
+      perRecordLimit
+    );
   }
 
   /** Classifies a template using the same ordering as the repository inventory. */
@@ -265,6 +113,13 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     if (correlation == null) {
       return UNCLASSIFIED;
     }
+    return classifyCorrelation(soql, correlation);
+  }
+
+  private static String classifyCorrelation(
+    String soql,
+    RecordHealthCheckBulkQueryShape.Correlation correlation
+  ) {
     String limitValue = firstGroup(soql, LIMIT_PATTERN, 1);
     String orderField = firstGroup(soql, ORDER_BY, 1);
     Boolean hasLimit = limitValue != null;
@@ -366,5 +221,232 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
 
   private static Object readPath(SObject row, String fieldPath) {
     return RecordHealthCheckValueResolver.valueAtFieldPath(row, fieldPath);
+  }
+
+  private static Set<Id> collectScopeValues(
+    Map<Id, SObject> loadedRecords,
+    RecordHealthCheckBulkQueryShape.Correlation correlation,
+    Result result,
+    Map<String, List<Id>> recordIdsByToken
+  ) {
+    Set<Id> scopeValues = new Set<Id>();
+    if (result.strategy == INDIRECT_REFERENCE) {
+      for (Id recordId : loadedRecords.keySet()) {
+        Object tokenValue = readPath(
+          loadedRecords.get(recordId),
+          correlation.tokenPath
+        );
+        if (
+          (tokenValue == null ||
+          (tokenValue instanceof String &&
+          String.isBlank((String) tokenValue))) &&
+          correlation.fallbackValue != null
+        ) {
+          tokenValue = RecordHealthCheckSoqlBindValueResolver.coerceFallbackValue(
+            loadedRecords.get(recordId),
+            correlation.tokenPath,
+            correlation.fallbackValue
+          );
+        }
+        if (tokenValue == null) {
+          continue;
+        }
+        if (!(tokenValue instanceof Id)) {
+          throw unsupportedShape(
+            'Indirect scope correlation currently requires an Id-valued record token.'
+          );
+        }
+        Id tokenId = (Id) tokenValue;
+        scopeValues.add(tokenId);
+        String key = String.valueOf(tokenId);
+        if (!recordIdsByToken.containsKey(key)) {
+          recordIdsByToken.put(key, new List<Id>());
+        }
+        recordIdsByToken.get(key).add(recordId);
+      }
+    } else {
+      scopeValues.addAll(loadedRecords.keySet());
+    }
+    return scopeValues;
+  }
+
+  private static String rewriteCorrelatedQuery(
+    String scopeSoql,
+    RecordHealthCheckBulkQueryShape.Correlation correlation,
+    Result result,
+    Integer perRecordLimit
+  ) {
+    scopeSoql = replaceSpan(
+      scopeSoql,
+      correlation.startIndex,
+      correlation.endIndex,
+      correlation.fieldPath + ' IN :rhcScopeValues'
+    );
+    if (perRecordLimit != null) {
+      scopeSoql = removeOuterLimit(scopeSoql);
+    }
+
+    scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
+      scopeSoql,
+      correlation.fieldPath
+    );
+    if (RecordHealthCheckSoqlTemplate.isAggregateQuery(scopeSoql)) {
+      String countField = correlation.fieldPath.equalsIgnoreCase('Id')
+        ? 'CreatedDate'
+        : 'Id';
+      scopeSoql = scopeSoql.replaceFirst(
+        '(?i)\\bCOUNT\\s*\\(\\s*\\)',
+        'COUNT(' + countField + ')'
+      );
+      scopeSoql = RecordHealthCheckBulkQueryRewriter.aliasCorrelation(
+        scopeSoql,
+        correlation.fieldPath
+      );
+      scopeSoql = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
+        scopeSoql,
+        correlation.fieldPath
+      );
+    } else if (result.strategy == ORDERED_PICK_IN_MEMORY) {
+      String orderedField = firstGroup(scopeSoql, ORDER_BY, 1);
+      if (String.isNotBlank(orderedField)) {
+        scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
+          scopeSoql,
+          orderedField
+        );
+      }
+      scopeSoql = removeOuterLimit(scopeSoql);
+    } else if (result.strategy == SELF) {
+      scopeSoql = removeOuterLimit(scopeSoql);
+    }
+    return scopeSoql;
+  }
+
+  private static List<SObject> executeScopedQuery(
+    String scopeSoql,
+    Map<String, Object> binds,
+    Integer rowBudget,
+    Result result
+  ) {
+    scopeSoql = RecordHealthCheckCurrencySupport.injectUnitEvidence(scopeSoql);
+
+    String prepared;
+    try {
+      prepared = RecordHealthCheckSoqlTemplate.prepareForExecution(
+        scopeSoql,
+        rowBudget + 1
+      );
+    } catch (RecordHealthCheckSoqlTemplate.TemplateException ex) {
+      throw new RecordHealthCheckEvaluatorException(
+        ex.reasonCode,
+        ex.getMessage()
+      );
+    }
+    prepared = RecordHealthCheckSoqlTemplate.removeOuterUserMode(prepared);
+    result.executedSoql = prepared;
+
+    reserveQueryRows(prepared, rowBudget);
+    List<SObject> rows;
+    try {
+      rows = Database.queryWithBinds(prepared, binds, AccessLevel.USER_MODE);
+    } catch (System.QueryException ex) {
+      throw new RecordHealthCheckEvaluatorException(
+        RecordHealthCheckValueResolver.classifyQueryException(ex),
+        ex.getMessage()
+      );
+    }
+    if (rows.size() > rowBudget) {
+      throw new RecordHealthCheckEvaluatorException(
+        RecordHealthCheckReasonCodes.SCOPE_ROW_CAP_EXCEEDED,
+        'The scope-wide query returned more than ' + rowBudget + ' rows.'
+      );
+    }
+    return rows;
+  }
+
+  private static Result assignRows(
+    Result result,
+    List<SObject> rows,
+    RecordHealthCheckBulkQueryShape.Correlation correlation,
+    Map<String, List<Id>> recordIdsByToken,
+    Integer perRecordLimit
+  ) {
+    if (result.strategy == SCOPE_INVARIANT) {
+      for (Id recordId : result.rowsByRecordId.keySet()) {
+        result.rowsByRecordId.put(recordId, rows);
+      }
+      return result;
+    }
+    for (SObject row : rows) {
+      Object correlationValue = row instanceof AggregateResult
+        ? ((AggregateResult) row).get(CORRELATION_ALIAS)
+        : readPath(row, correlation.fieldPath);
+      if (result.strategy == INDIRECT_REFERENCE) {
+        List<Id> matching = recordIdsByToken.get(
+          String.valueOf(correlationValue)
+        );
+        if (matching != null) {
+          for (Id recordId : matching) {
+            addRowWithinLimit(result, recordId, row, perRecordLimit);
+          }
+        }
+      } else {
+        Id recordId = (Id) correlationValue;
+        if (result.rowsByRecordId.containsKey(recordId)) {
+          addRowWithinLimit(result, recordId, row, perRecordLimit);
+        }
+      }
+    }
+    return result;
+  }
+
+  private static void reserveQueryRows(String prepared, Integer rowBudget) {
+    Integer queryRowReservation = RecordHealthCheckQueryEvaluatorSupport.queryRowReservation(
+      prepared,
+      rowBudget
+    );
+    Integer remainingQueryRows = remainingQueryRowsOverride == null
+      ? Limits.getLimitQueryRows() - Limits.getQueryRows()
+      : remainingQueryRowsOverride;
+    if (queryRowReservation > remainingQueryRows) {
+      throw new RecordHealthCheckEvaluatorException(
+        RecordHealthCheckReasonCodes.GOVERNOR_LIMIT_RISK,
+        'The query needs capacity for up to ' +
+          queryRowReservation +
+          ' rows, but only ' +
+          remainingQueryRows +
+          ' query rows remain in this transaction.'
+      );
+    }
+  }
+
+  private static void validateCorrelatedTemplate(
+    String soqlTemplate,
+    Result result
+  ) {
+    if (result.strategy == UNCLASSIFIED) {
+      throw new RecordHealthCheckEvaluatorException(
+        'UNSUPPORTED_BULK_QUERY_SHAPE',
+        'The SOQL template cannot be evaluated once for a record scope.'
+      );
+    }
+    if (
+      RecordHealthCheckBulkQueryShape.countExecutableTokens(soqlTemplate) > 1
+    ) {
+      throw unsupportedShape(
+        'A scope-wide SOQL template may contain only one record token.'
+      );
+    }
+  }
+
+  private static void addRowWithinLimit(
+    Result result,
+    Id recordId,
+    SObject row,
+    Integer perRecordLimit
+  ) {
+    List<SObject> perRecord = result.rowsByRecordId.get(recordId);
+    if (perRecordLimit == null || perRecord.size() < perRecordLimit) {
+      perRecord.add(row);
+    }
   }
 }

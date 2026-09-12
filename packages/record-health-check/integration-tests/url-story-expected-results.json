@@ -117,6 +117,38 @@
         "unable": 0,
         "systemError": 0
       }
+    },
+    {
+      "name": "RHC Link Numeric Host",
+      "status": "FAIL",
+      "reasons": {
+        "RHC_Link_Metadata": null,
+        "RHC_Link_Apex_Legacy": "APPROVAL_REVIEW_REQUIRED",
+        "RHC_Link_Apex_Structured": "APPROVAL_REVIEW_REQUIRED"
+      },
+      "summary": {
+        "pass": 0,
+        "fail": 3,
+        "skip": 0,
+        "unable": 0,
+        "systemError": 0
+      }
+    },
+    {
+      "name": "RHC Link Healthy Numeric Host",
+      "status": "PASS",
+      "reasons": {
+        "RHC_Link_Metadata": null,
+        "RHC_Link_Apex_Legacy": "APPROVALS_ACTIVE",
+        "RHC_Link_Apex_Structured": "APPROVALS_ACTIVE"
+      },
+      "summary": {
+        "pass": 3,
+        "fail": 0,
+        "skip": 0,
+        "unable": 0,
+        "systemError": 0
+      }
     }
   ],
   "displayCases": [
@@ -148,6 +180,16 @@
     },
     {
       "record": "RHC Link Healthy Unsafe Destination",
+      "check": "RHC_Link_Metadata",
+      "guideKind": "text"
+    },
+    {
+      "record": "RHC Link Numeric Host",
+      "check": "RHC_Link_Metadata",
+      "guideKind": "text"
+    },
+    {
+      "record": "RHC Link Healthy Numeric Host",
       "check": "RHC_Link_Metadata",
       "guideKind": "text"
     }

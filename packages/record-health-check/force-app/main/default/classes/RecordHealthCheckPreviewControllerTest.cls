@@ -35,9 +35,21 @@ private class RecordHealthCheckPreviewControllerTest {
       Map<String, Object> response = (Map<String, Object>) JSON.deserializeUntyped(
         payload
       );
-      Assert.areEqual('VALID', response.get('validationStatus'));
-      Assert.areEqual('VALIDATE_ONLY', response.get('mode'));
-      Assert.areEqual(0, ((List<Object>) response.get('results')).size());
+      Assert.areEqual(
+        'VALID',
+        response.get('validationStatus'),
+        'The valid detached formula must return a valid configuration.'
+      );
+      Assert.areEqual(
+        'VALIDATE_ONLY',
+        response.get('mode'),
+        'The controller must preserve explicit validation-only mode.'
+      );
+      Assert.areEqual(
+        0,
+        ((List<Object>) response.get('results')).size(),
+        'Validation-only must return no record evaluations.'
+      );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
     }
@@ -52,12 +64,14 @@ private class RecordHealthCheckPreviewControllerTest {
         Assert.fail('Cleanup must require explicit confirmation.');
       } catch (AuraHandledException expected) {
         Assert.isTrue(
-          expected.getMessage().contains('Script-thrown exception')
+          expected.getMessage().contains('Script-thrown exception'),
+          'Unconfirmed cleanup must surface a handled controller error.'
         );
       }
       Assert.areEqual(
         0,
-        RecordHealthCheckPreviewController.deleteExpiredReceipts(true)
+        RecordHealthCheckPreviewController.deleteExpiredReceipts(true),
+        'Confirmed cleanup with no expired receipts must delete nothing.'
       );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
@@ -90,7 +104,8 @@ private class RecordHealthCheckPreviewControllerTest {
       );
       Assert.areEqual(
         StatusCode.FIELD_CUSTOM_VALIDATION_EXCEPTION,
-        updateResult.getErrors()[0].getStatusCode()
+        updateResult.getErrors()[0].getStatusCode(),
+        'Receipt updates must fail through the immutable-record validation rule.'
       );
 
       Assert.areEqual(
@@ -100,7 +115,8 @@ private class RecordHealthCheckPreviewControllerTest {
       );
       Assert.areEqual(
         0,
-        [SELECT COUNT() FROM Record_Health_Check_Readiness__c]
+        [SELECT COUNT() FROM Record_Health_Check_Readiness__c],
+        'Cleanup must remove the sole expired receipt.'
       );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
@@ -152,11 +168,28 @@ private class RecordHealthCheckPreviewControllerTest {
       );
       Test.stopTest();
 
-      Assert.areEqual('SAVED', saved.receiptStatus);
-      Assert.isNotNull(saved.receiptId);
-      Assert.isNotNull(saved.expiresAt);
-      Assert.areEqual('VALIDATED', response.readinessState);
-      Assert.isFalse(response.hasCurrentLiveVerification);
+      Assert.areEqual(
+        'SAVED',
+        saved.receiptStatus,
+        'An explicitly requested eligible receipt must be persisted.'
+      );
+      Assert.isNotNull(
+        saved.receiptId,
+        'Saved evidence must expose its receipt ID.'
+      );
+      Assert.isNotNull(
+        saved.expiresAt,
+        'Saved evidence must declare its expiry.'
+      );
+      Assert.areEqual(
+        'VALIDATED',
+        response.readinessState,
+        'Error outcomes may validate configuration but must not verify it live.'
+      );
+      Assert.isFalse(
+        response.hasCurrentLiveVerification,
+        'A run with malformed results must not be live verified.'
+      );
       Record_Health_Check_Readiness__c receipt = [
         SELECT
           ScopeCount__c,
@@ -169,13 +202,41 @@ private class RecordHealthCheckPreviewControllerTest {
         FROM Record_Health_Check_Readiness__c
         WHERE Id = :saved.receiptId
       ];
-      Assert.areEqual(1, receipt.ScopeCount__c);
-      Assert.areEqual(1, receipt.PassCount__c);
-      Assert.areEqual(1, receipt.FailCount__c);
-      Assert.areEqual(1, receipt.SkippedCount__c);
-      Assert.areEqual(1, receipt.UnableCount__c);
-      Assert.areEqual(2, receipt.ErrorCount__c);
-      Assert.areEqual(64, receipt.ScopeDigest__c.length());
+      Assert.areEqual(
+        1,
+        receipt.ScopeCount__c,
+        'The saved scope contains one unique Account.'
+      );
+      Assert.areEqual(
+        1,
+        receipt.PassCount__c,
+        'The receipt must count the one draft PASS.'
+      );
+      Assert.areEqual(
+        1,
+        receipt.FailCount__c,
+        'The receipt must count the one draft FAIL.'
+      );
+      Assert.areEqual(
+        1,
+        receipt.SkippedCount__c,
+        'The receipt must count the one skipped draft result.'
+      );
+      Assert.areEqual(
+        1,
+        receipt.UnableCount__c,
+        'The receipt must count the one unable-to-evaluate draft result.'
+      );
+      Assert.areEqual(
+        2,
+        receipt.ErrorCount__c,
+        'Both the missing evaluation and missing item must count as errors.'
+      );
+      Assert.areEqual(
+        64,
+        receipt.ScopeDigest__c.length(),
+        'The scope digest must retain the full SHA-256 hexadecimal representation.'
+      );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
     }
@@ -194,7 +255,8 @@ private class RecordHealthCheckPreviewControllerTest {
     Assert.areEqual(
       'NOT_REQUESTED',
       RecordHealthCheckReadinessService.save(base, response, 'check', 'set')
-        .receiptStatus
+        .receiptStatus,
+      'Receipt persistence requires explicit caller intent.'
     );
     Assert.areEqual(
       'NOT_ELIGIBLE',
@@ -204,7 +266,8 @@ private class RecordHealthCheckPreviewControllerTest {
           'check',
           'set'
         )
-        .receiptStatus
+        .receiptStatus,
+      'Invalid configuration must not produce a readiness receipt.'
     );
   }
 
@@ -316,7 +379,61 @@ private class RecordHealthCheckPreviewControllerTest {
       response.readinessState,
       'A prerequisite verdict must not substitute for evaluation of the draft itself.'
     );
-    Assert.isFalse(response.hasCurrentLiveVerification);
+    Assert.isFalse(
+      response.hasCurrentLiveVerification,
+      'A passing prerequisite must not verify a skipped draft.'
+    );
+  }
+
+  @IsTest
+  static void sameNamedNamespacedPrerequisiteCannotVerifySkippedDraft() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      80
+    );
+    RecordHealthCheckPreviewRequest request = RecordHealthCheckPreviewRequest.forDraftCheck(
+        receiptDraft(),
+        'Example_Account_Check_Builder_Guide',
+        new List<Id>{ accountId }
+      )
+      .withMode('EXECUTE')
+      .withReadinessReceipt(true);
+    RecordHealthCheckPreviewResponse response = new RecordHealthCheckPreviewResponse();
+    response.validationStatus = 'VALID';
+    response.definitionFingerprint = 'mixed-result-fingerprint';
+    response.mode = 'EXECUTE';
+    response.capabilities.put('configuration', 'COMPLETE');
+    RecordHealthCheckResultItem prerequisite = resultItem('PASS');
+    prerequisite.evaluation.checkQualifiedApiName = 'other__Detached_Preview';
+    RecordHealthCheckResultItem draft = resultItem('SKIPPED');
+    draft.evaluation.checkQualifiedApiName = 'Detached_Preview';
+    response.results.add(prerequisite);
+    response.results.add(draft);
+
+    Test.startTest();
+    RecordHealthCheckReadinessService.save(
+      request,
+      response,
+      'Detached_Preview',
+      'Example_Account_Check_Builder_Guide'
+    );
+    RecordHealthCheckReadinessService.decorate(
+      response,
+      receiptDraft(),
+      'Example_Account_Check_Builder_Guide',
+      request.recordIds
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'VALIDATED',
+      response.readinessState,
+      'A same-named namespaced prerequisite verdict must not substitute for evaluation of the draft itself.'
+    );
+    Assert.isFalse(
+      response.hasCurrentLiveVerification,
+      'A same-named foreign-namespace result must not verify this draft.'
+    );
   }
 
   private static Record_Health_Check__mdt receiptDraft() {

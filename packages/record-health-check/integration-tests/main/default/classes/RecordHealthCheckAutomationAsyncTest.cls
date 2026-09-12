@@ -79,7 +79,8 @@ private with sharing class RecordHealthCheckAutomationAsyncTest {
       Assert.fail('A mixed-object async population must be rejected in full.');
     } catch (IllegalArgumentException expected) {
       Assert.isTrue(
-        expected.getMessage().contains('no records were submitted')
+        expected.getMessage().contains('no records were submitted'),
+        'An empty submission must explain that no records were submitted.'
       );
     }
   }

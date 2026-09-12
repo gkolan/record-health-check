@@ -198,6 +198,15 @@ for (const required of [
     failures.push(`MCP HTTP boundary is missing '${required}'.`);
   }
 }
+if (
+  !/export const toolOutputSchema = agentToolResponseSchema\.describe\(/.test(
+    mcpContractSource
+  )
+) {
+  failures.push(
+    "MCP discovery must publish the strict response alternatives used at runtime."
+  );
+}
 const mcpDiagnosisBody = mcpContractSource.match(
   /const diagnosisFields = \{([\s\S]*?)\n\};/
 )?.[1];
@@ -207,7 +216,7 @@ if (!mcpDiagnosisBody) {
   const mcpDiagnosisConstraints = new Map(
     [
       ...mcpDiagnosisBody.matchAll(
-        /^\s*(\w+):\s*z\.string\(\)\.min\((\d+)\)\.max\((\d+)\)\.optional\(\),?$/gm
+        /(\w+):\s*z\s*\.string\(\)\s*\.min\((\d+)\)\s*\.max\((\d+)\)\s*\.optional\(\)/g
       )
     ].map((match) => [
       match[1],
@@ -236,7 +245,7 @@ const checkSuccessVariant = successResponseVariants.find(
 );
 const mcpReasonCodeMax = Number(
   mcpContractSource.match(
-    /reasonCode:\s*z\.string\(\)\.min\(1\)\.max\((\d+)\)\.optional\(\)/
+    /reasonCode:\s*z\s*\.string\(\)\s*\.min\(1\)\s*\.max\((\d+)\)\s*\.optional\(\)/
   )?.[1]
 );
 const schemaReasonCodeMax =

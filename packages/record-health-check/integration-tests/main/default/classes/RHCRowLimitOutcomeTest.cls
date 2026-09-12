@@ -29,8 +29,15 @@ private class RHCRowLimitOutcomeTest {
       RecordHealthCheckQueryEvaluatorSupport.runQuery(query, 2);
       Assert.fail('Expected the extra-row probe to refuse a partial result.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('ROW_LIMIT_EXCEEDED', ex.reasonCode);
-      Assert.isTrue(ex.getMessage().contains('configured row cap of 2'));
+      Assert.areEqual(
+        'ROW_LIMIT_EXCEEDED',
+        ex.reasonCode,
+        'An extra row beyond the cap must retain the row-limit reason.'
+      );
+      Assert.isTrue(
+        ex.getMessage().contains('configured row cap of 2'),
+        'The overflow explanation must identify the configured cap of two.'
+      );
       Assert.isFalse(
         ex.getMessage().contains('returned 3'),
         'The detail must not disclose the true row count.'
@@ -86,8 +93,16 @@ private class RHCRowLimitOutcomeTest {
   }
 
   private static void assertRowLimit(RecordHealthCheckInternalResult result) {
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual('ROW_LIMIT_EXCEEDED', result.reasonCode);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'A truncated query must remain unable to evaluate rather than return a partial outcome.'
+    );
+    Assert.areEqual(
+      'ROW_LIMIT_EXCEEDED',
+      result.reasonCode,
+      'Every capped evaluator path must retain the row-limit reason.'
+    );
   }
 
   private static String evidenceQuery() {

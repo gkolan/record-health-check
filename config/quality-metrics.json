@@ -1,28 +1,28 @@
 {
-  "verifiedAt": "2026-09-11",
+  "verifiedAt": "2026-09-12",
   "apex": {
-    "verifiedAt": "2026-09-10",
+    "verifiedAt": "2026-09-12",
     "sourceVersion": "2.0.10",
-    "sourceCoveragePercent": 97.17,
-    "coveredLines": 15410,
-    "executableLines": 15859,
-    "testClassCount": 206,
-    "testMethodCount": 1403,
-    "testSetupMethodCount": 44,
-    "salesforceTestCount": 1447,
+    "sourceCoveragePercent": 97.86,
+    "coveredLines": 16834,
+    "executableLines": 17203,
+    "testClassCount": 236,
+    "testMethodCount": 1583,
+    "testSetupMethodCount": 48,
+    "salesforceTestCount": 1631,
     "evidenceOrgShape": "namespaced",
     "evidenceOrgAlias": "rhc-208-ns-20260906",
-    "testRunId": "707RL00001gTK3j",
+    "testRunId": "707RL00001gk8bXYAQ",
     "packageCoveragePercent": 99,
     "packageVersion": "2.0.9.2",
     "subscriberPackageVersionId": "04tak000000gX9FAAU"
   },
   "lwc": {
-    "verifiedAt": "2026-09-11",
-    "testCount": 353,
-    "linesPercent": 98.51,
-    "statementsPercent": 97.55,
-    "functionsPercent": 98.82,
-    "branchesPercent": 91.36
+    "verifiedAt": "2026-09-12",
+    "testCount": 392,
+    "linesPercent": 98.52,
+    "statementsPercent": 98.54,
+    "functionsPercent": 99.21,
+    "branchesPercent": 93.3
   }
 }

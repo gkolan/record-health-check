@@ -18,11 +18,11 @@ whose access behavior you have not tested.
 
 ## What you will learn
 
-| Goal | Record Health Check setting |
-| --- | --- |
-| Explain what the user should correct | **Fix Message** (`FixMessage__c`) |
-| Give the destination a clear button label | **Action Label** (`ActionLabel__c`) |
-| Open a verified Salesforce or HTTPS destination | **Action URL** (`ActionUrl__c`) |
+| Goal                                                  | Record Health Check setting                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Explain what the user should correct                  | **Fix Message** (`FixMessage__c`)                                               |
+| Give the destination a clear button label             | **Action Label** (`ActionLabel__c`)                                             |
+| Open a verified Salesforce or HTTPS destination       | **Action URL** (`ActionUrl__c`)                                                 |
 | Reuse the current record or parent values in guidance | Merge tokens for record and parent fields, each with an optional fallback value |
 
 These settings are configured on the Check:
@@ -57,18 +57,18 @@ If **Action Label** is blank and the URL is valid, the link label defaults to `F
 Record Health Check checks the resolved Action URL, after merge tokens are inserted and
 URL-encoded, against these checks.
 
-| Pattern | Allowed? |
-| --- | --- |
-| Same-org relative Lightning paths that start with `/lightning/` | Yes |
-| Other same-org relative paths that start with `/` | Yes |
-| External `https://` URLs | Yes |
-| `http://` | No |
-| `javascript:` | No |
-| `data:` | No |
-| `mailto:` | No |
-| Protocol-relative URLs such as `//example.com` | No |
-| URLs containing backslashes | No |
-| URLs that resolve to more than 2,000 characters | No |
+| Pattern                                                         | Allowed? |
+| --------------------------------------------------------------- | -------- |
+| Same-org relative Lightning paths that start with `/lightning/` | Yes      |
+| Other same-org relative paths that start with `/`               | Yes      |
+| External `https://` URLs                                        | Yes      |
+| `http://`                                                       | No       |
+| `javascript:`                                                   | No       |
+| `data:`                                                         | No       |
+| `mailto:`                                                       | No       |
+| Protocol-relative URLs such as `//example.com`                  | No       |
+| URLs containing backslashes                                     | No       |
+| URLs that resolve to more than 2,000 characters                 | No       |
 
 Unsafe URLs are dropped. **Fix Message** (`FixMessage__c`) can still render.
 If a saved link does not appear on a failed row, first confirm the URL is allowed and under 2,000
@@ -124,20 +124,20 @@ defaults only `WhatId` does not create a Who relationship. See the
 Copy a pattern below and replace placeholder IDs and API names with values from your org. See
 [Allowed URL formats](#allowed-url-formats) for the URLs Record Health Check accepts.
 
-| Goal | Action URL pattern |
-| --- | --- |
-| Create a Case with Account, Subject, and Origin defaults | Case create URL with prefilled Account, Subject, and Origin: copy it from below the table |
-| Open a Knowledge article | `/lightning/r/Knowledge__kav/ka0xxxxxxxxxxxxxxx/view` |
-| Open an external support playbook | `https://support.example.com/account-readiness?accountId={!record.Id}` |
-| Open an external Confluence or wiki page | `https://wiki.example.com/data-quality/account-readiness` |
-| Open an external status or runbook page | `https://status.example.com/incidents/account-tier` |
-| View the current Account | `/lightning/r/Account/{!record.Id}/view` |
-| Edit the current Account | `/lightning/r/Account/{!record.Id}/edit` |
-| Open the Account's Contacts related list | `/lightning/r/Account/{!record.Id}/related/Contacts/view` |
-| Open a report filtered by record ID | `/lightning/r/Report/00Oxxxxxxxxxxxxxxx/view?fv0={!record.Id}` |
-| Open a report with record and parent filters | Report URL that passes the record Id and the parent account name: copy it from below the table |
-| Open a Contact list view | `/lightning/o/Contact/list?filterName=Recent` |
-| Open an internal Lightning page | `/lightning/n/Data_Quality_Playbook` |
+| Goal                                                     | Action URL pattern                                                                             |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Create a Case with Account, Subject, and Origin defaults | Case create URL with prefilled Account, Subject, and Origin: copy it from below the table      |
+| Open a Knowledge article                                 | `/lightning/r/Knowledge__kav/ka0xxxxxxxxxxxxxxx/view`                                          |
+| Open an external support playbook                        | `https://support.example.com/account-readiness?accountId={!record.Id}`                         |
+| Open an external Confluence or wiki page                 | `https://wiki.example.com/data-quality/account-readiness`                                      |
+| Open an external status or runbook page                  | `https://status.example.com/incidents/account-tier`                                            |
+| View the current Account                                 | `/lightning/r/Account/{!record.Id}/view`                                                       |
+| Edit the current Account                                 | `/lightning/r/Account/{!record.Id}/edit`                                                       |
+| Open the Account's Contacts related list                 | `/lightning/r/Account/{!record.Id}/related/Contacts/view`                                      |
+| Open a report filtered by record ID                      | `/lightning/r/Report/00Oxxxxxxxxxxxxxxx/view?fv0={!record.Id}`                                 |
+| Open a report with record and parent filters             | Report URL that passes the record Id and the parent account name: copy it from below the table |
+| Open a Contact list view                                 | `/lightning/o/Contact/list?filterName=Recent`                                                  |
+| Open an internal Lightning page                          | `/lightning/n/Data_Quality_Playbook`                                                           |
 
 The two patterns that use a fallback value are written out here so you can copy them exactly:
 
@@ -190,31 +190,31 @@ A report link is org-specific. A report Id from one org does not work in another
 
 Use this when a failed Check means a user needs to fix related Contacts.
 
-| Setup field | Value |
-| --- | --- |
-| Action Label | `View contacts to fix` |
-| Action URL | `/lightning/r/Account/{!record.Id}/related/Contacts/view` |
-| Fix Message | `Open the contacts for {!record.Name} and add the missing email addresses.` |
+| Setup field  | Value                                                                       |
+| ------------ | --------------------------------------------------------------------------- |
+| Action Label | `View contacts to fix`                                                      |
+| Action URL   | `/lightning/r/Account/{!record.Id}/related/Contacts/view`                   |
+| Fix Message  | `Open the contacts for {!record.Name} and add the missing email addresses.` |
 
 ### High-priority open Cases
 
 Use this when a failed Check means a user needs to review a filtered report.
 
-| Setup field | Value |
-| --- | --- |
-| Action Label | `View high-priority cases` |
-| Action URL | `/lightning/r/Report/00Oxxxxxxxxxxxxxxx/view?fv0={!record.Id}` |
-| Fix Message | `Review the open high-priority cases for {!record.Name} before your next renewal or executive conversation.` |
+| Setup field  | Value                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| Action Label | `View high-priority cases`                                                                                   |
+| Action URL   | `/lightning/r/Report/00Oxxxxxxxxxxxxxxx/view?fv0={!record.Id}`                                               |
+| Fix Message  | `Review the open high-priority cases for {!record.Name} before your next renewal or executive conversation.` |
 
 ### External playbook
 
 Use this when the next step is a help page outside Salesforce.
 
-| Setup field | Value |
-| --- | --- |
-| Action Label | `Open data quality playbook` |
-| Action URL | `https://example.com/data-quality-playbook` |
-| Fix Message | `Review the playbook before changing ownership or account tier fields for {!record.Name fallback="this account"}.` |
+| Setup field  | Value                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Action Label | `Open data quality playbook`                                                                                       |
+| Action URL   | `https://example.com/data-quality-playbook`                                                                        |
+| Fix Message  | `Review the playbook before changing ownership or account tier fields for {!record.Name fallback="this account"}.` |
 
 ## Review checklist
 

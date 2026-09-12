@@ -50,7 +50,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
     Assert.areEqual(
       'INVALID_CHECK_TYPE',
-      items.values()[0].evaluation.reasonCode
+      items.values()[0].evaluation.reasonCode,
+      'An unsupported evaluator must retain the invalid-Check-type reason.'
     );
   }
 
@@ -97,7 +98,8 @@ private with sharing class RecordHealthCheckScopeEvaluationTest {
 
     Assert.areEqual(
       'RECORD_NOT_VISIBLE',
-      items.values()[0].evaluation.reasonCode
+      items.values()[0].evaluation.reasonCode,
+      'A record absent from loaded scope must retain its not-visible reason.'
     );
   }
 

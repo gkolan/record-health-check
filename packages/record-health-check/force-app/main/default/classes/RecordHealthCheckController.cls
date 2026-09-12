@@ -169,6 +169,45 @@ public with sharing class RecordHealthCheckController {
   }
 
   /**
+   * Preserves null evidence cells and exposes only card evaluation/display fields.
+   * @param checkSetQualifiedApiName Exact parent Check Set QualifiedApiName.
+   * @param checkQualifiedApiName Exact Check QualifiedApiName.
+   * @param recordId Record to evaluate.
+   * @param runId Optional client correlation identifier.
+   * @param source Exact browser execution source.
+   * @return JSON card result, with null object properties omitted.
+   */
+  @AuraEnabled
+  public static String evaluateCheckJson(
+    String checkSetQualifiedApiName,
+    String checkQualifiedApiName,
+    Id recordId,
+    String runId,
+    String source
+  ) {
+    RecordHealthCheckResultItem item = evaluateCheck(
+      checkSetQualifiedApiName,
+      checkQualifiedApiName,
+      recordId,
+      runId,
+      source
+    );
+    return JSON.serialize(
+      new Map<String, Object>{
+        'evaluation' => new Map<String, Object>{
+          'recordId' => item.evaluation.recordId,
+          'checkQualifiedApiName' => item.evaluation.checkQualifiedApiName,
+          'status' => item.evaluation.status,
+          'severity' => item.evaluation.severity,
+          'reasonCode' => item.evaluation.reasonCode
+        },
+        'display' => item.display
+      },
+      true
+    );
+  }
+
+  /**
    * Evaluates a single check and returns one split evaluation/display item.
    * checkSetQualifiedApiName is validated server-side to confirm the Check belongs to the
    * named Check Set, preventing direct invocation of arbitrary checks.

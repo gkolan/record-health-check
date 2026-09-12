@@ -26,16 +26,16 @@ resolves a Check's parent Check Set, loads Checks for evaluation, and maps the f
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `ConfigException` (nested) | Exception carrying `reasonCode` |
-| `RC_*` | Shared Reason Code constants, such as `RC_CONFIG_INACTIVE`, `RC_OBJECT_MISMATCH`, and `RC_NO_ACTIVE_CHECKS` |
-| `findCheckSetQualifiedApiName(...)` | Resolve an exact Check Qualified API Name to its parent Check Set Qualified API Name |
-| `getCheckSetAvailabilityForObject(...)` | Active/inactive Check Sets for an object |
-| `getDefinitionResponse(...)` | Build the Lightning definition response |
-| `validateCheckForEvaluation(...)` | Map the first validator finding to a result |
-| `loadCheck(...)` | Load a Check for evaluation |
-| `cachedCheckPublicationSettings(...)` | Transaction-cached publication flags |
+| Member                                  | Purpose                                                                                                     |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `ConfigException` (nested)              | Exception carrying `reasonCode`                                                                             |
+| `RC_*`                                  | Shared Reason Code constants, such as `RC_CONFIG_INACTIVE`, `RC_OBJECT_MISMATCH`, and `RC_NO_ACTIVE_CHECKS` |
+| `findCheckSetQualifiedApiName(...)`     | Resolve an exact Check Qualified API Name to its parent Check Set Qualified API Name                        |
+| `getCheckSetAvailabilityForObject(...)` | Active/inactive Check Sets for an object                                                                    |
+| `getDefinitionResponse(...)`            | Build the Lightning definition response                                                                     |
+| `validateCheckForEvaluation(...)`       | Map the first validator finding to a result                                                                 |
+| `loadCheck(...)`                        | Load a Check for evaluation                                                                                 |
+| `cachedCheckPublicationSettings(...)`   | Transaction-cached publication flags                                                                        |
 
 **Notable behavior:**
 
@@ -62,8 +62,8 @@ returns `null` when the prerequisite is absent or cannot be resolved safely.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                       | Purpose                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------ |
 | `resolve(dependent, checks)` | Return the prerequisite Check's qualified API name without collapsing namespace identities |
 
 ### `RecordHealthCheckValidator`
@@ -80,9 +80,9 @@ problems together. Both paths therefore use the same validity rules.
 **Notable behavior:**
 
 - `MaxQueryRows__c`, `EmptyValueHandling__c`, and `NoRowsResult__c` are checked separately from the
- Query and Compare two queries field groups. This prevents the metadata audit from reporting the
- same field problem twice. Mutually exclusive choices use one decision chain so the audit returns
- at most one finding for a field.
+  Query and Compare two queries field groups. This prevents the metadata audit from reporting the
+  same field problem twice. Mutually exclusive choices use one decision chain so the audit returns
+  at most one finding for a field.
 
 ### `RecordHealthCheckApexConfigSupport`
 
@@ -110,17 +110,17 @@ in an org that installs Record Health Check cannot call it through the `rhc` nam
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `validate()` | Validate every active Check Set and Check in the org |
+| Member                           | Purpose                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `validate()`                     | Validate every active Check Set and Check in the org                           |
 | `validateRecords(...)` (private) | Validate Check Set and Check records supplied by `validate()` or package tests |
 
 **Notable behavior:**
 
 - `validateRecords` reports a Check Set with more active Checks than
- `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as
- `ERROR`/`FRAMEWORK_MAX_CHECKS_EXCEEDED`. Salesforce can save the additional Checks, but every
- whole-set runtime rejects the configuration before evaluation begins.
+  `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as
+  `ERROR`/`FRAMEWORK_MAX_CHECKS_EXCEEDED`. Salesforce can save the additional Checks, but every
+  whole-set runtime rejects the configuration before evaluation begins.
 - When an automatic card hides Run and Rerun, users cannot publish lifecycle events from the card.
   The audit returns `WARNING`/`USER_RUN_PUBLICATION_UNREACHABLE` when Check Set publication is
   enabled and `WARNING`/`USER_RESULT_PUBLICATION_UNREACHABLE` for each Check whose publication is
@@ -140,11 +140,11 @@ contain a JSON object. Both the health-check run and the metadata audit use thes
 **Notable behavior:**
 
 - `isValidApexPlugin` creates an instance of the class while validating it, then saves
- that instance in `validatedPluginInstances` by class name; `takeValidatedPlugin` retrieves and
- removes it so `RecordHealthCheckApexEvaluator` can reuse the already-built plugin instead of
- calling `newInstance()` a second time. `isJsonObject` treats a blank string as valid (returns
- `true`) because `ApexParametersJson__c` is optional. Only a non-blank value that fails to parse as a
- JSON object is rejected.
+  that instance in `validatedPluginInstances` by class name; `takeValidatedPlugin` retrieves and
+  removes it so `RecordHealthCheckApexEvaluator` can reuse the already-built plugin instead of
+  calling `newInstance()` a second time. `isJsonObject` treats a blank string as valid (returns
+  `true`) because `ApexParametersJson__c` is optional. Only a non-blank value that fails to parse as a
+  JSON object is rejected.
 
 ### `RecordHealthCheckConstants`
 
@@ -160,13 +160,13 @@ audit both read from here so their allowed values stay aligned.
 **Notable behavior:**
 
 - The package needs one approved list of values. Every
- `public static Set<String>` accessor here returns a `new Set<String>(...)` copy,
- not the internal set itself. A caller therefore cannot overwrite the package's official values by
- changing the returned Set. The class also owns the Apex-to-Lightning-card value translation
- (`toLwcTriggerMode`, `toLwcEvaluatorType`, etc.) that maps metadata API values
- (for example `FORMULA`) to the card's presentation terms (for example `Formula`). Severity is not
- translated: `CRITICAL`, `WARNING`, and `INFO` reach the card as Setup stores them, and the card
- chooses its own words for them.
+  `public static Set<String>` accessor here returns a `new Set<String>(...)` copy,
+  not the internal set itself. A caller therefore cannot overwrite the package's official values by
+  changing the returned Set. The class also owns the Apex-to-Lightning-card value translation
+  (`toLwcTriggerMode`, `toLwcEvaluatorType`, etc.) that maps metadata API values
+  (for example `FORMULA`) to the card's presentation terms (for example `Formula`). Severity is not
+  translated: `CRITICAL`, `WARNING`, and `INFO` reach the card as Setup stores them, and the card
+  chooses its own words for them.
 
 ### `RecordHealthCheckReasonCodes`
 
@@ -181,8 +181,8 @@ from users who are not allowed to see the underlying access details. The full ou
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                          | Purpose                                                     |
+| ------------------------------- | ----------------------------------------------------------- |
 | `isDiagnosticsOnly(reasonCode)` | Whether a reason code should be treated as diagnostics-only |
 
 **Notable behavior:**
@@ -201,16 +201,16 @@ Used when the Lightning card has no Check Set selected.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `hasActive` | Whether the object has any active Check Sets |
+| Member        | Purpose                                        |
+| ------------- | ---------------------------------------------- |
+| `hasActive`   | Whether the object has any active Check Sets   |
 | `hasInactive` | Whether the object has any inactive Check Sets |
 
 **Notable behavior:**
 
 - The constructor with no parameters sets both `@AuraEnabled` Boolean fields to `false`. A caller that
- returns early before filling them in (for example `RecordHealthCheckController` on a `null`
- `recordId`) therefore still returns a valid response to the Lightning card.
+  returns early before filling them in (for example `RecordHealthCheckController` on a `null`
+  `recordId`) therefore still returns a valid response to the Lightning card.
 
 ---
 

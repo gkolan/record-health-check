@@ -136,8 +136,8 @@ namespaced object instead of proving the intended field-access scenario.
 ## URL-story merge and inline-link verification
 
 The `RHC_Link_Conditions` Check Set contains the metadata, legacy Apex, and structured Apex Checks
-used by the merge/link contract. Seed its seven deterministic Account records and verify the exact
-21-result matrix against an existing source org:
+used by the merge/link contract. Seed its nine deterministic Account records and verify the exact
+27-result matrix against an existing source org:
 
 ```bash
 sf apex run \
@@ -151,6 +151,43 @@ reason codes, a malformed 1/2/3 grouped display, unsafe-link activation, or an i
 PASS→FAIL→PASS transition fails the command. The transition restores the original employee count in
 an Apex `finally` block. Passing evidence is written beneath the ignored `reports/url-story/`
 directory.
+
+The `RHC Link Numeric Host` and `RHC Link Healthy Numeric Host` records use
+`https://2147483648.1.1.1/path` to exercise numeric-host overflow. Their three Checks must remain
+FAIL and PASS respectively. In the metadata Check, “Approval guide” must remain visible as plain
+text with no destination. Replacing Website with `https://example.com/approvals` must restore the
+link without changing the verdict. `RHCLinkFixtureTest.numericHostFallbackPreservesFixtureVerdicts`
+automates the rejected-destination case with the existing Check Set and Checks.
+
+The separate `RHC_Link_Grammar` Check Set supplies `RHC_Link_Grammar_Valid` and
+`RHC_Link_Grammar_Open`. The second deliberately omits the final `}` from its Failure Message,
+after both attribute quotes have closed. `RHCLinkFixtureTest.savedMissingBraceIsRejectedAndRecovers`
+loads the saved definitions, checks `INLINE_LINK_MALFORMED`, accepts the valid partner, and verifies
+that appending exactly `}` to a detached copy restores validation. The parser regression also
+covers reversed attributes, nested value tokens, trailing whitespace, and a preceding text prefix.
+`RHCLinkFixtureTest.missingBraceStopsBothHealthyAndFailingRecords` runs both saved Checks against
+Accounts with Site `RHC_LINK_FIXTURE`, Website `https://example.com/approvals`, and Number of Employees
+0 or 1. The valid Check must return PASS and FAIL respectively; the malformed Check must return
+UNABLE_TO_EVALUATE with INVALID_CONFIG for both. Configuration validation provides the more specific
+INLINE_LINK_MALFORMED issue. These fixtures do not change the URL-story result matrix.
+`RHCInvalidDisplayIsolationTest` also runs the malformed Check independently through the public
+single-Check API and both card controller adapters. The paired Set alone is insufficient: its valid
+sibling can load relationships that hide missing field planning in the malformed Check. The test
+covers invalid configuration, incomplete formula planning, unresolved fields, and denied fields;
+these outcomes retain their unavailable reason and access redaction without rendering templates
+against unplanned fields. Plain messages remain available; unresolved message markup uses the
+standard unavailable fallback.
+
+For administrator verification after deploying integration metadata, inspect the two Checks under
+**Manage Records** for Record Health Check. Compare their Failure Messages: the open fixture ends
+with `href="/lightning"`; the valid fixture ends with `href="/lightning"}`. Clone the open Check into
+a disposable Check Set, validate it, append `}` and validate again. Expect the malformed-link issue
+to disappear. Keep the original intentionally invalid fixture unchanged and delete the disposable
+copy after verification. To verify the card, assign `RHC_Link_Grammar` to a disposable Account record
+page and use the two Account inputs above. Run the card and compare all four outcomes. On the
+disposable repaired Check, restoring `}` must allow the employee-count PASS/FAIL result again.
+Automated coverage includes saved configuration, a detached repair, isolated controller paths,
+and both record outcomes. Record persistent org and browser results in the release evidence.
 
 After assigning the URL-story Check Set to an Account record page, run the real-browser contract:
 
@@ -256,6 +293,37 @@ Subscriber demo orgs use `npm run setup` and seed data from `scripts/subscriber/
 [scratch-org setup guide](../../../docs/install/install-demo-in-a-scratch-org.md) for the complete
 subscriber demo scenario.
 
+## Definition-failure attribution fixture
+
+The inactive `RHC_SP_Definition_Throws` Check belongs to `RHC_SP_Definition_Invalid`.
+Its integration-only `RHCInvalidDefinitionFixturePlugin` throws during definition discovery.
+It must never reach business evaluation. Keep it inactive outside this verification exercise.
+
+After deploying source and integration metadata to an authorized development org, run
+`RHCDefinitionFindingFixtureTest.definitionFailureKeepsItsReasonAndField`. The test reads the
+actual Check metadata, calls metadata validation and runtime evaluation, and requires
+`PLUGIN_DEFINITION_INVALID` on both paths. Metadata validation must attribute the issue to
+`ApexParametersJson__c` with the specific definition explanation; runtime must return
+`UNABLE_TO_EVALUATE`. The plugin's evaluation counter must remain zero.
+
+For manual source verification, inspect the Check in the existing Check Set list view and run
+the following through Apex Execute Anonymous, qualifying package types with the installed namespace
+when needed:
+
+```apex
+System.debug(JSON.serializePretty(
+    new RecordHealthCheckMetadataValidator().validateCheck(
+        Record_Health_Check__mdt.getInstance('RHC_SP_Definition_Throws')
+    )
+));
+```
+
+Inspect the returned issues in the debug log: the definition issue must identify
+`PLUGIN_DEFINITION_INVALID` and `ApexParametersJson__c`, rather than a fieldless generic error.
+The intentionally failing definition is fixture code; repair a real provider's definition in Apex
+rather than attempting to fix that exception by editing valid JSON. Existing `RHC_SP_Definition`
+fixtures retain the ordinary PASS/FAIL/SKIPPED/UNABLE scenarios for a working provider.
+
 ## Related
 
 - [Source development](../../../docs/contributing/source-development.md)
@@ -266,5 +334,55 @@ subscriber demo scenario.
 
 [Card heading fixtures](card-heading-display.md) provide 28 Check Sets with paired employee-count
 Checks, including body-only cards, all valid button/run combinations and isolated negative cases.
-The field and fixture source exist; runtime heading implementation and org/browser evidence remain
-pending. Use the linked scenario procedures and offline fixture guard.
+The field, definition transport, validation and LWC heading rendering are implemented in source.
+The org/browser evidence remains pending. Use the linked scenario procedures and offline fixture guard.
+
+## Evidence projection regression fixtures
+
+`RHC_Evidence_Projection` contains four integration-only Apex Checks backed by
+`RHCEvidenceFixturePlugin`. Create two disposable Accounts with Site `RHC_EVIDENCE_FIXTURE` and
+Number of Employees 0 and 1. The first must PASS and the second must FAIL for every Check. Evidence
+presentation must not change those verdicts.
+
+| Check                        | Expected evidence                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `RHC_Evidence_Typed_Null`    | COMPLETE; one NUMBER column and one null cell.                                                                                                         |
+| `RHC_Evidence_Wrong_Null`    | UNKNOWN; zero rows, no columns, and “Details unavailable.” A STRING null under NUMBER is deliberately invalid.                                         |
+| `RHC_Evidence_Malformed_Row` | UNKNOWN; zero rows, no columns, and “Details unavailable.” The wrong-width sibling invalidates the whole envelope.                                     |
+| `RHC_Evidence_Cross_Record`  | UNKNOWN; current and other authorized scope rows remain in order; out-of-scope and invalid-field rows disappear. Total and omitted counts remain null. |
+
+`RHCEvidenceFixtureTest` evaluates each saved Check with both Account IDs through
+`RecordHealthCheck.evaluate`, using EVALUATION_WITH_DISPLAY and disabling event publication.
+Its assertions cover all eight business results, typed null preservation, malformed-summary removal,
+authorized cross-record rows, and redacted counts. `RHCControllerEvidenceTransportTest` additionally
+checks the card JSON adapter, preserving the one-column null row and runner authorization. On a single-record card, the cross-record fixture
+has only the current authorized row; a two-record request is needed to verify the second row.
+
+After deploying integration metadata, use the `RHC_Evidence_Projection` administrator list view to
+inspect the four Checks. Assign the Set to a disposable Account page and run the card on both
+records. Inspect the evidence details against the table, accounting for the single-record scope.
+For recovery, change Number of Employees from 1 to 0 and rerun: the verdict must become PASS while
+the same evidence-validity rules remain. Delete the disposable Accounts/page assignment afterward;
+retain the intentionally malformed integration definitions. Record the actual persistent and browser
+results in the release evidence. The separate exact byte-boundary fixtures are described below; these four Checks do not claim that coverage.
+
+### Exact evidence byte boundaries
+
+`RHC_Evidence_Bytes_Complete`, `RHC_Evidence_Bytes_Truncated`, and `RHC_Evidence_Bytes_Unknown`
+are separate one-Check Sets, each with a same-named Check and administrator list view. Their plugin
+constructs 20 STRING columns, 12 full multibyte rows, and a final partial row. It includes the actual
+run, Check and record identities plus final count/completeness fields when sizing the candidate
+JSON envelope to exactly 262,145 UTF-8 bytes. Valid cells remain within their individual limits.
+The TRUNCATED case adds empty authorized rows to reach 101; UNKNOWN adds denied provenance.
+
+Use one Account with Site `RHC_EVIDENCE_FIXTURE` and Number of Employees 0, then change the count to 1.
+Run one byte Set at a time on the card. Expect PASS then FAIL, with 12 returned evidence rows in both
+runs. COMPLETE and TRUNCATED candidates must report TRUNCATED after trimming, with total/omitted
+counts 13/1 and 101/89 respectively. UNKNOWN must retain UNKNOWN and null total/omitted counts.
+Every final envelope must fit within 262,144 bytes. Keep these Sets separate: combining large
+payloads would also exercise the shared response budget and obscure the individual boundary.
+
+`RHCEvidenceByteFixtureTest` verifies the saved fixture plugin at the projector boundary and through
+the public evaluation API, separately for PASS and FAIL. Both layers matter: the shared response
+allocator is another safeguard and could mask a projector-only overflow. Record browser rendering and
+persistent administrator results separately; the automated tests are the byte-count authority.

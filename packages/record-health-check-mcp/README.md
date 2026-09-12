@@ -12,6 +12,15 @@ MCP prompts, record mutation, or event-publication controls.
 For an administrator-friendly deployment walkthrough with a successful and rejection test for every
 security gate, use [Deploy the MCP service one security gate at a time](../../docs/developer-guides/agentforce-and-mcp/deploy-mcp-service.md).
 
+## Response contract and service version
+
+Tool discovery advertises the same strict alternatives used to validate Salesforce responses:
+a completed single Check, a completed Check Set with all five counts, or a failure with a safe
+error category and message. Unknown and contradictory fields are rejected. Count totals and
+count-derived status are additionally checked at runtime; JSON Schema discovery does not express
+that arithmetic. The initialization version identifies this service package (currently 0.1.0),
+separately from the agent-tool payload contract version 1.0.
+
 ## Security model
 
 Inbound clients use JWT bearer authentication in production. The verifier checks the signature,

@@ -515,7 +515,11 @@ private class RHCSubscriberSmokeTest {
       rhc.RecordHealthCheckRequest.forCheckSet(checkSetName, accountRecord.Id)
     );
 
-    System.assertEquals(1, response.results.size());
+    System.assertEquals(
+      1,
+      response.results.size(),
+      'A single-record subscriber Check Set must return exactly one result.'
+    );
     System.assertEquals(
       'PASS',
       response.results[0].evaluation.status,
@@ -524,7 +528,8 @@ private class RHCSubscriberSmokeTest {
     );
     System.assertEquals(
       'SUBSCRIBER_PLUGIN_PASS',
-      response.results[0].evaluation.reasonCode
+      response.results[0].evaluation.reasonCode,
+      'The unmanaged subscriber plugin must supply its own success reason across the namespace boundary.'
     );
   }
 

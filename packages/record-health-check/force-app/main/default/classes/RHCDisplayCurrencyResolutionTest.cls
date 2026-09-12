@@ -212,7 +212,8 @@ private class RHCDisplayCurrencyResolutionTest {
           outerRow,
           null,
           'Account.AnnualRevenue'
-        )
+        ),
+        'An unresolved relationship currency must remain unknown.'
       );
       return;
     }

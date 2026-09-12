@@ -10,7 +10,7 @@ const trackedConfig = fs.readFileSync("code-analyzer.yml", "utf8");
 
 test("accepts the exact tracked security suppression allowlist", () => {
   assert.deepEqual(codeAnalyzerSuppressionErrors(trackedConfig), []);
-  assert.equal(EXPECTED_CODE_ANALYZER_SUPPRESSIONS.size, 6);
+  assert.equal(EXPECTED_CODE_ANALYZER_SUPPRESSIONS.size, 7);
 });
 
 test("rejects an additional suppression path", () => {
@@ -44,5 +44,23 @@ test("rejects a widened Flow false-positive allowance", () => {
   assert.match(
     codeAnalyzerSuppressionErrors(widened).join("\n"),
     /must cap suppressed violations at exactly 24/
+  );
+});
+
+test("readiness pass-count exception remains a single numeric-field false positive", () => {
+  const field =
+    "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Readiness__c/fields/PassCount__c.field-meta.xml";
+  assert.deepEqual(EXPECTED_CODE_ANALYZER_SUPPRESSIONS.get(field), {
+    rule: "pmd:ProtectSensitiveData",
+    maximum: 1
+  });
+  assert.match(fs.readFileSync(field, "utf8"), /<type>Number<\/type>/);
+  const widened = trackedConfig.replace(
+    `"${field}":\n    - rule_selector: "pmd:ProtectSensitiveData"\n      max_suppressed_violations: 1`,
+    `"${field}":\n    - rule_selector: "pmd:ProtectSensitiveData"\n      max_suppressed_violations: 2`
+  );
+  assert.match(
+    codeAnalyzerSuppressionErrors(widened).join("\n"),
+    /PassCount__c.*exactly 1/
   );
 });

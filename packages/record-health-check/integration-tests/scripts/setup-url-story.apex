@@ -48,5 +48,17 @@ insert new List<Account>{
     Site = 'RHC_LINK_FIXTURE',
     NumberOfEmployees = 0,
     Website = 'http://example.com/approvals'
+  ),
+  new Account(
+    Name = 'RHC Link Numeric Host',
+    Site = 'RHC_LINK_FIXTURE',
+    NumberOfEmployees = 1,
+    Website = 'https://2147483648.1.1.1/path'
+  ),
+  new Account(
+    Name = 'RHC Link Healthy Numeric Host',
+    Site = 'RHC_LINK_FIXTURE',
+    NumberOfEmployees = 0,
+    Website = 'https://2147483648.1.1.1/path'
   )
 };

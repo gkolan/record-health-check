@@ -11,11 +11,11 @@ later, and where the result goes. Record Health Check does not save ordinary run
 
 ## Configuration and verification entry points
 
-| Entry point | What enters Record Health Check | What comes back or changes | Important boundary |
-| --- | --- | --- | --- |
-| Salesforce Setup | Saved Check Set and Check Custom Metadata | Inactive or active configuration | Save AI drafts inactive; Setup does not prove runtime behavior. |
-| Metadata deployment | Version-controlled Custom Metadata and any Apex plugin | Deployed configuration and code | Deployment success is not business approval or outcome verification. |
-| Validate Record Health Check Configuration Flow action | Saved active and inactive configuration | Valid flag, counts, and structured JSON findings | This audits configuration; it does not run the business outcomes. |
+| Entry point                                                                | What enters Record Health Check                                                 | What comes back or changes                                                          | Important boundary                                                                       |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Salesforce Setup                                                           | Saved Check Set and Check Custom Metadata                                       | Inactive or active configuration                                                    | Save AI drafts inactive; Setup does not prove runtime behavior.                          |
+| Metadata deployment                                                        | Version-controlled Custom Metadata and any Apex plugin                          | Deployed configuration and code                                                     | Deployment success is not business approval or outcome verification.                     |
+| Validate Record Health Check Configuration Flow action                     | Saved active and inactive configuration                                         | Valid flag, counts, and structured JSON findings                                    | This audits configuration; it does not run the business outcomes.                        |
 | Record Health Check Preview component or `RecordHealthCheckPreviewService` | One detached Check, an existing parent Check Set, and representative record IDs | Findings, capabilities, optional execution results, and optional readiness evidence | Preview publishes no result or error-log events and does not save or activate the Check. |
 
 Use [Validate and preview an AI draft](./validate-and-preview-an-ai-draft.md) for the exact Preview
@@ -24,14 +24,14 @@ Check Set, mode, and record scope. It is not ordinary result history and is not 
 
 ## Runtime entry points
 
-| Runtime caller | Selection and timing | Immediate return | Where health outcomes go |
-| --- | --- | --- | --- |
-| Lightning record card | One configured Check Set on one record; page-load or explicit Run/Rerun | Rendered card rows, summary, actions, and permitted diagnostics | The browser only, unless an explicit Run/Rerun uses enabled user-result publication. Page-load and refresh-driven runs never publish result events. |
-| Flow actions | One Check or one Check Set per input; synchronous within the Flow transaction | Success/error channel, status, reason or counts, and evaluation JSON | The Flow should branch on the returned fields. Select event publication only for a separate consumer. |
-| Public Apex API | One Check or one Check Set for a bounded record list; synchronous | Typed `RecordHealthCheckResponse`, with evaluation, optional display, or summary mode | The caller can act on or save the response. Event publication is optional and independent of the returned response. |
-| `RecordHealthCheckQueueable` | One Check Set for known record IDs; asynchronous | `AsyncApexJob` ID when accepted | The packaged job does not return outcomes to its submitter. Publish events, use a custom Queueable that saves the typed response, or accept transient outcomes. |
-| `RecordHealthCheckBatch` | One Check Set over a bounded known population, split across transactions | `AsyncApexJob` ID when accepted | The packaged Batch can publish events. A custom Batch can save returned results during `execute`; otherwise the outcomes are transient. |
-| `RecordHealthCheckScheduled` | One Check Set and a fixed record-ID population captured when scheduled; later delegates to Batch | `CronTrigger` schedule ID | Follow the later Batch job and its configured event or subscriber-owned persistence path. Newly qualifying records are not discovered automatically. |
+| Runtime caller               | Selection and timing                                                                             | Immediate return                                                                      | Where health outcomes go                                                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lightning record card        | One configured Check Set on one record; page-load or explicit Run/Rerun                          | Rendered card rows, summary, actions, and permitted diagnostics                       | The browser only, unless an explicit Run/Rerun uses enabled user-result publication. Page-load and refresh-driven runs never publish result events.             |
+| Flow actions                 | One Check or one Check Set per input; synchronous within the Flow transaction                    | Success/error channel, status, reason or counts, and evaluation JSON                  | The Flow should branch on the returned fields. Select event publication only for a separate consumer.                                                           |
+| Public Apex API              | One Check or one Check Set for a bounded record list; synchronous                                | Typed `RecordHealthCheckResponse`, with evaluation, optional display, or summary mode | The caller can act on or save the response. Event publication is optional and independent of the returned response.                                             |
+| `RecordHealthCheckQueueable` | One Check Set for known record IDs; asynchronous                                                 | `AsyncApexJob` ID when accepted                                                       | The packaged job does not return outcomes to its submitter. Publish events, use a custom Queueable that saves the typed response, or accept transient outcomes. |
+| `RecordHealthCheckBatch`     | One Check Set over a bounded known population, split across transactions                         | `AsyncApexJob` ID when accepted                                                       | The packaged Batch can publish events. A custom Batch can save returned results during `execute`; otherwise the outcomes are transient.                         |
+| `RecordHealthCheckScheduled` | One Check Set and a fixed record-ID population captured when scheduled; later delegates to Batch | `CronTrigger` schedule ID                                                             | Follow the later Batch job and its configured event or subscriber-owned persistence path. Newly qualifying records are not discovered automatically.            |
 
 Use a Check Set rather than a single Check whenever sibling prerequisites or the complete assessment
 matter. Single-Check Lightning, Flow, and Apex calls do not enforce the selected Check's sibling
@@ -43,16 +43,16 @@ the actual interactive user or automation principal, including restriction and s
 
 ## Exit points and ownership
 
-| Exit | Contract | Owner and recovery decision |
-| --- | --- | --- |
-| Lightning display | Human-readable status, messages, values, links, and optional diagnostics | Product owner approves wording; administrator tests the real page and user. |
-| Flow outputs | Machine status/counts plus evaluation JSON; faults use a separate Flow fault path | Flow owner handles every health status and connects the fault path. |
-| Apex response | Typed results, summary, and optional authorized display data; request/authorization failures can throw | Apex owner handles business results separately from exceptions and avoids logging restricted data. |
-| Async job and schedule IDs | Salesforce platform execution state, not health outcome state | Automation owner monitors Apex Jobs/Scheduled Jobs and separately proves where outcomes went. |
-| Check Result and Check Set Run Platform Events | Optional public lifecycle results published after commit | Integration owner provides idempotency through the event's application Event ID, retention, retry, access, allocation, and receiver monitoring. |
-| Record Health Check Log Platform Event | Optional restricted `ERROR` diagnostics | Security/operations owner limits publisher and subscriber access and protects any stored copy. |
-| Preview readiness receipt | Private, immutable, expiring verification evidence | Release owner decides whether evidence is required and cleans up expired receipts. |
-| Subscriber-owned records or external storage | Organization-defined durable history | The subscriber owns schema, CRUD/FLS, retention, deduplication, partial-save recovery, and reporting. |
+| Exit                                           | Contract                                                                                               | Owner and recovery decision                                                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lightning display                              | Human-readable status, messages, values, links, and optional diagnostics                               | Product owner approves wording; administrator tests the real page and user.                                                                     |
+| Flow outputs                                   | Machine status/counts plus evaluation JSON; faults use a separate Flow fault path                      | Flow owner handles every health status and connects the fault path.                                                                             |
+| Apex response                                  | Typed results, summary, and optional authorized display data; request/authorization failures can throw | Apex owner handles business results separately from exceptions and avoids logging restricted data.                                              |
+| Async job and schedule IDs                     | Salesforce platform execution state, not health outcome state                                          | Automation owner monitors Apex Jobs/Scheduled Jobs and separately proves where outcomes went.                                                   |
+| Check Result and Check Set Run Platform Events | Optional public lifecycle results published after commit                                               | Integration owner provides idempotency through the event's application Event ID, retention, retry, access, allocation, and receiver monitoring. |
+| Record Health Check Log Platform Event         | Optional restricted `ERROR` diagnostics                                                                | Security/operations owner limits publisher and subscriber access and protects any stored copy.                                                  |
+| Preview readiness receipt                      | Private, immutable, expiring verification evidence                                                     | Release owner decides whether evidence is required and cleans up expired receipts.                                                              |
+| Subscriber-owned records or external storage   | Organization-defined durable history                                                                   | The subscriber owns schema, CRUD/FLS, retention, deduplication, partial-save recovery, and reporting.                                           |
 
 Platform Event acceptance does not prove receiver delivery. A receiver failure cannot change the
 already completed health result. With publication `NONE` and no subscriber-owned saving,

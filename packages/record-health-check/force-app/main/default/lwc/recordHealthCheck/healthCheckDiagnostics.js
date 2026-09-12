@@ -145,7 +145,9 @@ export function setupErrorHint(reasonCode) {
 
 /** Build the optional inactive-Check summary shown to diagnostics users. */
 export function buildInactiveCheckStat(showDiagnostics, count, labels) {
-  if (!showDiagnostics || count < 1) return null;
+  if (!showDiagnostics || count < 1) {
+    return null;
+  }
   const names = labels || [];
   const undisclosed = count - names.length;
   const listed = undisclosed > 0 ? [...names, `+${undisclosed} more`] : names;
@@ -186,13 +188,21 @@ export function formatRunSummary(checks) {
     }
   }
   const parts = [];
-  if (counts.PASS) parts.push(`${counts.PASS} Passed`);
-  if (counts.FAIL) parts.push(`${counts.FAIL} Failed`);
-  if (counts.SKIPPED) parts.push(`${counts.SKIPPED} Skipped`);
+  if (counts.PASS) {
+    parts.push(`${counts.PASS} Passed`);
+  }
+  if (counts.FAIL) {
+    parts.push(`${counts.FAIL} Failed`);
+  }
+  if (counts.SKIPPED) {
+    parts.push(`${counts.SKIPPED} Skipped`);
+  }
   if (counts.UNABLE_TO_EVALUATE) {
     parts.push(`${counts.UNABLE_TO_EVALUATE} Unable`);
   }
-  if (counts.ERROR) parts.push(`${counts.ERROR} Error`);
+  if (counts.ERROR) {
+    parts.push(`${counts.ERROR} Error`);
+  }
   const outcome =
     parts.length > 0 ? parts.join(", ") : `${checks.length} checks`;
   const timing = totalMs > 0 ? ` · ${totalMs}ms total` : "";
@@ -237,7 +247,9 @@ export function diagnosticNextSteps(checks) {
 
 /** Build the copy-safe support report for one authorized incident. */
 export function safeIncidentReport(incident) {
-  if (!incident) return null;
+  if (!incident) {
+    return null;
+  }
   return {
     contractVersion: incident.contractVersion,
     diagnosticId: incident.diagnosticId,
@@ -303,7 +315,9 @@ export function supportCheckDiagnosticsReport(diagnostics, check) {
 
 /** Parse a diagnostics JSON field without allowing malformed server detail to break logging. */
 export function parseDiagnosticJson(value) {
-  if (!value) return {};
+  if (!value) {
+    return {};
+  }
   try {
     const parsed = JSON.parse(value);
     return parsed && typeof parsed === "object" ? parsed : {};

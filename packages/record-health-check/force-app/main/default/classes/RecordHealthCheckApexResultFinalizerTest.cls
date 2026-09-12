@@ -58,7 +58,11 @@ private class RecordHealthCheckApexResultFinalizerTest {
       new RecordHealthCheckFormulaEvaluator()
     );
 
-    Assert.areEqual('ERROR', result.status);
+    Assert.areEqual(
+      'ERROR',
+      result.status,
+      'An 81-character plugin reason must become a contained error.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID,
       result.reasonCode,
@@ -83,8 +87,16 @@ private class RecordHealthCheckApexResultFinalizerTest {
       new RecordHealthCheckFormulaEvaluator()
     );
 
-    Assert.areEqual(RecordHealthCheckStatus.SKIPPED, result.status);
-    Assert.areEqual(80, result.reasonCode.length());
+    Assert.areEqual(
+      RecordHealthCheckStatus.SKIPPED,
+      result.status,
+      'A reason at the 80-character wire limit must preserve the skipped outcome.'
+    );
+    Assert.areEqual(
+      80,
+      result.reasonCode.length(),
+      'A reason at the wire limit must be retained without truncation.'
+    );
   }
 
   @IsTest
@@ -108,7 +120,11 @@ private class RecordHealthCheckApexResultFinalizerTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('Configured unable', result.message);
+    Assert.areEqual(
+      'Configured unable',
+      result.message,
+      'An unable plugin outcome must use the configured unable message.'
+    );
   }
 
   @IsTest
@@ -132,6 +148,10 @@ private class RecordHealthCheckApexResultFinalizerTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('Configured skipped', result.message);
+    Assert.areEqual(
+      'Configured skipped',
+      result.message,
+      'A skipped plugin outcome must use the configured applicability message.'
+    );
   }
 }

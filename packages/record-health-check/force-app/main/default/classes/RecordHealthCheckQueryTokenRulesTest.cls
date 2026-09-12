@@ -95,7 +95,8 @@ private class RecordHealthCheckQueryTokenRulesTest {
           'SELECT Id, (SELECT Id FROM Contacts) FROM Account ORDER BY Id',
           '{!rhcQuery.sourceRows[0].Name}'
         )
-      )
+      ),
+      'A nested projection must be rejected before resolving an indexed row field.'
     );
     Assert.areEqual(
       'QUERY_FIELD_NOT_SELECTED',
@@ -104,7 +105,8 @@ private class RecordHealthCheckQueryTokenRulesTest {
           'SELECT Id FROM Contact ORDER BY Id',
           '{!rhcQuery.sourceRows[0].LastName}'
         )
-      )
+      ),
+      'A field absent from the projection must retain the not-selected reason.'
     );
     Assert.areEqual(
       null,
@@ -113,7 +115,8 @@ private class RecordHealthCheckQueryTokenRulesTest {
           'SELECT Id, LastName FROM Contact ORDER BY LastName',
           '{!rhcQuery.sourceRows[0].LastName}'
         )
-      )
+      ),
+      'A selected and ordered LastName field must be accepted.'
     );
     Assert.areEqual(
       null,
@@ -275,7 +278,11 @@ private class RecordHealthCheckQueryTokenRulesTest {
     );
 
     if (RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()) {
-      Assert.areEqual('FIXED_CURRENCY_BASIS_MISSING', codeFor(amount));
+      Assert.areEqual(
+        'FIXED_CURRENCY_BASIS_MISSING',
+        codeFor(amount),
+        'Multicurrency amounts require an explicit fixed currency basis.'
+      );
       Assert.areEqual(
         'FIXED_CURRENCY_BASIS_MISSING',
         codeFor(autoAmount),
@@ -286,7 +293,10 @@ private class RecordHealthCheckQueryTokenRulesTest {
         codeFor(amount),
         'One currency in the org means there is nothing to state.'
       );
-      Assert.isNull(codeFor(autoAmount));
+      Assert.isNull(
+        codeFor(autoAmount),
+        'AUTO currency needs no additional basis in a single-currency org.'
+      );
     }
   }
 
@@ -406,7 +416,8 @@ private class RecordHealthCheckQueryTokenRulesTest {
           'SELECT Id, ' + encryptedField + ' FROM Account ORDER BY Id',
           '{!rhcQuery.sourceRows[0].' + encryptedField + '}'
         )
-      )
+      ),
+      'An encrypted selected field must retain the unsupported-type reason.'
     );
   }
 
@@ -422,7 +433,8 @@ private class RecordHealthCheckQueryTokenRulesTest {
       );
       Assert.areEqual(
         RecordHealthCheckReasonCodes.FIELD_TYPE_NOT_SUPPORTED,
-        issue?.reasonCode
+        issue?.reasonCode,
+        'The injected unsupported field type must retain its specific validation reason.'
       );
       Assert.isTrue(
         issue.message.contains('encrypted field'),

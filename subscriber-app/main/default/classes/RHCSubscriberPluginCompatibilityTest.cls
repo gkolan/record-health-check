@@ -103,8 +103,20 @@ private class RHCSubscriberPluginCompatibilityTest {
     String expectedStatus,
     String expectedReason
   ) {
-    System.assertNotEquals(null, result);
-    System.assertEquals(expectedStatus, result.status);
-    System.assertEquals(expectedReason, result.reasonCode);
+    System.assertNotEquals(
+      null,
+      result,
+      'The subscriber facade must return a result for each requested record.'
+    );
+    System.assertEquals(
+      expectedStatus,
+      result.status,
+      'The subscriber result must retain the expected business status.'
+    );
+    System.assertEquals(
+      expectedReason,
+      result.reasonCode,
+      'The subscriber result must retain the plugin reason code.'
+    );
   }
 }

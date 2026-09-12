@@ -97,7 +97,11 @@ private class RHCQueryClassificationRedTest {
       );
       Assert.fail('Malformed runtime SOQL must be classified.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'An invalid projection must report INVALID_SOQL_TEMPLATE.'
+      );
     }
   }
 
@@ -128,8 +132,14 @@ private class RHCQueryClassificationRedTest {
     );
     Test.stopTest();
 
-    Assert.isNull(blankSelection);
-    Assert.isNull(absentRootSelection);
+    Assert.isNull(
+      blankSelection,
+      'A blank selection must not resolve a field.'
+    );
+    Assert.isNull(
+      absentRootSelection,
+      'An absent root selection must not resolve a field.'
+    );
     Assert.isFalse(
       RecordHealthCheckSoqlTemplate.hasMultipleOuterAggregateValues(null),
       'A blank query has no aggregate values.'

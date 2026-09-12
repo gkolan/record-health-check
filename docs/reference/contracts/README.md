@@ -2,8 +2,8 @@
 
 Use this folder for versioned boundaries that integrations must implement exactly.
 
-| Contract | Reference |
-| --- | --- |
+| Contract                                                | Reference                                       |
+| ------------------------------------------------------- | ----------------------------------------------- |
 | Agentforce, REST, and MCP request and response boundary | [Agent tool contract](./agent-tool-contract.md) |
 
 ## Related

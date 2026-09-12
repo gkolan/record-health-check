@@ -19,32 +19,32 @@ Want the complete learning sequence? Open the [step-by-step guide](./step-by-ste
 
 ## Pick your task
 
-| Folder | Go here when you want to… |
-| --- | --- |
-| [Start here](./start-here/README.md) | Understand what Record Health Check does and choose your next task |
-| [Step-by-step guide](./step-by-step-guide/README.md) | Follow the complete sequence from installation to a working Check |
-| [Install](./install/README.md) | Install in a sandbox, install the demo in a scratch org, choose a version, upgrade, or uninstall |
-| [Frequently asked questions](./faqs/README.md) | Find direct answers about use, setup, security, operations, and code |
-| [Build Checks](./build-checks/README.md) | Choose an Evaluation Type and configure Check Sets and Checks |
-| [Examples](./examples/README.md) | Copy a complete Formula, Query, Compare Two Queries, or Apex pattern |
-| [Lightning record page](./lightning-record-page/README.md) | Configure and activate the Record Health Check component |
-| [Flow guides](./flow-guides/README.md) | Run a Check or Check Set from Flow and branch on its result |
-| [Save results](./save-results/README.md) | Send results to another process or save history with Platform Events |
-| [Diagnostics](./diagnostics/browser-console.md) | Investigate browser-console evidence or Salesforce debug logs |
-| [Production operations](./production-operations/README.md) | Back up configuration and operate the package after go-live |
-| [Architecture](./architecture/README.md) | Understand framework structure, security boundaries, data relationships, and Apex implementation |
-| [Reference](./reference/README.md) | Find the complete feature catalog, statuses, contracts, limits, merge syntax, and exact evaluation rules |
-| [Developer guides](./developer-guides/README.md) | Use Apex, asynchronous execution, Agentforce, MCP, or Pub/Sub |
-| [Contributing](./contributing/README.md) | Change, test, document, or review the package source |
+| Folder                                                     | Go here when you want to…                                                                                |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| [Start here](./start-here/README.md)                       | Understand what Record Health Check does and choose your next task                                       |
+| [Step-by-step guide](./step-by-step-guide/README.md)       | Follow the complete sequence from installation to a working Check                                        |
+| [Install](./install/README.md)                             | Install in a sandbox, install the demo in a scratch org, choose a version, upgrade, or uninstall         |
+| [Frequently asked questions](./faqs/README.md)             | Find direct answers about use, setup, security, operations, and code                                     |
+| [Build Checks](./build-checks/README.md)                   | Choose an Evaluation Type and configure Check Sets and Checks                                            |
+| [Examples](./examples/README.md)                           | Copy a complete Formula, Query, Compare Two Queries, or Apex pattern                                     |
+| [Lightning record page](./lightning-record-page/README.md) | Configure and activate the Record Health Check component                                                 |
+| [Flow guides](./flow-guides/README.md)                     | Run a Check or Check Set from Flow and branch on its result                                              |
+| [Save results](./save-results/README.md)                   | Send results to another process or save history with Platform Events                                     |
+| [Diagnostics](./diagnostics/browser-console.md)            | Investigate browser-console evidence or Salesforce debug logs                                            |
+| [Production operations](./production-operations/README.md) | Back up configuration and operate the package after go-live                                              |
+| [Architecture](./architecture/README.md)                   | Understand framework structure, security boundaries, data relationships, and Apex implementation         |
+| [Reference](./reference/README.md)                         | Find the complete feature catalog, statuses, contracts, limits, merge syntax, and exact evaluation rules |
+| [Developer guides](./developer-guides/README.md)           | Use Apex, asynchronous execution, Agentforce, MCP, or Pub/Sub                                            |
+| [Contributing](./contributing/README.md)                   | Change, test, document, or review the package source                                                     |
 
 ## Choose how to build a Check
 
-| The required data is… | Evaluation Type | Start here |
-| --- | --- | --- |
-| On the current record or a parent | Formula | [Formula examples](./examples/formula/README.md) |
-| On related records | Query | [Query examples](./examples/query/README.md) |
+| The required data is…                       | Evaluation Type     | Start here                                                               |
+| ------------------------------------------- | ------------------- | ------------------------------------------------------------------------ |
+| On the current record or a parent           | Formula             | [Formula examples](./examples/formula/README.md)                         |
+| On related records                          | Query               | [Query examples](./examples/query/README.md)                             |
 | Returned by two lists that must be compared | Compare Two Queries | [Compare Two Queries examples](./examples/compare-two-queries/README.md) |
-| Part of a decision that needs code | Apex | [Apex examples](./examples/apex/README.md) |
+| Part of a decision that needs code          | Apex                | [Apex examples](./examples/apex/README.md)                               |
 
 ## Important behavior
 

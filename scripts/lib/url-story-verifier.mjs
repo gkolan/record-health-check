@@ -178,3 +178,9 @@ export function assertUrlStoryEvidence(matrix, evidence) {
     );
   }
 }
+
+export function formatUrlStorySummary(matrix) {
+  const records = matrix.records.length;
+  const checks = matrix.checks.length;
+  return `URL story verified: ${records} record${records === 1 ? "" : "s"}, ${checks} Check${checks === 1 ? "" : "s"}, ${matrix.transition.statuses.join("→")}.`;
+}

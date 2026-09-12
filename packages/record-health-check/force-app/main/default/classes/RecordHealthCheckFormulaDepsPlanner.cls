@@ -78,6 +78,28 @@ public with sharing class RecordHealthCheckFormulaDepsPlanner {
       );
       return;
     }
+    expandTokens(
+      result,
+      resolver,
+      baseType,
+      dependency,
+      dependencyPrefix,
+      depth,
+      visited,
+      lexical
+    );
+  }
+
+  private static void expandTokens(
+    Expansion result,
+    RecordHealthCheckFieldPlanner resolver,
+    Schema.SObjectType baseType,
+    RecordHealthCheckFieldPlanner.CalculatedDependency dependency,
+    String dependencyPrefix,
+    Integer depth,
+    Set<String> visited,
+    RecordHealthCheckFormulaTokenizer.Result lexical
+  ) {
     for (RecordHealthCheckFormulaTokenizer.Token token : lexical.tokens) {
       if (token.kind != 'FIELD_PATH' || token.text.startsWith('$')) {
         continue;

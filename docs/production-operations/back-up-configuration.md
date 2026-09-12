@@ -58,13 +58,13 @@ Custom Metadata records through the organization's release process. Validate in 
 
 ## Prove the backup
 
-| Verification | Expected result |
-| --- | --- |
-| Check Set count and Developer Names | Matches the approved source configuration |
-| Check count and Check Set references | Every Check points to an existing Check Set |
-| Active values and order | Match the approved source configuration |
-| Metadata validation | No missing dependency, object mismatch, or invalid field warning |
-| Lightning test | A known passing and known failing record produce the expected rows |
+| Verification                         | Expected result                                                    |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| Check Set count and Developer Names  | Matches the approved source configuration                          |
+| Check count and Check Set references | Every Check points to an existing Check Set                        |
+| Active values and order              | Match the approved source configuration                            |
+| Metadata validation                  | No missing dependency, object mismatch, or invalid field warning   |
+| Lightning test                       | A known passing and known failing record produce the expected rows |
 
 ## Important rollback limit
 

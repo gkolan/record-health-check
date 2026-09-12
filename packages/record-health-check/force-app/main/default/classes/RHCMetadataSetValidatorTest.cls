@@ -82,12 +82,25 @@ private class RHCMetadataSetValidatorTest {
       checkSet
     );
 
-    Assert.areEqual(1, issues.size());
-    Assert.areEqual('CardHeadingDisplay__c', issues[0].fieldName);
-    Assert.areEqual('INVALID_CONFIG', issues[0].reasonCode);
+    Assert.areEqual(
+      1,
+      issues.size(),
+      'An invalid heading must produce exactly one issue.'
+    );
+    Assert.areEqual(
+      'CardHeadingDisplay__c',
+      issues[0].fieldName,
+      'The invalid heading issue must identify CardHeadingDisplay__c.'
+    );
+    Assert.areEqual(
+      'INVALID_CONFIG',
+      issues[0].reasonCode,
+      'The invalid heading issue must retain INVALID_CONFIG.'
+    );
     Assert.areEqual(
       'Card Heading Display is not recognized. Choose TITLE_AND_SUBTITLE, TITLE_ONLY, or HIDE.',
-      issues[0].message
+      issues[0].message,
+      'The invalid heading message must list the exact supported choices.'
     );
   }
 
@@ -101,13 +114,21 @@ private class RHCMetadataSetValidatorTest {
       checkSet
     );
 
-    Assert.areEqual(2, issues.size());
+    Assert.areEqual(
+      2,
+      issues.size(),
+      'Invalid button and heading values must produce two issues.'
+    );
     Assert.areEqual(
       'RunButtonDisplay__c',
       issues[0].fieldName,
       'The established Run Button validation must retain precedence.'
     );
-    Assert.areEqual('CardHeadingDisplay__c', issues[1].fieldName);
+    Assert.areEqual(
+      'CardHeadingDisplay__c',
+      issues[1].fieldName,
+      'The heading issue must follow the button issue.'
+    );
   }
 
   @IsTest

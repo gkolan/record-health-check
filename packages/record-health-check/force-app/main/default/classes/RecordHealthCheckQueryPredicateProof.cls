@@ -1,4 +1,4 @@
-/** Proves a singleton literal constraint from an outer SOQL WHERE expression. */
+/** Proves a singleton three-letter currency literal constraint from an outer SOQL WHERE expression. */
 public with sharing class RecordHealthCheckQueryPredicateProof {
   private static final Pattern FIELD_PATH = Pattern.compile(
     '^[A-Za-z_][A-Za-z0-9_.]*$'
@@ -51,22 +51,7 @@ public with sharing class RecordHealthCheckQueryPredicateProof {
     expression = stripWrappingParentheses(expression.trim());
     List<String> alternatives = splitAtDepthZero(expression, 'OR');
     if (alternatives.size() > 1) {
-      Set<String> common;
-      for (String alternative : alternatives) {
-        Set<String> values = requiredValues(alternative, fieldPath);
-        if (common == null) {
-          common = values;
-        } else {
-          Set<String> intersection = new Set<String>();
-          for (String value : common) {
-            if (values.contains(value)) {
-              intersection.add(value);
-            }
-          }
-          common = intersection;
-        }
-      }
-      return common;
+      return commonAlternativeValues(alternatives, fieldPath);
     }
     List<String> conjuncts = splitAtDepthZero(expression, 'AND');
     if (conjuncts.size() > 1) {
@@ -89,6 +74,28 @@ public with sharing class RecordHealthCheckQueryPredicateProof {
     return equality.matches()
       ? new Set<String>{ equality.group(1).toUpperCase() }
       : new Set<String>();
+  }
+
+  private static Set<String> commonAlternativeValues(
+    List<String> alternatives,
+    String fieldPath
+  ) {
+    Set<String> common;
+    for (String alternative : alternatives) {
+      Set<String> values = requiredValues(alternative, fieldPath);
+      if (common == null) {
+        common = values;
+      } else {
+        Set<String> intersection = new Set<String>();
+        for (String value : common) {
+          if (values.contains(value)) {
+            intersection.add(value);
+          }
+        }
+        common = intersection;
+      }
+    }
+    return common;
   }
 
   private static List<String> splitAtDepthZero(

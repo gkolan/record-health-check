@@ -35,8 +35,16 @@ private with sharing class RHCForeignApexNamespaceIT {
       WHERE DeveloperName = :CHECK_NAME
       LIMIT 1
     ];
-    Assert.areEqual('AUTO', check.FormulaResultType__c);
-    Assert.areEqual(false, check.PublishUserResultEvent__c);
+    Assert.areEqual(
+      'AUTO',
+      check.FormulaResultType__c,
+      'The foreign plugin fixture must retain AUTO formula typing.'
+    );
+    Assert.areEqual(
+      false,
+      check.PublishUserResultEvent__c,
+      'The foreign plugin fixture must disable user-result publication.'
+    );
 
     Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'DLRS foreign namespace proof'
@@ -47,7 +55,11 @@ private with sharing class RHCForeignApexNamespaceIT {
       .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
-    Assert.areEqual(RecordHealthCheckStatus.UNABLE_TO_EVALUATE, result.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      result.status,
+      'A foreign class with the wrong interface must be unable to evaluate.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID,
       result.reasonCode,

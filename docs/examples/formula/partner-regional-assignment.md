@@ -22,19 +22,19 @@ A channel manager is preparing a Partner Account for regional assignment.
 
 ## What you will learn
 
-| Skill | How this example teaches it |
-| --- | --- |
-| Limit when a Check applies | Applicability keeps the Check focused on partner Accounts. |
-| Separate applicability from pass/fail | One formula decides whether to run; another evaluates readiness. |
-| Explain `SKIPPED` correctly | Non-partner Accounts are not failures because the Check does not apply. |
+| Skill                                 | How this example teaches it                                             |
+| ------------------------------------- | ----------------------------------------------------------------------- |
+| Limit when a Check applies            | Applicability keeps the Check focused on partner Accounts.              |
+| Separate applicability from pass/fail | One formula decides whether to run; another evaluates readiness.        |
+| Explain `SKIPPED` correctly           | Non-partner Accounts are not failures because the Check does not apply. |
 
 ## Why use Verify with a formula
 
-| Evaluation Type | Why it fits |
-| --- | --- |
-| **Verify with a formula** | Best fit. Account Type and Billing Country are both on the Account. |
-| **Verify with a query** | Would add query setup for fields the Account formula can already read. |
-| **Verify with Apex** | Would require an Apex class for a picklist and blank-field check. |
+| Evaluation Type           | Why it fits                                                            |
+| ------------------------- | ---------------------------------------------------------------------- |
+| **Verify with a formula** | Best fit. Account Type and Billing Country are both on the Account.    |
+| **Verify with a query**   | Would add query setup for fields the Account formula can already read. |
+| **Verify with Apex**      | Would require an Apex class for a picklist and blank-field check.      |
 
 ## Why not use a Validation Rule
 
@@ -70,57 +70,57 @@ with **Record Health Check Card User**. Adapt separately for Person Account poli
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
 create this Check Set:
 
-| Setup field | Value |
-| --- | --- |
-| **Label** | Account Data Quality |
-| **Record Health Check Set Name** | `Account_Data_Quality` |
-| **Object** | `Account` |
-| **Card Title** | Account Data Quality |
-| **Card Subtitle** | Confirm Partner Accounts have a Billing Country. |
-| **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Show below checks |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show passed count only |
-| **Skipped Checks** | Show each skipped check |
-| **Found/Expected Display** | Show on demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+| Setup field                      | Value                                                             |
+| -------------------------------- | ----------------------------------------------------------------- |
+| **Label**                        | Account Data Quality                                              |
+| **Record Health Check Set Name** | `Account_Data_Quality`                                            |
+| **Object**                       | `Account`                                                         |
+| **Card Title**                   | Account Data Quality                                              |
+| **Card Subtitle**                | Confirm Partner Accounts have a Billing Country.                  |
+| **When Checks Run**              | When the user clicks Run                                          |
+| **Summary Display**              | Show below checks                                                 |
+| **Reveal Mode**                  | One by one                                                        |
+| **Passed Checks**                | Show passed count only                                            |
+| **Skipped Checks**               | Show each skipped check                                           |
+| **Found/Expected Display**       | Show on demand                                                    |
+| **Stop after a system error**    | Unchecked                                                         |
+| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event**       | Unchecked                                                         |
+| **Active**                       | Checked                                                           |
 
 ## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Partner_Has_Billing_Country` |
-| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Partner Has Billing Country |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
-| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Partner Has Billing Country |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a formula |
-| **Pass Condition** | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(BillingCountry))` |
-| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Partner")` |
+| Setup field                | API name                                                                                                                  | Value                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| **Developer Name**         | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                           | `Partner_Has_Billing_Country`  |
+| **Label**                  | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                        | Partner Has Billing Country    |
+| **Check Set**              | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)      | `Account_Data_Quality`         |
+| **Check Title**            | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                              | Partner Has Billing Country    |
+| **Evaluation Type**        | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                  | Verify with a formula          |
+| **Pass Condition**         | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c)       | `NOT(ISBLANK(BillingCountry))` |
+| **Applies To**             | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                 | When a formula is true         |
+| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Partner")`   |
 
 Confirm the `Partner` picklist API value in your org before relying on the applicability formula.
 
 ## Optional configuration
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Requires Billing Country only when Account Type is Partner. |
-| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Completeness |
-| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | Partner account `{!record.Name fallback="this record"}` must have Billing Country set. |
+| Setup field                         | API name                                                                                                                                   | Value                                                                                             |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Requires Billing Country only when Account Type is Partner.                                       |
+| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Completeness                                                                                      |
+| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Critical                                                                                          |
+| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | Partner account `{!record.Name fallback="this record"}` must have Billing Country set.            |
 | **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Partner billing requirements. Confirm the user can read Type and Billing Country. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Enter Billing Country on this Partner Account. |
-| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Edit billing country` |
-| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/edit` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `60` |
-| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked after confirming the `Partner` picklist value |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                       |
+| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Enter Billing Country on this Partner Account.                                                    |
+| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Edit billing country`                                                                            |
+| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/edit`                                                          |
+| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `60`                                                                                              |
+| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked after confirming the `Partner` picklist value                                             |
+| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                         |
 
 The applicability fields in **Configure the Check** create the skip for non-Partner Accounts. Leave
 **Display: Found Formula** and **Display: Expected Formula** blank because the failure message
@@ -131,13 +131,13 @@ not apply.
 
 Formula applicability and the Pass Condition produce these health results and card values:
 
-| Health result or card value | What the user sees |
-| --- | --- |
-| **`PASS`** | A Partner Account passes when Billing Country is populated. |
-| **`FAIL`** | A Partner Account with blank Billing Country shows Needs attention with Critical severity. |
-| **`SKIPPED`** | A non-Partner Account is skipped because the Check does not apply to its regional-assignment process. |
-| **Found** | Blank because **Display: Found Formula** is blank. |
-| **Expected** | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(BillingCountry))`. |
+| Health result or card value | What the user sees                                                                                        |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **`PASS`**                  | A Partner Account passes when Billing Country is populated.                                               |
+| **`FAIL`**                  | A Partner Account with blank Billing Country shows Needs attention with Critical severity.                |
+| **`SKIPPED`**               | A non-Partner Account is skipped because the Check does not apply to its regional-assignment process.     |
+| **Found**                   | Blank because **Display: Found Formula** is blank.                                                        |
+| **Expected**                | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(BillingCountry))`. |
 
 This Check Set uses **Show passed count only** for passed Checks so successful partner requirements do not
 crowd the card. Skipped Checks remain visible because the `SKIPPED` result explains why the Check did
@@ -163,11 +163,11 @@ Before activation, test a Partner Account and a non-Partner Account with the Per
 
 ## Failures and remedies
 
-| What the user sees | What to check |
-| --- | --- |
-| An expected value fails | Confirm the field values, field types, and blank or picklist functions used by the formula. |
-| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition. |
-| **Unable to evaluate** | Confirm the formula syntax and the running user's access to every referenced field. |
+| What the user sees                  | What to check                                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------------- |
+| An expected value fails             | Confirm the field values, field types, and blank or picklist functions used by the formula. |
+| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition.    |
+| **Unable to evaluate**              | Confirm the formula syntax and the running user's access to every referenced field.         |
 
 ## Related
 

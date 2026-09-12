@@ -19,9 +19,21 @@ private class AccountStrategicReadinessCheckTest {
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
-    Assert.areEqual('FAIL', result.status);
-    Assert.areEqual('0', result.actualValue);
-    Assert.areEqual('80', result.expectedValue);
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'An Account meeting no readiness criteria must fail.'
+    );
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'An Account meeting no criteria must score zero.'
+    );
+    Assert.areEqual(
+      '80',
+      result.expectedValue,
+      'The default readiness threshold must remain 80.'
+    );
   }
 
   @IsTest
@@ -43,10 +55,18 @@ private class AccountStrategicReadinessCheckTest {
       new Map<String, Object>{ 'minScore' => 1 }
     );
 
-    Assert.areEqual('PASS', result.status);
+    Assert.areEqual(
+      'PASS',
+      result.status,
+      'A single criterion must pass a threshold of one.'
+    );
     // Values and value source are set on a PASS too so a
     // green row stays auditable through the disclosure.
-    Assert.areEqual('25', result.actualValue);
+    Assert.areEqual(
+      '25',
+      result.actualValue,
+      'A single criterion must report 25 points.'
+    );
   }
 
   @IsTest
@@ -88,9 +108,21 @@ private class AccountStrategicReadinessCheckTest {
     // All four criteria met = 100, clearing the default threshold of 80.
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
-    Assert.areEqual('PASS', result.status);
-    Assert.areEqual('100', result.actualValue);
-    Assert.areEqual('80', result.expectedValue);
+    Assert.areEqual(
+      'PASS',
+      result.status,
+      'All four criteria must pass the default threshold.'
+    );
+    Assert.areEqual(
+      '100',
+      result.actualValue,
+      'All four criteria must report 100 points.'
+    );
+    Assert.areEqual(
+      '80',
+      result.expectedValue,
+      'A fully ready Account must retain the default threshold of 80.'
+    );
   }
 
   @IsTest
@@ -117,7 +149,8 @@ private class AccountStrategicReadinessCheckTest {
             'activityDaysBack' => 999999
           }
         )
-        .status
+        .status,
+      'Invalid parameters must use defaults so a single criterion still fails.'
     );
   }
 

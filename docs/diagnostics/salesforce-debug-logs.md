@@ -47,23 +47,23 @@ Search in this order:
 
 Identify the phase in which the first relevant failure occurred:
 
-| Phase | Typical evidence |
-| --- | --- |
-| Configuration loading | Missing, inactive, invalid, or inaccessible Check metadata |
-| Record preparation | Record visibility, field access, object mismatch, or request-size problems |
+| Phase                              | Typical evidence                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| Configuration loading              | Missing, inactive, invalid, or inaccessible Check metadata                  |
+| Record preparation                 | Record visibility, field access, object mismatch, or request-size problems  |
 | Formula, Query, or Apex evaluation | Evaluator exception, query failure, plugin contract problem, or limit usage |
-| Display rendering | Merge syntax, formatting, currency, or completed-text problems |
-| Event publication | Event access, publication failure, or transaction rollback |
+| Display rendering                  | Merge syntax, formatting, currency, or completed-text problems              |
+| Event publication                  | Event access, publication failure, or transaction rollback                  |
 
 ## Asynchronous Apex evidence
 
 Background work can cross several transactions. Capture the job identity as well as the log.
 
-| Entry point | Evidence to retain |
-| --- | --- |
-| Queueable | `AsyncApexJob` ID, submitting user, worker status, Finalizer output, and Run ID |
-| Batch | Batch job ID, failing scope, redacted first record IDs, running user, and Run ID |
-| Scheduled Apex | Scheduled job identity, scheduled user, launched Batch job ID, and Run ID |
+| Entry point    | Evidence to retain                                                               |
+| -------------- | -------------------------------------------------------------------------------- |
+| Queueable      | `AsyncApexJob` ID, submitting user, worker status, Finalizer output, and Run ID  |
+| Batch          | Batch job ID, failing scope, redacted first record IDs, running user, and Run ID |
+| Scheduled Apex | Scheduled job identity, scheduled user, launched Batch job ID, and Run ID        |
 
 Use the [Asynchronous Apex guides](../developer-guides/async-apex/README.md) for each execution
 contract. A completed Apex job does not mean every health Check passed.

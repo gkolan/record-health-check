@@ -82,7 +82,11 @@ private class RHCDiagnosticProjectionBudgetTest {
     Test.stopTest();
 
     RecordHealthCheckDiagnosticEnvelope envelope = projected.diagnostics[0];
-    Assert.areEqual('ControlledException', envelope.exceptionDetail.type);
+    Assert.areEqual(
+      'ControlledException',
+      envelope.exceptionDetail.type,
+      'The projected exception detail must retain its controlled type.'
+    );
     String serialized = JSON.serialize(envelope);
     Assert.isTrue(
       serialized.contains('"exceptionDetail":'),
@@ -109,11 +113,24 @@ private class RHCDiagnosticProjectionBudgetTest {
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID,
-      definitionFailure.reasonCode
+      definitionFailure.reasonCode,
+      'Definition failure must retain the invalid-definition reason.'
     );
-    Assert.areEqual(false, definitionFailure.pluginInvoked);
-    Assert.areEqual('PLUGIN_DEFINE', definitionTrace.activePhase());
-    Assert.areEqual('PLUGIN_DEFINE_FAILED', definitionTrace.terminalFailure());
+    Assert.areEqual(
+      false,
+      definitionFailure.pluginInvoked,
+      'Definition failure must precede plugin evaluation.'
+    );
+    Assert.areEqual(
+      'PLUGIN_DEFINE',
+      definitionTrace.activePhase(),
+      'Definition failure must identify the definition phase.'
+    );
+    Assert.areEqual(
+      'PLUGIN_DEFINE_FAILED',
+      definitionTrace.terminalFailure(),
+      'Definition failure must retain its terminal phase marker.'
+    );
 
     RecordHealthCheckDiagModeTestPlugin.mode = 'THROW_SECRET';
     RecordHealthCheckExecutionTrace executionTrace = new RecordHealthCheckExecutionTrace();
@@ -124,11 +141,24 @@ private class RHCDiagnosticProjectionBudgetTest {
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_THREW,
-      executionFailure.reasonCode
+      executionFailure.reasonCode,
+      'Execution failure must retain the plugin-threw reason.'
     );
-    Assert.areEqual(true, executionFailure.pluginInvoked);
-    Assert.areEqual('PLUGIN_EXECUTE', executionTrace.activePhase());
-    Assert.areEqual('PLUGIN_EXECUTE_FAILED', executionTrace.terminalFailure());
+    Assert.areEqual(
+      true,
+      executionFailure.pluginInvoked,
+      'Execution failure must record that the plugin was invoked.'
+    );
+    Assert.areEqual(
+      'PLUGIN_EXECUTE',
+      executionTrace.activePhase(),
+      'Execution failure must identify the execution phase.'
+    );
+    Assert.areEqual(
+      'PLUGIN_EXECUTE_FAILED',
+      executionTrace.terminalFailure(),
+      'Execution failure must retain its terminal phase marker.'
+    );
 
     RecordHealthCheckDiagModeTestPlugin.mode = 'MISSING_VALUES';
     RecordHealthCheckExecutionTrace validationTrace = new RecordHealthCheckExecutionTrace();
@@ -139,13 +169,23 @@ private class RHCDiagnosticProjectionBudgetTest {
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING,
-      validationFailure.reasonCode
+      validationFailure.reasonCode,
+      'Result validation must retain the missing-values reason.'
     );
-    Assert.areEqual(true, validationFailure.pluginInvoked);
-    Assert.areEqual('PLUGIN_VALIDATE_RESULT', validationTrace.activePhase());
+    Assert.areEqual(
+      true,
+      validationFailure.pluginInvoked,
+      'Invalid plugin results must record the preceding invocation.'
+    );
+    Assert.areEqual(
+      'PLUGIN_VALIDATE_RESULT',
+      validationTrace.activePhase(),
+      'Invalid plugin results must identify the validation phase.'
+    );
     Assert.areEqual(
       'PLUGIN_VALIDATE_RESULT_FAILED',
-      validationTrace.terminalFailure()
+      validationTrace.terminalFailure(),
+      'Invalid plugin results must retain the validation failure marker.'
     );
   }
 
@@ -167,8 +207,16 @@ private class RHCDiagnosticProjectionBudgetTest {
       )
       .diagnostics[0];
 
-    Assert.areEqual('PLUGIN_CAPACITY', projected.phase);
-    Assert.areEqual('PLUGIN_CAPACITY_FAILED', projected.terminalFailure);
+    Assert.areEqual(
+      'PLUGIN_CAPACITY',
+      projected.phase,
+      'Projection must identify the failed capacity phase.'
+    );
+    Assert.areEqual(
+      'PLUGIN_CAPACITY_FAILED',
+      projected.terminalFailure,
+      'Projection must retain the capacity failure terminal marker.'
+    );
   }
 
   private static RecordHealthCheckInternalResult evaluate(

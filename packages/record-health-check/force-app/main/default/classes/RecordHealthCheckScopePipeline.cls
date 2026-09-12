@@ -8,7 +8,6 @@ public with sharing class RecordHealthCheckScopePipeline {
   private Boolean planningFailureOverride = false;
   @TestVisible
   private static String evaluatorFailureOverride;
-
   /**
    * @param request Immutable qualified selection, record IDs, and options.
    */
@@ -17,7 +16,6 @@ public with sharing class RecordHealthCheckScopePipeline {
     SelectionContext context = scopePlanner.resolveSelection(request.selection);
     return evaluatePrepared(request, recordIds, context);
   }
-
   /** Evaluates an already authorized detached definition context. */
   public RecordHealthCheckResponse evaluateResolvedContext(
     RecordHealthCheckRequest request,
@@ -25,7 +23,6 @@ public with sharing class RecordHealthCheckScopePipeline {
   ) {
     return evaluatePrepared(request, prepare(request), context);
   }
-
   private List<Id> prepare(RecordHealthCheckRequest request) {
     if (request == null) {
       throw new ScopePipelineException(
@@ -47,7 +44,6 @@ public with sharing class RecordHealthCheckScopePipeline {
       sideEffect.reversible = true;
       throw sideEffect;
     }
-
     List<Id> recordIds = RecordHealthCheckScopeRuntime.dedupe(
       request.recordIds
     );
@@ -62,7 +58,6 @@ public with sharing class RecordHealthCheckScopePipeline {
     }
     return recordIds;
   }
-
   private RecordHealthCheckResponse evaluatePrepared(
     RecordHealthCheckRequest request,
     List<Id> recordIds,
@@ -81,7 +76,6 @@ public with sharing class RecordHealthCheckScopePipeline {
       recordIds.size(),
       request.options.eventPublication
     );
-
     RecordHealthCheckResponse response = new RecordHealthCheckResponse();
     response.runId = String.isBlank(request.options.runId)
       ? RecordHealthCheckScopeRuntime.newRunId()
@@ -100,12 +94,58 @@ public with sharing class RecordHealthCheckScopePipeline {
       );
       return response;
     }
-
     Map<String, RecordHealthCheckInternalResult> invalidConfigurationByCheck = new Map<String, RecordHealthCheckInternalResult>();
     List<Record_Health_Check__mdt> plannableChecks = new List<Record_Health_Check__mdt>();
     Set<String> cycleMembers = context.fullCheckSetSelection
       ? RHCDefinitionDependencyIdentity.cycleMembers(context.checks)
       : new Set<String>();
+    validateConfigurations(
+      context,
+      recordIds,
+      cycleMembers,
+      invalidConfigurationByCheck,
+      plannableChecks
+    );
+    RecordHealthCheckScopeRecordLoader.Plan recordLoad = loadRecords(
+      context.objectApiName,
+      recordIds,
+      plannableChecks
+    );
+    Map<Id, SObject> recordsById = recordLoad.recordsById;
+    Map<String, RecordHealthCheckResultItem> itemsByIdentity = new Map<String, RecordHealthCheckResultItem>();
+    for (Record_Health_Check__mdt check : context.checks) {
+      evaluateCheck(
+        check,
+        context,
+        recordIds,
+        recordsById,
+        invalidConfigurationByCheck.get(check.QualifiedApiName),
+        recordLoad.inaccessibleCheckNames.contains(check.QualifiedApiName),
+        recordLoad.unresolvedReasonCodeByCheckName.get(check.QualifiedApiName),
+        recordLoad.primaryFormulaFindingByCheckName.get(check.QualifiedApiName),
+        recordLoad.incompletePlanningCheckNames.contains(
+          check.QualifiedApiName
+        ),
+        request.options.resultMode,
+        response.runId,
+        itemsByIdentity
+      );
+    }
+    return RecordHealthCheckScopeResultCoordinator.finishResponse(
+      request,
+      response,
+      recordIds,
+      context,
+      itemsByIdentity
+    );
+  }
+  private void validateConfigurations(
+    SelectionContext context,
+    List<Id> recordIds,
+    Set<String> cycleMembers,
+    Map<String, RecordHealthCheckInternalResult> invalidConfigurationByCheck,
+    List<Record_Health_Check__mdt> plannableChecks
+  ) {
     for (Record_Health_Check__mdt check : context.checks) {
       Map<Id, RecordHealthCheckExecutionTrace> traces = scopeRuntime.traces(
         check.QualifiedApiName
@@ -146,60 +186,7 @@ public with sharing class RecordHealthCheckScopePipeline {
         );
       }
     }
-    RecordHealthCheckScopeRecordLoader.Plan recordLoad = loadRecords(
-      context.objectApiName,
-      recordIds,
-      plannableChecks
-    );
-    Map<Id, SObject> recordsById = recordLoad.recordsById;
-    Map<String, RecordHealthCheckResultItem> itemsByIdentity = new Map<String, RecordHealthCheckResultItem>();
-    for (Record_Health_Check__mdt check : context.checks) {
-      evaluateCheck(
-        check,
-        context,
-        recordIds,
-        recordsById,
-        invalidConfigurationByCheck.get(check.QualifiedApiName),
-        recordLoad.inaccessibleCheckNames.contains(check.QualifiedApiName),
-        recordLoad.unresolvedReasonCodeByCheckName.get(check.QualifiedApiName),
-        recordLoad.primaryFormulaFindingByCheckName.get(check.QualifiedApiName),
-        recordLoad.incompletePlanningCheckNames.contains(
-          check.QualifiedApiName
-        ),
-        request.options.resultMode,
-        response.runId,
-        itemsByIdentity
-      );
-    }
-
-    List<RecordHealthCheckResultItem> allItems = new List<RecordHealthCheckResultItem>();
-    for (Id recordId : recordIds) {
-      for (Record_Health_Check__mdt check : context.checks) {
-        RecordHealthCheckResultItem item = itemsByIdentity.get(
-          RecordHealthCheckScopeRuntime.itemKey(
-            recordId,
-            check.QualifiedApiName
-          )
-        );
-        allItems.add(item);
-        response.summary.add(item.evaluation.status);
-        if (
-          request.options.resultMode != RecordHealthCheckResultMode.SUMMARY ||
-          RecordHealthCheckStatus.isActionable(item.evaluation.status)
-        ) {
-          response.results.add(item);
-        }
-      }
-    }
-    RecordHealthCheckResponseFinalizer.finish(
-      response,
-      allItems,
-      request.options,
-      context
-    );
-    return response;
   }
-
   private RecordHealthCheckScopeRecordLoader.Plan loadRecords(
     String objectApiName,
     List<Id> recordIds,
@@ -212,7 +199,6 @@ public with sharing class RecordHealthCheckScopePipeline {
       new RecordHealthCheckFieldPlanner()
     );
   }
-
   private RecordHealthCheckScopeRecordLoader.Plan loadRecords(
     String objectApiName,
     List<Id> recordIds,
@@ -228,7 +214,6 @@ public with sharing class RecordHealthCheckScopePipeline {
       )
       .load(objectApiName, recordIds, checks, fieldPlanner);
   }
-
   @TestVisible
   private Map<Id, SObject> loadRecordsForTest(
     String objectApiName,
@@ -324,60 +309,17 @@ public with sharing class RecordHealthCheckScopePipeline {
     Map<Id, RecordHealthCheckExecutionTrace> traces = scopeRuntime.traces(
       check.QualifiedApiName
     );
-    if (invalidConfiguration != null) {
-      RecordHealthCheckConfigValidator.discardValidatedPlugin(check);
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          resultSupport.copyResult(invalidConfiguration)
-        );
-      }
-    }
-    if (invalidConfiguration == null && formulaPlanningIncomplete) {
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          recordsById.containsKey(recordId)
-            ? resultSupport.unavailableResult(
-                check,
-                RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
-              )
-            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
-        );
-      }
-    }
-    if (
-      invalidConfiguration == null &&
-      !formulaPlanningIncomplete &&
-      unresolvedReasonCode != null
-    ) {
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          recordsById.containsKey(recordId)
-            ? resultSupport.unavailableResult(check, unresolvedReasonCode)
-            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
-        );
-      }
-    }
-    if (
-      invalidConfiguration == null &&
-      !formulaPlanningIncomplete &&
-      unresolvedReasonCode == null &&
-      fieldAccessDenied
-    ) {
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          recordsById.containsKey(recordId)
-            ? resultSupport.unavailableResult(
-                check,
-                RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE
-              )
-            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
-        );
-      }
-    }
+    RecordHealthCheckScopeResultCoordinator.addPlanningFailures(
+      resultSupport,
+      check,
+      recordIds,
+      recordsById,
+      invalidConfiguration,
+      formulaPlanningIncomplete,
+      unresolvedReasonCode,
+      fieldAccessDenied,
+      internalByRecordId
+    );
     Boolean canEvaluateApplicability =
       invalidConfiguration == null &&
       !formulaPlanningIncomplete &&
@@ -426,6 +368,44 @@ public with sharing class RecordHealthCheckScopePipeline {
       }
     }
 
+    executeApplicable(
+      check,
+      context,
+      applicableIds,
+      recordsById,
+      resultMode,
+      runId,
+      traces,
+      internalByRecordId
+    );
+
+    new RecordHealthCheckScopeResultCoordinator(
+        resultSupport,
+        context,
+        runId,
+        resultMode,
+        primaryFormulaFinding,
+        traces
+      )
+      .finish(
+        check,
+        recordIds,
+        recordsById,
+        internalByRecordId,
+        itemsByIdentity
+      );
+  }
+
+  private void executeApplicable(
+    Record_Health_Check__mdt check,
+    SelectionContext context,
+    List<Id> applicableIds,
+    Map<Id, SObject> recordsById,
+    RecordHealthCheckResultMode resultMode,
+    String runId,
+    Map<Id, RecordHealthCheckExecutionTrace> traces,
+    Map<Id, RecordHealthCheckInternalResult> internalByRecordId
+  ) {
     if (!applicableIds.isEmpty()) {
       try {
         if (evaluatorFailureOverride == 'SIDE_EFFECT') {
@@ -522,22 +502,6 @@ public with sharing class RecordHealthCheckScopePipeline {
         );
       }
     }
-
-    new RecordHealthCheckScopeResultCoordinator(
-        resultSupport,
-        context,
-        runId,
-        resultMode,
-        primaryFormulaFinding,
-        traces
-      )
-      .finish(
-        check,
-        recordIds,
-        recordsById,
-        internalByRecordId,
-        itemsByIdentity
-      );
   }
 
   public class SelectionContext {

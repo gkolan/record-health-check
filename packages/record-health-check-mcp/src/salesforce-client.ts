@@ -231,6 +231,7 @@ export class SalesforceClient {
       body: form
     });
     if (!response.ok) {
+      await this.discardResponse(response);
       throw new ServiceError(
         "SALESFORCE_AUTH",
         "Salesforce authentication failed.",
@@ -273,6 +274,7 @@ export class SalesforceClient {
   private async readBoundedJson(response: Response): Promise<unknown> {
     const declared = Number(response.headers.get("content-length") ?? 0);
     if (declared > this.config.salesforce.maxResponseBytes) {
+      await this.discardResponse(response);
       throw new ServiceError(
         "UPSTREAM_LIMIT",
         "Salesforce response exceeded the size limit.",
@@ -283,19 +285,34 @@ export class SalesforceClient {
     const chunks: Uint8Array[] = [];
     let total = 0;
     if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        total += value.byteLength;
-        if (total > this.config.salesforce.maxResponseBytes) {
-          await reader.cancel();
-          throw new ServiceError(
-            "UPSTREAM_LIMIT",
-            "Salesforce response exceeded the size limit.",
-            502
-          );
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          total += value.byteLength;
+          if (total > this.config.salesforce.maxResponseBytes) {
+            throw new ServiceError(
+              "UPSTREAM_LIMIT",
+              "Salesforce response exceeded the size limit.",
+              502
+            );
+          }
+          chunks.push(value);
         }
-        chunks.push(value);
+      } catch (error) {
+        try {
+          await reader.cancel();
+        } catch {
+          // Cleanup failure must not replace the original safe error.
+        }
+        if (error instanceof ServiceError) throw error;
+        throw new ServiceError(
+          "UPSTREAM_UNAVAILABLE",
+          "Salesforce is temporarily unavailable.",
+          503
+        );
+      } finally {
+        reader.releaseLock();
       }
     }
     const bytes = new Uint8Array(total);

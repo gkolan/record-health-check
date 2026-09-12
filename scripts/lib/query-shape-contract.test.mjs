@@ -55,3 +55,18 @@ test("C03 Corpus complete parity", async () => {
   );
   assert.deepEqual(classifyCorpus(), expected);
 });
+
+test("Retired ordered aggregate rewrite cannot re-enter the runtime vocabulary", async () => {
+  const files = [
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckBulkQueryRewriter.cls",
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckBulkQuerySupport.cls",
+    "scripts/release/inventory_bulk_query_shapes.py"
+  ];
+  for (const file of files) {
+    assert.doesNotMatch(
+      await readFile(file, "utf8"),
+      /rewriteOrderedPickAggregate|ORDERED_PICK_AGGREGATE/,
+      `${file} must not expose the retired nullable-value MIN/MAX transformation`
+    );
+  }
+});

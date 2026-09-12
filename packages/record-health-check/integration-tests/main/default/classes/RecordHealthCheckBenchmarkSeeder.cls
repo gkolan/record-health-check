@@ -21,6 +21,16 @@ public with sharing class RecordHealthCheckBenchmarkSeeder implements Database.B
     return RecordHealthCheckScaleBenchmark.units(requested);
   }
   public void execute(Database.BatchableContext context, List<Integer> scope) {
+    List<Account> records = buildRecords(scope);
+    for (Database.SaveResult saved : Database.insert(records, false)) {
+      if (saved.isSuccess()) {
+        seeded++;
+      } else {
+        errors++;
+      }
+    }
+  }
+  private List<Account> buildRecords(List<Integer> scope) {
     List<Account> records = new List<Account>();
     for (Integer unit : scope) {
       Integer first = unit * INSERT_SCOPE;
@@ -45,13 +55,7 @@ public with sharing class RecordHealthCheckBenchmarkSeeder implements Database.B
         }
       }
     }
-    for (Database.SaveResult saved : Database.insert(records, false)) {
-      if (saved.isSuccess()) {
-        seeded++;
-      } else {
-        errors++;
-      }
-    }
+    return records;
   }
   public void finish(Database.BatchableContext context) {
     update new RHC_Benchmark_Result__c(

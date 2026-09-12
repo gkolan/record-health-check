@@ -6,7 +6,10 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { assertUrlStoryEvidence } from "../lib/url-story-verifier.mjs";
+import {
+  assertUrlStoryEvidence,
+  formatUrlStorySummary
+} from "../lib/url-story-verifier.mjs";
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -241,7 +244,7 @@ try {
       );
   fs.mkdirSync(path.dirname(output), { recursive: true });
   fs.writeFileSync(output, `${JSON.stringify(result, null, 2)}\n`, "utf8");
-  console.log(`URL story verified: 7 records, 3 Checks, PASS→FAIL→PASS.`);
+  console.log(formatUrlStorySummary(matrix));
   console.log(`Evidence: ${output}`);
 } finally {
   fs.rmSync(temporaryDirectory, { recursive: true, force: true });

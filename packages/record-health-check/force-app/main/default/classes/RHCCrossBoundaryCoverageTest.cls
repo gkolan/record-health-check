@@ -8,7 +8,8 @@ private with sharing class RHCCrossBoundaryCoverageTest {
       Assert.fail('A null identity must be rejected.');
     } catch (IllegalArgumentException error) {
       Assert.isTrue(
-        error.getMessage().contains('QualifiedApiName is required')
+        error.getMessage().contains('QualifiedApiName is required'),
+        'Missing identity must explain the required QualifiedApiName.'
       );
     }
   }
@@ -28,7 +29,11 @@ private with sharing class RHCCrossBoundaryCoverageTest {
       RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED
     );
     Test.stopTest();
-    Assert.areEqual(RecordHealthCheckStatus.ERROR, result.evaluation.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.ERROR,
+      result.evaluation.status,
+      'Missing controller identities must return a safe ERROR.'
+    );
   }
 
   @IsTest
@@ -49,6 +54,10 @@ private with sharing class RHCCrossBoundaryCoverageTest {
       1
     );
     Test.stopTest();
-    Assert.areEqual(0, result.rowsByRecordId.get(accountRecord.Id).size());
+    Assert.areEqual(
+      0,
+      result.rowsByRecordId.get(accountRecord.Id).size(),
+      'An unloaded indirect relationship must produce no rows.'
+    );
   }
 }

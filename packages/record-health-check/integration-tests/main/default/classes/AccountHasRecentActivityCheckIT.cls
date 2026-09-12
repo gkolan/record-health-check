@@ -28,9 +28,21 @@ private class AccountHasRecentActivityCheckIT {
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
-    Assert.areEqual('PASS', result.status);
-    Assert.areEqual('1', result.actualValue);
-    Assert.areEqual('1', result.expectedValue);
+    Assert.areEqual(
+      'PASS',
+      result.status,
+      'A completed task inside the window must pass.'
+    );
+    Assert.areEqual(
+      '1',
+      result.actualValue,
+      'The recent task must count as one activity.'
+    );
+    Assert.areEqual(
+      '1',
+      result.expectedValue,
+      'The default required activity count must be one.'
+    );
   }
 
   @IsTest
@@ -41,9 +53,21 @@ private class AccountHasRecentActivityCheckIT {
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
-    Assert.areEqual('FAIL', result.status);
-    Assert.areEqual('0', result.actualValue);
-    Assert.areEqual('1', result.expectedValue);
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'An account without activities must fail.'
+    );
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'An account without activities must report zero.'
+    );
+    Assert.areEqual(
+      '1',
+      result.expectedValue,
+      'The absent-activity result must retain the default minimum.'
+    );
   }
 
   @IsTest
@@ -159,7 +183,11 @@ private class AccountHasRecentActivityCheckIT {
       result.status,
       'The packaged example is intentionally WhatId-only; documentation supplies the WhoId recipe.'
     );
-    Assert.areEqual('0', result.actualValue);
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'A WhoId-only task must not count toward the Account WhatId contract.'
+    );
   }
 
   @IsTest
@@ -185,9 +213,21 @@ private class AccountHasRecentActivityCheckIT {
       new Map<String, Object>{ 'daysBack' => 90 }
     );
 
-    Assert.areEqual('FAIL', result.status);
-    Assert.areEqual('0', result.actualValue);
-    Assert.areEqual('1', result.expectedValue);
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'An activity outside the configured window must fail.'
+    );
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'An activity outside the window must not count.'
+    );
+    Assert.areEqual(
+      '1',
+      result.expectedValue,
+      'The stale-activity result must retain the default minimum.'
+    );
   }
 
   @IsTest
@@ -212,17 +252,20 @@ private class AccountHasRecentActivityCheckIT {
     Assert.areEqual(
       'UNABLE_TO_EVALUATE',
       evaluate(account.Id, new Map<String, Object>{ 'daysBack' => 999999 })
-        .status
+        .status,
+      'An excessive day window must prevent evaluation.'
     );
     Assert.areEqual(
       'INVALID_CONFIG',
       evaluate(account.Id, new Map<String, Object>{ 'daysBack' => 999999 })
-        .reasonCode
+        .reasonCode,
+      'An excessive day window must retain INVALID_CONFIG.'
     );
     Assert.areEqual(
       'UNABLE_TO_EVALUATE',
       evaluate(account.Id, new Map<String, Object>{ 'daysBack' => 'abc' })
-        .status
+        .status,
+      'A nonnumeric day window must prevent evaluation.'
     );
     Assert.areEqual(
       'INVALID_CONFIG',
@@ -364,7 +407,11 @@ private class AccountHasRecentActivityCheckIT {
       'A scope of 200 must cost the same queries as a scope of 1.'
     );
     Assert.areEqual(2, afterAll, 'One query for Task, one for Event.');
-    Assert.areEqual(1, single.size());
+    Assert.areEqual(
+      1,
+      single.size(),
+      'A one-record scope must return one outcome.'
+    );
     Assert.areEqual(
       200,
       all.size(),
@@ -397,11 +444,19 @@ private class AccountHasRecentActivityCheckIT {
     );
     Test.stopTest();
 
-    Assert.areEqual(2, outcomes.size());
+    Assert.areEqual(
+      2,
+      outcomes.size(),
+      'Both accounts without activities must receive outcomes.'
+    );
     for (Id accountId : accountIds) {
       RecordHealthCheckOutcome outcome = outcomes.get(accountId);
       Assert.areNotEqual(null, outcome, 'Missing key for ' + accountId);
-      Assert.areEqual(RecordHealthCheckStatus.FAIL, outcome.status);
+      Assert.areEqual(
+        RecordHealthCheckStatus.FAIL,
+        outcome.status,
+        'Each account without activities must fail.'
+      );
       Assert.areEqual('0', outcome.found.storedValue, 'Zero, not absent.');
     }
   }
@@ -418,7 +473,11 @@ private class AccountHasRecentActivityCheckIT {
     Integer used = Limits.getQueries() - before;
     Test.stopTest();
 
-    Assert.areEqual(0, outcomes.size());
+    Assert.areEqual(
+      0,
+      outcomes.size(),
+      'An empty scope must return no outcomes.'
+    );
     Assert.areEqual(0, used, 'An empty scope must not issue activity queries.');
   }
 }

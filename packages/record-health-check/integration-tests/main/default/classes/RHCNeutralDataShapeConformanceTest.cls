@@ -73,7 +73,11 @@ private class RHCNeutralDataShapeConformanceTest {
       formula.PassConditionFormula__c = quantityField() + ' = -3.1415';
       RecordHealthCheckInternalResult formulaResult = new RecordHealthCheckFormulaEvaluator()
         .evaluate(formula, row.Id, row);
-      Assert.areEqual('PASS', formulaResult.status);
+      Assert.areEqual(
+        'PASS',
+        formulaResult.status,
+        'The signed decimal must satisfy the configured formula.'
+      );
 
       Record_Health_Check__mdt query = queryCheck('Neutral_Negative_Query');
       query.SourceQuery__c =
@@ -86,8 +90,16 @@ private class RHCNeutralDataShapeConformanceTest {
       query.ExpectedFixedValue__c = '-3.1415';
       RecordHealthCheckInternalResult queryResult = new RecordHealthCheckSoqlEvaluator()
         .evaluate(query, row.Id, row);
-      Assert.areEqual('PASS', queryResult.status);
-      Assert.areEqual('-3.1415', String.valueOf(queryResult.actualValue));
+      Assert.areEqual(
+        'PASS',
+        queryResult.status,
+        'The signed decimal must satisfy the configured query comparison.'
+      );
+      Assert.areEqual(
+        '-3.1415',
+        String.valueOf(queryResult.actualValue),
+        'The query result must retain the negative sign and four decimal places.'
+      );
     }
   }
 
@@ -110,7 +122,8 @@ private class RHCNeutralDataShapeConformanceTest {
         'PASS',
         new RecordHealthCheckSoqlEvaluator()
           .evaluate(hierarchy, child.Id, child)
-          .status
+          .status,
+        'The relationship query must resolve the parent quantity.'
       );
 
       Record_Health_Check__mdt snapshot = dualCheck('Neutral_Snapshot_Compare');
@@ -165,11 +178,13 @@ private class RHCNeutralDataShapeConformanceTest {
       RecordHealthCheckCompareQueriesEvaluator compareEvaluator = new RecordHealthCheckCompareQueriesEvaluator();
       Assert.areEqual(
         'PASS',
-        compareEvaluator.evaluate(sourceRelative, fresh.Id, fresh).status
+        compareEvaluator.evaluate(sourceRelative, fresh.Id, fresh).status,
+        'A snapshot newer than its source change must pass.'
       );
       Assert.areEqual(
         'FAIL',
-        compareEvaluator.evaluate(sourceRelative, stale.Id, stale).status
+        compareEvaluator.evaluate(sourceRelative, stale.Id, stale).status,
+        'A snapshot older than its source change must fail.'
       );
 
       Record_Health_Check__mdt ageBased = baseCheck(
@@ -185,11 +200,13 @@ private class RHCNeutralDataShapeConformanceTest {
       RecordHealthCheckFormulaEvaluator formulaEvaluator = new RecordHealthCheckFormulaEvaluator();
       Assert.areEqual(
         'PASS',
-        formulaEvaluator.evaluate(ageBased, fresh.Id, fresh).status
+        formulaEvaluator.evaluate(ageBased, fresh.Id, fresh).status,
+        'A snapshot within the configured age must pass.'
       );
       Assert.areEqual(
         'FAIL',
-        formulaEvaluator.evaluate(ageBased, stale.Id, stale).status
+        formulaEvaluator.evaluate(ageBased, stale.Id, stale).status,
+        'A snapshot older than the configured age must fail.'
       );
     }
   }
@@ -222,7 +239,11 @@ private class RHCNeutralDataShapeConformanceTest {
       Map<Id, RecordHealthCheckInternalResult> outcomes = new RecordHealthCheckSoqlEvaluator()
         .evaluateScope(query, ids, recordsById);
 
-      Assert.areEqual(ids.size(), outcomes.size());
+      Assert.areEqual(
+        ids.size(),
+        outcomes.size(),
+        'Bulk evaluation must return one outcome per root record.'
+      );
       for (RHC_Conformance_Record__c row : rows) {
         Assert.areEqual(
           row.Quantity__c < 0 ? 'FAIL' : 'PASS',

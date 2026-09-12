@@ -1,16 +1,22 @@
 /** Additive subscriber API for explicit text, links, and line breaks. */
 global class RecordHealthCheckDisplayText {
   private static final Integer MAX_NODES = 1000;
+  private static final Integer MAX_LINKS = 100;
+  private static final Integer MAX_BYTES = 64 * 1024;
   private static final Integer MAX_VISIBLE_LENGTH = 20000;
   private static final Integer MAX_LABEL_LENGTH = 2000;
   private List<RecordHealthCheckDisplayNode> nodes;
   private Integer visibleLength;
+  private Integer linkCount;
+  private Integer serializedBytes;
   public Boolean valid;
 
   /** Creates an empty display builder. */
   global RecordHealthCheckDisplayText() {
     nodes = new List<RecordHealthCheckDisplayNode>();
     visibleLength = 0;
+    linkCount = 0;
+    serializedBytes = 2; // The empty JSON array brackets.
     valid = true;
   }
 
@@ -78,14 +84,13 @@ global class RecordHealthCheckDisplayText {
         continue;
       }
 
-      Object rawLabel;
+      String label;
       try {
-        rawLabel = record.get(labelField);
+        label = recordLabel(record, labelField);
       } catch (SObjectException exceptionValue) {
         valid = false;
         return this;
       }
-      String label = rawLabel == null ? null : String.valueOf(rawLabel);
       if (String.isBlank(label)) {
         continue;
       }
@@ -93,22 +98,34 @@ global class RecordHealthCheckDisplayText {
       if (hasRenderedRecord) {
         text(separator);
       }
-      Id recordId = (Id) record.get('Id');
-      if (recordId == null) {
-        text(label);
-      } else {
-        String objectApiName = record
-          .getSObjectType()
-          .getDescribe(SObjectDescribeOptions.DEFERRED)
-          .getName();
-        link(label, '/lightning/r/' + objectApiName + '/' + recordId + '/view');
-      }
+      appendRecordLink(record, label);
       hasRenderedRecord = true;
       if (!valid) {
         return this;
       }
     }
     return this;
+  }
+
+  private static String recordLabel(
+    SObject record,
+    Schema.SObjectField labelField
+  ) {
+    Object value = record.get(labelField);
+    return value == null ? null : String.valueOf(value);
+  }
+
+  private void appendRecordLink(SObject record, String label) {
+    Id recordId = (Id) record.get('Id');
+    if (recordId == null) {
+      text(label);
+    } else {
+      String objectApiName = record
+        .getSObjectType()
+        .getDescribe(SObjectDescribeOptions.DEFERRED)
+        .getName();
+      link(label, '/lightning/r/' + objectApiName + '/' + recordId + '/view');
+    }
   }
 
   /** Appends keyed groups in supplied order with exactly one break between visible groups. */
@@ -177,6 +194,16 @@ global class RecordHealthCheckDisplayText {
     return true;
   }
 
+  /** Package-only size inspection without allocating a detached node list. */
+  public Integer serializedSize() {
+    return serializedBytes;
+  }
+
+  /** Package-only structural emptiness; whitespace and breaks remain nodes. */
+  public Integer nodeCount() {
+    return nodes.size();
+  }
+
   public List<RecordHealthCheckDisplayNode> copyNodes() {
     List<RecordHealthCheckDisplayNode> copy = new List<RecordHealthCheckDisplayNode>();
     for (RecordHealthCheckDisplayNode node : nodes) {
@@ -218,11 +245,24 @@ global class RecordHealthCheckDisplayText {
   }
 
   private void appendText(String value) {
-    if (String.isEmpty(value) || !canAppend(value.length(), 1)) {
+    Boolean coalesces =
+      !nodes.isEmpty() && nodes[nodes.size() - 1].kind == 'text';
+    if (
+      String.isEmpty(value) || !canAppend(value.length(), coalesces ? 0 : 1)
+    ) {
       return;
     }
-    if (!nodes.isEmpty() && nodes[nodes.size() - 1].kind == 'text') {
-      nodes[nodes.size() - 1].text += value;
+    if (coalesces) {
+      RecordHealthCheckDisplayNode previous = nodes[nodes.size() - 1];
+      RecordHealthCheckDisplayNode merged = new RecordHealthCheckDisplayNode(
+        'text',
+        previous.text + value,
+        null
+      );
+      if (!reserveBytes(nodeBytes(merged) - nodeBytes(previous))) {
+        return;
+      }
+      previous.text = merged.text;
       visibleLength += value.length();
       return;
     }
@@ -243,8 +283,31 @@ global class RecordHealthCheckDisplayText {
     if (!canAppend(addedVisibleLength, 1)) {
       return;
     }
+    if (node.kind == 'link' && linkCount >= MAX_LINKS) {
+      valid = false;
+      return;
+    }
+    if (!reserveBytes(nodeBytes(node) + (nodes.isEmpty() ? 0 : 1))) {
+      return;
+    }
     nodes.add(node);
     visibleLength += addedVisibleLength;
+    if (node.kind == 'link') {
+      linkCount++;
+    }
+  }
+
+  private static Integer nodeBytes(RecordHealthCheckDisplayNode node) {
+    return Blob.valueOf(JSON.serialize(node)).size();
+  }
+
+  private Boolean reserveBytes(Integer additionalBytes) {
+    if (serializedBytes + additionalBytes > MAX_BYTES) {
+      valid = false;
+      return false;
+    }
+    serializedBytes += additionalBytes;
+    return true;
   }
 
   private Boolean canAppend(Integer addedVisibleLength, Integer addedNodes) {

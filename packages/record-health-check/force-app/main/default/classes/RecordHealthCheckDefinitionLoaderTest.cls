@@ -54,7 +54,10 @@ private class RecordHealthCheckDefinitionLoaderTest {
         );
         Assert.fail('A blank Card Title must be rejected.');
       } catch (RecordHealthCheckConfigService.ConfigException error) {
-        Assert.isTrue(error.getMessage().contains('Card Title'));
+        Assert.isTrue(
+          error.getMessage().contains('Card Title'),
+          'A missing card title must identify the Card Title field.'
+        );
       }
 
       try {
@@ -105,9 +108,13 @@ private class RecordHealthCheckDefinitionLoaderTest {
     } catch (RecordHealthCheckConfigService.ConfigException expected) {
       Assert.areEqual(
         RecordHealthCheckConfigService.RC_INVALID_CONFIG,
-        expected.reasonCode
+        expected.reasonCode,
+        'An invalid summary placement must retain INVALID_CONFIG.'
       );
-      Assert.isTrue(expected.getMessage().contains('Summary Display'));
+      Assert.isTrue(
+        expected.getMessage().contains('Summary Display'),
+        'The invalid summary error must identify Summary Display.'
+      );
     }
     Test.stopTest();
   }
@@ -143,11 +150,13 @@ private class RecordHealthCheckDefinitionLoaderTest {
     } catch (RecordHealthCheckConfigService.ConfigException expected) {
       Assert.areEqual(
         RecordHealthCheckConfigService.RC_INVALID_CONFIG,
-        expected.reasonCode
+        expected.reasonCode,
+        'An inexact card heading value must retain INVALID_CONFIG.'
       );
       Assert.areEqual(
         'Card Heading Display is not recognized. Choose TITLE_AND_SUBTITLE, TITLE_ONLY, or HIDE.',
-        expected.getMessage()
+        expected.getMessage(),
+        'The card heading error must list the exact supported choices.'
       );
     }
   }
@@ -229,7 +238,8 @@ private class RecordHealthCheckDefinitionLoaderTest {
         RecordHealthCheckDefinitionLoader.categoryLabelFor(
           categoryLabels,
           'DATA_QUALITY'
-        )
+        ),
+        'A configured category must resolve its display label.'
       );
       Assert.areEqual(
         null,

@@ -56,32 +56,92 @@ const responseBase = z.object({
 });
 
 const diagnosisFields = {
-  diagnosticId: z.string().min(1).max(255).optional(),
-  diagnosticCategory: z.string().min(1).max(80).optional(),
-  diagnosticSummary: z.string().min(1).max(1000).optional(),
-  recommendedAction: z.string().min(1).max(1000).optional()
+  diagnosticId: z
+    .string()
+    .min(1)
+    .max(255)
+    .optional()
+    .describe("Disclosure-safe identifier for a completed diagnosis."),
+  diagnosticCategory: z
+    .string()
+    .min(1)
+    .max(80)
+    .optional()
+    .describe("Broad disclosure-safe category for a completed diagnosis."),
+  diagnosticSummary: z
+    .string()
+    .min(1)
+    .max(1000)
+    .optional()
+    .describe(
+      "Bounded disclosure-safe explanation for a completed inconclusive or error result; it is not a raw administrator diagnostic."
+    ),
+  recommendedAction: z
+    .string()
+    .min(1)
+    .max(1000)
+    .optional()
+    .describe(
+      "Disclosure-safe first corrective step for the completed diagnosis."
+    )
 };
 
 export const checkSuccessSchema = responseBase
   .extend({
-    success: z.literal(true),
+    success: z
+      .literal(true)
+      .describe("True only when a completed health evaluation exists."),
     operation: z.literal(OPERATION_CHECK),
     status: statusSchema,
-    reasonCode: z.string().min(1).max(80).optional(),
+    reasonCode: z
+      .string()
+      .min(1)
+      .max(80)
+      .optional()
+      .describe("Stable reason code for a completed single-Check result."),
     ...diagnosisFields
   })
   .strict();
 
 export const checkSetSuccessSchema = responseBase
   .extend({
-    success: z.literal(true),
+    success: z
+      .literal(true)
+      .describe("True only when a completed health evaluation exists."),
     operation: z.literal(OPERATION_CHECK_SET),
     status: statusSchema,
-    passed: z.number().int().min(0).max(25),
-    failed: z.number().int().min(0).max(25),
-    skipped: z.number().int().min(0).max(25),
-    unable: z.number().int().min(0).max(25),
-    systemError: z.number().int().min(0).max(25),
+    passed: z
+      .number()
+      .int()
+      .min(0)
+      .max(25)
+      .describe("Checks that completed with PASS."),
+    failed: z
+      .number()
+      .int()
+      .min(0)
+      .max(25)
+      .describe("Checks with a FAIL business finding."),
+    skipped: z
+      .number()
+      .int()
+      .min(0)
+      .max(25)
+      .describe("Skipped Checks; these are not passes."),
+    unable: z
+      .number()
+      .int()
+      .min(0)
+      .max(25)
+      .describe(
+        "Checks that could not be evaluated; these do not prove health."
+      ),
+    systemError: z
+      .number()
+      .int()
+      .min(0)
+      .max(25)
+      .describe("Checks with system errors; these do not prove health."),
     ...diagnosisFields
   })
   .strict()
@@ -111,9 +171,13 @@ export const checkSetSuccessSchema = responseBase
 
 export const failureSchema = responseBase
   .extend({
-    success: z.literal(false),
+    success: z.literal(false).describe("No health conclusion can be reported."),
     errorType: z.enum(["AUTHORIZATION", "VALIDATION", "LIMIT", "EXECUTION"]),
-    errorMessage: z.string().min(1).max(1000)
+    errorMessage: z
+      .string()
+      .min(1)
+      .max(1000)
+      .describe("Safe adapter explanation when success is false.")
   })
   .strict();
 
@@ -123,113 +187,12 @@ export const agentToolResponseSchema = z.union([
   failureSchema
 ]);
 
-export const toolOutputSchema = z
-  .object({
-    contractVersion: z
-      .literal(CONTRACT_VERSION)
-      .describe("Version of the Record Health Check agent-tool contract."),
-    correlationId: correlationIdSchema,
-    success: z
-      .boolean()
-      .describe(
-        "True only when a completed health evaluation exists; false means no health conclusion can be reported."
-      ),
-    operation: z
-      .enum([OPERATION_CHECK, OPERATION_CHECK_SET])
-      .optional()
-      .describe("Operation completed when success is true."),
-    status: statusSchema.optional(),
-    reasonCode: z
-      .string()
-      .max(80)
-      .optional()
-      .describe("Stable reason code for a completed single-Check result."),
-    passed: z
-      .number()
-      .int()
-      .min(0)
-      .max(25)
-      .optional()
-      .describe(
-        "Number of Checks that completed with PASS in a Check Set result."
-      ),
-    failed: z
-      .number()
-      .int()
-      .min(0)
-      .max(25)
-      .optional()
-      .describe(
-        "Number of Checks that completed with a FAIL business finding."
-      ),
-    skipped: z
-      .number()
-      .int()
-      .min(0)
-      .max(25)
-      .optional()
-      .describe("Number of Checks skipped; these are not passes."),
-    unable: z
-      .number()
-      .int()
-      .min(0)
-      .max(25)
-      .optional()
-      .describe(
-        "Number of Checks that could not be evaluated; these do not prove health."
-      ),
-    systemError: z
-      .number()
-      .int()
-      .min(0)
-      .max(25)
-      .optional()
-      .describe(
-        "Number of Checks with system errors; these do not prove health."
-      ),
-    diagnosticId: z
-      .string()
-      .min(1)
-      .max(255)
-      .optional()
-      .describe("Disclosure-safe identifier for a completed diagnosis."),
-    diagnosticCategory: z
-      .string()
-      .min(1)
-      .max(80)
-      .optional()
-      .describe("Broad disclosure-safe category for a completed diagnosis."),
-    diagnosticSummary: z
-      .string()
-      .min(1)
-      .max(1000)
-      .optional()
-      .describe(
-        "Bounded disclosure-safe explanation for a completed inconclusive or error result; it is not a raw administrator diagnostic."
-      ),
-    recommendedAction: z
-      .string()
-      .min(1)
-      .max(1000)
-      .optional()
-      .describe(
-        "Disclosure-safe first corrective step for the completed diagnosis."
-      ),
-    errorType: z
-      .enum(["AUTHORIZATION", "VALIDATION", "LIMIT", "EXECUTION"])
-      .optional()
-      .describe("Adapter failure category when success is false."),
-    errorMessage: z
-      .string()
-      .min(1)
-      .max(1000)
-      .optional()
-      .describe("Safe adapter explanation when success is false.")
-  })
-  .strict()
-  .describe(
-    "Structured Record Health Check result. Read success before interpreting status or counts."
-  );
+// Discovery and runtime validation share the same strict response alternatives.
+// JSON Schema expresses shape constraints; count arithmetic is additionally
+// enforced by checkSetSuccessSchema at the service boundary.
+export const toolOutputSchema = agentToolResponseSchema.describe(
+  "Structured Record Health Check result. Read success before interpreting status or counts."
+);
 
 export type AgentToolResponse = z.infer<typeof agentToolResponseSchema>;
 export type AgentToolFailure = z.infer<typeof failureSchema>;

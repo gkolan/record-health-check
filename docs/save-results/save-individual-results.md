@@ -5,10 +5,10 @@ Use this event only when the receiving process needs each Check outcome.
 Use the **Record Health Check Result** Platform Event when a separate Flow, Apex trigger, or
 integration must receive the result of an individual Check.
 
-| Setup value | Name |
-| --- | --- |
-| Platform Event label | Record Health Check Result |
-| API name | `Record_Health_Check_Result__e` |
+| Setup value                          | Name                                 |
+| ------------------------------------ | ------------------------------------ |
+| Platform Event label                 | Record Health Check Result           |
+| API name                             | `Record_Health_Check_Result__e`      |
 | Apex name after package installation | `rhc__Record_Health_Check_Result__e` |
 
 For example, create a review record when **Billing City is present** returns `FAIL`, or notify an
@@ -26,11 +26,11 @@ only when separate automation must receive them.
 
 Then choose what to publish:
 
-| Publication value | Check Result events |
-| --- | --- |
-| `ALL` | Publishes `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR`. |
-| `ACTIONABLE` | Publishes only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`. |
-| `NONE` | Publishes no result Platform Events. |
+| Publication value | Check Result events                                                     |
+| ----------------- | ----------------------------------------------------------------------- |
+| `ALL`             | Publishes `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR`. |
+| `ACTIONABLE`      | Publishes only `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`.               |
+| `NONE`            | Publishes no result Platform Events.                                    |
 
 Volume is approximately eligible Checks multiplied by evaluated records when using `ALL`. Use Set
 Run summaries when counts are enough. Card publication uses each Check's **Publish User Result
@@ -53,19 +53,19 @@ Create a custom object owned by your team, such as **Health Check Result History
 
 Add only the fields your business needs. A useful starting point is:
 
-| Destination field | Suggested type | Platform Event field |
-| --- | --- | --- |
-| Event ID | Text(80), Unique | `$Record.EventId__c` |
-| Run ID | Text(120) | `$Record.RunId__c` |
-| Salesforce Record ID | Text(18) | `$Record.RecordId__c` |
-| Check Set Qualified API Name | Text(80) | `$Record.CheckSetQualifiedApiName__c` |
-| Check Qualified API Name | Text(120) | `$Record.CheckQualifiedApiName__c` |
-| Status | Text(30) or restricted picklist | `$Record.Status__c` |
-| Reason Code | Text(120) | `$Record.ReasonCode__c` |
-| Severity | Text(30) | `$Record.Severity__c` |
-| Source | Text(30) | `$Record.Source__c` |
-| Occurred At | Date/Time | `$Record.OccurredAt__c` |
-| Contract Version | Text(10) | `$Record.ContractVersion__c` |
+| Destination field            | Suggested type                  | Platform Event field                  |
+| ---------------------------- | ------------------------------- | ------------------------------------- |
+| Event ID                     | Text(80), Unique                | `$Record.EventId__c`                  |
+| Run ID                       | Text(120)                       | `$Record.RunId__c`                    |
+| Salesforce Record ID         | Text(18)                        | `$Record.RecordId__c`                 |
+| Check Set Qualified API Name | Text(80)                        | `$Record.CheckSetQualifiedApiName__c` |
+| Check Qualified API Name     | Text(120)                       | `$Record.CheckQualifiedApiName__c`    |
+| Status                       | Text(30) or restricted picklist | `$Record.Status__c`                   |
+| Reason Code                  | Text(120)                       | `$Record.ReasonCode__c`               |
+| Severity                     | Text(30)                        | `$Record.Severity__c`                 |
+| Source                       | Text(30)                        | `$Record.Source__c`                   |
+| Occurred At                  | Date/Time                       | `$Record.OccurredAt__c`               |
+| Contract Version             | Text(10)                        | `$Record.ContractVersion__c`          |
 
 Mark **Event ID** as Unique. One health-check run can produce many events with the same Run ID, so
 Run ID is not the duplicate key.
@@ -104,7 +104,7 @@ example saves actionable events to the example `Health_Check_Result_History__c` 
 above. Replace the object and field API names with fields your team actually creates.
 
 ```apex
-trigger RecordHealthCheckResultTrigger on rhc__Record_Health_Check_Result__e (
+trigger RecordHealthCheckResultTrigger on rhc__Record_Health_Check_Result__e(
   after insert
 ) {
   RecordHealthCheckResultHandler.saveActionableResults(Trigger.new);
@@ -138,8 +138,7 @@ public without sharing class RecordHealthCheckResultHandler {
       savedEventIds.add(savedResult.Event_Id__c);
     }
 
-    List<Health_Check_Result_History__c> resultsToSave =
-      new List<Health_Check_Result_History__c>();
+    List<Health_Check_Result_History__c> resultsToSave = new List<Health_Check_Result_History__c>();
 
     for (rhc__Record_Health_Check_Result__e eventRecord : events) {
       if (

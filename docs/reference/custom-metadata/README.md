@@ -28,10 +28,10 @@ the packaged Admin permission set does not grant that Salesforce system permissi
 
 ## Choose a reference
 
-| Reference | What it covers |
-| --- | --- |
+| Reference                                 | What it covers                                                              |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
 | [Check Set fields](./check-set-fields.md) | Every field on **Record Health Check Set** (`Record_Health_Check_Set__mdt`) |
-| [Check fields](./check-fields.md) | Every field on **Record Health Check** (`Record_Health_Check__mdt`) |
+| [Check fields](./check-fields.md)         | Every field on **Record Health Check** (`Record_Health_Check__mdt`)         |
 
 These pages define configuration fields; they are not setup walkthroughs.
 

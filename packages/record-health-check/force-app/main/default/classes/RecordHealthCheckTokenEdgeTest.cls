@@ -43,7 +43,11 @@ private class RecordHealthCheckTokenEdgeTest {
       );
       Assert.fail('An unknown namespace must not resolve.');
     } catch (RecordHealthCheckTemplateService.TemplateException expected) {
-      Assert.areEqual('TOKEN_NOT_AVAILABLE_IN_PHASE', expected.reasonCode);
+      Assert.areEqual(
+        'TOKEN_NOT_AVAILABLE_IN_PHASE',
+        expected.reasonCode,
+        'An unknown runtime namespace must retain the phase-unavailable reason.'
+      );
     }
   }
 
@@ -59,7 +63,11 @@ private class RecordHealthCheckTokenEdgeTest {
       );
       Assert.fail('An unusable shape must not resolve.');
     } catch (RecordHealthCheckTemplateService.TemplateException expected) {
-      Assert.areEqual('TOKEN_NOT_AVAILABLE_IN_PHASE', expected.reasonCode);
+      Assert.areEqual(
+        'TOKEN_NOT_AVAILABLE_IN_PHASE',
+        expected.reasonCode,
+        'An unusable runtime token shape must retain the phase-unavailable reason.'
+      );
     }
   }
 
@@ -87,8 +95,16 @@ private class RecordHealthCheckTokenEdgeTest {
       '{!rhcQuery.sourceRows[0].Name}',
       RecordHealthCheckTokenSurfaces.NOT_APPLICABLE_MESSAGE
     );
-    Assert.areEqual(1, issues.size());
-    Assert.areEqual('TOKEN_NOT_ALLOWED_ON_SURFACE', issues[0].reasonCode);
+    Assert.areEqual(
+      1,
+      issues.size(),
+      'A query row on the not-applicable surface must produce one issue.'
+    );
+    Assert.areEqual(
+      'TOKEN_NOT_ALLOWED_ON_SURFACE',
+      issues[0].reasonCode,
+      'A query row on the not-applicable surface must retain its surface rejection.'
+    );
     Assert.isTrue(
       issues[0].message.contains('have not produced rows'),
       'The reason names the phase, not just the refusal: ' + issues[0].message
@@ -350,8 +366,16 @@ private class RecordHealthCheckTokenEdgeTest {
       grouped.outerLimit,
       'The order clause stops at LIMIT rather than swallowing it.'
     );
-    Assert.areEqual(1, grouped.orderPaths.size());
-    Assert.areEqual('LastName', grouped.orderPaths[0]);
+    Assert.areEqual(
+      1,
+      grouped.orderPaths.size(),
+      'The grouped projection must retain exactly one order path.'
+    );
+    Assert.areEqual(
+      'LastName',
+      grouped.orderPaths[0],
+      'The order path must stop before LIMIT and retain LastName.'
+    );
   }
 
   /**
@@ -394,7 +418,11 @@ private class RecordHealthCheckTokenEdgeTest {
       result.frameworkFound(),
       'Everything else reads the value the Check found.'
     );
-    Assert.areEqual('0', result.frameworkExpected());
+    Assert.areEqual(
+      '0',
+      result.frameworkExpected(),
+      'The framework Expected projection must retain the zero value.'
+    );
 
     Assert.areEqual(
       '003AB000001XyZaQAK',

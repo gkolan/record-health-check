@@ -42,7 +42,7 @@ import {
 import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.getCheckDefinitions";
 import getCheckSetShellConfig from "@salesforce/apex/RecordHealthCheckController.getCheckSetShellConfig";
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
-import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheck";
+import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheckJson";
 import completeRun from "@salesforce/apex/RecordHealthCheckController.completeRun";
 import {
   registerRefreshHandler,
@@ -68,7 +68,7 @@ jest.mock(
   { virtual: true }
 );
 jest.mock(
-  "@salesforce/apex/RecordHealthCheckController.evaluateCheck",
+  "@salesforce/apex/RecordHealthCheckController.evaluateCheckJson",
   () => ({ default: jest.fn() }),
   { virtual: true }
 );
@@ -2762,6 +2762,40 @@ describe("c-record-health-check — Prerequisite Check enforcement", () => {
     expect(evaluateCheck).toHaveBeenCalledTimes(2);
   });
 
+  it("rejects an ambiguous unqualified prerequisite across foreign namespaces", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        checks: [
+          {
+            developerName: "Shared",
+            qualifiedApiName: "first__Shared",
+            label: "First",
+            priority: 1
+          },
+          {
+            developerName: "Shared",
+            qualifiedApiName: "second__Shared",
+            label: "Second",
+            priority: 2
+          },
+          {
+            developerName: "Dependent",
+            qualifiedApiName: "third__Dependent",
+            label: "Dependent",
+            priority: 3,
+            dependsOnCheckDeveloperName: "Shared"
+          }
+        ]
+      })
+    );
+    await appendAndLoad(element);
+    expect(element.shadowRoot.textContent).toContain(
+      "Record Health Check returned an unexpected response."
+    );
+    expect(element.shadowRoot.textContent).not.toContain("third__Dependent");
+    expect(evaluateCheck).not.toHaveBeenCalled();
+  });
+
   it("resolves an unqualified prerequisite within the dependent Check namespace", async () => {
     const packagedPrerequisite = deferred();
     getCheckDefinitions.mockResolvedValue(
@@ -4376,6 +4410,60 @@ describe("annotateCheck — structured evidence", () => {
     expect(expanded.evidenceGroups.map((group) => group.step)).toEqual([2, 10]);
   });
 
+  it("rejects malformed column declarations and mismatched evidence rows", () => {
+    for (const patch of [
+      { columns: [{ key: "value", label: "", dataType: "STRING" }] },
+      { rows: [[1]] },
+      { rows: [null] }
+    ]) {
+      const annotated = annotateCheck(
+        {
+          ...check,
+          result: {
+            ...check.result,
+            evidence: { ...check.result.evidence, ...patch }
+          }
+        },
+        false,
+        "OnDemand",
+        false
+      );
+      expect(annotated.evidenceUnavailable).toBe(true);
+      expect(annotated.evidenceSummary).toBe("Details unavailable.");
+    }
+  });
+
+  it("places unknown evidence steps after numbered steps without discarding groups", () => {
+    const annotated = annotateCheck(
+      {
+        ...check,
+        evidenceExpanded: true,
+        result: {
+          ...check.result,
+          evidence: {
+            ...check.result.evidence,
+            rows: [
+              [null, "Unassigned A"],
+              [2, "Numbered"],
+              [null, "Unassigned B"]
+            ],
+            returnedItemCount: 3,
+            totalItemCount: 3
+          }
+        }
+      },
+      false,
+      "OnDemand",
+      false
+    );
+    expect(annotated.evidenceGroups.map((group) => group.step)).toEqual([
+      2,
+      null,
+      null
+    ]);
+    expect(annotated.evidenceVisibleRowCount).toBe(3);
+  });
+
   it("falls back locally for unknown evidence versions", () => {
     const annotated = annotateCheck(
       {
@@ -4396,6 +4484,55 @@ describe("annotateCheck — structured evidence", () => {
 });
 
 describe("c-record-health-check — structured evidence interactions", () => {
+  it("preserves typed null cells through serialized Apex responses", async () => {
+    const result = {
+      evaluation: {
+        status: "FAIL",
+        severity: "WARNING",
+        checkQualifiedApiName: "Check_A",
+        recordId: "001000000000001AAA"
+      },
+      display: {
+        foundDisplayValue: "1",
+        expectedDisplayValue: "0",
+        evidence: {
+          version: "1.0",
+          summary: "Typed evidence fixture",
+          columns: [{ key: "value", label: "Value", dataType: "NUMBER" }],
+          rows: [[null]],
+          returnedItemCount: 1,
+          totalItemCount: 1,
+          omittedItemCount: 0,
+          completeness: "COMPLETE",
+          groupKeys: [null, null]
+        }
+      }
+    };
+    const element = await renderCompletedManualCard(JSON.stringify(result));
+    const toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
+    expect(toggle).not.toBeNull();
+    toggle.click();
+    await flushPromises();
+    expect(element.shadowRoot.textContent).toContain("Typed evidence fixture");
+    expect(
+      element.shadowRoot.querySelector(".rhc-evidence td").textContent
+    ).toBe("—");
+    expect(element.shadowRoot.textContent).not.toContain(
+      "Details unavailable."
+    );
+  });
+
+  it.each(["{", "null", '"unexpected"'])(
+    "rejects malformed serialized responses: %s",
+    async (payload) => {
+      const element = await renderCompletedManualCard(payload);
+      expect(element.shadowRoot.textContent).toContain(
+        "The server returned an invalid result. Contact your administrator."
+      );
+      expect(element.shadowRoot.querySelector(".rhc-evidence")).toBeNull();
+    }
+  );
+
   it("expands ten rows, shows all rows, and restores focus on collapse", async () => {
     const element = await renderCompletedManualCard(
       makeStructuredEvidenceResult()
@@ -5308,6 +5445,9 @@ describe("structured display content — inline URL contract", () => {
     "https://localhost/path",
     "https://user@example.com/path",
     "https://example.com:444/path",
+    "https://2147483648.1.1.1/path",
+    "https://1.1.1.2147483648/path",
+    `https://${"9".repeat(63)}.1.1.1/path`,
     "https://example.com/%2e%2e/private",
     "/a/../private",
     "/a/%5cprivate",
@@ -5356,6 +5496,118 @@ describe("structured display content — inline URL contract", () => {
       "text"
     ]);
     expect(normalized.expected).toEqual([]);
+  });
+
+  it("preserves empty fallback values and rejects oversized node lists and decorated breaks", () => {
+    const empty = normalizeDisplayContent(null, {
+      message: "",
+      fix: null,
+      found: "",
+      expected: null
+    });
+    expect(empty.message).toEqual([
+      expect.objectContaining({ kind: "text", text: "" })
+    ]);
+    expect(empty.fix).toEqual([]);
+    for (const message of [
+      Array.from({ length: 1001 }, () => ({ kind: "break" })),
+      [{ kind: "break", text: "unexpected" }]
+    ]) {
+      expect(
+        normalizeDisplayContent({ version: 1, message }, fallback).message
+      ).toEqual([
+        expect.objectContaining({ kind: "text", text: "Plain message" })
+      ]);
+    }
+  });
+
+  it("renders valid fields when their combined envelope exceeds 64 KiB", async () => {
+    const field = Array.from({ length: 30 }, () => ({
+      kind: "link",
+      text: "Budget link",
+      href: "/fixture?padding=" + "x".repeat(1900)
+    }));
+    const displayContent = {
+      version: 1,
+      message: field,
+      fix: field,
+      found: field,
+      expected: field
+    };
+    expect(Buffer.byteLength(JSON.stringify(field), "utf8")).toBeLessThan(
+      65536
+    );
+    expect(
+      Buffer.byteLength(JSON.stringify(displayContent), "utf8")
+    ).toBeGreaterThan(65536);
+    expect(
+      Buffer.byteLength(JSON.stringify(displayContent), "utf8")
+    ).toBeLessThan(262144);
+    const normalized = normalizeDisplayContent(displayContent, fallback);
+    for (const name of ["message", "fix", "found", "expected"]) {
+      expect(
+        normalized[name].filter((node) => node.kind === "link")
+      ).toHaveLength(30);
+    }
+    const element = await renderCompletedManualCard({
+      status: "FAIL",
+      severity: "ERROR",
+      message: "Plain message",
+      fixInstructions: "Plain fix",
+      actualValue: "1",
+      expectedValue: "0",
+      displayContent
+    });
+    expect(
+      element.shadowRoot.querySelectorAll(".rhc-inline-link")
+    ).toHaveLength(120);
+  });
+
+  it("enforces UTF-8 field limits independently of the response limit", () => {
+    const fieldAtBytes = (bytes) => {
+      const field = Array.from({ length: 30 }, () => ({
+        kind: "link",
+        text: "Budget link",
+        href: "/fixture?padding=" + "x".repeat(1900)
+      }));
+      field.push({ kind: "text", text: "" });
+      const remaining =
+        bytes - Buffer.byteLength(JSON.stringify(field), "utf8");
+      field[field.length - 1].text =
+        "é".repeat(Math.floor(remaining / 2)) + "x".repeat(remaining % 2);
+      expect(Buffer.byteLength(JSON.stringify(field), "utf8")).toBe(bytes);
+      return field;
+    };
+    for (const bytes of [65535, 65536]) {
+      const content = normalizeDisplayContent(
+        { version: 1, message: fieldAtBytes(bytes) },
+        fallback
+      );
+      expect(
+        content.message.filter((node) => node.kind === "link")
+      ).toHaveLength(30);
+    }
+    const oversized = normalizeDisplayContent(
+      { version: 1, message: fieldAtBytes(65537) },
+      fallback
+    );
+    expect(oversized.message).toEqual([
+      expect.objectContaining({ kind: "text", text: "Plain message" })
+    ]);
+    const field = fieldAtBytes(65536);
+    const envelope = {
+      version: 1,
+      message: field,
+      fix: field,
+      found: field,
+      expected: field
+    };
+    expect(Buffer.byteLength(JSON.stringify(envelope), "utf8")).toBeGreaterThan(
+      262144
+    );
+    expect(normalizeDisplayContent(envelope, fallback).message).toEqual([
+      expect.objectContaining({ kind: "text", text: "Plain message" })
+    ]);
   });
 
   it("fails closed at every payload and size boundary", () => {
@@ -5449,6 +5701,36 @@ describe("structured display content — inline URL contract", () => {
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     expect(link.getAttribute("aria-label")).toContain("new tab");
+    const bubbled = jest.fn();
+    link.parentElement.addEventListener("click", bubbled);
+    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+    click.preventDefault();
+    link.dispatchEvent(click);
+    expect(bubbled).not.toHaveBeenCalled();
+    const container = link.closest("[data-expandable]");
+    const content = container.querySelector("[data-clampcontent]");
+    Object.defineProperty(content, "clientHeight", {
+      configurable: true,
+      value: 20
+    });
+    Object.defineProperty(content, "scrollHeight", {
+      configurable: true,
+      value: 80
+    });
+    let resizeCallback;
+    const frame = jest
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((callback) => {
+        resizeCallback = callback;
+        return 1;
+      });
+    window.dispatchEvent(new CustomEvent("resize"));
+    resizeCallback();
+    expect(container.querySelector("[data-clamptoggle]").ariaLabel).toBe(
+      "Expand to access links"
+    );
+    frame.mockRestore();
+
     expect(element.shadowRoot.querySelector(".rhc-row__message b")).toBeNull();
     expect(element.shadowRoot.querySelector(".rhc-cmp__val br")).not.toBeNull();
     document.body.removeChild(element);
@@ -5713,6 +5995,34 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     await pending;
 
     expect(release).toHaveBeenCalledTimes(1);
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    held
+      .slice(1)
+      .forEach((scheduler) => runner._releaseEvaluationSlot(scheduler));
+  });
+
+  it("releases a granted slot when invalidated before the awaiting continuation", async () => {
+    evaluateCheck.mockClear();
+    const check = { developerName: "A" };
+    const runner = makeRunner(makeRunnerHost([check]));
+    runner._runToken = 1;
+    const held = await Promise.all(
+      Array.from({ length: 5 }, () => runner._acquireEvaluationSlot(1))
+    );
+    const release = jest.spyOn(runner, "_releaseEvaluationSlot");
+
+    const pending = runner._runOneCheck(
+      check,
+      new Map(),
+      new Map(),
+      jest.fn(),
+      1
+    );
+    runner._releaseEvaluationSlot(held[0]);
+    runner._runToken = 2;
+    await pending;
+
+    expect(release).toHaveBeenCalledTimes(2);
     expect(evaluateCheck).not.toHaveBeenCalled();
     held
       .slice(1)
@@ -7418,5 +7728,107 @@ describe("c-record-health-check — the card body never collapses to a header", 
     expect(
       element.shadowRoot.querySelectorAll("li.rhc-row").length
     ).toBeGreaterThan(0);
+  });
+});
+
+describe("card stale browser callbacks", () => {
+  it.each([false, true])(
+    "ignores a cancelled idle callback after definition load=%s",
+    async (loaded) => {
+      jest.clearAllMocks();
+      const callbacks = [];
+      Object.defineProperty(window, "requestIdleCallback", {
+        configurable: true,
+        value: jest.fn((callback) => {
+          callbacks.push(callback);
+          return callbacks.length;
+        })
+      });
+      Object.defineProperty(window, "cancelIdleCallback", {
+        configurable: true,
+        value: jest.fn()
+      });
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({ triggerMode: "Automatic" })
+      );
+      const element = createComponent();
+      try {
+        await appendAndLoad(element);
+        if (loaded) {
+          callbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
+          await flushPromises();
+          await flushPromises();
+        }
+        const definitionsBefore = getCheckDefinitions.mock.calls.length;
+        expect(callbacks[0]).toEqual(expect.any(Function));
+        document.body.removeChild(element);
+        callbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
+        await flushPromises();
+        expect(getCheckDefinitions).toHaveBeenCalledTimes(definitionsBefore);
+        expect(evaluateCheck).not.toHaveBeenCalled();
+      } finally {
+        if (element.isConnected) document.body.removeChild(element);
+        delete window.requestIdleCallback;
+        delete window.cancelIdleCallback;
+      }
+    }
+  );
+});
+
+describe("card context changes during asynchronous work", () => {
+  it("ignores a rejected definition response after moving to another record", async () => {
+    jest.clearAllMocks();
+    const oldRequest = deferred();
+    getCheckDefinitions
+      .mockReturnValueOnce(oldRequest.promise)
+      .mockResolvedValue(makeDefinitions());
+    const element = createComponent();
+    await appendAndLoad(element);
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+    element.recordId = "001000000000002AAA";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    oldRequest.reject(new Error("Old record failure"));
+    await flushPromises();
+    await flushPromises();
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    expect(element.shadowRoot.textContent).not.toContain("Old record failure");
+    document.body.removeChild(element);
+  });
+
+  it("ignores a rejected availability lookup after a Check Set is selected", async () => {
+    jest.clearAllMocks();
+    const oldLookup = deferred();
+    getCheckSetAvailabilityForRecord.mockReturnValueOnce(oldLookup.promise);
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    const element = createComponent();
+    element.checkSetName = "";
+    await appendAndLoad(element);
+    expect(getCheckSetAvailabilityForRecord).toHaveBeenCalledTimes(1);
+    element.checkSetName = "Account_Data_Quality";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    oldLookup.reject(new Error("Old availability failure"));
+    await flushPromises();
+    await flushPromises();
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    expect(element.shadowRoot.textContent).not.toContain(
+      "Old availability failure"
+    );
+    document.body.removeChild(element);
+  });
+
+  it("acknowledges RefreshView without loading when no record is selected", async () => {
+    jest.clearAllMocks();
+    const element = createComponent();
+    element.recordId = null;
+    await appendAndLoad(element);
+    const refresh = registerRefreshHandler.mock.calls.at(-1)[1];
+    await expect(refresh()).resolves.toBe(true);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    document.body.removeChild(element);
   });
 });

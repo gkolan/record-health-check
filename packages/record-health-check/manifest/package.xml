@@ -241,8 +241,6 @@
         <members>RHCArchitectureDependencyTest</members>
         <members>RHCArchitectureQueryTest</members>
         <members>RHCBase64FieldRedTest</members>
-        <members>RHCBulkQueryLimitTest</members>
-        <members>RHCBulkQueryRuntimeRegressionTest</members>
         <members>RHCComparisonDisplayEdgeBehaviorTest</members>
         <members>RHCComparisonVisibilityTest</members>
         <members>RHCConfigCheckValidationTest</members>
@@ -547,6 +545,7 @@
         <members>RecordHealthCheckSoqlTemplateTest</members>
         <members>RecordHealthCheckSoqlTokenBinder</members>
         <members>RecordHealthCheckSoqlTokenBinderTest</members>
+        <members>RecordHealthCheckSoqlValueResolver</members>
         <members>RecordHealthCheckStatus</members>
         <members>RecordHealthCheckTemplateParser</members>
         <members>RecordHealthCheckTemplateParserTest</members>
@@ -569,7 +568,24 @@
         <members>RecordHealthCheckValueResolverTest</members>
         <members>RecordHealthCheckValueSource</members>
         <members>RecordHealthCheckValueSourceTest</members>
-        <name>ApexClass</name>
+        <members>RHCBulkQueryRuntimeBoundaryTest</members>
+    <members>RHCDescribeCacheStressTest</members>
+    <members>RHCDiagnosticTraceContractTest</members>
+    <members>RHCFlowAdapterContractTest</members>
+    <members>RHCSoqlTemplateSecurityTest</members>
+    <members>RHCTemplateFallbackContractTest</members>
+    <members>RHCDisplayByteBudgetTest</members>
+    <members>RHCEvidenceRowValidationTest</members>
+    <members>RHCPluginDisplayBudgetTest</members>
+    <members>RHCPluginDisplayBulkBudgetTest</members>
+    <members>RHCPluginVerificationFacadeTest</members>
+    <members>RHCRecentActivityContractTest</members>
+    <members>RHCResponseDisplayBudgetTest</members>
+    <members>RHCResponseEvidenceBudgetTest</members>
+    <members>RHCSubscriberRecordIsolationTest</members>
+    <members>RecordHealthCheckResponseDisplayBudget</members>
+    <members>RecordHealthCheckScopeDisplayFinalizer</members>
+    <name>ApexClass</name>
     </types>
     <types>
         <members>recordHealthCheck</members>

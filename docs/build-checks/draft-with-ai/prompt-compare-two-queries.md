@@ -375,12 +375,12 @@ Rules for this Evaluation Type (EvaluationType__c = COMPARE_TWO_QUERIES):
 
 ## Confirm the draft against
 
-| Topic | Page |
-| --- | --- |
-| Working dual-query patterns | [Compare two queries examples](../../examples/compare-two-queries/README.md) |
-| Source and Comparison Query fields | [Check fields](../../reference/custom-metadata/check-fields.md) |
-| SOQL and message tokens | [Merge syntax](../../reference/merge-syntax/README.md) |
-| Shared AI rules | [Shared rules](./shared-rules.md) |
+| Topic                              | Page                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| Working dual-query patterns        | [Compare two queries examples](../../examples/compare-two-queries/README.md) |
+| Source and Comparison Query fields | [Check fields](../../reference/custom-metadata/check-fields.md)              |
+| SOQL and message tokens            | [Merge syntax](../../reference/merge-syntax/README.md)                       |
+| Shared AI rules                    | [Shared rules](./shared-rules.md)                                            |
 
 ## Related
 

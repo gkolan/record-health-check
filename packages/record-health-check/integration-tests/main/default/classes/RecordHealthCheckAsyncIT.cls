@@ -401,7 +401,8 @@ private with sharing class RecordHealthCheckAsyncIT {
       Assert.fail(adapter + ' must reject an overlong identity.');
     } catch (IllegalArgumentException expected) {
       Assert.isTrue(
-        expected.getMessage().contains('must not exceed 255 characters')
+        expected.getMessage().contains('must not exceed 255 characters'),
+        'An overlong async identity must explain its 255-character limit.'
       );
     }
   }
@@ -411,7 +412,10 @@ private with sharing class RecordHealthCheckAsyncIT {
       RecordHealthCheckQueueable.validateScope('Qualified_Set', recordIds);
       Assert.fail('One-over Queueable scope must be rejected.');
     } catch (IllegalArgumentException expected) {
-      Assert.isTrue(expected.getMessage().contains('suppliedCount=201'));
+      Assert.isTrue(
+        expected.getMessage().contains('suppliedCount=201'),
+        'An excessive Queueable scope must report 201 supplied records.'
+      );
     }
   }
 
@@ -420,7 +424,10 @@ private with sharing class RecordHealthCheckAsyncIT {
       RecordHealthCheckBatch.validatePopulation('Qualified_Set', recordIds);
       Assert.fail('One-over Batch population must be rejected.');
     } catch (IllegalArgumentException expected) {
-      Assert.isTrue(expected.getMessage().contains('suppliedCount=2001'));
+      Assert.isTrue(
+        expected.getMessage().contains('suppliedCount=2001'),
+        'An excessive Batch population must report 2001 supplied records.'
+      );
     }
   }
 
@@ -433,7 +440,10 @@ private with sharing class RecordHealthCheckAsyncIT {
       );
       Assert.fail('One-over Scheduled population must be rejected.');
     } catch (IllegalArgumentException expected) {
-      Assert.isTrue(expected.getMessage().contains('suppliedCount=2001'));
+      Assert.isTrue(
+        expected.getMessage().contains('suppliedCount=2001'),
+        'An excessive Scheduled population must report 2001 supplied records.'
+      );
     }
   }
 
@@ -461,7 +471,10 @@ private with sharing class RecordHealthCheckAsyncIT {
       }
       Assert.fail(adapter + ' submission must be denied.');
     } catch (RecordHealthCheckAccess.AuthorizationException expected) {
-      Assert.isTrue(expected.getMessage().contains('NOT_AUTHORIZED'));
+      Assert.isTrue(
+        expected.getMessage().contains('NOT_AUTHORIZED'),
+        'An unauthorized async submission must retain NOT_AUTHORIZED.'
+      );
     }
   }
 
@@ -511,7 +524,10 @@ private with sharing class RecordHealthCheckAsyncIT {
       }
       Assert.fail('Delayed execution must recheck authorization.');
     } catch (RecordHealthCheckAccess.AuthorizationException expected) {
-      Assert.isTrue(expected.getMessage().contains('NOT_AUTHORIZED'));
+      Assert.isTrue(
+        expected.getMessage().contains('NOT_AUTHORIZED'),
+        'Delayed async execution must retain NOT_AUTHORIZED.'
+      );
     }
   }
 }

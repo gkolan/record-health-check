@@ -6,6 +6,7 @@ public with sharing class RecordHealthCheckResponseFinalizer {
     RecordHealthCheckOptions options,
     RecordHealthCheckScopePipeline.SelectionContext context
   ) {
+    new RecordHealthCheckResponseDisplayBudget().apply(response, allItems);
     RecordHealthCheckResponse publication = new RecordHealthCheckResponse();
     publication.runId = response.runId;
     publication.recordIds.addAll(response.recordIds);

@@ -227,8 +227,8 @@ public with sharing class RecordHealthCheckScopePlanner {
     Integer requiredDmlStatements = 0;
     for (Record_Health_Check__mdt check : checks) {
       if (check.EvaluationType__c == 'APEX') {
-        // Validation constructs the plugin under one savepoint; dispatch runs
-        // it under a second. Both count against the DML statement limit.
+        // Construction and execution each set and release a savepoint.
+        // Those four operations count against the DML statement limit.
         requiredDmlStatements += 4;
       }
     }

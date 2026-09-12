@@ -80,9 +80,43 @@ private class RecordHealthCheckSoqlBoundaryTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('USD', parenthesized);
-    Assert.areEqual('USD', distributed);
-    Assert.areEqual(null, broadened);
-    Assert.areEqual(null, conflicting);
+    Assert.areEqual(
+      'USD',
+      parenthesized,
+      'Parenthesized currency constraints must resolve USD.'
+    );
+    Assert.areEqual(
+      'USD',
+      distributed,
+      'Distributed matching currency constraints must resolve USD.'
+    );
+    Assert.areEqual(
+      null,
+      broadened,
+      'A broadened currency predicate must remain unknown.'
+    );
+    Assert.areEqual(
+      null,
+      conflicting,
+      'Conflicting currency predicates must remain unknown.'
+    );
+  }
+  @IsTest
+  static void singleCharacterObjectLabelsDoNotThrow() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>()
+    );
+    check.SourceQuery__c = 'SELECT Id FROM y';
+    Assert.areEqual(
+      'ys',
+      RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(check),
+      'A one-character unknown object must use the regular plural without throwing.'
+    );
+    check.SourceQuery__c = 'SELECT Id FROM Y';
+    Assert.areEqual(
+      'Ys',
+      RecordHealthCheckQueryEvaluatorSupport.pluralizeObject(check),
+      'An uppercase one-character object must preserve its spelling.'
+    );
   }
 }

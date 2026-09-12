@@ -7,7 +7,7 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `docs/reference/evaluation/bulk-query-grammar.md`.
 
-**292 templates · 6 strategies · 0 unclassified**
+**294 templates · 6 strategies · 0 unclassified**
 
 ## Strategy totals
 
@@ -17,10 +17,10 @@ per record. The grammar these strategies belong to is described in
 | `SELF` | 39 | Query the evaluated records themselves; correlation column is Id |
 | `CHILD_PATH` | 24 | Group child rows by the relationship path that carried the token |
 | `TOKEN_INDIRECT` | 16 | Collect distinct token values across the scope, query them once, map back |
-| `ORDERED_PICK_IN_MEMORY` | 6 | ORDER BY + LIMIT 1 on another field; rank per record in Apex |
+| `ORDERED_PICK_IN_MEMORY` | 8 | ORDER BY + LIMIT N; rank and retain up to N rows per record in Apex |
 | `SCOPE_INVARIANT` | 5 | No record token; one query serves every record in the scope |
 
-6 template(s) resolve rows in Apex rather than in SOQL. Those are the
+8 template(s) resolve rows in Apex rather than in SOQL. Those are the
 ones the per-scope row budget governs, because the engine drops the per-record
 predicate to issue a single query.
 
@@ -259,6 +259,8 @@ predicate to issue a single query.
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Account_DVF_Percent` | `SourceQuery__c` | `AccountId = record.Id` | Selects Probability but orders by CloseDate |
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Account_Rows_BeyondQueryLimit` | `SourceQuery__c` | `AccountId = record.Id` | Selects Id but orders by Id |
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `Example_Oldest_City_Matches_Billing` | `SourceQuery__c` | `AccountId = record.Id` | Selects MailingCity but orders by CreatedDate |
+| `ORDERED_PICK_IN_MEMORY` | integration-tests | `RHC_Link_Grammar_Open` | `SourceQuery__c` | `Id = record.Id` | Selects Id but orders by Id |
+| `ORDERED_PICK_IN_MEMORY` | integration-tests | `RHC_Link_Grammar_Valid` | `SourceQuery__c` | `Id = record.Id` | Selects Id but orders by Id |
 | `ORDERED_PICK_IN_MEMORY` | integration-tests | `RHC_Link_Metadata` | `SourceQuery__c` | `Id = record.Id` | Selects Id but orders by Id |
 | `SCOPE_INVARIANT` | integration-tests | `Account_Country_Not_Restricted` | `ComparisonQuery__c` | `-` | Same rows for every record; evaluate once and reuse |
 | `SCOPE_INVARIANT` | integration-tests | `RHC_Diag_Query_Bad_Token` | `SourceQuery__c` | `-` | Same rows for every record; evaluate once and reuse |

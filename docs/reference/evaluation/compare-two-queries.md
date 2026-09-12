@@ -16,15 +16,15 @@ cannot safely write and test both queries, use a Formula Check or ask a Salesfor
 
 ## Required Compare two queries settings
 
-| Setup field | API name | Requirement |
-| --- | --- | --- |
-| **Evaluation Type** | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | **Compare two queries**: `COMPARE_TWO_QUERIES` |
-| **Source Query** | [`SourceQuery__c`](../custom-metadata/check-fields.md#source-query-sourcequery__c) | Required left-side SOQL template |
-| **Source Query Field** | [`SourceQueryField__c`](../custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | Selected field or aggregate alias; blank for bare `COUNT()` |
-| **Comparison Query** | [`ComparisonQuery__c`](../custom-metadata/check-fields.md#comparison-query-comparisonquery__c) | Required right-side SOQL template |
-| **Comparison Query Field** | [`ComparisonQueryField__c`](../custom-metadata/check-fields.md#comparison-query-field-comparisonqueryfield__c) | Selected field or aggregate alias; blank for bare `COUNT()` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | **One row or aggregate** or **Compare as lists** |
-| **Comparison Operator** | [`ComparisonOperator__c`](../custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Operator compatible with the selected mode |
+| Setup field                   | API name                                                                                                        | Requirement                                                 |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Evaluation Type**           | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                     | **Compare two queries**: `COMPARE_TWO_QUERIES`              |
+| **Source Query**              | [`SourceQuery__c`](../custom-metadata/check-fields.md#source-query-sourcequery__c)                              | Required left-side SOQL template                            |
+| **Source Query Field**        | [`SourceQueryField__c`](../custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)              | Selected field or aggregate alias; blank for bare `COUNT()` |
+| **Comparison Query**          | [`ComparisonQuery__c`](../custom-metadata/check-fields.md#comparison-query-comparisonquery__c)                  | Required right-side SOQL template                           |
+| **Comparison Query Field**    | [`ComparisonQueryField__c`](../custom-metadata/check-fields.md#comparison-query-field-comparisonqueryfield__c)  | Selected field or aggregate alias; blank for bare `COUNT()` |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | **One row or aggregate** or **Compare as lists**            |
+| **Comparison Operator**       | [`ComparisonOperator__c`](../custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)         | Operator compatible with the selected mode                  |
 
 **Expected Value Comes From** is not used. The Comparison Query always supplies the Expected value.
 
@@ -56,11 +56,11 @@ WHERE OpportunityId = {!record.Id} AND IsPrimary = TRUE
 
 Choose **Compare as lists**: `COMPARE_AS_LISTS` and one of these operators:
 
-| Setup label | API value | Pass condition |
-| --- | --- | --- |
-| **Lists overlap** | `LISTS_OVERLAP` | At least one normalized value occurs in both lists |
-| **Lists contain all** | `LISTS_CONTAIN_ALL` | The Comparison/Expected list contains every value in the Source/Found list; it may contain additional values |
-| **Lists match exactly** | `LISTS_MATCH_EXACTLY` | Both lists contain the same values the same number of times |
+| Setup label             | API value             | Pass condition                                                                                               |
+| ----------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Lists overlap**       | `LISTS_OVERLAP`       | At least one normalized value occurs in both lists                                                           |
+| **Lists contain all**   | `LISTS_CONTAIN_ALL`   | The Comparison/Expected list contains every value in the Source/Found list; it may contain additional values |
+| **Lists match exactly** | `LISTS_MATCH_EXACTLY` | Both lists contain the same values the same number of times                                                  |
 
 List matching ignores letter case. For example, `Chicago` and `CHICAGO` match. Single-value
 **Contains** remains case-sensitive. Select the list column with each Query Field and configure the
@@ -68,11 +68,11 @@ result to use when either query finds no records.
 
 ## No rows, empty values, and row caps
 
-| Setup field | API name | Behavior |
-| --- | --- | --- |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Determines the outcome when a required list/query side has no records |
-| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignores, preserves as blank, or forces no match for empty selected values |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | Applies to returned rows; defaults to `200`, maximum `2000` |
+| Setup field                   | API name                                                                                                    | Behavior                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c)           | Determines the outcome when a required list/query side has no records     |
+| **If Field Value Is Empty**   | [`EmptyValueHandling__c`](../custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignores, preserves as blank, or forces no match for empty selected values |
+| **Max Query Rows (1-2000)**   | [`MaxQueryRows__c`](../custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c)               | Applies to returned rows; defaults to `200`, maximum `2000`               |
 
 Both queries execute in the same evaluation transaction. Keep their selected fields and row counts
 as small as the comparison requires.

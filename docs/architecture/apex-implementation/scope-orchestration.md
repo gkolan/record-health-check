@@ -21,16 +21,17 @@ This page is part of the [Apex class reference](./README.md). For the architectu
 
 **Type:** Service class · `public with sharing`
 
-`RecordHealthCheck.evaluate`, the installed Flow actions, and the Lightning card's `evaluateCheck`
-method use this class. It validates the request, loads the requested Salesforce records with user
+`RecordHealthCheck.evaluate`, the installed Flow actions, and the Lightning card use this class.
+The card reaches it through `evaluateCheckJson`, which delegates to `evaluateCheck`.
+It validates the request, loads the requested Salesforce records with user
 access enforced, runs the applicable Checks in order, optionally adds display content, publishes the
 requested Platform Events, and returns `RecordHealthCheckResponse`. The Lightning card's
 `completeRun` method publishes already-completed results and does not run this class again.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member          | Purpose                                                          |
+| --------------- | ---------------------------------------------------------------- |
 | `evaluate(...)` | Run the requested Check or Check Set for the supplied record IDs |
 
 **Notable behavior:**
@@ -84,8 +85,8 @@ uses `RecordHealthCheck.evaluate(request)` and does not call this class directly
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                     | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
 | `collectRecordFields(...)` | Identify the record fields referenced by a Check |
 
 **Notable behavior:**
@@ -107,8 +108,8 @@ formula dependencies; custom Apex does not call it directly.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member      | Purpose                                                                       |
+| ----------- | ----------------------------------------------------------------------------- |
 | `scan(...)` | Return described record-field paths in document order with duplicates removed |
 
 ### `RecordHealthCheckBulkQuerySupport`
@@ -171,12 +172,41 @@ results so the pipeline can reassemble output in the original request order.
 
 **Type:** Service class · `public with sharing`
 
-Adds requested display text, hides or replaces access-sensitive Reason Codes when needed, and checks
-that an Action URL is safe before returning it.
+Converts evaluation and display results and delegates display finalization to
+`RecordHealthCheckScopeDisplayFinalizer`. Scope callers pass the authorized record map explicitly;
+standalone callers retain current-record provenance only.
+
+### `RecordHealthCheckScopeDisplayFinalizer`
+
+**Role:** Resolve legacy display text, apply plugin presentation, and attach authorized evidence.
+
+**Type:** Service class · `public with sharing`
+
+Keeps message resolution, FAIL-only fixes and safe Action URLs, diagnostics redaction, and structured
+content in their existing order. It forwards the scope loader's user-mode record map to evidence
+projection so another authorized record in that scope can supply provenance. It does not query or
+expand that map. Evaluation-only responses omit display and evidence.
+
+Planning failures carry a transient internal flag. Display finalization preserves their diagnostic
+and reason-code behavior without resolving authored templates against fields the Check did not
+plan or load. Plain unavailable messages remain; messages containing unresolved token syntax use
+the standard unavailable fallback. This applies equally to a Check run alone and in a Check Set.
 
 **See also:** [Security and data access](../security-and-data-access.md), [Results and plugins](./results-and-plugins.md)
 
 ---
+
+### `RecordHealthCheckResponseDisplayBudget`
+
+**Role:** Allocate structured fields and authorized evidence within one optional-presentation budget.
+
+**Type:** Coordination service · `public with sharing`
+
+Response finalization applies the budget before lifecycle publication and diagnostic attachment.
+Allocation follows selected Check order and normalized record order. Within a result, message, fix,
+Found and Expected precede evidence. Fields are retained whole; evidence retains whole leading rows
+with corrected completeness and counts. Original plugin plain-value fallbacks remain transient and
+are restored when the corresponding optional field is omitted. Machine evaluation facts are unchanged.
 
 ## Related
 

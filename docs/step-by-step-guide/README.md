@@ -5,14 +5,14 @@ topics. Complete each step in a sandbox and move on only after the expected resu
 
 ## First working Check
 
-| Step | Do this | Stop when… |
-| ---: | --- | --- |
-| 1 | [Understand what the framework does](../start-here/what-it-does.md) | You can explain the difference between a Check Set and a Check |
-| 2 | [Install and verify it in a sandbox](../install/install-in-a-sandbox.md) | A normal user can see the Record Health Check card |
-| 3 | [Explore the installed examples](../install/explore-installed-examples.md) | One installed Check Set runs on a record page |
-| 4 | [Create your first Check](./create-your-first-check.md) | Your own Check shows both a passing and an attention state |
-| 5 | [Add and activate the card](../lightning-record-page/README.md) | The intended app users can open and run it |
-| 6 | [Configure a complete Check Set](../build-checks/configure-check-sets-and-checks.md) | Every Check has been tested with representative users and records |
+| Step | Do this                                                                              | Stop when…                                                        |
+| ---: | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+|    1 | [Understand what the framework does](../start-here/what-it-does.md)                  | You can explain the difference between a Check Set and a Check    |
+|    2 | [Install and verify it in a sandbox](../install/install-in-a-sandbox.md)             | A normal user can see the Record Health Check card                |
+|    3 | [Explore the installed examples](../install/explore-installed-examples.md)           | One installed Check Set runs on a record page                     |
+|    4 | [Create your first Check](./create-your-first-check.md)                              | Your own Check shows both a passing and an attention state        |
+|    5 | [Add and activate the card](../lightning-record-page/README.md)                      | The intended app users can open and run it                        |
+|    6 | [Configure a complete Check Set](../build-checks/configure-check-sets-and-checks.md) | Every Check has been tested with representative users and records |
 
 Do not test only as a System Administrator. A card-only tester needs **Record Health Check Card
 User**; an automation user needs the permission set for the way it runs checks. Every runner
@@ -56,13 +56,13 @@ they are handing an Apex, background-job, Agentforce, MCP, or external event tas
 
 ## If something fails
 
-| What you see | Start here |
-| --- | --- |
+| What you see                                   | Start here                                                                           |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------ |
 | The card is missing or has the wrong Check Set | [Add the card to a record page](../lightning-record-page/configure-the-component.md) |
-| A result is unexpected | [Troubleshoot Record Health Check](../diagnostics/browser-console.md) |
-| A status or Reason Code is unclear | [Look up exact behavior](../reference/README.md) |
-| Flow does not branch as expected | [Flow action inputs and outputs](../flow-guides/action-inputs-and-outputs.md) |
-| A receiving Flow gets no event | [Save or send results after a run](../save-results/README.md) |
+| A result is unexpected                         | [Troubleshoot Record Health Check](../diagnostics/browser-console.md)                |
+| A status or Reason Code is unclear             | [Look up exact behavior](../reference/README.md)                                     |
+| Flow does not branch as expected               | [Flow action inputs and outputs](../flow-guides/action-inputs-and-outputs.md)        |
+| A receiving Flow gets no event                 | [Save or send results after a run](../save-results/README.md)                        |
 
 ## Related
 

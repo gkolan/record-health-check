@@ -28,13 +28,20 @@ product your organization approves. This guide does not require or endorse a par
 
 ## How to use this folder
 
-1. Collect the answers in [Before you ask](#before-you-ask-an-ai-assistant).
-2. Choose the Evaluation Type in the table below.
-3. Open that type's prompt page and copy the single system-prompt block. Each prompt is
-   self-contained: it already carries the [shared rules](./shared-rules.md), every Check Set field,
-   and every Check field, so an assistant that cannot open links still has every available setting.
-4. Paste a filled [requirement template](./requirement-template.md) after the system prompt.
-5. Review the draft against the field references and examples linked from the prompt page.
+1. Fill in the [requirement template](./requirement-template.md). The
+   [Before you ask](#before-you-ask-an-ai-assistant) section identifies the information the AI
+   needs.
+2. Give this README link to an AI that can open linked pages, together with the filled requirement.
+   Tell it to follow this guide, ask rather than guess, and return a proposal for human review.
+3. The assistant chooses the simplest Evaluation Type that safely expresses the requirement. It
+   must then open the chosen Evaluation Type prompt from the table below and follow that page's
+   complete prompt block. The assistant should explain why it selected that type and show a
+   materially different alternative only when the requirement leaves a real design choice.
+4. If the assistant cannot open links, use the table to choose the likely Evaluation Type, open its
+   prompt page yourself, and copy the single system-prompt block followed by the filled requirement.
+   Each prompt is self-contained: it carries the [shared rules](./shared-rules.md), every Check Set
+   field, and every Check field.
+5. Review the draft against the field references and examples linked from the selected prompt page.
 6. Keep the proposed Check Set and Check inactive. Enter approved values in a sandbox, then follow
    [Test the human-approved draft](#test-the-human-approved-draft).
 7. For an unsaved Check, use [Validate and preview an AI draft](./validate-and-preview-an-ai-draft.md)
@@ -49,25 +56,25 @@ product your organization approves. This guide does not require or endorse a par
 
 ## 2.0.10 capabilities the prompts cover
 
-| Capability | What the assistant must decide |
-| --- | --- |
-| Card presentation | Heading, summary placement or hiding, reveal mode, Found/Expected placement, and Run/Rerun controls are independent choices. |
-| Dependencies | Evaluation Order controls presentation; prerequisite dependency order controls execution and may point to a later-displayed Check. |
-| Query-row values | Zero-based row tokens, outer-field selection, business `ORDER BY`, single-row proofs, child-subquery boundaries, and per-record `LIMIT` behavior. |
-| Inline links | Safe `{!link label="..." href="..."}` links in message and display fields, with readable text fallback. |
-| Whole-set limits | More than 25 active Checks rejects the complete Check Set instead of returning a partial result. |
-| Apex extensions | Typed parameter definitions, typed outcomes, evidence, per-record recovery, and optional display-only overrides. |
-| Draft verification | Inactive metadata, detached validation/Preview, representative records, permissions, limits, namespaces, and relevant runtime variations. |
-| Operational boundary | Lightning, Flow, synchronous Apex, Queueable, Batch, or Scheduled entry; direct, event, readiness, diagnostic, or subscriber-owned result exit. |
+| Capability           | What the assistant must decide                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Card presentation    | Heading, summary placement or hiding, reveal mode, Found/Expected placement, and Run/Rerun controls are independent choices.                      |
+| Dependencies         | Evaluation Order controls presentation; prerequisite dependency order controls execution and may point to a later-displayed Check.                |
+| Query-row values     | Zero-based row tokens, outer-field selection, business `ORDER BY`, single-row proofs, child-subquery boundaries, and per-record `LIMIT` behavior. |
+| Inline links         | Safe `{!link label="..." href="..."}` links in message and display fields, with readable text fallback.                                           |
+| Whole-set limits     | More than 25 active Checks rejects the complete Check Set instead of returning a partial result.                                                  |
+| Apex extensions      | Typed parameter definitions, typed outcomes, evidence, per-record recovery, and optional display-only overrides.                                  |
+| Draft verification   | Inactive metadata, detached validation/Preview, representative records, permissions, limits, namespaces, and relevant runtime variations.         |
+| Operational boundary | Lightning, Flow, synchronous Apex, Queueable, Batch, or Scheduled entry; direct, event, readiness, diagnostic, or subscriber-owned result exit.   |
 
 ## Choose a prompt by Evaluation Type
 
-| Where the answer comes from | Evaluation Type | Copy this prompt | Confirm against |
-| --- | --- | --- | --- |
-| Fields on the current record or a formula-reachable parent | **Verify with a formula** | [Formula prompt](./prompt-formula.md) | [Formula examples](../../examples/formula/README.md), [Check fields](../../reference/custom-metadata/check-fields.md) |
-| Records or a value from one SOQL query | **Verify with a query** | [Query prompt](./prompt-query.md) | [Query examples](../../examples/query/README.md), [Query reference](../../reference/evaluation/query.md) |
-| Two separate SOQL query results | **Compare two queries** | [Compare two queries prompt](./prompt-compare-two-queries.md) | [Compare two queries examples](../../examples/compare-two-queries/README.md) |
-| Logic that formula and query settings cannot express safely | **Verify with Apex** | [Apex prompt](./prompt-apex.md) | [Apex Check contract](../../developer-guides/write-an-apex-check.md), [Apex examples](../../examples/apex/README.md) |
+| Where the answer comes from                                 | Evaluation Type           | Copy this prompt                                              | Confirm against                                                                                                       |
+| ----------------------------------------------------------- | ------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Fields on the current record or a formula-reachable parent  | **Verify with a formula** | [Formula prompt](./prompt-formula.md)                         | [Formula examples](../../examples/formula/README.md), [Check fields](../../reference/custom-metadata/check-fields.md) |
+| Records or a value from one SOQL query                      | **Verify with a query**   | [Query prompt](./prompt-query.md)                             | [Query examples](../../examples/query/README.md), [Query reference](../../reference/evaluation/query.md)              |
+| Two separate SOQL query results                             | **Compare two queries**   | [Compare two queries prompt](./prompt-compare-two-queries.md) | [Compare two queries examples](../../examples/compare-two-queries/README.md)                                          |
+| Logic that formula and query settings cannot express safely | **Verify with Apex**      | [Apex prompt](./prompt-apex.md)                               | [Apex Check contract](../../developer-guides/write-an-apex-check.md), [Apex examples](../../examples/apex/README.md)  |
 
 If the requirement must prevent Salesforce from saving a record, use a Validation Rule,
 record-triggered Flow custom error, or Apex trigger instead. Record Health Check never blocks a
@@ -81,33 +88,46 @@ then regenerate the four prompts from it. `npm run check:ai-prompts` fails when 
 from the shared block, names a field or stored value the Check metadata does not declare, or stops
 offering a configurable field to the assistant.
 
-Supported merge-token examples:
+These examples are representative, not the complete token reference:
 
-- SOQL: `WHERE AccountId = {!record.Id}`
-- Message: `{!record.Name fallback="This Account"} needs at least one verified Contact.`
-- Result values in messages or Display Found/Expected Text:
+- Record value in SOQL, always unquoted: `WHERE AccountId = {!record.Id}`
+- Formatted record value in display text:
+  `{!record.Amount format="CURRENCY" fallback="Not available"}`
+- Check and Check Set values in display text:
+  `{!rhcCheck.checkTitle}` and `{!rhcSet.cardTitle}`
+- Result and run values in messages or Display Found/Expected Text:
   `Found {!rhcResult.foundValue}; expected {!rhcResult.expectedValue}.`
+  `Run {!rhcRun.runId} returned {!rhcResult.status}.`
   `{!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} contacts are incomplete.`
+- Zero-based query-row value after selecting and deterministically ordering the outer field:
+  `SELECT Name FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CreatedDate ASC LIMIT 1`
+  with `Oldest deal: {!rhcQuery.sourceRows[0].Name fallback="none"}`.
+- Query row counts: `{!rhcQuery.sourceRowCount}` and `{!rhcQuery.comparisonRowCount}`.
+- Inline link inside a supported message or display field:
+  `{!link label="Open record" href="/lightning/r/Account/{!record.Id}/view"}`
 - Action URL: `/lightning/r/Account/{!record.Id}/related/Contacts/view`
 
 `rhcResult` properties are `status`, `foundValue`, `foundValuePluralSuffix`, `expectedValue`,
 `failedRecordCount`, `totalRecordCount`, and `reasonCode`. Do not put `rhcResult` tokens in SOQL or
-Action URL. Do not use Flow/API names such as `evaluation.found` or `actualValue` as merge tokens.
+Action URL. `rhcQuery` is available only to Query and Compare Two Queries Checks after the addressed
+query runs; row indexes start at zero, child-subquery fields are opaque, and a multi-row query needs
+an explicit business `ORDER BY`. Do not use Flow/API names such as `evaluation.found` or
+`actualValue` as merge tokens.
 
 Full token list: [Merge syntax](../../reference/merge-syntax/README.md).
 
 ## Before you ask an AI assistant
 
-| Question | Example answer |
-| --- | --- |
-| Which Salesforce object is checked? | Account (`Account`) |
-| What must be true? | The Account has at least one Contact. |
-| Where does the answer come from? | Contact records related through `Contact.AccountId`. |
-| What should happen when no Contact exists? | Fail. |
-| What should users see? | Add at least one verified Contact before handoff. |
-| Does the Check apply to every record? | Yes. |
-| Should it block a save? | No. It is guidance during an Account handoff. |
-| Which users will run it? | Account managers with access to the Contacts they manage. |
+| Question                                   | Example answer                                            |
+| ------------------------------------------ | --------------------------------------------------------- |
+| Which Salesforce object is checked?        | Account (`Account`)                                       |
+| What must be true?                         | The Account has at least one Contact.                     |
+| Where does the answer come from?           | Contact records related through `Contact.AccountId`.      |
+| What should happen when no Contact exists? | Fail.                                                     |
+| What should users see?                     | Add at least one verified Contact before handoff.         |
+| Does the Check apply to every record?      | Yes.                                                      |
+| Should it block a save?                    | No. It is guidance during an Account handoff.             |
+| Which users will run it?                   | Account managers with access to the Contacts they manage. |
 
 Copy API names from **Setup → Object Manager → [Object] → Fields & Relationships**. Open the field
 and copy **Field Name**. Do not provide a label such as "Customer Tier" and expect the assistant to
@@ -129,12 +149,12 @@ name in Check metadata. See the [Apex prompt](./prompt-apex.md) and
 
 ### Human review ownership
 
-| Review | Required human decision |
-| --- | --- |
-| Business owner | What passes, fails, and skips; severity; wording; and whether the result is useful enough to activate. |
-| Salesforce administrator | Exact API names, Setup values, Check Set membership, sharing behavior, permission assignments, page placement, and sandbox evidence. |
+| Review                     | Required human decision                                                                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Business owner             | What passes, fails, and skips; severity; wording; and whether the result is useful enough to activate.                                              |
+| Salesforce administrator   | Exact API names, Setup values, Check Set membership, sharing behavior, permission assignments, page placement, and sandbox evidence.                |
 | Apex and security reviewer | Every custom class, user-mode data access, bulk behavior, parameter definition, evidence disclosure, display-only behavior, and prohibited actions. |
-| Integration owner | Platform Event publication, receiving automation, retention, retry behavior, and monitoring. |
+| Integration owner          | Platform Event publication, receiving automation, retention, retry behavior, and monitoring.                                                        |
 
 AI output never completes these approvals. A person must reread the final configuration after the
 last edit; an earlier review does not cover a changed formula, query, JSON value, message, or link.
@@ -162,16 +182,17 @@ last edit; an earlier review does not cover a changed formula, query, JSON value
 - [ ] The base object and every field and relationship API name were copied from Salesforce Setup.
 - [ ] The business owner confirmed pass, fail, skip, and zero-row behavior.
 - [ ] The Check uses the simplest Evaluation Type that meets the requirement, and
-  **Evaluation Type** is set.
+      **Evaluation Type** is set.
 - [ ] Every picklist value in the draft is the stored value, not the Setup label.
-- [ ] **Formula Result Type** is explicitly `AUTO` unless a verified formula needs another type;
-      no proposed value is the literal text `N/A`.
+- [ ] **Formula Result Type** is `AUTO` unless a Query Check uses **Expected Value (Formula)** or
+      **Value to find in the list (formula)** and a reviewer verified the operand's exact type; no
+      proposed value is the literal text `N/A`.
 - [ ] The Check Set and Check names are administrator-created names unless the exact installed
-  package metadata is intentionally reused.
+      package metadata is intentionally reused.
 - [ ] No one added or removed the `rhc__` namespace prefix manually.
 - [ ] The proposal distinguishes hidden records from missing object or field access.
 - [ ] SOQL and messages use Record Health Check merge tokens (`{!record.Id}`), not Flow or Apex bind
-  syntax.
+      syntax.
 - [ ] Failure and fix messages use everyday business language.
 - [ ] Platform Event publication remains off unless receiving automation exists and is tested.
 - [ ] Any Apex class exists in the org and passed developer review and tests.
@@ -179,21 +200,21 @@ last edit; an earlier review does not cover a changed formula, query, JSON value
 
 ## When the AI draft is wrong
 
-| Problem | Correct response |
-| --- | --- |
-| It invents an API name | Stop and copy the exact API name from Salesforce Setup. |
-| It prefixes a new Check Set or Check with `rhc__` | Remove the invented namespace. Administrator-owned metadata normally has no managed-package prefix. |
-| It chooses a Check included with the package when you need your own rule | Create an administrator-owned Check with a name that normally has no `rhc__` prefix. |
-| It uses `{!record.id}`, `{!Id}`, `{!$Record.Id}`, `:recordId`, or quoted `'{!record.Id}'` <!-- rejected-token-fixture --> | Replace with Record Health Check merge tokens only. In SOQL use `{!record.Id}` unquoted; copy field API names from Setup. |
-| It puts merge tokens in Pass Condition | Rewrite as a Salesforce formula (`NOT(ISBLANK(BillingCity))`). Merge tokens belong in queries, messages, and Action URLs. |
-| It assumes zero query rows should pass or fail | Ask the business owner; then configure **If Query Finds No Records** where the Evaluation Type uses it. |
-| It omits **Evaluation Type** | Every Check needs `EvaluationType__c`. There is no default. |
-| It stores a Setup label instead of the stored value | Enter the stored value: **Skip** is `SKIP`, and **When a count query matches** is `WHEN_COUNT_QUERY_MATCHES`. Confirm each one in [Check fields](../../reference/custom-metadata/check-fields.md). |
-| It proposes `N/A` for Formula Result Type or another metadata field | Use the field's deployable stored value, or omit an unused field from metadata. Use `AUTO` for Formula Result Type unless a verified formula requires another type. |
-| It recommends Record Health Check to prevent a save | Use a Validation Rule, Flow custom error, or Apex trigger. |
-| It recommends an Apex example class that is not installed | Create, test, and deploy the class, or choose a metadata-only Evaluation Type. |
-| It says a hidden related record is clean data | Correct the wording: the Check evaluates only records visible to the running user. |
-| It omits `UNABLE_TO_EVALUATE` and `ERROR` testing | Add access, configuration, and unexpected-error test cases before approval. |
+| Problem                                                                                                                   | Correct response                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| It invents an API name                                                                                                    | Stop and copy the exact API name from Salesforce Setup.                                                                                                                                                              |
+| It prefixes a new Check Set or Check with `rhc__`                                                                         | Remove the invented namespace. Administrator-owned metadata normally has no managed-package prefix.                                                                                                                  |
+| It chooses a Check included with the package when you need your own rule                                                  | Create an administrator-owned Check with a name that normally has no `rhc__` prefix.                                                                                                                                 |
+| It uses `{!record.id}`, `{!Id}`, `{!$Record.Id}`, `:recordId`, or quoted `'{!record.Id}'` <!-- rejected-token-fixture --> | Replace with Record Health Check merge tokens only. In SOQL use `{!record.Id}` unquoted; copy field API names from Setup.                                                                                            |
+| It puts merge tokens in Pass Condition                                                                                    | Rewrite as a Salesforce formula (`NOT(ISBLANK(BillingCity))`). Merge tokens belong in queries, messages, and Action URLs.                                                                                            |
+| It assumes zero query rows should pass or fail                                                                            | Ask the business owner; then configure **If Query Finds No Records** where the Evaluation Type uses it.                                                                                                              |
+| It omits **Evaluation Type**                                                                                              | Every Check needs `EvaluationType__c`. There is no default.                                                                                                                                                          |
+| It stores a Setup label instead of the stored value                                                                       | Enter the stored value: **Skip** is `SKIP`, and **When a count query matches** is `WHEN_COUNT_QUERY_MATCHES`. Confirm each one in [Check fields](../../reference/custom-metadata/check-fields.md).                   |
+| It proposes `N/A` for Formula Result Type or another metadata field                                                       | Use the field's deployable stored value, or omit an unused field from metadata. Use `AUTO` for Formula Result Type unless a Query Check's Expected Value or Value-to-find operand formula has a verified exact type. |
+| It recommends Record Health Check to prevent a save                                                                       | Use a Validation Rule, Flow custom error, or Apex trigger.                                                                                                                                                           |
+| It recommends an Apex example class that is not installed                                                                 | Create, test, and deploy the class, or choose a metadata-only Evaluation Type.                                                                                                                                       |
+| It says a hidden related record is clean data                                                                             | Correct the wording: the Check evaluates only records visible to the running user.                                                                                                                                   |
+| It omits `UNABLE_TO_EVALUATE` and `ERROR` testing                                                                         | Add access, configuration, and unexpected-error test cases before approval.                                                                                                                                          |
 
 ## Related
 

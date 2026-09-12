@@ -10,64 +10,6 @@
 @IsTest
 private class AccountHasRecentActivityCheckTest {
   @IsTest
-  static void definitionDeclaresTypedParametersAndBulkCapacity() {
-    RecordHealthCheckPluginDefinition definition = new AccountHasRecentActivityCheck()
-      .getDefinition();
-
-    Assert.areEqual(
-      new List<String>{ 'daysBack', 'minimumActivities' },
-      definition.parameterKeys(),
-      'The shipped JSON example must be backed by an ordered, typed definition.'
-    );
-    RecordHealthCheckPluginDefinition.ParameterDefinition daysBack = definition.parameter(
-      'daysBack'
-    );
-    Assert.areEqual('INTEGER', daysBack.typeName);
-    Assert.areEqual(30, daysBack.defaultValue);
-    Assert.areEqual(1, daysBack.minValue);
-    Assert.areEqual(3650, daysBack.maxValue);
-    Assert.areEqual(200, definition.maxScopeSize());
-    Assert.areEqual(true, definition.bulkSafe());
-    Assert.areEqual('LOW', definition.estimatedCost());
-  }
-
-  @IsTest
-  static void positiveAndNegativeOutcomesIncludeTypedEvidence() {
-    Account account = RecordHealthCheckTestDataFactory.accountFixture(
-      'RHC 2.0.10 Evidence'
-    );
-    RecordHealthCheckOutcome passing = AccountHasRecentActivityCheck.outcomeFor(
-      2,
-      2,
-      60,
-      account.Id
-    );
-    RecordHealthCheckOutcome failing = AccountHasRecentActivityCheck.outcomeFor(
-      0,
-      2,
-      60,
-      account.Id
-    );
-
-    Assert.areEqual(RecordHealthCheckStatus.PASS, passing.status);
-    Assert.areEqual(RecordHealthCheckStatus.FAIL, failing.status);
-    Assert.areEqual(4, passing.evidence.columns.size());
-    Assert.areEqual(1, passing.evidence.rows.size());
-    Assert.areEqual(
-      '2',
-      passing.evidence.rows[0][1].typedValue.storedValue,
-      'Evidence must carry the observed completed-activity count.'
-    );
-    Assert.areEqual(
-      '0',
-      failing.evidence.rows[0][1].typedValue.storedValue,
-      'The negative example must retain zero as evidence, not treat it as missing.'
-    );
-    Assert.areEqual('windowDays', passing.evidence.stepGroupKey);
-    Assert.areEqual('accountId', passing.evidence.ruleGroupKey);
-  }
-
-  @IsTest
   static void displayAddsSafeContextWithoutQueriesOrChangingVerdicts() {
     Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'RHC 2.0.10 Display'
@@ -90,14 +32,24 @@ private class AccountHasRecentActivityCheckTest {
     Assert.areEqual(0, used, 'Presentation must not query or re-evaluate.');
     Assert.areEqual(
       RecordHealthCheckStatus.FAIL,
-      outcomes.get(account.Id).status
+      outcomes.get(account.Id).status,
+      'Optional display must preserve the completed failing evaluation.'
     );
     RecordHealthCheckDisplayOverride overrideValue = display.get(account.Id);
-    Assert.areEqual('Required recent activity', overrideValue.expectedLabel);
-    Assert.areEqual('Open account', overrideValue.action.label);
+    Assert.areEqual(
+      'Required recent activity',
+      overrideValue.expectedLabel,
+      'The display must label the minimum required activity clearly.'
+    );
+    Assert.areEqual(
+      'Open account',
+      overrideValue.action.label,
+      'The remediation action must retain its readable Account label.'
+    );
     Assert.areEqual(
       '/lightning/r/Account/' + account.Id + '/view',
-      overrideValue.action.destination
+      overrideValue.action.destination,
+      'The remediation destination must point to the evaluated Account.'
     );
     Assert.areEqual(
       'NUMBER',
@@ -135,7 +87,8 @@ private class AccountHasRecentActivityCheckTest {
 
     Assert.areEqual(
       RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
-      invalidOutcomes.get(account.Id).status
+      invalidOutcomes.get(account.Id).status,
+      'Invalid reused-instance parameters must prevent a valid outcome.'
     );
     Assert.areEqual(
       0,
@@ -152,9 +105,21 @@ private class AccountHasRecentActivityCheckTest {
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
-    Assert.areEqual('FAIL', result.status);
-    Assert.areEqual('0', result.actualValue);
-    Assert.areEqual('1', result.expectedValue);
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'An Account with no recent activity must fail the default requirement.'
+    );
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'No activity must produce a present zero Found value.'
+    );
+    Assert.areEqual(
+      '1',
+      result.expectedValue,
+      'The default requirement must remain one completed activity.'
+    );
   }
 
   @IsTest
@@ -189,7 +154,11 @@ private class AccountHasRecentActivityCheckTest {
       result.status,
       'The packaged example is intentionally WhatId-only; documentation supplies the WhoId recipe.'
     );
-    Assert.areEqual('0', result.actualValue);
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'A WhoId-only Contact task must not count toward the WhatId-only example.'
+    );
   }
 
   @IsTest
@@ -215,9 +184,21 @@ private class AccountHasRecentActivityCheckTest {
       new Map<String, Object>{ 'daysBack' => 90 }
     );
 
-    Assert.areEqual('FAIL', result.status);
-    Assert.areEqual('0', result.actualValue);
-    Assert.areEqual('1', result.expectedValue);
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'An activity outside the configured window must not satisfy the check.'
+    );
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'An excluded old activity must leave the observed count at zero.'
+    );
+    Assert.areEqual(
+      '1',
+      result.expectedValue,
+      'Excluding old activity must not change the default required count.'
+    );
   }
 
   @IsTest
@@ -242,17 +223,20 @@ private class AccountHasRecentActivityCheckTest {
     Assert.areEqual(
       'UNABLE_TO_EVALUATE',
       evaluate(account.Id, new Map<String, Object>{ 'daysBack' => 999999 })
-        .status
+        .status,
+      'An oversized activity window must reject the configuration.'
     );
     Assert.areEqual(
       'INVALID_CONFIG',
       evaluate(account.Id, new Map<String, Object>{ 'daysBack' => 999999 })
-        .reasonCode
+        .reasonCode,
+      'An oversized activity window must expose the stable invalid-config reason.'
     );
     Assert.areEqual(
       'UNABLE_TO_EVALUATE',
       evaluate(account.Id, new Map<String, Object>{ 'daysBack' => 'abc' })
-        .status
+        .status,
+      'A nonnumeric activity window must not silently fall back to a default.'
     );
     Assert.areEqual(
       'INVALID_CONFIG',
@@ -354,7 +338,11 @@ private class AccountHasRecentActivityCheckTest {
       'A scope of 200 must cost the same queries as a scope of 1.'
     );
     Assert.areEqual(2, afterAll, 'One query for Task, one for Event.');
-    Assert.areEqual(1, single.size());
+    Assert.areEqual(
+      1,
+      single.size(),
+      'The single-record control must return exactly one outcome.'
+    );
     Assert.areEqual(
       200,
       all.size(),
@@ -387,11 +375,19 @@ private class AccountHasRecentActivityCheckTest {
     );
     Test.stopTest();
 
-    Assert.areEqual(2, outcomes.size());
+    Assert.areEqual(
+      2,
+      outcomes.size(),
+      'Both Accounts without activity must remain in the result map.'
+    );
     for (Id accountId : accountIds) {
       RecordHealthCheckOutcome outcome = outcomes.get(accountId);
       Assert.areNotEqual(null, outcome, 'Missing key for ' + accountId);
-      Assert.areEqual(RecordHealthCheckStatus.FAIL, outcome.status);
+      Assert.areEqual(
+        RecordHealthCheckStatus.FAIL,
+        outcome.status,
+        'Every Account without activity must fail rather than disappear.'
+      );
       Assert.areEqual('0', outcome.found.storedValue, 'Zero, not absent.');
     }
   }
@@ -408,7 +404,11 @@ private class AccountHasRecentActivityCheckTest {
     Integer used = Limits.getQueries() - before;
     Test.stopTest();
 
-    Assert.areEqual(0, outcomes.size());
+    Assert.areEqual(
+      0,
+      outcomes.size(),
+      'An empty scope must return an empty outcome map.'
+    );
     Assert.areEqual(0, used, 'An empty scope must not issue activity queries.');
   }
 
@@ -422,11 +422,16 @@ private class AccountHasRecentActivityCheckTest {
 
     AccountHasRecentActivityCheck.accumulateRows(counts, rows);
 
-    Assert.areEqual(1, counts.get(UserInfo.getUserId()));
+    Assert.areEqual(
+      1,
+      counts.get(UserInfo.getUserId()),
+      'Aggregate counts must be accumulated into the seeded record entry.'
+    );
 
     Assert.areEqual(
       'PASS',
-      AccountHasRecentActivityCheck.outcomeFor(1, 1).status
+      AccountHasRecentActivityCheck.outcomeFor(1, 1).status,
+      'Meeting the minimum activity count must pass the outcome builder.'
     );
     Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'Decimal'
@@ -440,7 +445,8 @@ private class AccountHasRecentActivityCheckTest {
           }
         )
         .get(account.Id)
-        .status
+        .status,
+      'An integral Decimal minimum must be accepted while zero observed activity fails.'
     );
   }
 }

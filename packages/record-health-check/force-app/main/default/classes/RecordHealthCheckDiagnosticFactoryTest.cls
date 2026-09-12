@@ -7,14 +7,12 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       'PLUGIN_EXECUTE'
     );
     Exception failure = capturedFailure();
-
     Test.startTest();
     RecordHealthCheckDiagnosticIncident incident = RecordHealthCheckDiagnosticFactory.fromException(
       failure,
       context
     );
     Test.stopTest();
-
     Assert.areEqual(
       'APEX_EXCEPTION',
       incident.category,
@@ -71,13 +69,11 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       'PLUGIN_VALIDATE'
     );
     context.technicalMessage = 'Plugin returned PASS without Found.';
-
     Test.startTest();
     RecordHealthCheckDiagnosticIncident incident = RecordHealthCheckDiagnosticFactory.fromReason(
       context
     );
     Test.stopTest();
-
     Assert.areEqual(
       'APEX_CONTRACT',
       incident.category,
@@ -106,13 +102,11 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       'PLANNING'
     );
     context.configurationField = 'Contact.Email';
-
     Test.startTest();
     RecordHealthCheckDiagnosticIncident incident = RecordHealthCheckDiagnosticFactory.fromReason(
       context
     );
     Test.stopTest();
-
     Assert.areEqual(
       'UNABLE_TO_EVALUATE',
       incident.status,
@@ -189,13 +183,11 @@ private class RecordHealthCheckDiagnosticFactoryTest {
     };
     contexts[0].sideEffect = null;
     contexts[0].sideEffectReversible = false;
-
     Test.startTest();
     for (RecordHealthCheckDiagnosticContext context : contexts) {
       incidents.add(RecordHealthCheckDiagnosticFactory.fromReason(context));
     }
     Test.stopTest();
-
     for (RecordHealthCheckDiagnosticIncident incident : incidents) {
       Assert.isNotNull(incident.category, 'Every incident needs a category.');
       Assert.isNotNull(incident.summary, 'Every incident needs a summary.');
@@ -242,19 +234,33 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       'PLUGIN_CONSTRUCT'
     );
     context.component = 'Subscriber.Plugin';
-
     Test.startTest();
     RecordHealthCheckDiagnosticIncident incident = RecordHealthCheckDiagnosticFactory.fromException(
       error,
       context
     );
     Test.stopTest();
-
-    Assert.areEqual('Subscriber.ConstructorFailure', incident.exceptionType);
-    Assert.areEqual('[message withheld]', incident.exceptionMessage);
-    Assert.areEqual('Subscriber.Plugin', incident.topFrameClass);
-    Assert.areEqual('construct', incident.topFrameMethod);
-    Assert.areEqual(42, incident.topFrameLine);
+    Assert.areEqual(
+      'Subscriber.ConstructorFailure',
+      incident.exceptionType,
+      'The wrapper must preserve the original constructor exception type.'
+    );
+    Assert.areEqual(
+      '[message withheld]',
+      incident.exceptionMessage,
+      'The subscriber exception message must remain withheld.'
+    );
+    Assert.areEqual(
+      'Subscriber.Plugin',
+      incident.topFrameClass,
+      'The original subscriber class must remain in the top frame.'
+    );
+    Assert.areEqual(
+      'construct',
+      incident.topFrameMethod,
+      'The original constructor method must remain in the top frame.'
+    );
+    Assert.areEqual(42, incident.topFrameLine, 'Keep the constructor line.');
   }
 
   @IsTest
@@ -267,7 +273,6 @@ private class RecordHealthCheckDiagnosticFactoryTest {
     reversibleSideEffect.sideEffectReversible = true;
     RecordHealthCheckDiagnosticContext blank = new RecordHealthCheckDiagnosticContext();
     blank.technicalMessage = 'x'.repeat(1100) + '\nrestricted';
-
     Test.startTest();
     RecordHealthCheckDiagnosticIncident reversible = RecordHealthCheckDiagnosticFactory.fromReason(
       reversibleSideEffect
@@ -287,7 +292,6 @@ private class RecordHealthCheckDiagnosticFactoryTest {
     location.topFrameLine = null;
     RecordHealthCheckDiagnosticGuidance.pluginRuntime(location);
     Test.stopTest();
-
     Assert.isTrue(
       reversible.likelyCause.contains('DML'),
       'The detected effect should be named.'
@@ -341,7 +345,6 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       RecordHealthCheckReasonCodes.PLUGIN_THREW,
       'PLUGIN_EXECUTE'
     );
-
     Test.startTest();
     Map<Id, RecordHealthCheckInternalResult> results = RecordHealthCheckIncidentRecorder.recordScopeFailure(
       check,
@@ -350,7 +353,6 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       capturedFailure()
     );
     Test.stopTest();
-
     Assert.areEqual(
       2,
       results.size(),
@@ -395,7 +397,6 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       'PLANNING'
     );
     context.evaluatorType = 'QUERY';
-
     Test.startTest();
     RecordHealthCheckIncidentRecorder.attachResultFailure(
       check,
@@ -404,7 +405,6 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       result
     );
     Test.stopTest();
-
     Assert.isNotNull(
       result.diagnosticIncident,
       'Every reason-only technical result must receive a diagnosis.'
@@ -446,7 +446,6 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       errorResult.reasonCode,
       'PLUGIN_VALIDATE'
     );
-
     Test.startTest();
     Map<Id, RecordHealthCheckInternalResult> scoped = RecordHealthCheckIncidentRecorder.recordScopeFailure(
       check,
@@ -461,9 +460,16 @@ private class RecordHealthCheckDiagnosticFactoryTest {
       errorResult
     );
     Test.stopTest();
-
-    Assert.areEqual('QUERY', scoped.get(recordId).evaluatorType);
-    Assert.areEqual('CRITICAL', errorResult.diagnosticIncident.severity);
+    Assert.areEqual(
+      'QUERY',
+      scoped.get(recordId).evaluatorType,
+      'A missing scope evaluator must fall back to the Check evaluation type.'
+    );
+    Assert.areEqual(
+      'CRITICAL',
+      errorResult.diagnosticIncident.severity,
+      'A technical ERROR diagnosis must retain CRITICAL severity.'
+    );
   }
 
   private static RecordHealthCheckDiagnosticContext contextFor(

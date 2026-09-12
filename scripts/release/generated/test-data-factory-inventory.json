@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
   "summary": {
-    "classes": 116,
+    "classes": 128,
     "persistedCallSites": 0,
     "userCallSites": 0,
-    "safeClasses": 116
+    "safeClasses": 128
   },
   "classes": [
     {
@@ -26,6 +26,14 @@
     },
     {
       "className": "RHCArchitectureDependencyTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCBulkQueryRuntimeBoundaryTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -113,6 +121,14 @@
       "userCalls": []
     },
     {
+      "className": "RHCDiagnosticTraceContractTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCDisplayCurrencyComparisonTest",
       "classification": "safe",
       "targetSteps": [],
@@ -162,6 +178,22 @@
     },
     {
       "className": "RHCEvaluatorEdgeBehaviorTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCEvidenceRowValidationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCFlowAdapterContractTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": true,
@@ -257,7 +289,31 @@
       "userCalls": []
     },
     {
+      "className": "RHCPluginDisplayBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCPluginDisplayBulkBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCPluginScopeIntegrityTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCPluginVerificationFacadeTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -289,10 +345,34 @@
       "userCalls": []
     },
     {
+      "className": "RHCRecentActivityContractTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCReleaseBoundaryCoverageTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCResponseDisplayBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCResponseEvidenceBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
       "persistedCalls": [],
       "userCalls": []
     },
@@ -369,7 +449,23 @@
       "userCalls": []
     },
     {
+      "className": "RHCSubscriberRecordIsolationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCSubscriberValueSpecTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCTemplateFallbackContractTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -641,14 +737,6 @@
       "userCalls": []
     },
     {
-      "className": "RecordHealthCheckDisplayTemporalTest",
-      "classification": "safe",
-      "targetSteps": [],
-      "hasTestSetup": false,
-      "persistedCalls": [],
-      "userCalls": []
-    },
-    {
       "className": "RecordHealthCheckDisplayTextTest",
       "classification": "safe",
       "targetSteps": [],
@@ -858,6 +946,14 @@
     },
     {
       "className": "RecordHealthCheckSecurityAndOpsTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckSoqlBoundaryTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,

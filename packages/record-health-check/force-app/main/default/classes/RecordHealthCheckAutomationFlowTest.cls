@@ -18,7 +18,6 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     setRequest.checkSetQualifiedApiName = 'Missing.Set';
     setRequest.recordId = recordId;
     setRequest.eventPublication = 'NONE';
-
     RecordHealthCheckAccess.setRunPermissionForTest(false);
     try {
       List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
@@ -27,8 +26,16 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       List<RecordHealthCheckRunSetFlowAction.Response> setOutputs = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('AUTHORIZATION', checkOutputs[0].errorType);
-      Assert.areEqual('AUTHORIZATION', setOutputs[0].errorType);
+      Assert.areEqual(
+        'AUTHORIZATION',
+        checkOutputs[0].errorType,
+        'Check runs must require run permission.'
+      );
+      Assert.areEqual(
+        'AUTHORIZATION',
+        setOutputs[0].errorType,
+        'Check Set runs must require run permission.'
+      );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
     }
@@ -48,7 +55,6 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     setRequest.checkSetQualifiedApiName = 'Missing.Set';
     setRequest.recordId = recordId;
     setRequest.eventPublication = 'NONE';
-
     Test.startTest();
     List<RecordHealthCheckRunCheckFlowAction.Response> checkOutputs = RecordHealthCheckRunCheckFlowAction.runCheck(
       new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
@@ -57,11 +63,24 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
     );
     Test.stopTest();
-
-    Assert.areEqual('VALIDATION', checkOutputs[0].errorType);
-    Assert.areEqual('VALIDATION', setOutputs[0].errorType);
-    Assert.isTrue(checkOutputs[0].errorMessage.contains('was not found'));
-    Assert.isTrue(setOutputs[0].errorMessage.contains('was not found'));
+    Assert.areEqual(
+      'VALIDATION',
+      checkOutputs[0].errorType,
+      'An unknown Check must return VALIDATION.'
+    );
+    Assert.areEqual(
+      'VALIDATION',
+      setOutputs[0].errorType,
+      'An unknown Check Set must return VALIDATION.'
+    );
+    Assert.isTrue(
+      checkOutputs[0].errorMessage.contains('was not found'),
+      'The Check error must explain the missing metadata.'
+    );
+    Assert.isTrue(
+      setOutputs[0].errorMessage.contains('was not found'),
+      'The Check Set error must explain the missing metadata.'
+    );
   }
 
   @IsTest
@@ -97,9 +116,14 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       checkOutputs[0].errorType,
       'The normalized but unknown Check must be a validation error.'
     );
-    Assert.areEqual('VALIDATION', setOutputs[0].errorType);
+    Assert.areEqual(
+      'VALIDATION',
+      setOutputs[0].errorType,
+      'An overlong Set identity must return VALIDATION.'
+    );
     Assert.isTrue(
-      setOutputs[0].errorMessage.contains('must not exceed 255 characters')
+      setOutputs[0].errorMessage.contains('must not exceed 255 characters'),
+      'The identity error must explain the 255-character limit.'
     );
   }
 
@@ -120,13 +144,16 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
     );
     setRequest.recordId = accountRecord.Id;
     setRequest.eventPublication = 'NONE';
-
     try {
       RecordHealthCheckFlowSupport.itemsByRecordOverride = new Map<Id, List<RecordHealthCheckResultItem>>();
       List<RecordHealthCheckRunCheckFlowAction.Response> missingCheck = RecordHealthCheckRunCheckFlowAction.runCheck(
         new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
       );
-      Assert.areEqual('EXECUTION', missingCheck[0].errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        missingCheck[0].errorType,
+        'A missing aligned Check result must return EXECUTION.'
+      );
 
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = true;
@@ -137,10 +164,15 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
         emptySet[0].isSuccess,
         'Missing aligned Set results must fail closed.'
       );
-      Assert.areEqual('EXECUTION', emptySet[0].errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        emptySet[0].errorType,
+        'Missing Set results must return EXECUTION.'
+      );
       Assert.areEqual(
         'No aligned Check Set result was returned.',
-        emptySet[0].errorMessage
+        emptySet[0].errorMessage,
+        'The missing Set result must explain the alignment failure.'
       );
 
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = false;
@@ -150,7 +182,11 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       List<RecordHealthCheckRunSetFlowAction.Response> malformedSet = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('EXECUTION', malformedSet[0].errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        malformedSet[0].errorType,
+        'A malformed Set result must return EXECUTION.'
+      );
       Assert.areEqual(
         'The Check Set response could not be prepared.',
         malformedSet[0].errorMessage,
@@ -165,8 +201,16 @@ private with sharing class RecordHealthCheckAutomationFlowTest {
       List<RecordHealthCheckRunSetFlowAction.Response> oversizedSet = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('LIMIT', oversizedCheck[0].errorType);
-      Assert.areEqual('LIMIT', oversizedSet[0].errorType);
+      Assert.areEqual(
+        'LIMIT',
+        oversizedCheck[0].errorType,
+        'An oversized Check payload must return LIMIT.'
+      );
+      Assert.areEqual(
+        'LIMIT',
+        oversizedSet[0].errorType,
+        'An oversized Set payload must return LIMIT.'
+      );
     } finally {
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = false;

@@ -43,8 +43,7 @@ public class RecordHealthCheckInlineUrlPolicy {
       );
     }
 
-    String representative = replaceTokens(value, tokens, 'value');
-    return sanitizeComplete(representative) == null
+    return sanitizeComplete(replaceTokens(value, tokens, 'value')) == null
       ? issue(
           'INLINE_LINK_UNSAFE_URL',
           'The inline destination does not satisfy the strict URL policy.'
@@ -75,6 +74,10 @@ public class RecordHealthCheckInlineUrlPolicy {
     if (!value.startsWith('https://')) {
       return null;
     }
+    return sanitizeHttpsAuthority(value);
+  }
+
+  private static String sanitizeHttpsAuthority(String value) {
     Integer endIndex = authorityEnd(value);
     String authority = value.substring(8, endIndex);
     if (String.isBlank(authority) || authority.contains('@')) {
@@ -234,11 +237,19 @@ public class RecordHealthCheckInlineUrlPolicy {
       return false;
     }
     for (String label : labels) {
-      if (Integer.valueOf(label) > 255) {
+      if (!isValidIpv4Octet(label)) {
         return false;
       }
     }
     return true;
+  }
+
+  private static Boolean isValidIpv4Octet(String label) {
+    try {
+      return Integer.valueOf(label) <= 255;
+    } catch (TypeException invalidInteger) {
+      return false;
+    }
   }
 
   private static String trimAscii(String value) {

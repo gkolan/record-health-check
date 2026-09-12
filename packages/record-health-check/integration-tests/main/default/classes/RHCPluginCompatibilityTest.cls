@@ -46,7 +46,11 @@ private class RHCPluginCompatibilityTest {
         .withRunId('plugin-compatibility-matrix')
     );
 
-    Assert.areEqual(4, response.results.size());
+    Assert.areEqual(
+      4,
+      response.results.size(),
+      'The compatibility matrix must return all four results.'
+    );
     Map<Id, RecordHealthCheckEvaluationResult> byRecord = new Map<Id, RecordHealthCheckEvaluationResult>();
     for (RecordHealthCheckResultItem item : response.results) {
       byRecord.put(item.evaluation.recordId, item.evaluation);
@@ -89,10 +93,19 @@ private class RHCPluginCompatibilityTest {
     String expectedReason
   ) {
     Assert.isNotNull(result, 'Every requested Account must return a result.');
-    Assert.areEqual(expectedStatus, result.status);
-    Assert.areEqual(expectedReason, result.reasonCode);
+    Assert.areEqual(
+      expectedStatus,
+      result.status,
+      'The plugin must preserve the expected compatibility status.'
+    );
+    Assert.areEqual(
+      expectedReason,
+      result.reasonCode,
+      'The plugin must preserve the expected compatibility reason.'
+    );
     Assert.isTrue(
-      result.checkQualifiedApiName.endsWith('RHC_Plugin_Compatibility_Matrix')
+      result.checkQualifiedApiName.endsWith('RHC_Plugin_Compatibility_Matrix'),
+      'The result must retain the compatibility Check identity.'
     );
   }
 }

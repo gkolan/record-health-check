@@ -23,27 +23,57 @@ function layoutSections(layout) {
 const expectedLayoutJourney = {
   "Record_Health_Check__mdt-Record Health Check Layout.layout-meta.xml": [
     [
-      "1. Check basics",
+      "1. Name and organize the Check",
       "TwoColumnsLeftToRight",
       [
+        ["MasterLabel", "Record_Health_Check_Set__c", "EvaluationType__c"],
+        ["DeveloperName", "EvaluationOrder__c", "IsActive__c"]
+      ]
+    ],
+    [
+      "Formula rule - Verify with a formula",
+      "OneColumn",
+      [["PassConditionFormula__c"]]
+    ],
+    [
+      "Query - Find and read records (both query types)",
+      "OneColumn",
+      [
         [
-          "MasterLabel",
-          "Record_Health_Check_Set__c",
-          "EvaluationType__c",
-          "Category__c",
-          "FailureSeverity__c",
-          "IsActive__c"
-        ],
-        [
-          "DeveloperName",
-          "EvaluationOrder__c",
-          "IsProtected",
-          "NamespacePrefix"
+          "SourceQuery__c",
+          "SourceQueryField__c",
+          "QueryResultHandling__c",
+          "FindInListFormula__c"
         ]
       ]
     ],
     [
-      "2. Result messages",
+      "Query - Compare with the expected value",
+      "OneColumn",
+      [
+        [
+          "ComparisonOperator__c",
+          "ExpectedValueSource__c",
+          "ExpectedFixedValue__c",
+          "ExpectedCurrencyIsoCode__c",
+          "ExpectedRecordFormula__c",
+          "ComparisonQuery__c",
+          "ComparisonQueryField__c"
+        ]
+      ]
+    ],
+    [
+      "Query - Decide what empty results mean",
+      "TwoColumnsLeftToRight",
+      [["NoRowsResult__c"], ["EmptyValueHandling__c"]]
+    ],
+    [
+      "Apex rule - Verify with Apex",
+      "OneColumn",
+      [["ApexClass__c", "ApexParametersJson__c"]]
+    ],
+    [
+      "2. Explain the result to users",
       "OneColumn",
       [
         [
@@ -56,60 +86,17 @@ const expectedLayoutJourney = {
       ]
     ],
     [
-      "3. Optional action",
+      "3. Group and prioritize results",
       "TwoColumnsLeftToRight",
-      [["ActionLabel__c"], ["ActionUrl__c"]]
+      [["Category__c"], ["FailureSeverity__c"]]
     ],
     [
-      "4A. Formula evaluation (Formula only)",
+      "4. Add a fix link (optional)",
       "OneColumn",
-      [["FormulaResultType__c", "PassConditionFormula__c"]]
+      [["ActionLabel__c", "ActionUrl__c"]]
     ],
     [
-      "4B. Query result (Query only)",
-      "OneColumn",
-      [
-        [
-          "SourceQuery__c",
-          "SourceQueryField__c",
-          "QueryResultHandling__c",
-          "FindInListFormula__c"
-        ]
-      ]
-    ],
-    [
-      "4C. Expected value (Query only)",
-      "OneColumn",
-      [
-        [
-          "ExpectedValueSource__c",
-          "ExpectedFixedValue__c",
-          "ExpectedCurrencyIsoCode__c",
-          "ExpectedRecordFormula__c",
-          "ComparisonQuery__c",
-          "ComparisonQueryField__c"
-        ]
-      ]
-    ],
-    [
-      "4D. Pass and empty rules (Query only)",
-      "OneColumn",
-      [
-        [
-          "ComparisonOperator__c",
-          "NoRowsResult__c",
-          "EmptyValueHandling__c",
-          "MaxQueryRows__c"
-        ]
-      ]
-    ],
-    [
-      "4E. Apex evaluation (Apex only)",
-      "OneColumn",
-      [["ApexClass__c", "ApexParametersJson__c"]]
-    ],
-    [
-      "5. Applicability and prerequisite",
+      "5. Limit when this Check applies (optional)",
       "OneColumn",
       [
         [
@@ -124,7 +111,7 @@ const expectedLayoutJourney = {
       ]
     ],
     [
-      "6. Values shown on the card",
+      "6. Customize Found and Expected (optional)",
       "OneColumn",
       [
         [
@@ -137,63 +124,109 @@ const expectedLayoutJourney = {
         ]
       ]
     ],
-    ["7. Platform events", "OneColumn", [["PublishUserResultEvent__c"]]]
+    [
+      "7. Advanced settings",
+      "TwoColumnsLeftToRight",
+      [
+        ["FormulaResultType__c", "PublishUserResultEvent__c"],
+        ["MaxQueryRows__c"]
+      ]
+    ],
+    [
+      "Package information",
+      "TwoColumnsLeftToRight",
+      [["IsProtected"], ["NamespacePrefix"]]
+    ]
   ],
   "Record_Health_Check_Set__mdt-Record Health Check Set Layout.layout-meta.xml":
     [
       [
-        "1. Check Set basics",
+        "1. Name the review and choose its object",
         "TwoColumnsLeftToRight",
         [
-          ["MasterLabel", "ObjectApiName__c", "IsActive__c", "IsProtected"],
-          ["DeveloperName", "NamespacePrefix"]
+          ["MasterLabel", "ObjectApiName__c"],
+          ["DeveloperName", "IsActive__c"]
         ]
       ],
       [
-        "2. Card heading",
+        "2. Describe the card to users",
         "OneColumn",
         [["CardHeadingDisplay__c", "CardTitle__c", "CardSubtitle__c"]]
       ],
       [
-        "3. Run experience",
-        "OneColumn",
-        [["CardRunMode__c", "CardRevealMode__c"]]
+        "3. Choose how users start the review",
+        "TwoColumnsLeftToRight",
+        [["CardRunMode__c"], ["RunButtonDisplay__c"]]
       ],
       [
-        "4. Run button",
+        "4. Customize the Run button (optional)",
+        "TwoColumnsLeftToRight",
+        [["RunButtonLabel__c", "RunButtonIcon__c"], ["RerunButtonLabel__c"]]
+      ],
+      [
+        "5. Choose how results appear",
         "TwoColumnsLeftToRight",
         [
-          ["RunButtonDisplay__c", "RunButtonLabel__c"],
-          ["RunButtonIcon__c", "RerunButtonLabel__c"]
+          [
+            "CardRevealMode__c",
+            "PassedChecksDisplay__c",
+            "FoundExpectedDisplay__c"
+          ],
+          ["SummaryDisplay__c", "SkippedChecksDisplay__c"]
         ]
       ],
       [
-        "5. Check results",
+        "6. Advanced settings and troubleshooting",
         "TwoColumnsLeftToRight",
         [
-          ["SummaryDisplay__c", "PassedChecksDisplay__c"],
-          ["FoundExpectedDisplay__c", "SkippedChecksDisplay__c"]
+          ["StopOnSystemError__c", "PublishUserRunEvent__c"],
+          ["ShowDiagnostics__c", "PublishErrorLogEvent__c"]
         ]
       ],
       [
-        "6. Errors and diagnostics",
+        "Package information",
         "TwoColumnsLeftToRight",
-        [["StopOnSystemError__c"], ["ShowDiagnostics__c"]]
-      ],
-      [
-        "7. Platform events",
-        "TwoColumnsLeftToRight",
-        [["PublishUserRunEvent__c"], ["PublishErrorLogEvent__c"]]
+        [["IsProtected"], ["NamespacePrefix"]]
       ]
     ]
 };
 
-test("Check and Check Set layouts guide administrators through the build journey", () => {
-  for (const [file, expected] of Object.entries(expectedLayoutJourney)) {
+for (const [file, expected] of Object.entries(expectedLayoutJourney)) {
+  test(`administrator build journey: ${file}`, () => {
     const actual = layoutSections(read(`layouts/${file}`)).map(
       ({ label, style, columns }) => [label, style, columns]
     );
     assert.deepEqual(actual, expected, file);
+  });
+}
+
+test("long editors have full width and package fields stay outside the authoring journey", () => {
+  for (const file of Object.keys(expectedLayoutJourney)) {
+    const sections = layoutSections(read(`layouts/${file}`));
+    const object = file.split("-")[0];
+    for (const field of fs.readdirSync(`${base}/objects/${object}/fields`)) {
+      const xml = read(`objects/${object}/fields/${field}`);
+      if (!/<type>LongTextArea<\/type>/.test(xml)) continue;
+      const name = field.replace(".field-meta.xml", "");
+      const section = sections.find(({ columns }) =>
+        columns.flat().includes(name)
+      );
+      assert.equal(
+        section?.style,
+        "OneColumn",
+        `${object}.${name} needs a full-width editor`
+      );
+    }
+    assert.deepEqual(sections.at(-1).columns, [
+      ["IsProtected"],
+      ["NamespacePrefix"]
+    ]);
+    for (const section of sections) {
+      assert.equal(
+        section.columns.length,
+        section.style === "OneColumn" ? 1 : 2
+      );
+    }
   }
 });
 
@@ -285,4 +318,20 @@ test("bare-card fixtures provide one and two record-dependent PASS/FAIL Checks",
         .includes(name)
     );
   }
+});
+
+test("formula type help guides Query authors without changing display or Boolean rules", () => {
+  const xml = read(
+    "objects/Record_Health_Check__mdt/fields/FormulaResultType__c.field-meta.xml"
+  );
+  const help = xml.match(
+    /<inlineHelpText\s*>([\s\S]*?)<\/inlineHelpText>/
+  )?.[1];
+  assert.match(help, /Leave Automatic/);
+  assert.match(help, /Query comparison formulas/);
+  assert.match(
+    help,
+    /Does not control Pass Condition, applicability, or display formulas/
+  );
+  assert.ok(help.length <= 255);
 });

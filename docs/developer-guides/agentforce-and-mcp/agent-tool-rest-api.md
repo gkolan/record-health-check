@@ -109,13 +109,13 @@ the explicit counts.
 
 ## Adapter errors
 
-| HTTP status | Error type | Meaning |
-| ---: | --- | --- |
-| `400` | `VALIDATION` | Invalid JSON, operation, ID, configuration identity, or evaluation selection |
-| `403` | `AUTHORIZATION` | The Salesforce integration principal lacks the run entitlement |
-| `413` | `LIMIT` | Request body exceeds 16,384 bytes |
-| `415` | `VALIDATION` | Content type is not JSON |
-| `500` | `EXECUTION` | An unexpected adapter or evaluator failure prevented completion |
+| HTTP status | Error type      | Meaning                                                                      |
+| ----------: | --------------- | ---------------------------------------------------------------------------- |
+|       `400` | `VALIDATION`    | Invalid JSON, operation, ID, configuration identity, or evaluation selection |
+|       `403` | `AUTHORIZATION` | The Salesforce integration principal lacks the run entitlement               |
+|       `413` | `LIMIT`         | Request body exceeds 16,384 bytes                                            |
+|       `415` | `VALIDATION`    | Content type is not JSON                                                     |
+|       `500` | `EXECUTION`     | An unexpected adapter or evaluator failure prevented completion              |
 
 Adapter errors return `success=false`, a safe error type, and a safe message. They do not include a
 health status, query, formula, stack trace, exception text, record value, token, session ID, or

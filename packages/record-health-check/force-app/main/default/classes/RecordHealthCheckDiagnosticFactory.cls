@@ -13,41 +13,11 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
     incident.topFrameLine = error == null ? null : error.getLineNumber();
     String stackTrace = error == null ? null : error.getStackTraceString();
     if (error instanceof RecordHealthCheckPluginDispatch.ContractException) {
-      RecordHealthCheckPluginDispatch.ContractException contractError = (RecordHealthCheckPluginDispatch.ContractException) error;
-      incident.exceptionType = String.isBlank(
-          contractError.originalExceptionType
-        )
-        ? incident.exceptionType
-        : contractError.originalExceptionType;
-      incident.exceptionMessage = String.isBlank(
-          contractError.originalExceptionMessage
-        )
-        ? incident.exceptionMessage
-        : '[message withheld]';
-      incident.topFrameLine = contractError.originalLineNumber ??
-        incident.topFrameLine;
-      stackTrace = String.isBlank(contractError.originalStackTrace)
-        ? stackTrace
-        : contractError.originalStackTrace;
+      stackTrace = unwrapContractException(error, incident, stackTrace);
     } else if (
       error instanceof RecordHealthCheckApexPluginResolver.PluginConfigurationException
     ) {
-      RecordHealthCheckApexPluginResolver.PluginConfigurationException configurationError = (RecordHealthCheckApexPluginResolver.PluginConfigurationException) error;
-      incident.exceptionType = String.isBlank(
-          configurationError.originalExceptionType
-        )
-        ? incident.exceptionType
-        : configurationError.originalExceptionType;
-      incident.exceptionMessage = String.isBlank(
-          configurationError.originalExceptionMessage
-        )
-        ? incident.exceptionMessage
-        : '[message withheld]';
-      incident.topFrameLine = configurationError.originalLineNumber ??
-        incident.topFrameLine;
-      stackTrace = String.isBlank(configurationError.originalStackTrace)
-        ? stackTrace
-        : configurationError.originalStackTrace;
+      stackTrace = unwrapConfigurationException(error, incident, stackTrace);
     }
     incident.apexClass = isPluginPhase(context?.phase)
       ? context?.component
@@ -150,37 +120,8 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
       isPluginPhase(incident.phase)
     ) {
       RecordHealthCheckDiagnosticGuidance.pluginRuntime(incident);
-    } else if (isAccessReason(reason)) {
-      RecordHealthCheckDiagnosticGuidance.accessFailure(incident, reason);
-    } else if (isPlanningReason(reason)) {
-      if (
-        isQueryConfigurationField(incident.configurationField) ||
-        incident.evaluatorType == 'QUERY' ||
-        incident.evaluatorType == 'COMPARE_TWO_QUERIES'
-      ) {
-        RecordHealthCheckDiagnosticGuidance.queryFailure(incident);
-      } else {
-        RecordHealthCheckDiagnosticGuidance.formulaFailure(incident);
-      }
-      if (incident.configurationField == 'ApplicabilityFormula__c') {
-        incident.summary = 'The check could not start because its applicability formula referenced an unresolved token.';
-      }
-    } else if (isConfigurationPhase(incident.phase)) {
-      RecordHealthCheckDiagnosticGuidance.configurationFailure(incident);
-    } else if (isFormulaPhase(incident.phase)) {
-      RecordHealthCheckDiagnosticGuidance.formulaFailure(incident);
-    } else if (
-      isQueryPhase(incident.phase) ||
-      incident.exceptionType == 'System.QueryException'
-    ) {
-      RecordHealthCheckDiagnosticGuidance.queryFailure(incident);
-    } else if (
-      incident.exceptionType == 'System.LimitException' ||
-      incident.phase == 'LIMIT'
-    ) {
-      RecordHealthCheckDiagnosticGuidance.limitFailure(incident);
     } else {
-      RecordHealthCheckDiagnosticGuidance.frameworkFailure(incident);
+      classifyFrameworkFailure(incident, reason);
     }
   }
 
@@ -324,5 +265,89 @@ public with sharing class RecordHealthCheckDiagnosticFactory {
     return reason == RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED ||
       reason == RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED ||
       reason == RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED;
+  }
+
+  private static String unwrapContractException(
+    Exception error,
+    RecordHealthCheckDiagnosticIncident incident,
+    String stackTrace
+  ) {
+    RecordHealthCheckPluginDispatch.ContractException contractError = (RecordHealthCheckPluginDispatch.ContractException) error;
+    incident.exceptionType = String.isBlank(contractError.originalExceptionType)
+      ? incident.exceptionType
+      : contractError.originalExceptionType;
+    incident.exceptionMessage = String.isBlank(
+        contractError.originalExceptionMessage
+      )
+      ? incident.exceptionMessage
+      : '[message withheld]';
+    incident.topFrameLine = contractError.originalLineNumber ??
+      incident.topFrameLine;
+    stackTrace = String.isBlank(contractError.originalStackTrace)
+      ? stackTrace
+      : contractError.originalStackTrace;
+    return stackTrace;
+  }
+
+  private static String unwrapConfigurationException(
+    Exception error,
+    RecordHealthCheckDiagnosticIncident incident,
+    String stackTrace
+  ) {
+    RecordHealthCheckApexPluginResolver.PluginConfigurationException configurationError = (RecordHealthCheckApexPluginResolver.PluginConfigurationException) error;
+    incident.exceptionType = String.isBlank(
+        configurationError.originalExceptionType
+      )
+      ? incident.exceptionType
+      : configurationError.originalExceptionType;
+    incident.exceptionMessage = String.isBlank(
+        configurationError.originalExceptionMessage
+      )
+      ? incident.exceptionMessage
+      : '[message withheld]';
+    incident.topFrameLine = configurationError.originalLineNumber ??
+      incident.topFrameLine;
+    stackTrace = String.isBlank(configurationError.originalStackTrace)
+      ? stackTrace
+      : configurationError.originalStackTrace;
+    return stackTrace;
+  }
+
+  private static void classifyFrameworkFailure(
+    RecordHealthCheckDiagnosticIncident incident,
+    String reason
+  ) {
+    if (isAccessReason(reason)) {
+      RecordHealthCheckDiagnosticGuidance.accessFailure(incident, reason);
+    } else if (isPlanningReason(reason)) {
+      if (
+        isQueryConfigurationField(incident.configurationField) ||
+        incident.evaluatorType == 'QUERY' ||
+        incident.evaluatorType == 'COMPARE_TWO_QUERIES'
+      ) {
+        RecordHealthCheckDiagnosticGuidance.queryFailure(incident);
+      } else {
+        RecordHealthCheckDiagnosticGuidance.formulaFailure(incident);
+      }
+      if (incident.configurationField == 'ApplicabilityFormula__c') {
+        incident.summary = 'The check could not start because its applicability formula referenced an unresolved token.';
+      }
+    } else if (isConfigurationPhase(incident.phase)) {
+      RecordHealthCheckDiagnosticGuidance.configurationFailure(incident);
+    } else if (isFormulaPhase(incident.phase)) {
+      RecordHealthCheckDiagnosticGuidance.formulaFailure(incident);
+    } else if (
+      isQueryPhase(incident.phase) ||
+      incident.exceptionType == 'System.QueryException'
+    ) {
+      RecordHealthCheckDiagnosticGuidance.queryFailure(incident);
+    } else if (
+      incident.exceptionType == 'System.LimitException' ||
+      incident.phase == 'LIMIT'
+    ) {
+      RecordHealthCheckDiagnosticGuidance.limitFailure(incident);
+    } else {
+      RecordHealthCheckDiagnosticGuidance.frameworkFailure(incident);
+    }
   }
 }

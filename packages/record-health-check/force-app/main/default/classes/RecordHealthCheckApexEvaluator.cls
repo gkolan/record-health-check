@@ -2,7 +2,6 @@
  * @author Gautam Kolan (https://github.com/gkolan)
  * SPDX-License-Identifier: Apache-2.0
  */
-
 /**
  * Runs configured Apex Checks through safety checks that reject DML, callouts,
  * email, events, and background work. Setup, returned-value, and execution
@@ -12,7 +11,6 @@ public with sharing class RecordHealthCheckApexEvaluator {
   private RecordHealthCheckFormulaEvaluator formulaEvaluator = new RecordHealthCheckFormulaEvaluator();
   private Map<Id, RecordHealthCheckExecutionTrace> executionTraces = new Map<Id, RecordHealthCheckExecutionTrace>();
   private Boolean cardPresentation = false;
-
   /**
    * Applies the current Run ID and related run details to Formula display work.
    *
@@ -25,7 +23,6 @@ public with sharing class RecordHealthCheckApexEvaluator {
     formulaEvaluator.withRunContext(value);
     return this;
   }
-
   /** Supplies per-record traces created by the scope pipeline. */
   public RecordHealthCheckApexEvaluator withExecutionTraces(
     Map<Id, RecordHealthCheckExecutionTrace> value
@@ -35,15 +32,12 @@ public with sharing class RecordHealthCheckApexEvaluator {
       : value;
     return this;
   }
-
   /** Enables the optional plugin display phase for a display-capable result. */
   public RecordHealthCheckApexEvaluator withCardPresentation(Boolean value) {
     cardPresentation = value == true;
     return this;
   }
-
   // ─── Public evaluation method ─────────────────────────────────────────────
-
   /**
    * Evaluates one record through the same Apex Check path used for multiple records.
    * A missing record ID becomes an ERROR result for that Check instead of
@@ -78,7 +72,6 @@ public with sharing class RecordHealthCheckApexEvaluator {
     );
     return results.get(recordId);
   }
-
   /**
    * Creates and invokes one Apex Check exactly once for all requested records.
    * Setup and ordinary Apex Check failures become matching results for the
@@ -112,7 +105,6 @@ public with sharing class RecordHealthCheckApexEvaluator {
       runId
     );
   }
-
   /** Evaluates an Apex Check with unqualified and qualified Set identities. */
   public Map<Id, RecordHealthCheckInternalResult> evaluateScope(
     Record_Health_Check__mdt check,
@@ -150,60 +142,18 @@ public with sharing class RecordHealthCheckApexEvaluator {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException ex) {
-      RecordHealthCheckDiagnosticContext configurationContext = diagnosticContext(
-        check,
-        checkSetQualifiedApiName,
-        runId,
-        ex.reasonCode,
-        ex.reasonCode == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS
-          ? 'PLUGIN_PARAMETERS'
-          : ex.reasonCode ==
-              RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID
-              ? 'PLUGIN_DEFINE'
-              : ex.reasonCode ==
-                  RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
-                  ? 'PLUGIN_CONSTRUCT'
-                  : 'PLUGIN_RESOLVE'
-      );
-      configurationContext.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
-      configurationContext.severity = 'WARNING';
-      configurationContext.pluginInvoked = false;
-      configurationContext.reasonOrigin = 'FRAMEWORK';
-      failTraces(recordIds, configurationPhase(ex.reasonCode));
-      Map<Id, RecordHealthCheckInternalResult> failed = RecordHealthCheckIncidentRecorder.recordScopeFailure(
+      return configurationFailure(
         check,
         recordIds,
-        configurationContext,
+        checkSetQualifiedApiName,
+        runId,
         ex
       );
-      attachTraces(failed);
-      return failed;
     }
-
     Integer maxScopeSize = pluginConfiguration.definition?.maxScopeSize();
     if (maxScopeSize != null && recordIds.size() > maxScopeSize) {
-      RecordHealthCheckDiagnosticContext capacityContext = diagnosticContext(
-        check,
-        checkSetQualifiedApiName,
-        runId,
-        RecordHealthCheckReasonCodes.PLUGIN_SCOPE_LIMIT_EXCEEDED,
-        'PLUGIN_CAPACITY'
-      );
-      capacityContext.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
-      capacityContext.severity = 'WARNING';
-      capacityContext.pluginInvoked = false;
-      capacityContext.reasonOrigin = 'FRAMEWORK';
-      failTraces(recordIds, 'PLUGIN_CAPACITY');
-      Map<Id, RecordHealthCheckInternalResult> rejected = RecordHealthCheckIncidentRecorder.recordScopeFailure(
-        check,
-        recordIds,
-        capacityContext,
-        null
-      );
-      attachTraces(rejected);
-      return rejected;
+      return capacityFailure(check, recordIds, checkSetQualifiedApiName, runId);
     }
-
     String checkQualifiedApiName = String.isBlank(check.QualifiedApiName)
       ? check.DeveloperName
       : check.QualifiedApiName;
@@ -223,32 +173,14 @@ public with sharing class RecordHealthCheckApexEvaluator {
       outcomes = RecordHealthCheckPluginDispatch.run(plugin, scope);
       completeTraces(recordIds, 'PLUGIN_EXECUTED');
     } catch (RecordHealthCheckPluginDispatch.ContractException ex) {
-      RecordHealthCheckDiagnosticContext executionContext = diagnosticContext(
-        check,
-        checkSetQualifiedApiName,
-        runId,
-        ex.reasonCode,
-        ex.reasonCode == RecordHealthCheckReasonCodes.PLUGIN_THREW
-          ? 'PLUGIN_EXECUTE'
-          : 'PLUGIN_VALIDATE_RESULT'
-      );
-      executionContext.pluginInvoked = true;
-      executionContext.reasonOrigin = 'FRAMEWORK';
-      String failurePhase = ex.reasonCode ==
-        RecordHealthCheckReasonCodes.PLUGIN_THREW
-        ? 'PLUGIN_EXECUTE'
-        : 'PLUGIN_VALIDATE_RESULT';
-      failTraces(recordIds, failurePhase);
-      Map<Id, RecordHealthCheckInternalResult> failed = RecordHealthCheckIncidentRecorder.recordScopeFailure(
+      return executionFailure(
         check,
         recordIds,
-        executionContext,
+        checkSetQualifiedApiName,
+        runId,
         ex
       );
-      attachTraces(failed);
-      return failed;
     }
-
     beginTraces(recordIds, 'PLUGIN_VALIDATE_RESULT');
     Map<Id, RecordHealthCheckInternalResult> finalized = finalizeOutcomes(
       check,
@@ -258,6 +190,14 @@ public with sharing class RecordHealthCheckApexEvaluator {
       checkSetQualifiedApiName,
       runId
     );
+    return presentAndTrace(plugin, scope, recordIds, finalized);
+  }
+  private Map<Id, RecordHealthCheckInternalResult> presentAndTrace(
+    RecordHealthCheckPlugin plugin,
+    RecordHealthCheckScope scope,
+    List<Id> recordIds,
+    Map<Id, RecordHealthCheckInternalResult> finalized
+  ) {
     if (
       cardPresentation &&
       RecordHealthCheckApexDisplaySupport.hasValidEvaluation(finalized)
@@ -287,7 +227,101 @@ public with sharing class RecordHealthCheckApexEvaluator {
     attachTraces(finalized);
     return finalized;
   }
-
+  private Map<Id, RecordHealthCheckInternalResult> configurationFailure(
+    Record_Health_Check__mdt check,
+    List<Id> recordIds,
+    String checkSetQualifiedApiName,
+    String runId,
+    RecordHealthCheckApexPluginResolver.PluginConfigurationException ex
+  ) {
+    RecordHealthCheckDiagnosticContext configurationContext = diagnosticContext(
+      check,
+      checkSetQualifiedApiName,
+      runId,
+      ex.reasonCode,
+      ex.reasonCode == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS
+        ? 'PLUGIN_PARAMETERS'
+        : ex.reasonCode ==
+            RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID
+            ? 'PLUGIN_DEFINE'
+            : ex.reasonCode ==
+                RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
+                ? 'PLUGIN_CONSTRUCT'
+                : 'PLUGIN_RESOLVE'
+    );
+    configurationContext.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+    configurationContext.severity = 'WARNING';
+    configurationContext.pluginInvoked = false;
+    configurationContext.reasonOrigin = 'FRAMEWORK';
+    failTraces(recordIds, configurationPhase(ex.reasonCode));
+    Map<Id, RecordHealthCheckInternalResult> failed = RecordHealthCheckIncidentRecorder.recordScopeFailure(
+      check,
+      recordIds,
+      configurationContext,
+      ex
+    );
+    attachTraces(failed);
+    return failed;
+  }
+  private Map<Id, RecordHealthCheckInternalResult> executionFailure(
+    Record_Health_Check__mdt check,
+    List<Id> recordIds,
+    String checkSetQualifiedApiName,
+    String runId,
+    RecordHealthCheckPluginDispatch.ContractException ex
+  ) {
+    RecordHealthCheckDiagnosticContext executionContext = diagnosticContext(
+      check,
+      checkSetQualifiedApiName,
+      runId,
+      ex.reasonCode,
+      ex.reasonCode == RecordHealthCheckReasonCodes.PLUGIN_THREW
+        ? 'PLUGIN_EXECUTE'
+        : 'PLUGIN_VALIDATE_RESULT'
+    );
+    executionContext.pluginInvoked = true;
+    executionContext.reasonOrigin = 'FRAMEWORK';
+    String failurePhase = ex.reasonCode ==
+      RecordHealthCheckReasonCodes.PLUGIN_THREW
+      ? 'PLUGIN_EXECUTE'
+      : 'PLUGIN_VALIDATE_RESULT';
+    failTraces(recordIds, failurePhase);
+    Map<Id, RecordHealthCheckInternalResult> failed = RecordHealthCheckIncidentRecorder.recordScopeFailure(
+      check,
+      recordIds,
+      executionContext,
+      ex
+    );
+    attachTraces(failed);
+    return failed;
+  }
+  private Map<Id, RecordHealthCheckInternalResult> capacityFailure(
+    Record_Health_Check__mdt check,
+    List<Id> recordIds,
+    String checkSetQualifiedApiName,
+    String runId
+  ) {
+    RecordHealthCheckDiagnosticContext capacityContext = diagnosticContext(
+      check,
+      checkSetQualifiedApiName,
+      runId,
+      RecordHealthCheckReasonCodes.PLUGIN_SCOPE_LIMIT_EXCEEDED,
+      'PLUGIN_CAPACITY'
+    );
+    capacityContext.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+    capacityContext.severity = 'WARNING';
+    capacityContext.pluginInvoked = false;
+    capacityContext.reasonOrigin = 'FRAMEWORK';
+    failTraces(recordIds, 'PLUGIN_CAPACITY');
+    Map<Id, RecordHealthCheckInternalResult> rejected = RecordHealthCheckIncidentRecorder.recordScopeFailure(
+      check,
+      recordIds,
+      capacityContext,
+      null
+    );
+    attachTraces(rejected);
+    return rejected;
+  }
   private static String configurationPhase(String reasonCode) {
     if (reasonCode == RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS) {
       return 'PLUGIN_PARAMETERS';
@@ -300,7 +334,6 @@ public with sharing class RecordHealthCheckApexEvaluator {
     }
     return 'PLUGIN_RESOLVE';
   }
-
   private static Boolean isInvalidPluginResult(String reasonCode) {
     return reasonCode == RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING ||
       reasonCode == RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID ||
@@ -308,7 +341,6 @@ public with sharing class RecordHealthCheckApexEvaluator {
       reasonCode == RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING ||
       reasonCode == RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID;
   }
-
   private void completeTraces(List<Id> recordIds, String stage) {
     for (Id recordId : recordIds) {
       completeTrace(recordId, stage);

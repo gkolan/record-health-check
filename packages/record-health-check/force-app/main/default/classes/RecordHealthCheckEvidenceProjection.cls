@@ -38,6 +38,9 @@ public with sharing class RecordHealthCheckEvidenceProjection {
     Boolean byteLimitReached = false;
     Integer authorizedRows = 0;
     for (List<RecordHealthCheckEvidenceCell> row : evidence.rows) {
+      if (!validRow(evidence.columns, row)) {
+        return unavailable(runId, checkIdentity, recordId);
+      }
       List<Object> projectedRow = projectRow(
         evidence.columns,
         row,
@@ -60,6 +63,32 @@ public with sharing class RecordHealthCheckEvidenceProjection {
       }
     }
 
+    return finalizeEnvelope(envelope, totalKnown, authorizedRows);
+  }
+
+  private static RecordHealthCheckEvidenceEnvelope finalizeEnvelope(
+    RecordHealthCheckEvidenceEnvelope envelope,
+    Boolean totalKnown,
+    Integer authorizedRows
+  ) {
+    updateCounts(envelope, totalKnown, authorizedRows);
+    // Counts and completeness are part of the serialized budget too.
+    while (
+      !envelope.rows.isEmpty() &&
+      utf8Bytes(JSON.serialize(envelope)) > MAX_BYTES
+    ) {
+      envelope.rows.remove(envelope.rows.size() - 1);
+      updateCounts(envelope, totalKnown, authorizedRows);
+    }
+    return envelope;
+  }
+
+  private static void updateCounts(
+    RecordHealthCheckEvidenceEnvelope envelope,
+    Boolean totalKnown,
+    Integer authorizedRows
+  ) {
+    envelope.returnedItemCount = envelope.rows.size();
     if (!totalKnown) {
       envelope.totalItemCount = null;
       envelope.omittedItemCount = null;
@@ -71,7 +100,6 @@ public with sharing class RecordHealthCheckEvidenceProjection {
         ? 'COMPLETE'
         : 'TRUNCATED';
     }
-    return envelope;
   }
 
   private static Boolean validSchema(RecordHealthCheckEvidence evidence) {
@@ -118,39 +146,54 @@ public with sharing class RecordHealthCheckEvidenceProjection {
     return true;
   }
 
-  private static List<Object> projectRow(
+  private static Boolean validRow(
     List<RecordHealthCheckEvidenceColumn> columns,
-    List<RecordHealthCheckEvidenceCell> row,
-    Map<Id, SObject> recordsById
+    List<RecordHealthCheckEvidenceCell> row
   ) {
     if (row == null || row.size() != columns.size()) {
-      return null;
+      return false;
     }
-    List<Object> output = new List<Object>();
     for (Integer index = 0; index < row.size(); index++) {
-      RecordHealthCheckEvidenceCell cell = row[index];
-      if (cell == null || !authorized(cell, recordsById)) {
-        return null;
-      }
-      RecordHealthCheckValue value = cell.typedValue;
-      if (value == null || value.storedValue == null) {
-        output.add(null);
-        continue;
+      RecordHealthCheckValue value = row[index]?.typedValue;
+      if (value == null || value.isList()) {
+        return false;
       }
       String declaredType = columns[index].dataType;
       String actualType = value.dataType == RecordHealthCheckValue.TYPE_COUNT
         ? 'NUMBER'
         : value.dataType;
-      if (declaredType != actualType || value.isList()) {
-        return null;
+      if (declaredType != actualType) {
+        return false;
       }
       if (
-        (declaredType == 'STRING' || declaredType == 'ID') &&
+        (declaredType == 'STRING' ||
+        declaredType == 'ID') &&
+        value.storedValue != null &&
         value.storedValue.length() > MAX_CELL_UNITS
       ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static List<Object> projectRow(
+    List<RecordHealthCheckEvidenceColumn> columns,
+    List<RecordHealthCheckEvidenceCell> row,
+    Map<Id, SObject> recordsById
+  ) {
+    List<Object> output = new List<Object>();
+    for (Integer index = 0; index < row.size(); index++) {
+      RecordHealthCheckEvidenceCell cell = row[index];
+      if (!authorized(cell, recordsById)) {
         return null;
       }
-      output.add(wireValue(declaredType, value.storedValue));
+      String storedValue = cell.typedValue.storedValue;
+      output.add(
+        storedValue == null
+          ? null
+          : wireValue(columns[index].dataType, storedValue)
+      );
     }
     return output;
   }

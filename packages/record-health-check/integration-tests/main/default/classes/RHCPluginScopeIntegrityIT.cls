@@ -148,10 +148,26 @@ private class RHCPluginScopeIntegrityIT {
       null
     );
 
-    Assert.areEqual(3, scope.size());
-    Assert.areEqual(ids[2], scope.recordIds[0]);
-    Assert.areEqual(ids[0], scope.recordIds[1]);
-    Assert.areEqual(ids[1], scope.recordIds[2]);
+    Assert.areEqual(
+      3,
+      scope.size(),
+      'Repeated record identities must collapse to three unique scope entries.'
+    );
+    Assert.areEqual(
+      ids[2],
+      scope.recordIds[0],
+      'Deduplication must retain the first supplied identity first.'
+    );
+    Assert.areEqual(
+      ids[0],
+      scope.recordIds[1],
+      'Deduplication must retain the second distinct identity second.'
+    );
+    Assert.areEqual(
+      ids[1],
+      scope.recordIds[2],
+      'Deduplication must retain the third distinct identity third.'
+    );
   }
 
   @IsTest
@@ -165,7 +181,11 @@ private class RHCPluginScopeIntegrityIT {
       null,
       null
     );
-    Assert.areEqual(1, scope.size());
+    Assert.areEqual(
+      1,
+      scope.size(),
+      'Null identities must not create phantom scope entries.'
+    );
   }
 
   @IsTest
@@ -212,19 +232,35 @@ private class RHCPluginScopeIntegrityIT {
     );
     Test.stopTest();
 
-    Assert.areEqual('CALLOUT', callout.effect);
+    Assert.areEqual(
+      'CALLOUT',
+      callout.effect,
+      'A changed callout counter must retain the CALLOUT classification.'
+    );
     Assert.isFalse(callout.reversible, 'A sent callout cannot be rolled back.');
-    Assert.areEqual('QUEUEABLE', queueable.effect);
+    Assert.areEqual(
+      'QUEUEABLE',
+      queueable.effect,
+      'A changed queueable counter must retain the QUEUEABLE classification.'
+    );
     Assert.isTrue(
       queueable.reversible,
       'An enqueued job rolls back with the transaction.'
     );
-    Assert.areEqual('FUTURE', futureCall.effect);
+    Assert.areEqual(
+      'FUTURE',
+      futureCall.effect,
+      'A changed future counter must retain the FUTURE classification.'
+    );
     Assert.isTrue(
       futureCall.reversible,
       'A future call rolls back with the transaction.'
     );
-    Assert.areEqual('EMAIL', email.effect);
+    Assert.areEqual(
+      'EMAIL',
+      email.effect,
+      'A changed email counter must retain the EMAIL classification.'
+    );
     Assert.isFalse(email.reversible, 'A sent email cannot be undone.');
   }
 }

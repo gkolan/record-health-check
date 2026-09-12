@@ -18,7 +18,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     finalizeDisplay(check, record, result, showDiagnostics, false);
   }
 
-  /** Finalizes legacy strings and optionally supplies card-only display nodes. */
+  /** Finalizes legacy strings and optionally supplies structured display nodes. */
   public void finalizeDisplay(
     Record_Health_Check__mdt check,
     SObject record,
@@ -26,82 +26,36 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     Boolean showDiagnostics,
     Boolean includeStructuredDisplay
   ) {
-    if (result == null) {
-      return;
-    }
-    String authoredMessage = result.message;
-    if (record != null && String.isNotBlank(result.message)) {
-      result.message = formulaEvaluator.resolveMergeFields(
-        result.message,
-        record,
-        check,
-        result,
-        true
-      );
-    }
-    if (result.status == RecordHealthCheckStatus.FAIL && record != null) {
-      result.fixInstructions = String.isBlank(check.FixMessage__c)
-        ? null
-        : formulaEvaluator.resolveMergeFields(
-            check.FixMessage__c,
-            record,
-            check,
-            result,
-            true
-          );
-      if (String.isNotBlank(check.ActionUrl__c)) {
-        try {
-          String url = sanitizeActionUrl(
-            formulaEvaluator.resolveUrlMergeFields(
-              check.ActionUrl__c,
-              record,
-              check,
-              result
-            )
-          );
-          if (url != null) {
-            result.actionUrl = url;
-            result.actionLabel = String.isBlank(check.ActionLabel__c)
-              ? 'Fix this'
-              : formulaEvaluator.resolveMergeFields(
-                  check.ActionLabel__c,
-                  record,
-                  check,
-                  result,
-                  true
-                );
-          }
-        } catch (RecordHealthCheckTemplateService.TemplateException error) {
-          result.detailMessage = error.getMessage();
-        }
-      }
-    }
-    if (includeStructuredDisplay && check.EvaluationType__c == 'APEX') {
-      RecordHealthCheckPresentationResolver.apply(check, result);
-    }
-    Boolean restricted = RecordHealthCheckReasonCodes.isDiagnosticsOnly(
-      result.reasonCode
+    finalizeDisplay(
+      check,
+      record,
+      result,
+      showDiagnostics,
+      includeStructuredDisplay,
+      record == null ||
+        record.Id == null
+        ? new Map<Id, SObject>()
+        : new Map<Id, SObject>{ record.Id => record }
     );
-    if (showDiagnostics && RecordHealthCheckAccess.canViewDetails()) {
-      result.adminDetail = new RecordHealthCheckAdminDetail();
-      result.adminDetail.containsRestrictedDetail = restricted;
-      result.adminDetail.reasonCode = result.reasonCode;
-      result.adminDetail.message = result.detailMessage;
-      result.adminDetail.incident = result.diagnosticIncident;
-      RecordHealthCheckDiagnosticTrace.populate(
+  }
+
+  public void finalizeDisplay(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult result,
+    Boolean showDiagnostics,
+    Boolean includeStructuredDisplay,
+    Map<Id, SObject> recordsById
+  ) {
+    new RecordHealthCheckScopeDisplayFinalizer(formulaEvaluator)
+      .finalizeDisplay(
         check,
         record,
         result,
-        result.adminDetail
+        showDiagnostics,
+        includeStructuredDisplay,
+        recordsById
       );
-    }
-    if (restricted) {
-      result.reasonCode = RecordHealthCheckReasonCodes.CANNOT_EVALUATE;
-    }
-    if (includeStructuredDisplay) {
-      new RecordHealthCheckStructuredDisplay(formulaEvaluator)
-        .attach(check, record, result, authoredMessage);
-    }
   }
   public String sanitizeActionUrl(String value) {
     return RecordHealthCheckActionUrlPolicy.sanitize(value);
@@ -305,30 +259,40 @@ public with sharing class RecordHealthCheckScopeResultSupport {
         recordsById,
         RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
       );
-      for (Id recordId : recordIds) {
-        if (!recordsById.containsKey(recordId)) {
-          continue;
-        }
-        List<SObject> rows = scopeCounts.rowsByRecordId.get(recordId);
-        Integer count = rows == null || rows.isEmpty()
-          ? 0
-          : aggregateCount((AggregateResult) rows[0]);
-        Boolean applies = compareCount(
-          check.ApplicabilityCountOperator__c,
-          count,
-          (Integer) check.ApplicabilityCountThreshold__c
-        );
-        if (applies == null) {
-          results.put(recordId, unavailableResult(check, 'INVALID_OPERATOR'));
-        } else if (!applies) {
-          results.put(recordId, skippedResult(check));
-        }
-      }
+      mapCountResults(check, recordIds, recordsById, scopeCounts, results);
       return results;
     } catch (RecordHealthCheckEvaluatorException ex) {
       return unavailableForScope(check, recordIds, ex.reasonCode);
     } catch (Exception ex) {
       return unavailableForScope(check, recordIds, 'UNABLE_TO_EVALUATE');
+    }
+  }
+
+  private void mapCountResults(
+    Record_Health_Check__mdt check,
+    List<Id> recordIds,
+    Map<Id, SObject> recordsById,
+    RecordHealthCheckBulkQuerySupport.Result scopeCounts,
+    Map<Id, RecordHealthCheckInternalResult> results
+  ) {
+    for (Id recordId : recordIds) {
+      if (!recordsById.containsKey(recordId)) {
+        continue;
+      }
+      List<SObject> rows = scopeCounts.rowsByRecordId.get(recordId);
+      Integer count = rows == null || rows.isEmpty()
+        ? 0
+        : aggregateCount((AggregateResult) rows[0]);
+      Boolean applies = compareCount(
+        check.ApplicabilityCountOperator__c,
+        count,
+        (Integer) check.ApplicabilityCountThreshold__c
+      );
+      if (applies == null) {
+        results.put(recordId, unavailableResult(check, 'INVALID_OPERATOR'));
+      } else if (!applies) {
+        results.put(recordId, skippedResult(check));
+      }
     }
   }
 

@@ -29,11 +29,11 @@ trigger, or integration. If neither is configured, only the Apex job status rema
 
 ## Choose the Queueable pattern
 
-| Example | Use | Why |
-| --- | --- | --- |
-| A Case update already has 80 Case IDs, and a Platform Event-Triggered Flow handles failures | Packaged Queueable | The IDs are known, the request is below 200, and custom code does not need the response. |
-| After checking 80 Accounts, Apex must save one review record for every `FAIL` | Custom Queueable | The Queueable must inspect `response.results` and save selected results. |
-| A nightly job must query current records, or more than 200 records can run | [Batch Apex](./batch.md) | Queueable accepts only known IDs in one request. |
+| Example                                                                                     | Use                      | Why                                                                                      |
+| ------------------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| A Case update already has 80 Case IDs, and a Platform Event-Triggered Flow handles failures | Packaged Queueable       | The IDs are known, the request is below 200, and custom code does not need the response. |
+| After checking 80 Accounts, Apex must save one review record for every `FAIL`               | Custom Queueable         | The Queueable must inspect `response.results` and save selected results.                 |
+| A nightly job must query current records, or more than 200 records can run                  | [Batch Apex](./batch.md) | Queueable accepts only known IDs in one request.                                         |
 
 The record IDs must already be known before either Queueable starts. The difference is where the
 results go:
@@ -104,8 +104,7 @@ Reason Code. Grant the running user Create access to the object and fields.
 > the org.
 
 ```apex
-public with sharing class AccountHealthQueueable
-  implements Queueable, Finalizer {
+public with sharing class AccountHealthQueueable implements Queueable, Finalizer {
   private final String checkSetQualifiedApiName;
   private final List<Id> recordIds;
 
@@ -120,8 +119,7 @@ public with sharing class AccountHealthQueueable
   public void execute(QueueableContext context) {
     System.attachFinalizer(this);
 
-    rhc.RecordHealthCheckRequest request =
-      rhc.RecordHealthCheckRequest.forCheckSet(
+    rhc.RecordHealthCheckRequest request = rhc.RecordHealthCheckRequest.forCheckSet(
         checkSetQualifiedApiName,
         recordIds
       )
@@ -129,16 +127,14 @@ public with sharing class AccountHealthQueueable
       .withRunId('queueable-' + context.getJobId())
       // NONE publishes no Platform Events because this Queueable reads and
       // saves response.results directly.
-      .withEventPublication(
-        rhc.RecordHealthCheckEventPublication.NONE
-      );
+      .withEventPublication(rhc.RecordHealthCheckEventPublication.NONE);
 
-    rhc.RecordHealthCheckResponse response =
-      rhc.RecordHealthCheck.evaluate(request);
+    rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
+      request
+    );
 
     // Save one record for every result that may require attention.
-    List<Saved_Health_Check_Result__c> recordsToInsert =
-      new List<Saved_Health_Check_Result__c>();
+    List<Saved_Health_Check_Result__c> recordsToInsert = new List<Saved_Health_Check_Result__c>();
     for (rhc.RecordHealthCheckResultItem item : response.results) {
       rhc.RecordHealthCheckEvaluationResult result = item.evaluation;
       if (
@@ -231,15 +227,15 @@ destination selected by the design.
 
 ## Troubleshooting
 
-| Symptom | Check first |
-| --- | --- |
-| No job is created | Qualified Check Set name, ID count, and the submitting user's Custom Permission |
-| `DuplicateMessageException` is thrown | Whether an equivalent job is already waiting; find that job instead of retrying |
+| Symptom                                                     | Check first                                                                                                    |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| No job is created                                           | Qualified Check Set name, ID count, and the submitting user's Custom Permission                                |
+| `DuplicateMessageException` is thrown                       | Whether an equivalent job is already waiting; find that job instead of retrying                                |
 | The packaged job completes but no event results are visible | Event Publication, Check publication settings, and the Flow, Apex trigger, or integration receiving the events |
-| The custom job completes but no saved results are visible | The custom object's Create access, field access, result filters, and insert code |
-| The job fails after it starts | **Setup → Apex Jobs**, Finalizer monitoring, and the executing user's access |
-| Records return `UNABLE_TO_EVALUATE` | Reason codes plus record, field, and Check configuration access |
-| More than 200 records must run | Split intentionally or use Batch Apex |
+| The custom job completes but no saved results are visible   | The custom object's Create access, field access, result filters, and insert code                               |
+| The job fails after it starts                               | **Setup → Apex Jobs**, Finalizer monitoring, and the executing user's access                                   |
+| Records return `UNABLE_TO_EVALUATE`                         | Reason codes plus record, field, and Check configuration access                                                |
+| More than 200 records must run                              | Split intentionally or use Batch Apex                                                                          |
 
 ## Related
 

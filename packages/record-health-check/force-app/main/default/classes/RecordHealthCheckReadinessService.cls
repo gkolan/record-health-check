@@ -2,7 +2,7 @@
 public with sharing class RecordHealthCheckReadinessService {
   private static final String RECEIPT_WARNING = 'The preview completed, but the readiness receipt could not be saved.';
 
-  /** Saves an explicitly requested eligible receipt in user mode. */
+  /** Saves service-owned evidence after the Preview entry point authorizes the actor. */
   public static RecordHealthCheckReadinessReceipt save(
     RecordHealthCheckPreviewRequest request,
     RecordHealthCheckPreviewResponse response,
@@ -64,13 +64,10 @@ public with sharing class RecordHealthCheckReadinessService {
     String setIdentity,
     List<Id> recordIds
   ) {
-    String checkIdentity = String.isBlank(draft.DeveloperName)
-      ? draft.QualifiedApiName
-      : draft.DeveloperName;
+    String checkIdentity = String.isBlank(draft.QualifiedApiName)
+      ? draft.DeveloperName
+      : draft.QualifiedApiName;
     Set<String> checkIdentities = new Set<String>{ checkIdentity };
-    if (String.isNotBlank(draft.QualifiedApiName)) {
-      checkIdentities.add(draft.QualifiedApiName);
-    }
     String orgIdentity = UserInfo.getOrganizationId();
     Id actorId = UserInfo.getUserId();
     String currentScopeDigest = scopeDigest(recordIds);
@@ -189,9 +186,7 @@ public with sharing class RecordHealthCheckReadinessService {
     String checkIdentity
   ) {
     String resultIdentity = item?.evaluation?.checkQualifiedApiName;
-    return String.isNotBlank(resultIdentity) &&
-      (resultIdentity == checkIdentity ||
-      resultIdentity.endsWith('__' + checkIdentity));
+    return String.isNotBlank(resultIdentity) && resultIdentity == checkIdentity;
   }
 
   private static String scopeDigest(List<Id> recordIds) {

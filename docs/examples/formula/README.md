@@ -18,13 +18,13 @@ Records**.
 
 ## Choose a Formula example
 
-| Example | Salesforce question | What the example demonstrates |
-| --- | --- | --- |
-| [Seller research readiness](./account-research-ready.md) | Does the Account have a Phone or Website? | Formula `OR`, optional alternatives, and an edit action |
-| [Billing address review](./billing-address-ready.md) | Are Billing City, Billing State, and Billing Country populated? | Formula `AND` with separate Found and Expected display formulas |
-| [Partner regional assignment](./partner-regional-assignment.md) | Does a Partner Account have the country needed for assignment? | Formula applicability, `SKIPPED`, and compact passed-Check display |
-| [Branch handoff](./branch-handoff.md) | Does the parent Account contain the headquarters location? | Parent relationship fields and a parent-record action URL |
-| [Small-business program eligibility](./program-eligibility.md) | Does Number of Employees meet the program minimum? | Numeric Formula comparison with Found and Expected always visible |
+| Example                                                         | Salesforce question                                             | What the example demonstrates                                      |
+| --------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [Seller research readiness](./account-research-ready.md)        | Does the Account have a Phone or Website?                       | Formula `OR`, optional alternatives, and an edit action            |
+| [Billing address review](./billing-address-ready.md)            | Are Billing City, Billing State, and Billing Country populated? | Formula `AND` with separate Found and Expected display formulas    |
+| [Partner regional assignment](./partner-regional-assignment.md) | Does a Partner Account have the country needed for assignment?  | Formula applicability, `SKIPPED`, and compact passed-Check display |
+| [Branch handoff](./branch-handoff.md)                           | Does the parent Account contain the headquarters location?      | Parent relationship fields and a parent-record action URL          |
+| [Small-business program eligibility](./program-eligibility.md)  | Does Number of Employees meet the program minimum?              | Numeric Formula comparison with Found and Expected always visible  |
 
 ## When Formula is the right choice
 
@@ -36,11 +36,11 @@ custom calculations or must combine data from several Salesforce objects.
 
 Every Formula Check needs:
 
-| Setup field | What to enter |
-| --- | --- |
-| **Evaluation Type** | Verify with a formula |
-| **Pass Condition** | A Salesforce formula that returns `TRUE` to pass and `FALSE` to fail |
-| **Applies To** | All records, or an optional rule that produces `SKIPPED` when the Check does not apply |
+| Setup field         | What to enter                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| **Evaluation Type** | Verify with a formula                                                                  |
+| **Pass Condition**  | A Salesforce formula that returns `TRUE` to pass and `FALSE` to fail                   |
+| **Applies To**      | All records, or an optional rule that produces `SKIPPED` when the Check does not apply |
 
 **Display: Found Formula** and **Display: Expected Formula** are optional. They explain the result
 on the card but do not decide whether the record passes, and they resolve their own return type, so

@@ -104,6 +104,6 @@ test("every integration Check Set has an administrator list view for its Checks"
         total + verifyIntegrationRoot(integrationRoot),
       0
     ),
-    82
+    88
   );
 });

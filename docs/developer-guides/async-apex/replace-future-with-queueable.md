@@ -13,13 +13,13 @@
 
 Queueable Apex makes background work easier to monitor and maintain:
 
-| Capability | Future method | Queueable Apex |
-| --- | --- | --- |
-| Returned Apex job ID | No | Yes |
-| Typed constructor state | Limited to future-method parameter types | Yes |
-| Finalizer for uncaught failure handling | No | Yes |
-| Visible job in **Setup → Apex Jobs** | Limited | Yes |
-| Supported pattern for new Record Health Check work | No | Yes |
+| Capability                                         | Future method                            | Queueable Apex |
+| -------------------------------------------------- | ---------------------------------------- | -------------- |
+| Returned Apex job ID                               | No                                       | Yes            |
+| Typed constructor state                            | Limited to future-method parameter types | Yes            |
+| Finalizer for uncaught failure handling            | No                                       | Yes            |
+| Visible job in **Setup → Apex Jobs**               | Limited                                  | Yes            |
+| Supported pattern for new Record Health Check work | No                                       | Yes            |
 
 This change affects how work is submitted and monitored. It should not change the meaning of the
 Check, the records evaluated, or the handling of business results.
@@ -110,13 +110,13 @@ each remaining caller until the method can be removed.
 
 ## Troubleshooting
 
-| Symptom | Check first |
-| --- | --- |
-| No job ID is returned | Submission validation, authorization, and whether the caller caught an exception |
-| The job appears in Apex Jobs but no result is retained | The Queueable result destination and event-publication mode |
-| The job fails only for the real user | That user's Custom Permission, Apex class, object, record, field, and metadata access |
-| Duplicate jobs are submitted | The caller's retry handling and the Queueable duplicate-signature behavior |
-| The old method cannot be removed | Search Apex, Flow, integrations, and tests for remaining references |
+| Symptom                                                | Check first                                                                           |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| No job ID is returned                                  | Submission validation, authorization, and whether the caller caught an exception      |
+| The job appears in Apex Jobs but no result is retained | The Queueable result destination and event-publication mode                           |
+| The job fails only for the real user                   | That user's Custom Permission, Apex class, object, record, field, and metadata access |
+| Duplicate jobs are submitted                           | The caller's retry handling and the Queueable duplicate-signature behavior            |
+| The old method cannot be removed                       | Search Apex, Flow, integrations, and tests for remaining references                   |
 
 ## Related
 

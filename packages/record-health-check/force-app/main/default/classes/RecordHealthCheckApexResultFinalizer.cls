@@ -138,6 +138,15 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
         apexResult.pluginValueViolation
       );
     }
+    return enrichValidResult(check, record, apexResult, formulaEvaluator);
+  }
+
+  private static RecordHealthCheckInternalResult enrichValidResult(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult apexResult,
+    RecordHealthCheckFormulaEvaluator formulaEvaluator
+  ) {
     if (apexResult.status == 'FAIL') {
       apexResult.severity = check.FailureSeverity__c;
       if (String.isBlank(apexResult.message)) {

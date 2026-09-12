@@ -13,7 +13,11 @@ private class RHCBase64FieldRedTest {
       );
       Assert.fail('A Base64 field must not reach lossy value comparison.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('FIELD_TYPE_NOT_SUPPORTED', ex.reasonCode);
+      Assert.areEqual(
+        'FIELD_TYPE_NOT_SUPPORTED',
+        ex.reasonCode,
+        'A selected Base64 field must retain the unsupported-field-type reason.'
+      );
     }
   }
 

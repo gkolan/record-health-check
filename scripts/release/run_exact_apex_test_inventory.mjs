@@ -81,6 +81,8 @@ const args = [
   "--target-org",
   values["target-org"],
   "--code-coverage",
+  // Global JSON mode bypasses the CLI's styled formatter for large results.
+  "--json",
   "--wait",
   values.wait,
   "--result-format",

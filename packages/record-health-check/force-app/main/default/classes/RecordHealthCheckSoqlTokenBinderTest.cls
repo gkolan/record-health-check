@@ -109,7 +109,7 @@ private class RecordHealthCheckSoqlTokenBinderTest {
     Assert.areEqual(
       0,
       matches.size(),
-      'The escaped literal must remain executable and remain executable without requiring a persisted source record.'
+      'The escaped literal must remain executable without requiring a persisted source record.'
     );
   }
 }

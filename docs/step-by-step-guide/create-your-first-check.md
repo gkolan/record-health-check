@@ -30,10 +30,10 @@ org](../install/install-in-a-sandbox.md) first.
 
 ## What you will build
 
-| Configuration | Name used in this guide | Purpose |
-| --- | --- | --- |
-| **Check Set** | `Account_Readiness` | Controls the card and groups related Checks |
-| **Check** | `Billing_City_Is_Populated` | Asks one health question |
+| Configuration | Name used in this guide     | Purpose                                     |
+| ------------- | --------------------------- | ------------------------------------------- |
+| **Check Set** | `Account_Readiness`         | Controls the card and groups related Checks |
+| **Check**     | `Billing_City_Is_Populated` | Asks one health question                    |
 
 The Check passes when `BillingCity` contains a value and fails when it is blank. It reports the
 result without blocking record save or changing Account data.
@@ -45,19 +45,19 @@ result without blocking record save or changing Account data.
 3. Select **New**.
 4. Enter these values:
 
-| Setup field | Value | Why this value is useful now |
-| --- | --- | --- |
-| **Label** | Account Readiness | Gives the configuration a recognizable name |
-| **Developer Name** | `Account_Readiness` | Gives Salesforce a stable API name for the Check Set |
-| **Object** | `Account` | Makes the Check Set available on Account pages |
-| **Card Title** | Account Readiness | Tells users what the card is reviewing |
-| **When Checks Run** | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
-| **Summary Display** | **Show below checks** | Places the completed result summary after the Check rows |
-| **Run Button Display** | **Show label and icon** | Keeps the standard, discoverable Run and Rerun action |
-| **Run Button Label** | Run | Names the initial action |
-| **Rerun Button Label** | Rerun | Names the action after results appear |
-| **Run Button Icon** | `utility:play` | Uses a standard Lightning icon |
-| **Active** | Checked | Makes the Check Set available to the Lightning component |
+| Setup field            | Value                        | Why this value is useful now                                            |
+| ---------------------- | ---------------------------- | ----------------------------------------------------------------------- |
+| **Label**              | Account Readiness            | Gives the configuration a recognizable name                             |
+| **Developer Name**     | `Account_Readiness`          | Gives Salesforce a stable API name for the Check Set                    |
+| **Object**             | `Account`                    | Makes the Check Set available on Account pages                          |
+| **Card Title**         | Account Readiness            | Tells users what the card is reviewing                                  |
+| **When Checks Run**    | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
+| **Summary Display**    | **Show below checks**        | Places the completed result summary after the Check rows                |
+| **Run Button Display** | **Show label and icon**      | Keeps the standard, discoverable Run and Rerun action                   |
+| **Run Button Label**   | Run                          | Names the initial action                                                |
+| **Rerun Button Label** | Rerun                        | Names the action after results appear                                   |
+| **Run Button Icon**    | `utility:play`               | Uses a standard Lightning icon                                          |
+| **Active**             | Checked                      | Makes the Check Set available to the Lightning component                |
 
 5. Select **Save**.
 
@@ -75,21 +75,21 @@ references. Some Salesforce screens describe the same identity as a record name.
 3. Select **New**.
 4. Enter these values:
 
-| Setup field | Value | What it means to the user |
-| --- | --- | --- |
-| **Label** | Billing City Is Populated | Gives administrators a recognizable Check name |
-| **Developer Name** | `Billing_City_Is_Populated` | Gives Salesforce a stable identity for the Check |
-| **Check Set** | `Account_Readiness` | Places this question on the card you just created |
-| **Check Title** | Billing City is populated | States the question clearly on the card |
-| **Evaluation Type** | **Verify with a formula** | Reads a field on the open Account |
-| **Pass Condition** | `NOT(ISBLANK(BillingCity))` | Passes when Billing City contains a value |
-| **Failure Severity** | **Warning** | Signals that the missing value deserves attention without presenting it as the most serious outcome |
-| **Message When Failed** | `{!record.Name fallback="This Account"}` is missing Billing City. Add it before the Account review. | Explains which Account needs attention and remains clear if its Name is unavailable |
-| **Fix Message** | Edit the Account billing address and rerun the check. | Gives the user a concrete next step |
-| **Action Label** | Edit account | Gives the destination a clear link label |
-| **Action URL** | `/lightning/r/Account/{!record.Id}/edit` | Opens the current Account's standard edit page without saving a change |
-| **Evaluation Order** | `100` | Sets this Check's position when more Checks are added later |
-| **Active** | Checked | Allows the Check to run |
+| Setup field             | Value                                                                                               | What it means to the user                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Label**               | Billing City Is Populated                                                                           | Gives administrators a recognizable Check name                                                      |
+| **Developer Name**      | `Billing_City_Is_Populated`                                                                         | Gives Salesforce a stable identity for the Check                                                    |
+| **Check Set**           | `Account_Readiness`                                                                                 | Places this question on the card you just created                                                   |
+| **Check Title**         | Billing City is populated                                                                           | States the question clearly on the card                                                             |
+| **Evaluation Type**     | **Verify with a formula**                                                                           | Reads a field on the open Account                                                                   |
+| **Pass Condition**      | `NOT(ISBLANK(BillingCity))`                                                                         | Passes when Billing City contains a value                                                           |
+| **Failure Severity**    | **Warning**                                                                                         | Signals that the missing value deserves attention without presenting it as the most serious outcome |
+| **Message When Failed** | `{!record.Name fallback="This Account"}` is missing Billing City. Add it before the Account review. | Explains which Account needs attention and remains clear if its Name is unavailable                 |
+| **Fix Message**         | Edit the Account billing address and rerun the check.                                               | Gives the user a concrete next step                                                                 |
+| **Action Label**        | Edit account                                                                                        | Gives the destination a clear link label                                                            |
+| **Action URL**          | `/lightning/r/Account/{!record.Id}/edit`                                                            | Opens the current Account's standard edit page without saving a change                              |
+| **Evaluation Order**    | `100`                                                                                               | Sets this Check's position when more Checks are added later                                         |
+| **Active**              | Checked                                                                                             | Allows the Check to run                                                                             |
 
 5. Select **Save**.
 
@@ -135,10 +135,10 @@ The card should show **Account Readiness** and a Run button. It will evaluate th
 
 Use an Account you can safely edit.
 
-| Test | What to do | Expected result |
-| --- | --- | --- |
+| Test           | What to do                                               | Expected result                                                                       |
+| -------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | Failing record | Clear Billing City, save the Account, and select **Run** | **Warning** (`FAIL`) with the failure message, fix message, and **Edit account** link |
-| Passing record | Add Billing City and save the Account | The completed card refreshes to **Pass** |
+| Passing record | Add Billing City and save the Account                    | The completed card refreshes to **Pass**                                              |
 
 The first manual evaluation still requires **Run**. After that result exists, a standard Lightning
 record save refreshes the card automatically. Use **Rerun** when you need a deliberate run or when a
@@ -155,24 +155,24 @@ you finish.
 
 ## If the Check does not work
 
-| What you see | What to check |
-| --- | --- |
-| The card is missing | Confirm the Lightning page is activated for the current app and profile |
-| The Check Set is unavailable | Confirm **Active** is checked and **Object** is `Account` |
-| The card has no Check rows | Confirm the Check is active and belongs to `Account_Readiness` |
-| The Check cannot evaluate | Confirm the running user can read Account and `BillingCity` |
-| Setup changes do not appear | Refresh the record page after saving Custom Metadata |
+| What you see                 | What to check                                                           |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| The card is missing          | Confirm the Lightning page is activated for the current app and profile |
+| The Check Set is unavailable | Confirm **Active** is checked and **Object** is `Account`               |
+| The card has no Check rows   | Confirm the Check is active and belongs to `Account_Readiness`          |
+| The Check cannot evaluate    | Confirm the running user can read Account and `BillingCity`             |
+| Setup changes do not appear  | Refresh the record page after saving Custom Metadata                    |
 
 For authorized troubleshooting details, use [Troubleshoot Record Health Check](../diagnostics/browser-console.md).
 
 ## Next steps
 
-| Goal | Next page |
-| --- | --- |
-| Add more Formula Checks | [Formula examples](../examples/README.md#formula-examples) |
-| Check Contacts, Opportunities, Cases, or other related records | [Query examples](../examples/README.md#query-examples) |
-| Understand every available field | [Configure Check Sets and Checks](../build-checks/configure-check-sets-and-checks.md) |
-| Add a link or instruction to a failed Check | [Configure action links](../build-checks/add-fix-link.md) |
-| Prepare the Check Set for release | [Configuration review checklist](../build-checks/configure-check-sets-and-checks.md#step-12-review-checklist) |
-| Look up exact Setup fields | [Check Set fields](../reference/custom-metadata/check-set-fields.md) and [Check fields](../reference/custom-metadata/check-fields.md) |
-| Translate card labels and statuses | [Read Record Health Check results](../reference/results/statuses-and-labels.md) |
+| Goal                                                           | Next page                                                                                                                             |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Add more Formula Checks                                        | [Formula examples](../examples/README.md#formula-examples)                                                                            |
+| Check Contacts, Opportunities, Cases, or other related records | [Query examples](../examples/README.md#query-examples)                                                                                |
+| Understand every available field                               | [Configure Check Sets and Checks](../build-checks/configure-check-sets-and-checks.md)                                                 |
+| Add a link or instruction to a failed Check                    | [Configure action links](../build-checks/add-fix-link.md)                                                                             |
+| Prepare the Check Set for release                              | [Configuration review checklist](../build-checks/configure-check-sets-and-checks.md#step-12-review-checklist)                         |
+| Look up exact Setup fields                                     | [Check Set fields](../reference/custom-metadata/check-set-fields.md) and [Check fields](../reference/custom-metadata/check-fields.md) |
+| Translate card labels and statuses                             | [Read Record Health Check results](../reference/results/statuses-and-labels.md)                                                       |

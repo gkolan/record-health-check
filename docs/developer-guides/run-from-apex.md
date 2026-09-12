@@ -115,13 +115,13 @@ exact value from **Setup → Custom Metadata Types → Record Health Check → M
 The first example collects only `FAIL` records to keep the code short. Production code should make
 an intentional decision for every status it can receive:
 
-| Status | Meaning | Typical Apex action |
-| --- | --- | --- |
-| `PASS` | The record met the condition. | Continue. |
-| `FAIL` | The record did not meet the business condition. | Start approved follow-up or show guidance. |
-| `SKIPPED` | The Check did not apply. | Continue or report separately. |
-| `UNABLE_TO_EVALUATE` | Access, data, or configuration prevented a reliable answer. | Inspect `reasonCode` and correct the cause. |
-| `ERROR` | The Framework contained an evaluator or system problem as result data. | Send non-sensitive context to monitoring. |
+| Status               | Meaning                                                                | Typical Apex action                         |
+| -------------------- | ---------------------------------------------------------------------- | ------------------------------------------- |
+| `PASS`               | The record met the condition.                                          | Continue.                                   |
+| `FAIL`               | The record did not meet the business condition.                        | Start approved follow-up or show guidance.  |
+| `SKIPPED`            | The Check did not apply.                                               | Continue or report separately.              |
+| `UNABLE_TO_EVALUATE` | Access, data, or configuration prevented a reliable answer.            | Inspect `reasonCode` and correct the cause. |
+| `ERROR`              | The Framework contained an evaluator or system problem as result data. | Send non-sensitive context to monitoring.   |
 
 Exceptions remain a separate channel. Authorization, invalid requests, Framework failures, and
 fatal plugin side effects can prevent a normal response and should follow the caller's fault or
@@ -132,21 +132,21 @@ monitoring path.
 `rhc.RecordHealthCheckRequest` requires exactly one selection and a non-null list of record
 IDs. The factories are:
 
-| Factory | Selection |
-| --- | --- |
-| `forCheckSet(qualifiedApiName, recordId)` | One Check Set and one record |
+| Factory                                    | Selection                         |
+| ------------------------------------------ | --------------------------------- |
+| `forCheckSet(qualifiedApiName, recordId)`  | One Check Set and one record      |
 | `forCheckSet(qualifiedApiName, recordIds)` | One Check Set and several records |
-| `forCheck(qualifiedApiName, recordId)` | One Check and one record |
-| `forCheck(qualifiedApiName, recordIds)` | One Check and several records |
+| `forCheck(qualifiedApiName, recordId)`     | One Check and one record          |
+| `forCheck(qualifiedApiName, recordIds)`    | One Check and several records     |
 
 Options are applied with chainable methods:
 
-| Method | Default | Purpose |
-| --- | --- | --- |
-| `withResultMode(...)` | `EVALUATION` | Choose `EVALUATION`, `EVALUATION_WITH_DISPLAY`, or `SUMMARY` |
-| `withEventPublication(...)` | `NONE` | Choose `NONE`, `ACTIONABLE`, or `ALL` publication |
-| `withRunId(...)` | Generated when blank | Supply text that connects this call with related jobs or results |
-| `withExecutionOrigin(...)` | `APEX_API` | Record whether Apex, Batch, Queueable, Scheduled, Future, Agent, or a Record Health Check class started the work |
+| Method                      | Default              | Purpose                                                                                                          |
+| --------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `withResultMode(...)`       | `EVALUATION`         | Choose `EVALUATION`, `EVALUATION_WITH_DISPLAY`, or `SUMMARY`                                                     |
+| `withEventPublication(...)` | `NONE`               | Choose `NONE`, `ACTIONABLE`, or `ALL` publication                                                                |
+| `withRunId(...)`            | Generated when blank | Supply text that connects this call with related jobs or results                                                 |
+| `withExecutionOrigin(...)`  | `APEX_API`           | Record whether Apex, Batch, Queueable, Scheduled, Future, Agent, or a Record Health Check class started the work |
 
 An Apex request publishes nothing unless the code explicitly selects a publication mode. Metadata
 fields still decide whether a requested event is enabled.
@@ -159,11 +159,11 @@ Health Check Flow actions and Lightning components set their own origin automati
 
 Result modes control response content:
 
-| Mode | `results` content | Use it when… |
-| --- | --- | --- |
-| `EVALUATION` | Every selected result with machine-readable evaluation data | Code needs every outcome without display text |
+| Mode                      | `results` content                                                 | Use it when…                                                       |
+| ------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `EVALUATION`              | Every selected result with machine-readable evaluation data       | Code needs every outcome without display text                      |
 | `EVALUATION_WITH_DISPLAY` | Every selected result with evaluation and authorized display data | Apex must display Record Health Check messages, values, or actions |
-| `SUMMARY` | Counts plus `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` results | Apex needs totals and only records requiring attention |
+| `SUMMARY`                 | Counts plus `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR` results     | Apex needs totals and only records requiring attention             |
 
 ## Response contract
 
@@ -171,13 +171,13 @@ This section explains the values returned by Record Health Check.
 
 Every call returns `rhc.RecordHealthCheckResponse` with:
 
-| Field | Meaning |
-| --- | --- |
-| `runId` | Text used to connect this evaluation with related jobs or results |
-| `recordIds` | Record IDs after nulls and repeated IDs are removed |
-| `checkQualifiedApiNames` | Ordered Checks selected for the run |
-| `results` | Ordered `rhc.RecordHealthCheckResultItem` entries |
-| `summary` | Final counts for each status; it does not contain one combined `status` field |
+| Field                    | Meaning                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| `runId`                  | Text used to connect this evaluation with related jobs or results             |
+| `recordIds`              | Record IDs after nulls and repeated IDs are removed                           |
+| `checkQualifiedApiNames` | Ordered Checks selected for the run                                           |
+| `results`                | Ordered `rhc.RecordHealthCheckResultItem` entries                             |
+| `summary`                | Final counts for each status; it does not contain one combined `status` field |
 
 Each item always has `evaluation`. It has `display` only when the request uses
 `EVALUATION_WITH_DISPLAY`. Machine values use `rhc.RecordHealthCheckValue`, so callers do not
@@ -211,23 +211,23 @@ The summary does not have one combined `status`. Read `passed`, `failed`, `skipp
 These are the `global` types used by the request and response. Most code creates only a request and
 reads a response. Record Health Check creates the result types inside the response.
 
-| Type | Caller responsibility |
-| --- | --- |
-| `RecordHealthCheck` | Call `evaluate(request)` |
-| `RecordHealthCheckRequest` | Select a Check or Check Set and the records to check |
-| `RecordHealthCheckSelection` | Read the selected Check or Check Set Qualified API Name |
-| `RecordHealthCheckOptions` | Read-only result, publication, Run ID, and origin choices copied by `with...` methods |
-| `RecordHealthCheckResultMode` | Select `EVALUATION`, `EVALUATION_WITH_DISPLAY`, or `SUMMARY` |
-| `RecordHealthCheckEventPublication` | Select `NONE`, `ACTIONABLE`, or `ALL` Platform Events |
-| `RecordHealthCheckExecutionOrigin` | Attribute monitoring output to the actual caller context |
-| `RecordHealthCheckResponse` | Read the Run ID, record IDs, ordered results, and summary |
-| `RecordHealthCheckResultItem` | Read one evaluation and its optional display data |
-| `RecordHealthCheckEvaluationResult` | Read machine status, reason, severity, and typed values |
-| `RecordHealthCheckResultDisplay` | Render authorized messages, formatted values, and action information |
-| `RecordHealthCheckAdminDetail` | Read authorized configuration/resolution diagnostics when present |
-| `RecordHealthCheckRunSummary` | Read explicit status counts and `total()` |
-| `RecordHealthCheckStatus` | Compare results with shared status constants and `isActionable(...)` |
-| `RecordHealthCheckValue` | Read typed machine values without parsing display text |
+| Type                                | Caller responsibility                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `RecordHealthCheck`                 | Call `evaluate(request)`                                                              |
+| `RecordHealthCheckRequest`          | Select a Check or Check Set and the records to check                                  |
+| `RecordHealthCheckSelection`        | Read the selected Check or Check Set Qualified API Name                               |
+| `RecordHealthCheckOptions`          | Read-only result, publication, Run ID, and origin choices copied by `with...` methods |
+| `RecordHealthCheckResultMode`       | Select `EVALUATION`, `EVALUATION_WITH_DISPLAY`, or `SUMMARY`                          |
+| `RecordHealthCheckEventPublication` | Select `NONE`, `ACTIONABLE`, or `ALL` Platform Events                                 |
+| `RecordHealthCheckExecutionOrigin`  | Attribute monitoring output to the actual caller context                              |
+| `RecordHealthCheckResponse`         | Read the Run ID, record IDs, ordered results, and summary                             |
+| `RecordHealthCheckResultItem`       | Read one evaluation and its optional display data                                     |
+| `RecordHealthCheckEvaluationResult` | Read machine status, reason, severity, and typed values                               |
+| `RecordHealthCheckResultDisplay`    | Render authorized messages, formatted values, and action information                  |
+| `RecordHealthCheckAdminDetail`      | Read authorized configuration/resolution diagnostics when present                     |
+| `RecordHealthCheckRunSummary`       | Read explicit status counts and `total()`                                             |
+| `RecordHealthCheckStatus`           | Compare results with shared status constants and `isActionable(...)`                  |
+| `RecordHealthCheckValue`            | Read typed machine values without parsing display text                                |
 
 The Apex Check extension types (`RecordHealthCheckPlugin`, `RecordHealthCheckScope`, and
 `RecordHealthCheckOutcome`) are documented separately in the
@@ -237,14 +237,14 @@ points are documented in [Queueable](./async-apex/queueable.md), [Batch](./async
 
 ## Understand returned results and exceptions
 
-| Situation | What Apex receives | What to do |
-| --- | --- | --- |
-| A record does not meet a Check | A `FAIL` result | Handle it as a business result. Do not treat it as an exception. |
-| Record access, field access, data, or configuration prevents an answer | An `UNABLE_TO_EVALUATE` result when Record Health Check can identify the affected record or Check | Read `reasonCode` and correct the access, data, or configuration problem. |
-| A Check encounters a contained evaluator problem | An `ERROR` result | Send approved, non-sensitive details to monitoring. |
-| The user lacks the Record Health Check Run Custom Permission | `AuthorizationException` | Assign the required Permission Set or stop the process. |
-| The request is invalid or Record Health Check cannot create a response | An Apex exception | Catch only exceptions the Apex process can recover from. Let unknown exceptions reach normal monitoring. |
-| An Apex Check attempts a forbidden write, callout, email, event, or background job | An exception and rolled-back transaction | Correct the Apex Check. Do not convert this failure to `FAIL`. |
+| Situation                                                                          | What Apex receives                                                                                | What to do                                                                                               |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| A record does not meet a Check                                                     | A `FAIL` result                                                                                   | Handle it as a business result. Do not treat it as an exception.                                         |
+| Record access, field access, data, or configuration prevents an answer             | An `UNABLE_TO_EVALUATE` result when Record Health Check can identify the affected record or Check | Read `reasonCode` and correct the access, data, or configuration problem.                                |
+| A Check encounters a contained evaluator problem                                   | An `ERROR` result                                                                                 | Send approved, non-sensitive details to monitoring.                                                      |
+| The user lacks the Record Health Check Run Custom Permission                       | `AuthorizationException`                                                                          | Assign the required Permission Set or stop the process.                                                  |
+| The request is invalid or Record Health Check cannot create a response             | An Apex exception                                                                                 | Catch only exceptions the Apex process can recover from. Let unknown exceptions reach normal monitoring. |
+| An Apex Check attempts a forbidden write, callout, email, event, or background job | An exception and rolled-back transaction                                                          | Correct the Apex Check. Do not convert this failure to `FAIL`.                                           |
 
 ## Publish Platform Events
 
@@ -304,14 +304,14 @@ formatted display text.
 
 ## Troubleshooting
 
-| Symptom | Check first |
-| --- | --- |
-| `AuthorizationException` is thrown | The running user's **Record Health Check Run** Custom Permission and Apex class access |
-| No Check is selected | The qualified API name, including the package prefix returned by Salesforce |
-| A record returns `UNABLE_TO_EVALUATE` | `reasonCode`, record visibility, field access, and Check configuration |
-| The response has no display text | Use `EVALUATION_WITH_DISPLAY` and confirm the user is authorized for that display data |
-| No Platform Event appears | Request publication mode, Check metadata event setting, and the Flow, Apex trigger, or integration that should receive it |
-| A request over 200 records fails | Split the records or use Batch Apex |
+| Symptom                               | Check first                                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `AuthorizationException` is thrown    | The running user's **Record Health Check Run** Custom Permission and Apex class access                                    |
+| No Check is selected                  | The qualified API name, including the package prefix returned by Salesforce                                               |
+| A record returns `UNABLE_TO_EVALUATE` | `reasonCode`, record visibility, field access, and Check configuration                                                    |
+| The response has no display text      | Use `EVALUATION_WITH_DISPLAY` and confirm the user is authorized for that display data                                    |
+| No Platform Event appears             | Request publication mode, Check metadata event setting, and the Flow, Apex trigger, or integration that should receive it |
+| A request over 200 records fails      | Split the records or use Batch Apex                                                                                       |
 
 ## Related
 

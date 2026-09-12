@@ -158,10 +158,15 @@ private with sharing class RecordHealthCheckApexAdapterIT {
       .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
-    Assert.areEqual(RecordHealthCheckStatus.UNABLE_TO_EVALUATE, result.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      result.status,
+      'Constructor failure must prevent evaluation.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
-      result.reasonCode
+      result.reasonCode,
+      'Constructor failure must retain its specific reason.'
     );
     Assert.areEqual(
       'This check could not be evaluated. Contact your administrator.',
@@ -292,7 +297,8 @@ private with sharing class RecordHealthCheckApexAdapterIT {
     );
     Assert.areEqual(
       'A PASS outcome must include a nonblank Found value.',
-      missingActualResult.detailMessage
+      missingActualResult.detailMessage,
+      'A PASS result missing Found must explain the missing operand.'
     );
 
     RecordHealthCheckInternalResult missingExpected = new RecordHealthCheckInternalResult();
@@ -310,7 +316,8 @@ private with sharing class RecordHealthCheckApexAdapterIT {
     );
     Assert.areEqual(
       'A FAIL outcome must include a nonblank Expected value.',
-      missingExpectedResult.detailMessage
+      missingExpectedResult.detailMessage,
+      'A FAIL result missing Expected must explain the missing operand.'
     );
 
     RecordHealthCheckInternalResult typedValues = new RecordHealthCheckInternalResult();
@@ -325,8 +332,16 @@ private with sharing class RecordHealthCheckApexAdapterIT {
       new RecordHealthCheckInternalResult(),
       typedValues
     );
-    Assert.areEqual('75%', typedResult.actualValue);
-    Assert.areEqual('80%', typedResult.expectedValue);
+    Assert.areEqual(
+      '75%',
+      typedResult.actualValue,
+      'Typed found ratio must format as 75 percent.'
+    );
+    Assert.areEqual(
+      '80%',
+      typedResult.expectedValue,
+      'Typed expected ratio must format as 80 percent.'
+    );
 
     RecordHealthCheckInternalResult explicitStringsWin = new RecordHealthCheckInternalResult();
     explicitStringsWin.status = 'PASS';
@@ -340,8 +355,16 @@ private with sharing class RecordHealthCheckApexAdapterIT {
       new RecordHealthCheckInternalResult(),
       explicitStringsWin
     );
-    Assert.areEqual('Plugin Found', explicitResult.actualValue);
-    Assert.areEqual('Plugin Expected', explicitResult.expectedValue);
+    Assert.areEqual(
+      'Plugin Found',
+      explicitResult.actualValue,
+      'Explicit found text must take precedence over typed formatting.'
+    );
+    Assert.areEqual(
+      'Plugin Expected',
+      explicitResult.expectedValue,
+      'Explicit expected text must take precedence over typed formatting.'
+    );
 
     RecordHealthCheckInternalResult invalidTypedFormat = new RecordHealthCheckInternalResult();
     invalidTypedFormat.status = 'PASS';

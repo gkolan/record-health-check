@@ -3,17 +3,17 @@
 Use this folder to understand the checks that changes must pass before they can be accepted or
 released. Administrators who only configure Checks can skip it.
 
-| Topic | Reference |
-| --- | --- |
-| Release-owner GitHub, package, promotion, and publication steps | [Manual release-owner checklist](./manual-release-owner-checklist.md) |
+| Topic                                                           | Reference                                                                   |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Release-owner GitHub, package, promotion, and publication steps | [Manual release-owner checklist](./manual-release-owner-checklist.md)       |
 | Repeatable passing, failing, skipped, and unable Check outcomes | [Check and Check Set outcome verification](./check-outcome-verification.md) |
-| Scratch org ownership, reuse, cleanup, and release allocation | [Scratch org lifecycle and release plan](./scratch-org-lifecycle.md) |
-| Package validation and upgrade behavior | [Package testing and upgrades](./package-testing-and-upgrades.md) |
-| Fail-closed release runtime matrix | [Release runtime matrix](./release-runtime-matrix.md) |
-| Reviewed static-analysis exceptions | [Code Analyzer suppressions](./code-analyzer-suppressions.md) |
-| Documentation requirements | [Documentation standard](./documentation-standard.md) |
-| Test-only Apex access and architecture enforcement | [Apex test-only access](./apex-test-only-access.md) |
-| Product-neutral data-shape and execution-context evidence | [Platform conformance](./platform-conformance.md) |
+| Scratch org ownership, reuse, cleanup, and release allocation   | [Scratch org lifecycle and release plan](./scratch-org-lifecycle.md)        |
+| Package validation and upgrade behavior                         | [Package testing and upgrades](./package-testing-and-upgrades.md)           |
+| Fail-closed release runtime matrix                              | [Release runtime matrix](./release-runtime-matrix.md)                       |
+| Reviewed static-analysis exceptions                             | [Code Analyzer suppressions](./code-analyzer-suppressions.md)               |
+| Documentation requirements                                      | [Documentation standard](./documentation-standard.md)                       |
+| Test-only Apex access and architecture enforcement              | [Apex test-only access](./apex-test-only-access.md)                         |
+| Product-neutral data-shape and execution-context evidence       | [Platform conformance](./platform-conformance.md)                           |
 
 ## Related
 

@@ -176,8 +176,9 @@ field-planning and record-loading stages and preserves per-Check planning findin
 
 ### `RecordHealthCheckScopeResultCoordinator`
 
-Attaches server incidents, renders display content, completes the display stage, and maps each
-internal result to its public response item in deterministic order.
+Maps planning failures to visibility-safe results, attaches server incidents, renders display content,
+and maps each internal result to its public response item in deterministic order. Finalizes the scope
+response after applying the requested result mode and summary projection.
 
 ### `RecordHealthCheckResponseFinalizer`
 

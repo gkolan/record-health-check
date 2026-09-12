@@ -6,9 +6,9 @@ This page is the complete field dictionary for Record Health Check metadata.
 > On this page, look up every Check field by its Setup label or API name. Each field explains when
 > to use it, what to enter, and what happens when the Check runs.
 
-| Setup value | Name |
-| --- | --- |
-| Custom Metadata Type label | Record Health Check |
+| Setup value                   | Name                       |
+| ----------------------------- | -------------------------- |
+| Custom Metadata Type label    | Record Health Check        |
 | Custom Metadata Type API name | `Record_Health_Check__mdt` |
 
 Use this page while creating or reviewing a Check in **Setup → Custom Metadata Types → Record
@@ -22,22 +22,22 @@ to own the class, tests, and deployment.
 
 ## Build a Check in the order it runs
 
-| Stage | Decision | Start with |
-| --- | --- | --- |
-| 1. Place the Check | Which Check Set owns it, when does it run, and is it active? | [Check Set](#check-set-record_health_check_set__c), [Evaluation Order](#evaluation-order-evaluationorder__c), and [Active](#active-isactive__c) |
-| 2. Decide whether it applies | Does it run for every record, only when a formula or query matches, or only after another Check passes? | [Applies To](#applies-to-applicabilitymode__c) and [Prerequisite Check](#prerequisite-check-prerequisitecheck__c) |
-| 3. Choose how it evaluates | Can Salesforce formula or SOQL express the check, or is Apex required? | [Evaluation Type](#evaluation-type-evaluationtype__c) |
-| 4. Define the decision | What value is found, what is expected, and how are they compared? | The Evaluation Type table below |
-| 5. Explain the result | What should someone understand and do after a failure or an unable result? | [Check Title](#check-title-checktitle__c), [Message When Failed](#message-when-failed-failuremessage__c), and [Fix Message](#fix-message-fixmessage__c) |
-| 6. Add a next action | Would a safe same-org destination help resolve the result? | [Action Label](#action-label-actionlabel__c) and [Action URL](#action-url-actionurl__c) |
-| 7. Publish when needed | Does another process need the finalized Check outcome? | [Publish User Result Event](#publish-user-result-event-publishuserresultevent__c) |
+| Stage                        | Decision                                                                                                | Start with                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Place the Check           | Which Check Set owns it, when does it run, and is it active?                                            | [Check Set](#check-set-record_health_check_set__c), [Evaluation Order](#evaluation-order-evaluationorder__c), and [Active](#active-isactive__c)         |
+| 2. Decide whether it applies | Does it run for every record, only when a formula or query matches, or only after another Check passes? | [Applies To](#applies-to-applicabilitymode__c) and [Prerequisite Check](#prerequisite-check-prerequisitecheck__c)                                       |
+| 3. Choose how it evaluates   | Can Salesforce formula or SOQL express the check, or is Apex required?                                  | [Evaluation Type](#evaluation-type-evaluationtype__c)                                                                                                   |
+| 4. Define the decision       | What value is found, what is expected, and how are they compared?                                       | The Evaluation Type table below                                                                                                                         |
+| 5. Explain the result        | What should someone understand and do after a failure or an unable result?                              | [Check Title](#check-title-checktitle__c), [Message When Failed](#message-when-failed-failuremessage__c), and [Fix Message](#fix-message-fixmessage__c) |
+| 6. Add a next action         | Would a safe same-org destination help resolve the result?                                              | [Action Label](#action-label-actionlabel__c) and [Action URL](#action-url-actionurl__c)                                                                 |
+| 7. Publish when needed       | Does another process need the finalized Check outcome?                                                  | [Publish User Result Event](#publish-user-result-event-publishuserresultevent__c)                                                                       |
 
-| What the Check must verify | Evaluation Type | Start with |
-| --- | --- | --- |
-| Fields on the current Salesforce record | **Verify with a formula** (`FORMULA`) | [Pass Condition](#pass-condition-passconditionformula__c) |
-| Records or an aggregate returned by one SOQL query | **Verify with a query** (`QUERY`) | [Source Query](#source-query-sourcequery__c) and [Comparison Operator](#comparison-operator-comparisonoperator__c) |
-| One SOQL result against another SOQL result | **Compare two queries** (`COMPARE_TWO_QUERIES`) | [Source Query](#source-query-sourcequery__c) and [Comparison Query](#comparison-query-comparisonquery__c) |
-| Logic implemented in a package or org Apex class | **Verify with Apex** (`APEX`) | [Apex Class](#apex-class-apexclass__c) |
+| What the Check must verify                         | Evaluation Type                                 | Start with                                                                                                         |
+| -------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Fields on the current Salesforce record            | **Verify with a formula** (`FORMULA`)           | [Pass Condition](#pass-condition-passconditionformula__c)                                                          |
+| Records or an aggregate returned by one SOQL query | **Verify with a query** (`QUERY`)               | [Source Query](#source-query-sourcequery__c) and [Comparison Operator](#comparison-operator-comparisonoperator__c) |
+| One SOQL result against another SOQL result        | **Compare two queries** (`COMPARE_TWO_QUERIES`) | [Source Query](#source-query-sourcequery__c) and [Comparison Query](#comparison-query-comparisonquery__c)          |
+| Logic implemented in a package or org Apex class   | **Verify with Apex** (`APEX`)                   | [Apex Class](#apex-class-apexclass__c)                                                                             |
 
 For complete configurations, choose an [example by Evaluation Type](../../examples/README.md). For text
 that adapts to the record and result, use [Merge Syntax](../../build-checks/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options):
@@ -50,55 +50,55 @@ or Unable to Check rows.
 
 ## Field index
 
-| Setup label | API name | Group |
-| --- | --- | --- |
-| [Developer Name](#developer-name-developername) | `DeveloperName` | Identity and execution |
-| [Label](#label-masterlabel) | `MasterLabel` | Identity and execution |
-| [Check Set](#check-set-record_health_check_set__c) | `Record_Health_Check_Set__c` | Identity and execution |
-| [Evaluation Order](#evaluation-order-evaluationorder__c) | `EvaluationOrder__c` | Identity and presentation |
-| [Active](#active-isactive__c) | `IsActive__c` | Identity and execution |
-| [Check Title](#check-title-checktitle__c) | `CheckTitle__c` | What users see |
-| [Check Description](#check-description-checkdescription__c) | `CheckDescription__c` | What users see |
-| [Category](#category-category__c) | `Category__c` | What users see |
-| [Failure Severity](#failure-severity-failureseverity__c) | `FailureSeverity__c` | What users see |
-| [Message When Failed](#message-when-failed-failuremessage__c) | `FailureMessage__c` | What users see |
-| [Message When Unable To Evaluate](#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | `UnableToEvaluateMessage__c` | What users see |
-| [Fix Message](#fix-message-fixmessage__c) | `FixMessage__c` | What users see |
-| [Action Label](#action-label-actionlabel__c) | `ActionLabel__c` | What users see |
-| [Action URL](#action-url-actionurl__c) | `ActionUrl__c` | What users see |
-| [Evaluation Type](#evaluation-type-evaluationtype__c) | `EvaluationType__c` | Check type and value display |
-| [Display: Value Format](#display-value-format-displayvalueformat__c) | `DisplayValueFormat__c` | Check type and value display |
-| [Show Found and Expected](#show-found-and-expected-comparisondisplaymode__c) | `ComparisonDisplayMode__c` | Check type and value display |
-| [Pass Condition](#pass-condition-passconditionformula__c) | `PassConditionFormula__c` | Check fields on this record (`FORMULA`) |
-| [Display: Found Formula](#display-found-formula-displayfoundformula__c) | `DisplayFoundFormula__c` | Check fields on this record (`FORMULA`) |
-| [Display: Expected Formula](#display-expected-formula-displayexpectedformula__c) | `DisplayExpectedFormula__c` | Check fields on this record (`FORMULA`) |
-| [Formula Result Type](#formula-result-type-formularesulttype__c) | `FormulaResultType__c` | Check fields on this record (`FORMULA`) |
-| [Source Query](#source-query-sourcequery__c) | `SourceQuery__c` | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
-| [Source Query Field](#source-query-field-sourcequeryfield__c) | `SourceQueryField__c` | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
-| [Comparison Query](#comparison-query-comparisonquery__c) | `ComparisonQuery__c` | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
-| [Comparison Query Field](#comparison-query-field-comparisonqueryfield__c) | `ComparisonQueryField__c` | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
-| [Value to find in the list (formula)](#value-to-find-in-the-list-formula-findinlistformula__c) | `FindInListFormula__c` | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
-| [Comparison Operator](#comparison-operator-comparisonoperator__c) | `ComparisonOperator__c` | Query comparison |
-| [Expected Value Comes From](#expected-value-comes-from-expectedvaluesource__c) | `ExpectedValueSource__c` | Query comparison |
-| [Expected Value (Fixed)](#expected-value-fixed-expectedfixedvalue__c) | `ExpectedFixedValue__c` | Query comparison |
-| [Expected Currency ISO Code](#expected-currency-iso-code-expectedcurrencyisocode__c) | `ExpectedCurrencyIsoCode__c` | Query comparison |
-| [Expected Value (Formula)](#expected-value-formula-expectedrecordformula__c) | `ExpectedRecordFormula__c` | Query comparison |
-| [How To Read Query Results](#how-to-read-query-results-queryresulthandling__c) | `QueryResultHandling__c` | Advanced query behavior |
-| [If Query Finds No Records](#if-query-finds-no-records-norowsresult__c) | `NoRowsResult__c` | Advanced query behavior |
-| [If Field Value Is Empty](#if-field-value-is-empty-emptyvaluehandling__c) | `EmptyValueHandling__c` | Advanced query behavior |
-| [Max Query Rows (1-2000)](#max-query-rows-1-2000-maxqueryrows__c) | `MaxQueryRows__c` | Advanced query behavior |
-| [Display: Found Text](#display-found-text-displayfoundtext__c) | `DisplayFoundText__c` | Advanced display text |
-| [Display: Expected Text](#display-expected-text-displayexpectedtext__c) | `DisplayExpectedText__c` | Advanced display text |
-| [Applies To](#applies-to-applicabilitymode__c) | `ApplicabilityMode__c` | When this check applies |
-| [Applies When (Formula)](#applies-when-formula-applicabilityformula__c) | `ApplicabilityFormula__c` | When this check applies |
-| [Applies When (Count Query)](#applies-when-count-query-applicabilitycountquery__c) | `ApplicabilityCountQuery__c` | When this check applies |
-| [Message When Not Applicable](#message-when-not-applicable-applicabilitynotmetmessage__c) | `ApplicabilityNotMetMessage__c` | Friendly explanation for a skipped check |
-| [Count Must Be](#count-must-be-applicabilitycountoperator__c) | `ApplicabilityCountOperator__c` | When this check applies |
-| [Count Value](#count-value-applicabilitycountthreshold__c) | `ApplicabilityCountThreshold__c` | When this check applies |
-| [Prerequisite Check](#prerequisite-check-prerequisitecheck__c) | `PrerequisiteCheck__c` | When this check applies |
-| [Apex Class](#apex-class-apexclass__c) | `ApexClass__c` | Custom Apex (`APEX`) |
-| [Apex Parameters (JSON)](#apex-parameters-json-apexparametersjson__c) | `ApexParametersJson__c` | Custom Apex (`APEX`) |
-| [Publish User Result Event](#publish-user-result-event-publishuserresultevent__c) | `PublishUserResultEvent__c` | Lifecycle events |
+| Setup label                                                                                    | API name                         | Group                                           |
+| ---------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------- |
+| [Developer Name](#developer-name-developername)                                                | `DeveloperName`                  | Identity and execution                          |
+| [Label](#label-masterlabel)                                                                    | `MasterLabel`                    | Identity and execution                          |
+| [Check Set](#check-set-record_health_check_set__c)                                             | `Record_Health_Check_Set__c`     | Identity and execution                          |
+| [Evaluation Order](#evaluation-order-evaluationorder__c)                                       | `EvaluationOrder__c`             | Identity and presentation                       |
+| [Active](#active-isactive__c)                                                                  | `IsActive__c`                    | Identity and execution                          |
+| [Check Title](#check-title-checktitle__c)                                                      | `CheckTitle__c`                  | What users see                                  |
+| [Check Description](#check-description-checkdescription__c)                                    | `CheckDescription__c`            | What users see                                  |
+| [Category](#category-category__c)                                                              | `Category__c`                    | What users see                                  |
+| [Failure Severity](#failure-severity-failureseverity__c)                                       | `FailureSeverity__c`             | What users see                                  |
+| [Message When Failed](#message-when-failed-failuremessage__c)                                  | `FailureMessage__c`              | What users see                                  |
+| [Message When Unable To Evaluate](#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | `UnableToEvaluateMessage__c`     | What users see                                  |
+| [Fix Message](#fix-message-fixmessage__c)                                                      | `FixMessage__c`                  | What users see                                  |
+| [Action Label](#action-label-actionlabel__c)                                                   | `ActionLabel__c`                 | What users see                                  |
+| [Action URL](#action-url-actionurl__c)                                                         | `ActionUrl__c`                   | What users see                                  |
+| [Evaluation Type](#evaluation-type-evaluationtype__c)                                          | `EvaluationType__c`              | Check type and value display                    |
+| [Display: Value Format](#display-value-format-displayvalueformat__c)                           | `DisplayValueFormat__c`          | Check type and value display                    |
+| [Show Found and Expected](#show-found-and-expected-comparisondisplaymode__c)                   | `ComparisonDisplayMode__c`       | Check type and value display                    |
+| [Pass Condition](#pass-condition-passconditionformula__c)                                      | `PassConditionFormula__c`        | Check fields on this record (`FORMULA`)         |
+| [Display: Found Formula](#display-found-formula-displayfoundformula__c)                        | `DisplayFoundFormula__c`         | Optional result display                         |
+| [Display: Expected Formula](#display-expected-formula-displayexpectedformula__c)               | `DisplayExpectedFormula__c`      | Optional result display                         |
+| [Formula Result Type](#formula-result-type-formularesulttype__c)                               | `FormulaResultType__c`           | Query comparison formulas                       |
+| [Source Query](#source-query-sourcequery__c)                                                   | `SourceQuery__c`                 | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
+| [Source Query Field](#source-query-field-sourcequeryfield__c)                                  | `SourceQueryField__c`            | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
+| [Comparison Query](#comparison-query-comparisonquery__c)                                       | `ComparisonQuery__c`             | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
+| [Comparison Query Field](#comparison-query-field-comparisonqueryfield__c)                      | `ComparisonQueryField__c`        | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
+| [Value to find in the list (formula)](#value-to-find-in-the-list-formula-findinlistformula__c) | `FindInListFormula__c`           | Query sources (`QUERY` / `COMPARE_TWO_QUERIES`) |
+| [Comparison Operator](#comparison-operator-comparisonoperator__c)                              | `ComparisonOperator__c`          | Query comparison                                |
+| [Expected Value Comes From](#expected-value-comes-from-expectedvaluesource__c)                 | `ExpectedValueSource__c`         | Query comparison                                |
+| [Expected Value (Fixed)](#expected-value-fixed-expectedfixedvalue__c)                          | `ExpectedFixedValue__c`          | Query comparison                                |
+| [Expected Currency ISO Code](#expected-currency-iso-code-expectedcurrencyisocode__c)           | `ExpectedCurrencyIsoCode__c`     | Query comparison                                |
+| [Expected Value (Formula)](#expected-value-formula-expectedrecordformula__c)                   | `ExpectedRecordFormula__c`       | Query comparison                                |
+| [How To Read Query Results](#how-to-read-query-results-queryresulthandling__c)                 | `QueryResultHandling__c`         | Advanced query behavior                         |
+| [If Query Finds No Records](#if-query-finds-no-records-norowsresult__c)                        | `NoRowsResult__c`                | Advanced query behavior                         |
+| [If Field Value Is Empty](#if-field-value-is-empty-emptyvaluehandling__c)                      | `EmptyValueHandling__c`          | Advanced query behavior                         |
+| [Max Query Rows (1-2000)](#max-query-rows-1-2000-maxqueryrows__c)                              | `MaxQueryRows__c`                | Advanced query behavior                         |
+| [Display: Found Text](#display-found-text-displayfoundtext__c)                                 | `DisplayFoundText__c`            | Advanced display text                           |
+| [Display: Expected Text](#display-expected-text-displayexpectedtext__c)                        | `DisplayExpectedText__c`         | Advanced display text                           |
+| [Applies To](#applies-to-applicabilitymode__c)                                                 | `ApplicabilityMode__c`           | When this check applies                         |
+| [Applies When (Formula)](#applies-when-formula-applicabilityformula__c)                        | `ApplicabilityFormula__c`        | When this check applies                         |
+| [Applies When (Count Query)](#applies-when-count-query-applicabilitycountquery__c)             | `ApplicabilityCountQuery__c`     | When this check applies                         |
+| [Message When Not Applicable](#message-when-not-applicable-applicabilitynotmetmessage__c)      | `ApplicabilityNotMetMessage__c`  | Friendly explanation for a skipped check        |
+| [Count Must Be](#count-must-be-applicabilitycountoperator__c)                                  | `ApplicabilityCountOperator__c`  | When this check applies                         |
+| [Count Value](#count-value-applicabilitycountthreshold__c)                                     | `ApplicabilityCountThreshold__c` | When this check applies                         |
+| [Prerequisite Check](#prerequisite-check-prerequisitecheck__c)                                 | `PrerequisiteCheck__c`           | When this check applies                         |
+| [Apex Class](#apex-class-apexclass__c)                                                         | `ApexClass__c`                   | Custom Apex (`APEX`)                            |
+| [Apex Parameters (JSON)](#apex-parameters-json-apexparametersjson__c)                          | `ApexParametersJson__c`          | Custom Apex (`APEX`)                            |
+| [Publish User Result Event](#publish-user-result-event-publishuserresultevent__c)              | `PublishUserResultEvent__c`      | Lifecycle events                                |
 
 ## 1. Identity and execution
 
@@ -140,7 +140,6 @@ appear later.
 Checkbox, selected by default. Clear it to stop this Check from running without deleting its Custom
 Metadata record. Other active Checks in the Check Set continue to run.
 
-
 ## 2. What users see
 
 ### Check Title (`CheckTitle__c`)
@@ -162,15 +161,15 @@ change the result, severity, or evaluation order. After a run, categorized Check
 category summaries that replace the single overall totals bar. The Check Set's **Summary Display**
 setting places those groups above or below the Check rows.
 
-| Setup choice | Stored value |
-| --- | --- |
-| Completeness | `COMPLETENESS` |
-| Consistency | `CONSISTENCY` |
-| Timeliness | `TIMELINESS` |
-| Eligibility | `ELIGIBILITY` |
-| Readiness | `READINESS` |
-| Risk | `RISK` |
-| Compliance | `COMPLIANCE` |
+| Setup choice          | Stored value            |
+| --------------------- | ----------------------- |
+| Completeness          | `COMPLETENESS`          |
+| Consistency           | `CONSISTENCY`           |
+| Timeliness            | `TIMELINESS`            |
+| Eligibility           | `ELIGIBILITY`           |
+| Readiness             | `READINESS`             |
+| Risk                  | `RISK`                  |
+| Compliance            | `COMPLIANCE`            |
 | Relationship coverage | `RELATIONSHIP_COVERAGE` |
 
 ### Failure Severity (`FailureSeverity__c`)
@@ -178,11 +177,11 @@ setting places those groups above or below the Check rows.
 Optional restricted picklist. It applies only when the result is `FAIL`; it does not change `PASS`,
 `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`.
 
-| Setup choice | Stored value | Card color |
-| --- | --- | --- |
-| Critical | `CRITICAL` | Red |
-| Warning | `WARNING` | Amber; default |
-| Info | `INFO` | Blue |
+| Setup choice | Stored value | Card color     |
+| ------------ | ------------ | -------------- |
+| Critical     | `CRITICAL`   | Red            |
+| Warning      | `WARNING`    | Amber; default |
+| Info         | `INFO`       | Blue           |
 
 Choose the business impact of failing the requirement. `ERROR` is not a severity choice because it
 is a separate result that means Record Health Check encountered a technical problem.
@@ -268,7 +267,6 @@ Examples:
 /lightning/o/Case/new?defaultFieldValues=AccountId={!record.Id},Subject=Review%20{!record.Name fallback="this account"},Origin=Web,Description=Check%20{!rhcCheck.developerName}%20in%20{!rhcSet.developerName}
 ```
 
-
 ## 3. Check type and value display
 
 ### Evaluation Type (`EvaluationType__c`)
@@ -276,12 +274,12 @@ Examples:
 Required restricted picklist with no default. Choose one Evaluation Type, then complete only the
 fields that type uses.
 
-| Setup choice | Stored value | Use it when |
-| --- | --- | --- |
-| Verify with a formula | `FORMULA` | A true/false Salesforce formula can check fields on the current record. Configure **Pass Condition**. |
-| Verify with a query | `QUERY` | One SOQL query can return the related records, count, total, or value to compare. |
-| Compare two queries | `COMPARE_TWO_QUERIES` | The result from one SOQL query must be compared with another query result. |
-| Verify with Apex | `APEX` | The requirement needs Apex logic that the other types cannot express. Configure **Apex Class**. |
+| Setup choice          | Stored value          | Use it when                                                                                           |
+| --------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| Verify with a formula | `FORMULA`             | A true/false Salesforce formula can check fields on the current record. Configure **Pass Condition**. |
+| Verify with a query   | `QUERY`               | One SOQL query can return the related records, count, total, or value to compare.                     |
+| Compare two queries   | `COMPARE_TWO_QUERIES` | The result from one SOQL query must be compared with another query result.                            |
+| Verify with Apex      | `APEX`                | The requirement needs Apex logic that the other types cannot express. Configure **Apex Class**.       |
 
 ### Show Found and Expected (`ComparisonDisplayMode__c`)
 
@@ -289,12 +287,12 @@ Optional restricted picklist, default **Automatic** (`AUTOMATIC`). It decides wh
 evidence the Lightning card may show for this Check. Leaving it blank is the same as **Automatic**,
 so Checks created before this field existed keep their current behavior.
 
-| Setup choice | Stored value | Card behavior |
-| --- | --- | --- |
-| Automatic | `AUTOMATIC` | Found and Expected appear exactly as they do today. |
-| Show found only | `FOUND_ONLY` | Only the Found value can appear. |
-| Show expected only | `EXPECTED_ONLY` | Only the Expected value can appear. |
-| Hide | `HIDDEN` | Neither value appears, inline or behind the caret. |
+| Setup choice       | Stored value    | Card behavior                                       |
+| ------------------ | --------------- | --------------------------------------------------- |
+| Automatic          | `AUTOMATIC`     | Found and Expected appear exactly as they do today. |
+| Show found only    | `FOUND_ONLY`    | Only the Found value can appear.                    |
+| Show expected only | `EXPECTED_ONLY` | Only the Expected value can appear.                 |
+| Hide               | `HIDDEN`        | Neither value appears, inline or behind the caret.  |
 
 This setting filters what is eligible to appear. It does not force a value to appear when the Check
 Set's Found/Expected display placement would normally keep it hidden, and it applies to Formula,
@@ -318,18 +316,18 @@ failure with no explanation. Evaluation still runs.
 Optional restricted picklist, default **Automatic** (`AUTO`). It changes only how Found and Expected
 values appear; it never changes whether the Check passes.
 
-| Setup choice | Stored value | Example use |
-| --- | --- | --- |
-| Automatic | `AUTO` | Let Record Health Check choose from the value type. |
-| Number | `NUMBER` | Employee count |
-| Currency | `CURRENCY` | Annual Revenue |
-| Percent | `PERCENT` | A Salesforce Percent field |
-| Ratio as percent | `RATIO_PERCENT` | Show `0.25` as `25%` |
-| Checkbox | `BOOLEAN` | True or false |
-| Date | `DATE` | A date without time |
-| Date/Time | `DATETIME` | A date and time |
-| Text | `TEXT` | A name or description |
-| Raw | `RAW` | An external ID without display formatting |
+| Setup choice     | Stored value    | Example use                                         |
+| ---------------- | --------------- | --------------------------------------------------- |
+| Automatic        | `AUTO`          | Let Record Health Check choose from the value type. |
+| Number           | `NUMBER`        | Employee count                                      |
+| Currency         | `CURRENCY`      | Annual Revenue                                      |
+| Percent          | `PERCENT`       | A Salesforce Percent field                          |
+| Ratio as percent | `RATIO_PERCENT` | Show `0.25` as `25%`                                |
+| Checkbox         | `BOOLEAN`       | True or false                                       |
+| Date             | `DATE`          | A date without time                                 |
+| Date/Time        | `DATETIME`      | A date and time                                     |
+| Text             | `TEXT`          | A name or description                               |
+| Raw              | `RAW`           | An external ID without display formatting           |
 
 This is a different setting from [Formula Result Type](#formula-result-type-formularesulttype__c),
 which declares the type a formula returns so the Check can calculate with it. A Formula Check can set
@@ -338,7 +336,6 @@ Formula Result Type to **Number** and Display: Value Format to **Currency** at t
 Naming a format that cannot apply to a value is not an error. The value keeps its original
 spelling. Full contract:
 [Reference: Display value format](../configuration/display-found-and-expected.md).
-
 
 ## 4. Check fields on this record (`FORMULA`)
 
@@ -349,14 +346,14 @@ returns `true` to pass or `false` to fail. Do not enter Apex or SOQL.
 
 Examples:
 
-| Formula | What passes |
-| --- | --- |
-| `TRUE` | Every evaluated record |
-| `NOT(ISBLANK(BillingCity))` | Billing City is populated |
-| `OR(NOT(ISBLANK(Phone)), NOT(ISBLANK(Website)))` | Phone or Website is populated |
-| `AnnualRevenue >= 100000` | Annual Revenue is at least 100,000 |
-| `ISPICKVAL(Type, "Customer")` | Type is Customer |
-| `NOT(ISBLANK(ParentId))` | A Parent Account is assigned |
+| Formula                                          | What passes                        |
+| ------------------------------------------------ | ---------------------------------- |
+| `TRUE`                                           | Every evaluated record             |
+| `NOT(ISBLANK(BillingCity))`                      | Billing City is populated          |
+| `OR(NOT(ISBLANK(Phone)), NOT(ISBLANK(Website)))` | Phone or Website is populated      |
+| `AnnualRevenue >= 100000`                        | Annual Revenue is at least 100,000 |
+| `ISPICKVAL(Type, "Customer")`                    | Type is Customer                   |
+| `NOT(ISBLANK(ParentId))`                         | A Parent Account is assigned       |
 
 ### Display: Found Formula (`DisplayFoundFormula__c`)
 
@@ -369,18 +366,18 @@ formula's return type automatically; **Formula Result Type** does not control it
 
 Examples:
 
-| Formula | Detected result type | Displayed value |
-| --- | --- | --- |
-| `"Hello"` | **Text** | `Hello` |
-| `Name` | **Text** | The current record's Name |
-| `Parent.Name` | **Text** | The parent Account's Name |
-| `Name & " - " & TEXT(Type)` | **Text** | A combined value such as `Acme - Customer` |
-| `IF(ISBLANK(Phone), "Missing", Phone)` | **Text** | `Missing` or the current Phone |
-| `BLANKVALUE(NumberOfEmployees, 0)` | **Number** | Employee count, with blank shown as `0` |
-| `AnnualRevenue` | **Number** | Current Annual Revenue |
-| `TODAY()` | **Date** | The current date |
-| `NOW()` | **Date/Time** | The current date and time |
-| `NOT(ISBLANK(Website))` | **Checkbox** | `true` when Website is populated |
+| Formula                                | Detected result type | Displayed value                            |
+| -------------------------------------- | -------------------- | ------------------------------------------ |
+| `"Hello"`                              | **Text**             | `Hello`                                    |
+| `Name`                                 | **Text**             | The current record's Name                  |
+| `Parent.Name`                          | **Text**             | The parent Account's Name                  |
+| `Name & " - " & TEXT(Type)`            | **Text**             | A combined value such as `Acme - Customer` |
+| `IF(ISBLANK(Phone), "Missing", Phone)` | **Text**             | `Missing` or the current Phone             |
+| `BLANKVALUE(NumberOfEmployees, 0)`     | **Number**           | Employee count, with blank shown as `0`    |
+| `AnnualRevenue`                        | **Number**           | Current Annual Revenue                     |
+| `TODAY()`                              | **Date**             | The current date                           |
+| `NOW()`                                | **Date/Time**        | The current date and time                  |
+| `NOT(ISBLANK(Website))`                | **Checkbox**         | `true` when Website is populated           |
 
 ### Display: Expected Formula (`DisplayExpectedFormula__c`)
 
@@ -390,17 +387,17 @@ based on Pass Condition.
 
 Examples:
 
-| Formula | Detected result type | Displayed value |
-| --- | --- | --- |
-| `"Complete"` | **Text** | `Complete` |
-| `BillingCountry` | **Text** | The current Billing Country |
-| `Parent.BillingCountry` | **Text** | The parent Account's Billing Country |
-| `"City, State, and Country populated"` | **Text** | A readable target statement |
-| `10` | **Number** | `10` |
-| `AnnualRevenue / 10` | **Number** | Ten percent of Annual Revenue |
-| `DATE(YEAR(TODAY()), 12, 31)` | **Date** | The final day of the current year |
-| `NOW() + 7` | **Date/Time** | Seven days from the current time |
-| `TRUE` | **Checkbox** | `true` |
+| Formula                                | Detected result type | Displayed value                      |
+| -------------------------------------- | -------------------- | ------------------------------------ |
+| `"Complete"`                           | **Text**             | `Complete`                           |
+| `BillingCountry`                       | **Text**             | The current Billing Country          |
+| `Parent.BillingCountry`                | **Text**             | The parent Account's Billing Country |
+| `"City, State, and Country populated"` | **Text**             | A readable target statement          |
+| `10`                                   | **Number**           | `10`                                 |
+| `AnnualRevenue / 10`                   | **Number**           | Ten percent of Annual Revenue        |
+| `DATE(YEAR(TODAY()), 12, 31)`          | **Date**             | The final day of the current year    |
+| `NOW() + 7`                            | **Date/Time**        | Seven days from the current time     |
+| `TRUE`                                 | **Checkbox**         | `true`                               |
 
 ### Formula Result Type (`FormulaResultType__c`)
 
@@ -409,21 +406,20 @@ Check calculates a comparison operand from **Expected Value (Formula)** or **Val
 list (formula)**. An explicit type evaluates that operand once; **Automatic** can probe the
 supported types.
 
-| Setup choice | Stored value |
-| --- | --- |
-| Automatic | `AUTO` (default) |
-| Checkbox | `BOOLEAN` |
-| Number | `NUMBER` |
-| Date | `DATE` |
-| Date/Time | `DATETIME` |
-| Text | `TEXT` |
+| Setup choice | Stored value     |
+| ------------ | ---------------- |
+| Automatic    | `AUTO` (default) |
+| Checkbox     | `BOOLEAN`        |
+| Number       | `NUMBER`         |
+| Date         | `DATE`           |
+| Date/Time    | `DATETIME`       |
+| Text         | `TEXT`           |
 
 It does **not** apply to Pass Condition or Applicability formulas, which must return Checkbox, or to
 Display: Found and Display: Expected formulas, which detect their own result type. For a Formula,
 Compare Two Queries, or Apex Check, leave the portable default **Automatic**. For a Query Check,
 leave **Automatic** unless an administrator has verified the exact result type of every configured
 comparison-operand formula that uses this shared setting.
-
 
 ## 5. Query sources (`QUERY` / `COMPARE_TWO_QUERIES`)
 
@@ -499,30 +495,29 @@ For example, enter `BillingCity` to look for the Account's Billing City, or `"Ch
 fixed text. Also set **How To Read Query Results** to **Compare as lists**. Leave this field blank for
 all other operators.
 
-
 ## 6. Query comparison
 
 ### Comparison Operator (`ComparisonOperator__c`)
 
 Required restricted picklist with no default for Query and Compare two queries Checks.
 
-| Setup choice | Stored value | Used with |
-| --- | --- | --- |
-| Equals | `EQUALS` | One value or aggregate |
-| Does not equal | `NOT_EQUALS` | One value or aggregate |
-| Greater than | `GREATER_THAN` | One value or aggregate |
-| Greater than or equal | `GREATER_THAN_OR_EQUAL` | One value or aggregate |
-| Less than | `LESS_THAN` | One value or aggregate |
-| Less than or equal | `LESS_THAN_OR_EQUAL` | One value or aggregate |
-| Contains text | `CONTAINS` | Text value |
-| Does not contain text | `DOES_NOT_CONTAIN` | Text value |
-| Is empty | `IS_BLANK` | No Expected value needed |
-| Is not empty | `IS_NOT_BLANK` | No Expected value needed |
-| List contains any | `LIST_CONTAINS_ANY` | One-query list search |
-| List contains none | `LIST_CONTAINS_NONE` | One-query list search |
-| Lists overlap | `LISTS_OVERLAP` | Compare two query result lists |
-| Lists contain all | `LISTS_CONTAIN_ALL` | Compare two query result lists |
-| Lists match exactly | `LISTS_MATCH_EXACTLY` | Compare two query result lists |
+| Setup choice          | Stored value            | Used with                      |
+| --------------------- | ----------------------- | ------------------------------ |
+| Equals                | `EQUALS`                | One value or aggregate         |
+| Does not equal        | `NOT_EQUALS`            | One value or aggregate         |
+| Greater than          | `GREATER_THAN`          | One value or aggregate         |
+| Greater than or equal | `GREATER_THAN_OR_EQUAL` | One value or aggregate         |
+| Less than             | `LESS_THAN`             | One value or aggregate         |
+| Less than or equal    | `LESS_THAN_OR_EQUAL`    | One value or aggregate         |
+| Contains text         | `CONTAINS`              | Text value                     |
+| Does not contain text | `DOES_NOT_CONTAIN`      | Text value                     |
+| Is empty              | `IS_BLANK`              | No Expected value needed       |
+| Is not empty          | `IS_NOT_BLANK`          | No Expected value needed       |
+| List contains any     | `LIST_CONTAINS_ANY`     | One-query list search          |
+| List contains none    | `LIST_CONTAINS_NONE`    | One-query list search          |
+| Lists overlap         | `LISTS_OVERLAP`         | Compare two query result lists |
+| Lists contain all     | `LISTS_CONTAIN_ALL`     | Compare two query result lists |
+| Lists match exactly   | `LISTS_MATCH_EXACTLY`   | Compare two query result lists |
 
 Every list operator requires **How To Read Query Results = Compare as lists**.
 
@@ -531,10 +526,10 @@ Every list operator requires **How To Read Query Results = Compare as lists**.
 Use this restricted picklist for a **Verify with a query** Check when its operator needs an Expected
 value. There is no default.
 
-| Setup choice | Stored value | Complete this field |
-| --- | --- | --- |
-| Fixed value | `FIXED_VALUE` | Expected Value (Fixed) |
-| Record formula | `RECORD_FORMULA` | Expected Value (Formula) |
+| Setup choice     | Stored value       | Complete this field                                       |
+| ---------------- | ------------------ | --------------------------------------------------------- |
+| Fixed value      | `FIXED_VALUE`      | Expected Value (Fixed)                                    |
+| Record formula   | `RECORD_FORMULA`   | Expected Value (Formula)                                  |
 | Comparison query | `COMPARISON_QUERY` | Comparison Query and, when needed, Comparison Query Field |
 
 Leave it blank for **Is empty**, **Is not empty**, and **Compare two queries**.
@@ -560,17 +555,16 @@ relationship field, or calculated value. Do not enter Apex or SOQL.
 
 Examples:
 
-| Formula | Formula Result Type | Value used for comparison |
-| --- | --- | --- |
-| `"Approved"` | **Text** | The literal text `Approved` |
-| `BillingCity` | **Text** | The current record's Billing City |
-| `Parent.BillingCity` | **Text** | The parent Account's Billing City |
-| `5` | **Number** | The number `5` |
-| `BLANKVALUE(Parent.AnnualRevenue, 0)` | **Number** | The parent Account's Annual Revenue, with blank shown as `0` |
-| `DATE(YEAR(TODAY()), 12, 31)` | **Date** | The final day of the current year |
-| `NOW() + 7` | **Date/Time** | Seven days from the current time |
-| `TRUE` | **Checkbox** | `true` |
-
+| Formula                               | Formula Result Type | Value used for comparison                                    |
+| ------------------------------------- | ------------------- | ------------------------------------------------------------ |
+| `"Approved"`                          | **Text**            | The literal text `Approved`                                  |
+| `BillingCity`                         | **Text**            | The current record's Billing City                            |
+| `Parent.BillingCity`                  | **Text**            | The parent Account's Billing City                            |
+| `5`                                   | **Number**          | The number `5`                                               |
+| `BLANKVALUE(Parent.AnnualRevenue, 0)` | **Number**          | The parent Account's Annual Revenue, with blank shown as `0` |
+| `DATE(YEAR(TODAY()), 12, 31)`         | **Date**            | The final day of the current year                            |
+| `NOW() + 7`                           | **Date/Time**       | Seven days from the current time                             |
+| `TRUE`                                | **Checkbox**        | `true`                                                       |
 
 ## 7. Advanced query behavior
 
@@ -578,33 +572,33 @@ Examples:
 
 Required restricted picklist for Query and Compare two queries Checks.
 
-| Setup choice | Stored value | Meaning |
-| --- | --- | --- |
-| One row or aggregate | `ONE_RESULT` | Read one row, `COUNT()`, `SUM()`, or another aggregate. This is the default. |
-| Any record passes | `ANY_ROW_PASSES` | The Check passes when at least one returned record matches. |
-| Every record passes | `ALL_ROWS_PASS` | The Check passes only when every returned record matches. |
-| Compare as lists | `COMPARE_AS_LISTS` | Treat query results as lists. Required for every list operator. |
+| Setup choice         | Stored value       | Meaning                                                                      |
+| -------------------- | ------------------ | ---------------------------------------------------------------------------- |
+| One row or aggregate | `ONE_RESULT`       | Read one row, `COUNT()`, `SUM()`, or another aggregate. This is the default. |
+| Any record passes    | `ANY_ROW_PASSES`   | The Check passes when at least one returned record matches.                  |
+| Every record passes  | `ALL_ROWS_PASS`    | The Check passes only when every returned record matches.                    |
+| Compare as lists     | `COMPARE_AS_LISTS` | Treat query results as lists. Required for every list operator.              |
 
 ### If Query Finds No Records (`NoRowsResult__c`)
 
 Required with **Any record passes**, **Every record passes**, and **Compare as lists**. There is no
 default because no records can have different business meanings.
 
-| Setup choice | Stored value | Use it when no records means... |
-| --- | --- | --- |
-| Pass | `PASS` | The requirement is satisfied. For example, no open high-priority Cases is healthy. |
-| Fail | `FAIL` | A required related record is missing. |
-| Skip | `SKIP` | The Check does not apply. |
-| Unable to evaluate | `UNABLE_TO_EVALUATE` | The available data cannot answer the question. |
+| Setup choice       | Stored value         | Use it when no records means...                                                    |
+| ------------------ | -------------------- | ---------------------------------------------------------------------------------- |
+| Pass               | `PASS`               | The requirement is satisfied. For example, no open high-priority Cases is healthy. |
+| Fail               | `FAIL`               | A required related record is missing.                                              |
+| Skip               | `SKIP`               | The Check does not apply.                                                          |
+| Unable to evaluate | `UNABLE_TO_EVALUATE` | The available data cannot answer the question.                                     |
 
 ### If Field Value Is Empty (`EmptyValueHandling__c`)
 
 Optional restricted picklist for non-aggregate Query and Compare two queries Checks.
 
-| Setup choice | Stored value | Behavior |
-| --- | --- | --- |
-| Ignore the record | `SKIP_RECORD` | Leave that returned record out of the comparison. |
-| Treat as blank | `AS_BLANK` | Compare the value as blank text. |
+| Setup choice          | Stored value  | Behavior                                             |
+| --------------------- | ------------- | ---------------------------------------------------- |
+| Ignore the record     | `SKIP_RECORD` | Leave that returned record out of the comparison.    |
+| Treat as blank        | `AS_BLANK`    | Compare the value as blank text.                     |
 | Treat as not matching | `AS_NO_MATCH` | The empty value does not match. This is the default. |
 
 Formula Checks, Apex Checks, and aggregate queries ignore this field.
@@ -617,7 +611,6 @@ Query or Compare two queries SOQL.
 Keep it as low as the business question allows because each row uses Salesforce query rows, memory,
 and processing time in the current transaction. Narrow the SOQL before increasing this number. If
 more than 200 rows are genuinely required, test the real Check and realistic records in a sandbox.
-
 
 ## 8. Advanced display text
 
@@ -655,7 +648,6 @@ Expected {!rhcResult.expectedValue} for every contact related to {!record.Name}.
 All {!rhcResult.totalRecordCount} contacts should have an email address.
 ```
 
-
 ## 9. When this check applies
 
 ### Applies To (`ApplicabilityMode__c`)
@@ -663,10 +655,10 @@ All {!rhcResult.totalRecordCount} contacts should have an email address.
 Optional restricted picklist. It decides whether the Check applies before Record Health Check runs
 its pass/fail logic. When the condition is not met, the result is `SKIPPED`, not `FAIL`.
 
-| Setup choice | Stored value | Configure next |
-| --- | --- | --- |
-| All records | `ALL_RECORDS` | Nothing; this is the default. |
-| When a formula is true | `WHEN_FORMULA_TRUE` | Applies When (Formula) |
+| Setup choice               | Stored value               | Configure next                                             |
+| -------------------------- | -------------------------- | ---------------------------------------------------------- |
+| All records                | `ALL_RECORDS`              | Nothing; this is the default.                              |
+| When a formula is true     | `WHEN_FORMULA_TRUE`        | Applies When (Formula)                                     |
 | When a count query matches | `WHEN_COUNT_QUERY_MATCHES` | Applies When (Count Query), Count Must Be, and Count Value |
 
 ### Message When Not Applicable (`ApplicabilityNotMetMessage__c`)
@@ -706,14 +698,14 @@ SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = fa
 
 Required restricted picklist when **Applies To** is **When a count query matches**.
 
-| Setup choice | Stored value |
-| --- | --- |
-| Equal to | `EQUALS` |
-| Not equal to | `NOT_EQUALS` |
-| Greater than | `GREATER_THAN` |
-| At least | `GREATER_THAN_OR_EQUAL` |
-| Less than | `LESS_THAN` |
-| At most | `LESS_THAN_OR_EQUAL` |
+| Setup choice | Stored value            |
+| ------------ | ----------------------- |
+| Equal to     | `EQUALS`                |
+| Not equal to | `NOT_EQUALS`            |
+| Greater than | `GREATER_THAN`          |
+| At least     | `GREATER_THAN_OR_EQUAL` |
+| Less than    | `LESS_THAN`             |
+| At most      | `LESS_THAN_OR_EQUAL`    |
 
 ### Count Value (`ApplicabilityCountThreshold__c`)
 
@@ -736,7 +728,6 @@ Health Check**, Agent, and Apex `RecordHealthCheckRequest.forCheck(...)` calls t
 or enforce this dependency. Use a Check Set request whenever prerequisite ordering is required.
 Example: `Account_Phone_Is_Present`.
 
-
 ## 10. Custom Apex (`APEX`)
 
 ### Apex Class (`ApexClass__c`)
@@ -756,7 +747,6 @@ parameters.
 
 The values belong only to this Check. Invalid JSON produces `UNABLE_TO_EVALUATE` with reason code
 `INVALID_APEX_PARAMETERS`.
-
 
 ## Lifecycle events
 

@@ -127,6 +127,11 @@
               {response.readinessReceipt.expiresAt}.
             </p>
           </template>
+          <template lwc:if={showReceiptWarning}>
+            <p data-receipt-warning role="alert" class="slds-text-color_error">
+              {response.readinessReceipt.warning}
+            </p>
+          </template>
 
           <h3 class="slds-text-title_bold slds-m-top_medium">Capabilities</h3>
           <ul class="slds-list_dotted">
@@ -230,7 +235,8 @@
             <ul class="slds-has-dividers_top-space">
               <template for:each={response.resultRows} for:item="result">
                 <li key={result.key} class="slds-item" data-result>
-                  {result.recordId}: {result.status} {result.message}
+                  {result.recordId} — {result.checkName}: {result.status}
+                  {result.message}
                 </li>
               </template>
             </ul>

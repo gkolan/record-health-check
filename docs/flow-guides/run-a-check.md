@@ -8,10 +8,10 @@
 
 Flow Builder provides two actions in the **Record Health Check** category:
 
-| Action | Use it when |
-| --- | --- |
+| Action                          | Use it when                                       |
+| ------------------------------- | ------------------------------------------------- |
 | **Run Record Health Check Set** | Several related Checks should run for the record. |
-| **Run Record Health Check** | Only one Check should run. |
+| **Run Record Health Check**     | Only one Check should run.                        |
 
 Both actions use the same inputs and results as the Apex API. The action receives a Custom Metadata
 **Qualified API Name**, a record ID, and an event-publication choice. It returns result fields that
@@ -61,7 +61,7 @@ result immediately. Leave event publication as `NONE` because this Flow already 
 8. Add a Decision element after the action. Check **Success** first.
 9. When **Success** is false, use **Error Type** and **Error Message** to handle the rejected input.
 10. When **Success** is true, create paths for **Status** values `PASS`, `FAIL`, `SKIPPED`,
-   `UNABLE_TO_EVALUATE`, and `ERROR`.
+    `UNABLE_TO_EVALUATE`, and `ERROR`.
 11. Connect the action's fault path to the organization's Flow error handling for a Salesforce
     transaction failure that prevented the action from returning outputs.
 12. Debug the Flow with a test Account. Use **Run flow as another user** when available, or test with
@@ -88,15 +88,15 @@ available field returned by each action.
 
 ## Read the action outputs
 
-| Output or path | Meaning | Flow handling |
-| --- | --- | --- |
-| **Success** is false | The input was rejected or evaluation could not return a normal response. | Read **Error Type** and **Error Message**. Do not read Status. |
-| `PASS` | The record met the Check condition. | Continue the normal Flow path. |
-| `FAIL` | The record did not meet the business condition. This is not a Flow fault. | Start the approved follow-up path. |
-| `SKIPPED` | The Check did not apply. | Continue or use a separate skipped path. |
-| `UNABLE_TO_EVALUATE` | Access, configuration, or data prevented a reliable result. | Send the record for access, data, or configuration review. |
-| `ERROR` | Record Health Check returned a system or evaluator problem as a result. | Send approved details to operational monitoring. |
-| Fault connector | A Salesforce transaction failure prevented the action from returning outputs. | Use the organization's Flow fault handling. |
+| Output or path       | Meaning                                                                       | Flow handling                                                  |
+| -------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Success** is false | The input was rejected or evaluation could not return a normal response.      | Read **Error Type** and **Error Message**. Do not read Status. |
+| `PASS`               | The record met the Check condition.                                           | Continue the normal Flow path.                                 |
+| `FAIL`               | The record did not meet the business condition. This is not a Flow fault.     | Start the approved follow-up path.                             |
+| `SKIPPED`            | The Check did not apply.                                                      | Continue or use a separate skipped path.                       |
+| `UNABLE_TO_EVALUATE` | Access, configuration, or data prevented a reliable result.                   | Send the record for access, data, or configuration review.     |
+| `ERROR`              | Record Health Check returned a system or evaluator problem as a result.       | Send approved details to operational monitoring.               |
+| Fault connector      | A Salesforce transaction failure prevented the action from returning outputs. | Use the organization's Flow fault handling.                    |
 
 Do not send every non-`PASS` result to the fault path. `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and
 `ERROR` are returned outputs for the Decision element.
@@ -136,13 +136,13 @@ delivered when the transaction rolls back.
 
 ## Troubleshooting
 
-| Symptom | Check first |
-| --- | --- |
-| The action is not available | The installed package version and the user's Apex class access |
-| The action reports authorization failure | The running user's **Record Health Check Run** Custom Permission |
-| A result is `UNABLE_TO_EVALUATE` | The reason code, record access, field access, and Check configuration |
-| A collection is rejected before evaluation | The 200-row limit, 10-group limit, and 2,000,000-character JSON result limit |
-| No Platform Event is received | The publication input, Check metadata event setting, and the Flow, Apex trigger, or integration that should receive it |
+| Symptom                                        | Check first                                                                                                                                      |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The action is not available                    | The installed package version and the user's Apex class access                                                                                   |
+| The action reports authorization failure       | The running user's **Record Health Check Run** Custom Permission                                                                                 |
+| A result is `UNABLE_TO_EVALUATE`               | The reason code, record access, field access, and Check configuration                                                                            |
+| A collection is rejected before evaluation     | The 200-row limit, 10-group limit, and 2,000,000-character JSON result limit                                                                     |
+| No Platform Event is received                  | The publication input, Check metadata event setting, and the Flow, Apex trigger, or integration that should receive it                           |
 | The card and Flow disagree for the same record | The actual execution user, Flow context, data access, timezone, and unsupported formula globals; use the execution-context troubleshooting guide |
 
 ## Related

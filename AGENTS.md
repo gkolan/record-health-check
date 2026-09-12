@@ -83,6 +83,25 @@ Every bug fix and new product behavior must leave an executable guard that makes
 detectable. A code change without the corresponding tests and user-verification fixtures is
 incomplete.
 
+### Independent outcomes and evidence
+
+Read [Regression testing standard](docs/quality-gates/regression-testing-standard.md) before writing
+or revising implementation tests. Specify exact data, configuration, actor, caller and expected
+business outcome independently of the implementation. A test asserting a correct business FAIL
+must pass. A compiler, setup or tool failure is not the required behavioral red result.
+
+Exercise important Checks alone and in mixed Check Sets; sibling plans, warmed caches and shared
+budgets must not mask defects. Assert forbidden downstream work as well as final results. Test
+actual serialization and strict consumers separately from typed Apex, including absent properties,
+null cells, malformed rows, authorization and final serialized byte limits. Preserve evaluation
+truth when optional presentation fails according to the selected contract.
+
+Reconcile exact requested and executed test identities, source variants and process exits; counts
+and a passing result file do not prove a successful complete run. Keep source, org, transport,
+browser and installed-package evidence distinct. Inspect analyzer engine errors even after exit
+zero; document false positives and justified design exceptions without weakening guards. Review
+documentation claims against source and evidence, not just formatting and link checks.
+
 ### Bug fixes
 
 1. Before changing production code, add or identify a test that reproduces the reported behavior.

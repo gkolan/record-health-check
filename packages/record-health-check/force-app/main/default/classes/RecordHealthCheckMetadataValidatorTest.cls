@@ -161,27 +161,23 @@ private class RecordHealthCheckMetadataValidatorTest {
     );
     queryMissingMode.Record_Health_Check_Set__c = setAId;
     queryMissingMode.QueryResultHandling__c = null;
-
     Record_Health_Check__mdt queryMissingStatic = queryCheck(
       'Validator_Query_Missing_Static'
     );
     queryMissingStatic.Record_Health_Check_Set__c = setAId;
     queryMissingStatic.ExpectedFixedValue__c = null;
-
     Record_Health_Check__mdt queryMissingFormula = queryCheck(
       'Validator_Query_Missing_Formula'
     );
     queryMissingFormula.Record_Health_Check_Set__c = setAId;
     queryMissingFormula.ExpectedValueSource__c = 'RECORD_FORMULA';
     queryMissingFormula.ExpectedRecordFormula__c = null;
-
     Record_Health_Check__mdt queryMissingComparisonQuery = queryCheck(
       'Validator_Query_Missing_Comparison_Query'
     );
     queryMissingComparisonQuery.Record_Health_Check_Set__c = setAId;
     queryMissingComparisonQuery.ExpectedValueSource__c = 'COMPARISON_QUERY';
     queryMissingComparisonQuery.ComparisonQuery__c = null;
-
     Record_Health_Check__mdt invalidListQuery = queryCheck(
       'Invalid_List_Query_For_Validator'
     );
@@ -189,14 +185,12 @@ private class RecordHealthCheckMetadataValidatorTest {
     invalidListQuery.ComparisonOperator__c = 'LIST_CONTAINS_ANY';
     invalidListQuery.FindInListFormula__c = null;
     invalidListQuery.ComparisonQuery__c = null;
-
     Record_Health_Check__mdt invalidApex = baseCheck(
       'Invalid_Apex_For_Validator',
       'APEX'
     );
     invalidApex.Record_Health_Check_Set__c = setAId;
     invalidApex.ApexClass__c = null;
-
     Record_Health_Check__mdt invalidDual = validDualCheck(
       'Invalid_Dual_For_Validator'
     );
@@ -205,45 +199,38 @@ private class RecordHealthCheckMetadataValidatorTest {
     invalidDual.ComparisonQuery__c = null;
     invalidDual.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
     invalidDual.QueryResultHandling__c = 'ONE_RESULT';
-
     Record_Health_Check__mdt dualMissingOperator = validDualCheck(
       'Validator_Dual_Missing_Operator'
     );
     dualMissingOperator.Record_Health_Check_Set__c = setAId;
     dualMissingOperator.ComparisonOperator__c = null;
-
     Record_Health_Check__mdt dualUnknownOperator = validDualCheck(
       'Validator_Dual_Unknown_Operator'
     );
     dualUnknownOperator.Record_Health_Check_Set__c = setAId;
     dualUnknownOperator.ComparisonOperator__c = 'Around';
-
     Record_Health_Check__mdt dualMissingMode = validDualCheck(
       'Validator_Dual_Missing_Mode'
     );
     dualMissingMode.Record_Health_Check_Set__c = setAId;
     dualMissingMode.QueryResultHandling__c = null;
-
     Record_Health_Check__mdt dualUnknownMode = validDualCheck(
       'Validator_Dual_Unknown_Mode'
     );
     dualUnknownMode.Record_Health_Check_Set__c = setAId;
     dualUnknownMode.QueryResultHandling__c = 'ANY_ROW_PASSES';
-
     Record_Health_Check__mdt dualBadListMode = validDualCheck(
       'Validator_Dual_Bad_List_Mode'
     );
     dualBadListMode.Record_Health_Check_Set__c = setAId;
     dualBadListMode.QueryResultHandling__c = 'COMPARE_AS_LISTS';
     dualBadListMode.ComparisonOperator__c = 'EQUALS';
-
     Record_Health_Check__mdt missingDependency = baseCheck(
       'Missing_Dependency_For_Validator',
       'FORMULA'
     );
     missingDependency.Record_Health_Check_Set__c = setAId;
     missingDependency.PrerequisiteCheck__c = 'No_Such_Check';
-
     Record_Health_Check__mdt sameSetDependency = baseCheck(
       'Same_Set_Dependency_For_Validator',
       'FORMULA'
@@ -251,7 +238,6 @@ private class RecordHealthCheckMetadataValidatorTest {
     sameSetDependency.Record_Health_Check_Set__c = setAId;
     sameSetDependency.EvaluationOrder__c = 5;
     sameSetDependency.PrerequisiteCheck__c = 'Invalid_Type_For_Validator';
-
     Record_Health_Check__mdt cycleA = baseCheck(
       'Cycle_A_For_Validator',
       'FORMULA'
@@ -259,7 +245,6 @@ private class RecordHealthCheckMetadataValidatorTest {
     cycleA.Record_Health_Check_Set__c = setAId;
     cycleA.EvaluationOrder__c = null;
     cycleA.PrerequisiteCheck__c = 'Cycle_B_For_Validator';
-
     Record_Health_Check__mdt cycleB = baseCheck(
       'Cycle_B_For_Validator',
       'FORMULA'
@@ -267,14 +252,12 @@ private class RecordHealthCheckMetadataValidatorTest {
     cycleB.Record_Health_Check_Set__c = setAId;
     cycleB.EvaluationOrder__c = null;
     cycleB.PrerequisiteCheck__c = 'Cycle_A_For_Validator';
-
     Record_Health_Check__mdt crossSetTarget = baseCheck(
       'Cross_Set_Target_For_Validator',
       'FORMULA'
     );
     crossSetTarget.Record_Health_Check_Set__c = setBId;
     crossSetTarget.EvaluationOrder__c = 1;
-
     Record_Health_Check__mdt crossSetSource = baseCheck(
       'Cross_Set_Source_For_Validator',
       'FORMULA'
@@ -282,7 +265,6 @@ private class RecordHealthCheckMetadataValidatorTest {
     crossSetSource.Record_Health_Check_Set__c = setAId;
     crossSetSource.EvaluationOrder__c = 2;
     crossSetSource.PrerequisiteCheck__c = 'Cross_Set_Target_For_Validator';
-
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = validator.validateRecords(
       checkSets,
       new List<Record_Health_Check__mdt>{
@@ -313,38 +295,38 @@ private class RecordHealthCheckMetadataValidatorTest {
         crossSetSource
       }
     );
-
     Assert.isTrue(issues.size() > 20, 'Expected broad validation coverage.');
     Set<String> reasonCodes = new Set<String>();
     for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
       reasonCodes.add(issue.reasonCode);
     }
-    Assert.isTrue(reasonCodes.contains('MISSING_REQUIRED_FIELD'));
-    Assert.isTrue(reasonCodes.contains('INVALID_CHECK_TYPE'));
-    Assert.isTrue(reasonCodes.contains('INVALID_CONFIG'));
-    Assert.isTrue(reasonCodes.contains('INVALID_OPERATOR'));
-    Assert.isTrue(reasonCodes.contains('INVALID_DEPENDENCY'));
+    Assert.isTrue(
+      reasonCodes.contains('MISSING_REQUIRED_FIELD'),
+      'Missing required fields must be reported.'
+    );
+    Assert.isTrue(
+      reasonCodes.contains('INVALID_CHECK_TYPE'),
+      'Invalid Check types must be reported.'
+    );
+    Assert.isTrue(
+      reasonCodes.contains('INVALID_CONFIG'),
+      'Invalid configuration must be reported.'
+    );
+    Assert.isTrue(
+      reasonCodes.contains('INVALID_OPERATOR'),
+      'Invalid operators must be reported.'
+    );
+    Assert.isTrue(
+      reasonCodes.contains('INVALID_DEPENDENCY'),
+      'Invalid dependencies must be reported.'
+    );
   }
-
   @IsTest
   static void metadataValidatorCoversRemainingValidationBranches() {
     RecordHealthCheckMetadataValidator validator = new RecordHealthCheckMetadataValidator();
     Id setId = Id.valueOf('m00' + '000000000003');
     List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
-
-    for (Integer i = 0; i < 26; i++) {
-      Record_Health_Check__mdt limitCheck = baseCheck(
-        'Limit_Check_' + i,
-        'FORMULA'
-      );
-      limitCheck.Record_Health_Check_Set__c = setId;
-      limitCheck.EvaluationOrder__c = i;
-      if (i == 0) {
-        limitCheck.PrerequisiteCheck__c = 'Limit_Check_25';
-      }
-      checks.add(limitCheck);
-    }
-
+    addLimitChecks(setId, checks);
     Record_Health_Check__mdt check = baseCheck(
       'Metadata_App_Formula',
       'FORMULA'
@@ -353,7 +335,6 @@ private class RecordHealthCheckMetadataValidatorTest {
     check.ApplicabilityMode__c = 'WHEN_FORMULA_TRUE';
     check.ApplicabilityFormula__c = null;
     checks.add(check);
-
     for (Integer variant = 0; variant < 4; variant++) {
       check = baseCheck('Metadata_App_Soql_' + variant, 'FORMULA');
       check.Record_Health_Check_Set__c = setId;
@@ -370,7 +351,6 @@ private class RecordHealthCheckMetadataValidatorTest {
       }
       checks.add(check);
     }
-
     check = queryCheck('Metadata_Query_Missing_Primary_Field');
     check.Record_Health_Check_Set__c = setId;
     check.SourceQueryField__c = null;
@@ -404,7 +384,6 @@ private class RecordHealthCheckMetadataValidatorTest {
     check.ComparisonQuery__c = 'SELECT BillingCity FROM Account';
     check.ComparisonQueryField__c = null;
     checks.add(check);
-
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = validator.validateRecords(
       new List<Record_Health_Check_Set__mdt>{
         RecordHealthCheckTestDataFactory.checkSet(
@@ -430,15 +409,40 @@ private class RecordHealthCheckMetadataValidatorTest {
         (issue.componentName == 'Metadata_Query_Ambiguous_Aggregate_Field' &&
         issue.fieldName == 'SourceQueryField__c');
     }
-    Assert.isTrue(reasonCodes.contains('FRAMEWORK_MAX_CHECKS_EXCEEDED'));
-    Assert.isFalse(reasonCodes.contains('DEPENDENCY_NOT_IN_RUN'));
-    Assert.isTrue(reasonCodes.contains('INVALID_APEX_PARAMETERS'));
+    Assert.isTrue(
+      reasonCodes.contains('FRAMEWORK_MAX_CHECKS_EXCEEDED'),
+      'Excessive Checks must report the framework limit.'
+    );
+    Assert.isFalse(
+      reasonCodes.contains('DEPENDENCY_NOT_IN_RUN'),
+      'A dependency present in the run must not be reported missing.'
+    );
+    Assert.isTrue(
+      reasonCodes.contains('INVALID_APEX_PARAMETERS'),
+      'Invalid Apex parameters must be reported.'
+    );
     Assert.isTrue(
       foundAmbiguousAggregateField,
       'A multi-aggregate query must name the aggregate alias at authoring time.'
     );
   }
-
+  private static void addLimitChecks(
+    Id setId,
+    List<Record_Health_Check__mdt> checks
+  ) {
+    for (Integer i = 0; i < 26; i++) {
+      Record_Health_Check__mdt limitCheck = baseCheck(
+        'Limit_Check_' + i,
+        'FORMULA'
+      );
+      limitCheck.Record_Health_Check_Set__c = setId;
+      limitCheck.EvaluationOrder__c = i;
+      if (i == 0) {
+        limitCheck.PrerequisiteCheck__c = 'Limit_Check_25';
+      }
+      checks.add(limitCheck);
+    }
+  }
   private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
@@ -460,7 +464,6 @@ private class RecordHealthCheckMetadataValidatorTest {
       }
     );
   }
-
   private static Record_Health_Check__mdt queryCheck(String developerName) {
     Record_Health_Check__mdt check = baseCheck(developerName, 'QUERY');
     check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
@@ -471,11 +474,9 @@ private class RecordHealthCheckMetadataValidatorTest {
     check.ExpectedFixedValue__c = 'Chicago';
     return check;
   }
-
   private static Record_Health_Check__mdt dualCheck(String developerName) {
     return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
   }
-
   private static Record_Health_Check__mdt validDualCheck(String developerName) {
     Record_Health_Check__mdt check = dualCheck(developerName);
     check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
@@ -486,7 +487,6 @@ private class RecordHealthCheckMetadataValidatorTest {
     check.ComparisonOperator__c = 'EQUALS';
     return check;
   }
-
   private static Record_Health_Check__mdt apexCheck(
     String developerName,
     String className,

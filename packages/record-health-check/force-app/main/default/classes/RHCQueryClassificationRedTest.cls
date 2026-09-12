@@ -83,8 +83,14 @@ private class RHCQueryClassificationRedTest {
     );
     Test.stopTest();
 
-    Assert.isNull(blankSelection);
-    Assert.isNull(absentRootSelection);
+    Assert.isNull(
+      blankSelection,
+      'A blank selection must not resolve a field.'
+    );
+    Assert.isNull(
+      absentRootSelection,
+      'An absent root selection must not resolve a field.'
+    );
     Assert.isFalse(
       RecordHealthCheckSoqlTemplate.hasMultipleOuterAggregateValues(null),
       'A blank query has no aggregate values.'

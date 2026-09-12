@@ -9,21 +9,21 @@ Record Health Check reports readiness. A failed Check does not block a Salesforc
 
 ## Result decoder
 
-| What the card shows | Programmatic status | What it means | What automation should do |
-| --- | --- | --- | --- |
-| Pass | `PASS` | The requirement was met. | Continue on the passing path. |
-| Failed, Warning, or Info | `FAIL` | The requirement was not met. The Check's severity controls which label and styling the card uses. | Follow the business review path; do not treat it as an execution fault. |
-| Skipped | `SKIPPED` | The Check did not apply, a prerequisite was not met, or configured empty-value behavior skipped it. | Decide whether skipped is acceptable for the business process. |
-| Unable to Check | `UNABLE_TO_EVALUATE` | Access, data, configuration, or a supported platform limit prevented a reliable answer. | Send the result to an administrative review path. |
-| System Error | `ERROR` | An unexpected framework or custom Apex problem prevented a normal answer. | Capture the Diagnostic ID and use authorized diagnostics. |
+| What the card shows      | Programmatic status  | What it means                                                                                       | What automation should do                                               |
+| ------------------------ | -------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Pass                     | `PASS`               | The requirement was met.                                                                            | Continue on the passing path.                                           |
+| Failed, Warning, or Info | `FAIL`               | The requirement was not met. The Check's severity controls which label and styling the card uses.   | Follow the business review path; do not treat it as an execution fault. |
+| Skipped                  | `SKIPPED`            | The Check did not apply, a prerequisite was not met, or configured empty-value behavior skipped it. | Decide whether skipped is acceptable for the business process.          |
+| Unable to Check          | `UNABLE_TO_EVALUATE` | Access, data, configuration, or a supported platform limit prevented a reliable answer.             | Send the result to an administrative review path.                       |
+| System Error             | `ERROR`              | An unexpected framework or custom Apex problem prevented a normal answer.                           | Capture the Diagnostic ID and use authorized diagnostics.               |
 
 For a failed row, Check severity maps to Lightning styling as follows:
 
-| Check severity | Card presentation for `FAIL` |
-| --- | --- |
-| Critical | Error styling and a failed result |
-| Warning | Warning styling |
-| Info | Informational styling |
+| Check severity | Card presentation for `FAIL`      |
+| -------------- | --------------------------------- |
+| Critical       | Error styling and a failed result |
+| Warning        | Warning styling                   |
+| Info           | Informational styling             |
 
 Severity does not change the programmatic status. All three rows above remain `FAIL` in Flow,
 Apex, Platform Events, Agentforce, and REST responses.
@@ -46,12 +46,12 @@ the same result.
 Use **Success** to determine whether the action contract completed. Then use **Status** to route the
 health result.
 
-| Flow value | Meaning |
-| --- | --- |
-| **Success** = false | The action request failed. Read **Error Type** and **Error Message**, or use the Flow fault path when the action threw. |
-| **Success** = true and **Status** = `FAIL` | Evaluation completed and found an unmet requirement. This is not a Flow fault. |
-| **Success** = true and **Status** = `PASS` | Evaluation completed and the requirements passed. |
-| **Success** = true and another status | Route `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR` explicitly. |
+| Flow value                                 | Meaning                                                                                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Success** = false                        | The action request failed. Read **Error Type** and **Error Message**, or use the Flow fault path when the action threw. |
+| **Success** = true and **Status** = `FAIL` | Evaluation completed and found an unmet requirement. This is not a Flow fault.                                          |
+| **Success** = true and **Status** = `PASS` | Evaluation completed and the requirements passed.                                                                       |
+| **Success** = true and another status      | Route `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR` explicitly.                                                           |
 
 Do not branch on editable Pass Message, Fix Message, or display text. Use **Status**, counts, and
 **Reason Code**.

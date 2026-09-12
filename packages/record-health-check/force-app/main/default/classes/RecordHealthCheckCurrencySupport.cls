@@ -429,22 +429,12 @@ public with sharing class RecordHealthCheckCurrencySupport {
       );
       Map<String, Schema.SObjectField> fields = objectDescribe.fields.getMap();
       String segment = segments[index];
-      Schema.SObjectField field = fields.get(segment);
-      if (field == null) {
-        for (String candidate : fields.keySet()) {
-          Schema.SObjectField candidateField = fields.get(candidate);
-          Schema.DescribeFieldResult candidateDescribe = candidateField.getDescribe();
-          if (
-            candidate.equalsIgnoreCase(segment) ||
-            (index < segments.size() - 1 &&
-            String.isNotBlank(candidateDescribe.getRelationshipName()) &&
-            candidateDescribe.getRelationshipName().equalsIgnoreCase(segment))
-          ) {
-            field = candidateField;
-            break;
-          }
-        }
-      }
+      Schema.SObjectField field = resolvePathSegment(
+        fields,
+        segment,
+        index,
+        segments
+      );
       if (field == null) {
         return false;
       }
@@ -459,5 +449,29 @@ public with sharing class RecordHealthCheckCurrencySupport {
       currentType = references[0];
     }
     return false;
+  }
+  private static Schema.SObjectField resolvePathSegment(
+    Map<String, Schema.SObjectField> fields,
+    String segment,
+    Integer index,
+    List<String> segments
+  ) {
+    Schema.SObjectField field = fields.get(segment);
+    if (field == null) {
+      for (String candidate : fields.keySet()) {
+        Schema.SObjectField candidateField = fields.get(candidate);
+        Schema.DescribeFieldResult candidateDescribe = candidateField.getDescribe();
+        if (
+          candidate.equalsIgnoreCase(segment) ||
+          (index < segments.size() - 1 &&
+          String.isNotBlank(candidateDescribe.getRelationshipName()) &&
+          candidateDescribe.getRelationshipName().equalsIgnoreCase(segment))
+        ) {
+          field = candidateField;
+          break;
+        }
+      }
+    }
+    return field;
   }
 }

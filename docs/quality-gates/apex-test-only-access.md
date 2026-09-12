@@ -32,13 +32,13 @@ The command scans Apex in `force-app` and `integration-tests`. It fails when a c
 
 ## Approved `@TestVisible` categories
 
-| Category | Why it currently exists | Required direction |
-| --- | --- | --- |
-| Permission and setting override | A focused test cannot always change Salesforce permissions or Custom Metadata. | Replace the override with a replaceable access or settings provider when that class is introduced. |
-| Forced failure | A test must verify a known error path without causing an unrelated Salesforce failure. | Replace it with an evaluator, publisher, or logger that the test can supply. |
-| Transaction cache reset | Tests must isolate static object, field, and currency information between cases. | Keep only reset or state access that cannot be verified through the public API. |
-| Internal calculation access | Parser, formatter, comparison, and field-planning tests still call private methods. | Move the calculation to a focused helper, test that helper, and remove the original `@TestVisible`. |
-| Integration test support | Scratch-org examples expose state used only to verify scale and custom Apex Check behavior. | Keep it in `integration-tests` and remove access that no test still verifies. |
+| Category                        | Why it currently exists                                                                     | Required direction                                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Permission and setting override | A focused test cannot always change Salesforce permissions or Custom Metadata.              | Replace the override with a replaceable access or settings provider when that class is introduced.  |
+| Forced failure                  | A test must verify a known error path without causing an unrelated Salesforce failure.      | Replace it with an evaluator, publisher, or logger that the test can supply.                        |
+| Transaction cache reset         | Tests must isolate static object, field, and currency information between cases.            | Keep only reset or state access that cannot be verified through the public API.                     |
+| Internal calculation access     | Parser, formatter, comparison, and field-planning tests still call private methods.         | Move the calculation to a focused helper, test that helper, and remove the original `@TestVisible`. |
+| Integration test support        | Scratch-org examples expose state used only to verify scale and custom Apex Check behavior. | Keep it in `integration-tests` and remove access that no test still verifies.                       |
 
 When you remove an approved annotation, reduce its baseline count in the same change. Moving an
 annotation to a different file counts as new test-only access and fails the check.

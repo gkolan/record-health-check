@@ -158,18 +158,54 @@ private with sharing class RHCSubscriberDiagnosticIntegrationTest {
         diagnostics,
         'An explicitly assigned diagnostics viewer receives contract 2.0.'
       );
-      Assert.areEqual(2, diagnostics.diagnostics.size());
+      Assert.areEqual(
+        2,
+        diagnostics.diagnostics.size(),
+        'Both malformed-field fixtures must receive diagnostic envelopes.'
+      );
       for (
         RecordHealthCheckDiagnosticEnvelope envelope : diagnostics.diagnostics
       ) {
-        Assert.areEqual(false, envelope.pluginInvoked);
-        Assert.areEqual('FRAMEWORK', envelope.reasonOrigin);
-        Assert.areEqual('FIELD_PLAN_FAILED', envelope.terminalFailure);
-        Assert.areEqual('CHECK_RESOLVED', envelope.trace[0].stage);
-        Assert.areEqual('PLUGIN_RESOLVED', envelope.trace[1].stage);
-        Assert.areEqual('PLUGIN_CONSTRUCTED', envelope.trace[2].stage);
-        Assert.areEqual('CONFIG_VALIDATED', envelope.trace[3].stage);
-        Assert.areEqual('FIELD_PLAN_FAILED', envelope.trace[4].stage);
+        Assert.areEqual(
+          false,
+          envelope.pluginInvoked,
+          'Field planning must fail before plugin evaluation.'
+        );
+        Assert.areEqual(
+          'FRAMEWORK',
+          envelope.reasonOrigin,
+          'Field-planning failure must have framework provenance.'
+        );
+        Assert.areEqual(
+          'FIELD_PLAN_FAILED',
+          envelope.terminalFailure,
+          'The diagnostic must terminate at field-plan failure.'
+        );
+        Assert.areEqual(
+          'CHECK_RESOLVED',
+          envelope.trace[0].stage,
+          'Check resolution must be the first observed stage.'
+        );
+        Assert.areEqual(
+          'PLUGIN_RESOLVED',
+          envelope.trace[1].stage,
+          'Plugin resolution must follow Check resolution.'
+        );
+        Assert.areEqual(
+          'PLUGIN_CONSTRUCTED',
+          envelope.trace[2].stage,
+          'Plugin construction must follow plugin resolution.'
+        );
+        Assert.areEqual(
+          'CONFIG_VALIDATED',
+          envelope.trace[3].stage,
+          'Configuration validation must precede field planning.'
+        );
+        Assert.areEqual(
+          'FIELD_PLAN_FAILED',
+          envelope.trace[4].stage,
+          'Field-plan failure must be the final observed stage.'
+        );
         Assert.areEqual(
           5,
           envelope.trace.size(),
@@ -223,18 +259,38 @@ private with sharing class RHCSubscriberDiagnosticIntegrationTest {
         stages.add(entry.stage);
       }
 
-      Assert.areEqual(1, RHCSPPPlugin.definitionCount);
-      Assert.areEqual(0, RHCSPPPlugin.evaluateCount);
+      Assert.areEqual(
+        1,
+        RHCSPPPlugin.definitionCount,
+        'The inapplicable Check must define its plugin exactly once.'
+      );
+      Assert.areEqual(
+        0,
+        RHCSPPPlugin.evaluateCount,
+        'The inapplicable Check must not evaluate its plugin.'
+      );
       Assert.areEqual(
         RecordHealthCheckStatus.SKIPPED,
-        response.results[0].evaluation.status
+        response.results[0].evaluation.status,
+        'An inapplicable record must retain SKIPPED.'
       );
       Assert.isTrue(
-        stages.indexOf('PLUGIN_DEFINED') < stages.indexOf('RECORDS_LOADED')
+        stages.indexOf('PLUGIN_DEFINED') < stages.indexOf('RECORDS_LOADED'),
+        'Plugin definition must precede record loading.'
       );
-      Assert.isTrue(stages.contains('APPLICABILITY_FALSE'));
-      Assert.isFalse(stages.contains('PLUGIN_EXECUTED'));
-      Assert.areEqual(false, envelope.pluginInvoked);
+      Assert.isTrue(
+        stages.contains('APPLICABILITY_FALSE'),
+        'The trace must record failed applicability.'
+      );
+      Assert.isFalse(
+        stages.contains('PLUGIN_EXECUTED'),
+        'The trace must not invent plugin execution.'
+      );
+      Assert.areEqual(
+        false,
+        envelope.pluginInvoked,
+        'An inapplicable Check must not claim plugin invocation.'
+      );
     }
   }
 }

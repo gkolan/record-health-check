@@ -13,7 +13,7 @@ import USER_ID from "@salesforce/user/Id";
 import getCheckSetShellConfig from "@salesforce/apex/RecordHealthCheckController.getCheckSetShellConfig";
 import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.getCheckDefinitions";
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
-import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheck";
+import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheckJson";
 import completeRun from "@salesforce/apex/RecordHealthCheckController.completeRun";
 import {
   checkIdentity,
@@ -711,7 +711,9 @@ export default class RecordHealthCheck extends LightningElement {
         runId
       });
 
-      if (loadToken !== this._loadToken || !this._connected) return;
+      if (loadToken !== this._loadToken || !this._connected) {
+        return;
+      }
       if (!response || !Array.isArray(response.checks)) {
         throw this._clientDefinitionError(
           "The server returned an invalid health-check definition response."
@@ -876,7 +878,9 @@ export default class RecordHealthCheck extends LightningElement {
         );
       }
     } catch (err) {
-      if (loadToken !== this._loadToken || !this._connected) return;
+      if (loadToken !== this._loadToken || !this._connected) {
+        return;
+      }
       this.isLoading = false;
       const parsed = parseAuraError(err);
       const reasonCode =
@@ -955,7 +959,9 @@ export default class RecordHealthCheck extends LightningElement {
     let cancelled = false;
     // eslint-disable-next-line @lwc/lwc/no-async-operation
     const frameId = requestAnimationFrame(() => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       // LWS safely virtualizes this component-owned fallback timer.
       // eslint-disable-next-line @lwc/lwc/no-async-operation, @locker/locker/distorted-window-set-timeout
       timerId = setTimeout(runWhenIdle, 0);
@@ -963,7 +969,9 @@ export default class RecordHealthCheck extends LightningElement {
     return () => {
       cancelled = true;
       cancelAnimationFrame(frameId);
-      if (timerId !== null) clearTimeout(timerId);
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
     };
   }
 
@@ -1029,7 +1037,9 @@ export default class RecordHealthCheck extends LightningElement {
           hasInactive: response?.hasInactive === true
         };
       } catch (error) {
-        if (loadToken !== this._loadToken || !this._connected) return;
+        if (loadToken !== this._loadToken || !this._connected) {
+          return;
+        }
         const parsed = parseAuraError(error);
         this.isLoading = false;
         if (parsed.reasonCode === "NOT_AUTHORIZED") {
@@ -1188,7 +1198,9 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   async handleComponentErrorRetry() {
-    if (!this.componentErrorRetryable || this.isLoading) return;
+    if (!this.componentErrorRetryable || this.isLoading) {
+      return;
+    }
     await this._loadDefinitions();
   }
 
@@ -1311,7 +1323,9 @@ export default class RecordHealthCheck extends LightningElement {
     );
     const nextExpanded = current?.evidenceExpanded !== true;
     this.checks = this.checks.map((check) => {
-      if (checkIdentity(check) !== identity) return check;
+      if (checkIdentity(check) !== identity) {
+        return check;
+      }
       return {
         ...check,
         evidenceExpanded: nextExpanded,
@@ -1342,7 +1356,9 @@ export default class RecordHealthCheck extends LightningElement {
       (candidate) => checkIdentity(candidate) === identity
     );
     const evidence = check?.result?.evidence;
-    if (!evidence || evidence.version !== "1.0") return;
+    if (!evidence || evidence.version !== "1.0") {
+      return;
+    }
     const blob = new Blob([JSON.stringify(evidence)], {
       type: "application/json;charset=utf-8"
     });
@@ -1928,13 +1944,23 @@ export default class RecordHealthCheck extends LightningElement {
       const heading = `${index + 1}. ${c.label} · ${c.status}${reason}`;
       console.groupCollapsed(heading);
       console.log(`Status: ${c.status}`);
-      if (c.severity) console.log(`Severity: ${c.severity}`);
-      if (c.reasonCode) console.log(`Reason code: ${c.reasonCode}`);
-      if (c.evaluatorType) console.log(`Evaluator: ${c.evaluatorType}`);
-      if (c.durationMs != null) console.log(`Duration: ${c.durationMs}ms`);
+      if (c.severity) {
+        console.log(`Severity: ${c.severity}`);
+      }
+      if (c.reasonCode) {
+        console.log(`Reason code: ${c.reasonCode}`);
+      }
+      if (c.evaluatorType) {
+        console.log(`Evaluator: ${c.evaluatorType}`);
+      }
+      if (c.durationMs != null) {
+        console.log(`Duration: ${c.durationMs}ms`);
+      }
       if (c.incident != null) {
         const incident = safeIncidentReport(c.incident);
-        if (incident.summary) console.log(`Issue: ${incident.summary}`);
+        if (incident.summary) {
+          console.log(`Issue: ${incident.summary}`);
+        }
         const location = [
           incident.phase,
           incident.topFrameClass
@@ -1943,8 +1969,12 @@ export default class RecordHealthCheck extends LightningElement {
         ]
           .filter(Boolean)
           .join(" · ");
-        if (location) console.log(`Where: ${location}`);
-        if (incident.likelyCause) console.log(`Why: ${incident.likelyCause}`);
+        if (location) {
+          console.log(`Where: ${location}`);
+        }
+        if (incident.likelyCause) {
+          console.log(`Why: ${incident.likelyCause}`);
+        }
         for (const action of incident.remediationActions || []) {
           console.log(
             `Fix: ${[action.label, action.instruction].filter(Boolean).join(" — ")}`
@@ -1954,9 +1984,15 @@ export default class RecordHealthCheck extends LightningElement {
           console.log(`Verify: ${verification}`);
         }
       } else {
-        if (c.message) console.log(`Issue: ${c.message}`);
-        if (c.adminMessage) console.log(`Why: ${c.adminMessage}`);
-        if (c.fixInstructions) console.log(`Fix: ${c.fixInstructions}`);
+        if (c.message) {
+          console.log(`Issue: ${c.message}`);
+        }
+        if (c.adminMessage) {
+          console.log(`Why: ${c.adminMessage}`);
+        }
+        if (c.fixInstructions) {
+          console.log(`Fix: ${c.fixInstructions}`);
+        }
       }
 
       const needsTechnicalEvidence =

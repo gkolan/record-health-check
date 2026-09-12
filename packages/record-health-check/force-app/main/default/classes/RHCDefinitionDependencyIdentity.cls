@@ -72,6 +72,13 @@ public with sharing class RHCDefinitionDependencyIdentity {
         return qualifiedApiName;
       }
     }
+    return resolveUniqueFallback(prerequisite, qualifiedApiNames);
+  }
+
+  private static String resolveUniqueFallback(
+    String prerequisite,
+    Set<String> qualifiedApiNames
+  ) {
     String onlyMatch;
     Integer matchCount = 0;
     for (String qualifiedApiName : qualifiedApiNames) {

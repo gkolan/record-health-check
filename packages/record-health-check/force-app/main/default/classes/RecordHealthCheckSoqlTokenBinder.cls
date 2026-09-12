@@ -7,11 +7,10 @@ public with sharing class RecordHealthCheckSoqlTokenBinder {
   // ─── Token binding ──────────────────────────────────────────
 
   /**
-   * Replaces {!record.FieldName} tokens with the record's field values.
-   * Values are returned as a Map so Database.query can use them as bind vars.
-   * Since Apex dynamic SOQL only supports real bind variables in code scope
-   * we inject field values directly — but we use String.escapeSingleQuotes
-   * for string values and typed formatting for non-strings to prevent injection.
+   * Returns SOQL with record tokens replaced by typed literal values.
+   * String values are escaped, and whole-token quotes are adjusted for the
+   * resolved type. Embedded tokens remain inside their authored string literal.
+   * Substitution uses original token spans so inserted text is never rescanned.
    */
   public static String bindTokens(String soqlTemplate, SObject record) {
     if (String.isBlank(soqlTemplate)) {
@@ -38,29 +37,7 @@ public with sharing class RecordHealthCheckSoqlTokenBinder {
     for (RecordHealthCheckToken token : tokens) {
       String fieldPath = token.propertyPath;
 
-      Object fieldValue;
-      try {
-        fieldValue = RecordHealthCheckSoqlBindValueResolver.resolveFieldPath(
-          record,
-          fieldPath
-        );
-      } catch (System.SObjectException ex) {
-        throw new RecordHealthCheckEvaluatorException(
-          'MISSING_BIND_VALUE',
-          'Field "' + fieldPath + '" could not be resolved on the record.'
-        );
-      }
-      if (
-        (fieldValue == null ||
-        (fieldValue instanceof String &&
-        String.isBlank((String) fieldValue))) && token.fallbackValue != null
-      ) {
-        fieldValue = RecordHealthCheckSoqlBindValueResolver.coerceFallbackValue(
-          record,
-          fieldPath,
-          token.fallbackValue
-        );
-      }
+      Object fieldValue = resolveTokenValue(record, fieldPath, token);
 
       // A token can appear quoted ('{!record.Field}') AND unquoted ({!record.Field}) in the same
       // template, so resolve both quoting contexts independently. For most types the
@@ -79,82 +56,14 @@ public with sharing class RecordHealthCheckSoqlTokenBinder {
       );
 
       // Safe substitution — each Apex type maps to the correct SOQL literal format.
-      String unquotedReplacement;
-      String quotedReplacement;
-      String embeddedLiteralReplacement;
-      if (fieldValue == null) {
-        // Quoted context strips the outer quotes so the literal is a bare SOQL null.
-        unquotedReplacement = 'null';
-        quotedReplacement = 'null';
-        embeddedLiteralReplacement = '';
-      } else if (fieldValue instanceof Date) {
-        // SOQL Date literals: yyyy-MM-dd — no quotes required or allowed
-        unquotedReplacement = String.valueOf((Date) fieldValue);
-        quotedReplacement = unquotedReplacement;
-        embeddedLiteralReplacement = String.escapeSingleQuotes(
-          unquotedReplacement
-        );
-      } else if (fieldValue instanceof DateTime) {
-        // SOQL DateTime literals: yyyy-MM-ddTHH:mm:ssZ — no quotes required or allowed
-        unquotedReplacement = ((DateTime) fieldValue)
-          .formatGmt('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
-        quotedReplacement = unquotedReplacement;
-        embeddedLiteralReplacement = String.escapeSingleQuotes(
-          unquotedReplacement
-        );
-      } else if (fieldValue instanceof Time) {
-        // SOQL Time literals: HH:mm:ss.SSSz — no quotes required or allowed
-        unquotedReplacement = String.valueOf((Time) fieldValue);
-        quotedReplacement = unquotedReplacement;
-        embeddedLiteralReplacement = String.escapeSingleQuotes(
-          unquotedReplacement
-        );
-      } else if (fieldValue instanceof Boolean) {
-        // SOQL Boolean literals: true / false — no quotes
-        unquotedReplacement = String.valueOf((Boolean) fieldValue);
-        quotedReplacement = unquotedReplacement;
-        embeddedLiteralReplacement = String.escapeSingleQuotes(
-          unquotedReplacement
-        );
-      } else if (
-        fieldValue instanceof Integer ||
-        fieldValue instanceof Long ||
-        fieldValue instanceof Double ||
-        fieldValue instanceof Decimal
-      ) {
-        // SOQL numeric literals — no quotes; Decimal handles Currency and Percent fields
-        unquotedReplacement = String.valueOf(fieldValue);
-        quotedReplacement = unquotedReplacement;
-        embeddedLiteralReplacement = escapeSoqlLiteral(unquotedReplacement);
-      } else {
-        // String, Id, Picklist, Text Area, Auto Number, Encrypted Text, etc.
-        String rawStr = String.valueOf(fieldValue);
-        // Default: quoted string with single-quote escaping prevents injection.
-        // Multi-select picklist in QUOTED context keeps the raw 'A;B;C' value
-        // suitable for exact-match (=) or INCLUDES ('A;B') AND-semantics queries.
-        String escapedRaw = escapeSoqlLiteral(rawStr);
-        String quotedStr = '\'' + escapedRaw + '\'';
-        quotedReplacement = quotedStr;
-        embeddedLiteralReplacement = escapedRaw;
-        if (
-          RecordHealthCheckSoqlBindValueResolver.isMultiSelectPicklist(
-            record,
-            fieldPath
-          ) && rawStr.contains(';')
-        ) {
-          // Multi-select picklist in UNQUOTED context
-          // Template: WHERE Regions__c INCLUDES {!record.Regions__c}
-          // Value: 'North;South'
-          // Result: WHERE Regions__c INCLUDES ('North', 'South')
-          // Each semicolon-delimited value is individually quoted and comma-joined.
-          // An all-semicolon value (';' or ';;') has no segments after filtering, which
-          // would produce '()' — invalid SOQL (INCLUDES ()). Empty quotedVals instead
-          // raise MISSING_BIND_VALUE, same as an unresolved token.
-          unquotedReplacement = buildMultiSelectIncludesClause(rawStr);
-        } else {
-          unquotedReplacement = quotedStr;
-        }
-      }
+      List<String> replacements = literalReplacements(
+        record,
+        fieldPath,
+        fieldValue
+      );
+      String unquotedReplacement = replacements[0];
+      String quotedReplacement = replacements[1];
+      String embeddedLiteralReplacement = replacements[2];
 
       // Build from original matcher spans so inserted field values are never scanned
       // for later {!record.token} text. Quoted tokens consume their outer quotes because
@@ -178,6 +87,129 @@ public with sharing class RecordHealthCheckSoqlTokenBinder {
     }
 
     return bound + soqlTemplate.substring(lastEnd);
+  }
+
+  /** Resolves the original field and applies only an explicitly authored fallback. */
+  private static Object resolveTokenValue(
+    SObject record,
+    String fieldPath,
+    RecordHealthCheckToken token
+  ) {
+    Object fieldValue;
+    try {
+      fieldValue = RecordHealthCheckSoqlBindValueResolver.resolveFieldPath(
+        record,
+        fieldPath
+      );
+    } catch (System.SObjectException ex) {
+      throw new RecordHealthCheckEvaluatorException(
+        'MISSING_BIND_VALUE',
+        'Field "' + fieldPath + '" could not be resolved on the record.'
+      );
+    }
+    if (
+      (fieldValue == null ||
+      (fieldValue instanceof String && String.isBlank((String) fieldValue))) &&
+      token.fallbackValue != null
+    ) {
+      fieldValue = RecordHealthCheckSoqlBindValueResolver.coerceFallbackValue(
+        record,
+        fieldPath,
+        token.fallbackValue
+      );
+    }
+
+    return fieldValue;
+  }
+
+  /** Returns unquoted, whole-token quoted, and embedded-string literal forms. */
+  private static List<String> literalReplacements(
+    SObject record,
+    String fieldPath,
+    Object fieldValue
+  ) {
+    String unquotedReplacement;
+    String quotedReplacement;
+    String embeddedLiteralReplacement;
+    if (fieldValue == null) {
+      // Quoted context strips the outer quotes so the literal is a bare SOQL null.
+      unquotedReplacement = 'null';
+      quotedReplacement = 'null';
+      embeddedLiteralReplacement = '';
+    } else if (fieldValue instanceof Date) {
+      // SOQL Date literals: yyyy-MM-dd — no quotes required or allowed
+      unquotedReplacement = String.valueOf((Date) fieldValue);
+      quotedReplacement = unquotedReplacement;
+      embeddedLiteralReplacement = String.escapeSingleQuotes(
+        unquotedReplacement
+      );
+    } else if (fieldValue instanceof DateTime) {
+      // SOQL DateTime literals: yyyy-MM-ddTHH:mm:ssZ — no quotes required or allowed
+      unquotedReplacement = ((DateTime) fieldValue)
+        .formatGmt('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
+      quotedReplacement = unquotedReplacement;
+      embeddedLiteralReplacement = String.escapeSingleQuotes(
+        unquotedReplacement
+      );
+    } else if (fieldValue instanceof Time) {
+      // SOQL Time literals: HH:mm:ss.SSSz — no quotes required or allowed
+      unquotedReplacement = String.valueOf((Time) fieldValue);
+      quotedReplacement = unquotedReplacement;
+      embeddedLiteralReplacement = String.escapeSingleQuotes(
+        unquotedReplacement
+      );
+    } else if (fieldValue instanceof Boolean) {
+      // SOQL Boolean literals: true / false — no quotes
+      unquotedReplacement = String.valueOf((Boolean) fieldValue);
+      quotedReplacement = unquotedReplacement;
+      embeddedLiteralReplacement = String.escapeSingleQuotes(
+        unquotedReplacement
+      );
+    } else if (
+      fieldValue instanceof Integer ||
+      fieldValue instanceof Long ||
+      fieldValue instanceof Double ||
+      fieldValue instanceof Decimal
+    ) {
+      // SOQL numeric literals — no quotes; Decimal handles Currency and Percent fields
+      unquotedReplacement = String.valueOf(fieldValue);
+      quotedReplacement = unquotedReplacement;
+      embeddedLiteralReplacement = escapeSoqlLiteral(unquotedReplacement);
+    } else {
+      // String, Id, Picklist, Text Area, Auto Number, Encrypted Text, etc.
+      String rawStr = String.valueOf(fieldValue);
+      // Default: quoted string with single-quote escaping prevents injection.
+      // Multi-select picklist in QUOTED context keeps the raw 'A;B;C' value
+      // suitable for exact-match (=) or INCLUDES ('A;B') AND-semantics queries.
+      String escapedRaw = escapeSoqlLiteral(rawStr);
+      String quotedStr = '\'' + escapedRaw + '\'';
+      quotedReplacement = quotedStr;
+      embeddedLiteralReplacement = escapedRaw;
+      if (
+        RecordHealthCheckSoqlBindValueResolver.isMultiSelectPicklist(
+          record,
+          fieldPath
+        ) && rawStr.contains(';')
+      ) {
+        // Multi-select picklist in UNQUOTED context
+        // Template: WHERE Regions__c INCLUDES {!record.Regions__c}
+        // Value: 'North;South'
+        // Result: WHERE Regions__c INCLUDES ('North', 'South')
+        // Each semicolon-delimited value is individually quoted and comma-joined.
+        // An all-semicolon value (';' or ';;') has no segments after filtering, which
+        // would produce '()' — invalid SOQL (INCLUDES ()). Empty quotedVals instead
+        // raise MISSING_BIND_VALUE, same as an unresolved token.
+        unquotedReplacement = buildMultiSelectIncludesClause(rawStr);
+      } else {
+        unquotedReplacement = quotedStr;
+      }
+    }
+
+    return new List<String>{
+      unquotedReplacement,
+      quotedReplacement,
+      embeddedLiteralReplacement
+    };
   }
 
   public static String escapeSoqlLiteral(String value) {
@@ -221,7 +253,7 @@ public with sharing class RecordHealthCheckSoqlTokenBinder {
 
   /**
    * Builds the parenthesized INCLUDES operand for an unquoted multi-select token.
-   * Test-visible so semicolon-only values can be verified without a live field.
+   * The public helper lets semicolon-only values be verified without a live field.
    */
   public static String buildMultiSelectIncludesClause(String rawStr) {
     List<String> quotedVals = new List<String>();

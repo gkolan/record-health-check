@@ -99,8 +99,16 @@ private class RecordHealthCheckInlineLinkParserTest {
     );
 
     Assert.areEqual(1, result.links.size(), 'One authored link is found.');
-    Assert.areEqual('Say "hello" and \\', result.links[0].labelTemplate);
-    Assert.areEqual('/ab', result.links[0].hrefTemplate);
+    Assert.areEqual(
+      'Say "hello" and \\',
+      result.links[0].labelTemplate,
+      'The scanner must decode escaped quotes and backslashes in link labels.'
+    );
+    Assert.areEqual(
+      '/ab',
+      result.links[0].hrefTemplate,
+      'The scanner must retain the authored destination.'
+    );
     Assert.areEqual(
       'Before Say "hello" and \\ after',
       RecordHealthCheckInlineLinkParser.flattenToLabels(template, result.links),
@@ -111,7 +119,8 @@ private class RecordHealthCheckInlineLinkParserTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         template,
         new RecordHealthCheckMergeContext()
-      )
+      ),
+      'Plain display resolution must preserve the decoded link label and surrounding text.'
     );
   }
 
@@ -127,8 +136,16 @@ private class RecordHealthCheckInlineLinkParserTest {
       RecordHealthCheckTokenSurfaces.FAILURE_MESSAGE
     );
 
-    Assert.areEqual(1, issues.size());
-    Assert.areEqual('INLINE_LINK_LIMIT_EXCEEDED', issues[0].reasonCode);
+    Assert.areEqual(
+      1,
+      issues.size(),
+      'Exceeding the inline-link cap must produce one primary issue.'
+    );
+    Assert.areEqual(
+      'INLINE_LINK_LIMIT_EXCEEDED',
+      issues[0].reasonCode,
+      'The link cap must retain INLINE_LINK_LIMIT_EXCEEDED.'
+    );
   }
 
   @IsTest
@@ -212,7 +229,8 @@ private class RecordHealthCheckInlineLinkParserTest {
       'https://127.0.0.1:443/path',
       RecordHealthCheckInlineUrlPolicy.sanitizeComplete(
         'https://127.0.0.1:443/path'
-      )
+      ),
+      'An HTTPS IPv4 destination on port 443 must remain valid.'
     );
     Assert.isNull(
       RecordHealthCheckInlineUrlPolicy.sanitizeComplete('/' + 'x'.repeat(2000)),
@@ -244,6 +262,47 @@ private class RecordHealthCheckInlineLinkParserTest {
       resolved,
       'Resolved field data must remain literal text.'
     );
+  }
+
+  @IsTest
+  static void missingFinalBraceNeverProducesALink() {
+    for (
+      String source : new List<String>{
+        '{!link label="Account" href="/lightning"',
+        '{!link href="/lightning" label="Account"',
+        '{!link label="{!record.Name}" href="/lightning"',
+        '{!link label="Account" href="/lightning" ',
+        'Before {!link label="Account" href="/lightning"'
+      }
+    ) {
+      RecordHealthCheckInlineLinkParser.Result result = RecordHealthCheckInlineLinkParser.scan(
+        source
+      );
+      Assert.isTrue(
+        result.links.isEmpty(),
+        'An unclosed construct must not produce a valid link: ' + source
+      );
+      Assert.areEqual(
+        1,
+        result.issues.size(),
+        'An unclosed link must have one primary grammar issue.'
+      );
+      Assert.areEqual(
+        'INLINE_LINK_MALFORMED',
+        result.issues[0].reasonCode,
+        'The missing final brace must be a structural error.'
+      );
+      Assert.areEqual(
+        source.indexOf('{!link'),
+        result.issues[0].startIndex,
+        'The error must locate the unclosed link.'
+      );
+      Assert.areEqual(
+        source.length(),
+        result.issues[0].endIndex,
+        'The error must extend to the end of the source.'
+      );
+    }
   }
 
   private static void assertInvalid(String template, String expectedCode) {
@@ -280,6 +339,45 @@ private class RecordHealthCheckInlineLinkParserTest {
     Assert.areEqual(expectedCode, issues[0].reasonCode, 'Stable issue code.');
     Assert.isNotNull(issues[0].startIndex, 'Issue has a source start offset.');
     Assert.isNotNull(issues[0].endIndex, 'Issue has a source end offset.');
-    Assert.areEqual(expectedAttribute, issues[0].attribute);
+    Assert.areEqual(
+      expectedAttribute,
+      issues[0].attribute,
+      'The grammar issue must identify the offending attribute.'
+    );
+  }
+
+  @IsTest
+  static void numericHostOverflowIsRejectedWithoutThrowing() {
+    for (
+      String host : new List<String>{
+        '2147483648.1.1.1',
+        '1.1.1.2147483648',
+        '9'.repeat(63) + '.1.1.1'
+      }
+    ) {
+      Assert.isNull(
+        RecordHealthCheckInlineUrlPolicy.sanitizeComplete(
+          'https://' + host + '/path'
+        ),
+        'An oversized numeric host segment must be rejected without an exception: ' +
+        host
+      );
+    }
+  }
+
+  @IsTest
+  static void authoredNumericHostOverflowIsAValidationIssue() {
+    RecordHealthCheckTokenIssue issue = RecordHealthCheckInlineUrlPolicy.validateAuthored(
+      'https://2147483648.1.1.1/path'
+    );
+    Assert.isNotNull(
+      issue,
+      'An overflowing numeric host must produce an authored-URL issue.'
+    );
+    Assert.areEqual(
+      'INLINE_LINK_UNSAFE_URL',
+      issue.reasonCode,
+      'Numeric host overflow must retain the unsafe-URL reason.'
+    );
   }
 }

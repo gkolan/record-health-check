@@ -5,14 +5,14 @@ select a released package version, upgrade an installation, or remove the packag
 
 ## Choose your task
 
-| What you need to do | Guide |
-| --- | --- |
-| Install and verify the package in an org | [Install and verify in a sandbox](./install-in-a-sandbox.md) |
-| Choose a released or current-source scratch-org demo | [Install the demo in a scratch org](./install-demo-in-a-scratch-org.md) |
-| Inspect and verify the examples included with the package | [Explore the installed examples](./explore-installed-examples.md) |
-| Choose a released package version | [Choose a package version](./choose-a-package-version.md) |
-| Upgrade an existing installation | [Upgrade and revalidate](./upgrade.md) |
-| Remove the package | [Uninstall and rollback](./uninstall.md) |
+| What you need to do                                       | Guide                                                                   |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Install and verify the package in an org                  | [Install and verify in a sandbox](./install-in-a-sandbox.md)            |
+| Choose a released or current-source scratch-org demo      | [Install the demo in a scratch org](./install-demo-in-a-scratch-org.md) |
+| Inspect and verify the examples included with the package | [Explore the installed examples](./explore-installed-examples.md)       |
+| Choose a released package version                         | [Choose a package version](./choose-a-package-version.md)               |
+| Upgrade an existing installation                          | [Upgrade and revalidate](./upgrade.md)                                  |
+| Remove the package                                        | [Uninstall and rollback](./uninstall.md)                                |
 
 For a first installation, use a sandbox and begin with
 [Install and verify in a sandbox](./install-in-a-sandbox.md).

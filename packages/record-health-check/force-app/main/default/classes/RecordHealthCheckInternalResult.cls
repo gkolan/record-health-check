@@ -33,6 +33,8 @@ public class RecordHealthCheckInternalResult {
   public transient RecordHealthCheckDisplayContent displayContent;
   /** Detached optional presentation returned by an Apex display plugin. */
   public transient RecordHealthCheckDisplayOverride presentationOverride;
+  /** Original plain strings retained only for optional-presentation fallback. */
+  public transient Map<String, String> presentationFallbacks;
   /** Server-only typed evidence awaiting authorized card projection. */
   public transient RecordHealthCheckEvidence evidence;
   /** Validated card-only evidence projection. */
@@ -98,6 +100,8 @@ public class RecordHealthCheckInternalResult {
   public transient String priorReasonCode;
   // Server-only observation of whether plugin evaluate(scope) was entered.
   public transient Boolean pluginInvoked;
+  // Planning failures have no safe field plan for authored display templates.
+  public transient Boolean displayPlanningFailed;
   // Server-only structured detail for a missing Found/Expected contract violation.
   public transient RecordHealthCheckOutcomeValidator.Violation pluginValueViolation;
   // Server-only observed lifecycle; projected only by diagnostic contract 2.0.

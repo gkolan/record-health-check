@@ -334,13 +334,13 @@ Rules that apply to every Check:
 
 ## Authoritative product docs
 
-| Topic | Page |
-| --- | --- |
-| Token namespaces, fallbacks, SOQL rules | [Merge syntax](../../reference/merge-syntax/README.md) |
-| Every Check field | [Check fields](../../reference/custom-metadata/check-fields.md) |
-| Every Check Set field | [Check Set fields](../../reference/custom-metadata/check-set-fields.md) |
-| Action URL patterns | [Configure action links](../add-fix-link.md) |
-| Result meanings | [Statuses and labels](../../reference/results/statuses-and-labels.md) |
+| Topic                                   | Page                                                                    |
+| --------------------------------------- | ----------------------------------------------------------------------- |
+| Token namespaces, fallbacks, SOQL rules | [Merge syntax](../../reference/merge-syntax/README.md)                  |
+| Every Check field                       | [Check fields](../../reference/custom-metadata/check-fields.md)         |
+| Every Check Set field                   | [Check Set fields](../../reference/custom-metadata/check-set-fields.md) |
+| Action URL patterns                     | [Configure action links](../add-fix-link.md)                            |
+| Result meanings                         | [Statuses and labels](../../reference/results/statuses-and-labels.md)   |
 
 ## Related
 

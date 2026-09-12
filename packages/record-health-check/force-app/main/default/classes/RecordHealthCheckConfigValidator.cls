@@ -199,6 +199,14 @@ public with sharing class RecordHealthCheckConfigValidator {
         null
       );
     }
+    return configureAndCachePlugin(validation, check, cacheKey);
+  }
+
+  private static ApexPluginValidation configureAndCachePlugin(
+    ApexPluginValidation validation,
+    Record_Health_Check__mdt check,
+    String cacheKey
+  ) {
     if (check != null) {
       try {
         validation.configuration = RecordHealthCheckApexPluginResolver.configuration(

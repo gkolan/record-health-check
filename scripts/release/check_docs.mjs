@@ -651,16 +651,19 @@ for (const file of markdownFiles) {
     const userResultSection = markdown
       .split(/^## What the user sees\s*$/m)[1]
       ?.split(/^## /m)[0];
+    const resultLabels = (userResultSection ?? "")
+      .split(/\r?\n/)
+      .map((row) => row.match(/^\|\s*(.*?)\s*\|/)?.[1]);
     for (const requiredRow of [
-      "| **`PASS`** |",
-      "| **`FAIL`** |",
-      "| **`SKIPPED`** |",
-      "| **Found** |",
-      "| **Expected** |"
+      "**`PASS`**",
+      "**`FAIL`**",
+      "**`SKIPPED`**",
+      "**Found**",
+      "**Expected**"
     ]) {
-      if (!userResultSection?.includes(requiredRow)) {
+      if (!resultLabels.includes(requiredRow)) {
         failures.push(
-          `${relativeFile}: What the user sees must include ${requiredRow.replaceAll("|", "").trim()}`
+          `${relativeFile}: What the user sees must include ${requiredRow}`
         );
       }
     }

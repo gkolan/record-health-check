@@ -13,14 +13,45 @@ private class RecordHealthCheckPreviewServiceTest {
         )
       );
 
-      Assert.areEqual('1.0', response.version);
-      Assert.areEqual('VALIDATE_ONLY', response.mode);
-      Assert.areEqual('VALID', response.validationStatus);
-      Assert.areEqual(0, response.results.size());
-      Assert.areEqual('NOT_REQUESTED', response.readinessReceipt.receiptStatus);
-      Assert.areEqual('DRAFT', response.readinessState);
-      Assert.areEqual(false, response.hasCurrentLiveVerification);
-      Assert.isNotNull(response.definitionFingerprint);
+      Assert.areEqual(
+        '1.0',
+        response.version,
+        'Preview must retain response contract version 1.0.'
+      );
+      Assert.areEqual(
+        'VALIDATE_ONLY',
+        response.mode,
+        'The default preview mode must be VALIDATE_ONLY.'
+      );
+      Assert.areEqual(
+        'VALID',
+        response.validationStatus,
+        'A valid formula draft must validate successfully.'
+      );
+      Assert.areEqual(
+        0,
+        response.results.size(),
+        'Validation alone must not produce evaluation results.'
+      );
+      Assert.areEqual(
+        'NOT_REQUESTED',
+        response.readinessReceipt.receiptStatus,
+        'Validation alone must not request a readiness receipt.'
+      );
+      Assert.areEqual(
+        'DRAFT',
+        response.readinessState,
+        'Validation alone must leave readiness in DRAFT.'
+      );
+      Assert.areEqual(
+        false,
+        response.hasCurrentLiveVerification,
+        'Validation alone must not claim live verification.'
+      );
+      Assert.isNotNull(
+        response.definitionFingerprint,
+        'Validation must return a definition fingerprint.'
+      );
     } finally {
       clearAuthorization();
     }
@@ -43,7 +74,10 @@ private class RecordHealthCheckPreviewServiceTest {
         );
         Assert.fail('A new draft must not supply a server-owned identity.');
       } catch (RecordHealthCheckPreviewService.PreviewException expected) {
-        Assert.isTrue(expected.getMessage().contains('identity'));
+        Assert.isTrue(
+          expected.getMessage().contains('identity'),
+          'A forged draft identity must be rejected as an identity error.'
+        );
       }
     } finally {
       clearAuthorization();
@@ -71,7 +105,10 @@ private class RecordHealthCheckPreviewServiceTest {
         );
         Assert.fail('A caller must not forge the owning Check Set.');
       } catch (RecordHealthCheckPreviewService.PreviewException expected) {
-        Assert.isTrue(expected.getMessage().contains('parent'));
+        Assert.isTrue(
+          expected.getMessage().contains('parent'),
+          'A mismatched owner must be rejected as a parent error.'
+        );
       }
     } finally {
       clearAuthorization();
@@ -97,9 +134,21 @@ private class RecordHealthCheckPreviewServiceTest {
         )
       );
 
-      Assert.areEqual('INCOMPLETE', response.validationStatus);
-      Assert.areEqual('INCOMPLETE', response.capabilities.get('pluginSchema'));
-      Assert.areEqual(0, response.results.size());
+      Assert.areEqual(
+        'INCOMPLETE',
+        response.validationStatus,
+        'Validation without loading a plugin must remain incomplete.'
+      );
+      Assert.areEqual(
+        'INCOMPLETE',
+        response.capabilities.get('pluginSchema'),
+        'The unloaded plugin schema must remain incomplete.'
+      );
+      Assert.areEqual(
+        0,
+        response.results.size(),
+        'Plugin validation alone must not produce evaluation results.'
+      );
     } finally {
       clearAuthorization();
     }
@@ -123,11 +172,31 @@ private class RecordHealthCheckPreviewServiceTest {
       );
 
       RecordHealthCheckPreviewFinding finding = response.findings[0];
-      Assert.areEqual('INVALID_FORMULA_LITERAL', finding.code);
-      Assert.areEqual('PassConditionFormula__c', finding.configurationField);
-      Assert.areEqual('[redacted literal]', finding.offendingToken);
-      Assert.areEqual(10, finding.startOffset);
-      Assert.areEqual(formula.length(), finding.endOffset);
+      Assert.areEqual(
+        'INVALID_FORMULA_LITERAL',
+        finding.code,
+        'An unterminated literal must retain its specific finding code.'
+      );
+      Assert.areEqual(
+        'PassConditionFormula__c',
+        finding.configurationField,
+        'The literal finding must identify the formula configuration field.'
+      );
+      Assert.areEqual(
+        '[redacted literal]',
+        finding.offendingToken,
+        'The literal finding must redact source content.'
+      );
+      Assert.areEqual(
+        10,
+        finding.startOffset,
+        'The literal finding must begin at the opening quote.'
+      );
+      Assert.areEqual(
+        formula.length(),
+        finding.endOffset,
+        'The literal finding must end at the formula boundary.'
+      );
     } finally {
       clearAuthorization();
     }
@@ -148,7 +217,10 @@ private class RecordHealthCheckPreviewServiceTest {
         );
         Assert.fail('A non-administrator must not preview detached metadata.');
       } catch (RecordHealthCheckPreviewService.PreviewException expected) {
-        Assert.isTrue(expected.getMessage().contains('administrator'));
+        Assert.isTrue(
+          expected.getMessage().contains('administrator'),
+          'Unauthorized preview must explain its administrator requirement.'
+        );
       }
     } finally {
       clearAuthorization();
@@ -212,16 +284,56 @@ private class RecordHealthCheckPreviewServiceTest {
         response.validationStatus,
         'A plugin without a reliable revision remains explicitly incomplete.'
       );
-      Assert.areEqual(4, response.pluginParameters.size());
-      Assert.areEqual('maxPreviewRecords', response.pluginParameters[0].key);
-      Assert.areEqual(7, response.pluginParameters[0].currentValue);
-      Assert.areEqual(1, response.pluginParameters[0].minValue);
-      Assert.areEqual(50, response.pluginParameters[0].maxValue);
-      Assert.areEqual('displayFormat', response.pluginParameters[1].key);
-      Assert.areEqual(4, response.pluginParameters[1].choices.size());
-      Assert.areEqual('previewService', response.pluginParameters[2].key);
-      Assert.areEqual(255, response.pluginParameters[2].maxLength);
-      Assert.areEqual(false, response.pluginParameters[3].defaultValue);
+      Assert.areEqual(
+        4,
+        response.pluginParameters.size(),
+        'Schema discovery must expose all four parameter shapes.'
+      );
+      Assert.areEqual(
+        'maxPreviewRecords',
+        response.pluginParameters[0].key,
+        'The numeric parameter must retain its key.'
+      );
+      Assert.areEqual(
+        7,
+        response.pluginParameters[0].currentValue,
+        'The numeric parameter must retain its configured value.'
+      );
+      Assert.areEqual(
+        1,
+        response.pluginParameters[0].minValue,
+        'The numeric parameter must retain its minimum.'
+      );
+      Assert.areEqual(
+        50,
+        response.pluginParameters[0].maxValue,
+        'The numeric parameter must retain its maximum.'
+      );
+      Assert.areEqual(
+        'displayFormat',
+        response.pluginParameters[1].key,
+        'The enum parameter must retain its key.'
+      );
+      Assert.areEqual(
+        4,
+        response.pluginParameters[1].choices.size(),
+        'The enum parameter must retain all four choices.'
+      );
+      Assert.areEqual(
+        'previewService',
+        response.pluginParameters[2].key,
+        'The text parameter must retain its key.'
+      );
+      Assert.areEqual(
+        255,
+        response.pluginParameters[2].maxLength,
+        'The text parameter must retain its length bound.'
+      );
+      Assert.areEqual(
+        false,
+        response.pluginParameters[3].defaultValue,
+        'The Boolean parameter must retain its false default.'
+      );
     } finally {
       RecordHealthCheckDefTestPlugin.mode = null;
       clearAuthorization();
@@ -293,7 +405,10 @@ private class RecordHealthCheckPreviewServiceTest {
       RecordHealthCheckPreviewService.preview(request);
       Assert.fail('The invalid detached preview must be rejected.');
     } catch (RecordHealthCheckPreviewService.PreviewException expected) {
-      Assert.isTrue(expected.getMessage().contains(expectedText));
+      Assert.isTrue(
+        expected.getMessage().contains(expectedText),
+        'The preview rejection must contain the expected error detail.'
+      );
     }
   }
 

@@ -10,12 +10,20 @@ private class RecordHealthCheckDisplayTextTest {
       .paragraphBreak()
       .text('Done');
 
-    Assert.isFalse(content.isEmpty());
+    Assert.isFalse(
+      content.isEmpty(),
+      'Text, a link and breaks must produce nonempty display content.'
+    );
     Assert.areEqual(
       'Step 1 - Approval\nStep 2\n\nDone',
-      plain(content.copyNodes())
+      plain(content.copyNodes()),
+      'The plain projection must preserve text, link labels and both break types in order.'
     );
-    Assert.areEqual('link', content.copyNodes()[1].kind);
+    Assert.areEqual(
+      'link',
+      content.copyNodes()[1].kind,
+      'The safe destination must retain an independent link node.'
+    );
   }
 
   @IsTest
@@ -26,8 +34,16 @@ private class RecordHealthCheckDisplayTextTest {
       .text(' A\r\nB\rC')
       .text(' D');
 
-    Assert.areEqual(' A\nB\nC D', plain(content.copyNodes()));
-    Assert.areEqual(5, content.copyNodes().size());
+    Assert.areEqual(
+      ' A\nB\nC D',
+      plain(content.copyNodes()),
+      'CRLF and CR must normalize to LF without trimming or losing adjacent text.'
+    );
+    Assert.areEqual(
+      5,
+      content.copyNodes().size(),
+      'Adjacent text must coalesce while normalized breaks remain distinct nodes.'
+    );
   }
 
   @IsTest
@@ -40,7 +56,8 @@ private class RecordHealthCheckDisplayTextTest {
 
     Assert.areEqual(
       'Unsafe Missing{!link label="data" href="/still-data"}',
-      plain(content.copyNodes())
+      plain(content.copyNodes()),
+      'Unsafe or absent destinations must preserve literal labels without expanding token-like text.'
     );
     Assert.isTrue(
       content.copyNodes().isEmpty() || content.copyNodes()[0].kind != 'link',
@@ -96,7 +113,11 @@ private class RecordHealthCheckDisplayTextTest {
       .recordLinks(new List<SObject>{ first, unsaved }, Account.Name, ' | ')
       .recordLinks(null, Account.Name);
 
-    Assert.areEqual('First | Unsaved', plain(content.copyNodes()));
+    Assert.areEqual(
+      'First | Unsaved',
+      plain(content.copyNodes()),
+      'Custom separators must remain readable between saved and unsaved record labels.'
+    );
     Assert.areEqual(
       1,
       linkCount(content.copyNodes()),
@@ -121,9 +142,18 @@ private class RecordHealthCheckDisplayTextTest {
     RecordHealthCheckDisplayText mismatchedField = new RecordHealthCheckDisplayText()
       .recordLinks(new List<SObject>{ blankAccount }, User.Name);
 
-    Assert.isTrue(skippedBlank.isEmpty());
-    Assert.isFalse(missingField.valid);
-    Assert.isFalse(mismatchedField.valid);
+    Assert.isTrue(
+      skippedBlank.isEmpty(),
+      'Null records and records without labels must leave the builder empty.'
+    );
+    Assert.isFalse(
+      missingField.valid,
+      'A missing label field must invalidate the record-link contract.'
+    );
+    Assert.isFalse(
+      mismatchedField.valid,
+      'A label field from another object must invalidate the record-link contract.'
+    );
   }
 
   @IsTest
@@ -134,8 +164,15 @@ private class RecordHealthCheckDisplayTextTest {
       .withFound(found)
       .withExpected(null);
 
-    Assert.areEqual(found, value.found);
-    Assert.isNull(value.expected);
+    Assert.areEqual(
+      found,
+      value.found,
+      'The chainable Found override must retain the supplied builder.'
+    );
+    Assert.isNull(
+      value.expected,
+      'A null Expected override must remain absent.'
+    );
   }
 
   @IsTest
@@ -154,14 +191,34 @@ private class RecordHealthCheckDisplayTextTest {
       context
     );
 
-    Assert.areEqual(2, nodes.size());
-    Assert.areEqual('text', nodes[0].kind);
-    Assert.areEqual('link', nodes[1].kind);
-    Assert.areEqual('A &/ Name', nodes[1].text);
-    Assert.isTrue(nodes[1].href.contains('A%20%26%2F%20Name'));
+    Assert.areEqual(
+      2,
+      nodes.size(),
+      'A literal prefix and inline metadata link must produce exactly two nodes.'
+    );
+    Assert.areEqual(
+      'text',
+      nodes[0].kind,
+      'The metadata prefix must remain a text node.'
+    );
+    Assert.areEqual(
+      'link',
+      nodes[1].kind,
+      'The valid inline destination must remain a link node.'
+    );
+    Assert.areEqual(
+      'A &/ Name',
+      nodes[1].text,
+      'The link label must preserve the original unencoded record name.'
+    );
+    Assert.isTrue(
+      nodes[1].href.contains('A%20%26%2F%20Name'),
+      'The record name in a path component must encode spaces, ampersand and slash.'
+    );
     Assert.areEqual(
       'Review A &/ Name',
-      RecordHealthCheckDisplayComposer.plain(nodes)
+      RecordHealthCheckDisplayComposer.plain(nodes),
+      'The plain projection must retain the readable prefix and unencoded link label.'
     );
   }
 
@@ -232,11 +289,31 @@ private class RecordHealthCheckDisplayTextTest {
       RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
     );
 
-    Assert.areEqual(1, item.display.displayContent.version);
-    Assert.areEqual('link', item.display.displayContent.message[1].kind);
-    Assert.areEqual('link', item.display.displayContent.found[1].kind);
-    Assert.areEqual('Review guide', item.display.renderedMessage);
-    Assert.areEqual('Found Acme', item.display.foundDisplayValue);
+    Assert.areEqual(
+      1,
+      item.display.displayContent.version,
+      'The card content must retain numeric display schema version 1.'
+    );
+    Assert.areEqual(
+      'link',
+      item.display.displayContent.message[1].kind,
+      'The configured message link must survive card adaptation.'
+    );
+    Assert.areEqual(
+      'link',
+      item.display.displayContent.found[1].kind,
+      'The configured Found link must survive card adaptation.'
+    );
+    Assert.areEqual(
+      'Review guide',
+      item.display.renderedMessage,
+      'The card must retain the plain message projection alongside structured links.'
+    );
+    Assert.areEqual(
+      'Found Acme',
+      item.display.foundDisplayValue,
+      'The card must retain the plain Found projection alongside structured links.'
+    );
 
     RecordHealthCheckInternalResult plain = new RecordHealthCheckInternalResult();
     plain.status = RecordHealthCheckStatus.FAIL;

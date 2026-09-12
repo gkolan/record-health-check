@@ -111,13 +111,13 @@ implements the packaged interface). Resolve every dependency identified in
 
 ## Step 5: Confirm the org is clean
 
-| Check | Expected result |
-| --- | --- |
-| Open a record page that previously had the card | No Record Health Check component appears, and Lightning App Builder no longer offers it |
+| Check                                                     | Expected result                                                                                                                                                                                    |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Open a record page that previously had the card           | No Record Health Check component appears, and Lightning App Builder no longer offers it                                                                                                            |
 | Search Custom Metadata Types and **Setup → Apex Classes** | No **Record Health Check Set** (`Record_Health_Check_Set__mdt`), **Record Health Check** (`Record_Health_Check__mdt`), or `RecordHealthCheck*` Apex classes remain (unless intentionally retained) |
-| Review Permission Sets | The installed packaged permission sets listed in [Before you start](#before-you-start) no longer exist after uninstall |
-| Review scheduled jobs | No job references `RecordHealthCheckScheduled` |
-| Review Flow, Apex, and integrations | No automation still references the removed Platform Events or Apex classes |
+| Review Permission Sets                                    | The installed packaged permission sets listed in [Before you start](#before-you-start) no longer exist after uninstall                                                                             |
+| Review scheduled jobs                                     | No job references `RecordHealthCheckScheduled`                                                                                                                                                     |
+| Review Flow, Apex, and integrations                       | No automation still references the removed Platform Events or Apex classes                                                                                                                         |
 
 ## Roll back a removal
 

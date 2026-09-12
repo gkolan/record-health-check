@@ -30,13 +30,13 @@ contributor portability check, not another package shape.
 
 ## The approved org set
 
-| Org use | Salesforce shape | Normal lifetime | Cleanup owner | Contents |
-| --- | --- | ---: | --- | --- |
-| Namespaced source development | `rhc`, LWS | 7 days | Person or agent that created it | Package source, package tests, integration-test Check Sets and Checks, optional deterministic demo data; not part of a release pair |
-| Installed-package demonstration | Subscriber org without its own namespace, LWS | 7 days | Person or agent that created it | Exact promoted or candidate `04t`, subscriber-owned test harness, packaged examples, deterministic demo data; not part of a release pair |
-| Source Locker check | `rhc`, Locker | 1 day | Creating command or workflow | Package source, required integration fixture, browser tests |
-| Optional portability check | No namespace, normally LWS | 1 day | Creating command or workflow | Unpackaged source and focused tests only |
-| Hosted candidate release pair | Two subscriber orgs without their own namespace: one LWS and one Locker | Up to 30 days | Release owner | Clean-install evidence, reset, exact stable-to-candidate upgrade, subscriber-owned fixtures, browser and API checks |
+| Org use                         | Salesforce shape                                                        | Normal lifetime | Cleanup owner                   | Contents                                                                                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------- | --------------: | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Namespaced source development   | `rhc`, LWS                                                              |          7 days | Person or agent that created it | Package source, package tests, integration-test Check Sets and Checks, optional deterministic demo data; not part of a release pair      |
+| Installed-package demonstration | Subscriber org without its own namespace, LWS                           |          7 days | Person or agent that created it | Exact promoted or candidate `04t`, subscriber-owned test harness, packaged examples, deterministic demo data; not part of a release pair |
+| Source Locker check             | `rhc`, Locker                                                           |           1 day | Creating command or workflow    | Package source, required integration fixture, browser tests                                                                              |
+| Optional portability check      | No namespace, normally LWS                                              |           1 day | Creating command or workflow    | Unpackaged source and focused tests only                                                                                                 |
+| Hosted candidate release pair   | Two subscriber orgs without their own namespace: one LWS and one Locker |   Up to 30 days | Release owner                   | Clean-install evidence, reset, exact stable-to-candidate upgrade, subscriber-owned fixtures, browser and API checks                      |
 
 One reusable source-development org and one installed-package demonstration org are normally enough
 for everyday work. A new agent uses the existing aliases when they still match the work. Integration
@@ -104,10 +104,10 @@ boundary.
 
 Source validation can use two clean `rhc` orgs during contributor work:
 
-| Org | What it proves |
-| --- | --- |
-| Namespaced LWS source org | Production package source, Apex, integration fixtures, APIs, demo Check Sets, and browser behavior under LWS |
-| Namespaced Locker source org | The record-page browser behavior remains compatible with Lightning Locker |
+| Org                          | What it proves                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Namespaced LWS source org    | Production package source, Apex, integration fixtures, APIs, demo Check Sets, and browser behavior under LWS |
+| Namespaced Locker source org | The record-page browser behavior remains compatible with Lightning Locker                                    |
 
 LWS versus Locker is an org setting. Although the setting can be changed, release evidence uses a
 fresh org for each mode so metadata, sessions, browser state, and cached Lightning resources cannot

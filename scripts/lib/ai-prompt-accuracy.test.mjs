@@ -301,3 +301,30 @@ test("current prompt checks require child-query opacity and formula planning", (
   );
   assert.ok(problems.some((problem) => /FIELD_NOT_ACCESSIBLE/.test(problem)));
 });
+
+test("the README supports link-first AI routing and current merge examples", () => {
+  const problems = currentContractProblems([
+    {
+      file: "docs/build-checks/draft-with-ai/README.md",
+      text: "Choose a prompt yourself. Example: {!record.Id}"
+    }
+  ]);
+  for (const concept of [
+    "Give this README link to an AI",
+    "assistant chooses the simplest Evaluation Type",
+    "open the chosen Evaluation Type prompt",
+    "{!record.Amount format=",
+    "{!rhcCheck.checkTitle}",
+    "{!rhcSet.cardTitle}",
+    "{!rhcResult.foundValue}",
+    "{!rhcRun.runId}",
+    "{!rhcQuery.sourceRows[0].Name",
+    "{!link label=",
+    "representative, not the complete token reference"
+  ]) {
+    assert.ok(
+      problems.some((problem) => problem.includes(concept)),
+      `Expected a README problem for ${concept}`
+    );
+  }
+});

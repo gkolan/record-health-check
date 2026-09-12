@@ -18,8 +18,16 @@ private class RHCSubscriberPreviewSpecTest {
           .withMode('EXECUTE')
       );
 
-      Assert.areEqual('VALID', response.validationStatus);
-      Assert.areEqual(4, response.results.size());
+      Assert.areEqual(
+        'VALID',
+        response.validationStatus,
+        'The inactive detached configuration must validate.'
+      );
+      Assert.areEqual(
+        4,
+        response.results.size(),
+        'Preview must evaluate all four owned Account scenarios.'
+      );
       Map<Id, String> expected = new Map<Id, String>{
         records.get('healthy').Id => 'PASS',
         records.get('unhealthy').Id => 'FAIL',
@@ -53,7 +61,8 @@ private class RHCSubscriberPreviewSpecTest {
       );
       Assert.areEqual(
         false,
-        previewCheck('RHC_SP_Preview_Website').IsActive__c
+        previewCheck('RHC_SP_Preview_Website').IsActive__c,
+        'Preview must leave the stored Check inactive.'
       );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
@@ -124,8 +133,128 @@ private class RHCSubscriberPreviewSpecTest {
         'fingerprint',
         System.now(),
         true
-      )
+      ),
+      'A business FAIL is a live evaluation and can establish verification.'
     );
+  }
+
+  @IsTest
+  static void inactiveParentValidatesWithoutEnablingNormalRuns() {
+    Record_Health_Check_Set__mdt parent = previewSet('RHC_SP_Preview');
+    Record_Health_Check__mdt draft = previewCheck('RHC_SP_Preview_Website');
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+    try {
+      Test.startTest();
+      RecordHealthCheckPreviewResponse response = RecordHealthCheckPreviewService.preview(
+        RecordHealthCheckPreviewRequest.forDraftCheck(
+          draft,
+          parent.QualifiedApiName,
+          new List<Id>()
+        )
+      );
+      Assert.areEqual(
+        'VALID',
+        response.validationStatus,
+        'An inactive parent must allow detached validation.'
+      );
+      Assert.areEqual(
+        0,
+        response.results.size(),
+        'Validate must not evaluate records.'
+      );
+      try {
+        RecordHealthCheck.evaluate(
+          RecordHealthCheckRequest.forCheckSet(
+            parent.QualifiedApiName,
+            new List<Id>()
+          )
+        );
+        Assert.fail('Normal runs must continue rejecting the inactive parent.');
+      } catch (RecordHealthCheckScopePipeline.ScopePipelineException expected) {
+        Assert.isTrue(
+          expected.getMessage().contains('inactive'),
+          'The normal rejection must be the active-set guard.'
+        );
+      }
+      Test.stopTest();
+    } finally {
+      RecordHealthCheckAccess.setRunPermissionForTest(null);
+    }
+  }
+
+  @IsTest
+  static void unsavedDraftHasIdentityAndLiveReadiness() {
+    Map<String, Account> records = RHCIntegrationTestDataFactory.createPreviewAccounts();
+    Record_Health_Check_Set__mdt parent = previewSet('RHC_SP_Preview_Live');
+    Record_Health_Check__mdt draft = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => 'Unsaved_Regression_Draft',
+        'MasterLabel' => 'Unsaved regression draft',
+        'Record_Health_Check_Set__c' => parent.Id,
+        'CheckTitle__c' => 'Unsaved regression draft',
+        'EvaluationOrder__c' => 1,
+        'FailureSeverity__c' => 'WARNING',
+        'EvaluationType__c' => 'FORMULA',
+        'PassConditionFormula__c' => 'TRUE',
+        'FailureMessage__c' => 'Unexpected false result.',
+        'IsActive__c' => false
+      }
+    );
+    Assert.isNull(
+      draft.QualifiedApiName,
+      'The fixture must be genuinely unsaved.'
+    );
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+    try {
+      Test.startTest();
+      RecordHealthCheckPreviewResponse response = RecordHealthCheckPreviewService.preview(
+        RecordHealthCheckPreviewRequest.forDraftCheck(
+            draft,
+            parent.QualifiedApiName,
+            new List<Id>{ records.get('healthy').Id }
+          )
+          .withMode('EXECUTE')
+          .withReadinessReceipt(true)
+      );
+      Test.stopTest();
+      Assert.areEqual(
+        'VALID',
+        response.validationStatus,
+        'The unsaved formula must validate: ' +
+        JSON.serialize(response.findings)
+      );
+      Assert.areEqual(
+        1,
+        response.results.size(),
+        'One input must yield one draft result.'
+      );
+      Assert.areEqual(
+        'Unsaved_Regression_Draft',
+        response.results[0].evaluation.checkQualifiedApiName,
+        'The service must assign a stable exact draft execution identity.'
+      );
+      Assert.areEqual(
+        'PASS',
+        response.results[0].evaluation.status,
+        'TRUE must pass on the supplied Account.'
+      );
+      Assert.areEqual(
+        'SAVED',
+        response.readinessReceipt.receiptStatus,
+        'An authorized eligible preview must save evidence.'
+      );
+      Assert.areEqual(
+        true,
+        response.hasCurrentLiveVerification,
+        'The draft result must count toward its own live verification.'
+      );
+      Assert.isNull(
+        draft.QualifiedApiName,
+        'Preview must not mutate the caller-owned draft.'
+      );
+    } finally {
+      RecordHealthCheckAccess.setRunPermissionForTest(null);
+    }
   }
 
   private static void assertNormalInactive(String checkName, Id recordId) {
@@ -135,7 +264,10 @@ private class RHCSubscriberPreviewSpecTest {
       );
       Assert.fail('Normal API selection must remain active-only.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException expected) {
-      Assert.isTrue(expected.getMessage().contains('not found'));
+      Assert.isTrue(
+        expected.getMessage().contains('not found'),
+        'The normal API must reject selection of the inactive Check.'
+      );
     }
   }
 

@@ -166,7 +166,8 @@ public with sharing class RecordHealthCheckPluginDispatch {
    * Runs one plugin against one scope and returns an outcome per record Id.
    *
    * @throws SideEffectException when the plugin mutated state. Fatal by design:
-   *         the caller must let it propagate so the transaction rolls back.
+   *         callers must propagate the violation. Reversible effects have
+   *         already been rolled back before the exception is thrown.
    */
   public static Map<Id, RecordHealthCheckOutcome> run(
     RecordHealthCheckPlugin plugin,
@@ -236,20 +237,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
       Database.releaseSavepoint(before);
     }
 
-    if (pluginFailure != null) {
-      // No prohibited effect, so the throw is attributable to the check and can
-      // safely become results. The engine cannot tell WHICH record caused it,
-      // so the whole scope is affected; only the plugin can isolate per record.
-      ContractException contractFailure = newContractException(
-        RecordHealthCheckReasonCodes.PLUGIN_THREW,
-        'The check threw an unhandled exception: ' + pluginFailure.getMessage()
-      );
-      contractFailure.originalExceptionType = pluginFailure.getTypeName();
-      contractFailure.originalExceptionMessage = pluginFailure.getMessage();
-      contractFailure.originalStackTrace = pluginFailure.getStackTraceString();
-      contractFailure.originalLineNumber = pluginFailure.getLineNumber();
-      throw contractFailure;
-    }
+    throwPluginFailure(pluginFailure);
 
     if (Test.isRunningTest()) {
       TestDispatchCapture capture = new TestDispatchCapture();
@@ -269,6 +257,23 @@ public with sharing class RecordHealthCheckPluginDispatch {
     }
 
     return validate(returned, scope);
+  }
+
+  private static void throwPluginFailure(Exception pluginFailure) {
+    if (pluginFailure != null) {
+      // No prohibited effect, so the throw is attributable to the check and can
+      // safely become results. The engine cannot tell WHICH record caused it,
+      // so the whole scope is affected; only the plugin can isolate per record.
+      ContractException contractFailure = newContractException(
+        RecordHealthCheckReasonCodes.PLUGIN_THREW,
+        'The check threw an unhandled exception: ' + pluginFailure.getMessage()
+      );
+      contractFailure.originalExceptionType = pluginFailure.getTypeName();
+      contractFailure.originalExceptionMessage = pluginFailure.getMessage();
+      contractFailure.originalStackTrace = pluginFailure.getStackTraceString();
+      contractFailure.originalLineNumber = pluginFailure.getLineNumber();
+      throw contractFailure;
+    }
   }
 
   /** Returns and clears the raw guarded snapshot for the contract-test facade. */

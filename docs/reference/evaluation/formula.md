@@ -16,13 +16,13 @@ applicability or a Query Check.
 
 ## Required Formula settings
 
-| Setup field | API name | Requirement |
-| --- | --- | --- |
-| **Evaluation Type** | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | **Verify with a formula**: `FORMULA` |
-| **Pass Condition** | [`PassConditionFormula__c`](../custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | Required Boolean formula; `true` returns `PASS`, `false` returns `FAIL` |
-| **Display: Found Formula** | [`DisplayFoundFormula__c`](../custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c) | Optional display-only Found value |
-| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | Optional display-only Expected value |
-| **Formula Result Type** | [`FormulaResultType__c`](../custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Keep **Automatic**: `AUTO`; this Query-operand setting does not control Formula Checks |
+| Setup field                   | API name                                                                                                             | Requirement                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Evaluation Type**           | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                          | **Verify with a formula**: `FORMULA`                                                   |
+| **Pass Condition**            | [`PassConditionFormula__c`](../custom-metadata/check-fields.md#pass-condition-passconditionformula__c)               | Required Boolean formula; `true` returns `PASS`, `false` returns `FAIL`                |
+| **Display: Found Formula**    | [`DisplayFoundFormula__c`](../custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c)          | Optional display-only Found value                                                      |
+| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | Optional display-only Expected value                                                   |
+| **Formula Result Type**       | [`FormulaResultType__c`](../custom-metadata/check-fields.md#formula-result-type-formularesulttype__c)                | Keep **Automatic**: `AUTO`; this Query-operand setting does not control Formula Checks |
 
 Query and custom Apex fields are not used by a Formula Check. Applicability runs before the Pass
 Condition and can return `SKIPPED` without running that formula.
@@ -42,6 +42,9 @@ zero.
 ## Formula context and syntax
 
 - Write Salesforce formula syntax without a leading `=`.
+- Enclose text literals in double quotes. A lone opening quote or an escaped final quote does not
+  close a literal; correct the closing delimiter before running the Check. Malformed literal
+  contents are redacted in planning findings.
 - Reference current-record fields by API name, such as `AnnualRevenue` or `Custom_Score__c`.
 - For a field owned by another installed package, preserve its complete API name, including the
   namespace, such as `SBQQ__AssetQuantitiesCombined__c`. Record Health Check resolves the name as
@@ -101,15 +104,15 @@ Found shows the owner's name and active/inactive status; Expected shows `Active`
 returns true for an active User and false for an inactive User. The Account example does not
 model Queue ownership; the table below describes the explicitly typed polymorphic variant.
 
-| Pattern | Example | Queue/Group owner | Missing/inaccessible User |
-| --- | --- | --- | --- |
-| Formula `Owner:User.IsActive` | Custom Formula Check | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason |
-| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0` | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
+| Pattern                                                                           | Example                    | Queue/Group owner                                                                                                                          | Missing/inaccessible User                                                                |
+| --------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Formula `Owner:User.IsActive`                                                     | Custom Formula Check       | `UNABLE_TO_EVALUATE`. FormulaEval cannot resolve a User-only path against a non-User owner, and a null formula result never becomes `FAIL` | `UNABLE_TO_EVALUATE`, for the same reason                                                |
+| QUERY `SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true` | `Account_EU_OwnerIsActive` | `FAIL`. A Queue/Group Id never matches a `User` row, so the count is `0`                                                                   | `FAIL`. A missing, inaccessible, or genuinely inactive User row all produce the same `0` |
 
 Neither pattern produces a false `PASS` for a non-User or
 inactive owner. They differ in **how** they fail: the Formula path reports "I could not determine
 this" (`UNABLE_TO_EVALUATE`), while the QUERY `COUNT()` pattern reports "this condition was not
-satisfied" (`FAIL`) without distinguishing *why* the count was zero. Choose QUERY when you want a
+satisfied" (`FAIL`) without distinguishing _why_ the count was zero. Choose QUERY when you want a
 same unable-to-evaluate outcome across Queue, inactive User, and missing User; choose Formula (after
 Record Health Check loads the fields described in the polymorphic guidance above) when you want a Queue/Group owner treated as
 "can't tell," not as "fails the check."
@@ -132,13 +135,13 @@ When an optional relationship is used in message text, provide a fallback, for e
 
 ## Outcomes and Reason Codes
 
-| Outcome | When it occurs | What to investigate |
-| --- | --- | --- |
-| `PASS` | Pass Condition resolves to `true` | No action required |
-| `FAIL` | Pass Condition resolves to `false` | Review Found, Expected, and the configured failure guidance |
-| `SKIPPED` | Applicability or a prerequisite prevents evaluation | Review Applies To and Prerequisite Check |
+| Outcome              | When it occurs                                                                                           | What to investigate                                                                    |
+| -------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `PASS`               | Pass Condition resolves to `true`                                                                        | No action required                                                                     |
+| `FAIL`               | Pass Condition resolves to `false`                                                                       | Review Found, Expected, and the configured failure guidance                            |
+| `SKIPPED`            | Applicability or a prerequisite prevents evaluation                                                      | Review Applies To and Prerequisite Check                                               |
 | `UNABLE_TO_EVALUATE` | Formula configuration, access, missing relationship data, or a null/invalid result prevents a conclusion | Review the stable [Reason Code](../results/reason-codes.md) and authorized diagnostics |
-| `ERROR` | An unexpected Apex or Salesforce problem occurs | Review authorized diagnostics and Apex debug logs |
+| `ERROR`              | An unexpected Apex or Salesforce problem occurs                                                          | Review authorized diagnostics and Apex debug logs                                      |
 
 A null or non-Boolean Pass Condition result does not become `FAIL`; Record Health Check returns
 `UNABLE_TO_EVALUATE` because it cannot make the configured decision reliably.
@@ -191,3 +194,24 @@ deprecated.
 - [Check fields](../custom-metadata/check-fields.md)
 - [Reason Codes](../results/reason-codes.md)
 - [Configure Check Sets and Checks](../../build-checks/configure-check-sets-and-checks.md)
+
+## Verify malformed-literal diagnostics in a sandbox
+
+After deploying the integration fixtures, open an Account with Record Health Check and select
+`RHC_Diagnostic_Bad_Formula`. The `RHC_Diag_Formula_Open_Quote` Check contains a lone opening quote;
+`RHC_Diag_Formula_Escaped_End` ends with an escaped quote. Both must report **UNABLE_TO_EVALUATE**
+with `INVALID_FORMULA`, a Diagnostic ID, and a corrective action. Neither is a business FAIL.
+Their planner finding is `INVALID_FORMULA_LITERAL`, with `[redacted literal]` instead of literal
+contents. The existing missing-formula, unclosed-function and missing-field fixtures remain in this
+Set and retain their own expected diagnoses.
+
+For recovery, clone either Check into a temporary sandbox Check Set. Replace its Pass Condition
+with `Name = "RHC Literal Healthy"`: the named Account should PASS, and an Account with a different
+name should FAIL. Remove the temporary clone after verification; keep the diagnostic fixtures
+malformed so future regression runs still test the failure path.
+
+`RHCDiagnosticBadConfigurationTest.savedUnterminatedLiteralsHaveRedactedLexicalFindings` verifies
+both saved formulas and redaction. Its two individual diagnostic tests verify the public evaluation
+results. `RHCDiagnosticAgentMcpSurfaceTest.formulaChecksReachAgentforceAndMcpWithDiagnosis` covers
+the native actions and REST adapter; `RHCFormulaTokenizerGrammarTest` covers empty, escaped and
+unterminated string boundaries. These tests do not substitute for the sandbox card verification.

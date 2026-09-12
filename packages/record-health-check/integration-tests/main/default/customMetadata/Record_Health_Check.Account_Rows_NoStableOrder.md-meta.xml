@@ -14,13 +14,13 @@
     >Refused: NoStableOrder</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
-    >Index 1 of a query ordered by a non-unique field. Contacts sharing a surname can come back in either order, so the row addressed is not repeatable. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
+    >Index 1 of a multi-row query without ORDER BY. The author has not declared which contact should be first, so indexed row access is refused. Deliberately misconfigured and deployed anyway, so the refusal is proven.</value></values>
     <values><field>EvaluationType__c</field><value
       xsi:type="xsd:string"
     >QUERY</value></values>
     <values><field>SourceQuery__c</field><value
       xsi:type="xsd:string"
-    >SELECT Id, LastName, Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY LastName</value></values>
+    >SELECT Id, LastName, Email FROM Contact WHERE AccountId = {!record.Id}</value></values>
     <values><field>SourceQueryField__c</field><value
       xsi:type="xsd:string"
     >Id</value></values>

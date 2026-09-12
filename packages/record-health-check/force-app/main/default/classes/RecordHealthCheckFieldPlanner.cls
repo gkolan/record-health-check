@@ -244,6 +244,26 @@ public with sharing class RecordHealthCheckFieldPlanner {
       this
     );
     fields.addAll(sharedPlan.selectedFields);
+    collectFormulaFindings(sharedPlan);
+    formulaFindingsTruncatedBeingPlanned =
+      formulaFindingsTruncatedBeingPlanned || sharedPlan.findingsTruncated;
+    if (verdictAffecting) {
+      for (
+        RecordHealthCheckFormulaPlanService.Finding finding : sharedPlan.findings
+      ) {
+        if (
+          finding.code ==
+          RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
+        ) {
+          verdictDependenciesTruncatedBeingPlanned = true;
+        }
+      }
+    }
+  }
+
+  private void collectFormulaFindings(
+    RecordHealthCheckFormulaPlanService.FormulaPlan sharedPlan
+  ) {
     for (
       RecordHealthCheckFormulaPlanService.Finding finding : sharedPlan.findings
     ) {
@@ -265,20 +285,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
         formulaFindingsBeingPlanned.add(finding);
       } else {
         formulaFindingsTruncatedBeingPlanned = true;
-      }
-    }
-    formulaFindingsTruncatedBeingPlanned =
-      formulaFindingsTruncatedBeingPlanned || sharedPlan.findingsTruncated;
-    if (verdictAffecting) {
-      for (
-        RecordHealthCheckFormulaPlanService.Finding finding : sharedPlan.findings
-      ) {
-        if (
-          finding.code ==
-          RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
-        ) {
-          verdictDependenciesTruncatedBeingPlanned = true;
-        }
       }
     }
   }
@@ -435,13 +441,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
       : String.join(relationshipParts, '.') + '.';
     return out;
   }
-
   private FieldPathDescribe unresolvedPath(String reasonCode) {
     FieldPathDescribe unresolved = new FieldPathDescribe();
     unresolved.unresolvedReasonCode = reasonCode;
     return unresolved;
   }
-
   private Schema.SObjectType selectReferenceType(
     List<Schema.SObjectType> candidates,
     String nextPathPart
@@ -465,7 +469,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
     return null;
   }
-
   /**
    * Finds the field whose relationship name matches `relName` (case-insensitive)
    * e.g. `Parent` → the ParentId lookup, `Account__r` → the Account__c lookup.
@@ -487,7 +490,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
     return null;
   }
-
   private class FieldPathDescribe {
     Schema.DescribeFieldResult describe;
     Schema.SObjectType ownerType;
@@ -495,14 +497,12 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Boolean inaccessible = false;
     String unresolvedReasonCode;
   }
-
   public class CalculatedDependency {
     public String formula { get; private set; }
     public String visitKey { get; private set; }
     public Schema.SObjectType ownerType { get; private set; }
     public String relationshipPrefix { get; private set; }
   }
-
   /** Per-Check field requirements separated by the running user's access. */
   public class FieldPlan {
     public Set<String> selectedFields = new Set<String>();

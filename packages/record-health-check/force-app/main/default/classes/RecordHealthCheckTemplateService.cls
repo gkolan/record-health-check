@@ -154,6 +154,14 @@ public class RecordHealthCheckTemplateService {
       String wholeValue = wholeRaw == null ? null : formatValue(wholeRaw);
       return RecordHealthCheckInlineUrlPolicy.sanitizeComplete(wholeValue);
     }
+    return resolveInlineComponents(authored, tokens, context);
+  }
+
+  private static String resolveInlineComponents(
+    String authored,
+    List<RecordHealthCheckToken> tokens,
+    RecordHealthCheckMergeContext context
+  ) {
     String resolved = '';
     Integer cursor = 0;
     Integer queryStart = authored.indexOf('?');
@@ -208,31 +216,7 @@ public class RecordHealthCheckTemplateService {
     String resolved = '';
     Integer lastEnd = 0;
     for (RecordHealthCheckToken token : parse(authoredTemplate)) {
-      Object raw = RecordHealthCheckTemplateValueResolver.valueFor(
-        token,
-        context
-      );
-      String value = raw == null
-        ? ''
-        : token.formatName == null
-            ? formatValue(raw)
-            : formatRecordToken(raw, token, context);
-      if (String.isBlank(value)) {
-        if (token.fallbackValue != null) {
-          value = token.fallbackValue;
-        } else if (urlEncode) {
-          TemplateException ex = new TemplateException(
-            'A URL token resolved blank and has no explicit fallback. Token: ' +
-            token.expression
-          );
-          ex.reasonCode = 'MISSING_TOKEN_VALUE';
-          ex.token = token.expression;
-          throw ex;
-        }
-      }
-      if (urlEncode && String.isNotBlank(value)) {
-        value = EncodingUtil.urlEncode(value, 'UTF-8');
-      }
+      String value = resolveTokenValue(token, context, urlEncode);
       resolved += authoredTemplate.substring(lastEnd, token.startIndex) + value;
       lastEnd = token.endIndex;
     }
@@ -245,6 +229,39 @@ public class RecordHealthCheckTemplateService {
       throw ex;
     }
     return resolved;
+  }
+
+  private static String resolveTokenValue(
+    RecordHealthCheckToken token,
+    RecordHealthCheckMergeContext context,
+    Boolean urlEncode
+  ) {
+    Object raw = RecordHealthCheckTemplateValueResolver.valueFor(
+      token,
+      context
+    );
+    String value = raw == null
+      ? ''
+      : token.formatName == null
+          ? formatValue(raw)
+          : formatRecordToken(raw, token, context);
+    if (String.isBlank(value)) {
+      if (token.fallbackValue != null) {
+        value = token.fallbackValue;
+      } else if (urlEncode) {
+        TemplateException ex = new TemplateException(
+          'A URL token resolved blank and has no explicit fallback. Token: ' +
+          token.expression
+        );
+        ex.reasonCode = 'MISSING_TOKEN_VALUE';
+        ex.token = token.expression;
+        throw ex;
+      }
+    }
+    if (urlEncode && String.isNotBlank(value)) {
+      value = EncodingUtil.urlEncode(value, 'UTF-8');
+    }
+    return value;
   }
 
   /**

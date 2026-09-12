@@ -410,13 +410,13 @@ Rules for this Evaluation Type (EvaluationType__c = APEX):
 
 ## Confirm the draft against
 
-| Topic | Page |
-| --- | --- |
-| Plugin contract and tests | [Write an Apex Check](../../developer-guides/write-an-apex-check.md) |
-| Working Apex patterns | [Apex examples](../../examples/apex/README.md) |
-| Installed recent-activity example | [Recent Account activity](../../examples/apex/recent-activity.md) |
-| Check metadata fields | [Check fields](../../reference/custom-metadata/check-fields.md) |
-| Shared AI rules | [Shared rules](./shared-rules.md) |
+| Topic                             | Page                                                                 |
+| --------------------------------- | -------------------------------------------------------------------- |
+| Plugin contract and tests         | [Write an Apex Check](../../developer-guides/write-an-apex-check.md) |
+| Working Apex patterns             | [Apex examples](../../examples/apex/README.md)                       |
+| Installed recent-activity example | [Recent Account activity](../../examples/apex/recent-activity.md)    |
+| Check metadata fields             | [Check fields](../../reference/custom-metadata/check-fields.md)      |
+| Shared AI rules                   | [Shared rules](./shared-rules.md)                                    |
 
 ## Related
 

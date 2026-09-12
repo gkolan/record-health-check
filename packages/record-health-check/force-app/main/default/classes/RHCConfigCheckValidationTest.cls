@@ -41,6 +41,24 @@ private class RHCConfigCheckValidationTest {
       'INVALID_CONFIG'
     );
 
+    validateQueryFailures(service);
+    validateApexAndDualFailures(service);
+
+    Assert.areEqual(
+      null,
+      service.validateCheckForEvaluation(queryCheck('Valid_Query')),
+      'A valid single-query Check must have no validation failure.'
+    );
+    Assert.areEqual(
+      null,
+      service.validateCheckForEvaluation(validDualCheck('Valid_Dual')),
+      'A valid dual-query Check must have no validation failure.'
+    );
+  }
+
+  private static void validateQueryFailures(
+    RecordHealthCheckConfigService service
+  ) {
     Record_Health_Check__mdt queryMissingPrimary = queryCheck(
       'Query_Missing_Primary'
     );
@@ -178,7 +196,11 @@ private class RHCConfigCheckValidationTest {
       service.validateCheckForEvaluation(listOperator),
       'INVALID_SOQL_TEMPLATE'
     );
+  }
 
+  private static void validateApexAndDualFailures(
+    RecordHealthCheckConfigService service
+  ) {
     Record_Health_Check__mdt apexCheck = baseCheck(
       'Apex_Missing_Class',
       'APEX'
@@ -264,15 +286,6 @@ private class RHCConfigCheckValidationTest {
       service.validateCheckForEvaluation(dualBadMax),
       'GOVERNOR_LIMIT_RISK'
     );
-
-    Assert.areEqual(
-      null,
-      service.validateCheckForEvaluation(queryCheck('Valid_Query'))
-    );
-    Assert.areEqual(
-      null,
-      service.validateCheckForEvaluation(validDualCheck('Valid_Dual'))
-    );
   }
 
   private static Record_Health_Check__mdt baseCheck(
@@ -328,7 +341,15 @@ private class RHCConfigCheckValidationTest {
     String reasonCode
   ) {
     Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'Invalid Check configuration must remain unable to evaluate.'
+    );
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'The Check validation result must retain its specific failure reason.'
+    );
   }
 }

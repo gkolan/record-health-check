@@ -55,10 +55,10 @@ First confirm that the issue also appears with browser zoom at 100 percent and w
 style extension. In Lightning App Builder, select the Record Health Check component and review its
 documented properties; there is no CSS override or theme field to reset.
 
-| Symptom | Review |
-| --- | --- |
-| One page has different spacing or width | The Lightning page region, neighboring components, and component-level CSS overrides |
-| Text or status colors are difficult to read | The active org theme, supported SLDS styling hooks, and browser accessibility settings |
+| Symptom                                              | Review                                                                                                                      |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| One page has different spacing or width              | The Lightning page region, neighboring components, and component-level CSS overrides                                        |
+| Text or status colors are difficult to read          | The active org theme, supported SLDS styling hooks, and browser accessibility settings                                      |
 | Cosmos and standard Lightning styling look different | Compare readability, keyboard focus, reading order, and behavior. Exact colors and corner shapes can differ between themes. |
 
 ## Related

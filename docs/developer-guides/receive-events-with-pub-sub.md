@@ -28,11 +28,11 @@ before designing a production dependency.
 
 Pub/Sub API platform-event topics use `/event/<qualified-event-api-name>`.
 
-| Topic after installing the `rhc` package | What it carries |
-| --- | --- |
-| `/event/rhc__Record_Health_Check_Set_Run__e` | Run summaries |
-| `/event/rhc__Record_Health_Check_Result__e` | Per-Check outcomes |
-| `/event/rhc__Record_Health_Check_Log__e` | Restricted diagnostics |
+| Topic after installing the `rhc` package     | What it carries        |
+| -------------------------------------------- | ---------------------- |
+| `/event/rhc__Record_Health_Check_Set_Run__e` | Run summaries          |
+| `/event/rhc__Record_Health_Check_Result__e`  | Per-Check outcomes     |
+| `/event/rhc__Record_Health_Check_Log__e`     | Restricted diagnostics |
 
 The installed Record Health Check package uses the `rhc__` namespace shown above. Confirm the exact
 event API name in the Salesforce org the integration connects to; do not add or remove `rhc__`.
@@ -82,11 +82,11 @@ receipts and destination records in bounded groups while preserving each event's
 
 ## Keep three identifiers separate
 
-| Identifier | Do not use it for | Purpose |
-| --- | --- | --- |
-| `EventId__c` | Stream position | Record Health Check application-level deduplication |
-| Pub/Sub event ID | Business correlation or stream position | Unique identity assigned to the Salesforce event message |
-| Replay ID | Deduplication, ordering arithmetic, or business identity | Opaque position used to resume a retained stream |
+| Identifier       | Do not use it for                                        | Purpose                                                  |
+| ---------------- | -------------------------------------------------------- | -------------------------------------------------------- |
+| `EventId__c`     | Stream position                                          | Record Health Check application-level deduplication      |
+| Pub/Sub event ID | Business correlation or stream position                  | Unique identity assigned to the Salesforce event message |
+| Replay ID        | Deduplication, ordering arithmetic, or business identity | Opaque position used to resume a retained stream         |
 
 Replay IDs are not guaranteed to be contiguous or unique across every Salesforce maintenance
 event. Store them as opaque bytes exactly as received; never increment, compare numerically, or

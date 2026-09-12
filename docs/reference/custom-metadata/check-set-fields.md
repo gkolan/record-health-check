@@ -118,27 +118,27 @@ This is an optional restricted picklist. The default is **One by one**.
 This field controls when the card shows the value found on the record and the value the Check
 expected.
 
-| Setup choice       | Stored value    | What the user sees                                                                                    |
-| ------------------ | --------------- | ----------------------------------------------------------------------------------------------------- |
-| Show on demand | `ON_DEMAND` | Users can expand a Check to see the values; failed Checks also show them inline. This is the default. |
-| Show for failed checks | `FAILURES_ONLY` | Values appear only for failed Checks. |
-| Show for every check | `ALL_ROWS` | Values appear inline for every Check that provides them. |
+| Setup choice           | Stored value    | What the user sees                                                                                    |
+| ---------------------- | --------------- | ----------------------------------------------------------------------------------------------------- |
+| Show on demand         | `ON_DEMAND`     | Users can expand a Check to see the values; failed Checks also show them inline. This is the default. |
+| Show for failed checks | `FAILURES_ONLY` | Values appear only for failed Checks.                                                                 |
+| Show for every check   | `ALL_ROWS`      | Values appear inline for every Check that provides them.                                              |
 
 This setting cannot display a value that the Check did not return. Also review whether a Found or
 Expected value contains information that should not be shown to every card user.
 
 ### Passed Checks (`PassedChecksDisplay__c`)
 
-| Setup choice    | Stored value      | What the user sees                                                   |
-| --------------- | ----------------- | -------------------------------------------------------------------- |
-| Show each passed check | `SHOW_EACH_CHECK` | Every passed Check remains in the list. This is the default. |
+| Setup choice           | Stored value      | What the user sees                                                   |
+| ---------------------- | ----------------- | -------------------------------------------------------------------- |
+| Show each passed check | `SHOW_EACH_CHECK` | Every passed Check remains in the list. This is the default.         |
 | Show passed count only | `SHOW_COUNT_ONLY` | Passed rows are hidden, but their total remains in the card summary. |
 
 ### Skipped Checks (`SkippedChecksDisplay__c`)
 
-| Setup choice    | Stored value      | What the user sees                                                    |
-| --------------- | ----------------- | --------------------------------------------------------------------- |
-| Show each skipped check | `SHOW_EACH_CHECK` | Every skipped Check remains in the list. This is the default. |
+| Setup choice            | Stored value      | What the user sees                                                    |
+| ----------------------- | ----------------- | --------------------------------------------------------------------- |
+| Show each skipped check | `SHOW_EACH_CHECK` | Every skipped Check remains in the list. This is the default.         |
 | Show skipped count only | `SHOW_COUNT_ONLY` | Skipped rows are hidden, but their total remains in the card summary. |
 
 A Check can be skipped because it does not apply to the record or because a prerequisite Check did
@@ -146,11 +146,11 @@ not pass. Hiding the row does not change the result.
 
 ### Summary Display (`SummaryDisplay__c`)
 
-| Setup choice | Stored value | What the user sees                                                    |
-| ------------ | ------------ | --------------------------------------------------------------------- |
-| Show above checks | `TOP` | The result summary appears above the Check rows. |
-| Show below checks | `BOTTOM` | The result summary appears below the Check rows. This is the default. |
-| Hide | `HIDE` | No summary bar; individual Check results remain visible. |
+| Setup choice      | Stored value | What the user sees                                                    |
+| ----------------- | ------------ | --------------------------------------------------------------------- |
+| Show above checks | `TOP`        | The result summary appears above the Check rows.                      |
+| Show below checks | `BOTTOM`     | The result summary appears below the Check rows. This is the default. |
+| Hide              | `HIDE`       | No summary bar; individual Check results remain visible.              |
 
 The setting applies to both the overall summary and category-based summaries. When Checks use
 categories, the grouped category summaries replace the overall totals at the selected position.
@@ -187,12 +187,12 @@ These fields control the Run and Rerun action in the Lightning card header.
 
 ### Run Button Display (`RunButtonDisplay__c`)
 
-| Setup choice   | Stored value               |
-| -------------- | -------------------------- |
+| Setup choice        | Stored value               |
+| ------------------- | -------------------------- |
 | Show label and icon | `LABEL_AND_ICON` (default) |
 | Show label only     | `LABEL_ONLY`               |
 | Show icon only      | `ICON_ONLY`                |
-| Hide           | `HIDE`                     |
+| Hide                | `HIDE`                     |
 
 Use **Hide** only when **When Checks Run** is **When the page opens**. A card that waits for a user
 request must keep a visible way to start the run.

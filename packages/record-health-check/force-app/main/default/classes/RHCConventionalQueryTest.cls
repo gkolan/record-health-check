@@ -21,7 +21,10 @@ private class RHCConventionalQueryTest {
       )
     );
     Test.stopTest();
-    Assert.isNull(issue);
+    Assert.isNull(
+      issue,
+      'An ordered business selection must not require an Id tiebreaker.'
+    );
   }
 
   @IsTest
@@ -34,8 +37,15 @@ private class RHCConventionalQueryTest {
       )
     );
     Test.stopTest();
-    Assert.areEqual('QUERY_ORDER_NOT_DETERMINISTIC', issue.reasonCode);
-    Assert.isTrue(issue.message.contains('CreatedDate DESC'));
+    Assert.areEqual(
+      'QUERY_ORDER_NOT_DETERMINISTIC',
+      issue.reasonCode,
+      'An unordered multirow selection must retain the deterministic-order reason.'
+    );
+    Assert.isTrue(
+      issue.message.contains('CreatedDate DESC'),
+      'The order diagnostic must suggest the business ordering example.'
+    );
   }
 
   @IsTest
@@ -49,7 +59,10 @@ private class RHCConventionalQueryTest {
       )
     );
     Test.stopTest();
-    Assert.isNull(issue);
+    Assert.isNull(
+      issue,
+      'An outer scalar beside a child subquery must remain supported.'
+    );
   }
 
   @IsTest
@@ -60,7 +73,11 @@ private class RHCConventionalQueryTest {
         '{!rhcQuery.sourceRows[0].Website}'
       )
     );
-    Assert.areEqual('QUERY_PROJECTION_NOT_ANALYZABLE', issue.reasonCode);
+    Assert.areEqual(
+      'QUERY_PROJECTION_NOT_ANALYZABLE',
+      issue.reasonCode,
+      'An unsupported outer expression must reject projection analysis.'
+    );
   }
 
   @IsTest
@@ -73,7 +90,10 @@ private class RHCConventionalQueryTest {
       )
     );
     Test.stopTest();
-    Assert.isNull(issue);
+    Assert.isNull(
+      issue,
+      'A self query must not require ordering even with a larger row limit.'
+    );
   }
 
   @IsTest
@@ -94,9 +114,16 @@ private class RHCConventionalQueryTest {
 
     Assert.areEqual(
       RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
-      result.strategy
+      result.strategy,
+      'An ordered indirect query must use in-memory per-record selection.'
     );
-    Assert.isTrue(result.rowsByRecordId.get(current.Id).size() > 0);
-    Assert.isTrue(result.rowsByRecordId.get(current.Id).size() <= 3);
+    Assert.isTrue(
+      result.rowsByRecordId.get(current.Id).size() > 0,
+      'The assigned user must retain at least one permission-set result.'
+    );
+    Assert.isTrue(
+      result.rowsByRecordId.get(current.Id).size() <= 3,
+      'The per-record ordered selection must retain at most three rows.'
+    );
   }
 }

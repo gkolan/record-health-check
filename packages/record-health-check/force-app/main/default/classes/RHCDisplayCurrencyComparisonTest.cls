@@ -6,9 +6,8 @@
 /**
  * Covers Display: Value Format rendering for Found and Expected values.
  *
- * Assertions that involve grouping separators run as a user with a pinned
- * locale, so the suite reads the same way in an org whose default locale is not
- * English (US).
+ * Numeric expectations use native platform separators for the running user.
+ * Integration personas exercise the list contract in English and German.
  */
 @IsTest
 private class RHCDisplayCurrencyComparisonTest {
@@ -23,11 +22,6 @@ private class RHCDisplayCurrencyComparisonTest {
   private static final String TEXT_FORMAT = 'TEXT';
   private static final String RAW_FORMAT = 'RAW';
 
-  /** A user pinned to a locale so separator assertions are deterministic. */
-  private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.currentUser();
-  }
-
   /**
    * How an amount reads in this org: an org with more than one currency leads
    * with the ISO code because a bare symbol would be ambiguous, and a
@@ -41,6 +35,7 @@ private class RHCDisplayCurrencyComparisonTest {
       'JPY' => '¥',
       'KRW' => '₩'
     };
+    amount = localizedAmount(amount);
     String symbol = symbols.get(isoCode);
     if (symbol == null || UserInfo.isMultiCurrencyOrganization()) {
       return isoCode + ' ' + amount;
@@ -48,6 +43,21 @@ private class RHCDisplayCurrencyComparisonTest {
     return amount.startsWith('-')
       ? '-' + symbol + amount.substring(1)
       : symbol + amount;
+  }
+
+  /** Localize expected numeric punctuation using independent platform samples. */
+  private static String localizedAmount(String expectedUsAmount) {
+    String groupingMark = Decimal.valueOf('1000')
+      .format()
+      .replace('1', '')
+      .replace('0', '');
+    String decimalMark = Decimal.valueOf('1.5')
+      .format()
+      .replace('1', '')
+      .replace('5', '');
+    return expectedUsAmount.replace('.', '|')
+      .replace(',', groupingMark)
+      .replace('|', decimalMark);
   }
 
   // ─── Auto ─────────────────────────────────────────────────────────────────
@@ -67,14 +77,18 @@ private class RHCDisplayCurrencyComparisonTest {
 
   @IsTest
   static void listEntriesKeepTheCurrencyOfTheRowTheyCameFrom() {
-    System.runAs(userWithLocale('en_US', 'rhciso')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       String mixed = RecordHealthCheckComparisonDisplay.formatList(
         new List<Object>{ 70000, 50000 },
         CURRENCY_FORMAT,
         new List<String>{ 'EUR', 'JPY' }
       );
       Assert.areEqual(
-        '[' + money('EUR', '70,000.00') + ', JPY 50,000]',
+        '[' +
+          money('EUR', '70,000.00') +
+          ', JPY ' +
+          localizedAmount('50,000') +
+          ']',
         mixed,
         'Each entry is labelled with its own row currency, minor units included'
       );
@@ -245,15 +259,49 @@ private class RHCDisplayCurrencyComparisonTest {
       blankFormat,
       'A blank format is Auto, not a canonical API name.'
     );
-    Assert.areEqual('Acme', plainField);
-    Assert.areEqual(cachedCorporate, aggregateIso);
-    Assert.isNull(singleCurrencyCorporate);
-    Assert.isNull(rowIso);
-    Assert.isNull(invalidRelationship);
-    Assert.isNull(nullRelationship);
-    Assert.areEqual(RecordHealthCheckDisplayFormat.BLANK_TEXT, nullAmount);
-    Assert.areEqual('12', unnamedCurrency);
-    Assert.isTrue(singleCurrency.contains('$'));
-    Assert.isTrue(multipleCurrency.startsWith('USD '));
+    Assert.areEqual(
+      'Acme',
+      plainField,
+      'Auto formatting must retain a plain text field value.'
+    );
+    Assert.areEqual(
+      cachedCorporate,
+      aggregateIso,
+      'An aggregate without row ISO evidence must use the cached corporate currency.'
+    );
+    Assert.isNull(
+      singleCurrencyCorporate,
+      'A single-currency org must not require a corporate currency lookup.'
+    );
+    Assert.isNull(
+      rowIso,
+      'An unloaded row currency must not manufacture an ISO value.'
+    );
+    Assert.isNull(
+      invalidRelationship,
+      'An invalid relationship path must not resolve a row.'
+    );
+    Assert.isNull(
+      nullRelationship,
+      'An unloaded parent relationship must not resolve a row.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckDisplayFormat.BLANK_TEXT,
+      nullAmount,
+      'A null currency amount must retain the blank display marker.'
+    );
+    Assert.areEqual(
+      '12',
+      unnamedCurrency,
+      'An unnamed currency must render only the numeric amount.'
+    );
+    Assert.isTrue(
+      singleCurrency.contains('$'),
+      'Single-currency USD rendering must include the dollar symbol.'
+    );
+    Assert.isTrue(
+      multipleCurrency.startsWith('USD '),
+      'Multicurrency USD rendering must lead with the explicit ISO code.'
+    );
   }
 }

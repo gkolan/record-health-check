@@ -37,10 +37,20 @@ private class RHCFieldPlannerSecurityTest {
     User minimumAccessUser = RecordHealthCheckPersonaTestDataFactory.createMinimumAccessUser(
       'colonfls'
     );
+    String relationshipName = Record_Health_Check_Readiness__c.Actor__c.getDescribe()
+      .getRelationshipName();
+    Assert.isNotNull(
+      relationshipName,
+      'The security fixture must use the actual Actor lookup relationship, including its namespace.'
+    );
     System.runAs(minimumAccessUser) {
+      Assert.isFalse(
+        Record_Health_Check_Readiness__c.Actor__c.getDescribe().isAccessible(),
+        'The fixture user must actually lack access to the intermediate Actor lookup.'
+      );
       Test.startTest();
       RecordHealthCheckFormulaPlanService.FormulaPlan plan = RecordHealthCheckFormulaPlanService.plan(
-        'Actor:User.IsActive',
+        relationshipName + ':User.IsActive',
         Record_Health_Check_Readiness__c.SObjectType,
         'PassConditionFormula__c',
         'BOOLEAN'

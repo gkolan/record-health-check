@@ -47,14 +47,14 @@ SKIPPED, UNABLE_TO_EVALUATE, and ERROR results.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `RecordHealthCheckDefinition.developerName` / `label` / `description` / `priority` | One Check's identity and display fields |
-| `RecordHealthCheckDefinition.dependsOnCheckDeveloperName` | `null` when the Check has no `PrerequisiteCheck__c` dependency |
-| `RecordHealthCheckDefinitionResponse` title/trigger/reveal/display fields | Check Set card settings (title, trigger/reveal modes, passed/skipped/comparison display, stop-on-first-error) |
-| `RecordHealthCheckDefinitionResponse.checksOmittedByLimit` | Legacy compatibility flag; accepted 2.0.10 responses keep it `false` because a Check Set over 25 active Checks fails closed before definitions are returned |
-| `RecordHealthCheckDefinitionResponse.inactiveCheckLabels` | Diagnostics-only detail behind `inactiveCheckCount` |
-| `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks` | Diagnostics visibility flag and the ordered Check definitions |
+| Member                                                                             | Purpose                                                                                                                                                     |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RecordHealthCheckDefinition.developerName` / `label` / `description` / `priority` | One Check's identity and display fields                                                                                                                     |
+| `RecordHealthCheckDefinition.dependsOnCheckDeveloperName`                          | `null` when the Check has no `PrerequisiteCheck__c` dependency                                                                                              |
+| `RecordHealthCheckDefinitionResponse` title/trigger/reveal/display fields          | Check Set card settings (title, trigger/reveal modes, passed/skipped/comparison display, stop-on-first-error)                                               |
+| `RecordHealthCheckDefinitionResponse.checksOmittedByLimit`                         | Legacy compatibility flag; accepted 2.0.10 responses keep it `false` because a Check Set over 25 active Checks fails closed before definitions are returned |
+| `RecordHealthCheckDefinitionResponse.inactiveCheckLabels`                          | Diagnostics-only detail behind `inactiveCheckCount`                                                                                                         |
+| `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks`                   | Diagnostics visibility flag and the ordered Check definitions                                                                                               |
 
 **Notable behavior:**
 
@@ -71,11 +71,11 @@ Left blank on a normal business response.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                     | Purpose                                                         |
+| -------------------------- | --------------------------------------------------------------- |
 | `containsRestrictedDetail` | Whether the diagnostic object contains access-sensitive details |
-| `reasonCode` | Diagnostics reason code |
-| `message` | Diagnostics message text |
+| `reasonCode`               | Diagnostics reason code                                         |
+| `message`                  | Diagnostics message text                                        |
 
 **Notable behavior:**
 
@@ -91,11 +91,11 @@ Left blank on a normal business response.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `Detail` (nested: `sourceLabel`, `rawValueLabel`, `coercionLabel`) | Structured pieces of one diagnostic note |
-| `render(Detail)` | Turns a `Detail` into the single human-readable note shown as `actualValueDetail` / `expectedValueDetail` |
-| `rowCount(...)` | Formats pluralized row counts |
+| Member                                                             | Purpose                                                                                                   |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `Detail` (nested: `sourceLabel`, `rawValueLabel`, `coercionLabel`) | Structured pieces of one diagnostic note                                                                  |
+| `render(Detail)`                                                   | Turns a `Detail` into the single human-readable note shown as `actualValueDetail` / `expectedValueDetail` |
+| `rowCount(...)`                                                    | Formats pluralized row counts                                                                             |
 
 **Notable behavior:**
 
@@ -149,14 +149,14 @@ the query, and handle a record-specific conversion problem inside the record loo
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `objectApiName` | Object API name (for example `Account`) |
-| `recordIds` | Copy of every record ID in the request |
-| `parameters` | Copy of the JSON object from `ApexParametersJson__c`, converted to an Apex map |
-| `checkQualifiedApiName` | Qualified Check identity |
-| `checkSetQualifiedApiName` | Qualified parent Check Set identity |
-| `runId` | ID that connects logs and events from the same request |
+| Member                     | Purpose                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| `objectApiName`            | Object API name (for example `Account`)                                        |
+| `recordIds`                | Copy of every record ID in the request                                         |
+| `parameters`               | Copy of the JSON object from `ApexParametersJson__c`, converted to an Apex map |
+| `checkQualifiedApiName`    | Qualified Check identity                                                       |
+| `checkSetQualifiedApiName` | Qualified parent Check Set identity                                            |
+| `runId`                    | ID that connects logs and events from the same request                         |
 
 **Notable behavior:**
 
@@ -166,7 +166,6 @@ the query, and handle a record-specific conversion problem inside the record loo
 **See also:** [Reference: Apex](../../developer-guides/write-an-apex-check.md)
 
 ---
-
 
 ## Apex plugin examples
 
@@ -189,14 +188,14 @@ fallback presentation.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `DEFAULT_DAYS_BACK` (`30`) | Look-back window only when `daysBack` is omitted |
-| `MIN_DAYS_BACK` / `MAX_DAYS_BACK` (`1` / `3650`) | Valid bounds for `daysBack` |
-| `getDefinition()` | Declares typed parameters, labels/help, and bulk capacity of 200 at LOW cost |
-| `ActivityOutcomeEvaluator` | Uses `tryEvaluate` over preloaded counts for per-record recovery |
-| `outcomeFor(...)` | Builds typed comparison values and one evidence row |
-| `getDisplay(...)` | Reuses evaluation state to add query-free message, link, formats, fix, and action |
+| Member                                           | Purpose                                                                           |
+| ------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `DEFAULT_DAYS_BACK` (`30`)                       | Look-back window only when `daysBack` is omitted                                  |
+| `MIN_DAYS_BACK` / `MAX_DAYS_BACK` (`1` / `3650`) | Valid bounds for `daysBack`                                                       |
+| `getDefinition()`                                | Declares typed parameters, labels/help, and bulk capacity of 200 at LOW cost      |
+| `ActivityOutcomeEvaluator`                       | Uses `tryEvaluate` over preloaded counts for per-record recovery                  |
+| `outcomeFor(...)`                                | Builds typed comparison values and one evidence row                               |
+| `getDisplay(...)`                                | Reuses evaluation state to add query-free message, link, formats, fix, and action |
 
 **Notable behavior:**
 
@@ -215,22 +214,21 @@ fallback presentation.
 These live under `integration-tests/main/default/classes/`. Installing Record Health Check does not
 install them. They become available only if your team deliberately deploys that folder.
 
-| Class | What it checks | Typical JSON parameters |
-| --- | --- | --- |
-| `AccountOpenOpportunityHealthCheck` | Open Opportunities that are stale, missing Next Step, and not closing this quarter | `{"staleDays": 30}` |
-| `AccountStrategicReadinessCheck` | Weighted readiness score (contacts, pipeline, activity, billing) | `{"minScore": 80, "activityDaysBack": 60}` |
+| Class                               | What it checks                                                                     | Typical JSON parameters                    |
+| ----------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------ |
+| `AccountOpenOpportunityHealthCheck` | Open Opportunities that are stale, missing Next Step, and not closing this quarter | `{"staleDays": 30}`                        |
+| `AccountStrategicReadinessCheck`    | Weighted readiness score (contacts, pipeline, activity, billing)                   | `{"minScore": 80, "activityDaysBack": 60}` |
 
 **See also:** [Apex examples](../../examples/apex/README.md)
 
 ---
 
-
 ## Package test helpers
 
-| Class | Note |
-| --- | --- |
+| Class                              | Note                                                                                            |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `RecordHealthCheckTestDataFactory` | `@isTest` factory for Accounts, Contacts, and related test records; health checks do not use it |
-| `*Test.cls` / coverage classes | Package tests; custom Apex should not call them as a supported API |
+| `*Test.cls` / coverage classes     | Package tests; custom Apex should not call them as a supported API                              |
 
 ---
 

@@ -6,39 +6,39 @@ outcome, return to the [documentation home](../README.md) and choose a task-base
 
 ## Choose a reference area
 
-| Folder | What you can find there |
-| --- | --- |
-| [Feature catalog](./feature-catalog.md) | Every shipped capability, its supported behavior, and the detailed guide that owns it |
-| [Version 2.0.10](./release-2.0.10.md) | Complete contract for the plugin, evidence, display, diagnostics, preview, readiness, limits, and compatibility changes introduced in 2.0.10 |
-| [Permission Sets](./permission-sets.md) | The six installed access bundles and the ways they authorize runs, diagnostics, and events |
-| [Custom Permissions](./custom-permissions.md) | The separate run and diagnostics authorization gates and which installed Permission Sets grant them |
-| [Configuration](./configuration/README.md) | Names, display formatting, and field limits |
-| [Merge syntax](./merge-syntax/README.md) | Token namespaces, properties, fallbacks, and SOQL usage |
-| [Evaluation](./evaluation/README.md) | Exact Formula, Query, Compare Two Queries, and bulk-query behavior |
-| [Custom Metadata](./custom-metadata/README.md) | Check Set and Check configuration field dictionaries |
-| [Platform Event metadata](./platform-event-metadata/README.md) | Fields published by the three Record Health Check Platform Events |
-| [Results](./results/README.md) | Card labels, API statuses, and Reason Codes |
-| [Platform](./platform/README.md) | Compatibility, localization, limitations, and Salesforce-specific edge cases |
-| [Contracts](./contracts/README.md) | Versioned integration boundaries |
+| Folder                                                         | What you can find there                                                                                                                      |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Feature catalog](./feature-catalog.md)                        | Every shipped capability, its supported behavior, and the detailed guide that owns it                                                        |
+| [Version 2.0.10](./release-2.0.10.md)                          | Complete contract for the plugin, evidence, display, diagnostics, preview, readiness, limits, and compatibility changes introduced in 2.0.10 |
+| [Permission Sets](./permission-sets.md)                        | The six installed access bundles and the ways they authorize runs, diagnostics, and events                                                   |
+| [Custom Permissions](./custom-permissions.md)                  | The separate run and diagnostics authorization gates and which installed Permission Sets grant them                                          |
+| [Configuration](./configuration/README.md)                     | Names, display formatting, and field limits                                                                                                  |
+| [Merge syntax](./merge-syntax/README.md)                       | Token namespaces, properties, fallbacks, and SOQL usage                                                                                      |
+| [Evaluation](./evaluation/README.md)                           | Exact Formula, Query, Compare Two Queries, and bulk-query behavior                                                                           |
+| [Custom Metadata](./custom-metadata/README.md)                 | Check Set and Check configuration field dictionaries                                                                                         |
+| [Platform Event metadata](./platform-event-metadata/README.md) | Fields published by the three Record Health Check Platform Events                                                                            |
+| [Results](./results/README.md)                                 | Card labels, API statuses, and Reason Codes                                                                                                  |
+| [Platform](./platform/README.md)                               | Compatibility, localization, limitations, and Salesforce-specific edge cases                                                                 |
+| [Contracts](./contracts/README.md)                             | Versioned integration boundaries                                                                                                             |
 
 Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term is unfamiliar.
 
 ## Common lookups
 
-| I need to know… | Reference |
-| --- | --- |
-| What the package supports | [Complete feature catalog](./feature-catalog.md) |
-| What changed in 2.0.10 | [Version 2.0.10 reference](./release-2.0.10.md) |
-| Which field to use in Setup | [Custom Metadata](./custom-metadata/README.md) |
-| Which Permission Set to assign | [Permission Sets](./permission-sets.md) |
-| What the Run Custom Permission controls, and how diagnostics access works | [Custom Permissions](./custom-permissions.md) |
-| Which fields a Platform Event publishes | [Platform Event metadata](./platform-event-metadata/README.md) |
-| Why a result says `FAIL`, `ERROR`, or `UNABLE_TO_EVALUATE` | [Result statuses and card labels](./results/statuses-and-labels.md) |
-| What a Reason Code means | [Reason Codes](./results/reason-codes.md) |
-| Which merge tokens are supported | [Merge tokens](./merge-syntax/README.md) |
-| How Formula or Query evaluation behaves | [Evaluation reference](./evaluation/README.md) |
-| How the framework is assembled | [Framework architecture](../architecture/framework.md) |
-| Which package Apex class owns a responsibility | [Package Apex implementation reference](../architecture/apex-implementation/README.md) |
+| I need to know…                                                           | Reference                                                                              |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| What the package supports                                                 | [Complete feature catalog](./feature-catalog.md)                                       |
+| What changed in 2.0.10                                                    | [Version 2.0.10 reference](./release-2.0.10.md)                                        |
+| Which field to use in Setup                                               | [Custom Metadata](./custom-metadata/README.md)                                         |
+| Which Permission Set to assign                                            | [Permission Sets](./permission-sets.md)                                                |
+| What the Run Custom Permission controls, and how diagnostics access works | [Custom Permissions](./custom-permissions.md)                                          |
+| Which fields a Platform Event publishes                                   | [Platform Event metadata](./platform-event-metadata/README.md)                         |
+| Why a result says `FAIL`, `ERROR`, or `UNABLE_TO_EVALUATE`                | [Result statuses and card labels](./results/statuses-and-labels.md)                    |
+| What a Reason Code means                                                  | [Reason Codes](./results/reason-codes.md)                                              |
+| Which merge tokens are supported                                          | [Merge tokens](./merge-syntax/README.md)                                               |
+| How Formula or Query evaluation behaves                                   | [Evaluation reference](./evaluation/README.md)                                         |
+| How the framework is assembled                                            | [Framework architecture](../architecture/framework.md)                                 |
+| Which package Apex class owns a responsibility                            | [Package Apex implementation reference](../architecture/apex-implementation/README.md) |
 
 ## Related
 

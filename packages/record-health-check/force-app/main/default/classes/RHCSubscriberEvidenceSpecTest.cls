@@ -294,12 +294,21 @@ private class RHCSubscriberEvidenceSpecTest {
       new Map<Id, SObject>()
     );
 
-    Assert.areEqual(100, projected.totalItemCount);
+    Assert.areEqual(
+      100,
+      projected.totalItemCount,
+      'Byte truncation must still count all authorized rows.'
+    );
     Assert.areEqual(
       100 - projected.returnedItemCount,
-      projected.omittedItemCount
+      projected.omittedItemCount,
+      'The omitted count must equal the authorized total less the returned rows.'
     );
-    Assert.areEqual('TRUNCATED', projected.completeness);
+    Assert.areEqual(
+      'TRUNCATED',
+      projected.completeness,
+      'A byte-limited envelope must disclose truncation.'
+    );
   }
 
   private static RecordHealthCheckEvidence approvalEvidence(Id accountId) {

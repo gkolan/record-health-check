@@ -47,6 +47,14 @@ public with sharing class RecordHealthCheckQuerySchemaValidator {
     if (selectList.containsIgnoreCase('TYPEOF')) {
       return;
     }
+    validateSelectedFields(soql, selectList, objectType);
+  }
+
+  private static void validateSelectedFields(
+    String soql,
+    String selectList,
+    Schema.SObjectType objectType
+  ) {
     RecordHealthCheckFieldPlanner planner = new RecordHealthCheckFieldPlanner();
     for (String selectedField : selectList.split(',')) {
       String fieldPath = selectedField.trim();

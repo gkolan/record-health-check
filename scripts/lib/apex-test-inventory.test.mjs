@@ -217,6 +217,18 @@ test("rejects Salesforce CLI transport failures and every nonzero exit", () => {
   assert.throws(
     () =>
       verifyApexCommandExecution(
+        { status: null, error: undefined, signal: "SIGABRT" },
+        {
+          outcome: "Passed",
+          executedClassCount: 236,
+          executedMethodCount: 1583
+        }
+      ),
+    /interrupted by SIGABRT/
+  );
+  assert.throws(
+    () =>
+      verifyApexCommandExecution(
         { status: null, error: new Error("spawn failed"), signal: null },
         { outcome: "Passed", executedClassCount: 1, executedMethodCount: 1 }
       ),

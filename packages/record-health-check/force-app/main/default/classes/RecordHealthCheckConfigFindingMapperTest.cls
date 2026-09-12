@@ -93,7 +93,8 @@ private class RecordHealthCheckConfigFindingMapperTest {
     } catch (RecordHealthCheckConfigService.ConfigException error) {
       Assert.areEqual(
         RecordHealthCheckConfigService.RC_INVALID_CONFIG,
-        error.reasonCode
+        error.reasonCode,
+        'Runtime must reject a finding without a code as invalid configuration.'
       );
     }
   }

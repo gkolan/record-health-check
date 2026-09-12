@@ -1426,7 +1426,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Id, LastName, Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY LastName",
+    "soql": "SELECT Id, LastName, Email FROM Contact WHERE AccountId = {!record.Id}",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2538,6 +2538,28 @@
     "note": "Selects MailingCity but orders by CreatedDate",
     "package": "integration-tests",
     "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate ASC LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Link_Grammar_Open",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects Id but orders by Id",
+    "package": "integration-tests",
+    "soql": "SELECT Id, Name, NumberOfEmployees, OwnerId, Owner.Name, Website FROM Account WHERE Id = {!record.Id} AND NumberOfEmployees != null ORDER BY Id LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Link_Grammar_Valid",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects Id but orders by Id",
+    "package": "integration-tests",
+    "soql": "SELECT Id, Name, NumberOfEmployees, OwnerId, Owner.Name, Website FROM Account WHERE Id = {!record.Id} AND NumberOfEmployees != null ORDER BY Id LIMIT 1",
     "strategy": "ORDERED_PICK_IN_MEMORY"
   },
   {

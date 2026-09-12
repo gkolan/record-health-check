@@ -119,6 +119,14 @@ global with sharing class RecordHealthCheckAgentRestResource {
       );
     }
 
+    return validateAndEvaluateBody(request, response, correlationId);
+  }
+
+  private static AgentToolResponse validateAndEvaluateBody(
+    RestRequest request,
+    RestResponse response,
+    String correlationId
+  ) {
     AgentToolRequest input;
     try {
       input = (AgentToolRequest) JSON.deserializeStrict(
@@ -162,6 +170,15 @@ global with sharing class RecordHealthCheckAgentRestResource {
       );
     }
 
+    return executeEvaluation(input, recordId, response, correlationId);
+  }
+
+  private static AgentToolResponse executeEvaluation(
+    AgentToolRequest input,
+    Id recordId,
+    RestResponse response,
+    String correlationId
+  ) {
     try {
       RecordHealthCheckRequest evaluationRequest = input.operation == RUN_CHECK
         ? RecordHealthCheckRequest.forCheck(

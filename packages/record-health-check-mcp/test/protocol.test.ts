@@ -1,15 +1,17 @@
 import { createServer } from "node:http";
+import { readFileSync } from "node:fs";
 
 import {
   Client,
   StreamableHTTPClientTransport
 } from "@modelcontextprotocol/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 
 import { createApp } from "../src/app.js";
 import { ServiceError } from "../src/errors.js";
 import { ConcurrencyLimitError } from "../src/limiter.js";
-import type { SalesforceClient } from "../src/salesforce-client.js";
+import { SalesforceClient } from "../src/salesforce-client.js";
 import { testConfig } from "./helpers.js";
 
 const servers: Array<ReturnType<typeof createServer>> = [];
@@ -225,6 +227,76 @@ describe("MCP Streamable HTTP", () => {
     await client.close();
   });
 
+  it("returns a correlated safe failure for an interrupted upstream response body", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: "token",
+            instance_url: "https://instance.salesforce.test"
+          })
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.error(
+                new DOMException("private upstream stream detail", "AbortError")
+              );
+            }
+          })
+        )
+      );
+    const logger = { log: vi.fn() };
+    const config = testConfig();
+    const app = createApp(
+      config,
+      new SalesforceClient(config, logger, fetcher),
+      logger
+    );
+    const httpServer = createServer(app);
+    servers.push(httpServer);
+    await new Promise<void>((resolve) =>
+      httpServer.listen(0, "127.0.0.1", resolve)
+    );
+    const address = httpServer.address();
+    if (!address || typeof address === "string")
+      throw new Error("Test server did not bind.");
+
+    const client = new Client({ name: "adapter-error-test", version: "1.0.0" });
+    await client.connect(
+      new StreamableHTTPClientTransport(
+        new URL(`http://127.0.0.1:${address.port}/mcp`)
+      )
+    );
+    const result = await client.callTool({
+      name: "run_record_health_check",
+      arguments: {
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "Check_One",
+        correlationId: "corr-adapter-error"
+      }
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent).toEqual({
+      contractVersion: "1.0",
+      correlationId: "corr-adapter-error",
+      success: false,
+      errorType: "EXECUTION",
+      errorMessage: "Salesforce is temporarily unavailable."
+    });
+    expect(JSON.stringify(result)).not.toContain(
+      "private upstream stream detail"
+    );
+    expect(JSON.stringify(logger.log.mock.calls)).not.toContain(
+      "private upstream stream detail"
+    );
+    await client.close();
+  });
+
   it("M09 Tool failure keeps effective correlation", async () => {
     const evaluate = vi
       .fn()
@@ -302,6 +374,10 @@ describe("MCP Streamable HTTP", () => {
       new URL(`http://127.0.0.1:${address.port}/mcp`)
     );
     await client.connect(transport);
+    const packageMetadata = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8")
+    ) as { version: string };
+    expect(client.getServerVersion()?.version).toBe(packageMetadata.version);
     const tools = await client.listTools();
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       "run_record_health_check",
@@ -312,8 +388,12 @@ describe("MCP Streamable HTTP", () => {
         string,
         { description?: string }
       >;
-      const outputProperties = tool.outputSchema?.properties as
-        Record<string, { description?: string }> | undefined;
+      const alternatives = tool.outputSchema?.anyOf as Array<{
+        properties: Record<string, { description?: string }>;
+      }>;
+      const outputProperties = alternatives.find(
+        (branch) => branch.properties.status
+      )?.properties;
       expect(tool.description).toContain("Never treat UNABLE_TO_EVALUATE");
       expect(
         inputProperties.qualifiedApiName?.description?.toLowerCase()
@@ -322,6 +402,59 @@ describe("MCP Streamable HTTP", () => {
       expect(outputProperties?.diagnosticSummary?.description).toContain(
         "disclosure-safe"
       );
+    }
+    for (const tool of tools.tools) {
+      const schema = z.fromJSONSchema(
+        tool.outputSchema as Parameters<typeof z.fromJSONSchema>[0]
+      );
+      const base = { contractVersion: "1.0", correlationId: "schema-test" };
+      for (const invalid of [
+        { ...base, success: true },
+        { ...base, success: false },
+        {
+          ...base,
+          success: true,
+          operation: "RUN_CHECK",
+          status: "PASS",
+          errorMessage: "contradictory"
+        },
+        { ...base, success: true, operation: "RUN_CHECK_SET", status: "PASS" },
+        {
+          ...base,
+          success: false,
+          errorType: "EXECUTION",
+          errorMessage: "safe",
+          status: "PASS"
+        }
+      ]) {
+        expect(schema.safeParse(invalid).success, JSON.stringify(invalid)).toBe(
+          false
+        );
+      }
+      for (const valid of [
+        { ...base, success: true, operation: "RUN_CHECK", status: "FAIL" },
+        {
+          ...base,
+          success: true,
+          operation: "RUN_CHECK_SET",
+          status: "SKIPPED",
+          passed: 0,
+          failed: 0,
+          skipped: 1,
+          unable: 0,
+          systemError: 0
+        },
+        {
+          ...base,
+          success: false,
+          errorType: "EXECUTION",
+          errorMessage: "safe"
+        }
+      ]) {
+        expect(schema.safeParse(valid).success, JSON.stringify(valid)).toBe(
+          true
+        );
+      }
     }
     const result = await client.callTool({
       name: "run_record_health_check",

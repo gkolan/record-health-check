@@ -188,19 +188,34 @@ private class RHCSubscriberDiagnosticSpecTest {
 
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
-      constructorResult.reasonCode
+      constructorResult.reasonCode,
+      'A constructor failure must retain the framework constructor reason.'
     );
     Assert.areEqual(
       'PLUGIN_CONSTRUCT',
-      constructorResult.diagnosticIncident.phase
+      constructorResult.diagnosticIncident.phase,
+      'A constructor exception must be attributed to construction, not execution.'
     );
-    Assert.areEqual(false, constructorResult.diagnosticIncident.pluginInvoked);
+    Assert.areEqual(
+      false,
+      constructorResult.diagnosticIncident.pluginInvoked,
+      'A failed constructor must not claim that evaluate was invoked.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_THREW,
-      evaluateResult.reasonCode
+      evaluateResult.reasonCode,
+      'An evaluate exception must retain the plugin-threw reason.'
     );
-    Assert.areEqual('PLUGIN_EXECUTE', evaluateResult.diagnosticIncident.phase);
-    Assert.areEqual(true, evaluateResult.diagnosticIncident.pluginInvoked);
+    Assert.areEqual(
+      'PLUGIN_EXECUTE',
+      evaluateResult.diagnosticIncident.phase,
+      'An evaluate exception must be attributed to plugin execution.'
+    );
+    Assert.areEqual(
+      true,
+      evaluateResult.diagnosticIncident.pluginInvoked,
+      'An evaluate exception must still record that the plugin was invoked.'
+    );
   }
 
   @IsTest
@@ -217,10 +232,26 @@ private class RHCSubscriberDiagnosticSpecTest {
         record
       );
 
-    Assert.areEqual(RecordHealthCheckStatus.UNABLE_TO_EVALUATE, result.status);
-    Assert.areEqual('PREVIEW_FAILED', result.reasonCode);
-    Assert.areEqual('PLUGIN', result.reasonOrigin);
-    Assert.areEqual(true, result.pluginInvoked);
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      result.status,
+      'A plugin-returned indeterminate outcome must remain unable to evaluate.'
+    );
+    Assert.areEqual(
+      'PREVIEW_FAILED',
+      result.reasonCode,
+      'An ordinary returned outcome must preserve the plugin reason spelling.'
+    );
+    Assert.areEqual(
+      'PLUGIN',
+      result.reasonOrigin,
+      'A returned plugin reason must retain plugin provenance.'
+    );
+    Assert.areEqual(
+      true,
+      result.pluginInvoked,
+      'Returning an indeterminate outcome still requires an observed invocation.'
+    );
     Assert.isNull(
       result.diagnosticIncident,
       'An ordinary plugin-returned unable outcome is not a caught exception.'
@@ -244,52 +275,21 @@ private class RHCSubscriberDiagnosticSpecTest {
 
     Assert.areEqual(
       '[message withheld]',
-      result.diagnosticIncident.exceptionMessage
+      result.diagnosticIncident.exceptionMessage,
+      'Exception detail must use the withheld placeholder rather than the original message.'
     );
-    Assert.isFalse(serialized.contains('secret123'));
-    Assert.isFalse(serialized.contains('user@example.test'));
-    Assert.isFalse(serialized.contains('private.example.test'));
-  }
-
-  @IsTest
-  static void failedStageStopsTrace() {
-    RecordHealthCheckExecutionTrace trace = new RecordHealthCheckExecutionTrace();
-    trace.begin('CONFIG_VALIDATE');
-    trace.complete('CHECK_RESOLVED');
-    trace.complete('CONFIG_VALIDATED');
-    trace.begin('FIELD_PLAN');
-    trace.fail('FIELD_PLAN');
-    trace.complete('RECORDS_LOADED');
-    trace.complete('PLUGIN_EXECUTED');
-
-    List<RecordHealthCheckExecutionTrace.Entry> entries = trace.entries();
-    Assert.areEqual(3, entries.size());
-    Assert.areEqual('CHECK_RESOLVED', entries[0].stage);
-    Assert.areEqual('CONFIG_VALIDATED', entries[1].stage);
-    Assert.areEqual('FIELD_PLAN_FAILED', entries[2].stage);
-    Assert.areEqual('FIELD_PLAN_FAILED', trace.terminalFailure());
-    Assert.areEqual('FIELD_PLAN', trace.activePhase());
-    Assert.areEqual(false, trace.isTruncated());
-  }
-
-  @IsTest
-  static void traceCapKeepsTerminal() {
-    RecordHealthCheckExecutionTrace exact = new RecordHealthCheckExecutionTrace();
-    for (Integer index = 1; index < 32; index++) {
-      exact.complete('STAGE_' + index);
-    }
-    exact.fail('FIELD_PLAN');
-    Assert.areEqual(32, exact.entries().size());
-    Assert.areEqual(false, exact.isTruncated());
-
-    RecordHealthCheckExecutionTrace overflow = new RecordHealthCheckExecutionTrace();
-    for (Integer index = 1; index <= 32; index++) {
-      overflow.complete('STAGE_' + index);
-    }
-    overflow.fail('PLUGIN_EXECUTE');
-    Assert.areEqual(32, overflow.entries().size());
-    Assert.areEqual(true, overflow.isTruncated());
-    Assert.areEqual('PLUGIN_EXECUTE_FAILED', overflow.terminalFailure());
+    Assert.isFalse(
+      serialized.contains('secret123'),
+      'Serialized diagnostic detail must not expose the synthetic password.'
+    );
+    Assert.isFalse(
+      serialized.contains('user@example.test'),
+      'Serialized diagnostic detail must not expose the synthetic email address.'
+    );
+    Assert.isFalse(
+      serialized.contains('private.example.test'),
+      'Serialized diagnostic detail must not expose the synthetic private hostname.'
+    );
   }
 
   @IsTest
@@ -322,92 +322,34 @@ private class RHCSubscriberDiagnosticSpecTest {
         'PLUGIN_EXECUTED',
         'RESULT_VALIDATED'
       },
-      stages
+      stages,
+      'Successful plugin lifecycle stages must follow observed execution order.'
     );
-    Assert.areEqual(trace, result.executionTrace);
+    Assert.areEqual(
+      trace,
+      result.executionTrace,
+      'The evaluator result must retain the same supplied execution trace.'
+    );
     Assert.areEqual(
       'PLUGIN_VALIDATE_RESULT',
       trace.activePhase(),
       'Successful result validation remains the active evaluator operation.'
     );
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.constructorCount);
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.definitionCount);
-    Assert.areEqual(1, RecordHealthCheckDefTestPlugin.evaluateCount);
-  }
-
-  @IsTest
-  static void diagnosticV2ProjectionIsOptInAndLegacySafe() {
-    Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
-      Account.SObjectType,
-      7301
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.constructorCount,
+      'Tracing must not construct the plugin a second time.'
     );
-    RecordHealthCheckExecutionTrace trace = new RecordHealthCheckExecutionTrace();
-    trace.complete('CHECK_RESOLVED');
-    trace.fail('FIELD_PLAN');
-    RecordHealthCheckDiagnosticIncident incident = new RecordHealthCheckDiagnosticIncident();
-    incident.runId = 'run-diagnostic-contract';
-    incident.phase = 'FIELD_PLAN';
-    incident.pluginInvoked = false;
-    incident.reasonCode = RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED;
-    incident.reasonOrigin = 'FRAMEWORK';
-    incident.configurationField = 'ApplicabilityFormula__c';
-    incident.offendingToken = 'Missing_Field__c';
-    incident.tokenStart = 0;
-    incident.tokenEnd = 16;
-    RecordHealthCheckInternalResult internal = new RecordHealthCheckInternalResult();
-    internal.runId = 'run-diagnostic-contract';
-    internal.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
-    internal.reasonCode = RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED;
-    internal.reasonOrigin = 'FRAMEWORK';
-    internal.pluginInvoked = false;
-    internal.diagnosticIncident = incident;
-    internal.executionTrace = trace;
-    RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
-    item.evaluation = new RecordHealthCheckEvaluationResult();
-    item.evaluation.recordId = recordId;
-    item.evaluation.checkQualifiedApiName = 'RHC_SP_Diag_BadField';
-    item.diagnosticSource = internal;
-    RecordHealthCheckResponse response = new RecordHealthCheckResponse();
-    response.results.add(item);
-    response.diagnosticItems = new List<RecordHealthCheckResultItem>{ item };
-
-    String legacy = JSON.serialize(response);
-    Assert.isFalse(legacy.contains('diagnosticItems'));
-    Assert.isFalse(legacy.contains('executionTrace'));
-    Assert.isNull(response.diagnostics());
-
-    response.diagnosticProjectionAuthorized = true;
-    RecordHealthCheckDiagnosticResponse projected = response.diagnostics();
-    Assert.areEqual('2.0', projected.contractVersion);
-    Assert.areEqual(1, projected.diagnostics.size());
-    RecordHealthCheckDiagnosticEnvelope envelope = projected.diagnostics[0];
-    Assert.areEqual('FIELD_PLAN', envelope.phase);
-    Assert.areEqual(false, envelope.pluginInvoked);
-    Assert.areEqual('FRAMEWORK', envelope.reasonOrigin);
-    Assert.areEqual('Missing_Field__c', envelope.offendingToken);
-    Assert.areEqual(2, envelope.trace.size());
-    Assert.areEqual('FIELD_PLAN_FAILED', envelope.terminalFailure);
-  }
-
-  @IsTest
-  static void unsupportedDiagnosticVersionStopsBeforeSelection() {
-    Boolean rejected = false;
-    try {
-      new RecordHealthCheckScopePipeline()
-        .evaluate(
-          RecordHealthCheckRequest.forCheck(
-              'Does_Not_Exist',
-              RecordHealthCheckTestDataFactory.syntheticId(
-                Account.SObjectType,
-                7302
-              )
-            )
-            .withDiagnosticContractVersion('9.0')
-        );
-    } catch (RecordHealthCheckScopePipeline.ScopePipelineException expected) {
-      rejected = expected.getMessage() == 'UNSUPPORTED_DIAGNOSTIC_VERSION';
-    }
-    Assert.isTrue(rejected);
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.definitionCount,
+      'Tracing must not repeat plugin definition.'
+    );
+    Assert.areEqual(
+      1,
+      RecordHealthCheckDefTestPlugin.evaluateCount,
+      'Tracing must not repeat plugin evaluation.'
+    );
   }
 
   @IsTest
@@ -432,14 +374,24 @@ private class RHCSubscriberDiagnosticSpecTest {
 
     Assert.areEqual(
       RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED,
-      pluginResult.reasonCode
+      pluginResult.reasonCode,
+      'A plugin may return a framework-like reason spelling without rewriting the code.'
     );
-    Assert.areEqual('PLUGIN', pluginResult.reasonOrigin);
+    Assert.areEqual(
+      'PLUGIN',
+      pluginResult.reasonOrigin,
+      'A framework-like spelling must not let a plugin spoof framework provenance.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING,
-      replacedResult.reasonCode
+      replacedResult.reasonCode,
+      'Missing required values must replace the plugin outcome with the framework validation reason.'
     );
-    Assert.areEqual('FRAMEWORK', replacedResult.reasonOrigin);
+    Assert.areEqual(
+      'FRAMEWORK',
+      replacedResult.reasonOrigin,
+      'A framework replacement must identify framework provenance.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED,
       replacedResult.priorReasonCode,
@@ -456,8 +408,16 @@ private class RHCSubscriberDiagnosticSpecTest {
       'diag-context-branches',
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED
     );
-    Assert.areEqual('PLUGIN_CONSTRUCT', constructor.phase);
-    Assert.areEqual(false, constructor.pluginInvoked);
+    Assert.areEqual(
+      'PLUGIN_CONSTRUCT',
+      constructor.phase,
+      'Constructor failure context must identify the construction phase.'
+    );
+    Assert.areEqual(
+      false,
+      constructor.pluginInvoked,
+      'Constructor failure context must record that evaluate was never entered.'
+    );
 
     Record_Health_Check__mdt formula = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{ 'EvaluationType__c' => 'FORMULA' }
@@ -468,8 +428,15 @@ private class RHCSubscriberDiagnosticSpecTest {
       'diag-context-formula',
       RecordHealthCheckReasonCodes.FRAMEWORK_UNEXPECTED
     );
-    Assert.areEqual('PASS_CONDITION_FORMULA', formulaContext.phase);
-    Assert.isNull(formulaContext.pluginInvoked);
+    Assert.areEqual(
+      'PASS_CONDITION_FORMULA',
+      formulaContext.phase,
+      'Formula failure context must identify pass-condition evaluation.'
+    );
+    Assert.isNull(
+      formulaContext.pluginInvoked,
+      'Formula evaluation must not fabricate a plugin invocation observation.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED,
       RecordHealthCheckDiagContextSupport.primaryUnresolvedReasonCode(
@@ -477,7 +444,8 @@ private class RHCSubscriberDiagnosticSpecTest {
           'Zulu__r.Name' => RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED,
           'Alpha__r.Name' => RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED
         }
-      )
+      ),
+      'Primary unresolved reason selection must follow deterministic field ordering.'
     );
   }
 

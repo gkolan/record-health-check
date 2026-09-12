@@ -14,24 +14,47 @@ private class RecordHealthCheckTokenShapeTest {
     Assert.isTrue(source.isUsable(), 'A well-formed row token resolves.');
     Assert.areEqual(
       RecordHealthCheckTokenShape.KIND_QUERY_ROW_FIELD,
-      source.kind
+      source.kind,
+      'A row field token must retain its query-row-field kind.'
     );
-    Assert.areEqual('sourceRows', source.collection);
+    Assert.areEqual(
+      'sourceRows',
+      source.collection,
+      'The primary row token must select sourceRows.'
+    );
     Assert.areEqual(0, source.rowIndex, 'Indexes are zero-based.');
-    Assert.areEqual('Name', source.fieldPath);
+    Assert.areEqual(
+      'Name',
+      source.fieldPath,
+      'The primary row token must retain its terminal Name field.'
+    );
     Assert.isTrue(
       source.isTypedField,
       'A query row field still has a Salesforce data type.'
     );
-    Assert.isFalse(source.readsComparisonQuery());
+    Assert.isFalse(
+      source.readsComparisonQuery(),
+      'A sourceRows token must not read the comparison query.'
+    );
 
     RecordHealthCheckTokenShape comparison = RecordHealthCheckTokenRegistry.resolve(
       'rhcQuery',
       'comparisonRows[3].Owner.Name'
     );
-    Assert.isTrue(comparison.readsComparisonQuery());
-    Assert.areEqual(3, comparison.rowIndex);
-    Assert.areEqual('Owner.Name', comparison.fieldPath);
+    Assert.isTrue(
+      comparison.readsComparisonQuery(),
+      'A comparisonRows token must read the comparison query.'
+    );
+    Assert.areEqual(
+      3,
+      comparison.rowIndex,
+      'The comparison row index must remain zero-based at three.'
+    );
+    Assert.areEqual(
+      'Owner.Name',
+      comparison.fieldPath,
+      'The comparison token must retain the complete Owner.Name path.'
+    );
 
     RecordHealthCheckTokenShape count = RecordHealthCheckTokenRegistry.resolve(
       'rhcQuery',
@@ -39,7 +62,8 @@ private class RecordHealthCheckTokenShapeTest {
     );
     Assert.areEqual(
       RecordHealthCheckTokenShape.KIND_QUERY_ROW_COUNT,
-      count.kind
+      count.kind,
+      'A source row count must use the row-count kind.'
     );
     Assert.isFalse(
       count.isTypedField,
@@ -111,7 +135,11 @@ private class RecordHealthCheckTokenShapeTest {
       'rhcQuery',
       'firstSourceRow.Id'
     );
-    Assert.areEqual('UNKNOWN_TOKEN_PROPERTY', shape.reasonCode);
+    Assert.areEqual(
+      'UNKNOWN_TOKEN_PROPERTY',
+      shape.reasonCode,
+      'An unsupported guessed property must retain its unknown-property reason.'
+    );
     Assert.isTrue(
       shape.message.contains('sourceRows[0].Field'),
       'The message must name the supported form: ' + shape.message
@@ -160,9 +188,13 @@ private class RecordHealthCheckTokenShapeTest {
   @IsTest
   static void keepsExistingNamespacesUnchanged() {
     Assert.isTrue(
-      RecordHealthCheckTokenRegistry.contains('rhcResult', 'foundValue')
+      RecordHealthCheckTokenRegistry.contains('rhcResult', 'foundValue'),
+      'The established finalized Found property must remain registered.'
     );
-    Assert.isTrue(RecordHealthCheckTokenRegistry.contains('record', 'Name'));
+    Assert.isTrue(
+      RecordHealthCheckTokenRegistry.contains('record', 'Name'),
+      'The established record Name property must remain registered.'
+    );
     Assert.isFalse(
       RecordHealthCheckTokenRegistry.contains('rhcResult', 'sourceRows[1].Id'),
       'Row syntax belongs to rhcQuery alone.'

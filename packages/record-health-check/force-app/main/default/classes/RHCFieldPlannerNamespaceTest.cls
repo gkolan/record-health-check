@@ -19,7 +19,14 @@ private class RHCFieldPlannerNamespaceTest {
     );
     Test.stopTest();
 
-    Assert.isNull(reasonCode);
-    Assert.areEqual(Schema.DisplayType.String, displayType);
+    Assert.isNull(
+      reasonCode,
+      'A namespace-neutral packaged field must resolve without an error.'
+    );
+    Assert.areEqual(
+      Schema.DisplayType.String,
+      displayType,
+      'The resolved title field must retain its String describe type.'
+    );
   }
 }

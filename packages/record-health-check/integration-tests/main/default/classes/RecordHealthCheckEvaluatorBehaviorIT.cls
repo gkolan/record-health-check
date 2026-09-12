@@ -30,7 +30,10 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
       accountRecord
     );
     assertStatus(failResult, 'FAIL');
-    Assert.isTrue(failResult.message.contains(accountRecord.Name));
+    Assert.isTrue(
+      failResult.message.contains(accountRecord.Name),
+      'A failed formula message must resolve the selected record name.'
+    );
     // Formula checks surface the expression as the pass/fail condition, unquoted
     // and under its own "Passes when" key rather than framed as an expected value.
     Assert.areEqual(
@@ -58,7 +61,8 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
         'NOT(ISBLANK(BillingCity))',
         accountRecord,
         reasonOut
-      )
+      ),
+      'A valid true Boolean applicability formula must return true.'
     );
     Assert.areEqual(
       null,
@@ -66,27 +70,40 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
         'BillingCity',
         accountRecord,
         reasonOut
-      )
+      ),
+      'A non-Boolean applicability formula must return an indeterminate result.'
     );
-    Assert.areEqual('INVALID_FORMULA', reasonOut[0]);
+    Assert.areEqual(
+      'INVALID_FORMULA',
+      reasonOut[0],
+      'A non-Boolean applicability formula must retain the invalid-formula reason.'
+    );
 
     Assert.areEqual(
       accountRecord.BillingCity,
-      evaluator.resolveFormulaSingleValue('BillingCity', accountRecord)
+      evaluator.resolveFormulaSingleValue('BillingCity', accountRecord),
+      'Automatic formula discovery must retain the text field value.'
     );
     Assert.areEqual(
       accountRecord.AnnualRevenue,
-      evaluator.resolveFormulaSingleValue('AnnualRevenue', accountRecord)
+      evaluator.resolveFormulaSingleValue('AnnualRevenue', accountRecord),
+      'Automatic formula discovery must retain the numeric field value.'
     );
     Assert.areNotEqual(
       null,
-      evaluator.resolveFormulaSingleValue('TODAY()', accountRecord)
+      evaluator.resolveFormulaSingleValue('TODAY()', accountRecord),
+      'TODAY must resolve to a populated formula value.'
     );
     Assert.areNotEqual(
       null,
-      evaluator.resolveFormulaSingleValue('NOW()', accountRecord)
+      evaluator.resolveFormulaSingleValue('NOW()', accountRecord),
+      'NOW must resolve to a populated formula value.'
     );
-    Assert.areEqual(null, evaluator.resolveMergeFields(null, accountRecord));
+    Assert.areEqual(
+      null,
+      evaluator.resolveMergeFields(null, accountRecord),
+      'An absent merge template must remain absent.'
+    );
 
     try {
       evaluator.resolveFormulaSingleValue(
@@ -95,7 +112,11 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
       );
       Assert.isTrue(false, 'Expected invalid formula exception.');
     } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException ex) {
-      Assert.areEqual('FIELD_NOT_ACCESSIBLE', ex.reasonCode);
+      Assert.areEqual(
+        'FIELD_NOT_ACCESSIBLE',
+        ex.reasonCode,
+        'An unresolved formula field must retain the field-access failure reason.'
+      );
     }
 
     RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = 95;
@@ -103,7 +124,11 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
       evaluator.resolveFormulaSingleValue('BillingCity', accountRecord);
       Assert.isTrue(false, 'Expected FormulaEval limit guard.');
     } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException ex) {
-      Assert.areEqual('FORMULA_EVAL_LIMIT', ex.reasonCode);
+      Assert.areEqual(
+        'FORMULA_EVAL_LIMIT',
+        ex.reasonCode,
+        'Exhausting the formula call budget must retain its dedicated limit reason.'
+      );
     } finally {
       RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = 0;
     }
@@ -120,25 +145,34 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
     // deliberate type discovery. Missing or unknown values are invalid config.
     Assert.areEqual(
       formulaeval.FormulaReturnType.STRING,
-      evaluator.mapDeclaredReturnType('TEXT')
+      evaluator.mapDeclaredReturnType('TEXT'),
+      'TEXT must map to the platform STRING return type.'
     );
     Assert.areEqual(
       formulaeval.FormulaReturnType.DECIMAL,
-      evaluator.mapDeclaredReturnType('NUMBER')
+      evaluator.mapDeclaredReturnType('NUMBER'),
+      'NUMBER must map to the platform DECIMAL return type.'
     );
     Assert.areEqual(
       formulaeval.FormulaReturnType.BOOLEAN,
-      evaluator.mapDeclaredReturnType('BOOLEAN')
+      evaluator.mapDeclaredReturnType('BOOLEAN'),
+      'BOOLEAN must map to the platform BOOLEAN return type.'
     );
     Assert.areEqual(
       formulaeval.FormulaReturnType.DATE,
-      evaluator.mapDeclaredReturnType('DATE')
+      evaluator.mapDeclaredReturnType('DATE'),
+      'DATE must map to the platform DATE return type.'
     );
     Assert.areEqual(
       formulaeval.FormulaReturnType.DATETIME,
-      evaluator.mapDeclaredReturnType('DATETIME')
+      evaluator.mapDeclaredReturnType('DATETIME'),
+      'DATETIME must map to the platform DATETIME return type.'
     );
-    Assert.areEqual(null, evaluator.mapDeclaredReturnType('AUTO'));
+    Assert.areEqual(
+      null,
+      evaluator.mapDeclaredReturnType('AUTO'),
+      'AUTO must leave the explicit return type unset for discovery.'
+    );
     assertInvalidFormulaReturnType(evaluator, null);
     assertInvalidFormulaReturnType(evaluator, 'Bogus');
 
@@ -147,7 +181,8 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
     RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.clear();
     Assert.areEqual(
       accountRecord.BillingCity,
-      evaluator.resolveFormulaSingleValue('BillingCity', accountRecord, 'TEXT')
+      evaluator.resolveFormulaSingleValue('BillingCity', accountRecord, 'TEXT'),
+      'An explicit TEXT declaration must retain the text field value.'
     );
     Assert.areEqual(
       1,
@@ -160,7 +195,8 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
     RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.clear();
     Assert.areEqual(
       accountRecord.BillingCity,
-      evaluator.resolveFormulaSingleValue('BillingCity', accountRecord, 'AUTO')
+      evaluator.resolveFormulaSingleValue('BillingCity', accountRecord, 'AUTO'),
+      'AUTO discovery must resolve the same text value as an explicit declaration.'
     );
     Assert.isTrue(
       RecordHealthCheckFormulaEvaluator.formulaEvalCallCount > 1,
@@ -180,7 +216,8 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
     } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException error) {
       Assert.areEqual(
         1,
-        RecordHealthCheckFormulaEvaluator.formulaEvalCallCount
+        RecordHealthCheckFormulaEvaluator.formulaEvalCallCount,
+        'A mismatched explicit type must fail after one call without trying alternatives.'
       );
     }
   }
@@ -369,7 +406,11 @@ private class RecordHealthCheckEvaluatorBehaviorIT {
       evaluator.mapDeclaredReturnType(declaredReturnType);
       Assert.fail('A missing or unknown Formula Result Type must be rejected.');
     } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException error) {
-      Assert.areEqual('INVALID_CONFIG', error.reasonCode);
+      Assert.areEqual(
+        'INVALID_CONFIG',
+        error.reasonCode,
+        'A missing or unknown declared return type must retain the invalid-configuration reason.'
+      );
     }
   }
 

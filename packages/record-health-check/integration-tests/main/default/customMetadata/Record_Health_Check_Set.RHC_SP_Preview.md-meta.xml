@@ -14,7 +14,7 @@
     >Coverage: Subscriber draft preview</value></values>
   <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Exercises an inactive detached Check against owned Account records before activation.</value></values>
+    >Exercises an inactive parent and detached Check against owned Account records before activation.</value></values>
   <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>
@@ -47,7 +47,7 @@
     >false</value></values>
   <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
-    >true</value></values>
+    >false</value></values>
     <values>
         <field>CardHeadingDisplay__c</field>
         <value xsi:type="xsd:string">TITLE_AND_SUBTITLE</value>

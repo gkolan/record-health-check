@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { assertUrlStoryEvidence } from "../scripts/lib/url-story-verifier.mjs";
+import {
+  assertUrlStoryEvidence,
+  formatUrlStorySummary
+} from "../scripts/lib/url-story-verifier.mjs";
 
 const matrix = {
   checkSet: "RHC_Link_Conditions",
@@ -177,5 +180,21 @@ test("accepts a coalesced plain-text guide fallback while other links survive", 
   });
   assert.doesNotThrow(() =>
     assertUrlStoryEvidence(fallbackMatrix, fallbackEvidence)
+  );
+});
+
+test("verification summary reflects the executed matrix", () => {
+  assert.equal(
+    formatUrlStorySummary(matrix),
+    "URL story verified: 1 record, 3 Checks, PASS→FAIL→PASS."
+  );
+  assert.equal(
+    formatUrlStorySummary({
+      ...matrix,
+      records: Array(9).fill({}),
+      checks: ["one", "two"],
+      transition: { statuses: ["FAIL", "PASS", "FAIL"] }
+    }),
+    "URL story verified: 9 records, 2 Checks, FAIL→PASS→FAIL."
   );
 });

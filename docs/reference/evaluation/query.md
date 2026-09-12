@@ -16,24 +16,24 @@
 > Zero returned rows means the running user could not see a matching row. It does not prove the org
 > contains no matching data. Test the Check as a representative non-administrator user.
 
-| Setup field | API name | Requirement |
-| --- | --- | --- |
-| **Evaluation Type** | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | **Verify with a query**: `QUERY` |
-| **Source Query** | [`SourceQuery__c`](../custom-metadata/check-fields.md#source-query-sourcequery__c) | Primary SOQL template; required except list-membership mode |
-| **Source Query Field** | [`SourceQueryField__c`](../custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | Selected field or aggregate alias; blank for bare `COUNT()` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Converts returned rows into the value or row decision |
-| **Comparison Operator** | [`ComparisonOperator__c`](../custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Required operator compatible with the selected mode |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Required when the operator needs a right-side value |
+| Setup field                    | API name                                                                                                                 | Requirement                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **Evaluation Type**            | [`EvaluationType__c`](../custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                              | **Verify with a query**: `QUERY`                                                      |
+| **Source Query**               | [`SourceQuery__c`](../custom-metadata/check-fields.md#source-query-sourcequery__c)                                       | Primary SOQL template; required except list-membership mode                           |
+| **Source Query Field**         | [`SourceQueryField__c`](../custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)                       | Selected field or aggregate alias; blank for bare `COUNT()`                           |
+| **How To Read Query Results**  | [`QueryResultHandling__c`](../custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c)          | Converts returned rows into the value or row decision                                 |
+| **Comparison Operator**        | [`ComparisonOperator__c`](../custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)                  | Required operator compatible with the selected mode                                   |
+| **Expected Value Comes From**  | [`ExpectedValueSource__c`](../custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c)          | Required when the operator needs a right-side value                                   |
 | **Expected Currency ISO Code** | [`ExpectedCurrencyIsoCode__c`](../custom-metadata/check-fields.md#expected-currency-iso-code-expectedcurrencyisocode__c) | Required in a multi-currency org when a Currency field is compared with a fixed value |
 
 ## Result-handling modes
 
-| Setup label | API value | Behavior |
-| --- | --- | --- |
-| **One row or aggregate** | `ONE_RESULT` | Compare one selected field, `COUNT()`, or aliased aggregate |
-| **Any record passes** | `ANY_ROW_PASSES` | `PASS` when at least one returned row satisfies the comparison |
-| **Every record passes** | `ALL_ROWS_PASS` | `PASS` only when every evaluated row satisfies the comparison |
-| **Compare as lists** | `COMPARE_AS_LISTS` | Use a supported membership operator and explicit no-row behavior |
+| Setup label              | API value          | Behavior                                                         |
+| ------------------------ | ------------------ | ---------------------------------------------------------------- |
+| **One row or aggregate** | `ONE_RESULT`       | Compare one selected field, `COUNT()`, or aliased aggregate      |
+| **Any record passes**    | `ANY_ROW_PASSES`   | `PASS` when at least one returned row satisfies the comparison   |
+| **Every record passes**  | `ALL_ROWS_PASS`    | `PASS` only when every evaluated row satisfies the comparison    |
+| **Compare as lists**     | `COMPARE_AS_LISTS` | Use a supported membership operator and explicit no-row behavior |
 
 For row modes, Source Query Field identifies the compared column. For a bare `COUNT()`, leave the
 field blank. For `SUM()`, `AVG()`, `MIN()`, or `MAX()`, give the aggregate an alias and enter that
@@ -68,10 +68,10 @@ Then decide explicitly what should happen when the Account has no open Opportuni
 
 ## Expected-value sources
 
-| Setup label | API value | Additional field |
-| --- | --- | --- |
-| **Fixed value** | `FIXED_VALUE` | [Expected Value (Fixed)](../custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) |
-| **Record formula** | `RECORD_FORMULA` | [Expected Value (Formula)](../custom-metadata/check-fields.md#expected-value-formula-expectedrecordformula__c) |
+| Setup label          | API value          | Additional field                                                                                                                    |
+| -------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Fixed value**      | `FIXED_VALUE`      | [Expected Value (Fixed)](../custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c)                             |
+| **Record formula**   | `RECORD_FORMULA`   | [Expected Value (Formula)](../custom-metadata/check-fields.md#expected-value-formula-expectedrecordformula__c)                      |
 | **Comparison query** | `COMPARISON_QUERY` | [Comparison Query](../custom-metadata/check-fields.md#comparison-query-comparisonquery__c) and, when needed, Comparison Query Field |
 
 Leave Expected Value Comes From blank for **Is empty** and **Is not empty**. Compare-two-queries
@@ -93,11 +93,11 @@ and return the candidate list from Comparison Query. Source Query is blank in th
 
 ## No rows, empty values, and row caps
 
-| Setup field | API name | Behavior |
-| --- | --- | --- |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Returns Pass, Fail, Skip, or Unable to evaluate when a query returns zero rows |
-| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignore the row, compare blank, or force no match |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | Defaults to `200`; maximum `2000` |
+| Setup field                   | API name                                                                                                    | Behavior                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c)           | Returns Pass, Fail, Skip, or Unable to evaluate when a query returns zero rows |
+| **If Field Value Is Empty**   | [`EmptyValueHandling__c`](../custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Ignore the row, compare blank, or force no match                               |
+| **Max Query Rows (1-2000)**   | [`MaxQueryRows__c`](../custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c)               | Defaults to `200`; maximum `2000`                                              |
 
 No-row behavior is a business decision. Configure it explicitly where required; zero rows can mean
 pass, fail, skip, or unable depending on the Check.

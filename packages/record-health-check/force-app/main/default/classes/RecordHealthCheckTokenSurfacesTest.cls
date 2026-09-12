@@ -160,8 +160,16 @@ private class RecordHealthCheckTokenSurfacesTest {
       '{!rhcResult[4].foundValue}', // rejected-token-fixture: results are not a list
       RecordHealthCheckTokenSurfaces.FAILURE_MESSAGE
     );
-    Assert.areEqual(1, issues.size());
-    Assert.areEqual('UNSUPPORTED_TOKEN_NAMESPACE', issues[0].reasonCode);
+    Assert.areEqual(
+      1,
+      issues.size(),
+      'Indexed result syntax must produce one validation issue.'
+    );
+    Assert.areEqual(
+      'UNSUPPORTED_TOKEN_NAMESPACE',
+      issues[0].reasonCode,
+      'Indexed result syntax must retain the unsupported-namespace reason.'
+    );
     Assert.isTrue(
       issues[0].message.contains('rhcQuery.sourceRows[0].Field'),
       'The author is sent to the namespace that does hold rows: ' +

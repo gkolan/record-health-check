@@ -3,13 +3,18 @@
 private with sharing class RHCArchitectureBudgetTest {
   @IsTest
   static void caseB01ReturnsZeroForEmptyInputs() {
-    Assert.areEqual(0, RecordHealthCheckResourcePlan.formulaCalls(null, 100));
+    Assert.areEqual(
+      0,
+      RecordHealthCheckResourcePlan.formulaCalls(null, 100),
+      'An absent Check list must reserve zero formula calls.'
+    );
     Assert.areEqual(
       0,
       RecordHealthCheckResourcePlan.formulaCalls(
         new List<Record_Health_Check__mdt>(),
         0
-      )
+      ),
+      'An empty Check list and scope must reserve zero formula calls.'
     );
   }
 
@@ -20,7 +25,8 @@ private with sharing class RHCArchitectureBudgetTest {
       RecordHealthCheckResourcePlan.defaultAsyncScope(
         new List<Record_Health_Check__mdt>{ formulaCheck(null, null) },
         100
-      )
+      ),
+      'One formula must retain the reserved-capacity scope of 95.'
     );
   }
 
@@ -34,7 +40,8 @@ private with sharing class RHCArchitectureBudgetTest {
           formulaCheck(null, null)
         },
         100
-      )
+      ),
+      'Two formulas must share the budget with a scope of 47.'
     );
   }
 
@@ -47,7 +54,8 @@ private with sharing class RHCArchitectureBudgetTest {
           formulaCheck('NumberOfEmployees', null)
         },
         100
-      )
+      ),
+      'Display formula calls must reduce the admitted scope to 44.'
     );
   }
 
@@ -58,7 +66,8 @@ private with sharing class RHCArchitectureBudgetTest {
       RecordHealthCheckResourcePlan.defaultAsyncScope(
         new List<Record_Health_Check__mdt>{ queryCheck() },
         100
-      )
+      ),
+      'Query value formulas must reduce the admitted scope to 40.'
     );
   }
 
@@ -77,7 +86,10 @@ private with sharing class RHCArchitectureBudgetTest {
         RecordHealthCheckResourcePlan.defaultAsyncScope(null, invalid);
         Assert.fail('Invalid preferred size must be rejected.');
       } catch (IllegalArgumentException expected) {
-        Assert.isNotNull(expected.getMessage());
+        Assert.isNotNull(
+          expected.getMessage(),
+          'An invalid preferred scope must explain its rejection.'
+        );
       }
     }
   }
@@ -88,7 +100,10 @@ private with sharing class RHCArchitectureBudgetTest {
       RecordHealthCheckResourcePlan.formulaCalls(null, -1);
       Assert.fail('Negative record count must be rejected.');
     } catch (IllegalArgumentException expected) {
-      Assert.isNotNull(expected.getMessage());
+      Assert.isNotNull(
+        expected.getMessage(),
+        'A negative record count must explain its rejection.'
+      );
     }
   }
 

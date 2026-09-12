@@ -8,6 +8,9 @@
 Record Health Check tells users whether an existing record is ready and what needs attention. It
 does not prevent a save or change the record being checked.
 
+Use [Find your way around the configuration forms](./read-the-configuration-layouts.md) to identify
+which sections to complete and which optional settings can keep their defaults.
+
 ## What you will create
 
 This guide uses an Account handoff as an example:
@@ -52,13 +55,13 @@ object. A focused card is easier for users to understand and easier for administ
 
 For each planned Check, record these answers:
 
-| Question | Account handoff example |
-| --- | --- |
-| What should be true? | Billing Country is populated. |
-| Where does the answer come from? | A field on the Account. |
-| What should the user see when it fails? | Billing Country is required before handoff. |
-| What should the user do next? | Edit the Account and enter the verified country. |
-| Does it apply to every Account? | Yes. |
+| Question                                | Account handoff example                          |
+| --------------------------------------- | ------------------------------------------------ |
+| What should be true?                    | Billing Country is populated.                    |
+| Where does the answer come from?        | A field on the Account.                          |
+| What should the user see when it fails? | Billing Country is required before handoff.      |
+| What should the user do next?           | Edit the Account and enter the verified country. |
+| Does it apply to every Account?         | Yes.                                             |
 
 Copy field and relationship API names from **Object Manager**, a schema describe, or another source
 retrieved directly from the target org. If a field belongs to an installed package, keep its full
@@ -71,12 +74,12 @@ guesses which installed package an unqualified name belongs to.
 
 Choose the simplest Evaluation Type that can answer the business question.
 
-| Evaluation Type shown in Setup | Use it when | Example |
-| --- | --- | --- |
-| **Verify with a formula** | The answer is on the current record or a parent record that a Salesforce formula can reach. | Billing Country is populated. |
-| **Verify with a query** | The answer requires records found by one SOQL query. | The Account has at least one Contact. |
-| **Compare two queries** | The answer requires comparing the results of two separate SOQL queries. | Every open Opportunity has a Contact Role. |
-| **Verify with Apex** | Formula and query options cannot express the rule safely. Your team must create, test, and deploy an Apex class. | Recent activity includes either Tasks or Events and follows custom business rules. |
+| Evaluation Type shown in Setup | Use it when                                                                                                      | Example                                                                            |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Verify with a formula**      | The answer is on the current record or a parent record that a Salesforce formula can reach.                      | Billing Country is populated.                                                      |
+| **Verify with a query**        | The answer requires records found by one SOQL query.                                                             | The Account has at least one Contact.                                              |
+| **Compare two queries**        | The answer requires comparing the results of two separate SOQL queries.                                          | Every open Opportunity has a Contact Role.                                         |
+| **Verify with Apex**           | Formula and query options cannot express the rule safely. Your team must create, test, and deploy an Apex class. | Recent activity includes either Tasks or Events and follows custom business rules. |
 
 Start with the [examples library](../examples/README.md) for complete Setup values. Use **Verify with
 Apex** only when the other Evaluation Types cannot meet the requirement.
@@ -87,21 +90,21 @@ In **Setup → Custom Metadata Types → Record Health Check Set → Manage Reco
 
 Use values like these for the Account handoff example:
 
-| Setup field | Example value | What it controls |
-| --- | --- | --- |
-| **Label** | Account Handoff Review | The name administrators see in Setup. |
-| **Record Health Check Set Name** | `Account_Handoff_Review` | The stable API name used by Apex, Flow, and the Lightning component. |
-| **Object** | `Account` | The Salesforce object this Check Set can evaluate. |
-| **Card Title** | Account Handoff Review | The heading users see on the card. |
-| **Card Subtitle** | Complete these checks before changing ownership. | Why the review matters. |
-| **When Checks Run** | When the user clicks Run | Users select **Run** when they are ready to check saved data. |
-| **Reveal Mode** | One by one | Results appear in Evaluation Order. |
-| **Passed Checks** | Show each passed check | Users can see what is already complete. |
-| **Skipped Checks** | Show each skipped check | Users can see which Checks did not apply. |
-| **Found/Expected Display** | Show on demand | Users can reveal comparison details when needed. |
-| **Summary Display** | Show below checks | The overall or category summary appears after the Check rows. |
-| **Show Diagnostics** | Unchecked | Detailed diagnostic data stays hidden during normal use. |
-| **Active** | Unchecked while building | Prevents users from running an unfinished Check Set. |
+| Setup field                      | Example value                                    | What it controls                                                     |
+| -------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------- |
+| **Label**                        | Account Handoff Review                           | The name administrators see in Setup.                                |
+| **Record Health Check Set Name** | `Account_Handoff_Review`                         | The stable API name used by Apex, Flow, and the Lightning component. |
+| **Object**                       | `Account`                                        | The Salesforce object this Check Set can evaluate.                   |
+| **Card Title**                   | Account Handoff Review                           | The heading users see on the card.                                   |
+| **Card Subtitle**                | Complete these checks before changing ownership. | Why the review matters.                                              |
+| **When Checks Run**              | When the user clicks Run                         | Users select **Run** when they are ready to check saved data.        |
+| **Reveal Mode**                  | One by one                                       | Results appear in Evaluation Order.                                  |
+| **Passed Checks**                | Show each passed check                           | Users can see what is already complete.                              |
+| **Skipped Checks**               | Show each skipped check                          | Users can see which Checks did not apply.                            |
+| **Found/Expected Display**       | Show on demand                                   | Users can reveal comparison details when needed.                     |
+| **Summary Display**              | Show below checks                                | The overall or category summary appears after the Check rows.        |
+| **Show Diagnostics**             | Unchecked                                        | Detailed diagnostic data stays hidden during normal use.             |
+| **Active**                       | Unchecked while building                         | Prevents users from running an unfinished Check Set.                 |
 
 The **Record Health Check Set Name** becomes the Developer Name. When code asks for the Check Set's
 **Qualified API Name**, copy the exact value shown in Setup. A Check Set created by an administrator
@@ -123,21 +126,21 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 
 This example checks Billing Country with a formula:
 
-| Setup field | Example value |
-| --- | --- |
-| **Label** | Billing Country Is Complete |
-| **Developer Name** | `Billing_Country_Is_Complete` |
-| **Check Set** | `Account_Handoff_Review` |
-| **Check Title** | Billing Country Is Complete |
-| **Evaluation Type** | Verify with a formula |
-| **Pass Condition** | `NOT(ISBLANK(BillingCountry))` |
-| **Failure Severity** | Warning |
+| Setup field             | Example value                                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------------------------- |
+| **Label**               | Billing Country Is Complete                                                                     |
+| **Developer Name**      | `Billing_Country_Is_Complete`                                                                   |
+| **Check Set**           | `Account_Handoff_Review`                                                                        |
+| **Check Title**         | Billing Country Is Complete                                                                     |
+| **Evaluation Type**     | Verify with a formula                                                                           |
+| **Pass Condition**      | `NOT(ISBLANK(BillingCountry))`                                                                  |
+| **Failure Severity**    | Warning                                                                                         |
 | **Message When Failed** | Enter the verified Billing Country before handing off `{!record.Name fallback="this Account"}`. |
-| **Fix Message** | Edit the Account and confirm the country with a reliable source. |
-| **Action Label** | Edit account |
-| **Action URL** | `/lightning/r/Account/{!record.Id}/edit` |
-| **Evaluation Order** | `10` |
-| **Active** | Checked |
+| **Fix Message**         | Edit the Account and confirm the country with a reliable source.                                |
+| **Action Label**        | Edit account                                                                                    |
+| **Action URL**          | `/lightning/r/Account/{!record.Id}/edit`                                                        |
+| **Evaluation Order**    | `10`                                                                                            |
+| **Active**              | Checked                                                                                         |
 
 This comparison means the Contact count must be greater than zero. One or more visible Contacts
 passes; zero visible Contacts fails.
@@ -161,23 +164,23 @@ patterns.
 
 Create another Check in the same Check Set. This example counts related Contacts:
 
-| Setup field | Example value |
-| --- | --- |
-| **Label** | Account Has a Contact |
-| **Developer Name** | `Has_At_Least_One_Contact` |
-| **Check Set** | `Account_Handoff_Review` |
-| **Check Title** | Account Has at Least One Contact |
-| **Evaluation Type** | Verify with a query |
-| **Source Query** | `SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}` |
-| **Source Query Field** | Leave blank because bare `COUNT()` returns the number directly. |
-| **How To Read Query Results** | One row or aggregate |
-| **Comparison Operator** | Greater than |
-| **Expected Value Comes From** | Fixed value |
-| **Expected Value (Fixed)** | `0` |
-| **Failure Severity** | Warning |
-| **Message When Failed** | Add at least one verified Contact before handing off this Account. |
-| **Evaluation Order** | `20` |
-| **Active** | Checked |
+| Setup field                   | Example value                                                      |
+| ----------------------------- | ------------------------------------------------------------------ |
+| **Label**                     | Account Has a Contact                                              |
+| **Developer Name**            | `Has_At_Least_One_Contact`                                         |
+| **Check Set**                 | `Account_Handoff_Review`                                           |
+| **Check Title**               | Account Has at Least One Contact                                   |
+| **Evaluation Type**           | Verify with a query                                                |
+| **Source Query**              | `SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id}`       |
+| **Source Query Field**        | Leave blank because bare `COUNT()` returns the number directly.    |
+| **How To Read Query Results** | One row or aggregate                                               |
+| **Comparison Operator**       | Greater than                                                       |
+| **Expected Value Comes From** | Fixed value                                                        |
+| **Expected Value (Fixed)**    | `0`                                                                |
+| **Failure Severity**          | Warning                                                            |
+| **Message When Failed**       | Add at least one verified Contact before handing off this Account. |
+| **Evaluation Order**          | `20`                                                               |
+| **Active**                    | Checked                                                            |
 
 The query runs with the running user's Salesforce access. A Contact hidden from that user is not
 counted. Missing access to Contact or `AccountId` can produce `UNABLE_TO_EVALUATE`; it should not be
@@ -211,13 +214,13 @@ interpreted correctly without the earlier pass.
 
 ## Step 7: Understand the results
 
-| Health result | What it means | What to do |
-| --- | --- | --- |
-| `PASS` | The Check ran and the record met the requirement. | No correction is needed for this Check. |
-| `FAIL` | The Check ran and found a business condition that needs attention. | Follow the failure and fix messages. |
-| `SKIPPED` | The Check did not apply, its prerequisite did not pass, or its configured empty-result behavior says to skip. | Review the applicability or prerequisite only if the skip was unexpected. |
-| `UNABLE_TO_EVALUATE` | Configuration, access, missing values, or a Salesforce limit prevented a reliable answer. | An administrator should review the Reason Code and configuration. |
-| `ERROR` | Record Health Check or custom Apex encountered an unexpected problem. | An administrator or developer should investigate the Reason Code and logs. |
+| Health result        | What it means                                                                                                 | What to do                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `PASS`               | The Check ran and the record met the requirement.                                                             | No correction is needed for this Check.                                    |
+| `FAIL`               | The Check ran and found a business condition that needs attention.                                            | Follow the failure and fix messages.                                       |
+| `SKIPPED`            | The Check did not apply, its prerequisite did not pass, or its configured empty-result behavior says to skip. | Review the applicability or prerequisite only if the skip was unexpected.  |
+| `UNABLE_TO_EVALUATE` | Configuration, access, missing values, or a Salesforce limit prevented a reliable answer.                     | An administrator should review the Reason Code and configuration.          |
+| `ERROR`              | Record Health Check or custom Apex encountered an unexpected problem.                                         | An administrator or developer should investigate the Reason Code and logs. |
 
 Failure Severity (Critical, Warning, or Info) changes how a `FAIL` appears. It does not change the
 meaning of `PASS`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`.
@@ -283,17 +286,17 @@ query and formula behavior.
 
 ## Step 11: Troubleshoot the configuration
 
-| What the user sees | What to check first |
-| --- | --- |
-| **Record Health Check Needs Setup** | Select an active Check Set in Lightning App Builder. |
-| **Record Health Check Unavailable** | Review access, active Check Set status, record context, and configuration guidance shown on the card. |
-| The Check Set is not available in the component dropdown | Confirm the Check Set is active and its Object matches the record page object. |
-| No Checks appear | Confirm at least one Check in the selected Check Set is active. |
-| A Check is skipped unexpectedly | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior. |
-| **Unable to Check** | Review the Reason Code, query or formula configuration, and the running user's object and field access. |
-| **System Error** | Review custom Apex, Salesforce debug logs, and the Reason Code. |
-| Results did not change after an edit | Confirm the custom component that edits the record sends a standard Lightning RefreshView notification. Otherwise select **Rerun** or refresh the page. A manual Check Set must be run once before save-driven refresh begins. |
-| A Platform Event was expected but not received | Confirm publication is enabled, the run source publishes events, the transaction committed, and receiving automation is active. |
+| What the user sees                                       | What to check first                                                                                                                                                                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Record Health Check Needs Setup**                      | Select an active Check Set in Lightning App Builder.                                                                                                                                                                           |
+| **Record Health Check Unavailable**                      | Review access, active Check Set status, record context, and configuration guidance shown on the card.                                                                                                                          |
+| The Check Set is not available in the component dropdown | Confirm the Check Set is active and its Object matches the record page object.                                                                                                                                                 |
+| No Checks appear                                         | Confirm at least one Check in the selected Check Set is active.                                                                                                                                                                |
+| A Check is skipped unexpectedly                          | Review **Applies To**, **Prerequisite Check**, Evaluation Order, and empty-result behavior.                                                                                                                                    |
+| **Unable to Check**                                      | Review the Reason Code, query or formula configuration, and the running user's object and field access.                                                                                                                        |
+| **System Error**                                         | Review custom Apex, Salesforce debug logs, and the Reason Code.                                                                                                                                                                |
+| Results did not change after an edit                     | Confirm the custom component that edits the record sends a standard Lightning RefreshView notification. Otherwise select **Rerun** or refresh the page. A manual Check Set must be run once before save-driven refresh begins. |
+| A Platform Event was expected but not received           | Confirm publication is enabled, the run source publishes events, the transaction committed, and receiving automation is active.                                                                                                |
 
 Use [Troubleshoot Record Health Check](../diagnostics/browser-console.md) for a complete,
 step-by-step investigation.
@@ -313,12 +316,12 @@ step-by-step investigation.
 
 ## Where results go
 
-| How the Check Set runs | Where the result is available |
-| --- | --- |
-| Lightning record page | On the Record Health Check card. |
-| Flow | In the packaged action outputs, including status counts and Result JSON. |
-| Apex | In `rhc.RecordHealthCheckResponse`. |
-| Batch Apex | In custom records created by your Batch, Platform Events, or another result-handling process your team implements. |
+| How the Check Set runs | Where the result is available                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Lightning record page  | On the Record Health Check card.                                                                                   |
+| Flow                   | In the packaged action outputs, including status counts and Result JSON.                                           |
+| Apex                   | In `rhc.RecordHealthCheckResponse`.                                                                                |
+| Batch Apex             | In custom records created by your Batch, Platform Events, or another result-handling process your team implements. |
 
 Record Health Check does not automatically create a Salesforce record for every health result. See
 [Batch Apex](../developer-guides/async-apex/batch.md), [Flow actions](../flow-guides/action-inputs-and-outputs.md), and

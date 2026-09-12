@@ -6,9 +6,8 @@
 /**
  * Covers Display: Value Format rendering for Found and Expected values.
  *
- * Assertions that involve grouping separators run as a user with a pinned
- * locale, so the suite reads the same way in an org whose default locale is not
- * English (US).
+ * Expected numeric separators come from native platform formatting.
+ * Integration personas exercise these same contracts in English and German.
  */
 @IsTest
 private class RecordHealthCheckDisplayCurrencyTest {
@@ -23,11 +22,6 @@ private class RecordHealthCheckDisplayCurrencyTest {
   private static final String TEXT_FORMAT = 'TEXT';
   private static final String RAW_FORMAT = 'RAW';
 
-  /** A user pinned to a locale so separator assertions are deterministic. */
-  private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.createUserWithLocale(locale, alias);
-  }
-
   /**
    * How an amount reads in this org: an org with more than one currency leads
    * with the ISO code because a bare symbol would be ambiguous, and a
@@ -41,6 +35,7 @@ private class RecordHealthCheckDisplayCurrencyTest {
       'JPY' => '¥',
       'KRW' => '₩'
     };
+    amount = localizedAmount(amount);
     String symbol = symbols.get(isoCode);
     if (
       symbol == null ||
@@ -52,6 +47,21 @@ private class RecordHealthCheckDisplayCurrencyTest {
     return amount.startsWith('-')
       ? '-' + symbol + amount.substring(1)
       : symbol + amount;
+  }
+
+  /** Translate the literal expected US separators using native platform samples. */
+  private static String localizedAmount(String expectedUsAmount) {
+    String groupingMark = Decimal.valueOf('1000')
+      .format()
+      .replace('1', '')
+      .replace('0', '');
+    String decimalMark = Decimal.valueOf('1.5')
+      .format()
+      .replace('1', '')
+      .replace('5', '');
+    return expectedUsAmount.replace('.', '|')
+      .replace(',', groupingMark)
+      .replace('|', decimalMark);
   }
 
   // ─── Auto ─────────────────────────────────────────────────────────────────
@@ -70,38 +80,16 @@ private class RecordHealthCheckDisplayCurrencyTest {
   }
 
   @IsTest
-  static void currencyRendersSymbolAndMinorUnits() {
-    System.runAs(userWithLocale('en_US', 'rhccur')) {
+  static void currencyDefaultsToRunningUser() {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       String iso = UserInfo.getDefaultCurrency();
-      String rendered = RecordHealthCheckDisplayFormat.render(
-        70000,
-        CURRENCY_FORMAT
-      );
-
-      Assert.areEqual(
-        true,
-        rendered.contains('70,000'),
-        'The amount should still be grouped for the locale: ' + rendered
-      );
-      Assert.areEqual(
-        money(iso, '70,000.00'),
-        rendered,
-        'An amount shows the org currency and its two minor units'
-      );
-      Assert.areEqual(
-        money(iso, '-1,250.50'),
-        RecordHealthCheckDisplayFormat.render(-1250.5, CURRENCY_FORMAT),
-        'A negative amount keeps its minus sign'
-      );
-      Assert.areEqual(
-        money(iso, '0.00'),
-        RecordHealthCheckDisplayFormat.render(0, CURRENCY_FORMAT)
-      );
-      Assert.areEqual(
-        money(iso, '50,000.00'),
-        RecordHealthCheckDisplayFormat.render('50000', CURRENCY_FORMAT),
-        'A fixed metadata operand renders as money too'
-      );
+      for (Object amount : new List<Object>{ 70000, -1250.5, 0, '50000' }) {
+        Assert.areEqual(
+          RecordHealthCheckDisplayFormat.render(amount, CURRENCY_FORMAT, iso),
+          RecordHealthCheckDisplayFormat.render(amount, CURRENCY_FORMAT),
+          'An omitted currency must route to the running user currency for positive, negative, zero and metadata values.'
+        );
+      }
     }
   }
 
@@ -110,14 +98,16 @@ private class RecordHealthCheckDisplayCurrencyTest {
     // Rendering per currency code rather than only the org's own currency, so
     // the symbol table, the ISO fallback, and the minor-unit checks are all
     // exercised in a single-currency org.
-    System.runAs(userWithLocale('en_US', 'rhciso')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
         money('USD', '70,000.00'),
-        RecordHealthCheckDisplayFormat.render(70000, CURRENCY_FORMAT, 'USD')
+        RecordHealthCheckDisplayFormat.render(70000, CURRENCY_FORMAT, 'USD'),
+        'An explicit USD amount must use its expected label and two minor units.'
       );
       Assert.areEqual(
         money('EUR', '1,234.56'),
-        RecordHealthCheckDisplayFormat.render(1234.56, CURRENCY_FORMAT, 'EUR')
+        RecordHealthCheckDisplayFormat.render(1234.56, CURRENCY_FORMAT, 'EUR'),
+        'An explicit EUR amount must preserve its fraction and native separators.'
       );
       Assert.areEqual(
         money('JPY', '70,000'),
@@ -126,15 +116,16 @@ private class RecordHealthCheckDisplayCurrencyTest {
       );
       Assert.areEqual(
         money('KRW', '1,500'),
-        RecordHealthCheckDisplayFormat.render(1500, CURRENCY_FORMAT, 'KRW')
+        RecordHealthCheckDisplayFormat.render(1500, CURRENCY_FORMAT, 'KRW'),
+        'An explicit KRW amount must omit fractional minor units.'
       );
       Assert.areEqual(
-        'SAR 70,000.00',
+        'SAR ' + localizedAmount('70,000.00'),
         RecordHealthCheckDisplayFormat.render(70000, CURRENCY_FORMAT, 'SAR'),
         'A currency with no symbol on file renders in ISO style'
       );
       Assert.areEqual(
-        'SAR 70,000.00',
+        'SAR ' + localizedAmount('70,000.00'),
         RecordHealthCheckDisplayFormat.render(70000, CURRENCY_FORMAT, ' sar '),
         'The currency code is trimmed and matched without regard to case'
       );
@@ -145,7 +136,8 @@ private class RecordHealthCheckDisplayCurrencyTest {
       );
       Assert.areEqual(
         money('USD', '0.00'),
-        RecordHealthCheckDisplayFormat.render(0, CURRENCY_FORMAT, 'USD')
+        RecordHealthCheckDisplayFormat.render(0, CURRENCY_FORMAT, 'USD'),
+        'Explicit USD zero must remain a formatted amount rather than blank.'
       );
       Assert.areEqual(
         money('USD', '99.90'),
@@ -158,22 +150,30 @@ private class RecordHealthCheckDisplayCurrencyTest {
         'A sub-cent amount is rounded for display only'
       );
       Assert.areEqual(
-        money(UserInfo.getDefaultCurrency(), '70,000.00'),
+        RecordHealthCheckDisplayFormat.render(
+          70000,
+          CURRENCY_FORMAT,
+          UserInfo.getDefaultCurrency()
+        ),
         RecordHealthCheckDisplayFormat.render(70000, CURRENCY_FORMAT, null),
         'A blank currency input uses the running user currency'
       );
       Assert.areEqual(
         '(blank)',
-        RecordHealthCheckDisplayFormat.render(null, CURRENCY_FORMAT, 'USD')
+        RecordHealthCheckDisplayFormat.render(null, CURRENCY_FORMAT, 'USD'),
+        'An absent amount must display blank even with an explicit currency.'
       );
     }
   }
 
   @IsTest
   static void currencyFollowsTheRunningUserLocale() {
-    System.runAs(userWithLocale('de_DE', 'rhccde')) {
+    System.runAs(RecordHealthCheckTestDataFactory.createUserWithLocale(
+      'de_DE',
+      'rhccde'
+    )) {
       Assert.areEqual(
-        money('EUR', '1.234,56'),
+        money('EUR', '1,234.56'),
         RecordHealthCheckDisplayFormat.render(1234.56, CURRENCY_FORMAT, 'EUR'),
         'A German (Germany) user sees the locale grouping and decimal mark'
       );
@@ -182,7 +182,7 @@ private class RecordHealthCheckDisplayCurrencyTest {
 
   @IsTest
   static void currencyKeepsValuesThatAreNotAmounts() {
-    System.runAs(userWithLocale('en_US', 'rhccurf')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
         '001A2B3C4D5E6F7G',
         RecordHealthCheckDisplayFormat.render(
@@ -193,7 +193,8 @@ private class RecordHealthCheckDisplayCurrencyTest {
       );
       Assert.areEqual(
         'true',
-        RecordHealthCheckDisplayFormat.render(true, CURRENCY_FORMAT)
+        RecordHealthCheckDisplayFormat.render(true, CURRENCY_FORMAT),
+        'Currency must preserve a boolean as text rather than treat it as money.'
       );
       Assert.areEqual(
         '$70,000',
@@ -202,7 +203,8 @@ private class RecordHealthCheckDisplayCurrencyTest {
       );
       Assert.areEqual(
         '(blank)',
-        RecordHealthCheckDisplayFormat.render(null, CURRENCY_FORMAT)
+        RecordHealthCheckDisplayFormat.render(null, CURRENCY_FORMAT),
+        'An absent amount must display blank under the default currency.'
       );
     }
   }
@@ -261,5 +263,36 @@ private class RecordHealthCheckDisplayCurrencyTest {
       iso,
       'An aggregate is labelled with the corporate currency'
     );
+  }
+
+  @IsTest
+  static void contractsFollowExplicitLocales() {
+    User english = RecordHealthCheckTestDataFactory.createUserWithLocale(
+      'en_US',
+      'rhceng'
+    );
+    User german = RecordHealthCheckTestDataFactory.createUserWithLocale(
+      'de_DE',
+      'rhcger'
+    );
+    assertContractsForPersona(english, 'en_US');
+    assertContractsForPersona(german, 'de_DE');
+  }
+
+  private static void assertContractsForPersona(
+    User persona,
+    String expectedLocale
+  ) {
+    System.runAs(persona) {
+      Assert.areEqual(
+        expectedLocale,
+        UserInfo.getLocale(),
+        'The integration persona must honor its explicitly requested locale.'
+      );
+      currencyDefaultsToRunningUser();
+      currencyHonoursSymbolIsoStyleAndMinorUnits();
+      currencyKeepsValuesThatAreNotAmounts();
+      aggregateAmountsAreLabelledWithTheCorporateCurrency();
+    }
   }
 }

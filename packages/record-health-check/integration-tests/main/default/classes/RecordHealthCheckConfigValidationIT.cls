@@ -93,7 +93,11 @@ private class RecordHealthCheckConfigValidationIT {
         new List<Record_Health_Check_Set__mdt>(),
         new List<Record_Health_Check__mdt>{ check }
       );
-    Assert.areEqual('FIELD_TYPE_NOT_SUPPORTED', typeIssues[0].reasonCode);
+    Assert.areEqual(
+      'FIELD_TYPE_NOT_SUPPORTED',
+      typeIssues[0].reasonCode,
+      'Metadata validation must preserve the unsupported field-type reason.'
+    );
     check = queryCheck('Query_Invalid_Source');
     check.ExpectedValueSource__c = 'Magic';
     assertUnable(
@@ -258,7 +262,11 @@ private class RecordHealthCheckConfigValidationIT {
       );
       Assert.isTrue(false, 'Expected a config exception.');
     } catch (RecordHealthCheckConfigService.ConfigException ex) {
-      Assert.areEqual(reasonCode, ex.reasonCode);
+      Assert.areEqual(
+        reasonCode,
+        ex.reasonCode,
+        'Definition loading must retain the expected Check Set configuration reason.'
+      );
     }
   }
 
@@ -326,7 +334,15 @@ private class RecordHealthCheckConfigValidationIT {
     String reasonCode
   ) {
     Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'Invalid configuration must produce an unable-to-evaluate result.'
+    );
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'The unable result must retain the specific validation reason.'
+    );
   }
 }

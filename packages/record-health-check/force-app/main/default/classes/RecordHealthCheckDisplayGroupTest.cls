@@ -15,7 +15,10 @@ private class RecordHealthCheckDisplayGroupTest {
     RecordHealthCheckDisplayText content = new RecordHealthCheckDisplayText()
       .groups(groups);
 
-    Assert.isTrue(content.valid);
+    Assert.isTrue(
+      content.valid,
+      'Ordered groups with record links must remain valid.'
+    );
     Assert.areEqual(
       'Step 1: Step One User 1\n' +
         'Step 2: Step Two User 1, Step Two User 2\n' +
@@ -45,7 +48,10 @@ private class RecordHealthCheckDisplayGroupTest {
     RecordHealthCheckDisplayText content = new RecordHealthCheckDisplayText()
       .groups(groups);
 
-    Assert.isTrue(content.valid);
+    Assert.isTrue(
+      content.valid,
+      'Hidden and explicit empty-state groups must remain valid.'
+    );
     Assert.areEqual(
       'Step 2: No users',
       plain(content.copyNodes()),
@@ -72,9 +78,14 @@ private class RecordHealthCheckDisplayGroupTest {
 
     Assert.areEqual(
       'Reviewers -> Repeated User 1, Repeated User 1',
-      plain(content.copyNodes())
+      plain(content.copyNodes()),
+      'Explicit separators must preserve duplicate item text.'
     );
-    Assert.areEqual(2, linkCount(content.copyNodes()));
+    Assert.areEqual(
+      2,
+      linkCount(content.copyNodes()),
+      'Duplicate items must retain both independent links.'
+    );
   }
 
   @IsTest
@@ -111,11 +122,26 @@ private class RecordHealthCheckDisplayGroupTest {
         }
       );
 
-    Assert.isFalse(blankKey.valid);
-    Assert.isFalse(duplicateKeys.valid);
-    Assert.isFalse(nullGroup.valid);
-    Assert.isFalse(emptyLabel.valid);
-    Assert.isFalse(nullSeparator.valid);
+    Assert.isFalse(
+      blankKey.valid,
+      'A blank group key must invalidate grouped content.'
+    );
+    Assert.isFalse(
+      duplicateKeys.valid,
+      'Duplicate group keys must invalidate grouped content.'
+    );
+    Assert.isFalse(
+      nullGroup.valid,
+      'A null group must invalidate grouped content.'
+    );
+    Assert.isFalse(
+      emptyLabel.valid,
+      'An empty group label must invalidate grouped content.'
+    );
+    Assert.isFalse(
+      nullSeparator.valid,
+      'A null group separator must invalidate grouped content.'
+    );
   }
 
   @IsTest
@@ -140,8 +166,14 @@ private class RecordHealthCheckDisplayGroupTest {
         }
       );
 
-    Assert.isFalse(invalidNested.valid);
-    Assert.isFalse(overflow.valid);
+    Assert.isFalse(
+      invalidNested.valid,
+      'Invalid nested items must invalidate their group content.'
+    );
+    Assert.isFalse(
+      overflow.valid,
+      'Aggregate group overflow must invalidate grouped content.'
+    );
   }
 
   @IsTest
@@ -151,8 +183,15 @@ private class RecordHealthCheckDisplayGroupTest {
       .groups(null)
       .groups(new List<RecordHealthCheckDisplayGroup>());
 
-    Assert.isTrue(content.valid);
-    Assert.areEqual('Before', plain(content.copyNodes()));
+    Assert.isTrue(
+      content.valid,
+      'Null and empty group collections must preserve validity.'
+    );
+    Assert.areEqual(
+      'Before',
+      plain(content.copyNodes()),
+      'Null and empty group collections must preserve existing text.'
+    );
   }
 
   private static RecordHealthCheckDisplayGroup group(

@@ -15,14 +15,14 @@ Opportunity, Case, or any other business object or field used by a Check.
 
 ## Choose an installed Permission Set
 
-| I need to… | Assign | Why |
-| --- | --- | --- |
-| Run or configure only the Lightning record-page card | **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`) | This is the least-privilege interactive assignment. It grants the card controller, App Builder picker, run authorization, and card lifecycle-event access. |
-| Run Checks from Flow, Apex, Agentforce, Queueable, Batch, or Scheduled Apex | **Record Health Check User** (`rhc__Record_Health_Check_User`) | It grants the supported runtime entry points without configuration validation or diagnostic detail. |
-| Configure, validate, or troubleshoot Checks | **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | It adds Custom Metadata visibility, validation entry points, and diagnostic authorization to the runtime access. |
-| Call the versioned REST adapter from a dedicated MCP integration | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`) | It grants only the REST adapter and the package metadata access that adapter needs. |
-| Let an existing runner view diagnostics without granting Admin | **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) | Its explicit assignment authorizes diagnostics. Assign it directly and temporarily alongside Card User or User. |
-| Publish restricted error-log events | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | It grants Create and Read access only to the restricted Log Platform Event. Assign it in addition to the appropriate runner access. |
+| I need to…                                                                  | Assign                                                                                       | Why                                                                                                                                                        |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Run or configure only the Lightning record-page card                        | **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`)                     | This is the least-privilege interactive assignment. It grants the card controller, App Builder picker, run authorization, and card lifecycle-event access. |
+| Run Checks from Flow, Apex, Agentforce, Queueable, Batch, or Scheduled Apex | **Record Health Check User** (`rhc__Record_Health_Check_User`)                               | It grants the supported runtime entry points without configuration validation or diagnostic detail.                                                        |
+| Configure, validate, or troubleshoot Checks                                 | **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`)                             | It adds Custom Metadata visibility, validation entry points, and diagnostic authorization to the runtime access.                                           |
+| Call the versioned REST adapter from a dedicated MCP integration            | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`)         | It grants only the REST adapter and the package metadata access that adapter needs.                                                                        |
+| Let an existing runner view diagnostics without granting Admin              | **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`)   | Its explicit assignment authorizes diagnostics. Assign it directly and temporarily alongside Card User or User.                                            |
+| Publish restricted error-log events                                         | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | It grants Create and Read access only to the restricted Log Platform Event. Assign it in addition to the appropriate runner access.                        |
 
 Do not assign **Record Health Check Admin** merely to make a card, Flow, Apex class, or integration
 run. Choose the runner Permission Set for that entry point and add organization-owned business-data
@@ -32,31 +32,31 @@ access separately.
 
 This mapping shows the package access contained in each runner Permission Set.
 
-| Capability | Card User | User | Admin | MCP Integration |
-| --- | :---: | :---: | :---: | :---: |
-| **Record Health Check Run** Custom Permission | Yes | Yes | Yes | Yes |
-| Diagnostics authorization through direct assignment | No | No | Yes | No |
-| Lightning record-page card controller | Yes | Yes | Yes | No |
-| App Builder Check Set picker | Yes | Yes | Yes | No |
-| Public Apex API | No | Yes | Yes | No |
-| Flow actions | No | Yes | Yes | No |
-| Agentforce actions | No | Yes | Yes | No |
-| Versioned Apex REST adapter | No | Yes | Yes | Yes |
-| Queueable, Batch, and Scheduled Apex entry points | No | Yes | Yes | No |
-| Read access to both packaged Custom Metadata Types | No | Yes | Yes | Yes |
-| Configuration validation entry points | No | No | Yes | No |
-| Create and Read access to Set Run and Check Result events | Yes | Yes | Yes | No |
-| Create and Read access to the restricted Log event | No | No | No | No |
+| Capability                                                | Card User | User | Admin | MCP Integration |
+| --------------------------------------------------------- | :-------: | :--: | :---: | :-------------: |
+| **Record Health Check Run** Custom Permission             |    Yes    | Yes  |  Yes  |       Yes       |
+| Diagnostics authorization through direct assignment       |    No     |  No  |  Yes  |       No        |
+| Lightning record-page card controller                     |    Yes    | Yes  |  Yes  |       No        |
+| App Builder Check Set picker                              |    Yes    | Yes  |  Yes  |       No        |
+| Public Apex API                                           |    No     | Yes  |  Yes  |       No        |
+| Flow actions                                              |    No     | Yes  |  Yes  |       No        |
+| Agentforce actions                                        |    No     | Yes  |  Yes  |       No        |
+| Versioned Apex REST adapter                               |    No     | Yes  |  Yes  |       Yes       |
+| Queueable, Batch, and Scheduled Apex entry points         |    No     | Yes  |  Yes  |       No        |
+| Read access to both packaged Custom Metadata Types        |    No     | Yes  |  Yes  |       Yes       |
+| Configuration validation entry points                     |    No     |  No  |  Yes  |       No        |
+| Create and Read access to Set Run and Check Result events |    Yes    | Yes  |  Yes  |       No        |
+| Create and Read access to the restricted Log event        |    No     |  No  |  No   |       No        |
 
 ## Compare additive access
 
-| Capability | Diagnostics Viewer | Error Log Publisher |
-| --- | :---: | :---: |
-| **Record Health Check Run** Custom Permission | No | No |
-| Diagnostics authorization through direct assignment | Yes | No |
-| Package Apex, Custom Metadata, or business-data access | No | No |
-| Create and Read access to Set Run and Check Result events | No | No |
-| Create and Read access to the restricted Log event | No | Yes |
+| Capability                                                | Diagnostics Viewer | Error Log Publisher |
+| --------------------------------------------------------- | :----------------: | :-----------------: |
+| **Record Health Check Run** Custom Permission             |         No         |         No          |
+| Diagnostics authorization through direct assignment       |        Yes         |         No          |
+| Package Apex, Custom Metadata, or business-data access    |         No         |         No          |
+| Create and Read access to Set Run and Check Result events |         No         |         No          |
+| Create and Read access to the restricted Log event        |         No         |         Yes         |
 
 `Yes` means that the Permission Set includes the package permission or Apex access. Salesforce can
 still require separate platform access. For example, a Lightning page builder needs the normal App

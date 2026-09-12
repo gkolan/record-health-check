@@ -94,7 +94,11 @@ private class RHCDefinitionDependencyIdentityTest {
       ordered[0].QualifiedApiName,
       'Dependency order must override nullable metadata ordering in headless runs.'
     );
-    Assert.areEqual('Dependent', ordered[1].QualifiedApiName);
+    Assert.areEqual(
+      'Dependent',
+      ordered[1].QualifiedApiName,
+      'The dependent Check must follow its prerequisite.'
+    );
   }
 
   private static Record_Health_Check__mdt check(

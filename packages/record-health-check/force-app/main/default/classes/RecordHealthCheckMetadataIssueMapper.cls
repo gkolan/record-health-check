@@ -374,6 +374,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
         APEX_CLASS_LOAD_FAILED,
         APEX_PLUGIN_INTERFACE_INVALID,
         APEX_PLUGIN_CONSTRUCTOR_FAILED,
+        APEX_PLUGIN_DEFINITION_INVALID,
         APEX_PARAMS_INVALID {
         return RecordHealthCheckApexConfigSupport.metadataIssue(check, finding);
       }

@@ -113,6 +113,14 @@ public with sharing class RecordHealthCheckDisplayFormat {
 
     String chosen = resolveFormat(format);
 
+    return renderChosenFormat(value, chosen, isoCode);
+  }
+
+  private static String renderChosenFormat(
+    Object value,
+    String chosen,
+    String isoCode
+  ) {
     if (chosen == FORMAT_RAW || chosen == FORMAT_TEXT) {
       return unchanged(value);
     }
@@ -121,14 +129,7 @@ public with sharing class RecordHealthCheckDisplayFormat {
       return amount == null ? unchanged(value) : renderNumber(amount);
     }
     if (chosen == FORMAT_CURRENCY) {
-      Decimal amount = toDisplayDecimal(value);
-      return amount == null
-        ? unchanged(value)
-        : RecordHealthCheckDisplayCurrencyRenderer.render(
-            amount,
-            resolveIsoCode(isoCode),
-            RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()
-          );
+      return renderCurrency(value, isoCode);
     }
     if (chosen == FORMAT_PERCENT) {
       Decimal amount = toDisplayDecimal(value);
@@ -138,6 +139,21 @@ public with sharing class RecordHealthCheckDisplayFormat {
       Decimal ratio = toDisplayDecimal(value);
       return ratio == null ? unchanged(value) : renderNumber(ratio * 100) + '%';
     }
+    return renderTypedFormat(value, chosen);
+  }
+
+  private static String renderCurrency(Object value, String isoCode) {
+    Decimal amount = toDisplayDecimal(value);
+    return amount == null
+      ? unchanged(value)
+      : RecordHealthCheckDisplayCurrencyRenderer.render(
+          amount,
+          resolveIsoCode(isoCode),
+          RecordHealthCheckDisplayCurrencyResolver.isMultiCurrencyOrg()
+        );
+  }
+
+  private static String renderTypedFormat(Object value, String chosen) {
     if (chosen == FORMAT_BOOLEAN) {
       String asBoolean = RecordHealthCheckDisplayTextRenderer.renderBoolean(
         value
@@ -211,6 +227,10 @@ public with sharing class RecordHealthCheckDisplayFormat {
       return amount == null ? unchanged(value) : renderNumber(amount);
     }
 
+    return renderAutoText(value);
+  }
+
+  private static String renderAutoText(Object value) {
     String s = String.valueOf(value);
     if (s == null || s.trim() == '') {
       return BLANK_TEXT;

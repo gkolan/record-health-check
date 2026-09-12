@@ -14,7 +14,11 @@ private class RecordHealthCheckSetPicklistTest {
     );
 
     VisualEditor.DynamicPickListRows rows = picklist.getValues();
-    Assert.areNotEqual(null, rows);
+    Assert.areNotEqual(
+      null,
+      rows,
+      'The picklist provider must return a non-null collection.'
+    );
 
     Integer activeAccountSets = [
       SELECT COUNT()
