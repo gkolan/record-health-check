@@ -836,7 +836,7 @@
       "className": "RecordHealthCheckPreviewControllerTest",
       "classification": "safe",
       "targetSteps": [],
-      "hasTestSetup": false,
+      "hasTestSetup": true,
       "persistedCalls": [],
       "userCalls": []
     },
@@ -860,7 +860,7 @@
       "className": "RecordHealthCheckPreviewServiceTest",
       "classification": "safe",
       "targetSteps": [],
-      "hasTestSetup": false,
+      "hasTestSetup": true,
       "persistedCalls": [],
       "userCalls": []
     },
