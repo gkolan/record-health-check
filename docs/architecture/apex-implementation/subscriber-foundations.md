@@ -237,8 +237,12 @@ or unavailable, without exposing representative record IDs or values.
 
 ### `RecordHealthCheckReadinessService`
 
-Performs user-mode receipt creation and current-user/org/fingerprint lookup, then deletes only a
-confirmed batch of at most 200 visible expired receipts.
+After the Preview service requires Admin plus Run authorization, owns immutable receipt creation,
+performs a bounded current-actor/org/Check/Set/fingerprint/scope lookup, and deletes only a confirmed
+batch of at most 200 expired receipts. The class remains `with sharing`; its two receipt queries and
+one delete use the exact reviewed system-mode exceptions pinned by `check:apex-surface` and
+`readiness-service-security.test.mjs`. No customer business record is read or changed by those
+exceptions.
 
 ### `RecordHealthCheckReadinessState`
 

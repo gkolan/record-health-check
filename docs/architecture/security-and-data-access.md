@@ -12,13 +12,14 @@ Record Health Check reads Salesforce data with the access of the user who starts
 not grant access to a record or field the user cannot already read. A standard Check does not change
 the checked record.
 
-The package protects five separate areas:
+The package protects six separate areas:
 
 | Area                           | Protection                                                                                                                                                          |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Starting a run                 | Requires the **Record Health Check Run** Custom Permission and access to the appropriate Apex entry point                                                           |
-| Reading Salesforce data        | Package queries use `WITH USER_MODE` and package classes use `with sharing`                                                                                         |
+| Reading customer data          | Evaluation queries use `WITH USER_MODE` and package classes use `with sharing`                                                                                      |
 | Reading Check definitions      | After Run authorization succeeds, packaged Custom Metadata definitions load in system mode; this does not grant access to business records or configuration editing |
+| Managing readiness receipts    | After Admin plus Run authorization, a bounded with-sharing service manages private package-owned evidence; it never elevates customer-record evaluation             |
 | Viewing troubleshooting detail | Requires both the Check Set setting and a direct packaged Admin or Diagnostics Viewer Permission Set assignment                                                     |
 | Publishing or receiving events | Requires Platform Event permissions and an explicit publication choice or setting                                                                                   |
 
@@ -93,6 +94,22 @@ missing Run Custom Permission can stop the request before individual results exi
 
 Before rollout, test with a real user from each intended access group. An administrator's successful
 test does not prove that a sales or service user can read every field required by the Check.
+
+### Private readiness evidence
+
+Preview readiness receipts are package-owned operational evidence, not customer business records or
+saved health-result history. Every Preview and expired-receipt cleanup request first requires the
+packaged Admin and Run authorizations. Only after that check does the with-sharing readiness service
+use its reviewed system-mode operations: two queries and one delete. Current-receipt lookup binds the
+running actor, org, Check, Set, definition fingerprint, and normalized scope digest, returns at most
+200 rows, and does not return representative record IDs or business values. Cleanup requires explicit
+confirmation, selects only expired rows, and deletes at most 200 at a time.
+
+The Admin Permission Set grants Read plus the Edit/Delete object combination Salesforce requires,
+but receipt fields are read-only and a validation rule rejects updates. Receipt creation remains a
+service operation. The Readiness Auditor Permission Set is read-only and does not authorize Preview,
+cleanup, or Check execution. These narrow exceptions do not change the rule that every Account,
+Opportunity, Case, or other customer-record query used for evaluation runs in user mode.
 
 Formula globals such as `$User` are not a supported way to branch a Formula Check by caller. For a
 page-versus-automation incident, use the
@@ -169,13 +186,14 @@ Check without telling a normal user which hidden field or record caused the prob
 The package does not install a result-history object and does not write Found or Expected values
 back to the checked record.
 
-| Information                                                       | Saved by Record Health Check?                                              |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Status, Reason Code, Found, and Expected in the returned response | No; returned to the current Apex, Flow, or Lightning caller                |
-| Checked record changes                                            | No                                                                         |
-| Check Set and Check configuration                                 | Yes; stored as Custom Metadata                                             |
-| `[RHC]` lines                                                     | Present only in Salesforce debug logs according to the org's log retention |
-| Error details waiting for logger `flush()`                        | Held only for the current transaction, then published or discarded         |
+| Information                                                       | Saved by Record Health Check?                                                                                                          |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Status, Reason Code, Found, and Expected in the returned response | No; returned to the current Apex, Flow, or Lightning caller                                                                            |
+| Checked record changes                                            | No                                                                                                                                     |
+| Check Set and Check configuration                                 | Yes; stored as Custom Metadata                                                                                                         |
+| Explicit Preview readiness receipt                                | Yes; stores identities, fingerprint, aggregate counts, capability state, actor/org, scope digest, and expiry, but no record IDs/values |
+| `[RHC]` lines                                                     | Present only in Salesforce debug logs according to the org's log retention                                                             |
+| Error details waiting for logger `flush()`                        | Held only for the current transaction, then published or discarded                                                                     |
 
 When history is required, create a custom object owned by your team and save only the returned fields
 that the business needs. Apply object, field, sharing, and retention controls to that object. See

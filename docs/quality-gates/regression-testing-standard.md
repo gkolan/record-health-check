@@ -78,6 +78,58 @@ Keep `@TestSetup` prerequisites deterministic and permission tests explicit abou
 setup versus the actor who invokes the product. Do not assume a stage label, locale or record type
 has the same meaning in every org; set or discover the required semantic value.
 
+## Service-owned data and package-build principals
+
+Classify every queried or changed record before choosing an access mode:
+
+| Data owner and purpose                                           | Required default                                              | What a test must prove                                                                                                                             |
+| ---------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Customer business records used to calculate a Check              | User mode plus sharing and explicit field/object handling     | Restricted users see only their permitted records and fields; hidden rows never become an elevated existence oracle.                               |
+| Package Custom Metadata used to resolve server-owned definitions | The reviewed package configuration exception                  | Client input cannot forge identity or expand the definition set; business-record access remains user mode.                                         |
+| Private package-owned operational evidence                       | User mode unless a locked service-owned exception is required | The public entry point authorizes first; every elevated query/DML is identity-bound, row-bounded, projection-limited, and pinned by a static gate. |
+
+A service-owned exception is not justified by a failing test alone. Write the ownership and threat
+model first: who may call the public entry point, which records the service owns, which caller values
+become bind variables, whether sharing still limits rows, and which fields can leave the service.
+Keep the authorization check at the first executable line of every public entry point that can reach
+the elevated operation. Add an executable source test that counts the exact `WITH SYSTEM_MODE` and
+`AccessLevel.SYSTEM_MODE` occurrences and ties each one to its authorization owner. An extra,
+missing, or relocated occurrence must fail the gate.
+
+Salesforce package-version creation runs packaged Apex tests in a context that is not equivalent to
+an installed administrator or a source-validation user. In particular:
+
+- do not assume the package test principal has a packaged Permission Set;
+- do not assign that Permission Set to the current user in `@TestSetup` and call the later
+  `USER_MODE` success proof complete; permission evaluation can remain different in package creation;
+- do not create a fresh User persona in an unlocked-package test to escape the problem, because
+  subscriber User triggers, Flows, validation, and other automation can run in the packaging org;
+- use the repository's existing test-only authorization seam only to select the already-authorized
+  service path, never to bypass the data-access behavior under test; and
+- preserve separate denial tests through the public entry point with authorization absent.
+
+For an access-mode correction, the required evidence sequence is:
+
+1. Capture the package request, exact test method, exception, field/object, and source line from the
+   failed package-version report. A generic `AuraHandledException` is not the root cause when an
+   underlying service query or DML failed.
+2. Reproduce the smallest coherent source closure in an existing authorized org. Reconcile every
+   requested class and method with what Salesforce actually executed.
+3. Add or strengthen the static authorization/access-mode guard before changing the production
+   operation. Demonstrate that removing authorization or changing the exact access mode makes that
+   guard red.
+4. Test no-row, exact-match, stale/mismatched, mixed-match, confirmation-denied, expired, unexpired,
+   and bounded-maximum cases. Assert exact returned state/count and which rows remain.
+5. Run Code Analyzer and the relevant source gates, inspecting engine errors even after exit zero.
+6. Create one new package candidate only after the source and org boundaries are green. Package
+   success is the green proof for the packaging context; it does not prove sandbox installation,
+   restricted installed users, upgrade behavior, or browser behavior.
+
+Record Health Check's concrete readiness-receipt implementation and red/green evidence are owned by
+the local, ignored `specs/subscriber-draft-validation/12-readiness-security-and-package-regression-contract.md`
+while that feature spec remains active. Tracked architecture and this standard retain the durable
+contract after that feature folder is retired.
+
 ## Challenge isolation, mixtures and recovery
 
 A successful Check Set can hide a broken single Check: a valid sibling may load a relationship that

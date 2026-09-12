@@ -85,6 +85,15 @@ the package's namespaced test classes. `RunAllTestsInOrg` or explicitly selected
 them. Your own tests must not depend on or modify `RecordHealthCheckTestDataFactory`; that class is a
 package test utility, not a public extension point.
 
+Package-version creation is also its own Apex execution context. Its test principal must not be
+assumed to hold packaged Permission Sets, and assigning a packaged Permission Set to the current
+user in `@TestSetup` is not accepted as proof that later user-mode access will match an installed
+administrator. Do not create replacement User personas in unlocked-package tests: subscriber User
+automation can execute in the packaging org. Model customer records in user mode; model any private
+service-owned package store explicitly, authorize it at the public boundary, and pin every reviewed
+system-mode exception with `check:apex-surface` and focused source tests. A source-org green run does
+not close this boundary; the package version's own Apex tests must pass.
+
 ## For package contributors
 
 ### Namespace coverage

@@ -188,9 +188,12 @@ returns exit code zero and reports zero violations.
 - Customer-record queries use `WITH USER_MODE` or `AccessLevel.USER_MODE`, Schema-derived object and
   field identifiers, and bind variables. Admin-authored query templates cannot request
   `WITH SYSTEM_MODE`, add executable syntax through merge tokens, or access an undisclosed field.
-- The single system-mode query is limited to reading this package's public Custom Metadata
-  definitions in `RecordHealthCheckScopePlanner`; it does not read customer records. Any additional
-  `SYSTEM_MODE` use requires a reviewed source-policy change and new restricted-user evidence.
+- Exactly five reviewed system-mode operations are pinned by `check:apex-surface`: one direct
+  packaged-permission assignment query in `RecordHealthCheckAccess`, one Custom Metadata definition
+  query in `RecordHealthCheckScopePlanner`, and two bounded queries plus one bounded delete for
+  private readiness evidence in `RecordHealthCheckReadinessService`. None reads or changes customer
+  business records. Any additional or relocated `SYSTEM_MODE` use requires a reviewed source-policy
+  change, an exact-count gate update, and new restricted-user and package-build evidence.
 - Formula, relationship, currency, polymorphic, aggregate, grouped, dual-query, and plugin paths
   enforce object access, field access, sharing, type compatibility, bounded scope, query-row, query,
   CPU, heap, serialization, and response-size ceilings. Tests cover bulk, null, malformed, inaccessible,

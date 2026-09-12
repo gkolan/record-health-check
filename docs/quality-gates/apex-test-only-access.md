@@ -50,6 +50,13 @@ tests exercise the real Custom Permission assignment or absence. Focused unit te
 the private `@TestVisible` override to force an authorization branch that is unrelated to the test's
 metadata setup.
 
+That override may select the authorized branch; it may not change query/DML access mode or grant
+object and field access. A same-user Permission Set assignment in `@TestSetup` is not a substitute
+for a real restricted-persona test and is not reliable evidence for the package-version test
+principal. Do not add a package-test User factory as a workaround: subscriber User automation can
+run during unlocked-package testing. For package-owned operational data, follow the
+[service-owned data contract](./regression-testing-standard.md#service-owned-data-and-package-build-principals).
+
 No production method may branch on `Test.isRunningTest()`. Do not add a branch to preserve behavior
 from an older org or API.
 

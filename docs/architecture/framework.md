@@ -329,8 +329,10 @@ reason code. The server does not accept the card's flattened display view model 
 publishes only according to its explicit `NONE`, `ACTIONABLE`, or `ALL` choice. It does not use the
 Lightning card's publication settings.
 
-Evaluation itself is read-only, with `with sharing` classes and `WITH USER_MODE` queries. Publishing
-health-result and Error Log Platform Events is the one intentional write on that path.
+Evaluation itself is read-only, with `with sharing` classes and `WITH USER_MODE` customer-record
+queries. Publishing health-result and Error Log Platform Events is the intentional write on the
+normal evaluation path. The separate administrator-only Preview path can explicitly save bounded,
+private readiness evidence after its Admin plus Run authorization.
 
 ## 8. Results and contracts
 
@@ -365,16 +367,17 @@ keeps diagnostics and error details behind explicit permissions. For Permission 
 results, Platform Events, custom Apex Checks, and Action URLs, see
 [Security and data access](./security-and-data-access.md).
 
-| Concern                         | Approach                                                                                                                                                              |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Record and field access         | The running user's own access, enforced by `WITH USER_MODE` on every query                                                                                            |
-| SOQL stored by an administrator | Template checks reject data-changing keywords and `WITH SYSTEM_MODE`, then insert `WITH USER_MODE` in the correct position                                            |
-| Check selection                 | A Check is always loaded with its parent Check Set, so an inactive Check or a Check from the wrong object cannot run                                                  |
-| Merge tokens                    | Only known tokens resolve, with caps on token count and completed message size                                                                                        |
-| Fix links                       | Same-org relative paths or `https://` only, length-capped, and checked again in the component before use as a link                                                    |
-| Diagnostics detail              | Requires a direct **Record Health Check Admin** or **Record Health Check Diagnostics Viewer** Permission Set assignment and a Check Set that enables Show Diagnostics |
-| Lightning event input           | `completeRun` accepts only a button-initiated run, the current record, and one result for each configured Check; it calculates counts from the accepted results       |
-| Error messages                  | Public responses return a safe message and a Reason Code; exception text stays in authorized diagnostics                                                              |
+| Concern                          | Approach                                                                                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Customer record and field access | The running user's own access, enforced by `WITH USER_MODE` on every evaluation query                                                                                 |
+| Private readiness evidence       | Admin plus Run authorization precedes a with-sharing, identity-bound service with exactly two reviewed system-mode queries and one reviewed system-mode delete        |
+| SOQL stored by an administrator  | Template checks reject data-changing keywords and `WITH SYSTEM_MODE`, then insert `WITH USER_MODE` in the correct position                                            |
+| Check selection                  | A Check is always loaded with its parent Check Set, so an inactive Check or a Check from the wrong object cannot run                                                  |
+| Merge tokens                     | Only known tokens resolve, with caps on token count and completed message size                                                                                        |
+| Fix links                        | Same-org relative paths or `https://` only, length-capped, and checked again in the component before use as a link                                                    |
+| Diagnostics detail               | Requires a direct **Record Health Check Admin** or **Record Health Check Diagnostics Viewer** Permission Set assignment and a Check Set that enables Show Diagnostics |
+| Lightning event input            | `completeRun` accepts only a button-initiated run, the current record, and one result for each configured Check; it calculates counts from the accepted results       |
+| Error messages                   | Public responses return a safe message and a Reason Code; exception text stays in authorized diagnostics                                                              |
 
 Seven Permission Sets ship with the package.
 
