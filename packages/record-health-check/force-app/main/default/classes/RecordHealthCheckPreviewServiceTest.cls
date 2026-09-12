@@ -1,5 +1,13 @@
 @IsTest
 private class RecordHealthCheckPreviewServiceTest {
+  @TestSetup
+  static void assignAdministratorAccess() {
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      RecordHealthCheckTestDataFactory.currentUser(),
+      'Record_Health_Check_Admin'
+    );
+  }
+
   @IsTest
   static void validateOnlyReturnsNoResultsAndNoReceipt() {
     authorize();
