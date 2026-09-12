@@ -6,7 +6,7 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.9-2`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.10-1`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
 
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
@@ -16,8 +16,8 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 > version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current stable release: `Record Health Check@2.0.9-2` (`04tak000000gX9FAAU`).
-- Previous stable release: `Record Health Check@2.0.8-1` (`04tak000000g1R7AAI`).
+- Current stable release: `Record Health Check@2.0.10-1` (`04tak000000h2wDAAQ`).
+- Previous stable release: `Record Health Check@2.0.9-2` (`04tak000000gX9FAAU`).
 
 ### Evaluation and integration
 
@@ -72,6 +72,19 @@ For installation and verification, start with
 ## Unreleased
 
 No changes yet.
+
+## Version 2.0.10
+
+Released package version: **2.0.10.1** (`04tak000000h2wDAAQ`). Salesforce reports 97% package
+coverage with validation enabled. Use the [2.0.10.1 sandbox install
+link](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tak000000h2wDAAQ) or the
+[2.0.10.1 production install
+link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tak000000h2wDAAQ).
+
+See the [2.0.10 version reference](./docs/reference/release-2.0.10.md) for the complete public
+contract, compatibility guidance, security boundaries, and feature details, and the
+[2.0.10.1 release record](./docs/quality-gates/release-2.0.10.1-record.md) for immutable release
+evidence.
 
 ## Version 2.0.9
 

@@ -11,6 +11,9 @@ Checks and makes framework limits fail as one visible unit. Existing Checks rema
 optional, plain metadata text still renders, diagnostic contract 2.0 is opt-in, and normal
 evaluation remains the authority for PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR.
 
+For the promoted artifact and immutable installation links, see the
+[2.0.10.1 release record](../quality-gates/release-2.0.10.1-record.md).
+
 ## What changed
 
 | Area                 | 2.0.10 behavior                                                                                                           | Start here                                                                                                     |

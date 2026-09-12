@@ -14,6 +14,7 @@ released. Administrators who only configure Checks can skip it.
 | Documentation requirements                                      | [Documentation standard](./documentation-standard.md)                       |
 | Test-only Apex access and architecture enforcement              | [Apex test-only access](./apex-test-only-access.md)                         |
 | Product-neutral data-shape and execution-context evidence       | [Platform conformance](./platform-conformance.md)                           |
+| Promoted 2.0.10.1 artifact and immutable installation links     | [Release 2.0.10.1 record](./release-2.0.10.1-record.md)                     |
 
 ## Related
 
