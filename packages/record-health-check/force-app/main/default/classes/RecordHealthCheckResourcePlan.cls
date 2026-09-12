@@ -1,13 +1,10 @@
 /** Calculates transaction admission without executing queries, DML, or plugins. */
-public with sharing class RecordHealthCheckResourcePlan {
+public abstract with sharing class RecordHealthCheckResourcePlan {
   private static final Integer FORMULA_CALL_BUDGET = 95;
 
   /** Fatal admission failure raised before a platform governor limit is reached. */
   public class BudgetException extends Exception implements RecordHealthCheckFatalFailure {
     public String reasonCode = 'TRANSACTION_BUDGET_EXCEEDED';
-  }
-
-  private RecordHealthCheckResourcePlan() {
   }
 
   /** Returns the conservative FormulaEval calls required by a scope. */

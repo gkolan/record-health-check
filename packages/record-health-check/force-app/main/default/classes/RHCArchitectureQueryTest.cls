@@ -15,7 +15,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q01() {
+  static void caseQ01RejectsTopLevelOrPredicate() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,
       'SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} OR LastName = \'Smith\'',
@@ -24,7 +24,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q02() {
+  static void caseQ02AcceptsNestedOrPredicate() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.CHILD_DIRECT,
       'SELECT COUNT() FROM Contact WHERE AccountId = {!record.Id} AND (LastName = \'Smith\' OR LastName = \'Jones\')',
@@ -33,7 +33,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q03() {
+  static void caseQ03DistinguishesCorrelationNesting() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.CHILD_DIRECT,
       'SELECT Id FROM Contact WHERE ((AccountId = {!record.Id}))',
@@ -52,7 +52,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q04() {
+  static void caseQ04ClassifiesIndirectReference() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.INDIRECT_REFERENCE,
       'SELECT Id FROM Contact WHERE AccountId = {!record.ParentId}',
@@ -61,7 +61,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q05() {
+  static void caseQ05IgnoresTokensInsideLiterals() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.CHILD_DIRECT,
       'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND LastName = \'OR AND\'',
@@ -75,22 +75,22 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q06() {
+  static void caseQ06AcceptsAscendingNullsFirst() {
     assertOrderedPick('ASC NULLS FIRST', 'Q06');
   }
 
   @IsTest
-  static void case_Q07() {
+  static void caseQ07AcceptsDescendingNullsLast() {
     assertOrderedPick('DESC NULLS LAST', 'Q07');
   }
 
   @IsTest
-  static void case_Q08() {
+  static void caseQ08AcceptsAscendingNullsLast() {
     assertOrderedPick('ASC NULLS LAST', 'Q08');
   }
 
   @IsTest
-  static void case_Q09() {
+  static void caseQ09AcceptsSupportedOrderings() {
     for (
       String ordering : new List<String>{
         'ASC NULLS FIRST',
@@ -106,7 +106,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q10() {
+  static void caseQ10ClassifiesBoundedOrderedPick() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
       'SELECT Birthdate FROM Contact WHERE AccountId = {!record.Id} ORDER BY Birthdate LIMIT 2',
@@ -115,7 +115,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q11() {
+  static void caseQ11RejectsMultipleRecordTokens() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,
       'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND CreatedById = {!record.Id}',
@@ -124,7 +124,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q12() {
+  static void caseQ12ClassifiesScopeInvariantQuery() {
     assertStrategy(
       RecordHealthCheckBulkQuerySupport.SCOPE_INVARIANT,
       'SELECT COUNT() FROM Contact WHERE LastName = \'Smith\'',
@@ -133,7 +133,7 @@ private with sharing class RHCArchitectureQueryTest {
   }
 
   @IsTest
-  static void case_Q13() {
+  static void caseQ13KeepsClassifierCurrencyNeutral() {
     assertOrderedPick('DESC NULLS FIRST', 'Q13 currency-neutral classifier');
   }
 

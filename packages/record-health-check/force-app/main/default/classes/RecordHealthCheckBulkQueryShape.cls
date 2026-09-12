@@ -1,5 +1,5 @@
 /** Parses the correlation clause of a scope-safe record-token SOQL template. */
-public with sharing class RecordHealthCheckBulkQueryShape {
+public abstract with sharing class RecordHealthCheckBulkQueryShape {
   private static final Pattern OUTER_CLAUSE = Pattern.compile(
     '(?i)\\bWHERE\\b|\\b(?:GROUP\\s+BY|ORDER\\s+BY|HAVING|LIMIT|OFFSET|WITH|FOR)\\b'
   );
@@ -19,9 +19,6 @@ public with sharing class RecordHealthCheckBulkQueryShape {
   private class Segment {
     private String value;
     private Integer startIndex;
-  }
-
-  private RecordHealthCheckBulkQueryShape() {
   }
 
   /** Returns the number of parsed record tokens, including literal token text. */

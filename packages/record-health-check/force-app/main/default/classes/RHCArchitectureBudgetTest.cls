@@ -2,7 +2,7 @@
 @IsTest
 private with sharing class RHCArchitectureBudgetTest {
   @IsTest
-  static void case_B01() {
+  static void caseB01ReturnsZeroForEmptyInputs() {
     Assert.areEqual(0, RecordHealthCheckResourcePlan.formulaCalls(null, 100));
     Assert.areEqual(
       0,
@@ -14,7 +14,7 @@ private with sharing class RHCArchitectureBudgetTest {
   }
 
   @IsTest
-  static void case_B02() {
+  static void caseB02ReservesCallsForOneFormula() {
     Assert.areEqual(
       95,
       RecordHealthCheckResourcePlan.defaultAsyncScope(
@@ -25,7 +25,7 @@ private with sharing class RHCArchitectureBudgetTest {
   }
 
   @IsTest
-  static void case_B03() {
+  static void caseB03DividesBudgetAcrossTwoFormulas() {
     Assert.areEqual(
       47,
       RecordHealthCheckResourcePlan.defaultAsyncScope(
@@ -39,7 +39,7 @@ private with sharing class RHCArchitectureBudgetTest {
   }
 
   @IsTest
-  static void case_B04() {
+  static void caseB04IncludesDisplayFormulaCalls() {
     Assert.areEqual(
       44,
       RecordHealthCheckResourcePlan.defaultAsyncScope(
@@ -52,7 +52,7 @@ private with sharing class RHCArchitectureBudgetTest {
   }
 
   @IsTest
-  static void case_B05() {
+  static void caseB05IncludesQueryValueFormulaCalls() {
     Assert.areEqual(
       40,
       RecordHealthCheckResourcePlan.defaultAsyncScope(
@@ -63,7 +63,7 @@ private with sharing class RHCArchitectureBudgetTest {
   }
 
   @IsTest
-  static void case_B06() {
+  static void caseB06AcceptsAvailableFenceCapacity() {
     Test.startTest();
     RecordHealthCheckResourcePlan.requireFenceCapacity(0);
     Test.stopTest();
@@ -71,7 +71,7 @@ private with sharing class RHCArchitectureBudgetTest {
   }
 
   @IsTest
-  static void case_B07() {
+  static void caseB07RejectsInvalidPreferredScope() {
     for (Integer invalid : new List<Integer>{ 0, 201 }) {
       try {
         RecordHealthCheckResourcePlan.defaultAsyncScope(null, invalid);
@@ -83,7 +83,7 @@ private with sharing class RHCArchitectureBudgetTest {
   }
 
   @IsTest
-  static void case_B08() {
+  static void caseB08RejectsNegativeRecordCount() {
     try {
       RecordHealthCheckResourcePlan.formulaCalls(null, -1);
       Assert.fail('Negative record count must be rejected.');

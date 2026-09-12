@@ -2,7 +2,7 @@
 @IsTest
 private with sharing class RHCArchitectureDependencyTest {
   @IsTest
-  static void case_D01() {
+  static void caseD01IdentifiesTwoNodeCycle() {
     Assert.areEqual(
       new Set<String>{ 'A', 'B' },
       RHCDefinitionDependencyIdentity.cycleMembers(
@@ -12,7 +12,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_D02() {
+  static void caseD02IdentifiesSelfCycle() {
     Assert.areEqual(
       new Set<String>{ 'A' },
       RHCDefinitionDependencyIdentity.cycleMembers(
@@ -22,7 +22,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_D03() {
+  static void caseD03ExcludesDownstreamDependent() {
     Assert.areEqual(
       new Set<String>{ 'A', 'B' },
       RHCDefinitionDependencyIdentity.cycleMembers(
@@ -37,7 +37,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_D04() {
+  static void caseD04IgnoresHealthyControlBranch() {
     Assert.areEqual(
       new Set<String>{ 'A', 'B' },
       RHCDefinitionDependencyIdentity.cycleMembers(
@@ -51,7 +51,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_D05() {
+  static void caseD05HandlesNullInput() {
     Assert.areEqual(
       new Set<String>(),
       RHCDefinitionDependencyIdentity.cycleMembers(null)
@@ -59,7 +59,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_D06() {
+  static void caseD06OrdersHealthyBranchFirst() {
     List<Record_Health_Check__mdt> input = new List<Record_Health_Check__mdt>{
       check('D', 'A'),
       check('A', 'B'),
@@ -73,7 +73,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_D07() {
+  static void caseD07PrefersSameNamespaceDependency() {
     List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>{
       check('pkg__A', 'B'),
       check('pkg__B', 'A'),
@@ -87,7 +87,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_D08() {
+  static void caseD08IgnoresMissingPrerequisite() {
     Assert.areEqual(
       new Set<String>(),
       RHCDefinitionDependencyIdentity.cycleMembers(
@@ -97,7 +97,7 @@ private with sharing class RHCArchitectureDependencyTest {
   }
 
   @IsTest
-  static void case_W06() {
+  static void caseW06RecomputesCorrectedGraph() {
     List<Record_Health_Check__mdt> repaired = new List<Record_Health_Check__mdt>{
       check('A', null),
       check('B', 'A')
