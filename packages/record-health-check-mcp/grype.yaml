@@ -17,3 +17,7 @@ ignore:
     package:
       name: libssl3t64
       type: deb
+  - vulnerability: CVE-2026-85091
+    package:
+      name: zlib1g
+      type: deb
