@@ -77,9 +77,8 @@ for (const file of fs
   const systemModeDmlUses = (
     source.match(/\bAccessLevel\.SYSTEM_MODE\b/g) ?? []
   ).length;
-  const systemModeQueryUses = (
-    source.match(/^\s*WITH SYSTEM_MODE\b/gm) ?? []
-  ).length;
+  const systemModeQueryUses = (source.match(/^\s*WITH SYSTEM_MODE\b/gm) ?? [])
+    .length;
   const expectedSystemModeUses = {
     "RecordHealthCheckAccess.cls": { dml: 0, query: 1 },
     "RecordHealthCheckReadinessService.cls": { dml: 1, query: 2 },
@@ -89,9 +88,9 @@ for (const file of fs
     systemModeDmlUses !== expectedSystemModeUses.dml ||
     systemModeQueryUses !== expectedSystemModeUses.query
   ) {
-      failures.push(
-        `${relative}: expected ${expectedSystemModeUses.dml} AccessLevel.SYSTEM_MODE and ${expectedSystemModeUses.query} WITH SYSTEM_MODE uses; found ${systemModeDmlUses} and ${systemModeQueryUses}.`
-      );
+    failures.push(
+      `${relative}: expected ${expectedSystemModeUses.dml} AccessLevel.SYSTEM_MODE and ${expectedSystemModeUses.query} WITH SYSTEM_MODE uses; found ${systemModeDmlUses} and ${systemModeQueryUses}.`
+    );
   }
   approvedSystemModeUses += systemModeDmlUses + systemModeQueryUses;
 
