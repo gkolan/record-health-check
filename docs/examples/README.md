@@ -8,6 +8,12 @@ Use these examples to build a health check for a Salesforce record. Each example
 business question, explains which Evaluation Type fits, lists the Setup values, and shows how to
 test the result.
 
+Examples change only when a release capability improves the business story they teach. Runtime
+fixes, deliberately invalid configurations, and specialized API/security behavior use the existing
+example, an integration-only fixture, or a focused walkthrough instead of being added to every
+Check. See [Example coverage for 2.0.8 through 2.0.10](./versioned-example-coverage.md) for the
+current decisions and verification data.
+
 You do not need to read every page. Choose the row closest to your requirement, create a Check from
 the example values, and replace its fields, limits, and messages with values approved for your org.
 
@@ -125,7 +131,7 @@ deploys them.
 
 | Example | What it checks | What you will learn |
 | --- | --- | --- |
-| [Recent Account activity](./apex/recent-activity.md) | An Account has a recent completed Task or Event whose `WhatId` is the Account | Combine WhatId-scoped Task/Event results and accept a configurable date window |
+| [Recent Account activity](./apex/recent-activity.md) | An Account meets a recent WhatId Task/Event cadence | Exercise 2.0.10 typed parameters, per-record recovery, evidence, display overrides, and inline links with positive and negative data |
 | [Open Opportunity health](./apex/open-opportunity-health.md) | An open Opportunity does not have several warning signs at once | Apply several conditions to the same related record |
 | [Strategic Account readiness](./apex/strategic-readiness.md) | A Strategic Account meets a weighted readiness score | Calculate and explain a configurable score |
 

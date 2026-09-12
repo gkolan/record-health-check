@@ -41,8 +41,8 @@ resolves a Check's parent Check Set, loads Checks for evaluation, and maps the f
 
 - `getDefinitionResponse` rejects a blank `CardTitle__c` with `INVALID_CONFIG`. It does not
   substitute Label or Developer Name for the card title an administrator must provide. When a
-  Check Set has more than 25 active Checks, the class records a `WARN` entry and tells the Lightning
-  card to show **First 25 of N shown**. Only the first 25 Checks run.
+  Check Set has more than 25 active Checks, it returns `FRAMEWORK_MAX_CHECKS_EXCEEDED` before the
+  Lightning card receives a partial definition list.
 - `loadCheck` selects the complete evaluation contract plus presentation fields such as Category,
   including optional fields that are blank, so downstream consumers do not encounter an
   unqueried-field exception.
@@ -117,13 +117,10 @@ in an org that installs Record Health Check cannot call it through the `rhc` nam
 
 **Notable behavior:**
 
-- `validateRecords` treats a Check Set with more active Checks than
- `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as `WARNING`/`CHECK_LIMIT_EXCEEDED`, not
- `ERROR`. Salesforce can save the additional Checks. The Lightning card runs only the first 25;
- direct Apex and Flow reject the entire oversized Check Set. Validation then checks whether any of
- those first 25 Checks depends on a Check outside the first 25. For each affected
- Check, it adds `WARNING`/`DEPENDENCY_NOT_IN_RUN`. During a health check, Apex and the Lightning card
- skip a Check when its prerequisite was not included.
+- `validateRecords` reports a Check Set with more active Checks than
+ `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as
+ `ERROR`/`FRAMEWORK_MAX_CHECKS_EXCEEDED`. Salesforce can save the additional Checks, but every
+ whole-set runtime rejects the configuration before evaluation begins.
 - When an automatic card hides Run and Rerun, users cannot publish lifecycle events from the card.
   The audit returns `WARNING`/`USER_RUN_PUBLICATION_UNREACHABLE` when Check Set publication is
   enabled and `WARNING`/`USER_RESULT_PUBLICATION_UNREACHABLE` for each Check whose publication is

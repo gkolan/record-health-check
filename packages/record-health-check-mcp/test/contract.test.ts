@@ -98,4 +98,61 @@ describe("public contract", () => {
       }).success
     ).toBe(false);
   });
+
+  it("M05 Count/status matrix", () => {
+    const response = (overrides: Record<string, unknown> = {}) => ({
+      contractVersion: "1.0",
+      correlationId: "corr-counts",
+      success: true,
+      operation: "RUN_CHECK_SET",
+      status: "PASS",
+      passed: 1,
+      failed: 0,
+      skipped: 0,
+      unable: 0,
+      systemError: 0,
+      ...overrides
+    });
+
+    for (const passed of [null, -1, 26, 1.5]) {
+      expect(
+        agentToolResponseSchema.safeParse(response({ passed })).success
+      ).toBe(false);
+    }
+    expect(
+      agentToolResponseSchema.safeParse(
+        response({ passed: 25, status: "PASS" })
+      ).success
+    ).toBe(true);
+    expect(
+      agentToolResponseSchema.safeParse(
+        response({ passed: 0, status: "SKIPPED" })
+      ).success
+    ).toBe(true);
+    expect(
+      agentToolResponseSchema.safeParse(
+        response({ passed: 1, unable: 1, status: "UNABLE_TO_EVALUATE" })
+      ).success
+    ).toBe(true);
+    expect(
+      agentToolResponseSchema.safeParse(
+        response({ passed: 1, failed: 1, status: "PASS" })
+      ).success
+    ).toBe(false);
+  });
+
+  it("M06 Unknown and malicious payloads", () => {
+    expect(
+      agentToolResponseSchema.safeParse({
+        ...{
+          contractVersion: "2.0",
+          correlationId: "corr-malformed",
+          success: true,
+          operation: "RUN_CHECK",
+          status: "PASS"
+        },
+        secret: "do-not-reflect"
+      }).success
+    ).toBe(false);
+  });
 });

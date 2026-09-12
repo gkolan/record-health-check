@@ -324,24 +324,66 @@ export function inventedNameProblems(markdown, requirement, declared) {
 }
 
 export function draftNarrativeProblems(markdown, fields) {
-  if (fields.get("ApexClass__c") !== "AccountHasRecentActivityCheck") {
-    return [];
-  }
   const problems = [];
+  const normalizedMarkdown = markdown.replaceAll("\\_", "_");
+  if (
+    /FormulaResultType__c[^\n]*BOOLEAN[^\n]*(?:the\s+)?default/i.test(
+      normalizedMarkdown
+    )
+  ) {
+    problems.push(
+      "provider-neutral drafts must not call BOOLEAN the Formula Result Type default; the field default is AUTO"
+    );
+  }
+  if (
+    /EvaluationOrder__c[^\n]*(?:determines?\s+(?:the\s+)?run order|Checks? run in order)/i.test(
+      normalizedMarkdown
+    )
+  ) {
+    problems.push(
+      "provider-neutral drafts must describe Evaluation Order as presentation order, not execution order"
+    );
+  }
+  if (!/^## .*Execution and result-delivery plan/im.test(markdown)) {
+    problems.push(
+      "provider-neutral drafts must include an Execution and result-delivery plan"
+    );
+  }
+  if (fields.get("IsActive__c") === "true") {
+    problems.push(
+      "provider-neutral drafts must propose IsActive__c = false until a human has reviewed and tested them in a sandbox"
+    );
+  }
+  if (fields.get("ApexClass__c") !== "AccountHasRecentActivityCheck") {
+    return problems;
+  }
   if (!/\b(?:3,650|3650)\b/.test(markdown)) {
     problems.push(
       "AccountHasRecentActivityCheck must state the real daysBack maximum of 3,650"
     );
   }
-  if (!/\bINVALID_CONFIG\b/.test(markdown)) {
+  if (!/\bINVALID_APEX_PARAMETERS\b/.test(markdown)) {
     problems.push(
-      "AccountHasRecentActivityCheck must state that invalid parameter values return INVALID_CONFIG"
+      "AccountHasRecentActivityCheck must state that its declared parameter validation returns INVALID_APEX_PARAMETERS"
     );
   }
   if (!/\bWhatId\b/.test(markdown) || !/\bActivityDate\b/.test(markdown)) {
     problems.push(
       "AccountHasRecentActivityCheck must identify WhatId and ActivityDate as its relationship and date fields"
     );
+  }
+  for (const concept of [
+    "RecordHealthCheckPluginDefinitionSource",
+    "RecordHealthCheckEvidence",
+    "RecordHealthCheckRecordEvaluator",
+    "RecordHealthCheckOutcome.tryEvaluate",
+    "RecordHealthCheckDisplayPlugin"
+  ]) {
+    if (!markdown.includes(concept)) {
+      problems.push(
+        `AccountHasRecentActivityCheck must document its 2.0.10 ${concept} behavior`
+      );
+    }
   }
   return problems;
 }

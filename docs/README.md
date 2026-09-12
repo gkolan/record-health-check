@@ -5,6 +5,8 @@ administrator. It reports what it finds; it does not block saves or change the r
 
 Start with the latest released package. When working from repository source, use [matching documentation and examples](./install/choose-a-package-version.md#documentation-and-installed-version).
 
+Developing or reviewing 2.0.10? The [2.0.10 reference](./reference/release-2.0.10.md) documents its complete plugin, evidence, display, diagnostics, preview, readiness, security, and compatibility contracts.
+
 ## New here? Follow these steps
 
 1. [See what Record Health Check does](./start-here/what-it-does.md).

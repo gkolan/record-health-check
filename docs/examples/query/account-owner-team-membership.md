@@ -88,11 +88,11 @@ create this Check Set:
 | **Card Title** | Related Record Review |
 | **Card Subtitle** | Confirm the Account Owner appears on the Account Team. |
 | **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
+| **Summary Display** | Show below checks |
 | **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
+| **Passed Checks** | Show each passed check |
+| **Skipped Checks** | Show each skipped check |
+| **Found/Expected Display** | Show on demand |
 | **Stop after a system error** | Unchecked |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |
@@ -117,7 +117,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 | **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | List contains any |
 | **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Fail |
 | **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200`; raise it only if your Account Teams can contain more than 200 members |
-| **Formula Result Type** | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Text |
+| **Formula Result Type** | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Automatic |
 
 ## Optional configuration
 

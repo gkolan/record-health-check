@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Example_Account_Compare_Two_Queries</fullName>
+    <columns>MasterLabel</columns>
+    <columns>CheckTitle__c</columns>
+    <columns>EvaluationType__c</columns>
+    <columns>EvaluationOrder__c</columns>
+    <columns>IsActive__c</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Record_Health_Check_Set__c</field>
+        <operation>equals</operation>
+        <value>Example_Account_Compare_Two_Queries</value>
+    </filters>
+    <label>Example: Account Compare Two Queries</label>
+</ListView>

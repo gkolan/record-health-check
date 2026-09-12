@@ -58,4 +58,16 @@
       xsi:type="xsd:string"
     >Two Checks reading the same record through fields one persona can see and another cannot. Run this card as each persona to confirm a restricted field reports Unable to evaluate instead of leaking its value. Requires a namespaced org.</value>
     </values>
+    <values>
+        <field>CardHeadingDisplay__c</field>
+        <value xsi:type="xsd:string">TITLE_AND_SUBTITLE</value>
+    </values>
+    <values>
+        <field>PublishErrorLogEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>PublishUserRunEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
 </CustomMetadata>

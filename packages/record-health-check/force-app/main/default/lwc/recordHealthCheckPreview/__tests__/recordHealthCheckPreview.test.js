@@ -92,6 +92,36 @@ describe("c-record-health-check-preview", () => {
     );
   });
 
+  it("renders the human result message returned by the display contract", async () => {
+    preview.mockResolvedValue(
+      JSON.stringify({
+        ...VALID_RESPONSE,
+        mode: "EXECUTE",
+        results: [
+          {
+            evaluation: {
+              recordId: "001000000000001AAA",
+              status: "FAIL",
+              reasonCode: "FORMULA_FALSE"
+            },
+            display: { renderedMessage: "The website needs attention." }
+          }
+        ]
+      })
+    );
+    const element = createComponent();
+
+    element.shadowRoot.querySelector("[data-action='preview']").click();
+    await flushPromises();
+
+    expect(
+      element.shadowRoot.querySelector("[data-result]").textContent
+    ).toContain("The website needs attention.");
+    expect(
+      element.shadowRoot.querySelector("[data-result]").textContent
+    ).not.toContain("FORMULA_FALSE");
+  });
+
   it("labels a late response stale after the draft changes", async () => {
     let resolvePreview;
     preview.mockReturnValue(
@@ -109,6 +139,50 @@ describe("c-record-health-check-preview", () => {
       element.shadowRoot.querySelector("[data-stale]").textContent
     ).toContain("stale");
     expect(element.shadowRoot.querySelector("[data-readiness]")).toBeNull();
+  });
+
+  it("invalidates live verification when a parent replaces the draft", async () => {
+    preview.mockResolvedValue(
+      JSON.stringify({
+        ...VALID_RESPONSE,
+        mode: "EXECUTE",
+        readinessState: "LIVE_VERIFIED",
+        hasCurrentLiveVerification: true
+      })
+    );
+    const element = createComponent();
+    element.shadowRoot.querySelector("[data-action='preview']").click();
+    await flushPromises();
+
+    element.draftJson = JSON.stringify({
+      DeveloperName: "Parent_Replaced_Draft",
+      Record_Health_Check_Set__c: "m0A000000000001AAA",
+      EvaluationType__c: "FORMULA"
+    });
+    await flushPromises();
+
+    expect(element.shadowRoot.querySelector("[data-readiness]")).toBeNull();
+    expect(element.shadowRoot.querySelector("[data-stale]")).not.toBeNull();
+  });
+
+  it("invalidates live verification when a parent replaces the Check Set", async () => {
+    preview.mockResolvedValue(
+      JSON.stringify({
+        ...VALID_RESPONSE,
+        mode: "EXECUTE",
+        readinessState: "LIVE_VERIFIED",
+        hasCurrentLiveVerification: true
+      })
+    );
+    const element = createComponent();
+    element.shadowRoot.querySelector("[data-action='preview']").click();
+    await flushPromises();
+
+    element.qualifiedSetName = "Different_Set";
+    await flushPromises();
+
+    expect(element.shadowRoot.querySelector("[data-readiness]")).toBeNull();
+    expect(element.shadowRoot.querySelector("[data-stale]")).not.toBeNull();
   });
 
   it("shows the exact activation warning without blocking the choice", async () => {

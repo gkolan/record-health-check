@@ -122,6 +122,35 @@ private class RecordHealthCheckPreviewFingerprintTest {
     );
   }
 
+  @IsTest
+  static void optionalQualifiedIdentityDoesNotChangeFingerprint() {
+    Record_Health_Check__mdt developerIdentity = check(
+      new Map<String, Object>{ 'DeveloperName' => 'Draft' }
+    );
+    Record_Health_Check__mdt qualifiedIdentity = check(
+      new Map<String, Object>{
+        'DeveloperName' => 'Draft',
+        'QualifiedApiName' => 'Draft'
+      }
+    );
+
+    Assert.areEqual(
+      RecordHealthCheckPreviewFingerprint.compute(
+        developerIdentity,
+        checkSet(),
+        null,
+        null
+      ),
+      RecordHealthCheckPreviewFingerprint.compute(
+        qualifiedIdentity,
+        checkSet(),
+        null,
+        null
+      ),
+      'The same detached Check must retain its receipt fingerprint when QualifiedApiName is omitted.'
+    );
+  }
+
   private static Record_Health_Check__mdt check(Map<String, Object> fields) {
     return RecordHealthCheckTestDataFactory.check(fields);
   }

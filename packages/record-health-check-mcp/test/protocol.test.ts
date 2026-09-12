@@ -25,6 +25,87 @@ afterEach(async () => {
 });
 
 describe("MCP Streamable HTTP", () => {
+  it("advertises OAuth protected-resource metadata and challenges unauthenticated clients", async () => {
+    const config = testConfig({
+      authMode: "jwt",
+      authIssuer: "https://issuer.example.test",
+      authAudience: "record-health-check",
+      authJwksUrl: new URL("https://issuer.example.test/.well-known/jwks.json")
+    });
+    const app = createApp(
+      config,
+      { evaluate: vi.fn() } as unknown as SalesforceClient,
+      { log: vi.fn() }
+    );
+    const httpServer = createServer(app);
+    servers.push(httpServer);
+    await new Promise<void>((resolve) =>
+      httpServer.listen(0, "127.0.0.1", resolve)
+    );
+    const address = httpServer.address();
+    if (!address || typeof address === "string")
+      throw new Error("Test server did not bind.");
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    const metadata = await fetch(
+      `${baseUrl}/.well-known/oauth-protected-resource/mcp`
+    );
+    expect(metadata.status).toBe(200);
+    expect(await metadata.json()).toEqual({
+      resource: config.serverUrl.href,
+      authorization_servers: [config.authIssuer],
+      scopes_supported: [config.requiredScope],
+      bearer_methods_supported: ["header"]
+    });
+
+    const unauthorized = await fetch(`${baseUrl}/mcp`, {
+      method: "POST",
+      headers: {
+        accept: "application/json, text/event-stream",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2025-11-25",
+          capabilities: {},
+          clientInfo: { name: "auth-discovery-test", version: "1.0.0" }
+        }
+      })
+    });
+    expect(unauthorized.status).toBe(401);
+    expect(unauthorized.headers.get("www-authenticate")).toContain(
+      `resource_metadata="${config.serverUrl.origin}/.well-known/oauth-protected-resource/mcp"`
+    );
+    expect(unauthorized.headers.get("www-authenticate")).toContain(
+      `scope="${config.requiredScope}"`
+    );
+  });
+
+  it("handles GET on the Streamable HTTP endpoint with an explicit 405", async () => {
+    const app = createApp(
+      testConfig(),
+      { evaluate: vi.fn() } as unknown as SalesforceClient,
+      { log: vi.fn() }
+    );
+    const httpServer = createServer(app);
+    servers.push(httpServer);
+    await new Promise<void>((resolve) =>
+      httpServer.listen(0, "127.0.0.1", resolve)
+    );
+    const address = httpServer.address();
+    if (!address || typeof address === "string")
+      throw new Error("Test server did not bind.");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/mcp`, {
+      headers: { accept: "text/event-stream" }
+    });
+    expect(response.status).toBe(405);
+    expect(response.headers.get("allow")).toBe("POST");
+  });
+
   it("rejects request bodies above the service limit before tool dispatch", async () => {
     const evaluate = vi.fn();
     const app = createApp(
@@ -144,6 +225,57 @@ describe("MCP Streamable HTTP", () => {
     await client.close();
   });
 
+  it("M09 Tool failure keeps effective correlation", async () => {
+    const evaluate = vi
+      .fn()
+      .mockRejectedValue(
+        new ServiceError(
+          "UPSTREAM_CONTRACT",
+          "Salesforce returned an invalid response.",
+          502
+        )
+      );
+    const app = createApp(
+      testConfig(),
+      { evaluate } as unknown as SalesforceClient,
+      { log: vi.fn() }
+    );
+    const httpServer = createServer(app);
+    servers.push(httpServer);
+    await new Promise<void>((resolve) =>
+      httpServer.listen(0, "127.0.0.1", resolve)
+    );
+    const address = httpServer.address();
+    if (!address || typeof address === "string")
+      throw new Error("Test server did not bind.");
+
+    const client = new Client({ name: "correlation-test", version: "1.0.0" });
+    await client.connect(
+      new StreamableHTTPClientTransport(
+        new URL(`http://127.0.0.1:${address.port}/mcp`)
+      )
+    );
+    const result = await client.callTool({
+      name: "run_record_health_check",
+      arguments: {
+        recordId: "001000000000001AAA",
+        qualifiedApiName: "Check_One"
+      }
+    });
+
+    const forwarded = evaluate.mock.calls[0]?.[0] as {
+      correlationId: string;
+    };
+    expect(forwarded.correlationId).toMatch(/^mcp-[0-9a-f-]{36}$/);
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      success: false,
+      errorType: "EXECUTION",
+      correlationId: forwarded.correlationId
+    });
+    await client.close();
+  });
+
   it("lists exactly two tools and returns structured Salesforce results", async () => {
     const evaluate = vi.fn().mockResolvedValue({
       contractVersion: "1.0",
@@ -175,6 +307,22 @@ describe("MCP Streamable HTTP", () => {
       "run_record_health_check",
       "run_record_health_check_set"
     ]);
+    for (const tool of tools.tools) {
+      const inputProperties = tool.inputSchema.properties as Record<
+        string,
+        { description?: string }
+      >;
+      const outputProperties = tool.outputSchema?.properties as
+        Record<string, { description?: string }> | undefined;
+      expect(tool.description).toContain("Never treat UNABLE_TO_EVALUATE");
+      expect(
+        inputProperties.qualifiedApiName?.description?.toLowerCase()
+      ).toContain("exact");
+      expect(outputProperties?.status?.description).toContain("health status");
+      expect(outputProperties?.diagnosticSummary?.description).toContain(
+        "disclosure-safe"
+      );
+    }
     const result = await client.callTool({
       name: "run_record_health_check",
       arguments: {
@@ -300,12 +448,14 @@ describe("MCP Streamable HTTP", () => {
 
       expect(result.isError).toBe(false);
       expect(result.structuredContent).toEqual(resultBody);
-      expect(result.content).toEqual([
-        {
-          type: "text",
-          text: `${operation} completed with status ${status}. Correlation ID: ${resultBody.correlationId}.`
-        }
-      ]);
+      const firstContent = result.content[0];
+      expect(firstContent?.type).toBe("text");
+      if (!firstContent || firstContent.type !== "text") {
+        throw new Error("Expected a text tool-result summary.");
+      }
+      expect(firstContent.text).toContain(
+        `Diagnosis: ${resultBody.diagnosticSummary}`
+      );
       await client.close();
     }
   );

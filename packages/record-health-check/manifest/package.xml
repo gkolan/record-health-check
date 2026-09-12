@@ -114,6 +114,7 @@
         <members>Record_Health_Check_Readiness__c.VerifiedAt__c</members>
         <members>Record_Health_Check_Set__mdt.ObjectApiName__c</members>
         <members>Record_Health_Check_Set__mdt.CardTitle__c</members>
+        <members>Record_Health_Check_Set__mdt.CardHeadingDisplay__c</members>
         <members>Record_Health_Check_Set__mdt.CardSubtitle__c</members>
         <members>Record_Health_Check_Set__mdt.IsActive__c</members>
         <members>Record_Health_Check_Set__mdt.CardRunMode__c</members>
@@ -236,6 +237,9 @@
         <members>AccountHasRecentActivityCheck</members>
         <members>AccountHasRecentActivityCheckTest</members>
         <members>RHCAbsentSchemaRedTest</members>
+        <members>RHCArchitectureBudgetTest</members>
+        <members>RHCArchitectureDependencyTest</members>
+        <members>RHCArchitectureQueryTest</members>
         <members>RHCBase64FieldRedTest</members>
         <members>RHCBulkQueryLimitTest</members>
         <members>RHCBulkQueryRuntimeRegressionTest</members>
@@ -287,6 +291,7 @@
         <members>RHCFormulaDependencyBoundaryTest</members>
         <members>RHCFormulaFindingOrderTest</members>
         <members>RHCFormulaTokenizerGrammarTest</members>
+        <members>RHCFoundationBoundaryTest</members>
         <members>RHCSubscriberDefinitionSpecTest</members>
         <members>RHCSubscriberDiagnosticSpecTest</members>
         <members>RHCSubscriberEvidenceSpecTest</members>
@@ -302,8 +307,10 @@
         <members>RecordHealthCheckDiagnosticResponse</members>
         <members>RecordHealthCheckDiagnosticRuntime</members>
         <members>RecordHealthCheckDiagnosticTraceEntry</members>
+        <members>RecordHealthCheckDisplayRedaction</members>
         <members>RecordHealthCheckExecutionTrace</members>
         <members>RecordHealthCheckFatalFailure</members>
+        <members>RecordHealthCheckCompileDiagnostic</members>
         <members>RecordHealthCheckFormulaDepsPlanner</members>
         <members>RecordHealthCheckFormulaMetadataAdapter</members>
         <members>RecordHealthCheckFormulaPlanService</members>
@@ -328,12 +335,14 @@
         <members>RecordHealthCheckPreviewResponse</members>
         <members>RecordHealthCheckPreviewService</members>
         <members>RecordHealthCheckPreviewServiceTest</members>
+        <members>RecordHealthCheckPrerequisiteEligibility</members>
         <members>RecordHealthCheckReadinessReceipt</members>
         <members>RecordHealthCheckReadinessService</members>
         <members>RecordHealthCheckReadinessState</members>
         <members>RecordHealthCheckReadinessStateTest</members>
         <members>RecordHealthCheckRecordEvaluator</members>
         <members>RecordHealthCheckResponseFinalizer</members>
+        <members>RecordHealthCheckResourcePlan</members>
         <members>RecordHealthCheckScopeRecordLoader</members>
         <members>RecordHealthCheckScopeResultCoordinator</members>
         <members>RecordHealthCheckScopeRuntime</members>
@@ -367,6 +376,7 @@
         <members>RecordHealthCheckBulkQueryDepthTest</members>
         <members>RecordHealthCheckBulkQueryRewriteTest</members>
         <members>RecordHealthCheckBulkQueryRewriter</members>
+        <members>RecordHealthCheckBulkQueryShape</members>
         <members>RecordHealthCheckBulkQuerySupport</members>
         <members>RecordHealthCheckBulkQuerySupportTest</members>
         <members>RecordHealthCheckCompareQueriesEvaluator</members>
@@ -408,6 +418,7 @@
         <members>RecordHealthCheckDiagnosticTrace</members>
         <members>RecordHealthCheckDetachedValidator</members>
         <members>RecordHealthCheckDiagnosticTraceTest</members>
+        <members>RecordHealthCheckDisplayAction</members>
         <members>RecordHealthCheckDisplayGroup</members>
         <members>RecordHealthCheckDisplayGroupTest</members>
         <members>RecordHealthCheckDisplayNode</members>
@@ -478,16 +489,20 @@
         <members>RecordHealthCheckPluginDispatch</members>
         <members>RecordHealthCheckPluginDisplayDispatch</members>
         <members>RecordHealthCheckPluginDispatchTest</members>
+        <members>RecordHealthCheckPresentationResolver</members>
+        <members>RHCPresentationResolverTest</members>
         <members>RecordHealthCheckQualifiedIdentity</members>
         <members>RecordHealthCheckQueryEvaluatorSupport</members>
         <members>RecordHealthCheckQueryProjection</members>
         <members>RecordHealthCheckQueryProjectionTest</members>
+        <members>RecordHealthCheckQueryPredicateProof</members>
         <members>RecordHealthCheckQueryRoleTest</members>
         <members>RecordHealthCheckQueryTokenRules</members>
         <members>RecordHealthCheckQueryTokenRulesTest</members>
         <members>RecordHealthCheckQueryRowUsageTest</members>
         <members>RecordHealthCheckQueryTokenTest</members>
         <members>RecordHealthCheckQuerySchemaValidator</members>
+        <members>RHCConventionalQueryTest</members>
         <members>RecordHealthCheckQueueable</members>
         <members>RecordHealthCheckReasonCodes</members>
         <members>RecordHealthCheckRequest</members>

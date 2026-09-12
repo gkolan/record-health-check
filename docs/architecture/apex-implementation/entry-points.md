@@ -73,11 +73,28 @@ run the Checks.
 
 **See also:** [Lightning component](../../lightning-record-page/configure-the-component.md)
 
+### `RecordHealthCheckPreviewService` and `RecordHealthCheckPreviewController`
+
+**Role:** Validate or execute one detached Check against an existing server-owned Check Set.
+
+**Type:** Public Apex service · `global with sharing`; Lightning adapter · `public with sharing`
+
+The Preview service returns versioned findings, capabilities, resolved fields, optional execution
+results, and optional private readiness evidence. The controller serializes that response for the
+administrator-only Preview component and exposes bounded expired-receipt cleanup.
+
+**Notable behavior:**
+
+- **Important:** Preview requires administrator and run authorization. It publishes no user-result,
+  user-run, or error-log events, and it does not save or activate the detached Check.
+
+**See also:** [Validate and preview an AI draft](../../build-checks/draft-with-ai/validate-and-preview-an-ai-draft.md)
+
 ### `RecordHealthCheckRunCheckFlowAction`
 
 **Role:** Run one Check for each input record in Flow.
 
-**Type:** Invocable Flow action · `public with sharing`
+**Type:** Invocable Flow action · `global with sharing`
 
 This class provides the installed **Run Record Health Check** Flow action. Each input supplies a Check
 Qualified API Name, one record ID, and `NONE`, `ACTIONABLE`, or `ALL` for Platform Event publication.
@@ -92,7 +109,7 @@ Each output contains success or error details, Status, Reason Code, and the comp
 
 **Role:** Run every active Check in one Check Set for each input record in Flow.
 
-**Type:** Invocable Flow action · `public with sharing`
+**Type:** Invocable Flow action · `global with sharing`
 
 This class provides the installed **Run Record Health Check Set** Flow action. Each output contains
 success or error details, an overall Status, the PASS/FAIL/SKIPPED/UNABLE_TO_EVALUATE/ERROR counts,
@@ -104,6 +121,61 @@ and the complete response as JSON.
   Checks. Invalid bulk input therefore does not leave a partly completed run.
 
 **See also:** [Flow actions](../../flow-guides/action-inputs-and-outputs.md)
+
+### `RecordHealthCheckQueueable`
+
+**Role:** Run one Check Set asynchronously for a bounded list of known record IDs.
+
+**Type:** Public Queueable and Finalizer · `global with sharing`
+
+`enqueue(...)` returns an `AsyncApexJob` ID. The packaged job discards the typed response after
+optional lifecycle publication; its finalizer publishes terminal job state when requested and logs
+an unhandled job failure.
+
+**Notable behavior:**
+
+- The job ID reports platform execution, not health outcomes. With publication `NONE`, the health
+  results are transient unless subscriber-owned code uses a custom Queueable to save them.
+- Equivalent pending requests use a duplicate signature instead of consuming another Queueable slot.
+
+**See also:** [Queueable Apex](../../developer-guides/async-apex/queueable.md)
+
+### `RecordHealthCheckBatch`
+
+**Role:** Run one Check Set asynchronously across a bounded known population in several transactions.
+
+**Type:** Public Batch Apex adapter · `global with sharing`
+
+The two `run(...)` overloads return an `AsyncApexJob` ID. The three-argument overload automatically
+chooses a scope from 1 through 100 and lowers it for the selected Check Set's FormulaEval budget.
+The four-argument overload accepts a scope from 1 through 200 and rejects a size that does not fit
+the remaining formula budget. The Batch can publish per-result, per-record summary, and terminal
+job events according to the caller's publication choice.
+
+**Notable behavior:**
+
+- The packaged Batch does not persist ordinary results. Use events or a reviewed custom Batch that
+  consumes and saves the typed response in each `execute` transaction.
+
+**See also:** [Batch Apex](../../developer-guides/async-apex/batch.md)
+
+### `RecordHealthCheckScheduled`
+
+**Role:** Schedule a fixed record population for recurring Check Set Batch execution.
+
+**Type:** Public Scheduled Apex adapter · `global with sharing`
+
+`scheduleDaily(...)` returns a `CronTrigger` ID and runs at 2:00 AM in the scheduling user's time
+zone. Each scheduled execution delegates the captured IDs to `RecordHealthCheckBatch` with
+`SCHEDULED` lifecycle attribution.
+
+**Notable behavior:**
+
+- The schedule captures record IDs when it is created. It does not query for records that later
+  enter or leave a business population.
+- The schedule ID and later Batch job describe platform state, not the individual health outcomes.
+
+**See also:** [Scheduled Apex](../../developer-guides/async-apex/scheduled.md)
 
 ### `RecordHealthCheckValidateMetadataAction`
 

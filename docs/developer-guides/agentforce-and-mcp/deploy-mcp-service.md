@@ -265,6 +265,13 @@ This gate prevents plaintext production destinations and unauthenticated product
 3. Confirm that configuration validation prevents startup.
 4. Restore `AUTH_MODE=jwt`.
 5. Request the HTTP URL and confirm that the platform redirects to HTTPS or rejects it.
+6. Request `/.well-known/oauth-protected-resource/mcp` through the public HTTPS host and confirm it
+   returns the exact MCP resource URL, configured authorization-server issuer, and `rhc.run` scope.
+7. POST to `/mcp` without a token and confirm the `401` `WWW-Authenticate` challenge contains the
+   protected-resource metadata URL and required scope.
+8. Send an authenticated `GET /mcp` with `Accept: text/event-stream` and confirm the stateless
+   service returns `405 Method Not Allowed` with `Allow: POST`, rather than `404` or an accidental
+   legacy-transport fallback.
 
 Never use `AUTH_MODE=none` to diagnose production authentication. It is intended only for bounded
 local development outside production.
@@ -363,7 +370,7 @@ This gate prevents the model or client from sending ambiguous, excessive, or uns
    ```json
    {
      "recordId": "001000000000001AAA",
-     "checkSetQualifiedApiName": "My_Account_Checks",
+     "qualifiedApiName": "My_Account_Checks",
      "correlationId": "mcp-guide-pass-001"
    }
    ```
@@ -556,8 +563,10 @@ MCP client screens differ, but the values and proof are the same.
 
 1. Add a remote Streamable HTTP MCP server in the approved client.
 2. Enter the exact `MCP_SERVER_URL` ending in `/mcp`.
-3. Configure the client's OAuth relationship with the inbound identity provider.
-4. Request audience `MCP_AUTH_AUDIENCE` and scope `rhc.run`.
+3. Confirm that the client discovers `/.well-known/oauth-protected-resource/mcp`, follows its
+   authorization-server issuer, and uses that issuer's OAuth or OpenID discovery metadata.
+4. Pre-register the client with the identity provider when required, then request resource/audience
+   `MCP_SERVER_URL`/`MCP_AUTH_AUDIENCE` as required by that provider and scope `rhc.run`.
 5. Authenticate as an approved client subject.
 6. Refresh the tool list.
 7. Confirm that exactly the two Record Health Check tools appear.
@@ -566,8 +575,9 @@ MCP client screens differ, but the values and proof are the same.
 10. Confirm that the client describes `FAIL` as an unhealthy business result, not a tool failure.
 11. Confirm that `UNABLE_TO_EVALUATE` and `ERROR` are never translated to `PASS`.
 
-If the client cannot present OAuth fields or send a bearer token to a remote Streamable HTTP server,
-it is not compatible with this production deployment as configured.
+If the client cannot perform protected-resource and authorization-server discovery or send a bearer
+token to a remote Streamable HTTP server, it is not compatible with this production deployment as
+configured.
 
 ## Step 7: Run the adoption test matrix
 

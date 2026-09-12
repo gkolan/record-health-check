@@ -36,6 +36,8 @@ import {
 const RECORD_REFRESH_DEBOUNCE_MS = 250;
 const ESTIMATED_TOOLTIP_HEIGHT = 180;
 const DEFAULT_RUN_BUTTON_DISPLAY = "LABEL_AND_ICON";
+const DEFAULT_CARD_HEADING_DISPLAY = "TITLE_AND_SUBTITLE";
+const CARD_HEADING_DISPLAYS = ["TITLE_AND_SUBTITLE", "TITLE_ONLY", "HIDE"];
 const RUN_BUTTON_DISPLAYS = [
   "LABEL_AND_ICON",
   "LABEL_ONLY",
@@ -113,6 +115,7 @@ export default class RecordHealthCheck extends LightningElement {
 
   @track displayTitle = "Record Health Check";
   @track displayDescription;
+  @track cardHeadingDisplay = DEFAULT_CARD_HEADING_DISPLAY;
   @track triggerMode;
   @track checkSetRunButtonDisplay = DEFAULT_RUN_BUTTON_DISPLAY;
   @track runButtonLabel;
@@ -186,6 +189,7 @@ export default class RecordHealthCheck extends LightningElement {
   _canViewDetails = false;
   _refreshHandlerRegistration = null;
   _recordRefreshTimer = null;
+  _restoreActionFocusAfterRender = false;
 
   _clearComponentError() {
     this.componentError = null;
@@ -271,6 +275,7 @@ export default class RecordHealthCheck extends LightningElement {
       this._prepareQuietManualShell({
         cardTitle: this.displayTitle,
         cardDescription: this.displayDescription,
+        cardHeadingDisplay: this.cardHeadingDisplay,
         activeCheckCount: this.totalAvailableCheckCount,
         runButtonDisplay: this.checkSetRunButtonDisplay,
         runButtonLabel: this.runButtonLabel,
@@ -283,6 +288,7 @@ export default class RecordHealthCheck extends LightningElement {
       this._prepareDeferredAutomaticShell({
         cardTitle: this.displayTitle,
         cardDescription: this.displayDescription,
+        cardHeadingDisplay: this.cardHeadingDisplay,
         activeCheckCount: this.totalAvailableCheckCount,
         runButtonDisplay: this.checkSetRunButtonDisplay,
         runButtonLabel: this.runButtonLabel,
@@ -365,6 +371,7 @@ export default class RecordHealthCheck extends LightningElement {
     // header description, so the card keeps a body instead of collapsing to a
     // header-only strip.
     this.displayDescription = null;
+    this.cardHeadingDisplay = DEFAULT_CARD_HEADING_DISPLAY;
     this.isLoading = false;
     this._clearComponentError();
     this.checks = [];
@@ -381,6 +388,9 @@ export default class RecordHealthCheck extends LightningElement {
     this.displayDescription = requestedCheckSetName
       ? "Record Health Check"
       : null;
+    // Builder must always identify the selected Check Set, even when the
+    // runtime card is configured to hide its heading.
+    this.cardHeadingDisplay = DEFAULT_CARD_HEADING_DISPLAY;
     this.isLoading = false;
     this._clearComponentError();
     this.checks = [];
@@ -456,10 +466,16 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   _prepareMetadataShell(shellConfig) {
+    const restoreActionFocus = this._isCardActionFocused();
     const activeCheckCount = Number(shellConfig.activeCheckCount) || 0;
     this.displayTitle =
       shellConfig.cardTitle || this.checkSetName || "Record Health Check";
     this.displayDescription = shellConfig.cardDescription || null;
+    this.cardHeadingDisplay = CARD_HEADING_DISPLAYS.includes(
+      shellConfig.cardHeadingDisplay
+    )
+      ? shellConfig.cardHeadingDisplay
+      : DEFAULT_CARD_HEADING_DISPLAY;
     this.totalAvailableCheckCount = activeCheckCount;
     this.totalCheckCount = Math.min(activeCheckCount, this.frameworkMaxChecks);
     this.checksOmittedByLimit = activeCheckCount > this.frameworkMaxChecks;
@@ -471,6 +487,7 @@ export default class RecordHealthCheck extends LightningElement {
     this.runButtonLabel = shellConfig.runButtonLabel || null;
     this.rerunButtonLabel = shellConfig.rerunButtonLabel || null;
     this.runButtonIcon = shellConfig.runButtonIcon || null;
+    this._restoreActionFocusAfterRender ||= restoreActionFocus;
   }
 
   disconnectedCallback() {
@@ -555,6 +572,19 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   renderedCallback() {
+    if (this._restoreActionFocusAfterRender) {
+      const replacementAction =
+        this.template.querySelector("[data-card-action]");
+      // A disabled HTML button cannot receive focus. Keep the request pending
+      // through the definition-load render and restore it when the action is
+      // enabled again. If configuration removed the action, focus the card.
+      if (!replacementAction?.disabled) {
+        this._restoreActionFocusAfterRender = false;
+        const focusTarget =
+          replacementAction || this.template.querySelector("[data-card-root]");
+        focusTarget?.focus();
+      }
+    }
     // Content grows as checks resolve, so re-measure every clampable region and
     // reveal its +/- toggle only when the rendered text actually overflows.
     this._measureClampedContent();
@@ -623,8 +653,13 @@ export default class RecordHealthCheck extends LightningElement {
    * state rather than reloading it. The rows are replaced from the response the
    * moment it lands, and a failed request still surfaces the component error.
    */
-  async _loadDefinitions(runSource = null, preserveRows = false) {
+  async _loadDefinitions(
+    runSource = null,
+    preserveRows = false,
+    restoreActionFocus = false
+  ) {
     const keepRows = preserveRows && this.checks.length > 0;
+    restoreActionFocus ||= this._isCardActionFocused();
     this._canViewDetails = false;
     const loadToken = ++this._loadToken;
     const requestedCheckSetName = this.checkSetName;
@@ -682,6 +717,19 @@ export default class RecordHealthCheck extends LightningElement {
           "The server returned an invalid health-check definition response."
         );
       }
+      // Older servers can still return a truncated definition response. Block
+      // it here so an upgrade mismatch cannot silently run only part of a Set.
+      if (response.checksOmittedByLimit === true) {
+        const configured =
+          typeof response.totalAvailableCheckCount === "number"
+            ? response.totalAvailableCheckCount
+            : "more than the supported number of";
+        const error = new Error(
+          `FRAMEWORK_MAX_CHECKS_EXCEEDED: configured=${configured}, ceiling=${this.frameworkMaxChecks}. No Checks were run.`
+        );
+        error.reasonCode = "FRAMEWORK_MAX_CHECKS_EXCEEDED";
+        throw error;
+      }
 
       const seenQualifiedNames = new Set();
       for (const def of response.checks) {
@@ -706,17 +754,34 @@ export default class RecordHealthCheck extends LightningElement {
         response.checks
       );
 
-      this.displayTitle = response.displayTitle;
-      this.displayDescription = response.displayDescription;
+      const cardHeadingDisplay =
+        typeof response.cardHeadingDisplay !== "string" ||
+        response.cardHeadingDisplay.trim() === ""
+          ? DEFAULT_CARD_HEADING_DISPLAY
+          : response.cardHeadingDisplay;
+      const runButtonDisplay =
+        response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY;
       this._requireMode(
         response.triggerMode,
         ["Automatic", "Manual"],
         "When Checks Run"
       );
       this._requireMode(
-        response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY,
+        runButtonDisplay,
         RUN_BUTTON_DISPLAYS,
         "Run Button Display"
+      );
+      if (response.triggerMode === "Manual" && runButtonDisplay === "HIDE") {
+        const configurationError = new Error(
+          "Run Button Display cannot be Hide when checks run only after a user clicks Run. Choose a visible display or configure the Check Set to run when the page opens."
+        );
+        configurationError.reasonCode = "INVALID_CONFIG";
+        throw configurationError;
+      }
+      this._requireMode(
+        cardHeadingDisplay,
+        CARD_HEADING_DISPLAYS,
+        "Card Heading Display"
       );
       this._requireMode(
         response.revealMode,
@@ -740,25 +805,18 @@ export default class RecordHealthCheck extends LightningElement {
       );
       this._requireMode(
         response.summaryDisplay || "BOTTOM",
-        ["TOP", "BOTTOM"],
+        ["TOP", "BOTTOM", "HIDE"],
         "Summary Display"
       );
+      this.displayTitle = response.displayTitle;
+      this.displayDescription = response.displayDescription;
+      this.cardHeadingDisplay = cardHeadingDisplay;
       this.triggerMode = response.triggerMode;
-      this.checkSetRunButtonDisplay =
-        response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY;
+      this.checkSetRunButtonDisplay = runButtonDisplay;
       this.runButtonLabel = response.runButtonLabel;
       this.rerunButtonLabel = response.rerunButtonLabel;
       this.runButtonIcon = response.runButtonIcon;
-      if (
-        this.triggerMode === "Manual" &&
-        this.checkSetRunButtonDisplay === "HIDE"
-      ) {
-        const configurationError = new Error(
-          "Run Button Display cannot be Hide when checks run only after a user clicks Run. Choose a visible display or configure the Check Set to run when the page opens."
-        );
-        configurationError.reasonCode = "INVALID_CONFIG";
-        throw configurationError;
-      }
+      this._restoreActionFocusAfterRender ||= restoreActionFocus;
       this.revealMode = response.revealMode;
       this.successDisplayMode = response.successDisplayMode;
       this.skippedDisplayMode = response.skippedDisplayMode;
@@ -1023,6 +1081,12 @@ export default class RecordHealthCheck extends LightningElement {
         }
       );
     }
+  }
+
+  _isCardActionFocused() {
+    return (
+      this.template.activeElement?.matches?.("[data-card-action]") === true
+    );
   }
 
   _clientDefinitionError(message) {
@@ -1408,12 +1472,8 @@ export default class RecordHealthCheck extends LightningElement {
     return `${n} ${n === 1 ? "Check" : "Checks"}`;
   }
 
-  // Count phrase for the pre-run hint: pluralized, and when the set exceeds the
-  // 25-check cap it makes clear only the first 25 will run.
+  // Count phrase for the pre-run hint.
   get checkCountPhrase() {
-    if (this.checksOmittedByLimit) {
-      return `the first ${this.frameworkMaxChecks} of ${this.totalAvailableCheckCount} checks`;
-    }
     const n = this.totalCheckCount;
     return `${n} ${n === 1 ? "check" : "checks"}`;
   }
@@ -1466,7 +1526,31 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get showHeaderActions() {
-    return this.showActionButton;
+    return this.showNormalHeader && this.showActionButton;
+  }
+
+  get showNormalHeader() {
+    return this.isBuilderPreview || this.cardHeadingDisplay !== "HIDE";
+  }
+
+  get showSubtitle() {
+    return (
+      this.showNormalHeader &&
+      this.cardHeadingDisplay === "TITLE_AND_SUBTITLE" &&
+      Boolean(this.displayDescription)
+    );
+  }
+
+  get showBodyActionRow() {
+    return (
+      !this.isBuilderPreview &&
+      this.cardHeadingDisplay === "HIDE" &&
+      this.showActionButton
+    );
+  }
+
+  get cardAccessibleLabel() {
+    return this.displayTitle || "Record Health Check";
   }
 
   get showPreRunHint() {
@@ -1511,19 +1595,6 @@ export default class RecordHealthCheck extends LightningElement {
     return `${availability} Includes ${this.totalAvailableCheckCount} active ${activeLabel} and ${this.inactiveCheckCount} inactive ${inactiveLabel}.`;
   }
 
-  get showHiddenEvaluationHint() {
-    return (
-      this.triggerMode === "Automatic" &&
-      this.hideRunButton &&
-      this.checksOmittedByLimit &&
-      this._runner.isRunning
-    );
-  }
-
-  get hiddenEvaluationHintText() {
-    return `Evaluating ${this.checkCountPhrase}.`;
-  }
-
   /**
    * The card body must never collapse to a header-only strip.
    *
@@ -1538,8 +1609,8 @@ export default class RecordHealthCheck extends LightningElement {
       !this.isBuilderPreview &&
       !this.isCardLoading &&
       !this.completionWarning &&
+      !this.showBodyActionRow &&
       !this.showPreRunHint &&
-      !this.showHiddenEvaluationHint &&
       !this.showSummaryStatsAbove &&
       !this.showSummaryStatsBelow &&
       !this.showHiddenResultsNotice &&
@@ -1560,8 +1631,18 @@ export default class RecordHealthCheck extends LightningElement {
     return "No results to display.";
   }
 
+  get bodyClass() {
+    return !this.showNormalHeader && !this.showBodyActionRow
+      ? "rhc-body rhc-body--bare-top"
+      : "rhc-body";
+  }
+
   get showSummaryStats() {
-    return this.runComplete && this.summaryGroups.length > 0;
+    return (
+      this.summaryDisplay !== "HIDE" &&
+      this.runComplete &&
+      this.summaryGroups.length > 0
+    );
   }
 
   get showSummaryStatsAbove() {
@@ -1649,6 +1730,7 @@ export default class RecordHealthCheck extends LightningElement {
     ) {
       return;
     }
+    const restoreActionFocus = this._isCardActionFocused();
     this.completionWarning = null;
     this.completionWarningDiagnosticCode = null;
     // A Rerun starts a fresh evaluation, so per-row carets the user opened on the
@@ -1663,7 +1745,7 @@ export default class RecordHealthCheck extends LightningElement {
     // starts the run itself once the response is applied.
     this._definitionLoadInProgress = true;
     try {
-      await this._loadDefinitions("USER_INITIATED", true);
+      await this._loadDefinitions("USER_INITIATED", true, restoreActionFocus);
     } finally {
       this._definitionLoadInProgress = false;
     }

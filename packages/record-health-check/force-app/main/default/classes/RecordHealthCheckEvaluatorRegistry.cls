@@ -103,8 +103,8 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
         .withRunContext(runContext(runId, context))
         .withExecutionTraces(context.activeExecutionTraces)
         .withCardPresentation(
-          context.executionOrigin == 'USER_INITIATED' ||
-            context.executionOrigin == 'RUN_ON_LOAD'
+          context.resultMode ==
+          RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
         )
         .evaluateScope(
           check,

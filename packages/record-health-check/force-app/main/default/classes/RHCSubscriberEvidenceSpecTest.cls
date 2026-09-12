@@ -55,6 +55,19 @@ private class RHCSubscriberEvidenceSpecTest {
       projected.rows[0][5],
       'Assignment provenance must remain Boolean.'
     );
+    String serialized = JSON.serialize(projected.columns[0]);
+    Assert.isTrue(
+      serialized.contains('"key"'),
+      'Evidence keys must serialize.'
+    );
+    Assert.isTrue(
+      serialized.contains('"label"'),
+      'Evidence labels must serialize.'
+    );
+    Assert.isTrue(
+      serialized.contains('"dataType"'),
+      'Evidence types must serialize.'
+    );
   }
 
   @IsTest
@@ -249,6 +262,44 @@ private class RHCSubscriberEvidenceSpecTest {
       over.completeness,
       'Row overflow must be visibly truncated.'
     );
+  }
+
+  @IsTest
+  static void byteTruncationStillCountsEveryAuthorizedRow() {
+    RecordHealthCheckEvidence evidence = new RecordHealthCheckEvidence(
+      'Byte budget'
+    );
+    List<RecordHealthCheckEvidenceCell> row = new List<RecordHealthCheckEvidenceCell>();
+    for (Integer columnIndex = 0; columnIndex < 20; columnIndex++) {
+      evidence.column(
+        'column' + columnIndex,
+        'Column ' + columnIndex,
+        'STRING'
+      );
+      row.add(
+        RecordHealthCheckEvidenceCell.value(
+          RecordHealthCheckValue.ofString(repeatedText(1024))
+        )
+      );
+    }
+    for (Integer rowIndex = 0; rowIndex < 100; rowIndex++) {
+      evidence.row(row);
+    }
+
+    RecordHealthCheckEvidenceEnvelope projected = RecordHealthCheckEvidenceProjection.project(
+      evidence,
+      'run-byte-budget',
+      'RHC_SP_Evidence_Items',
+      null,
+      new Map<Id, SObject>()
+    );
+
+    Assert.areEqual(100, projected.totalItemCount);
+    Assert.areEqual(
+      100 - projected.returnedItemCount,
+      projected.omittedItemCount
+    );
+    Assert.areEqual('TRUNCATED', projected.completeness);
   }
 
   private static RecordHealthCheckEvidence approvalEvidence(Id accountId) {

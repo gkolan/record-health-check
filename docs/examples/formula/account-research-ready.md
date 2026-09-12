@@ -75,11 +75,11 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm Phone or Website is available before seller research. |
 | **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
+| **Summary Display** | Show below checks |
 | **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
+| **Passed Checks** | Show each passed check |
+| **Skipped Checks** | Show each skipped check |
+| **Found/Expected Display** | Show on demand |
 | **Stop after a system error** | Unchecked |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |
@@ -120,7 +120,7 @@ These values improve presentation. Change them for your process, or leave an opt
 
 Leave **Display: Found Formula** and **Display: Expected Formula** blank because there is no single
 value to show: either Phone or Website can satisfy the Check. Leave **Formula Result Type** as
-**Auto**. Query and Apex fields do not apply.
+**Automatic**. Query and Apex fields do not apply.
 
 ## What the user sees
 

@@ -34,6 +34,7 @@ public class RecordHealthCheckExecutionTrace {
     if (failure != null) {
       return;
     }
+    this.activePhase = activePhase;
     failure = activePhase + '_FAILED';
     add(failure, null);
   }

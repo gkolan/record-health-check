@@ -69,9 +69,7 @@ public with sharing class RecordHealthCheckScopeResultCoordinator {
         internalResult,
         context.showDiagnostics == true &&
           resultMode == RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY,
-        resultMode == RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY &&
-        (context.executionOrigin == 'USER_INITIATED' ||
-        context.executionOrigin == 'RUN_ON_LOAD')
+        resultMode == RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
       );
       traces.get(recordId)?.complete('DISPLAY_RENDERED');
       itemsByIdentity.put(

@@ -48,4 +48,28 @@
   <values><field>ApexParametersJson__c</field><value
       xsi:type="xsd:string"
     >{&quot;maxPreviewRecords&quot;:0,&quot;displayFormat&quot;:&quot;nameId&quot;}</value></values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
 </CustomMetadata>

@@ -39,7 +39,7 @@ Query and Compare two queries Checks.
 **Notable behavior:**
 
 - Each display method has an overload that takes the Check's `DisplayValueFormat__c`. The no-format
- overloads render on `Auto`. The rendering itself lives in
+ overloads render on `Automatic`. The rendering itself lives in
  [`RecordHealthCheckDisplayFormat`](#recordhealthcheckdisplayformat); this class owns the operator
  phrasing and the list preview cap.
 - **Example:** `formatList` limits the rendered preview to `LIST_PREVIEW_CAP` (`10`) entries and
@@ -52,7 +52,7 @@ Query and Compare two queries Checks.
 
 **Type:** Shared service · `public with sharing`
 
-Applies the Check's **Display: Value Format** (`DisplayValueFormat__c`). **Auto** chooses a format
+Applies the Check's **Display: Value Format** (`DisplayValueFormat__c`). **Automatic** chooses a format
 from the Salesforce data type. A named format such as **Currency** or **Raw** overrides it. Formatting
 changes only what a person sees; it cannot change PASS or FAIL.
 
@@ -63,7 +63,7 @@ changes only what a person sees; it cannot change PASS or FAIL.
 | `render(value, format, isoCode)` | One value rendered for the chosen format and currency |
 | `isFormatApiName(format)` | Whether a name is one of the ten official, uppercase format API values |
 | `isDisplayedNumberOne(value)` | Whether locale-formatted display text represents exactly one, used when a rendered count needs singular or plural wording |
-| `formatForField(...)` / `formatForRow(...)` | The format a field's Setup definition suggests, used when the Check is on Auto |
+| `formatForField(...)` / `formatForRow(...)` | The format a field's Setup definition suggests, used when the Check is on Automatic |
 | `valueForDisplay(...)` / `valuesForDisplay(...)` | Picklist labels or raw typed values prepared for one value or a list |
 | `currencyIsoCodeFrom(row)` | The currency a row's amounts belong to, in an org with more than one |
 | `currencyIsoCodeFor(row, record, fieldPath)` | The same, walking a relationship path when needed and falling back to the card record when the query read that record without selecting `CurrencyIsoCode` |
@@ -127,6 +127,21 @@ outer SOQL clause.
 - It inserts `WITH USER_MODE` before `GROUP BY`, `ORDER BY`, `LIMIT`, and other ending clauses where
   Salesforce requires it. `WITH SYSTEM_MODE` is rejected because it would bypass the running user's
   record, object, and field access.
+
+### `RecordHealthCheckQueryPredicateProof`
+
+**Role:** Prove that every branch of an outer SOQL `WHERE` expression requires one field literal.
+
+**Type:** Shared service · `public with sharing`
+
+The parser treats redundant parentheses and equivalent distribution across `AND` and `OR` as the
+same constraint. It intersects requirements across alternatives, rejects conflicting equalities,
+and ignores predicates inside literals and nested queries. Currency aggregation uses this proof to
+recognize one ISO unit without broadening mixed-currency acceptance.
+
+| Member | Purpose |
+| --- | --- |
+| `requiredLiteral(soql, fieldPath)` | Return the required three-letter literal, or `null` when any outer branch admits another value |
 
 ### `RecordHealthCheckValueResolver`
 

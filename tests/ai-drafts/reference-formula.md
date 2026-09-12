@@ -28,6 +28,19 @@ Before configuration, confirm:
 
 ---
 
+## Execution and result-delivery plan
+
+- **Entry:** Lightning record card, running the complete Check Set synchronously when the user
+  selects Run. The complete Set preserves any sibling prerequisite behavior added later.
+- **Principal and scope:** The interactive Account user evaluates one Account with that user's
+  sharing and object, field, and record access.
+- **Exit:** The card displays the result and action. Platform Event publication remains off and no
+  durable result history is required.
+- **Failure and recovery:** Health statuses stay on the card. Unexpected browser or Apex failures
+  follow administrator diagnostics and do not become business FAIL results.
+
+---
+
 ## Check Set Configuration
 
 | Setup Label              | API Field Name            | Proposed Value                                  | Why                                                                                 |
@@ -35,9 +48,10 @@ Before configuration, confirm:
 | Label                    | MasterLabel               | Account Billing Address                         | Administrator-created name for this Check Set.                                      |
 | Developer Name           | DeveloperName             | Account_Billing_Address                         | API identifier without rhc\_\_ prefix.                                              |
 | Object                   | ObjectApiName\_\_c        | Account                                         | The record page where this card appears.                                            |
-| Active                   | IsActive\_\_c             | true                                            | The default; the card and its Checks run.                                           |
+| Active                   | IsActive\_\_c             | false                                           | Keep the draft Check Set inactive until human sandbox review.                       |
 | Card Title               | CardTitle\_\_c            | Account Billing Information                     | Names what this card covers for Account records.                                    |
 | Card Subtitle            | CardSubtitle\_\_c         | Verify all billing address fields are populated | Explains the card's purpose to users.                                               |
+| Card Heading Display     | CardHeadingDisplay\_\_c   | TITLE_AND_SUBTITLE                              | The default; show the title and subtitle independently of the Run button.           |
 | When to run              | CardRunMode\_\_c          | RUN_ON_REQUEST                                  | Card runs when the user clicks Run, not on page load.                               |
 | Reveal                   | CardRevealMode\_\_c       | ONE_BY_ONE                                      | The default; Checks appear one at a time.                                           |
 | Summary display          | SummaryDisplay\_\_c       | BOTTOM                                          | Summary shows below the Checks.                                                     |
@@ -67,8 +81,8 @@ Before configuration, confirm:
 | Evaluation type             | EvaluationType\_\_c             | FORMULA                                                                                                                                                                                                                          | Evaluates a Salesforce formula on the record.                                     |
 | Category                    | Category\_\_c                   | COMPLETENESS                                                                                                                                                                                                                     | Groups this Check in the card summary.                                            |
 | Severity                    | FailureSeverity\_\_c            | WARNING                                                                                                                                                                                                                          | Sets the priority when the Check fails.                                           |
-| Order                       | EvaluationOrder\_\_c            | 100                                                                                                                                                                                                                              | The default; Checks run in order.                                                 |
-| Active                      | IsActive\_\_c                   | true                                                                                                                                                                                                                             | The default; the Check runs.                                                      |
+| Order                       | EvaluationOrder\_\_c            | 100                                                                                                                                                                                                                              | The default presentation order; prerequisite dependencies determine scheduling.   |
+| Active                      | IsActive\_\_c                   | false                                                                                                                                                                                                                            | Keep the draft Check inactive until human sandbox review.                         |
 | Failure message             | FailureMessage\_\_c             | {!record.Name fallback="this record"} is missing part of its billing address.                                                                                                                                                    | Tells the user what is wrong.                                                     |
 | Unable to evaluate message  | UnableToEvaluateMessage\_\_c    | Check that you have Read access to Account and all five billing address fields (Billing Street, Billing City, Billing State, Billing Postal Code, Billing Country).                                                              | Explains why the Check could not run if access is blocked.                        |
 | Fix message                 | FixMessage\_\_c                 | Edit the Account and populate all five billing address fields: Street, City, State, Postal Code, and Country.                                                                                                                    | Tells the user how to fix the problem.                                            |
@@ -83,7 +97,7 @@ Before configuration, confirm:
 | Display Expected text       | DisplayExpectedText\_\_c        | (omit from metadata)                                                                                                                                                                                                             | FORMULA type Checks use DisplayExpectedFormula\_\_c instead.                      |
 | Publish result events       | PublishUserResultEvent\_\_c     | false                                                                                                                                                                                                                            | Not needed; no receiving automation.                                              |
 | Pass condition (formula)    | PassConditionFormula\_\_c       | AND(NOT(ISBLANK(BillingStreet)), NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingPostalCode)), NOT(ISBLANK(BillingCountry)))                                                                           | Returns true when all five address fields are populated; false when any is blank. |
-| Formula result type         | FormulaResultType\_\_c          | BOOLEAN                                                                                                                                                                                                                          | The default; the pass condition returns a checkbox value.                         |
+| Formula result type         | FormulaResultType\_\_c          | AUTO                                                                                                                                                                                                                             | The portable field default; Preview verifies the Boolean Pass Condition.          |
 | Display Found formula       | DisplayFoundFormula\_\_c        | IF(AND(NOT(ISBLANK(BillingStreet)), NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingPostalCode)), NOT(ISBLANK(BillingCountry))), "All billing address fields populated", "Billing address incomplete") | Shows the user what was found: either complete or incomplete.                     |
 | Display Expected formula    | DisplayExpectedFormula\_\_c     | "All billing address fields populated"                                                                                                                                                                                           | Shows the user what is expected.                                                  |
 | Source query                | SourceQuery\_\_c                | (omit from metadata)                                                                                                                                                                                                             | Not used; FORMULA type Checks do not run queries.                                 |

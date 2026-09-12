@@ -10,6 +10,141 @@
 @IsTest
 private class AccountHasRecentActivityCheckTest {
   @IsTest
+  static void definitionDeclaresTypedParametersAndBulkCapacity() {
+    RecordHealthCheckPluginDefinition definition = new AccountHasRecentActivityCheck()
+      .getDefinition();
+
+    Assert.areEqual(
+      new List<String>{ 'daysBack', 'minimumActivities' },
+      definition.parameterKeys(),
+      'The shipped JSON example must be backed by an ordered, typed definition.'
+    );
+    RecordHealthCheckPluginDefinition.ParameterDefinition daysBack = definition.parameter(
+      'daysBack'
+    );
+    Assert.areEqual('INTEGER', daysBack.typeName);
+    Assert.areEqual(30, daysBack.defaultValue);
+    Assert.areEqual(1, daysBack.minValue);
+    Assert.areEqual(3650, daysBack.maxValue);
+    Assert.areEqual(200, definition.maxScopeSize());
+    Assert.areEqual(true, definition.bulkSafe());
+    Assert.areEqual('LOW', definition.estimatedCost());
+  }
+
+  @IsTest
+  static void positiveAndNegativeOutcomesIncludeTypedEvidence() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'RHC 2.0.10 Evidence'
+    );
+    RecordHealthCheckOutcome passing = AccountHasRecentActivityCheck.outcomeFor(
+      2,
+      2,
+      60,
+      account.Id
+    );
+    RecordHealthCheckOutcome failing = AccountHasRecentActivityCheck.outcomeFor(
+      0,
+      2,
+      60,
+      account.Id
+    );
+
+    Assert.areEqual(RecordHealthCheckStatus.PASS, passing.status);
+    Assert.areEqual(RecordHealthCheckStatus.FAIL, failing.status);
+    Assert.areEqual(4, passing.evidence.columns.size());
+    Assert.areEqual(1, passing.evidence.rows.size());
+    Assert.areEqual(
+      '2',
+      passing.evidence.rows[0][1].typedValue.storedValue,
+      'Evidence must carry the observed completed-activity count.'
+    );
+    Assert.areEqual(
+      '0',
+      failing.evidence.rows[0][1].typedValue.storedValue,
+      'The negative example must retain zero as evidence, not treat it as missing.'
+    );
+    Assert.areEqual('windowDays', passing.evidence.stepGroupKey);
+    Assert.areEqual('accountId', passing.evidence.ruleGroupKey);
+  }
+
+  @IsTest
+  static void displayAddsSafeContextWithoutQueriesOrChangingVerdicts() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'RHC 2.0.10 Display'
+    );
+    AccountHasRecentActivityCheck plugin = new AccountHasRecentActivityCheck();
+    RecordHealthCheckScope scope = scopeFor(
+      new List<Id>{ account.Id },
+      new Map<String, Object>{ 'daysBack' => 60, 'minimumActivities' => 2 }
+    );
+    Map<Id, RecordHealthCheckOutcome> outcomes = plugin.evaluate(scope);
+
+    Test.startTest();
+    Integer before = Limits.getQueries();
+    Map<Id, RecordHealthCheckDisplayOverride> display = plugin.getDisplay(
+      scope
+    );
+    Integer used = Limits.getQueries() - before;
+    Test.stopTest();
+
+    Assert.areEqual(0, used, 'Presentation must not query or re-evaluate.');
+    Assert.areEqual(
+      RecordHealthCheckStatus.FAIL,
+      outcomes.get(account.Id).status
+    );
+    RecordHealthCheckDisplayOverride overrideValue = display.get(account.Id);
+    Assert.areEqual('Required recent activity', overrideValue.expectedLabel);
+    Assert.areEqual('Open account', overrideValue.action.label);
+    Assert.areEqual(
+      '/lightning/r/Account/' + account.Id + '/view',
+      overrideValue.action.destination
+    );
+    Assert.areEqual(
+      'NUMBER',
+      overrideValue.expectedFormat,
+      'The example must demonstrate typed display formatting.'
+    );
+    Assert.isTrue(
+      !overrideValue.message.isEmpty(),
+      'The display contract must supply a readable outcome message.'
+    );
+    Assert.isTrue(
+      !overrideValue.fix.isEmpty(),
+      'A failed result must supply concrete remediation.'
+    );
+  }
+
+  @IsTest
+  static void invalidSecondEvaluationCannotReuseEarlierDisplayState() {
+    Account account = RecordHealthCheckTestDataFactory.accountFixture(
+      'RHC 2.0.10 Reused Instance'
+    );
+    AccountHasRecentActivityCheck plugin = new AccountHasRecentActivityCheck();
+    plugin.evaluate(scopeFor(new List<Id>{ account.Id }, null));
+
+    RecordHealthCheckScope invalidScope = scopeFor(
+      new List<Id>{ account.Id },
+      new Map<String, Object>{ 'daysBack' => 0 }
+    );
+    Map<Id, RecordHealthCheckOutcome> invalidOutcomes = plugin.evaluate(
+      invalidScope
+    );
+    Map<Id, RecordHealthCheckDisplayOverride> display = plugin.getDisplay(
+      invalidScope
+    );
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      invalidOutcomes.get(account.Id).status
+    );
+    Assert.areEqual(
+      0,
+      display.size(),
+      'Invalid evaluation must use metadata fallback, never presentation retained from an earlier call.'
+    );
+  }
+
+  @IsTest
   static void noActivityFails() {
     Account account = RecordHealthCheckTestDataFactory.accountFixture(
       'RHC Recent Activity Fail'
@@ -166,16 +301,21 @@ private class AccountHasRecentActivityCheckTest {
     Map<String, Object> parameters
   ) {
     return new AccountHasRecentActivityCheck()
-      .evaluate(
-        new RecordHealthCheckScope(
-          'Account',
-          recordIds,
-          parameters,
-          'Account_Has_Recent_Activity',
-          null,
-          null
-        )
-      );
+      .evaluate(scopeFor(recordIds, parameters));
+  }
+
+  private static RecordHealthCheckScope scopeFor(
+    List<Id> recordIds,
+    Map<String, Object> parameters
+  ) {
+    return new RecordHealthCheckScope(
+      'Account',
+      recordIds,
+      parameters,
+      'Account_Has_Recent_Activity',
+      null,
+      null
+    );
   }
 
   /**

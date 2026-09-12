@@ -61,18 +61,39 @@ private class RHCSubscriberPreviewSpecTest {
   }
 
   @IsTest
-  static void activeControlUsesNormalApi() {
+  static void activeControlUsesNormalApiForPassAndFail() {
     Map<String, Account> records = RHCIntegrationTestDataFactory.createPreviewAccounts();
     RecordHealthCheckAccess.setRunPermissionForTest(true);
     try {
       RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-        RecordHealthCheckRequest.forCheck(
-          previewCheck('RHC_SP_Preview_Website_Live').QualifiedApiName,
-          records.get('healthy').Id
+        RecordHealthCheckRequest.forCheckSet(
+          previewSet('RHC_SP_Preview_Live').QualifiedApiName,
+          new List<Id>{ records.get('healthy').Id, records.get('unhealthy').Id }
         )
       );
-      Assert.areEqual(1, response.results.size());
-      Assert.areEqual('PASS', response.results[0].evaluation.status);
+      Map<Id, String> expectedStatusByRecordId = new Map<Id, String>{
+        records.get('healthy').Id => RecordHealthCheckStatus.PASS,
+        records.get('unhealthy').Id => RecordHealthCheckStatus.FAIL
+      };
+      Assert.areEqual(
+        2,
+        response.results.size(),
+        'The active control must return one result per input Account.'
+      );
+      for (RecordHealthCheckResultItem item : response.results) {
+        Assert.areEqual(
+          expectedStatusByRecordId.remove(item.evaluation.recordId),
+          item.evaluation.status,
+          'The live Check must preserve each independent expected outcome.'
+        );
+      }
+      Assert.areEqual(
+        0,
+        expectedStatusByRecordId.size(),
+        'Both active-control outcomes must be returned.'
+      );
+      Assert.areEqual(1, response.summary.passed, 'Expected one PASS result.');
+      Assert.areEqual(1, response.summary.failed, 'Expected one FAIL result.');
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
     }

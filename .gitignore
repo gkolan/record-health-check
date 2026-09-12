@@ -69,10 +69,6 @@ $RECYCLE.BIN/
 !.env.example
 
 # Maintainer-only material — never committed or published with the project.
-/AGENTS.md
-/CLAUDE.md
-/GEMINI.md
-/.github/copilot-instructions.md
 /.github/SALESFORCE_OPERATIONS.md
 /internal/
 /spec/
@@ -95,7 +91,10 @@ build-record-health-check-mobile.png
 
 # CI / IDE artifacts
 /code-analyzer/
-.cursor/
+.cursor/*
+!.cursor/rules/
+.cursor/rules/*
+!.cursor/rules/agents.mdc
 .vscode/
 *.tgz
 
@@ -114,6 +113,9 @@ scripts/*
 # Shared path helpers for subscriber / contributor / package commands.
 !scripts/lib/
 !scripts/lib/**
+# Public metadata-lint CLI invoked by package.json and clean-source CI.
+!scripts/validation/
+!scripts/validation/lint-rhc.mjs
 # Isolated, explicitly invoked review fixtures that must never enter package source.
 !scripts/review/
 !scripts/review/**

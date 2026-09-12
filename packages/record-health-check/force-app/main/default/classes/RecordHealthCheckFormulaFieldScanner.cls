@@ -59,11 +59,7 @@ public with sharing class RecordHealthCheckFormulaFieldScanner {
       RecordHealthCheckDescribeCache.fieldMap(resolveType),
       relationshipSegment
     );
-    if (
-      relationshipField == null ||
-      !RecordHealthCheckDescribeCache.describeField(relationshipField)
-        .isAccessible()
-    ) {
+    if (relationshipField == null) {
       return null;
     }
     List<Schema.SObjectType> candidates = RecordHealthCheckDescribeCache.describeField(

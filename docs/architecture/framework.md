@@ -397,7 +397,7 @@ Saved-field limits are in [Field limits](../reference/configuration/field-limits
 
 | What is capped | Cap | Enforcement point |
 | --- | --- | --- |
-| Checks per Check Set | 25 | The Lightning card shows the first 25 and the metadata audit warns; direct Apex and Flow reject a larger active set |
+| Checks per Check Set | 25 | Every whole-set entry point rejects a larger active set before any Check runs; isolated named-Check requests remain available |
 | Rows returned by one Check query | 2,000 | `RecordHealthCheckSoqlTemplate` rewrites the outer `LIMIT` |
 | Records per direct Apex or Flow request | 200 | The request is rejected before any Check runs; use Batch Apex for more records |
 | Merge tokens in one message | 100 | `RecordHealthCheckTemplateService`, returning `TOKEN_LIMIT_EXCEEDED` |

@@ -3,9 +3,9 @@
     <fullName>PassedChecksDisplay__c</fullName>
     <label>Passed Checks</label>
     <description
-  >Controls how checks that Pass appear. "Show each check" lists every passed check. "Show count only" removes passed checks from the list; their count still appears in the summary bar at the bottom of the card. Defaults to "Show each check".</description>
+  >Controls how checks that Pass appear. "Show each passed check" lists every passed check. "Show passed count only" removes passed checks from the list; their count still appears in the summary. Defaults to "Show each passed check".</description>
     <inlineHelpText
-  >How passing checks appear. "Show each check" (default) = list them all. "Show count only" = hide from the list; the count still shows in the summary bar.</inlineHelpText>
+  >How passing checks appear. "Show each passed check" (default) = list them all. "Show passed count only" = hide from the list; the count still shows in the summary.</inlineHelpText>
     <required>false</required>
     <type>Picklist</type>
     <valueSet>
@@ -13,8 +13,9 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value><fullName>SHOW_EACH_CHECK</fullName><label
-        >Show each check</label><default>true</default></value><value><fullName
-        >SHOW_COUNT_ONLY</fullName><label>Show count only</label><default
+        >Show each passed check</label><default>true</default></value><value
+      ><fullName>SHOW_COUNT_ONLY</fullName><label
+        >Show passed count only</label><default
         >false</default></value></valueSetDefinition>
     </valueSet>
 </CustomField>

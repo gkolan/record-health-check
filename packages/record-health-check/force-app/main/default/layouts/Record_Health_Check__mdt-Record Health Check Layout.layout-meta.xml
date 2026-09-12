@@ -1,331 +1,187 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Layout xmlns="http://soap.sforce.com/2006/04/metadata">
     <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Identity &amp; Placement</label>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>1. Check basics</label>
         <layoutColumns>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>MasterLabel</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>Record_Health_Check_Set__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>IsActive__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Readonly</behavior>
-                <field>NamespacePrefix</field>
-            </layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >MasterLabel</field></layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >Record_Health_Check_Set__c</field></layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >EvaluationType__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >Category__c</field></layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >FailureSeverity__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >IsActive__c</field></layoutItems>
         </layoutColumns>
         <layoutColumns>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>DeveloperName</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>EvaluationOrder__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>IsProtected</field>
-            </layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >DeveloperName</field></layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >EvaluationOrder__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >IsProtected</field></layoutItems>
+            <layoutItems><behavior>Readonly</behavior><field
+        >NamespacePrefix</field></layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>
     </layoutSections>
     <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>User-Facing Content &amp; Remediation</label>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>2. Result messages</label>
         <layoutColumns>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>CheckTitle__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>CheckDescription__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>FailureMessage__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ActionLabel__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>FixMessage__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>Category__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>FailureSeverity__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>UnableToEvaluateMessage__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ActionUrl__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Choose the Evaluation Type</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>EvaluationType__c</field>
-            </layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >CheckTitle__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >CheckDescription__c</field></layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >FailureMessage__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >FixMessage__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >UnableToEvaluateMessage__c</field></layoutItems>
         </layoutColumns>
         <style>OneColumn</style>
     </layoutSections>
     <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Formula Check Setup - Formula Only</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>PassConditionFormula__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>FormulaResultType__c</field>
-            </layoutItems>
-        </layoutColumns>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>3. Optional action</label>
+        <layoutColumns><layoutItems><behavior>Edit</behavior><field
+        >ActionLabel__c</field></layoutItems></layoutColumns>
+        <layoutColumns><layoutItems><behavior>Edit</behavior><field
+        >ActionUrl__c</field></layoutItems></layoutColumns>
         <style>TwoColumnsLeftToRight</style>
     </layoutSections>
     <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Query Step 1: Define the Source Result</label>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>4A. Formula evaluation (Formula only)</label>
         <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>SourceQuery__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>SourceQueryField__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>FindInListFormula__c</field>
-            </layoutItems>
+            <layoutItems><behavior>Required</behavior><field
+        >FormulaResultType__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >PassConditionFormula__c</field></layoutItems>
         </layoutColumns>
         <style>OneColumn</style>
     </layoutSections>
     <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Query Step 2A: Fixed or Formula Expected Value</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ExpectedValueSource__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ExpectedFixedValue__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ExpectedCurrencyIsoCode__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ExpectedRecordFormula__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>OneColumn</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Query Step 2B: Comparison Query</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ComparisonQuery__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ComparisonQueryField__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>OneColumn</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Query Step 3: Decide What Passes</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>QueryResultHandling__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ComparisonOperator__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Query Step 4: Missing Data &amp; Limits</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>NoRowsResult__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>EmptyValueHandling__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>MaxQueryRows__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Optional Result Display</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ComparisonDisplayMode__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>DisplayValueFormat__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>DisplayFoundFormula__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>DisplayFoundText__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>DisplayExpectedFormula__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>DisplayExpectedText__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Applicability &amp; Dependencies</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Required</behavior>
-                <field>ApplicabilityMode__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ApplicabilityFormula__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ApplicabilityCountOperator__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ApplicabilityNotMetMessage__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>PrerequisiteCheck__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ApplicabilityCountQuery__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ApplicabilityCountThreshold__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Custom Apex</label>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ApexClass__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>ApexParametersJson__c</field>
-            </layoutItems>
-        </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
-    </layoutSections>
-    <layoutSections>
-        <customLabel>true</customLabel>
-        <detailHeading>true</detailHeading>
-        <editHeading>true</editHeading>
-        <label>Lifecycle Events</label>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>4B. Query result (Query only)</label>
         <layoutColumns>
             <layoutItems><behavior>Edit</behavior><field
-        >PublishUserResultEvent__c</field></layoutItems>
+        >SourceQuery__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >SourceQueryField__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >QueryResultHandling__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >FindInListFormula__c</field></layoutItems>
         </layoutColumns>
-        <layoutColumns />
-        <style>TwoColumnsLeftToRight</style>
+        <style>OneColumn</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>4C. Expected value (Query only)</label>
+        <layoutColumns>
+            <layoutItems><behavior>Edit</behavior><field
+        >ExpectedValueSource__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ExpectedFixedValue__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ExpectedCurrencyIsoCode__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ExpectedRecordFormula__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ComparisonQuery__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ComparisonQueryField__c</field></layoutItems>
+        </layoutColumns>
+        <style>OneColumn</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>4D. Pass and empty rules (Query only)</label>
+        <layoutColumns>
+            <layoutItems><behavior>Edit</behavior><field
+        >ComparisonOperator__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >NoRowsResult__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >EmptyValueHandling__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >MaxQueryRows__c</field></layoutItems>
+        </layoutColumns>
+        <style>OneColumn</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>4E. Apex evaluation (Apex only)</label>
+        <layoutColumns>
+            <layoutItems><behavior>Edit</behavior><field
+        >ApexClass__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ApexParametersJson__c</field></layoutItems>
+        </layoutColumns>
+        <style>OneColumn</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>5. Applicability and prerequisite</label>
+        <layoutColumns>
+            <layoutItems><behavior>Required</behavior><field
+        >ApplicabilityMode__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >PrerequisiteCheck__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ApplicabilityFormula__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ApplicabilityCountQuery__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ApplicabilityCountOperator__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ApplicabilityCountThreshold__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >ApplicabilityNotMetMessage__c</field></layoutItems>
+        </layoutColumns>
+        <style>OneColumn</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>6. Values shown on the card</label>
+        <layoutColumns>
+            <layoutItems><behavior>Edit</behavior><field
+        >ComparisonDisplayMode__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >DisplayValueFormat__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >DisplayFoundText__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >DisplayFoundFormula__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >DisplayExpectedText__c</field></layoutItems>
+            <layoutItems><behavior>Edit</behavior><field
+        >DisplayExpectedFormula__c</field></layoutItems>
+        </layoutColumns>
+        <style>OneColumn</style>
+    </layoutSections>
+    <layoutSections>
+        <customLabel>true</customLabel><detailHeading
+    >true</detailHeading><editHeading>true</editHeading>
+        <label>7. Platform events</label>
+        <layoutColumns><layoutItems><behavior>Edit</behavior><field
+        >PublishUserResultEvent__c</field></layoutItems></layoutColumns>
+        <style>OneColumn</style>
     </layoutSections>
 </Layout>

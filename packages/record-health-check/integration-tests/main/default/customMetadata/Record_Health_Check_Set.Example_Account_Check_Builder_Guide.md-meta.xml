@@ -23,6 +23,10 @@
     >Learn Formula, Query, Compare Two Queries, and Apex checks with real Account data. Hover over a check title to learn the pattern.</value>
     </values>
     <values>
+        <field>CardHeadingDisplay__c</field>
+        <value xsi:type="xsd:string">TITLE_AND_SUBTITLE</value>
+    </values>
+    <values>
         <field>CardRunMode__c</field>
         <value xsi:type="xsd:string">RUN_ON_REQUEST</value>
     </values>

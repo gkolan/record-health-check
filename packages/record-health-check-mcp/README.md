@@ -16,7 +16,10 @@ security gate, use [Deploy the MCP service one security gate at a time](../../do
 
 Inbound clients use JWT bearer authentication in production. The verifier checks the signature,
 issuer, audience, expiration, and `rhc.run` scope. `AUTH_MODE=none` is accepted only outside
-production. Host and Origin checks protect the HTTP boundary.
+production. The service publishes RFC 9728 protected-resource metadata at
+`/.well-known/oauth-protected-resource/mcp`, includes that URL and the required scope in `401`
+challenges, and returns an explicit `405` for the unsupported stateless `GET /mcp` stream. Host and
+Origin checks protect the HTTP boundary.
 
 Salesforce calls use OAuth client credentials and a dedicated integration principal. The service
 permits only HTTPS login and instance hosts listed in `SALESFORCE_ALLOWED_HOSTS`. Redirects fail,
@@ -66,7 +69,8 @@ npm run check
 ```
 
 The check formats and lints source, type-checks, runs the Vitest suite with coverage floors, runs an
-official MCP SDK client against the Streamable HTTP endpoint, and produces the deployable build.
+official MCP SDK client against the Streamable HTTP endpoint, verifies OAuth resource discovery and
+the stateless GET response, and produces the deployable build.
 
 ## Runtime configuration
 

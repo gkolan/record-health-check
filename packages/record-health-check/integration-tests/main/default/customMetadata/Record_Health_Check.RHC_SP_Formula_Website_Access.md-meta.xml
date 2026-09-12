@@ -42,4 +42,32 @@
   <values><field>PassConditionFormula__c</field><value
       xsi:type="xsd:string"
     >TRUE</value></values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
 </CustomMetadata>

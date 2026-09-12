@@ -14,4 +14,6 @@ global class RecordHealthCheckPreviewFinding {
   global Integer startOffset;
   /** Zero-based exclusive source offset. */
   global Integer endOffset;
+  /** Authorized, bounded compiler categories without source or exception text. */
+  global String diagnosticDetail;
 }

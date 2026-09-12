@@ -442,7 +442,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
         issue(
           check,
           'ComparisonDisplayMode__c',
-          'Show Found and Expected must be Automatic, Found only, Expected only, or Hidden.',
+          'Show Found and Expected must be Automatic, Show found only, Show expected only, or Hide.',
           'COMPARISON_DISPLAY_MODE_INVALID'
         )
       );
@@ -454,7 +454,7 @@ public with sharing class RecordHealthCheckMetadataIssueMapper {
           'WARNING',
           check.DeveloperName,
           'ComparisonDisplayMode__c',
-          'Show Found and Expected is Hidden and this Check has no failure message, Fix Message, or Action URL, so a failure shows no explanation.',
+          'Show Found and Expected is set to Hide and this Check has no failure message, Fix Message, or Action URL, so a failure shows no explanation.',
           'COMPARISON_DISPLAY_HIDDEN_WITHOUT_GUIDANCE'
         )
       );

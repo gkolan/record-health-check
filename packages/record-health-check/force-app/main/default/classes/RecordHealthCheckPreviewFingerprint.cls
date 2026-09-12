@@ -45,6 +45,12 @@ public with sharing class RecordHealthCheckPreviewFingerprint {
     }
     Map<String, Object> populated = record.getPopulatedFieldsAsMap();
     List<String> keys = new List<String>(populated.keySet());
+    if (
+      populated.containsKey('DeveloperName') &&
+      populated.containsKey('QualifiedApiName')
+    ) {
+      keys.remove(keys.indexOf('QualifiedApiName'));
+    }
     keys.sort();
     List<String> members = new List<String>();
     for (String key : keys) {

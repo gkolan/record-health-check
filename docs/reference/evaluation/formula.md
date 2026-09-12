@@ -22,7 +22,7 @@ applicability or a Query Check.
 | **Pass Condition** | [`PassConditionFormula__c`](../custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | Required Boolean formula; `true` returns `PASS`, `false` returns `FAIL` |
 | **Display: Found Formula** | [`DisplayFoundFormula__c`](../custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c) | Optional display-only Found value |
 | **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | Optional display-only Expected value |
-| **Formula Result Type** | [`FormulaResultType__c`](../custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Optional type hint; defaults to **Auto**: `AUTO` |
+| **Formula Result Type** | [`FormulaResultType__c`](../custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Keep **Automatic**: `AUTO`; this Query-operand setting does not control Formula Checks |
 
 Query and custom Apex fields are not used by a Formula Check. Applicability runs before the Pass
 Condition and can return `SKIPPED` without running that formula.
@@ -75,10 +75,11 @@ zero.
   verdict. For a page-versus-automation incident, use the
   [execution-context troubleshooting guide](../../diagnostics/troubleshoot-execution-context.md).
 
-The Pass Condition must return a Checkbox value (`true` or `false`). Display formulas can return
-Checkbox, Number, Date, Date/Time, or Text. **Auto** tries supported result types until one works.
-Selecting the exact **Formula Result Type** can reduce those attempts, but that one setting must be
-correct for every formula on the Check that uses it.
+The Pass Condition must return a Checkbox value (`true` or `false`) and is evaluated as Boolean.
+Display formulas can return Checkbox, Number, Date, Date/Time, or Text and probe their own result
+type. **Formula Result Type** does not control either surface; it is used only by Query Checks that
+calculate a comparison operand from Expected Value (Formula) or Value to find in the list
+(formula).
 
 ## Found and Expected values
 
@@ -153,8 +154,9 @@ A null or non-Boolean Pass Condition result does not become `FAIL`; Record Healt
   Expected, and applicability formulas can require four calls per record. At 25 records, that would
   require 100 calls, so the request is rejected before evaluation. Use a smaller Batch size or fewer
   formulas in one Check Set.
-- A formula can require extra attempts when **Formula Result Type** is **Auto** and the first result
-  type tried is not correct.
+- A display formula can require extra attempts while its result type is detected. In Query Checks,
+  an Expected Value or Value-to-find formula can also require extra attempts when **Formula Result
+  Type** is **Automatic**.
 - Saved-field and completed-text limits are documented in [Field limits](../configuration/field-limits.md).
 
 ## Additional Check configuration

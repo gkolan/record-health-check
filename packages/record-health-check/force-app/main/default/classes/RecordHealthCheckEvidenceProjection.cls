@@ -35,6 +35,7 @@ public with sharing class RecordHealthCheckEvidenceProjection {
       recordId
     );
     Boolean totalKnown = true;
+    Boolean byteLimitReached = false;
     Integer authorizedRows = 0;
     for (List<RecordHealthCheckEvidenceCell> row : evidence.rows) {
       List<Object> projectedRow = projectRow(
@@ -47,7 +48,7 @@ public with sharing class RecordHealthCheckEvidenceProjection {
         continue;
       }
       authorizedRows++;
-      if (envelope.rows.size() >= MAX_ROWS) {
+      if (byteLimitReached || envelope.rows.size() >= MAX_ROWS) {
         continue;
       }
       envelope.rows.add(projectedRow);
@@ -55,7 +56,7 @@ public with sharing class RecordHealthCheckEvidenceProjection {
       if (utf8Bytes(JSON.serialize(envelope)) > MAX_BYTES) {
         envelope.rows.remove(envelope.rows.size() - 1);
         envelope.returnedItemCount = envelope.rows.size();
-        break;
+        byteLimitReached = true;
       }
     }
 

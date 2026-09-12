@@ -9,6 +9,10 @@ Use this folder as the single place to draft Record Health Check configuration w
 An assistant can organize a requirement and suggest fields. It cannot know your org's fields,
 sharing, or approved rules unless you provide them. Treat every answer as a draft.
 
+The self-contained prompts are reviewed against the Record Health Check 2.0.10 metadata and runtime
+contract. The offline release gate checks all 63 configurable fields, 21 restricted picklists, the
+shared prompt block, and one provider-neutral reference draft for each Evaluation Type.
+
 ## What this guide does not authorize
 
 - Do not paste unreviewed AI output into a production org.
@@ -31,7 +35,30 @@ product your organization approves. This guide does not require or endorse a par
    and every Check field, so an assistant that cannot open links still has every available setting.
 4. Paste a filled [requirement template](./requirement-template.md) after the system prompt.
 5. Review the draft against the field references and examples linked from the prompt page.
-6. Enter approved values in a sandbox, then follow [Test the human-approved draft](#test-the-human-approved-draft).
+6. Keep the proposed Check Set and Check inactive. Enter approved values in a sandbox, then follow
+   [Test the human-approved draft](#test-the-human-approved-draft).
+7. For an unsaved Check, use [Validate and preview an AI draft](./validate-and-preview-an-ai-draft.md)
+   before activation when the 2.0.10 Preview component is installed.
+8. Choose and test the complete [entry and exit path](./choose-entry-and-exit-points.md). A valid
+   evaluation rule is incomplete until its actual caller, execution principal, result destination,
+   consumer, and failure recovery are known.
+9. When the caller or consumer does not exist yet, use the
+   [execution workflow generator](./execution-workflow-generator.md) to draft the Flow, synchronous
+   Apex caller, Queueable, Batch, Scheduled adapter, persistence service, or event receiver. Keep
+   generated source under normal test-first, security-review, and deployment controls.
+
+## 2.0.10 capabilities the prompts cover
+
+| Capability | What the assistant must decide |
+| --- | --- |
+| Card presentation | Heading, summary placement or hiding, reveal mode, Found/Expected placement, and Run/Rerun controls are independent choices. |
+| Dependencies | Evaluation Order controls presentation; prerequisite dependency order controls execution and may point to a later-displayed Check. |
+| Query-row values | Zero-based row tokens, outer-field selection, business `ORDER BY`, single-row proofs, child-subquery boundaries, and per-record `LIMIT` behavior. |
+| Inline links | Safe `{!link label="..." href="..."}` links in message and display fields, with readable text fallback. |
+| Whole-set limits | More than 25 active Checks rejects the complete Check Set instead of returning a partial result. |
+| Apex extensions | Typed parameter definitions, typed outcomes, evidence, per-record recovery, and optional display-only overrides. |
+| Draft verification | Inactive metadata, detached validation/Preview, representative records, permissions, limits, namespaces, and relevant runtime variations. |
+| Operational boundary | Lightning, Flow, synchronous Apex, Queueable, Batch, or Scheduled entry; direct, event, readiness, diagnostic, or subscriber-owned result exit. |
 
 ## Choose a prompt by Evaluation Type
 
@@ -100,6 +127,18 @@ For Apex drafts, a developer must review, test, and deploy the class before anyo
 name in Check metadata. See the [Apex prompt](./prompt-apex.md) and
 [Apex Check contract](../../developer-guides/write-an-apex-check.md).
 
+### Human review ownership
+
+| Review | Required human decision |
+| --- | --- |
+| Business owner | What passes, fails, and skips; severity; wording; and whether the result is useful enough to activate. |
+| Salesforce administrator | Exact API names, Setup values, Check Set membership, sharing behavior, permission assignments, page placement, and sandbox evidence. |
+| Apex and security reviewer | Every custom class, user-mode data access, bulk behavior, parameter definition, evidence disclosure, display-only behavior, and prohibited actions. |
+| Integration owner | Platform Event publication, receiving automation, retention, retry behavior, and monitoring. |
+
+AI output never completes these approvals. A person must reread the final configuration after the
+last edit; an earlier review does not cover a changed formula, query, JSON value, message, or link.
+
 ## Test the human-approved draft
 
 1. In sandbox Setup, open **Custom Metadata Types → Record Health Check Set → Manage Records →
@@ -107,7 +146,8 @@ name in Check metadata. See the [Apex prompt](./prompt-apex.md) and
 2. Open **Custom Metadata Types → Record Health Check → Manage Records → New**, then enter the
    approved Check with **Active** unchecked.
 3. Review the saved values in Setup; do not rely on the AI response as the source of truth.
-4. Activate the Check and Check Set only for testing.
+4. Run detached Validate and Preview first when available. Activate the Check and Check Set only
+   for controlled sandbox testing.
 5. Test a record that should pass.
 6. Test a record that should fail.
 7. Test every intended skip condition, including prerequisites and zero-row choices.
@@ -162,6 +202,9 @@ name in Check metadata. See the [Apex prompt](./prompt-apex.md) and
 - [Configure Check Sets and Checks](../configure-check-sets-and-checks.md)
 - [Create your first Check](../../step-by-step-guide/create-your-first-check.md)
 - [Merge syntax](../../reference/merge-syntax/README.md)
+- [Validate and preview an AI draft](./validate-and-preview-an-ai-draft.md)
+- [Choose entry and exit points](./choose-entry-and-exit-points.md)
+- [Generate a non-agent execution workflow](./execution-workflow-generator.md)
 - [Check Set fields](../../reference/custom-metadata/check-set-fields.md)
 - [Check fields](../../reference/custom-metadata/check-fields.md)
 - [Examples library](../../examples/README.md)

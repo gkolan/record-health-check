@@ -3,19 +3,19 @@
     <fullName>DisplayValueFormat__c</fullName>
     <label>Display: Value Format</label>
     <description
-  >Display only. Controls how Found and Expected are written - for example as currency, a Salesforce percentage, or a ratio multiplied into a percentage. Both sides use the same format, and formatting never changes pass or fail. Choices: "Auto", "Number", "Currency", "Percent", "Ratio as Percent", "Checkbox", "Date", "Date/Time", "Text", "Raw".</description>
+  >Display only. Controls how Found and Expected are written - for example as currency, a Salesforce percentage, or a ratio multiplied into a percentage. Both sides use the same format, and formatting never changes pass or fail. Choices: "Automatic", "Number", "Currency", "Percent", "Ratio as percent", "Checkbox", "Date", "Date/Time", "Text", "Raw".</description>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
-            <value><fullName>AUTO</fullName><label>Auto</label><default
+            <value><fullName>AUTO</fullName><label>Automatic</label><default
         >true</default></value><value><fullName>NUMBER</fullName><label
         >Number</label><default>false</default></value><value><fullName
         >CURRENCY</fullName><label>Currency</label><default
         >false</default></value><value><fullName>PERCENT</fullName><label
         >Percent</label><default>false</default></value><value><fullName
-        >RATIO_PERCENT</fullName><label>Ratio as Percent</label><default
+        >RATIO_PERCENT</fullName><label>Ratio as percent</label><default
         >false</default></value><value><fullName>BOOLEAN</fullName><label
         >Checkbox</label><default>false</default></value><value><fullName
         >DATE</fullName><label>Date</label><default
@@ -26,6 +26,6 @@
         >Raw</label><default>false</default></value></valueSetDefinition>
     </valueSet>
     <inlineHelpText
-  >Display only. Does not change pass or fail. Sets how Found and Expected are written, such as "Currency" for Annual Revenue, "Number" for an employee count, or "Raw" for an external Id. Leave "Auto" unless you need a specific look.</inlineHelpText>
+  >Display only. Does not change pass or fail. Sets how Found and Expected are written, such as "Currency" for Annual Revenue, "Number" for an employee count, or "Raw" for an external Id. Leave "Automatic" unless you need a specific look.</inlineHelpText>
     <required>false</required>
 </CustomField>

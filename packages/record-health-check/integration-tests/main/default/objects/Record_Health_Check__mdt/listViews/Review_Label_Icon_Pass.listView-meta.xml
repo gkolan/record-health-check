@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Review_Label_Icon_Pass</fullName>
+    <columns>MasterLabel</columns>
+    <columns>CheckTitle__c</columns>
+    <columns>EvaluationType__c</columns>
+    <columns>EvaluationOrder__c</columns>
+    <columns>IsActive__c</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Record_Health_Check_Set__c</field>
+        <operation>equals</operation>
+        <value>Review_Label_Icon_Pass</value>
+    </filters>
+    <label>Review: Run Button With Label and Icon</label>
+</ListView>

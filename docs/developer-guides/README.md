@@ -58,6 +58,7 @@ exact **Qualified API Name**. Do not add or remove `rhc__` yourself.
 | The same work must run on a schedule | [Scheduled Apex](./async-apex/scheduled.md) | A scheduler starts Queueable or Batch work with a known record limit. |
 | Existing code uses a future method | [Move from Future to Queueable](./async-apex/replace-future-with-queueable.md) | Queueable Apex provides better inputs, monitoring, and failure handling. |
 | A custom Apex Check must be validated before activation | [Verify a custom Apex Check](./verify-an-apex-check.md) | The contract test checks bulk behavior and prohibited side effects. |
+| A plugin needs the typed parameters, evidence, display overrides, preview, or diagnostics introduced in 2.0.10 | [2.0.10 reference](../reference/release-2.0.10.md) | One contract lists the APIs, limits, fallbacks, security rules, and shipped example. |
 
 > [!TIP]
 > Use Flow or Apex when the current process needs the answer immediately. Use Queueable when up to

@@ -212,12 +212,13 @@ than assuming.
 | `orderPaths` | The depth-zero `ORDER BY` field paths. Direction and null handling are not kept: only the fields an order names decide whether it can tie |
 | `isFullyAnalyzable` | False forbids any conclusion about what the query did not select |
 | `hasStableRowOrder()` | Whether repeating the query returns rows in the same order every time |
+| `hasExplicitRowOrder()` | Whether the outer query declares a readable business order |
 | `projects(name)` | Whether the query projects an addressable column under that name |
 | `addressableNames()` | Every name a merge token may read on a row of this query |
 
-`hasStableRowOrder()` requires an `ORDER BY` that names `Id`. Salesforce promises no order without
-`ORDER BY`, and no order between rows that tie on every named key; `Id` is unique, so no two rows
-can tie once it takes part.
+Positional tokens use `hasExplicitRowOrder()`: the administrator's `ORDER BY` defines what “first”
+means. Adding `Id` is optional. Rows tied on every authored key retain Salesforce's native tie
+behavior. `hasStableRowOrder()` remains the stronger uniqueness check for callers that need it.
 
 ### `RecordHealthCheckIgnoredConfig`
 
@@ -257,16 +258,15 @@ rendered a sentence with a hole in it, or worse, a plausible wrong number.
 | `TOKEN_NOT_ALLOWED_ON_SURFACE` | The Check is Formula or Apex, so it runs no query |
 | `QUERY_ROLE_NOT_AVAILABLE` | A `comparisonRows` token with no Comparison Query, or a row count against a query that counts rather than returns |
 | `QUERY_FIELD_NOT_SELECTED` | The `SELECT` omits the field; the message lists what it does select |
-| `QUERY_ORDER_NOT_DETERMINISTIC` | No `ORDER BY` naming `Id`. Grouped queries get a message that does not suggest one, because SOQL would reject it |
-| `QUERY_PROJECTION_NOT_ANALYZABLE` | The `SELECT` list cannot be fully read, so nothing can be proven about what it omitted |
+| `QUERY_ORDER_NOT_DETERMINISTIC` | A potentially multi-row query has no readable outer `ORDER BY` |
+| `QUERY_PROJECTION_NOT_ANALYZABLE` | The requested field cannot be proven from the readable outer projection |
 | `TOKEN_ROW_INDEX_INVALID` | The index exceeds the query's own `LIMIT`, the Check's Max Query Rows, or the single row a One Result Check or ungrouped aggregate can return |
 | `FIELD_TYPE_NOT_SUPPORTED` | The field is Classic encrypted |
 | `FIXED_CURRENCY_BASIS_MISSING` | A currency-rendered row amount in a multi-currency org whose query did not select the matching `CurrencyIsoCode` |
 
-Two exemptions are deliberate and each prevents advice SOQL would reject. An ungrouped aggregate
-returns exactly one row, so it needs no `ORDER BY`, and Salesforce refuses a bare `CurrencyIsoCode`
-beside it, so it is not asked for one. A row count reads no column and no order, so it needs
-neither a readable projection nor a stable order.
+An ungrouped aggregate returns exactly one row, and an outer `Id = {!record.Id}` equality returns at
+most one record, so index 0 needs no `ORDER BY`. A row count reads no column and no order. A scalar
+selected beside an opaque relationship subquery remains independently addressable.
 
 ## Related
 

@@ -87,6 +87,9 @@ public with sharing class RecordHealthCheckQueryProjection {
    */
   public Boolean isFullyAnalyzable = true;
 
+  /** True when an invalid outer SELECT item or ORDER BY defeated analysis. */
+  public Boolean hasInvalidOuterShape = false;
+
   private final Set<String> selectedKeys = new Set<String>();
   private final Set<String> aliasKeys = new Set<String>();
 
@@ -143,6 +146,25 @@ public with sharing class RecordHealthCheckQueryProjection {
     return false;
   }
 
+  /** True when the outer query declares an ORDER BY the analyzer can read. */
+  public Boolean hasExplicitRowOrder() {
+    return !orderPaths.isEmpty();
+  }
+
+  /**
+   * True when an Id correlation proves the query can return at most one row
+   * for the record being evaluated. Positional index zero is unambiguous for
+   * this shape even when the author does not add an ORDER BY.
+   */
+  public Boolean returnsAtMostOneRowPerRecord(String soql) {
+    RecordHealthCheckBulkQueryShape.Correlation correlation = RecordHealthCheckBulkQueryShape.directCorrelation(
+      soql
+    );
+    return correlation != null &&
+      correlation.tokenPath.equalsIgnoreCase('Id') &&
+      correlation.fieldPath.equalsIgnoreCase('Id');
+  }
+
   /** Every name a merge token may address on a row of this query. */
   public List<String> addressableNames() {
     List<String> names = new List<String>(selectedPaths);
@@ -182,6 +204,16 @@ public with sharing class RecordHealthCheckQueryProjection {
     List<String> words = splitOnFirstGap(expression);
     String head = words[0];
     String tail = words.size() > 1 ? words[1] : null;
+
+    // A relationship subquery is a valid but opaque outer projection. It does
+    // not make independently selected scalar fields unreadable.
+    if (
+      expression.startsWith('(') &&
+      Pattern.compile('(?is)^\\(\\s*SELECT\\b').matcher(expression).find()
+    ) {
+      isFullyAnalyzable = false;
+      return;
+    }
 
     Matcher aggregate = AGGREGATE_EXPRESSION.matcher(head);
     if (aggregate.matches()) {
@@ -230,6 +262,7 @@ public with sharing class RecordHealthCheckQueryProjection {
   /** Records that some part of the query defeated analysis. */
   private void reject() {
     isFullyAnalyzable = false;
+    hasInvalidOuterShape = true;
   }
 
   private void readOrderPaths(String soql) {

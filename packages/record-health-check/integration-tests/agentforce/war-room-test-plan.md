@@ -106,8 +106,10 @@ coverage. Each scenario must record actual result, evidence path or job ID, and 
 | AF-07 | P1  | Conversation locale, punctuation, Unicode, and very long utterance                           | Routing stays deterministic; output is safe; limits fail without changing meaning.                 |
 | AF-08 | P0  | Compare Testing Center result with direct native action for same fixture                     | Topic/action and final semantic status agree; planner prose does not contradict structured output. |
 
-The executable planner suite is
-the runnable file generated from `agentforce/Record_Health_Assistant-testing-center.yaml.template`.
+The planner suite source targets the legacy Agentforce DX `testing-center` runner. Its generated
+file is executable only after `sf agent test create --json --test-runner testing-center --preview`
+accepts it against the authorized target org; repository validation does not substitute for that
+org-aware preview.
 It covers happy paths, clarification,
 namespace discipline, least privilege, status meaning, prompt injection, secret requests, repeated
 invocation, changed context, and explicit adapter-error interpretation.
@@ -175,8 +177,9 @@ invocation, changed context, and explicit adapter-error interpretation.
    invoke both tools through an MCP client, compare native/REST/MCP semantics, and exercise every
    persona. Do not substitute a local mock for this wave.
 5. **Agentforce gate:** after explicit approval and deployment of the agent, replace fixture IDs in
-   the YAML, execute Testing Center cases, inspect unexpected topic/action routing, and manually
-   verify P0 adversarial cases under authorized and restricted personas.
+   the YAML, preview it with the explicit `testing-center` runner, create and execute the test,
+   inspect unexpected topic/action routing, and manually verify P0 adversarial cases under
+   authorized and restricted personas.
 6. **Failure and load wave:** inject token expiry/revocation, Salesforce limit and timeout, malformed
    downstream output, platform restart, network interruption, concurrent users, and retry pressure.
 7. **Rollback wave:** roll back the MCP revision, smoke both tools, revoke new credentials, restore

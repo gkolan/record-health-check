@@ -176,7 +176,9 @@ global class RecordHealthCheckPreviewRequest {
       return fieldName;
     }
     String localObjectName = 'Record_Health_Check__mdt';
-    String objectName = Record_Health_Check__mdt.SObjectType.getDescribe()
+    String objectName = Record_Health_Check__mdt.SObjectType.getDescribe(
+        SObjectDescribeOptions.DEFERRED
+      )
       .getName();
     if (!objectName.endsWith(localObjectName)) {
       return fieldName;

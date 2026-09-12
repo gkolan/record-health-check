@@ -59,7 +59,7 @@ the applicability rule with the approved Record Type logic.
 
 In State and Country/Territory Picklists orgs, decide whether the Check should use
 `BillingCountryCode`. Test one Partner Account and one non-Partner Account. The non-Partner row is
-Skipped, not a warning. Because **Passed Checks** is **Show count only**, passing Partner Checks add
+Skipped, not a warning. Because **Passed Checks** is **Show passed count only**, passing Partner Checks add
 to the summary but do not show an individual green row.
 
 Add the card to the Account Lightning page, activate the intended assignment, and test as a user
@@ -78,11 +78,11 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm Partner Accounts have a Billing Country. |
 | **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
+| **Summary Display** | Show below checks |
 | **Reveal Mode** | One by one |
-| **Passed Checks** | Show count only |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
+| **Passed Checks** | Show passed count only |
+| **Skipped Checks** | Show each skipped check |
+| **Found/Expected Display** | Show on demand |
 | **Stop after a system error** | Unchecked |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |
@@ -124,7 +124,7 @@ Confirm the `Partner` picklist API value in your org before relying on the appli
 
 The applicability fields in **Configure the Check** create the skip for non-Partner Accounts. Leave
 **Display: Found Formula** and **Display: Expected Formula** blank because the failure message
-already names Billing Country. Leave **Formula Result Type** as **Auto**. Query and Apex fields do
+already names Billing Country. Leave **Formula Result Type** as **Automatic**. Query and Apex fields do
 not apply.
 
 ## What the user sees
@@ -139,7 +139,7 @@ Formula applicability and the Pass Condition produce these health results and ca
 | **Found** | Blank because **Display: Found Formula** is blank. |
 | **Expected** | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(BillingCountry))`. |
 
-This Check Set uses **Show count only** for passed Checks so successful partner requirements do not
+This Check Set uses **Show passed count only** for passed Checks so successful partner requirements do not
 crowd the card. Skipped Checks remain visible because the `SKIPPED` result explains why the Check did
 not apply.
 

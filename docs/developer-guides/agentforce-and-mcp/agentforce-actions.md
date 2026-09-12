@@ -59,6 +59,8 @@ Use instructions with these rules:
 5. Never call both native and MCP versions for the same request unless deterministic comparison is
    the explicit use case.
 6. Interpret output according to the status table below.
+7. Use the four optional bounded diagnosis fields only as safe guidance for a completed evaluation;
+   never invent or request raw administrator diagnostics.
 
 ## Example: Give an agent an Account health tool
 
@@ -224,6 +226,7 @@ Open each action and confirm:
 | Success | Checked before the agent claims any health conclusion |
 | Status | Interpreted with the five-state table below |
 | Counts | Check Set action exposes passed, failed, skipped, unable, and system-error counts |
+| Bounded diagnosis | Optional diagnostic ID, category, summary, and recommended action for a completed evaluation |
 | Error fields | Used for a safe explanation, not rewritten as a health result |
 
 The single-Check action also returns a reason code. The Check Set action returns counts instead of
@@ -288,7 +291,10 @@ Use it when the current Builder labels differ from this guide.
 ## Interpret action output
 
 Both actions use contract version `1.0` and return `success`, `operation`, `status`, and a correlation
-ID. The Check action can return a reason code. The Check Set action returns explicit counts.
+ID. The Check action can return a reason code. The Check Set action returns explicit counts. A
+completed evaluation can also return bounded `diagnosticId`, `diagnosticCategory`,
+`diagnosticSummary`, and `recommendedAction` values. These fields are disclosure-safe guidance, not
+raw administrator diagnostics.
 
 | Output | Agent behavior |
 | --- | --- |
@@ -299,9 +305,9 @@ ID. The Check action can return a reason code. The Check Set action returns expl
 | `UNABLE_TO_EVALUATE` | State that no reliable conclusion was reached. Never translate it to `PASS`. |
 | `ERROR` | State that a system or evaluator problem prevented a reliable result. Never translate it to `PASS`. |
 
-The actions return evaluation fields only. They do not return Found or Expected values, display
-messages, action URLs, raw serialized results, queries, formulas, stack traces, or administrator
-diagnostics.
+The actions do not return Found or Expected values, display messages, action URLs, raw serialized
+results, queries, formulas, stack traces, record values, or administrator-only diagnostics. Report
+only the bounded diagnosis supplied by the action; do not infer additional technical detail.
 
 ## Limits and side effects
 

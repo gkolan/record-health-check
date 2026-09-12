@@ -63,6 +63,29 @@ when the Account name is unavailable.
 Open these Check records in Setup to see where each token is saved. Use the
 [merge syntax reference](../reference/merge-syntax/README.md) when adapting them to your own Check.
 
+### 2.0.10 Apex and inline-link example
+
+**Example: Verified engagement cadence** is the packaged 2.0.10 reference Check. Its
+`AccountHasRecentActivityCheck` class declares the two JSON parameters and their bounds, returns
+typed comparison evidence, and adds display-only guidance with a safe Account link. Its metadata
+keeps complete fallback message, fix, and action values, including an explicit `{!link ...}` token,
+so the Check remains readable if an optional Apex display value is absent or rejected.
+
+Use the demo Accounts to verify both sides of the contract:
+
+| Demo record | Expected outcome | Evidence to confirm |
+| --- | --- | --- |
+| `RHC Builder Ready` | PASS | At least two completed WhatId Tasks/Events in the 60-day window |
+| `RHC Builder Needs Review` | FAIL | Fewer than two qualifying activities; remediation and **Open account** are visible |
+| `RHC Builder Empty` | FAIL | Found is exactly zero and evidence remains present rather than becoming missing |
+
+The same two aggregate queries serve one Account or the complete scope. A Contact-only `WhoId`
+Task and activity older than the window are intentional negative cases and do not count. Follow the
+[complete recent-activity verification](../examples/apex/recent-activity.md) and the
+[2.0.10 contract](../reference/release-2.0.10.md) for limits and security behavior. The
+[versioned example coverage](../examples/versioned-example-coverage.md) explains why these two Apex
+Checks changed while unrelated installed Checks remained focused on their existing lessons.
+
 ### Contact and Opportunity
 
 | Check Set Developer Name | Card title | Installed Checks |

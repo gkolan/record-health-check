@@ -18,7 +18,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >Confirms that meaningful customer activity has been recorded within the last 60 days.</value>
+    >Uses the 2.0.10 typed Apex parameter, evidence, recovery, and display contracts to confirm meaningful customer activity within the last 60 days.</value>
     </values>
     <values>
         <field>EvaluationType__c</field>
@@ -57,7 +57,7 @@
     /></values>
     <values><field>FixMessage__c</field><value
       xsi:type="xsd:string"
-    >Log the latest customer interaction or schedule a concrete follow-up for {!record.Name fallback="this account"}.</value></values>
+    >Log the latest customer interaction or schedule a concrete follow-up. {!link label=&quot;Open this account&quot; href=&quot;/lightning/r/Account/{!record.Id}/view&quot;}</value></values>
     <values><field>ActionLabel__c</field><value
       xsi:type="xsd:string"
     >Log activity for {!record.Name fallback="account"}</value></values>
@@ -80,4 +80,28 @@
         <field>Category__c</field>
         <value xsi:type="xsd:string">TIMELINESS</value>
     </values>
+  <values>
+    <field>ComparisonDisplayMode__c</field>
+    <value xsi:type="xsd:string">AUTOMATIC</value>
+  </values>
+  <values>
+    <field>DisplayValueFormat__c</field>
+    <value xsi:type="xsd:string">AUTO</value>
+  </values>
+  <values>
+    <field>EmptyValueHandling__c</field>
+    <value xsi:type="xsd:string">AS_NO_MATCH</value>
+  </values>
+  <values>
+    <field>MaxQueryRows__c</field>
+    <value xsi:type="xsd:double">200</value>
+  </values>
+  <values>
+    <field>PublishUserResultEvent__c</field>
+    <value xsi:type="xsd:boolean">false</value>
+  </values>
+  <values>
+    <field>QueryResultHandling__c</field>
+    <value xsi:type="xsd:string">ONE_RESULT</value>
+  </values>
 </CustomMetadata>

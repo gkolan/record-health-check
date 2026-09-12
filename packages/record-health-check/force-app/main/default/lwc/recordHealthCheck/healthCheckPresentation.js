@@ -640,7 +640,8 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
   // may stand alone when the link was omitted or failed sanitization server-side.
   const actionUrl = isResolved ? safeActionUrl(result.actionUrl) : null;
   const actionLabel = actionUrl ? result.actionLabel || "Fix this" : null;
-  const fixInstructions = nodesToPlainText(fixNodes) || null;
+  const fixInstructions =
+    status === "FAIL" ? nodesToPlainText(fixNodes) || null : null;
   const showAction = actionUrl != null;
   const showFixInstructions = fixInstructions != null;
   const showActionBlock = showAction || showFixInstructions;

@@ -53,6 +53,32 @@ private class RHCFoundationBoundaryTest {
   }
 
   @IsTest
+  static void emptyDisplayOverridesDoNotEraseEvaluationValues() {
+    Id recordId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      99
+    );
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.reasonCode = 'VALID_RESULT';
+    result.actualValue = 'Original found';
+    result.expectedValue = 'Original expected';
+
+    RecordHealthCheckApexDisplaySupport.attach(
+      new Map<Id, RecordHealthCheckInternalResult>{ recordId => result },
+      new Map<Id, RecordHealthCheckDisplayOverride>{
+        recordId => new RecordHealthCheckDisplayOverride()
+          .withFound(new RecordHealthCheckDisplayText())
+          .withExpected(new RecordHealthCheckDisplayText())
+      }
+    );
+
+    Assert.areEqual('Original found', result.actualValue);
+    Assert.areEqual('Original expected', result.expectedValue);
+    Assert.isNull(result.displayContent.found);
+    Assert.isNull(result.displayContent.expected);
+  }
+
+  @IsTest
   static void displayBuilderRejectsBadInputsAndPreservesEmptyStates() {
     RecordHealthCheckDisplayText badLabel = new RecordHealthCheckDisplayText()
       .link('bad\nlabel', '/lightning/page/home');
@@ -126,6 +152,11 @@ private class RHCFoundationBoundaryTest {
     Assert.areEqual(2, trace.entries().size());
     Assert.areEqual(3L, trace.entries()[0].durationMs);
     Assert.areEqual('EVALUATE_FAILED', trace.terminalFailure());
+    Assert.areEqual(
+      'EVALUATE',
+      trace.activePhase(),
+      'The terminal failure phase must replace any stale earlier phase.'
+    );
     for (
       Integer index = 0;
       index < RecordHealthCheckExecutionTrace.ENTRY_LIMIT + 2;

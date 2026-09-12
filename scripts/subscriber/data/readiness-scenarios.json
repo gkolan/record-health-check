@@ -162,7 +162,7 @@
   },
   "Contact": {
     "checkSet": "Example_Contact_Relationship_Readiness",
-    "query": "SELECT Id,Name FROM Contact WHERE AssistantName='RHC-DEMO-READINESS'",
+    "query": "SELECT Id,Name FROM Contact WHERE AssistantName='RHC-DEMO-READINESS' AND LastName IN ('Hart (RHC Demo)','Shaw (RHC Demo)','Vale (RHC Demo)','Chen (RHC Demo)')",
     "records": {
       "Elena Hart (RHC Demo)": {
         "Example_Contact_RR_Account": "PASS",

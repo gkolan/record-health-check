@@ -69,6 +69,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     if (pluginType == null) {
       return null;
     }
+    RecordHealthCheckResourcePlan.requireFenceCapacity(0);
     Savepoint before = Database.setSavepoint();
     Integer dmlBefore = Limits.getDmlStatements();
     Integer dmlRowsBefore = Limits.getDmlRows();
@@ -118,6 +119,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     if (!(plugin instanceof RecordHealthCheckPluginDefinitionSource)) {
       return null;
     }
+    RecordHealthCheckResourcePlan.requireFenceCapacity(0);
     Savepoint before = Database.setSavepoint();
     Integer dmlBefore = Limits.getDmlStatements();
     Integer dmlRowsBefore = Limits.getDmlRows();
@@ -192,6 +194,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     // offending check. A scan would lose the records it had already written,
     // and the framework would cause more damage cleaning up than the check did.
     // Rollback has to reach exactly as far as this one call and no further.
+    RecordHealthCheckResourcePlan.requireFenceCapacity(0);
     Savepoint before = Database.setSavepoint();
 
     Integer dmlBefore = Limits.getDmlStatements();

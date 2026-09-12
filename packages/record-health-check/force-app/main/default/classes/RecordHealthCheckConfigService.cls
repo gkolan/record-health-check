@@ -65,6 +65,7 @@ public with sharing class RecordHealthCheckConfigService {
         CardRunMode__c,
         CardTitle__c,
         CardSubtitle__c,
+        CardHeadingDisplay__c,
         RunButtonDisplay__c,
         RunButtonLabel__c,
         RerunButtonLabel__c,
@@ -97,6 +98,9 @@ public with sharing class RecordHealthCheckConfigService {
       'runMode' => toShellRunMode(checkSets[0].CardRunMode__c),
       'cardTitle' => checkSets[0].CardTitle__c,
       'cardDescription' => checkSets[0].CardSubtitle__c,
+      'cardHeadingDisplay' => shellCardHeadingDisplay(
+        checkSets[0].CardHeadingDisplay__c
+      ),
       'activeCheckCount' => String.valueOf(activeCheckCount),
       'inactiveCheckCount' => String.valueOf(inactiveCheckCount),
       'runButtonDisplay' => RecordHealthCheckConstants.normalizedRunButtonDisplay(
@@ -106,6 +110,32 @@ public with sharing class RecordHealthCheckConfigService {
       'rerunButtonLabel' => checkSets[0].RerunButtonLabel__c,
       'runButtonIcon' => checkSets[0].RunButtonIcon__c
     };
+  }
+
+  private static String shellCardHeadingDisplay(String configuredValue) {
+    String normalized = RecordHealthCheckConstants.normalizedCardHeadingDisplay(
+      configuredValue
+    );
+    return RecordHealthCheckConstants.validCardHeadingDisplays.contains(
+        normalized
+      )
+      ? normalized
+      : 'TITLE_AND_SUBTITLE';
+  }
+
+  public static String validatedCardHeadingDisplay(String configuredValue) {
+    String normalized = RecordHealthCheckConstants.normalizedCardHeadingDisplay(
+      configuredValue
+    );
+    if (
+      !RecordHealthCheckConstants.validCardHeadingDisplays.contains(normalized)
+    ) {
+      throw new ConfigException(
+        'Card Heading Display is not recognized. Choose TITLE_AND_SUBTITLE, TITLE_ONLY, or HIDE.',
+        RC_INVALID_CONFIG
+      );
+    }
+    return normalized;
   }
 
   private static String toShellRunMode(String cardRunMode) {

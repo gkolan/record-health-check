@@ -250,6 +250,31 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
   }
 
   @IsTest
+  static void structuredFixInstructionsRemainFailOnly() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'QualifiedApiName' => 'Structured_Fix_Status',
+        'FixMessage__c' => 'Review {!link label="the record" href="/lightning/page/home"}'
+      }
+    );
+    Account record = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Structured fix' }
+    );
+    for (String status : new List<String>{ 'PASS', 'SKIPPED' }) {
+      RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+      result.status = status;
+      new RecordHealthCheckStructuredDisplay(
+          new RecordHealthCheckFormulaEvaluator()
+        )
+        .attach(check, record, result, 'Complete.');
+      Assert.isNull(
+        result.displayContent.fix,
+        status + ' must not expose remediation instructions.'
+      );
+    }
+  }
+
+  @IsTest
   static void itemConversionPrefersTypedEvidenceAndHidesRawFormulaCondition() {
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
@@ -268,6 +293,10 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
       'typed expected'
     );
     internalResult.expectedValueLabel = RecordHealthCheckInternalResult.PASSES_WHEN_LABEL;
+    internalResult.displayContent = new RecordHealthCheckDisplayContent();
+    internalResult.displayContent.expected = new RecordHealthCheckDisplayText()
+      .text('raw condition')
+      .copyNodes();
 
     RecordHealthCheckResultItem item = new RecordHealthCheckScopeResultSupport()
       .toItem(
@@ -288,7 +317,46 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     } else {
       Assert.areEqual(null, item.display.expectedDisplayValue);
       Assert.areEqual(null, item.display.expectedValueLabel);
+      Assert.isNull(
+        item.display.displayContent.expected,
+        'Restricted Formula conditions must be removed from structured content too.'
+      );
     }
+  }
+
+  @IsTest
+  static void queryDisplayFinalizationDoesNotReformatSettledValues() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'QualifiedApiName' => 'Query_Display_Isolation',
+        'EvaluationType__c' => 'QUERY',
+        'DisplayValueFormat__c' => 'NUMBER'
+      }
+    );
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.status = RecordHealthCheckStatus.FAIL;
+    result.actualValue = 'Authored 7';
+    result.evaluationFound = RecordHealthCheckValue.ofNumber(7);
+    result.operandsRecorded = true;
+
+    Test.startTest();
+    new RecordHealthCheckScopeResultSupport()
+      .finalizeDisplay(
+        check,
+        RecordHealthCheckTestDataFactory.account(
+          new Map<String, Object>{ 'Name' => 'Display isolation' }
+        ),
+        result,
+        false,
+        true
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'Authored 7',
+      result.actualValue,
+      'The Apex plugin presentation resolver must not rewrite Query display output.'
+    );
   }
 
   private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {

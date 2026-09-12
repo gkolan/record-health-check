@@ -36,7 +36,7 @@ public with sharing class RecordHealthCheckApexEvaluator {
     return this;
   }
 
-  /** Enables the optional plugin display phase for an interactive card call. */
+  /** Enables the optional plugin display phase for a display-capable result. */
   public RecordHealthCheckApexEvaluator withCardPresentation(Boolean value) {
     cardPresentation = value == true;
     return this;
@@ -358,13 +358,7 @@ public with sharing class RecordHealthCheckApexEvaluator {
       );
       if (
         result.status == RecordHealthCheckStatus.ERROR &&
-        (result.reasonCode ==
-        RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING ||
-        result.reasonCode ==
-        RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID ||
-        result.reasonCode ==
-        RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID ||
-        result.reasonCode == RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING)
+        isInvalidPluginResult(result.reasonCode)
       ) {
         RecordHealthCheckDiagnosticContext contractContext = diagnosticContext(
           check,

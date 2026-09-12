@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-10",
+  "verifiedAt": "2026-09-11",
   "apex": {
     "verifiedAt": "2026-09-10",
     "sourceVersion": "2.0.10",
@@ -18,11 +18,11 @@
     "subscriberPackageVersionId": "04tak000000gX9FAAU"
   },
   "lwc": {
-    "verifiedAt": "2026-09-10",
-    "testCount": 335,
-    "linesPercent": 98.48,
-    "statementsPercent": 97.5,
-    "functionsPercent": 98.8,
-    "branchesPercent": 91.4
+    "verifiedAt": "2026-09-11",
+    "testCount": 353,
+    "linesPercent": 98.51,
+    "statementsPercent": 97.55,
+    "functionsPercent": 98.82,
+    "branchesPercent": 91.36
   }
 }

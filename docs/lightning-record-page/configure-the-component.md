@@ -128,7 +128,7 @@ Rerun provide the deliberate boundary required before publication is eligible.
 | Run or Rerun button | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank. |
 
 When the display is **Hide**, the card removes the complete action area, so the title and subtitle
-can use that space. **Icon only** uses a compact square button and retains an accessible Run or
+can use that space. **Show icon only** uses a compact square button and retains an accessible Run or
 Rerun name for assistive technology. An invalid custom icon name falls back to the built-in play
 icon. A limit notice still reserves the space it needs in the header.
 

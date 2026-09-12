@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
+import { validateLegacyAgentTestSpec } from "../lib/agentforce-testing-center.mjs";
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -51,6 +52,39 @@ const diagnosisFields = [
   "diagnosticSummary",
   "recommendedAction"
 ];
+
+for (const relativeFile of [
+  "docs/developer-guides/agentforce-and-mcp/agentforce-actions.md",
+  "packages/record-health-check/integration-tests/agentforce/record-health-agent-spec.md"
+]) {
+  const source = fs.readFileSync(path.join(root, relativeFile), "utf8");
+  for (const field of diagnosisFields) {
+    if (!source.includes(field)) {
+      failures.push(
+        `${relativeFile}: missing bounded diagnosis field ${field}.`
+      );
+    }
+  }
+  if (source.includes("Version 1 does not expose diagnostics")) {
+    failures.push(
+      `${relativeFile}: obsolete claim says version 1 does not expose bounded diagnosis fields.`
+    );
+  }
+}
+
+try {
+  validateLegacyAgentTestSpec(
+    fs.readFileSync(
+      path.join(
+        root,
+        "packages/record-health-check/integration-tests/agentforce/Record_Health_Assistant-testing-center.yaml.template"
+      ),
+      "utf8"
+    )
+  );
+} catch (error) {
+  failures.push(error instanceof Error ? error.message : String(error));
+}
 const successResponseVariants = responseSchema.oneOf.filter(
   (variant) => variant.properties?.success?.const === true
 );
@@ -138,6 +172,32 @@ const mcpContractSource = fs.readFileSync(
   path.join(root, "packages/record-health-check-mcp/src/contract.ts"),
   "utf8"
 );
+const mcpToolSource = fs.readFileSync(
+  path.join(root, "packages/record-health-check-mcp/src/tools.ts"),
+  "utf8"
+);
+for (const required of [
+  "outputSchema: toolOutputSchema",
+  "Never treat UNABLE_TO_EVALUATE"
+]) {
+  if (!mcpToolSource.includes(required)) {
+    failures.push(`MCP tool guidance is missing '${required}'.`);
+  }
+}
+const mcpAppSource = fs.readFileSync(
+  path.join(root, "packages/record-health-check-mcp/src/app.ts"),
+  "utf8"
+);
+for (const required of [
+  "getOAuthProtectedResourceMetadataUrl",
+  "resourceMetadataUrl",
+  'app.get("/mcp"',
+  'response.set("Allow", "POST").status(405)'
+]) {
+  if (!mcpAppSource.includes(required)) {
+    failures.push(`MCP HTTP boundary is missing '${required}'.`);
+  }
+}
 const mcpDiagnosisBody = mcpContractSource.match(
   /const diagnosisFields = \{([\s\S]*?)\n\};/
 )?.[1];

@@ -10,12 +10,18 @@ public class RecordHealthCheckExhaustiveSmoke implements Queueable {
   private String mode;
 
   public static List<Id> startSets(Id recordId) {
+    return startSets(recordId, 0);
+  }
+
+  /** Enqueues one metadata slice; invoke each offset in a separate transaction. */
+  public static List<Id> startSets(Id recordId, Integer batchOffset) {
     List<Id> jobs = new List<Id>();
     for (Record_Health_Check_Set__mdt item : [
       SELECT QualifiedApiName
       FROM Record_Health_Check_Set__mdt
       ORDER BY DeveloperName
       LIMIT 50
+      OFFSET :batchOffset
     ]) {
       // code-analyzer-suppress-next-line OperationWithLimitsInLoop: Queueable Apex exposes only a single-job enqueue API; this scratch-org harness is bounded by the platform's 50-job transaction limit.
       jobs.add(

@@ -25,7 +25,7 @@ DEFAULT_OUTPUT = ROOT / "scripts/release/generated/query-verdict-baseline.json"
 FIXTURE_SCRIPT = ROOT / "packages/record-health-check/integration-tests/scripts/query_verdict_fixture.apex"
 CHECK_LAUNCHERS = tuple(
     ROOT / f"packages/record-health-check/integration-tests/scripts/exhaustive_smoke_checks_{offset}.apex"
-    for offset in (0, 50, 100, 150, 200, 250)
+    for offset in (0, 50, 100, 150, 200, 250, 300)
 )
 
 

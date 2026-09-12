@@ -152,6 +152,16 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
           ? resolved
           : 'Check failed.';
       }
+    } else if (apexResult.status == 'UNABLE_TO_EVALUATE') {
+      apexResult.message = String.isNotBlank(check.UnableToEvaluateMessage__c)
+        ? check.UnableToEvaluateMessage__c
+        : 'This check could not be evaluated. Contact your administrator.';
+    } else if (apexResult.status == 'SKIPPED') {
+      apexResult.message = String.isNotBlank(
+          check.ApplicabilityNotMetMessage__c
+        )
+        ? check.ApplicabilityNotMetMessage__c
+        : 'This check does not apply to this record.';
     }
     apexResult.checkDeveloperName = check.DeveloperName;
     apexResult.label = check.CheckTitle__c;

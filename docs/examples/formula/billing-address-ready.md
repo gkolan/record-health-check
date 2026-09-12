@@ -78,11 +78,11 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm billing address fields are complete for tax and territory review. |
 | **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
+| **Summary Display** | Show below checks |
 | **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
+| **Passed Checks** | Show each passed check |
+| **Skipped Checks** | Show each skipped check |
+| **Found/Expected Display** | Show on demand |
 | **Stop after a system error** | Unchecked |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |
@@ -102,7 +102,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 | **Pass Condition** | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | `AND(NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingCountry)))` |
 | **Display: Found Formula** | [`DisplayFoundFormula__c`](../../reference/custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c) | `IF(ISBLANK(BillingCity), "City missing; ", "") & IF(ISBLANK(BillingState), "State missing; ", "") & IF(ISBLANK(BillingCountry), "Country missing", "")` |
 | **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../../reference/custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | `"City, State, and Country populated"` |
-| **Formula Result Type** | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Text |
+| **Formula Result Type** | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Automatic |
 
 ## Optional configuration
 

@@ -63,6 +63,7 @@ const expected = {
     ].map((field) => `Record_Health_Check_Readiness__c.${field}`),
     objectPolicies: {
       Record_Health_Check_Readiness__c: {
+        allowCreate: "false",
         allowDelete: "true",
         allowEdit: "true"
       }
@@ -291,8 +292,9 @@ function validateFieldBlocks(name, xml, contract) {
     if (childValue(block, "readable") !== "true") {
       errors.push(`${name} field ${field} must be readable.`);
     }
-    const editable =
-      name === "Record_Health_Check_Readiness_Auditor" ? "false" : "true";
+    const editable = field.startsWith("Record_Health_Check_Readiness__c.")
+      ? "false"
+      : "true";
     if (childValue(block, "editable") !== editable) {
       errors.push(`${name} field ${field} must set editable=${editable}.`);
     }

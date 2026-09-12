@@ -41,6 +41,13 @@ private class RecordHealthCheckQueryProjectionTest {
         .hasStableRowOrder(),
       'Rows that tie on CreatedDate have no defined order.'
     );
+    Assert.isTrue(
+      RecordHealthCheckQueryProjection.of(
+          'SELECT Id, Name FROM Account ORDER BY CreatedDate DESC LIMIT 1'
+        )
+        .hasExplicitRowOrder(),
+      'An ordinary business sort is an explicit positional contract.'
+    );
     Assert.isFalse(
       RecordHealthCheckQueryProjection.of('SELECT Id FROM Account LIMIT 1')
         .hasStableRowOrder(),

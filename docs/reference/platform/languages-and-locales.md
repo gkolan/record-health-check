@@ -37,7 +37,7 @@ by language. Automation must use these stable API values, not wording shown to a
 
 | Result value | What the user sees |
 | --- | --- |
-| Number, Currency, Percent, or Ratio as Percent | The user's decimal mark and digit-grouping style |
+| Number, Currency, Percent, or Ratio as percent | The user's decimal mark and digit-grouping style |
 | Date | The user's Salesforce date format |
 | Date/Time | The user's Salesforce date, time, and time-zone settings |
 | Picklist value | The translated picklist label when the org has one; otherwise the available Salesforce label |

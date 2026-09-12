@@ -430,8 +430,8 @@ private class RecordHealthCheckMetadataValidatorTest {
         (issue.componentName == 'Metadata_Query_Ambiguous_Aggregate_Field' &&
         issue.fieldName == 'SourceQueryField__c');
     }
-    Assert.isTrue(reasonCodes.contains('CHECK_LIMIT_EXCEEDED'));
-    Assert.isTrue(reasonCodes.contains('DEPENDENCY_NOT_IN_RUN'));
+    Assert.isTrue(reasonCodes.contains('FRAMEWORK_MAX_CHECKS_EXCEEDED'));
+    Assert.isFalse(reasonCodes.contains('DEPENDENCY_NOT_IN_RUN'));
     Assert.isTrue(reasonCodes.contains('INVALID_APEX_PARAMETERS'));
     Assert.isTrue(
       foundAmbiguousAggregateField,

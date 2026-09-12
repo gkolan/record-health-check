@@ -54,6 +54,12 @@ and framework contract failures use it so an ordinary recovery helper cannot swa
 
 ## Formula planning
 
+### `RecordHealthCheckCompileDiagnostic`
+
+Maps each rejected platform compiler probe to a fixed category keyed by the attempted return type.
+It never retains exception messages or formula source and caps one category at 120 characters and
+the complete AUTO-probe detail at 1,000 characters.
+
 ### `RecordHealthCheckFormulaTokenizer`
 
 Tokenizes the supported Salesforce-formula subset while preserving UTF-16 source offsets. It
@@ -198,7 +204,14 @@ ordinary results, readiness, and any provider-generated parameter controls.
 ### `RecordHealthCheckPreviewFinding`
 
 Global disclosure-safe validation finding with stable code, severity, configuration field, and
-optional zero-based source offsets.
+optional zero-based source offsets. Compiler failures may also include the bounded, source-free
+probe categories for an authorized administrator; raw compiler messages are never returned.
+
+### `RecordHealthCheckDisplayRedaction`
+
+Creates a detached structured-display copy when an operand is restricted. Formula conditions are
+removed from the structured Expected nodes together with their plain display value and label, so
+alternate response representations cannot bypass the same disclosure rule.
 
 ### `RecordHealthCheckPreviewParameter`
 
@@ -257,8 +270,9 @@ nodes carry a previously validated destination.
 
 ### `RecordHealthCheckDisplayContent`
 
-Global card-only envelope for optional message, fix, Found, and Expected node lists. Evaluation,
-Flow, REST, event, and saved-result contracts continue to use their existing plain values.
+Global versioned envelope for optional message, fix, Found, and Expected node lists. It is projected
+only when a caller requests `EVALUATION_WITH_DISPLAY`; evaluation-only, event, and saved-result
+contracts continue to use their existing machine values.
 
 ### `RecordHealthCheckDisplayText`
 
@@ -280,13 +294,21 @@ if a key, nested fragment, or aggregate display bound is invalid.
 
 ### `RecordHealthCheckDisplayOverride`
 
-Global optional plugin result that supplies independently optional Found and Expected builders
-without giving the plugin control over its evaluation verdict.
+Global optional plugin result that supplies independently optional message, fix, Found and Expected
+builders; an atomic action; an Expected label; and per-side display format/currency choices without
+giving the plugin control over its evaluation verdict or administrator policy.
+
+### `RecordHealthCheckDisplayAction`
+
+Global immutable-from-the-subscriber-view label-and-destination pair. The central resolver applies
+the pair only to FAIL results and only when its trimmed label and established Action URL policy are
+both valid; otherwise the configured action remains intact.
 
 ### `RecordHealthCheckDisplayPlugin`
 
-Global additive interface for a card-only `getDisplay(scope)` callback. The engine invokes it on
-the same plugin instance after evaluation so implementations can reuse preloaded data.
+Global additive interface for a `getDisplay(scope)` callback used by every
+`EVALUATION_WITH_DISPLAY` request. The engine invokes it once on the same plugin instance after
+evaluation so implementations can reuse preloaded data.
 
 ### `RecordHealthCheckDisplayComposer`
 
@@ -300,13 +322,19 @@ side-effect fences, per-field validation, and copied builders.
 
 ### `RecordHealthCheckApexDisplaySupport`
 
-Attaches accepted plugin Found and Expected overrides to the internal Apex result while keeping
-the original typed values available when an override is absent or rejected.
+Attaches the detached plugin presentation to the internal Apex result while keeping the original
+typed values available when an override is absent or rejected.
+
+### `RecordHealthCheckPresentationResolver`
+
+Applies valid plugin fields over configured presentation immediately before structured display is
+projected. It owns status-specific policy, atomic action fallback, Expected-label validation,
+per-side typed formatting and diagnostic recording. It never changes the typed evaluation values.
 
 ### `RecordHealthCheckStructuredDisplay`
 
-Attaches structured content only for interactive card origins and enforces deterministic field
-order and aggregate response budgets before the result crosses the Aura boundary.
+Attaches structured content for display-capable results and enforces deterministic field order and
+aggregate response budgets before the result crosses a serialized boundary.
 
 ## Related
 

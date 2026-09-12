@@ -96,10 +96,10 @@ Use values like these for the Account handoff example:
 | **Card Subtitle** | Complete these checks before changing ownership. | Why the review matters. |
 | **When Checks Run** | When the user clicks Run | Users select **Run** when they are ready to check saved data. |
 | **Reveal Mode** | One by one | Results appear in Evaluation Order. |
-| **Passed Checks** | Show each check | Users can see what is already complete. |
-| **Skipped Checks** | Show each check | Users can see which Checks did not apply. |
-| **Found/Expected Display** | On demand | Users can reveal comparison details when needed. |
-| **Summary Display** | Below Checks | The overall or category summary appears after the Check rows. |
+| **Passed Checks** | Show each passed check | Users can see what is already complete. |
+| **Skipped Checks** | Show each skipped check | Users can see which Checks did not apply. |
+| **Found/Expected Display** | Show on demand | Users can reveal comparison details when needed. |
+| **Summary Display** | Show below checks | The overall or category summary appears after the Check rows. |
 | **Show Diagnostics** | Unchecked | Detailed diagnostic data stays hidden during normal use. |
 | **Active** | Unchecked while building | Prevents users from running an unfinished Check Set. |
 
@@ -265,8 +265,8 @@ Turn diagnostics off again after the investigation.
 ## Step 10: Review limits
 
 - One direct Apex or Flow request accepts at most 200 record IDs.
-- The Lightning card evaluates the first 25 active Checks in Evaluation Order. Direct Apex and
-  Flow reject the entire Check Set when it has more than 25 active Checks.
+- Every whole-set entry point accepts up to 25 active Checks. If a Check Set has more, the request
+  runs none until an administrator deactivates or moves the excess Checks.
 - A Query Check can return at most the configured **Max Query Rows**, from 1 through 2,000.
 - Formula Checks share Salesforce transaction limits. A large number of records and formulas can
   require a smaller Batch Apex size.

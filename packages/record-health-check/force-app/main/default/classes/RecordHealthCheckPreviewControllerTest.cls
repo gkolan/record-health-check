@@ -128,11 +128,13 @@ private class RecordHealthCheckPreviewControllerTest {
       response.mode = 'EXECUTE';
       response.capabilities.put('configuration', 'COMPLETE');
       response.capabilities.put('fieldPlanning', 'COMPLETE');
-      response.results.add(resultItem('PASS'));
-      response.results.add(resultItem('FAIL'));
-      response.results.add(resultItem('SKIPPED'));
-      response.results.add(resultItem('UNABLE_TO_EVALUATE'));
-      response.results.add(resultItem(null));
+      response.results.add(resultItem('PASS', 'Detached_Preview'));
+      response.results.add(resultItem('FAIL', 'Detached_Preview'));
+      response.results.add(resultItem('SKIPPED', 'Detached_Preview'));
+      response.results.add(
+        resultItem('UNABLE_TO_EVALUATE', 'Detached_Preview')
+      );
+      response.results.add(resultItem(null, 'Detached_Preview'));
       response.results.add(null);
 
       Test.startTest();
@@ -145,7 +147,8 @@ private class RecordHealthCheckPreviewControllerTest {
       RecordHealthCheckReadinessService.decorate(
         response,
         receiptDraft(),
-        'Example_Account_Check_Builder_Guide'
+        'Example_Account_Check_Builder_Guide',
+        request.recordIds
       );
       Test.stopTest();
 
@@ -205,6 +208,117 @@ private class RecordHealthCheckPreviewControllerTest {
     );
   }
 
+  @IsTest
+  static void detachedActivationCannotForgeActiveReadiness() {
+    RecordHealthCheckPreviewResponse response = new RecordHealthCheckPreviewResponse();
+    response.definitionFingerprint = 'no-receipt';
+    Record_Health_Check__mdt forgedActive = receiptDraft();
+    forgedActive.IsActive__c = true;
+
+    RecordHealthCheckReadinessService.decorate(
+      response,
+      forgedActive,
+      'Example_Account_Check_Builder_Guide',
+      new List<Id>()
+    );
+
+    Assert.areEqual(
+      'DRAFT',
+      response.readinessState,
+      'Detached IsActive__c must never bypass receipt-derived readiness.'
+    );
+  }
+
+  @IsTest
+  static void readinessReceiptOnlyAppliesToItsExactScope() {
+    Id savedScopeId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      78
+    );
+    Id otherScopeId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      79
+    );
+    RecordHealthCheckPreviewRequest request = RecordHealthCheckPreviewRequest.forDraftCheck(
+        receiptDraft(),
+        'Example_Account_Check_Builder_Guide',
+        new List<Id>{ savedScopeId }
+      )
+      .withMode('VALIDATE_ONLY')
+      .withReadinessReceipt(true);
+    RecordHealthCheckPreviewResponse response = new RecordHealthCheckPreviewResponse();
+    response.validationStatus = 'VALID';
+    response.definitionFingerprint = 'scope-fingerprint';
+    response.mode = 'VALIDATE_ONLY';
+
+    RecordHealthCheckReadinessService.save(
+      request,
+      response,
+      'Detached_Preview',
+      'Example_Account_Check_Builder_Guide'
+    );
+    RecordHealthCheckReadinessService.decorate(
+      response,
+      receiptDraft(),
+      'Example_Account_Check_Builder_Guide',
+      new List<Id>{ otherScopeId }
+    );
+
+    Assert.areEqual(
+      'DRAFT',
+      response.readinessState,
+      'A receipt from a different record scope must not validate this preview.'
+    );
+  }
+
+  @IsTest
+  static void passingPrerequisiteCannotVerifySkippedDraft() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      80
+    );
+    RecordHealthCheckPreviewRequest request = RecordHealthCheckPreviewRequest.forDraftCheck(
+        receiptDraft(),
+        'Example_Account_Check_Builder_Guide',
+        new List<Id>{ accountId }
+      )
+      .withMode('EXECUTE')
+      .withReadinessReceipt(true);
+    RecordHealthCheckPreviewResponse response = new RecordHealthCheckPreviewResponse();
+    response.validationStatus = 'VALID';
+    response.definitionFingerprint = 'mixed-result-fingerprint';
+    response.mode = 'EXECUTE';
+    response.capabilities.put('configuration', 'COMPLETE');
+    RecordHealthCheckResultItem prerequisite = resultItem('PASS');
+    prerequisite.evaluation.checkQualifiedApiName = 'Prerequisite_Check';
+    RecordHealthCheckResultItem draft = resultItem('SKIPPED');
+    draft.evaluation.checkQualifiedApiName = 'Detached_Preview';
+    response.results.add(prerequisite);
+    response.results.add(draft);
+
+    Test.startTest();
+    RecordHealthCheckReadinessService.save(
+      request,
+      response,
+      'Detached_Preview',
+      'Example_Account_Check_Builder_Guide'
+    );
+    RecordHealthCheckReadinessService.decorate(
+      response,
+      receiptDraft(),
+      'Example_Account_Check_Builder_Guide',
+      request.recordIds
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'VALIDATED',
+      response.readinessState,
+      'A prerequisite verdict must not substitute for evaluation of the draft itself.'
+    );
+    Assert.isFalse(response.hasCurrentLiveVerification);
+  }
+
   private static Record_Health_Check__mdt receiptDraft() {
     return RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
@@ -216,10 +330,18 @@ private class RecordHealthCheckPreviewControllerTest {
   }
 
   private static RecordHealthCheckResultItem resultItem(String status) {
+    return resultItem(status, null);
+  }
+
+  private static RecordHealthCheckResultItem resultItem(
+    String status,
+    String checkIdentity
+  ) {
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
     if (status != null) {
       item.evaluation = new RecordHealthCheckEvaluationResult();
       item.evaluation.status = status;
+      item.evaluation.checkQualifiedApiName = checkIdentity;
     }
     return item;
   }

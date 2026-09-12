@@ -48,6 +48,69 @@ private class RHCMetadataSetValidatorTest {
   }
 
   @IsTest
+  static void acceptsDefaultAndExactCardHeadingDisplays() {
+    for (
+      String configuredValue : new List<String>{
+        null,
+        ' ',
+        'TITLE_AND_SUBTITLE',
+        'TITLE_ONLY',
+        'HIDE'
+      }
+    ) {
+      Record_Health_Check_Set__mdt checkSet = validCheckSet();
+      checkSet.CardHeadingDisplay__c = configuredValue;
+
+      List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataSetValidator.validate(
+        checkSet
+      );
+
+      Assert.areEqual(
+        0,
+        issues.size(),
+        'Blank and exact Card Heading Display values must be accepted.'
+      );
+    }
+  }
+
+  @IsTest
+  static void rejectsUnknownCardHeadingDisplayWithStableMessage() {
+    Record_Health_Check_Set__mdt checkSet = validCheckSet();
+    checkSet.CardHeadingDisplay__c = 'title_only';
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataSetValidator.validate(
+      checkSet
+    );
+
+    Assert.areEqual(1, issues.size());
+    Assert.areEqual('CardHeadingDisplay__c', issues[0].fieldName);
+    Assert.areEqual('INVALID_CONFIG', issues[0].reasonCode);
+    Assert.areEqual(
+      'Card Heading Display is not recognized. Choose TITLE_AND_SUBTITLE, TITLE_ONLY, or HIDE.',
+      issues[0].message
+    );
+  }
+
+  @IsTest
+  static void reportsRunButtonIssueBeforeHeadingIssue() {
+    Record_Health_Check_Set__mdt checkSet = validCheckSet();
+    checkSet.RunButtonDisplay__c = 'UNKNOWN';
+    checkSet.CardHeadingDisplay__c = 'UNKNOWN';
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataSetValidator.validate(
+      checkSet
+    );
+
+    Assert.areEqual(2, issues.size());
+    Assert.areEqual(
+      'RunButtonDisplay__c',
+      issues[0].fieldName,
+      'The established Run Button validation must retain precedence.'
+    );
+    Assert.areEqual('CardHeadingDisplay__c', issues[1].fieldName);
+  }
+
+  @IsTest
   static void rejectsHiddenRunButtonForManualSet() {
     Record_Health_Check_Set__mdt checkSet = validCheckSet();
     checkSet.RunButtonDisplay__c = 'HIDE';

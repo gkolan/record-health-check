@@ -13,34 +13,17 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   public static final String UNCLASSIFIED = 'UNCLASSIFIED';
 
   private static final String CORRELATION_ALIAS = 'rhcCorrelation';
-  private static final Pattern EQUALITY_PREFIX = Pattern.compile(
-    '([A-Za-z_][A-Za-z0-9_.]*)\\s*=\\s*$'
-  );
-  private static final Pattern NEGATION_PREFIX = Pattern.compile(
-    '([A-Za-z_][A-Za-z0-9_.]*)\\s*(?:!=|<>)\\s*$'
-  );
   private static final Pattern ORDER_BY = Pattern.compile(
     '(?i)\\bORDER\\s+BY\\s+([A-Za-z_][A-Za-z0-9_.]*)\\s*(ASC|DESC)?'
   );
   private static final Pattern LIMIT_PATTERN = Pattern.compile(
     '(?i)\\bLIMIT\\s+(\\d+)'
   );
-  private static final Pattern MULTI_FIELD_ORDER_BY = Pattern.compile(
-    '(?is)\\bORDER\\s+BY\\s+[^;]+?,[^;]+?(?:\\bLIMIT\\b|$)'
-  );
 
   public class Result {
     public String strategy;
     public String executedSoql;
     public Map<Id, List<SObject>> rowsByRecordId = new Map<Id, List<SObject>>();
-  }
-
-  private class Correlation {
-    private String fieldPath;
-    private String tokenPath;
-    private String fallbackValue;
-    private Integer startIndex;
-    private Integer endIndex;
   }
 
   /** Executes one supported template for the complete loaded-record scope. */
@@ -63,16 +46,20 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       throw unsupportedShape('A scope-wide SOQL template must not be blank.');
     }
 
-    Correlation correlation = findCorrelation(soqlTemplate);
+    RecordHealthCheckBulkQueryShape.Correlation correlation = RecordHealthCheckBulkQueryShape.directCorrelation(
+      soqlTemplate
+    );
     result.strategy = classify(soqlTemplate);
-    Boolean limitsEachRecord = hasLimitOne(soqlTemplate);
+    Integer perRecordLimit = perRecordLimit(soqlTemplate, result.strategy);
     if (result.strategy == UNCLASSIFIED) {
       throw new RecordHealthCheckEvaluatorException(
         'UNSUPPORTED_BULK_QUERY_SHAPE',
         'The SOQL template cannot be evaluated once for a record scope.'
       );
     }
-    if (countTokens(soqlTemplate) > 1) {
+    if (
+      RecordHealthCheckBulkQueryShape.countExecutableTokens(soqlTemplate) > 1
+    ) {
       throw unsupportedShape(
         'A scope-wide SOQL template may contain only one record token.'
       );
@@ -135,48 +122,41 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
         correlation.endIndex,
         correlation.fieldPath + ' IN :rhcScopeValues'
       );
-      if (limitsEachRecord && result.strategy != ORDERED_PICK_AGGREGATE) {
-        scopeSoql = removeLimitOne(scopeSoql);
+      if (perRecordLimit != null) {
+        scopeSoql = removeOuterLimit(scopeSoql);
       }
 
-      if (result.strategy == ORDERED_PICK_AGGREGATE) {
-        scopeSoql = RecordHealthCheckBulkQueryRewriter.rewriteOrderedPickAggregate(
+      scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
+        scopeSoql,
+        correlation.fieldPath
+      );
+      if (RecordHealthCheckSoqlTemplate.isAggregateQuery(scopeSoql)) {
+        String countField = correlation.fieldPath.equalsIgnoreCase('Id')
+          ? 'CreatedDate'
+          : 'Id';
+        scopeSoql = scopeSoql.replaceFirst(
+          '(?i)\\bCOUNT\\s*\\(\\s*\\)',
+          'COUNT(' + countField + ')'
+        );
+        scopeSoql = RecordHealthCheckBulkQueryRewriter.aliasCorrelation(
           scopeSoql,
           correlation.fieldPath
         );
-      } else {
-        scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
+        scopeSoql = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
           scopeSoql,
           correlation.fieldPath
         );
-        if (RecordHealthCheckSoqlTemplate.isAggregateQuery(scopeSoql)) {
-          String countField = correlation.fieldPath.equalsIgnoreCase('Id')
-            ? 'CreatedDate'
-            : 'Id';
-          scopeSoql = scopeSoql.replaceFirst(
-            '(?i)\\bCOUNT\\s*\\(\\s*\\)',
-            'COUNT(' + countField + ')'
-          );
-          scopeSoql = RecordHealthCheckBulkQueryRewriter.aliasCorrelation(
+      } else if (result.strategy == ORDERED_PICK_IN_MEMORY) {
+        String orderedField = firstGroup(scopeSoql, ORDER_BY, 1);
+        if (String.isNotBlank(orderedField)) {
+          scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
             scopeSoql,
-            correlation.fieldPath
+            orderedField
           );
-          scopeSoql = RecordHealthCheckBulkQueryRewriter.appendGroupBy(
-            scopeSoql,
-            correlation.fieldPath
-          );
-        } else if (result.strategy == ORDERED_PICK_IN_MEMORY) {
-          String orderedField = firstGroup(scopeSoql, ORDER_BY, 1);
-          if (String.isNotBlank(orderedField)) {
-            scopeSoql = RecordHealthCheckBulkQueryRewriter.injectSelectField(
-              scopeSoql,
-              orderedField
-            );
-          }
-          scopeSoql = removeLimitOne(scopeSoql);
-        } else if (result.strategy == SELF) {
-          scopeSoql = removeLimitOne(scopeSoql);
         }
+        scopeSoql = removeOuterLimit(scopeSoql);
+      } else if (result.strategy == SELF) {
+        scopeSoql = removeOuterLimit(scopeSoql);
       }
     }
 
@@ -248,7 +228,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
         if (matching != null) {
           for (Id recordId : matching) {
             List<SObject> perRecord = result.rowsByRecordId.get(recordId);
-            if (!limitsEachRecord || perRecord.isEmpty()) {
+            if (perRecordLimit == null || perRecord.size() < perRecordLimit) {
               perRecord.add(row);
             }
           }
@@ -257,10 +237,7 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
         Id recordId = (Id) correlationValue;
         if (result.rowsByRecordId.containsKey(recordId)) {
           List<SObject> perRecord = result.rowsByRecordId.get(recordId);
-          if (
-            (result.strategy != ORDERED_PICK_IN_MEMORY && !limitsEachRecord) ||
-            perRecord.isEmpty()
-          ) {
+          if (perRecordLimit == null || perRecord.size() < perRecordLimit) {
             perRecord.add(row);
           }
         }
@@ -271,14 +248,20 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
 
   /** Classifies a template using the same ordering as the repository inventory. */
   public static String classify(String soql) {
-    Correlation negated = matchCorrelation(soql, NEGATION_PREFIX);
-    if (negated != null) {
+    Integer executableTokens = RecordHealthCheckBulkQueryShape.countExecutableTokens(
+      soql
+    );
+    if (executableTokens == 0) {
+      return RecordHealthCheckBulkQueryShape.countTokens(soql) > 0
+        ? UNCLASSIFIED
+        : SCOPE_INVARIANT;
+    }
+    if (executableTokens != 1) {
       return UNCLASSIFIED;
     }
-    if (!hasDepthZeroRecordToken(soql)) {
-      return countTokens(soql) > 0 ? UNCLASSIFIED : SCOPE_INVARIANT;
-    }
-    Correlation correlation = matchCorrelation(soql, EQUALITY_PREFIX);
+    RecordHealthCheckBulkQueryShape.Correlation correlation = RecordHealthCheckBulkQueryShape.directCorrelation(
+      soql
+    );
     if (correlation == null) {
       return UNCLASSIFIED;
     }
@@ -287,28 +270,13 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     Boolean hasLimit = limitValue != null;
     Boolean hasOrder = orderField != null;
     if (hasLimit && hasOrder) {
-      if (hasDepthZeroMatch(soql, MULTI_FIELD_ORDER_BY)) {
-        return UNCLASSIFIED;
-      }
-      if (Integer.valueOf(limitValue) != 1) {
-        return UNCLASSIFIED;
-      }
-      List<String> selected = RecordHealthCheckBulkQueryRewriter.selectedFields(
-        soql
-      );
-      return selected.size() == 1 &&
-        selected[0].equalsIgnoreCase(orderField) &&
-        !selected[0].contains('.')
-        ? ORDERED_PICK_AGGREGATE
-        : ORDERED_PICK_IN_MEMORY;
+      return ORDERED_PICK_IN_MEMORY;
     }
     if (
       correlation.tokenPath == 'Id' &&
       correlation.fieldPath.equalsIgnoreCase('Id')
     ) {
-      return !hasLimit || Integer.valueOf(limitValue) == 1
-        ? SELF
-        : UNCLASSIFIED;
+      return SELF;
     }
     // LIMIT 1 is applied per record after rewrite; larger bare limits stay unsupported.
     if (hasLimit && Integer.valueOf(limitValue) != 1) {
@@ -323,18 +291,8 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
   /** Returns whether the runtime can safely rewrite the template once for a record scope. */
   public static Boolean isSupportedShape(String soql) {
     return String.isNotBlank(soql) &&
-      countTokens(soql) <= 1 &&
+      RecordHealthCheckBulkQueryShape.countExecutableTokens(soql) <= 1 &&
       classify(soql) != UNCLASSIFIED;
-  }
-
-  private static Integer countTokens(String soql) {
-    Integer count = 0;
-    for (RecordHealthCheckToken token : recordTokens(soql)) {
-      if (token.namespaceName == 'record') {
-        count++;
-      }
-    }
-    return count;
   }
 
   private static RecordHealthCheckEvaluatorException unsupportedShape(
@@ -354,76 +312,6 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     return result;
   }
 
-  private static Correlation findCorrelation(String soql) {
-    return matchCorrelation(soql, EQUALITY_PREFIX);
-  }
-
-  private static Correlation matchCorrelation(
-    String soql,
-    Pattern prefixPattern
-  ) {
-    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
-    Correlation firstMatch;
-    for (RecordHealthCheckToken token : recordTokens(soql)) {
-      if (
-        token.namespaceName != 'record' ||
-        !isDepthZeroVisibleToken(masked, token)
-      ) {
-        continue;
-      }
-      Matcher matcher = prefixPattern.matcher(
-        masked.substring(0, token.startIndex)
-      );
-      if (
-        !matcher.find() ||
-        RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0
-      ) {
-        continue;
-      }
-      Correlation current = new Correlation();
-      current.fieldPath = matcher.group(1);
-      current.tokenPath = token.propertyPath;
-      current.fallbackValue = token.fallbackValue;
-      current.startIndex = matcher.start();
-      current.endIndex = token.endIndex;
-      if (firstMatch == null) {
-        firstMatch = current;
-      }
-      if (current.tokenPath == 'Id') {
-        return current;
-      }
-    }
-    return firstMatch;
-  }
-
-  private static Boolean hasDepthZeroRecordToken(String soql) {
-    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
-    for (RecordHealthCheckToken token : recordTokens(soql)) {
-      if (
-        token.namespaceName == 'record' &&
-        isDepthZeroVisibleToken(masked, token)
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private static Boolean isDepthZeroVisibleToken(
-    String masked,
-    RecordHealthCheckToken token
-  ) {
-    return token.startIndex < masked.length() &&
-      masked.substring(token.startIndex, token.startIndex + 1) == '{' &&
-      RecordHealthCheckSoqlTemplate.depthAt(masked, token.startIndex) == 0;
-  }
-
-  private static List<RecordHealthCheckToken> recordTokens(String soql) {
-    return String.isBlank(soql)
-      ? new List<RecordHealthCheckToken>()
-      : RecordHealthCheckTemplateService.parse(soql);
-  }
-
   private static String replaceSpan(
     String value,
     Integer startIndex,
@@ -435,9 +323,10 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       value.substring(endIndex);
   }
 
-  private static String removeLimitOne(String soql) {
+  private static String removeOuterLimit(String soql) {
     String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
-    Matcher matcher = Pattern.compile('(?i)\\s+LIMIT\\s+1\\b').matcher(masked);
+    Matcher matcher = Pattern.compile('(?i)\\s+LIMIT\\s+\\d+\\b')
+      .matcher(masked);
     while (matcher.find()) {
       if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
         return soql.substring(0, matcher.start()) +
@@ -447,9 +336,17 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
     return soql;
   }
 
-  private static Boolean hasLimitOne(String soql) {
+  private static Integer perRecordLimit(String soql, String strategy) {
     String limitValue = firstGroup(soql, LIMIT_PATTERN, 1);
-    return limitValue != null && Integer.valueOf(limitValue) == 1;
+    if (limitValue == null || strategy == SCOPE_INVARIANT) {
+      return null;
+    }
+    Integer value = Integer.valueOf(limitValue);
+    return strategy == ORDERED_PICK_IN_MEMORY ||
+      strategy == SELF ||
+      value == 1
+      ? value
+      : null;
   }
 
   private static String firstGroup(
@@ -465,17 +362,6 @@ public with sharing class RecordHealthCheckBulkQuerySupport {
       }
     }
     return null;
-  }
-
-  private static Boolean hasDepthZeroMatch(String soql, Pattern pattern) {
-    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(soql);
-    Matcher matcher = pattern.matcher(masked);
-    while (matcher.find()) {
-      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private static Object readPath(SObject row, String fieldPath) {

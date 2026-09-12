@@ -25,7 +25,7 @@ only when the supported Formula and Query settings cannot safely express the req
 | Check Set | Account Check Builder Guide |
 | Base Object | Account |
 | Active | Selected |
-| Found and Expected display | On demand |
+| Found and Expected display | Show on demand |
 | Unable to Evaluate guidance | Confirm that the Check is configured correctly and that the running user can read every object and field used by the formula, SOQL query, or Apex class. Then run the Check again. |
 | Action-link rule | Open the related Account, Opportunities, Cases, Contacts, or new Task page needed to review the result. |
 | Test users | Test with the intended Salesforce user and assigned permission sets, not only a System Administrator. |
@@ -187,7 +187,7 @@ between individual proposals can cancel each other out.
 | Check API name | `Example_Guide_Recent_Activity` |
 | Evaluation Order | 250 |
 | Evaluation Type | Apex |
-| Description | Apex evaluation counts completed Tasks and Events related to the Account during the configured 60-day period. It passes when the count meets the configured minimum of two; the class does not decide whether each activity was meaningful customer engagement. |
+| Description | The 2.0.10 Apex reference declares typed parameters, counts completed Tasks and Events in the 60-day period, isolates per-record evaluation, and returns typed evidence plus safe display guidance. It passes at two activities; the class does not decide whether an activity was meaningful. |
 | Apex Class | `AccountHasRecentActivityCheck` |
 | Apex Parameters | `{"daysBack": 60, "minimumActivities": 2}` |
 | Applies When | Every Account |
@@ -196,8 +196,12 @@ between individual proposals can cancel each other out.
 | Demo result | Pass |
 | Failure Severity | Warning |
 | Failure Message | `Fewer than two completed Account activities are documented for {!record.Name fallback="this Account"} in the last 60 days.` |
-| Fix Instructions | Review the completed Tasks and Events and their outcomes. Log only work that occurred, or change the period and minimum to match the approved Account-management cadence. |
-| Action | **Review Account activity** → open a new Task |
+| Fix Instructions | Review the completed Tasks and Events and their outcomes. The metadata fallback contains an inline Account link. Log only work that occurred, or change the approved cadence. |
+| Action | The Apex display hook opens the Account; metadata retains the create-Task fallback |
+
+The demo setup includes a ready Account that passes, a needs-review Account that fails, and an
+empty Account that fails with Found `0`. See [Recent Account activity](./apex/recent-activity.md)
+for the exact positive, negative, boundary, permission, and unsafe-link checks.
 
 The current demo produces **7 Passed, 17 Failed, 0 Skipped, and 1 Unable to Evaluate**.
 

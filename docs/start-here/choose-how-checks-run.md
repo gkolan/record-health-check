@@ -35,11 +35,11 @@ Do not create new `@future` integrations. Move existing work to Queueable Apex.
 
 | Where the Check runs | Limit or behavior |
 | --- | --- |
-| Lightning card | Evaluates one record and the first 25 active Checks in the selected Check Set |
+| Lightning card | Evaluates one record and up to 25 active Checks; an oversized whole set runs none |
 | Direct Apex or one Flow request group | Up to 200 records and 25 active Checks |
 | One Flow action call | Up to 10 distinct Check or Check Set and Event Publication groups |
 | Queueable helper | Up to 200 known record IDs |
-| Packaged Batch helper | 1 to 2,000 known record IDs; default scope size 100 |
+| Packaged Batch helper | 1 to 2,000 known record IDs; automatic scope is 1–100 and is reduced when needed for the FormulaEval budget |
 | Agentforce and REST | Event publication is always `NONE` |
 
 ## Card load, record save, and Run

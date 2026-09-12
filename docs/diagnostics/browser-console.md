@@ -111,7 +111,7 @@ testing as the intended user because administrators can see records and fields o
 1. In Lightning App Builder, confirm the component's **Check Set** value matches the intended
    Custom Metadata Developer Name.
 2. Confirm the Check Set is active, uses the record's object API name, and has at least one active
-   Check in the first 25 ordered Checks.
+   Check in the selected whole-set run.
 3. Treat a hidden Run button as configuration until proven otherwise. Check **When Checks Run**,
    **Run Button Display** on the selected Check Set. Hidden and icon-only controls intentionally
    release their unused header space to the title.

@@ -3,9 +3,9 @@
     <fullName>FoundExpectedDisplay__c</fullName>
     <label>Found/Expected Display</label>
     <description
-  >Controls when users see the Found and Expected values for each check in this Check Set. "On demand" lets users expand a check to see its values, and failed checks also show their values inline. "Failed checks only" shows values only on failed checks, keeping passing checks compact. "Every check" shows values inline on every check where values are available. Defaults to "On demand".</description>
+  >Controls when users see the Found and Expected values for each check in this Check Set. "Show on demand" lets users expand a check to see its values, and failed checks also show their values inline. "Show for failed checks" shows values only on failed checks, keeping passing checks compact. "Show for every check" shows values inline on every check where values are available. Defaults to "Show on demand".</description>
     <inlineHelpText
-  >When Found/Expected values show. "On demand" (default) = expand to see; failed checks show inline. "Failed checks only" = only on failures. "Every check" = inline everywhere available.</inlineHelpText>
+  >When Found/Expected values show. "Show on demand" (default) = expand to see; failed checks show inline. "Show for failed checks" = only on failures. "Show for every check" = inline everywhere available.</inlineHelpText>
     <required>false</required>
     <type>Picklist</type>
     <valueSet>
@@ -13,10 +13,10 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value><fullName>ON_DEMAND</fullName><label
-        >On demand</label><default>true</default></value><value><fullName
-        >FAILURES_ONLY</fullName><label>Failed checks only</label><default
+        >Show on demand</label><default>true</default></value><value><fullName
+        >FAILURES_ONLY</fullName><label>Show for failed checks</label><default
         >false</default></value><value><fullName>ALL_ROWS</fullName><label
-        >Every check</label><default
+        >Show for every check</label><default
         >false</default></value></valueSetDefinition>
     </valueSet>
 </CustomField>

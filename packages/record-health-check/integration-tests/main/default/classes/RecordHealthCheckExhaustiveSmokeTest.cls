@@ -180,6 +180,25 @@ private class RecordHealthCheckExhaustiveSmokeTest {
   }
 
   @IsTest
+  static void enqueueSecondSetSliceReturnsRemainingJobs() {
+    Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
+      'Heading set second slice'
+    );
+    Integer countSets = [SELECT COUNT() FROM Record_Health_Check_Set__mdt];
+    Test.startTest();
+    List<Id> jobs = RecordHealthCheckExhaustiveSmoke.startSets(
+      accountRecord.Id,
+      50
+    );
+    Test.stopTest();
+    Assert.areEqual(
+      Math.min(50, Math.max(0, countSets - 50)),
+      jobs.size(),
+      'The second transaction must cover the remaining Set slice.'
+    );
+  }
+
+  @IsTest
   static void enqueueCheckEntryPointReturnsTraceableJobs() {
     Account accountRecord = RHCIntegrationTestDataFactory.createAccount(
       'Exhaustive check enqueue'

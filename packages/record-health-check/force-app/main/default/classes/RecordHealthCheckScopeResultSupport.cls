@@ -76,6 +76,9 @@ public with sharing class RecordHealthCheckScopeResultSupport {
         }
       }
     }
+    if (includeStructuredDisplay && check.EvaluationType__c == 'APEX') {
+      RecordHealthCheckPresentationResolver.apply(check, result);
+    }
     Boolean restricted = RecordHealthCheckReasonCodes.isDiagnosticsOnly(
       result.reasonCode
     );
@@ -178,8 +181,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       : itemsByIdentity.get(itemKey(recordId, resolvedPrerequisite));
     if (prior == null) {
       if (fullCheckSetSelection != true) {
-        // A qualified single-Check request intentionally has no results from
-        // the rest of its owning Check Set.
+        // A qualified single-Check request omits the rest of its Check Set.
         return null;
       }
       RecordHealthCheckInternalResult missing = new RecordHealthCheckInternalResult();
@@ -423,11 +425,8 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     evaluation.recordId = recordId;
     evaluation.checkQualifiedApiName = check.QualifiedApiName;
     evaluation.status = internalResult.status;
-    // The severity a caller receives is the severity Setup stores: CRITICAL,
-    // WARNING, or INFO. It used to be remapped here into the card's own words,
-    // so an automation matching the documented CRITICAL never fired and the
-    // Check Result event disagreed with its own reference page. Presentation
-    // words belong to the component, not to the contract.
+    // Preserve Setup's CRITICAL/WARNING/INFO contract for every caller.
+    // Components own any presentation-specific severity wording.
     evaluation.severity = internalResult.severity;
     evaluation.reasonCode = internalResult.reasonCode;
     if (internalResult.diagnosticIncident != null) {
@@ -439,9 +438,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
           .instruction;
       }
     }
-    // Recorded operands are the answer even when one side has none:
-    // IS_NOT_BLANK expects no value. The old string fallback is what handed
-    // automations "to not be blank" as though it were one.
+    // Recorded operands remain authoritative even when one side is empty.
     evaluation.found = RecordHealthCheckQueryEvaluatorSupport.machineValue(
       internalResult.evaluationFound,
       internalResult.operandsRecorded,
@@ -486,7 +483,11 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       display.actionLabel = internalResult.actionLabel;
       display.actionUrl = internalResult.actionUrl;
       display.adminDetail = internalResult.adminDetail;
-      display.displayContent = internalResult.displayContent;
+      display.displayContent = hidesRawFormulaCondition
+        ? RecordHealthCheckDisplayRedaction.withoutExpected(
+            internalResult.displayContent
+          )
+        : internalResult.displayContent;
       display.evidence = internalResult.evidenceEnvelope;
       item.display = display;
     }

@@ -49,9 +49,10 @@ on the change, not an oversight.
 
 ## Contract 2: The card body always renders
 
-**Behavior.** From the first frame the reader sees a complete card: the bordered box, the grey
-header with a title, and the white body with content in it. The body never collapses to a
-header-only strip, and the component never renders bare page space.
+**Behavior.** From the first frame the reader sees a complete bordered card with meaningful body
+content. The normal default includes the grey heading strip. A Check Set may deliberately hide that
+strip through Card Heading Display, but the body never collapses to an empty card and the component
+never renders bare page space.
 
 **Reason.** The header and body are separate regions of one card. Three states left the body empty
 while the header rendered normally, so the card appeared truncated rather than busy.
@@ -60,7 +61,7 @@ while the header rendered normally, so the card appeared truncated rather than b
 
 | Concern | Source |
 | --- | --- |
-| The card box and header always render | `recordHealthCheck.html`, both branches of `hasComponentError` |
+| The card box always renders; the normal heading follows configuration | `recordHealthCheck.html`, both branches of `hasComponentError` |
 | Default title before any response | `displayTitle` initializer in `recordHealthCheck.js` |
 | Loading state covers both Apex calls | `_resolveConfiguredLifecycle` and `_loadDefinitions` |
 | Last-resort body content | `showEmptyBodyNotice` in `recordHealthCheck.js` |
@@ -73,6 +74,17 @@ added later cannot reintroduce the header-only card without also being added to 
 **Maintenance rule.** Adding a block to the card body means adding it to the `showEmptyBodyNotice`
 condition. Adding an `await` to the load path means giving that window a loading state, because the
 scheduled-load handle is cleared before the awaited call begins.
+
+Card Heading Display and Run Button Display are independent. `TITLE_ONLY` suppresses only the
+subtitle. `HIDE` removes the normal heading; a visible Run/Rerun action moves to the first visual body
+row and remains right aligned. If both settings hide their elements, no empty heading or action container renders. The body
+retains top clearance equal to the card radius so the first status accent remains straight. Error cards retain their setup heading, and App Builder retains the selected Check
+Set identity. The normal card article keeps the resolved Card Title as its accessible name.
+
+Summary Display also supports `HIDE`: it suppresses overall and category summaries without changing
+Check evaluation or the hidden-results notice. When the list is the final body block, bottom padding
+equal to the card radius keeps accents away from the curved edge. Only adjacent Check rows receive
+a separator, so a lone Check has no row separator.
 
 **What an administrator actually sees for an empty Check Set.** Deactivating every Check in a Check
 Set was tested in a scratch org. Apex raises `NO_ACTIVE_CHECKS` before returning definitions, so the

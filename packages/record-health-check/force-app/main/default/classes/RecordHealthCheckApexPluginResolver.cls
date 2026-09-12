@@ -64,6 +64,8 @@ public with sharing class RecordHealthCheckApexPluginResolver {
         check.ApexParametersJson__c
       );
       return result;
+    } catch (RecordHealthCheckResourcePlan.BudgetException ex) {
+      throw ex;
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (RecordHealthCheckPluginDefinitionService.InvalidParametersException ex) {
@@ -138,6 +140,8 @@ public with sharing class RecordHealthCheckApexPluginResolver {
   private static RecordHealthCheckPlugin instantiatePlugin(Type evaluatorType) {
     try {
       return RecordHealthCheckPluginDispatch.instantiate(evaluatorType);
+    } catch (RecordHealthCheckResourcePlan.BudgetException ex) {
+      throw ex;
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {

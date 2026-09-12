@@ -90,6 +90,23 @@ private class RHCLinkFixtureTest {
       linkCount(displays.get(review.Id).found.copyNodes()),
       'Three Step links plus six User links must remain independently clickable.'
     );
+    Assert.areEqual(
+      'Approval state for RHC Link Needs Review',
+      plain(displays.get(review.Id).message.copyNodes())
+    );
+    Assert.areEqual(
+      'Review the approval steps in order.',
+      plain(displays.get(review.Id).fix.copyNodes())
+    );
+    Assert.areEqual(
+      'Open approval account',
+      displays.get(review.Id).action.label
+    );
+    Assert.areEqual(
+      '/lightning/r/Account/' + review.Id + '/view',
+      displays.get(review.Id).action.destination
+    );
+    Assert.areEqual('Required state', displays.get(review.Id).expectedLabel);
     Assert.isFalse(
       displays.containsKey(missing.Id),
       'Missing data must not invent successfully-checked steps.'

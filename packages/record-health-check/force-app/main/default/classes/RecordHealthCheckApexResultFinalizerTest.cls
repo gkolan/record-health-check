@@ -86,4 +86,52 @@ private class RecordHealthCheckApexResultFinalizerTest {
     Assert.areEqual(RecordHealthCheckStatus.SKIPPED, result.status);
     Assert.areEqual(80, result.reasonCode.length());
   }
+
+  @IsTest
+  static void usesConfiguredMessageForPluginUnableOutcome() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'ApexClass__c' => 'ExamplePlugin',
+        'UnableToEvaluateMessage__c' => 'Configured unable'
+      }
+    );
+    RecordHealthCheckInternalResult pluginResult = new RecordHealthCheckInternalResult();
+    pluginResult.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = RecordHealthCheckApexResultFinalizer.finalizeResult(
+      check,
+      RecordHealthCheckTestDataFactory.account(null),
+      new RecordHealthCheckInternalResult(),
+      pluginResult,
+      new RecordHealthCheckFormulaEvaluator()
+    );
+    Test.stopTest();
+
+    Assert.areEqual('Configured unable', result.message);
+  }
+
+  @IsTest
+  static void usesConfiguredMessageForPluginSkippedOutcome() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'ApexClass__c' => 'ExamplePlugin',
+        'ApplicabilityNotMetMessage__c' => 'Configured skipped'
+      }
+    );
+    RecordHealthCheckInternalResult pluginResult = new RecordHealthCheckInternalResult();
+    pluginResult.status = RecordHealthCheckStatus.SKIPPED;
+
+    Test.startTest();
+    RecordHealthCheckInternalResult result = RecordHealthCheckApexResultFinalizer.finalizeResult(
+      check,
+      RecordHealthCheckTestDataFactory.account(null),
+      new RecordHealthCheckInternalResult(),
+      pluginResult,
+      new RecordHealthCheckFormulaEvaluator()
+    );
+    Test.stopTest();
+
+    Assert.areEqual('Configured skipped', result.message);
+  }
 }

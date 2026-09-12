@@ -421,11 +421,11 @@ create this Check Set:
 | **Card Title** | Account Readiness |
 | **Card Subtitle** | Confirm the Account meets the strategic readiness score. |
 | **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
+| **Summary Display** | Show below checks |
 | **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
+| **Passed Checks** | Show each passed check |
+| **Skipped Checks** | Show each skipped check |
+| **Found/Expected Display** | Show on demand |
 | **Stop after a system error** | Unchecked |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |

@@ -6,7 +6,7 @@
   <div class={themeClass}>
     <template if:true={hasComponentError}>
       <article class="rhc-card">
-        <div class="rhc-body">
+        <div class={bodyClass}>
           <div class="rhc-header">
             <div class="rhc-header__bar">
               <div class="rhc-header__main">
@@ -66,24 +66,26 @@
     </template>
 
     <template if:false={hasComponentError}>
-      <article class="rhc-card">
-        <div class="rhc-body">
-          <div class="rhc-header">
-            <div class="rhc-header__bar">
-              <div class="rhc-header__main">
-                <h2 class="rhc-header__title">{displayTitle}</h2>
-              </div>
+      <article
+        class="rhc-card"
+        aria-label={cardAccessibleLabel}
+        tabindex="-1"
+        data-card-root
+      >
+        <div class={bodyClass}>
+          <template if:true={showNormalHeader}>
+            <div class="rhc-header">
+              <div class="rhc-header__bar">
+                <div class="rhc-header__main">
+                  <h2 class="rhc-header__title">{displayTitle}</h2>
+                </div>
 
-              <p aria-live="polite" class="slds-assistive-text">
-                Completed Checks: {completedCheckCount} / {totalCheckCount}
-              </p>
-
-              <template if:true={showHeaderActions}>
-                <div class="rhc-header__actions">
-                  <template if:true={showActionButton}>
+                <template if:true={showHeaderActions}>
+                  <div class="rhc-header__actions">
                     <button
                       type="button"
                       class={actionButtonClass}
+                      data-card-action
                       onclick={handleAction}
                       title={actionTitle}
                       aria-label={actionButtonAriaLabel}
@@ -118,15 +120,59 @@
                         </span>
                       </template>
                     </button>
-                  </template>
-                </div>
+                  </div>
+                </template>
+              </div>
+
+              <template if:true={showSubtitle}>
+                <p class="rhc-header__desc">{displayDescription}</p>
               </template>
             </div>
+          </template>
 
-            <template if:true={displayDescription}>
-              <p class="rhc-header__desc">{displayDescription}</p>
-            </template>
-          </div>
+          <template if:true={showBodyActionRow}>
+            <div class="rhc-body-action-row">
+              <button
+                type="button"
+                class={actionButtonClass}
+                data-card-action
+                onclick={handleAction}
+                title={actionTitle}
+                aria-label={actionButtonAriaLabel}
+                aria-busy={actionButtonBusy}
+                disabled={actionButtonDisabled}
+              >
+                <template if:true={showRunButtonLabel}>
+                  <span class="rhc-action-button__label"
+                    >{actionButtonLabel}</span
+                  >
+                </template>
+                <template if:true={showActionButtonGlyph}>
+                  <span class="rhc-action-button__glyph" aria-hidden="true">
+                    <template if:true={actionButtonBusy}>
+                      <span class="rhc-action-button__spinner"></span>
+                    </template>
+                    <template if:false={actionButtonBusy}>
+                      <template if:true={useLightningRunButtonIcon}>
+                        <lightning-icon
+                          icon-name={normalizedRunButtonIcon}
+                          size="xx-small"
+                          alternative-text=""
+                        ></lightning-icon>
+                      </template>
+                      <template if:true={useCssRunButtonIcon}>
+                        <span class="rhc-action-button__play"></span>
+                      </template>
+                    </template>
+                  </span>
+                </template>
+              </button>
+            </div>
+          </template>
+
+          <p aria-live="polite" class="slds-assistive-text">
+            Completed Checks: {completedCheckCount} / {totalCheckCount}
+          </p>
 
           <template if:true={isCardLoading}>
             <div
@@ -175,12 +221,6 @@
               {emptyBodyNotice}
             </p>
           </template>
-          <template if:true={showHiddenEvaluationHint}>
-            <p class="rhc-pre-run-hint" role="status">
-              {hiddenEvaluationHintText}
-            </p>
-          </template>
-
           <template if:true={showSummaryStatsAbove}>
             <div class="rhc-stats-bar" data-summary-position="top">
               <template for:each={summaryGroups} for:item="group">

@@ -171,11 +171,11 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     List<Id> recordIds,
     RecordHealthCheckEventPublication publication
   ) {
-    return run(
+    return runAutomatic(
       checkSetQualifiedApiName,
       recordIds,
       publication,
-      DEFAULT_SCOPE_SIZE
+      RecordHealthCheckExecutionOrigin.BATCH
     );
   }
 
@@ -218,12 +218,29 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     List<Id> recordIds,
     RecordHealthCheckEventPublication publication
   ) {
-    return runInternal(
+    return runAutomatic(
       checkSetQualifiedApiName,
       recordIds,
       publication,
-      DEFAULT_SCOPE_SIZE,
       RecordHealthCheckExecutionOrigin.SCHEDULED
+    );
+  }
+
+  private static Id runAutomatic(
+    String checkSetQualifiedApiName,
+    List<Id> recordIds,
+    RecordHealthCheckEventPublication publication,
+    RecordHealthCheckExecutionOrigin executionOrigin
+  ) {
+    RecordHealthCheckAccess.requireCanRunChecks();
+    validatePopulation(checkSetQualifiedApiName, recordIds);
+    Integer scopeSize = defaultScopeSize(checkSetQualifiedApiName);
+    return submit(
+      checkSetQualifiedApiName,
+      recordIds,
+      publication,
+      scopeSize,
+      executionOrigin
     );
   }
 
@@ -237,6 +254,44 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
     RecordHealthCheckAccess.requireCanRunChecks();
     validateScopeSize(scopeSize);
     validatePopulation(checkSetQualifiedApiName, recordIds);
+    List<Record_Health_Check__mdt> checks = new RecordHealthCheckScopePlanner()
+      .resolveCheckSet(checkSetQualifiedApiName)
+      .checks;
+    Integer recordCount = Math.min(normalizedCount(recordIds), scopeSize);
+    Integer calls = RecordHealthCheckResourcePlan.formulaCalls(
+      checks,
+      recordCount
+    );
+    Integer remaining = Math.max(
+      0,
+      RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET -
+      RecordHealthCheckFormulaEvaluator.callsUsed()
+    );
+    if (calls > remaining) {
+      throw new RecordHealthCheckResourcePlan.BudgetException(
+        'The explicit Batch scope requires ' +
+          calls +
+          ' FormulaEval calls, but only ' +
+          remaining +
+          ' remain.'
+      );
+    }
+    return submit(
+      checkSetQualifiedApiName,
+      recordIds,
+      publication,
+      scopeSize,
+      executionOrigin
+    );
+  }
+
+  private static Id submit(
+    String checkSetQualifiedApiName,
+    List<Id> recordIds,
+    RecordHealthCheckEventPublication publication,
+    Integer scopeSize,
+    RecordHealthCheckExecutionOrigin executionOrigin
+  ) {
     return Database.executeBatch(
       new RecordHealthCheckBatch(
         checkSetQualifiedApiName,
@@ -246,6 +301,28 @@ global with sharing class RecordHealthCheckBatch implements Database.Batchable<I
       ),
       scopeSize
     );
+  }
+
+  private static Integer defaultScopeSize(String checkSetQualifiedApiName) {
+    List<Record_Health_Check__mdt> checks = new RecordHealthCheckScopePlanner()
+      .resolveCheckSet(checkSetQualifiedApiName)
+      .checks;
+    return RecordHealthCheckResourcePlan.defaultAsyncScope(
+      checks,
+      DEFAULT_SCOPE_SIZE
+    );
+  }
+
+  private static Integer normalizedCount(List<Id> recordIds) {
+    Set<Id> uniqueIds = new Set<Id>();
+    if (recordIds != null) {
+      for (Id recordId : recordIds) {
+        if (recordId != null) {
+          uniqueIds.add(recordId);
+        }
+      }
+    }
+    return uniqueIds.size();
   }
 
   private static void validateScopeSize(Integer scopeSize) {

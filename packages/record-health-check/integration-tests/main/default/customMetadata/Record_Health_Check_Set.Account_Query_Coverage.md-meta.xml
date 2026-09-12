@@ -70,4 +70,16 @@
         <field>SummaryDisplay__c</field>
         <value xsi:type="xsd:string">BOTTOM</value>
     </values>
+    <values>
+        <field>CardHeadingDisplay__c</field>
+        <value xsi:type="xsd:string">TITLE_AND_SUBTITLE</value>
+    </values>
+    <values>
+        <field>PublishUserRunEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>ShowDiagnostics__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
 </CustomMetadata>

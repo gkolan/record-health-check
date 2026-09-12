@@ -320,32 +320,12 @@ public with sharing class RecordHealthCheckCurrencySupport {
     String query,
     String isoFieldPath
   ) {
-    if (
-      String.isBlank(isoFieldPath) ||
-      !hasConjunctiveEqualityFilter(query, isoFieldPath)
-    ) {
-      return null;
-    }
-    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(query);
-    Pattern equalityPattern = Pattern.compile(
-      '(?i)(?<![A-Za-z0-9_.])' +
-        isoFieldPath.replace('.', '\\.') +
-        '\\s*=\\s*\'\\s*\''
-    );
-    Set<String> literals = new Set<String>();
-    Matcher matcher = equalityPattern.matcher(masked);
-    while (matcher.find()) {
-      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) != 0) {
-        continue;
-      }
-      Integer openingQuote = masked.indexOf('\'', matcher.start());
-      Integer closingQuote = masked.indexOf('\'', openingQuote + 1);
-      String literal = query.substring(openingQuote + 1, closingQuote);
-      if (Pattern.matches('(?i)[A-Z]{3}', literal)) {
-        literals.add(literal.toUpperCase());
-      }
-    }
-    return literals.size() == 1 ? new List<String>(literals)[0] : null;
+    return String.isBlank(isoFieldPath)
+      ? null
+      : RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
+          query,
+          isoFieldPath
+        );
   }
 
   private static String currencyIsoFieldPathForValue(
@@ -407,27 +387,10 @@ public with sharing class RecordHealthCheckCurrencySupport {
     String query,
     String fieldPath
   ) {
-    if (
-      !RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(
+    return RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
         query,
         fieldPath
-      )
-    ) {
-      return false;
-    }
-    String masked = RecordHealthCheckSoqlTemplate.maskStringLiterals(query);
-    Matcher matcher = Pattern.compile(
-        '(?i)(?<![A-Za-z0-9_.])' +
-          fieldPath.replace('.', '\\.') +
-          '\\s*=\\s*\'\\s*\''
-      )
-      .matcher(masked);
-    while (matcher.find()) {
-      if (RecordHealthCheckSoqlTemplate.depthAt(masked, matcher.start()) == 0) {
-        return true;
-      }
-    }
-    return false;
+      ) != null;
   }
 
   @TestVisible

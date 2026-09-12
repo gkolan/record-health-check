@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Account Rows Scalar Beside Subquery</label>
+    <protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >Account_Row_Tokens_Positive</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Website Beside Contact Preview</value></values>
+    <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Proves that an outer scalar remains addressable when the same query also selects an opaque child relationship preview.</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+    <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT Id, Website, (SELECT Id FROM Contacts LIMIT 1) FROM Account WHERE Id = {!record.Id}</value></values>
+    <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >Website</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >IS_NOT_BLANK</value></values>
+    <values><field>DisplayFoundText__c</field><value
+      xsi:type="xsd:string"
+    >Website: {!rhcQuery.sourceRows[0].Website fallback="not supplied"}.</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Add a website before reviewing the contact preview.</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Could not evaluate the account website.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >55</value></values>
+    <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+</CustomMetadata>

@@ -2,7 +2,7 @@
 @IsTest
 private class RecordHealthCheckDefinitionLoaderTest {
   @IsTest
-  static void selectsOnlyFrameworkMaximumChecks() {
+  static void selectsNoChecksWhenSetExceedsFrameworkMaximum() {
     System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
       for (Integer index = 0; index < 30; index++) {
@@ -20,9 +20,9 @@ private class RecordHealthCheckDefinitionLoaderTest {
       Test.stopTest();
 
       Assert.areEqual(
-        RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS,
+        0,
         selected.size(),
-        'The run must remain capped at the framework maximum.'
+        'An oversized set must never become a partial run.'
       );
     }
   }
@@ -113,6 +113,82 @@ private class RecordHealthCheckDefinitionLoaderTest {
   }
 
   @IsTest
+  static void rejectsUnknownCardHeadingAtDefinitionBoundary() {
+    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+      new Map<String, Object>{
+        'IsActive__c' => true,
+        'ObjectApiName__c' => 'Account',
+        'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'CardRunMode__c' => 'RUN_ON_REQUEST',
+        'RunButtonDisplay__c' => 'LABEL_AND_ICON',
+        'CardHeadingDisplay__c' => ' TITLE_ONLY ',
+        'CardRevealMode__c' => 'ALL_AT_ONCE',
+        'CardTitle__c' => 'Invalid heading display',
+        'FoundExpectedDisplay__c' => 'ON_DEMAND'
+      }
+    );
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+
+    try {
+      RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
+        checkSet,
+        'Invalid_Heading_Display',
+        accountId
+      );
+      Assert.fail('A nonblank inexact Card Heading Display must be rejected.');
+    } catch (RecordHealthCheckConfigService.ConfigException expected) {
+      Assert.areEqual(
+        RecordHealthCheckConfigService.RC_INVALID_CONFIG,
+        expected.reasonCode
+      );
+      Assert.areEqual(
+        'Card Heading Display is not recognized. Choose TITLE_AND_SUBTITLE, TITLE_ONLY, or HIDE.',
+        expected.getMessage()
+      );
+    }
+  }
+
+  @IsTest
+  static void retainsRunButtonValidationPrecedence() {
+    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+      new Map<String, Object>{
+        'IsActive__c' => true,
+        'ObjectApiName__c' => 'Account',
+        'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'CardRunMode__c' => 'RUN_ON_REQUEST',
+        'RunButtonDisplay__c' => 'UNKNOWN',
+        'CardHeadingDisplay__c' => 'UNKNOWN',
+        'CardRevealMode__c' => 'ALL_AT_ONCE',
+        'CardTitle__c' => 'Invalid presentation',
+        'FoundExpectedDisplay__c' => 'ON_DEMAND'
+      }
+    );
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+
+    try {
+      RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
+        checkSet,
+        'Invalid_Presentation',
+        accountId
+      );
+      Assert.fail('Invalid presentation configuration must be rejected.');
+    } catch (RecordHealthCheckConfigService.ConfigException expected) {
+      Assert.isTrue(
+        expected.getMessage().startsWith('Run Button Display'),
+        'Run Button Display must retain its established first-failure precedence.'
+      );
+    }
+  }
+
+  @IsTest
   static void appliesDefinitionPresentationPolicies() {
     System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       List<String> inactiveLabels = RecordHealthCheckDefinitionLoader.inactiveCheckLabelsForDiagnostics(
@@ -181,6 +257,16 @@ private class RecordHealthCheckDefinitionLoaderTest {
         'TOP',
         RecordHealthCheckConstants.normalizedSummaryDisplay('TOP'),
         'The Above Checks API value should remain TOP.'
+      );
+      Assert.areEqual(
+        'TITLE_AND_SUBTITLE',
+        RecordHealthCheckConstants.normalizedCardHeadingDisplay('  '),
+        'A blank Card Heading Display should preserve the existing card.'
+      );
+      Assert.areEqual(
+        'TITLE_ONLY',
+        RecordHealthCheckConstants.normalizedCardHeadingDisplay('TITLE_ONLY'),
+        'An exact Card Heading Display should pass through unchanged.'
       );
     }
   }

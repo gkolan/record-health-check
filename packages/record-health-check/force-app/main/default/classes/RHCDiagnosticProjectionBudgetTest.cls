@@ -149,6 +149,28 @@ private class RHCDiagnosticProjectionBudgetTest {
     );
   }
 
+  @IsTest
+  static void terminalFailureUsesTheFailedPhaseAfterAnEarlierBegin() {
+    RecordHealthCheckExecutionTrace trace = new RecordHealthCheckExecutionTrace();
+    trace.begin('PLUGIN_RESOLVE');
+    trace.fail('PLUGIN_CAPACITY');
+    RecordHealthCheckInternalResult internal = new RecordHealthCheckInternalResult();
+    internal.reasonCode = 'PLUGIN_CAPACITY_EXCEEDED';
+    internal.executionTrace = trace;
+    RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
+    item.evaluation = new RecordHealthCheckEvaluationResult();
+    item.evaluation.checkQualifiedApiName = 'Capacity';
+    item.diagnosticSource = internal;
+
+    RecordHealthCheckDiagnosticEnvelope projected = RecordHealthCheckDiagnosticProjection.project(
+        new List<RecordHealthCheckResultItem>{ item }
+      )
+      .diagnostics[0];
+
+    Assert.areEqual('PLUGIN_CAPACITY', projected.phase);
+    Assert.areEqual('PLUGIN_CAPACITY_FAILED', projected.terminalFailure);
+  }
+
   private static RecordHealthCheckInternalResult evaluate(
     Account record,
     Record_Health_Check__mdt check,

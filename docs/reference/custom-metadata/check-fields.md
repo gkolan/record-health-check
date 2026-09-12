@@ -55,7 +55,7 @@ or Unable to Check rows.
 | [Developer Name](#developer-name-developername) | `DeveloperName` | Identity and execution |
 | [Label](#label-masterlabel) | `MasterLabel` | Identity and execution |
 | [Check Set](#check-set-record_health_check_set__c) | `Record_Health_Check_Set__c` | Identity and execution |
-| [Evaluation Order](#evaluation-order-evaluationorder__c) | `EvaluationOrder__c` | Identity and execution |
+| [Evaluation Order](#evaluation-order-evaluationorder__c) | `EvaluationOrder__c` | Identity and presentation |
 | [Active](#active-isactive__c) | `IsActive__c` | Identity and execution |
 | [Check Title](#check-title-checktitle__c) | `CheckTitle__c` | What users see |
 | [Check Description](#check-description-checkdescription__c) | `CheckDescription__c` | What users see |
@@ -127,11 +127,13 @@ For example, select your `Account_Readiness` Check Set for a Check that evaluate
 
 ### Evaluation Order (`EvaluationOrder__c`)
 
-Optional Number(4,0). The default is `100`. Checks with lower numbers run and appear first. When
-two Checks have the same number, Salesforce orders them by Developer Name.
+Optional Number(4,0). The default is `100`. Checks with lower numbers appear first. When two Checks
+have the same number, Salesforce orders them by Developer Name. Prerequisite references, not this
+field, determine dependency scheduling.
 
-Use values such as `10`, `20`, and `30` so a new Check can be inserted later. A prerequisite Check
-must have a lower Evaluation Order than the Check that depends on it.
+Use values such as `10`, `20`, and `30` so a new Check can be inserted later. Evaluation Order is
+presentation order. Prerequisites are scheduled from their dependency references even when they
+appear later.
 
 ### Active (`IsActive__c`)
 
@@ -290,9 +292,9 @@ so Checks created before this field existed keep their current behavior.
 | Setup choice | Stored value | Card behavior |
 | --- | --- | --- |
 | Automatic | `AUTOMATIC` | Found and Expected appear exactly as they do today. |
-| Found only | `FOUND_ONLY` | Only the Found value can appear. |
-| Expected only | `EXPECTED_ONLY` | Only the Expected value can appear. |
-| Hidden | `HIDDEN` | Neither value appears, inline or behind the caret. |
+| Show found only | `FOUND_ONLY` | Only the Found value can appear. |
+| Show expected only | `EXPECTED_ONLY` | Only the Expected value can appear. |
+| Hide | `HIDDEN` | Neither value appears, inline or behind the caret. |
 
 This setting filters what is eligible to appear. It does not force a value to appear when the Check
 Set's Found/Expected display placement would normally keep it hidden, and it applies to Formula,
@@ -303,26 +305,26 @@ comparison region, and the Found/Expected phrases in the row's accessible label.
 message, Fix Message, action link, status, severity, title, description, and summary pills are
 unaffected.
 
-**Hidden is not a security control.** The evaluation result still carries both values, and they
+**Hide is not a security control.** The evaluation result still carries both values, and they
 remain available to Apex, Flow, Platform Events, saved results, merge tokens, and authorized
 diagnostics. Use field-level security and sharing to protect data, never this setting.
 
-If you choose **Hidden** for a Check that has no failure message, Fix Message, or Action URL,
+If you choose **Hide** for a Check that has no failure message, Fix Message, or Action URL,
 validation reports a non-blocking warning: a failing Check would otherwise show the user a bare
 failure with no explanation. Evaluation still runs.
 
 ### Display: Value Format (`DisplayValueFormat__c`)
 
-Optional restricted picklist, default **Auto** (`AUTO`). It changes only how Found and Expected
+Optional restricted picklist, default **Automatic** (`AUTO`). It changes only how Found and Expected
 values appear; it never changes whether the Check passes.
 
 | Setup choice | Stored value | Example use |
 | --- | --- | --- |
-| Auto | `AUTO` | Let Record Health Check choose from the value type. |
+| Automatic | `AUTO` | Let Record Health Check choose from the value type. |
 | Number | `NUMBER` | Employee count |
 | Currency | `CURRENCY` | Annual Revenue |
 | Percent | `PERCENT` | A Salesforce Percent field |
-| Ratio as Percent | `RATIO_PERCENT` | Show `0.25` as `25%` |
+| Ratio as percent | `RATIO_PERCENT` | Show `0.25` as `25%` |
 | Checkbox | `BOOLEAN` | True or false |
 | Date | `DATE` | A date without time |
 | Date/Time | `DATETIME` | A date and time |
@@ -362,12 +364,12 @@ Optional Long Text Area(32,768) for Formula Checks. This formula supplies the Fo
 the card; it does not affect pass or fail. Leave it blank when the card does not need a Found value.
 
 Enter a formula evaluated on the current record. Fixed text uses double quotes, numbers are
-unquoted, and Boolean values use `TRUE` or `FALSE`. **Formula Result Type** declares the returned
-type.
+unquoted, and Boolean values use `TRUE` or `FALSE`. Record Health Check detects each display
+formula's return type automatically; **Formula Result Type** does not control it.
 
 Examples:
 
-| Formula | Formula Result Type | Displayed value |
+| Formula | Detected result type | Displayed value |
 | --- | --- | --- |
 | `"Hello"` | **Text** | `Hello` |
 | `Name` | **Text** | The current record's Name |
@@ -388,7 +390,7 @@ based on Pass Condition.
 
 Examples:
 
-| Formula | Formula Result Type | Displayed value |
+| Formula | Detected result type | Displayed value |
 | --- | --- | --- |
 | `"Complete"` | **Text** | `Complete` |
 | `BillingCountry` | **Text** | The current Billing Country |
@@ -402,27 +404,25 @@ Examples:
 
 ### Formula Result Type (`FormulaResultType__c`)
 
-Optional restricted picklist. It declares the return type of the formulas this Check **calculates
-with**: the Pass Condition Formula, the Expected Value (Formula), and the Value to find in the list
-(formula). A Pass Condition Formula returns a checkbox value, so **Checkbox** is the usual choice
-for a Formula Check.
+Restricted picklist with an **Automatic** default. It declares the return type only when a Query
+Check calculates a comparison operand from **Expected Value (Formula)** or **Value to find in the
+list (formula)**. An explicit type evaluates that operand once; **Automatic** can probe the
+supported types.
 
 | Setup choice | Stored value |
 | --- | --- |
-| Auto | `AUTO` (default) |
+| Automatic | `AUTO` (default) |
 | Checkbox | `BOOLEAN` |
 | Number | `NUMBER` |
 | Date | `DATE` |
 | Date/Time | `DATETIME` |
 | Text | `TEXT` |
 
-It does **not** apply to Display: Found Formula or Display: Expected Formula. Those show a value
-rather than decide an outcome, and they usually return text even when the Pass Condition Formula
-returns a checkbox. Each display formula resolves its own type, so naming the correct type here can
-never blank the value shown on the card.
-
-Leave **Auto** when you are unsure. Choosing the exact type can reduce formula evaluations, but every
-formula this setting applies to must return that type.
+It does **not** apply to Pass Condition or Applicability formulas, which must return Checkbox, or to
+Display: Found and Display: Expected formulas, which detect their own result type. For a Formula,
+Compare Two Queries, or Apex Check, leave the portable default **Automatic**. For a Query Check,
+leave **Automatic** unless an administrator has verified the exact result type of every configured
+comparison-operand formula that uses this shared setting.
 
 
 ## 5. Query sources (`QUERY` / `COMPARE_TWO_QUERIES`)
@@ -724,11 +724,11 @@ least one record.
 ### Prerequisite Check (`PrerequisiteCheck__c`)
 
 Optional Text(255). Enter the **Developer Name** shown in Setup, not the Check Title, of another
-active Check in the same Check Set. That Check must have a lower Evaluation Order and must return
-`PASS` before this Check can run.
+active Check in the same Check Set. That Check must return `PASS` before this Check can run. It may
+have an earlier or later Evaluation Order; dependency scheduling runs it first.
 
 During a complete Check Set run, any prerequisite result other than `PASS` makes this Check
-`SKIPPED`. A missing, inactive, misspelled, later-ordered, or omitted prerequisite is also skipped
+`SKIPPED`. A missing, inactive, misspelled, or omitted prerequisite is also skipped
 with the Check Set dependency result; run Check Set validation to find the configuration error.
 
 A single-Check request evaluates only the selected Check. Lightning single-Check, Flow **Run Record

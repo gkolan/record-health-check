@@ -21,16 +21,16 @@ values from Formula and Query Checks.
 ## Choosing a format
 
 **Display: Value Format** (`DisplayValueFormat__c`) on the Check sets how both Found and Expected are
-written. Leave it on **Auto** and Record Health Check chooses the format from the field definition and
+written. Leave it on **Automatic** and Record Health Check chooses the format from the field definition and
 value type. Name a format when the business meaning requires a specific presentation.
 
 | Format | What it does | Example |
 | --- | --- | --- |
-| Auto | Works the format out from the field's definition in Setup, then the value's type | a Currency field reads as money; see [Auto: Typed values](#auto-typed-values) |
+| Automatic | Works the format out from the field's definition in Setup, then the value's type | a Currency field reads as money; see [Automatic: Typed values](#automatic-typed-values) |
 | Number | Groups digits for the running user's locale | `2500` → `2,500` |
 | Currency | Money with the currency symbol and its minor units | `70000` → `$70,000.00` |
 | Percent | The number followed by a percent sign | `12.5` → `12.5%` |
-| Ratio as Percent | Multiplies a ratio by 100 for display, then adds a percent sign | `0.75` → `75%` |
+| Ratio as percent | Multiplies a ratio by 100 for display, then adds a percent sign | `0.75` → `75%` |
 | Checkbox | Yes or No | `true` or `1` → `Yes`; `false` or `0` → `No` |
 | Date | Locale date | `2026-07-04` → `7/4/2026` |
 | Date/Time | Locale date and time | a typed July 4, 2026 5:30 PM value → `7/4/2026, 5:30 PM` for an English (US) user |
@@ -72,7 +72,7 @@ Naming Number on a digit string is a deliberate choice, so `90210` becomes `90,2
 and other codes that must keep their exact spelling.
 
 Naming Checkbox also opts numeric Boolean values into checkbox wording: typed or text `1` renders
-as `Yes`, and `0` renders as `No`. On Auto, text `1` and `0` remain unchanged because they may be
+as `Yes`, and `0` renders as `No`. On Automatic, text `1` and `0` remain unchanged because they may be
 counts, codes, or versions rather than Boolean values.
 
 ## Blank and empty values
@@ -84,9 +84,9 @@ counts, codes, or versions rather than Boolean values.
 
 Values are not wrapped in quotes. The card chip already separates them from surrounding prose.
 
-## Auto: The field's own definition
+## Automatic: The field's own definition
 
-On **Auto**, these Salesforce field types determine their own format:
+On **Automatic**, these Salesforce field types determine their own format:
 
 | Field type in Setup | Renders as | Example |
 | --- | --- | --- |
@@ -109,10 +109,10 @@ it uses the type checks below. Name Currency on the Check when an aggregate shou
 
 On a list-membership check the value under test comes from **Find in List Formula**, not a query row,
 so the field definition is read from the record the card is on. A Find in List Formula that names a
-field, such as `AnnualRevenue`, therefore reads as money on Auto. A longer expression has no single
+field, such as `AnnualRevenue`, therefore reads as money on Automatic. A longer expression has no single
 field behind it, so it stays on the type checks; name a format on the Check when one is needed.
 
-## Auto: Typed values
+## Automatic: Typed values
 
 When there is no field definition to read and Record Health Check still has the Apex data type, it
 formats from that type:
@@ -136,7 +136,7 @@ Only values that keep a numeric Apex type are grouped. A digit-only string is le
 codes, years, and Ids with leading zeroes keep their exact spelling. To group one anyway, set
 Display: Value Format to Number.
 
-## Auto: Text values without a retained type
+## Automatic: Text values without a retained type
 
 Fixed Expected Values from Custom Metadata and other values stored as text are recognized in this
 order:
@@ -152,7 +152,7 @@ order:
 A digit-only string such as `500000` stays `500000` when Found is also text. When Found is a typed
 number and Expected is a numeric string from Custom Metadata, Expected is parsed as a number so both
 sides use the same grouping (for example Expected `100000` becomes `100,000` next to Found
-`100,000`). This alignment only happens on Auto; a named format already renders both sides the same
+`100,000`). This alignment only happens on Automatic; a named format already renders both sides the same
 way.
 
 Alignment keeps the same leading-zero guard the Number format uses: an Expected value written
@@ -244,10 +244,10 @@ entry carries the currency of the row it came from.
   [merge-token resolution](../merge-syntax/README.md), not `formatValue`.
 - A raw record token can opt into this catalog inline, for example
   `{!record.Amount format="CURRENCY" fallback="Not available"}`.
-- **Formula Result Type** (`FormulaResultType__c`) is a different setting. It declares the type a
-  formula returns so the Check can calculate with it; Display: Value Format only decides how the
-  result is written. A Formula Check can set Formula Result Type to Number and Display: Value Format
-  to Currency at the same time.
+- **Formula Result Type** (`FormulaResultType__c`) is a different Query-operand setting. It declares
+  the return type of Expected Value (Formula) and Value to find in the list (formula); it does not
+  control display formulas. Display: Value Format only decides how the resolved Found or Expected
+  value is written.
 
 Prefer returning the typed amount from a display formula and choosing **Currency** here. Building
 text such as `"$" & TEXT(AnnualRevenue)` inside the formula freezes one symbol and number style,

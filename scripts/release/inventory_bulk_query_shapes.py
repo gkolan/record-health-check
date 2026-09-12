@@ -103,21 +103,142 @@ def select_fields(soql):
     return [part.strip() for part in match.group(1).split(",") if part.strip()]
 
 
+def mask_noncode(value):
+    """Preserve offsets while hiding quoted literals and SOQL comments."""
+    masked = list(value)
+    index = 0
+    while index < len(value):
+        if value.startswith("/*", index):
+            end = value.find("*/", index + 2)
+            end = len(value) if end < 0 else end + 2
+            masked[index:end] = " " * (end - index)
+            index = end
+            continue
+        if value.startswith("//", index):
+            end = value.find("\n", index + 2)
+            end = len(value) if end < 0 else end
+            masked[index:end] = " " * (end - index)
+            index = end
+            continue
+        if value[index] == "'":
+            start = index
+            index += 1
+            while index < len(value):
+                if value[index] == "\\":
+                    index += 2
+                    continue
+                if value[index] == "'":
+                    index += 1
+                    break
+                index += 1
+            masked[start:index] = " " * (index - start)
+            continue
+        index += 1
+    return "".join(masked)
+
+
+def balanced(value):
+    depth = 0
+    for character in value:
+        if character == "(":
+            depth += 1
+        elif character == ")":
+            depth -= 1
+            if depth < 0:
+                return False
+    return depth == 0
+
+
+def strip_wrapping_parentheses(value):
+    value = value.strip()
+    while value.startswith("(") and value.endswith(")"):
+        depth = 0
+        wraps_all = True
+        for index, character in enumerate(value):
+            if character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+                if depth == 0 and index != len(value) - 1:
+                    wraps_all = False
+                    break
+        if not wraps_all or depth != 0:
+            break
+        value = value[1:-1].strip()
+    return value
+
+
+def split_top_level_and(value):
+    parts = []
+    start = 0
+    depth = 0
+    for match in re.finditer(r"(?i)\bAND\b", value):
+        for character in value[start : match.start()]:
+            if character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+        if depth == 0:
+            parts.append(value[start : match.start()])
+            start = match.end()
+    parts.append(value[start:])
+    return parts
+
+
+def outer_where_expression(masked):
+    depth = 0
+    where_end = None
+    for match in re.finditer(
+        r"(?i)\bWHERE\b|\b(?:GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT|OFFSET|WITH|FOR)\b|[()]",
+        masked,
+    ):
+        token = match.group(0)
+        if token == "(":
+            depth += 1
+        elif token == ")":
+            depth -= 1
+        elif depth == 0 and token.upper() == "WHERE" and where_end is None:
+            where_end = match.end()
+        elif depth == 0 and where_end is not None:
+            return masked[where_end : match.start()]
+    return None if where_end is None else masked[where_end:]
+
+
+def direct_correlation(soql):
+    masked = mask_noncode(soql)
+    if not balanced(masked):
+        return None, masked, []
+    tokens = list(RE_TOKEN.finditer(masked))
+    if len(tokens) != 1:
+        return None, masked, tokens
+    where = outer_where_expression(masked)
+    if where is None:
+        return None, masked, tokens
+    equality = re.compile(
+        r"^([A-Za-z_][A-Za-z0-9_.]*)\s*=\s*"
+        r"\{!record\.([A-Za-z0-9_.]+)(?:\s+[^{}]*?)?\}$",
+        re.I,
+    )
+    for conjunct in split_top_level_and(strip_wrapping_parentheses(where)):
+        candidate = strip_wrapping_parentheses(conjunct)
+        match = equality.fullmatch(candidate)
+        if match:
+            return (match.group(1), match.group(2)), masked, tokens
+    return None, masked, tokens
+
+
 def classify(soql):
     """Return (strategy, correlation, note) for one authored template."""
-    tokens = set(RE_TOKEN.findall(soql))
-    equalities = RE_EQ_TOKEN.findall(soql)
-    negations = RE_NEQ_TOKEN.findall(soql)
-    limit = RE_LIMIT.search(soql)
-    order_by = RE_ORDER_BY.search(soql)
-    order_clause = re.search(r"(?is)\bORDER\s+BY\s+(.+?)(?:\bLIMIT\b|$)", soql)
+    direct, masked, tokens = direct_correlation(soql)
+    limit = RE_LIMIT.search(masked)
+    order_by = RE_ORDER_BY.search(masked)
+    order_clause = re.search(r"(?is)\bORDER\s+BY\s+(.+?)(?:\bLIMIT\b|$)", masked)
 
-    # A negated correlation ("every OTHER record") has no safe bounded bulk form.
-    if negations:
+    if not tokens and RE_TOKEN.search(soql):
         return (
             UNCLASSIFIED,
             "-",
-            "Negated record correlation is unsupported",
+            "Record token text inside a literal is not executable correlation",
         )
 
     if not tokens:
@@ -127,6 +248,9 @@ def classify(soql):
             "Same rows for every record; evaluate once and reuse",
         )
 
+    if len(tokens) != 1:
+        return (UNCLASSIFIED, "-", "Exactly one executable record token is required")
+
     if limit and order_clause and "," in order_clause.group(1):
         return (
             UNCLASSIFIED,
@@ -134,15 +258,14 @@ def classify(soql):
             "Multi-field ORDER BY with LIMIT has no supported bulk form",
         )
 
-    if not equalities:
-        return (UNCLASSIFIED, "-", "Record token present but no equality correlation found")
+    if direct is None:
+        return (
+            UNCLASSIFIED,
+            "-",
+            "Record equality must be a direct conjunct of the outer WHERE expression",
+        )
 
-    # A template may correlate on more than one predicate; the Id token wins because
-    # it is what ties a row to the evaluated record.
-    field, token = next(
-        ((f, t) for f, t in equalities if t == "Id"),
-        equalities[0],
-    )
+    field, token = direct
     correlation = f"{field} = record.{token}"
 
     # ORDER BY + LIMIT is a per-record pick. A global LIMIT is not equivalent, so
@@ -156,16 +279,6 @@ def classify(soql):
             )
         ordered_field = order_by.group(1)
         selected = select_fields(soql)
-        if (
-            len(selected) == 1
-            and selected[0].lower() == ordered_field.lower()
-            and "." not in selected[0]
-        ):
-            return (
-                ORDERED_PICK_AGGREGATE,
-                correlation,
-                f"MIN/MAX({ordered_field}) GROUP BY {field}",
-            )
         return (
             ORDERED_PICK_IN_MEMORY,
             correlation,
@@ -308,7 +421,7 @@ SELF_TEST_CASES = (
     (
         "SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} "
         "ORDER BY CloseDate ASC LIMIT 1",
-        ORDERED_PICK_AGGREGATE,
+        ORDERED_PICK_IN_MEMORY,
     ),
     (
         "SELECT Probability FROM Opportunity WHERE AccountId = {!record.Id} "
@@ -371,7 +484,32 @@ def main():
         action="store_true",
         help="verify the classifier accepts each supported shape and rejects the rest",
     )
+    parser.add_argument(
+        "--classify-corpus",
+        metavar="PATH",
+        help="classify a shared JSON corpus and print normalized result JSON",
+    )
     args = parser.parse_args()
+
+    if args.classify_corpus:
+        corpus = json.loads(Path(args.classify_corpus).read_text(encoding="utf-8"))
+        result = []
+        for case in corpus["cases"]:
+            strategy, correlation, _ = classify(case["query"])
+            supported = strategy != UNCLASSIFIED
+            result.append(
+                {
+                    "id": case["id"],
+                    "classification": strategy,
+                    "supported": supported,
+                    "reason": None if supported else "UNSUPPORTED_BULK_QUERY_SHAPE",
+                    "requiredConjunct": None
+                    if correlation == "-"
+                    else correlation.replace("record.", "{!record.") + "}",
+                }
+            )
+        print(json.dumps(result))
+        return 0
 
     if args.self_test:
         return self_test()

@@ -41,4 +41,32 @@
       xsi:type="xsd:string"
     >Unable to evaluate is the expected result here: this fixture's Apex class returns no result for the record. Open Diagnostics on this card to read the plugin-result-missing detail the framework recorded.</value>
     </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
 </CustomMetadata>

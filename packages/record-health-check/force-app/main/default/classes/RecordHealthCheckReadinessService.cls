@@ -20,7 +20,7 @@ public with sharing class RecordHealthCheckReadinessService {
     }
 
     Datetime verifiedAt = System.now();
-    Map<String, Integer> counts = resultCounts(response.results);
+    Map<String, Integer> counts = resultCounts(response.results, checkIdentity);
     Record_Health_Check_Readiness__c receipt = new Record_Health_Check_Readiness__c(
       Fingerprint__c = response.definitionFingerprint,
       CheckIdentity__c = checkIdentity,
@@ -41,10 +41,10 @@ public with sharing class RecordHealthCheckReadinessService {
       ScopeDigest__c = scopeDigest(request.recordIds)
     );
     try {
-      Database.SaveResult saved = Database.insert(
-        receipt,
-        AccessLevel.USER_MODE
-      );
+      // Receipt fields are intentionally read-only to administrators. The
+      // authorized preview service is the only writer.
+      // code-analyzer-suppress-next-line ApexCRUDViolation: The authorized service writes server-owned immutable receipt evidence that administrators cannot forge through package permissions.
+      Database.SaveResult saved = Database.insert(receipt, false);
       if (!saved.isSuccess()) {
         return notSaved(outcome);
       }
@@ -61,13 +61,19 @@ public with sharing class RecordHealthCheckReadinessService {
   public static void decorate(
     RecordHealthCheckPreviewResponse response,
     Record_Health_Check__mdt draft,
-    String setIdentity
+    String setIdentity,
+    List<Id> recordIds
   ) {
-    String checkIdentity = String.isBlank(draft.QualifiedApiName)
-      ? draft.DeveloperName
-      : draft.QualifiedApiName;
+    String checkIdentity = String.isBlank(draft.DeveloperName)
+      ? draft.QualifiedApiName
+      : draft.DeveloperName;
+    Set<String> checkIdentities = new Set<String>{ checkIdentity };
+    if (String.isNotBlank(draft.QualifiedApiName)) {
+      checkIdentities.add(draft.QualifiedApiName);
+    }
     String orgIdentity = UserInfo.getOrganizationId();
     Id actorId = UserInfo.getUserId();
+    String currentScopeDigest = scopeDigest(recordIds);
     List<Record_Health_Check_Readiness__c> receipts = [
       SELECT
         Fingerprint__c,
@@ -79,21 +85,23 @@ public with sharing class RecordHealthCheckReadinessService {
         FailCount__c,
         UnableCount__c,
         ErrorCount__c,
-        CapabilitiesJson__c
+        CapabilitiesJson__c,
+        ScopeDigest__c
       FROM Record_Health_Check_Readiness__c
       WHERE
-        CheckIdentity__c = :checkIdentity
+        CheckIdentity__c IN :checkIdentities
         AND SetIdentity__c = :setIdentity
         AND Actor__c = :actorId
         AND OrgIdentity__c = :orgIdentity
         AND Fingerprint__c = :response.definitionFingerprint
+        AND ScopeDigest__c = :currentScopeDigest
       WITH USER_MODE
       ORDER BY VerifiedAt__c DESC
       LIMIT 200
     ];
     Datetime nowAt = System.now();
     response.readinessState = RecordHealthCheckReadinessState.determine(
-      draft.IsActive__c,
+      false,
       receipts,
       response.definitionFingerprint,
       nowAt,
@@ -150,7 +158,8 @@ public with sharing class RecordHealthCheckReadinessService {
   }
 
   private static Map<String, Integer> resultCounts(
-    List<RecordHealthCheckResultItem> results
+    List<RecordHealthCheckResultItem> results,
+    String checkIdentity
   ) {
     Map<String, Integer> counts = new Map<String, Integer>{
       'PASS' => 0,
@@ -160,10 +169,14 @@ public with sharing class RecordHealthCheckReadinessService {
       'ERROR' => 0
     };
     for (RecordHealthCheckResultItem item : results) {
-      String status = item == null ||
-        item.evaluation == null
-        ? 'ERROR'
-        : item.evaluation.status;
+      if (item == null || item.evaluation == null) {
+        counts.put('ERROR', counts.get('ERROR') + 1);
+        continue;
+      }
+      if (!isDraftResult(item, checkIdentity)) {
+        continue;
+      }
+      String status = item.evaluation.status;
       if (counts.containsKey(status)) {
         counts.put(status, counts.get(status) + 1);
       }
@@ -171,9 +184,19 @@ public with sharing class RecordHealthCheckReadinessService {
     return counts;
   }
 
+  private static Boolean isDraftResult(
+    RecordHealthCheckResultItem item,
+    String checkIdentity
+  ) {
+    String resultIdentity = item?.evaluation?.checkQualifiedApiName;
+    return String.isNotBlank(resultIdentity) &&
+      (resultIdentity == checkIdentity ||
+      resultIdentity.endsWith('__' + checkIdentity));
+  }
+
   private static String scopeDigest(List<Id> recordIds) {
     List<String> normalized = new List<String>();
-    for (Id recordId : recordIds) {
+    for (Id recordId : recordIds == null ? new List<Id>() : recordIds) {
       normalized.add(String.valueOf(recordId));
     }
     normalized.sort();

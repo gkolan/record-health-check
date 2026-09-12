@@ -52,8 +52,8 @@ result without blocking record save or changing Account data.
 | **Object** | `Account` | Makes the Check Set available on Account pages |
 | **Card Title** | Account Readiness | Tells users what the card is reviewing |
 | **When Checks Run** | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
-| **Summary Display** | **Below Checks** | Places the completed result summary after the Check rows |
-| **Run Button Display** | **Label and icon** | Keeps the standard, discoverable Run and Rerun action |
+| **Summary Display** | **Show below checks** | Places the completed result summary after the Check rows |
+| **Run Button Display** | **Show label and icon** | Keeps the standard, discoverable Run and Rerun action |
 | **Run Button Label** | Run | Names the initial action |
 | **Rerun Button Label** | Rerun | Names the action after results appear |
 | **Run Button Icon** | `utility:play` | Uses a standard Lightning icon |

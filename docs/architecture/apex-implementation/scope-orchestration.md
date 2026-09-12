@@ -135,6 +135,36 @@ Changes a validated SOQL template so one query can serve all requested record ID
 the condition configured by the Check author. An unsupported query shape is rejected instead of
 falling back to a query inside a record loop.
 
+### `RecordHealthCheckBulkQueryShape`
+
+**Role:** Recognize the one record-token equality that can safely drive a scope-wide query rewrite.
+
+**Type:** Parsing service · `public with sharing`
+
+Masks quoted values, isolates the outer `WHERE` expression, and accepts the correlation only when it
+is a direct `AND` conjunct. Tokens under `OR`, `NOT`, a subquery, or a second executable occurrence
+leave the query unclassified so execution fails before dynamic SOQL runs.
+
+### `RecordHealthCheckResourcePlan`
+
+**Role:** Calculate formula-call sizing and check savepoint capacity before work starts.
+
+**Type:** Admission service · `public with sharing`
+
+Computes conservative Formula Evaluation calls for a record scope, selects the largest safe default
+Batch scope, and verifies that a plugin hook has capacity for its savepoint, possible rollback, and
+release. A shortage raises `TRANSACTION_BUDGET_EXCEEDED` before the hook is invoked.
+
+### `RecordHealthCheckPrerequisiteEligibility`
+
+**Role:** Select the records allowed to reach a Check's applicability phase.
+
+**Type:** Coordination service · `public with sharing`
+
+Keeps inaccessible records and records blocked by a failed prerequisite out of formula and query
+applicability work. It returns the eligible IDs, their authorized record map, and the already-decided
+results so the pipeline can reassemble output in the original request order.
+
 ### `RecordHealthCheckScopeResultSupport`
 
 **Role:** Convert each internal result into the response returned to Apex, Flow, or Lightning.

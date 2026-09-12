@@ -29,8 +29,10 @@ public class RecordHealthCheckInternalResult {
   // read them, and nothing may retain them past this transaction.
   public transient List<SObject> querySourceRows;
   public transient List<SObject> queryComparisonRows;
-  /** Transaction-local structured presentation projected only to the card. */
+  /** Transaction-local structured presentation projected only in display mode. */
   public transient RecordHealthCheckDisplayContent displayContent;
+  /** Detached optional presentation returned by an Apex display plugin. */
+  public transient RecordHealthCheckDisplayOverride presentationOverride;
   /** Server-only typed evidence awaiting authorized card projection. */
   public transient RecordHealthCheckEvidence evidence;
   /** Validated card-only evidence projection. */

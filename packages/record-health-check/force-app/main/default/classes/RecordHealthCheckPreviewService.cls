@@ -72,7 +72,8 @@ global with sharing class RecordHealthCheckPreviewService {
     RecordHealthCheckReadinessService.decorate(
       response,
       draft,
-      checkSet.QualifiedApiName
+      checkSet.QualifiedApiName,
+      request.recordIds
     );
     return response;
   }
@@ -300,6 +301,7 @@ global with sharing class RecordHealthCheckPreviewService {
       finding.offendingToken = issue.offendingToken;
       finding.startOffset = issue.startOffset;
       finding.endOffset = issue.endOffset;
+      finding.diagnosticDetail = issue.diagnosticDetail;
       response.findings.add(finding);
     }
   }
@@ -397,9 +399,9 @@ global with sharing class RecordHealthCheckPreviewService {
   }
 
   private static String identityOf(Record_Health_Check__mdt draft) {
-    return String.isBlank(draft.QualifiedApiName)
-      ? draft.DeveloperName
-      : draft.QualifiedApiName;
+    return String.isBlank(draft.DeveloperName)
+      ? draft.QualifiedApiName
+      : draft.DeveloperName;
   }
 
   /** Invalid or unauthorized detached preview. */

@@ -14,8 +14,9 @@ This page lists the tokens available in Check configuration.
 >   For Action URL patterns, use [Configure action links](../../build-checks/add-fix-link.md).
 
 A merge token is a placeholder in a failure message, Fix Message, Action Label, Action URL, Found
-or Expected display text, or SOQL template. When the Check runs, Record Health Check replaces the
-placeholder with a live value from the current record, Check, Check Set, result, or run.
+or Expected display text, or SOQL template. An inline-link token adds one safe link inside supported
+display text. When the Check runs, Record Health Check replaces the placeholders with live values
+from the current record, Check, Check Set, result, or run.
 
 Every merge token has two parts separated by a period:
 
@@ -99,6 +100,40 @@ Empty tokens behave differently in display text (including Action Label), Action
 | Action URL | **Action URL** on a Check | `record`, `rhcCheck`, `rhcSet`, `rhcRun`, `rhcQuery` (result tokens are not allowed); each inserted value is URL-encoded before the URL safety check |
 | SOQL | Source Query, Comparison Query, and applicability count queries | `record` only |
 
+## Inline links inside display text
+
+Record Health Check 2.0.10 can place a link inside **Message When Failed**, **Message When Unable To
+Evaluate**, **Message When Not Applicable**, **Fix Message**, **Display: Found Text**, and **Display:
+Expected Text**. Use the exact `link` token with both required attributes:
+
+```text
+Review {!record.Name fallback="this record"}. {!link label="Open record" href="/lightning/r/Account/{!record.Id}/view"}
+```
+
+`label` and `href` may appear in either order. A normal value token can appear inside either quoted
+attribute. Escape a literal double quote as `\"` and a literal backslash as `\\`. Do not nest one
+inline link inside another.
+
+Inline links are not accepted in **Action Label**, **Action URL**, SOQL, or formula fields. Use
+**Action Label** and **Action URL** for one primary failure action. Use an inline link when the link
+belongs inside explanatory text or when a display value needs more than one contextual destination.
+
+The destination must be either:
+
+- a same-org path beginning with `/`; or
+- an absolute `https://` URL with a fixed host.
+
+A merge token can supply a path segment, query value, or fragment, but it cannot supply the URL's
+scheme, host, or port. Protocol-relative URLs, credentials in the authority, unsafe ports, malformed
+percent encoding, control characters, and non-HTTPS external schemes are rejected. If a destination
+is unsafe or a required value is missing, the card keeps the readable label as plain text and omits
+the link.
+
+One field supports at most 100 inline links. A label and the completed URL may each contain at most
+2,000 characters. The complete structured display is also subject to the 1,000-node, 20,000-visible-
+character, 64 KiB per Check field, and 256 KiB response limits. Resolved record values remain text;
+Record Health Check never reparses them as new link markup.
+
 ## Value sources and properties
 
 | First part | Value source | Allowed property after the period |
@@ -136,12 +171,13 @@ whatever the Check's own query returned, so querying Contact makes the contacts 
 
 ```text
 Source Query:  SELECT Id, LastName, Email, Account.Name FROM Contact
-               WHERE AccountId = {!record.Id} ORDER BY Id
+               WHERE AccountId = {!record.Id} ORDER BY CreatedDate DESC
 Message:       Second contact is {!rhcQuery.sourceRows[1].Email fallback="not listed"}
 ```
 
-A subquery on the parent, such as `SELECT Id, (SELECT Email FROM Contacts) FROM Account`, does not
-work and is refused when a row token is used with it.
+A child subquery is opaque to row tokens, but it does not hide scalar fields selected beside it.
+For example, `SELECT Id, Website, (SELECT Email FROM Contacts) FROM Account` permits a token for
+`Website`; it does not permit a token for the child `Email` values.
 
 ### What a Check must satisfy
 
@@ -153,14 +189,14 @@ a blank value. Custom Metadata has no save-time hook, so saving a Check does not
 | --- | --- |
 | The Check runs a query | Formula and Apex Checks have no rows |
 | The field is in the `SELECT` list | Selecting `Id` does not authorize `Name`, and selecting `Owner.Name` does not authorize `Owner.Email` |
-| The query has an `ORDER BY` naming `Id` | An indexed row only means something if the query returns rows in the same order every time |
+| A multi-row query has an explicit `ORDER BY` | The author chooses what “first” means, such as newest by `CreatedDate DESC`; tied rows follow Salesforce's native tie behavior |
 | The row index is within reach | It must be lower than the query's own `LIMIT`, the Check's Max Query Rows, or the single row a One Result Check returns |
 | A `comparisonRows` token has a Comparison Query | Otherwise the Check produces no comparison rows |
 | A currency-formatted amount has its currency | In a multi-currency org, select `CurrencyIsoCode` beside the amount |
 
-Two shapes need less. An ungrouped aggregate such as `SELECT COUNT(Id) total FROM Contact` returns
-exactly one row, so it needs no `ORDER BY` and index 0 is always addressable. A row count reads no
-column and no order, so it needs neither.
+Three shapes need less. An ungrouped aggregate such as `SELECT COUNT(Id) total FROM Contact`
+returns exactly one row, and `WHERE Id = {!record.Id}` can return at most one record, so index 0 is
+addressable without `ORDER BY`. A row count reads no column and no order, so it needs neither.
 
 `SELECT COUNT()` is the exception in the other direction: it returns one row holding the total, so
 `sourceRowCount` there would always be 1. Use `{!rhcResult.foundValue}` for the number counted, or
@@ -175,9 +211,10 @@ segment to a URL, and never becomes a link inside a message.
 
 ### What it costs
 
-A query that only needs `ORDER BY Id` keeps working in list views and batch runs. Ordering by
-anything else, or using `LIMIT` above 1, means the Check runs one record at a time; Setup reports
-that separately on the Check.
+Correlated queries with an explicit `ORDER BY` and numeric `LIMIT` keep their per-record meaning in
+list views and batch runs. Record Health Check executes one scope query, preserves the authored
+multi-key order, and keeps up to that many rows for each record. The existing scope row budget
+still applies to the raw combined result.
 
 The raw query rows and unused columns stay transient on the server and are never serialized on the
 result or published in an event. A field selected by a token is intentionally copied into the

@@ -450,6 +450,7 @@ List<Opportunity> builderDeals = new List<Opportunity>{
     Name = 'RHC Builder Ready Commit',
     AccountId = builderReady.Id,
     StageName = 'Negotiation/Review',
+    ForecastCategoryName = 'Commit',
     Amount = 50000,
     CloseDate = Date.today().addDays(45),
     NextStep = 'Complete final review.',

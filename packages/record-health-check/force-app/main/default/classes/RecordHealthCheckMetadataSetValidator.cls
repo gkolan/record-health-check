@@ -8,6 +8,7 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
   private static final Set<String> VALID_SUMMARY_DISPLAYS = RecordHealthCheckConstants.validSummaryDisplays;
   private static final Set<String> VALID_TRIGGER_MODES = RecordHealthCheckConstants.validTriggerModes;
   private static final Set<String> VALID_RUN_BUTTON_DISPLAYS = RecordHealthCheckConstants.validRunButtonDisplays;
+  private static final Set<String> VALID_CARD_HEADING_DISPLAYS = RecordHealthCheckConstants.validCardHeadingDisplays;
   private static final Set<String> VALID_REVEAL_MODES = RecordHealthCheckConstants.validRevealModes;
   private static final Set<String> VALID_COMPARISON_DISPLAYS = RecordHealthCheckConstants.validComparisonDisplays;
 
@@ -157,6 +158,21 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
           'PublishUserRunEvent__c',
           'Publish User Run Event is enabled, but a hidden automatic card has no in-card Run or Rerun action. Page refreshes do not publish; use a visible action or a deliberate Apex or Flow invocation.',
           'USER_RUN_PUBLICATION_UNREACHABLE'
+        )
+      );
+    }
+
+    String cardHeadingDisplay = RecordHealthCheckConstants.normalizedCardHeadingDisplay(
+      cs.CardHeadingDisplay__c
+    );
+    if (!VALID_CARD_HEADING_DISPLAYS.contains(cardHeadingDisplay)) {
+      issues.add(
+        new RecordHealthCheckMetadataValidator.ValidationIssue(
+          'ERROR',
+          cs.DeveloperName,
+          'CardHeadingDisplay__c',
+          'Card Heading Display is not recognized. Choose TITLE_AND_SUBTITLE, TITLE_ONLY, or HIDE.',
+          'INVALID_CONFIG'
         )
       );
     }

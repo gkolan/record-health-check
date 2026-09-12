@@ -98,10 +98,12 @@ export function normalizeResult(result, check) {
           result.display?.foundDisplayValue ??
           result.evaluation.found?.storedValue ??
           null,
-        expectedValue:
-          result.display?.expectedDisplayValue ??
-          result.evaluation.expected?.storedValue ??
-          null,
+        // A display projection is authoritative for the card. In particular,
+        // an explicit null can be a server-side redaction and must never fall
+        // through to the machine-readable evaluation operand.
+        expectedValue: result.display
+          ? (result.display.expectedDisplayValue ?? null)
+          : (result.evaluation.expected?.storedValue ?? null),
         expectedValueLabel: result.display?.expectedValueLabel,
         actualDisplayFormat: result.display?.foundDisplayFormat,
         expectedDisplayFormat: result.display?.expectedDisplayFormat,

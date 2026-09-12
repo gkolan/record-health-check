@@ -150,30 +150,6 @@ private class RHCSubscriberFormulaSpecTest {
   }
 
   @IsTest
-  static void declaredReturnTypeReachesCompiler() {
-    CapturingCompiler compiler = new CapturingCompiler();
-    RecordHealthCheckFormulaPlanService.compilerOverride = compiler;
-    try {
-      Test.startTest();
-      RecordHealthCheckFormulaPlanService.plan(
-        'Name',
-        Account.SObjectType,
-        'DisplayFoundFormula__c',
-        'TEXT'
-      );
-      Test.stopTest();
-
-      Assert.areEqual(
-        'TEXT',
-        compiler.declaredReturnType,
-        'The shared planner must compile against the administrator-declared return type.'
-      );
-    } finally {
-      RecordHealthCheckFormulaPlanService.compilerOverride = null;
-    }
-  }
-
-  @IsTest
   static void classifiesEveryLexicalKind() {
     String formula = 'FUTURE (Account.Owner.Name, true, NULL, -5.1) <> false';
 
@@ -588,24 +564,6 @@ private class RHCSubscriberFormulaSpecTest {
         false,
         'FORMULA_FUNCTION_NOT_SUPPORTED',
         'ISCHANGED'
-      );
-    }
-  }
-
-  private class CapturingCompiler implements RecordHealthCheckFormulaPlanService.Compiler {
-    private String declaredReturnType;
-
-    public RecordHealthCheckFormulaPlanService.CompileResult compile(
-      String formula,
-      Schema.SObjectType baseType,
-      String configurationField,
-      String declaredReturnType
-    ) {
-      this.declaredReturnType = declaredReturnType;
-      return new RecordHealthCheckFormulaPlanService.CompileResult(
-        true,
-        null,
-        null
       );
     }
   }

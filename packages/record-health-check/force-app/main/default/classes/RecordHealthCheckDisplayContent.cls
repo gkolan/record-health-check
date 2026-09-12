@@ -1,4 +1,4 @@
-/** Versioned, card-only structured display envelope. */
+/** Versioned structured display envelope for display-capable results. */
 global class RecordHealthCheckDisplayContent {
   /** Display schema version. */
   @AuraEnabled

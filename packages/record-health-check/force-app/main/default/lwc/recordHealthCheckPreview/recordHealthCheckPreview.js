@@ -26,7 +26,11 @@ export default class RecordHealthCheckPreview extends LightningElement {
   }
 
   set qualifiedSetName(value) {
-    this._qualifiedSetName = value ?? "";
+    const normalized = value ?? "";
+    if (normalized !== this._qualifiedSetName) {
+      this._qualifiedSetName = normalized;
+      this.markResponseStale();
+    }
   }
 
   @api
@@ -35,7 +39,11 @@ export default class RecordHealthCheckPreview extends LightningElement {
   }
 
   set draftJson(value) {
-    this._draftJson = value ?? "{}";
+    const normalized = value ?? "{}";
+    if (normalized !== this._draftJson) {
+      this._draftJson = normalized;
+      this.markResponseStale();
+    }
   }
 
   connectedCallback() {
@@ -210,7 +218,8 @@ export default class RecordHealthCheckPreview extends LightningElement {
         key: `${item.evaluation?.recordId ?? "result"}-${index}`,
         recordId: item.evaluation?.recordId,
         status: item.evaluation?.status,
-        message: item.display?.message ?? item.evaluation?.reasonCode ?? ""
+        message:
+          item.display?.renderedMessage ?? item.evaluation?.reasonCode ?? ""
       }))
     };
   }

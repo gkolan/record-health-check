@@ -81,6 +81,22 @@ global with sharing class RHCLinkStructuredPlugin implements RecordHealthCheckPl
         new RecordHealthCheckDisplayOverride()
           .withFound(found)
           .withExpected(expected)
+          .withMessage(
+            new RecordHealthCheckDisplayText()
+              .text('Approval state for ')
+              .link(accountRecord.Name, accountPath)
+          )
+          .withFix(
+            new RecordHealthCheckDisplayText()
+              .text('Review the approval steps in order.')
+          )
+          .withAction(
+            new RecordHealthCheckDisplayAction(
+              'Open approval account',
+              accountPath
+            )
+          )
+          .withExpectedLabel('Required state')
       );
     }
     return displays;

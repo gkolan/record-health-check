@@ -37,6 +37,7 @@ public with sharing class RecordHealthCheckFormulaMetadataAdapter {
         issue.offendingToken = finding.offendingToken;
         issue.startOffset = finding.startOffset;
         issue.endOffset = finding.endOffset;
+        issue.diagnosticDetail = finding.diagnosticDetail;
         result.add(issue);
       }
     }

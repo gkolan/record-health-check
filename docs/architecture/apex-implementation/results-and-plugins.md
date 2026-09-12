@@ -52,7 +52,7 @@ SKIPPED, UNABLE_TO_EVALUATE, and ERROR results.
 | `RecordHealthCheckDefinition.developerName` / `label` / `description` / `priority` | One Check's identity and display fields |
 | `RecordHealthCheckDefinition.dependsOnCheckDeveloperName` | `null` when the Check has no `PrerequisiteCheck__c` dependency |
 | `RecordHealthCheckDefinitionResponse` title/trigger/reveal/display fields | Check Set card settings (title, trigger/reveal modes, passed/skipped/comparison display, stop-on-first-error) |
-| `RecordHealthCheckDefinitionResponse.checksOmittedByLimit` | Truncation metadata for the "First 25 of N shown" badge |
+| `RecordHealthCheckDefinitionResponse.checksOmittedByLimit` | Legacy compatibility flag; accepted 2.0.10 responses keep it `false` because a Check Set over 25 active Checks fails closed before definitions are returned |
 | `RecordHealthCheckDefinitionResponse.inactiveCheckLabels` | Diagnostics-only detail behind `inactiveCheckCount` |
 | `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks` | Diagnostics visibility flag and the ordered Check definitions |
 
@@ -115,6 +115,21 @@ global interface RecordHealthCheckPlugin {
 }
 ```
 
+### `RecordHealthCheckDisplayPlugin` / `RecordHealthCheckDisplayOverride`
+
+**Role:** Optionally derive human presentation from data already loaded during evaluation.
+
+**Type:** Global additive interface and fluent result holder
+
+The callback runs once on the same plugin instance only for `EVALUATION_WITH_DISPLAY`. Its detached
+result may override message, FAIL-only fix/action, rich Found/Expected, Expected label, and per-side
+format/currency. Missing or invalid fields fall back independently to Check configuration. The
+machine outcome and administrator-owned identity, severity, visibility, ordering and lifecycle
+policy remain unchanged.
+
+`RecordHealthCheckDisplayAction` keeps its label and destination atomic. The destination must pass
+the established Action URL policy before either field replaces the configured action.
+
 The package calls `evaluate` once with all record IDs in the current request. A plugin should query
 for all IDs together, create one initial outcome for every requested ID, apply the facts returned by
 the query, and handle a record-specific conversion problem inside the record loop.
@@ -162,13 +177,15 @@ Query, and Compare two queries Checks do not depend on them.
 
 **Role:** Example that checks recent Account Task or Event activity.
 
-**Type:** Example plugin (implements `RecordHealthCheckPlugin`) · `global with sharing`
+**Type:** Example plugin (implements `RecordHealthCheckPlugin`,
+`RecordHealthCheckPluginDefinitionSource`, and `RecordHealthCheckDisplayPlugin`) · `global with
+sharing`
 
 This class is included with the installed Record Health Check package. It returns PASS when an
-Account has at least one closed Task or one Event dated on or after the calculated cutoff date. Use
-`{"daysBack": 90}` in **Apex Parameters JSON** to check the previous 90 days. The default is 30; the
-allowed range is 1 through 3,650. The Check Custom Metadata supplies the label, severity, and failure
-message.
+Account meets the configured minimum number of closed Tasks and Events dated on or after the
+calculated cutoff. `daysBack` defaults to 30 and accepts 1–3,650; `minimumActivities` defaults to 1
+and accepts 1–1,000. Check metadata supplies identity, severity, applicability, publication, and
+fallback presentation.
 
 **Key members:**
 
@@ -176,7 +193,10 @@ message.
 | --- | --- |
 | `DEFAULT_DAYS_BACK` (`30`) | Look-back window only when `daysBack` is omitted |
 | `MIN_DAYS_BACK` / `MAX_DAYS_BACK` (`1` / `3650`) | Valid bounds for `daysBack` |
-| `resolveDaysBack(...)` | Parses and bounds-checks the `daysBack` parameter |
+| `getDefinition()` | Declares typed parameters, labels/help, and bulk capacity of 200 at LOW cost |
+| `ActivityOutcomeEvaluator` | Uses `tryEvaluate` over preloaded counts for per-record recovery |
+| `outcomeFor(...)` | Builds typed comparison values and one evidence row |
+| `getDisplay(...)` | Reuses evaluation state to add query-free message, link, formats, fix, and action |
 
 **Notable behavior:**
 
@@ -184,6 +204,9 @@ message.
   3,650 returns `UNABLE_TO_EVALUATE`/`INVALID_CONFIG`.
 - Both queries use `WITH USER_MODE`, so the result respects the running user's record, object, and
   field access.
+- The query count stays at two for a scope of one through 200 Accounts.
+- Zero is a real negative value and remains in Found and evidence.
+- Display output cannot alter the verdict and falls back to metadata by field when absent or invalid.
 
 **See also:** [Recent Account activity example](../../examples/apex/recent-activity.md)
 

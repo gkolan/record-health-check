@@ -54,9 +54,9 @@ public with sharing class RecordHealthCheckFormulaDisplay {
       return;
     }
     // A display formula shows whatever the author chose to show, usually text.
-    // FormulaResultType__c declares what the *pass condition* returns, and a
-    // pass condition returns a Boolean, so inheriting it here rejected the
-    // display value and left the chip blank with only a warning in the log.
+    // FormulaResultType__c controls formula-derived Query operands, not display
+    // formulas. A display formula resolves its own type so a shared operand
+    // declaration cannot reject the displayed value and leave the chip blank.
     Object found = resolve(
       check.DisplayFoundFormula__c,
       record,

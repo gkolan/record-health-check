@@ -229,17 +229,17 @@ public with sharing class RecordHealthCheckFormulaPlanService {
       plan.tokens,
       compiled.offendingToken
     );
-    plan.findings.add(
-      finding(
-        String.isBlank(compiled.code) ? 'INVALID_FORMULA' : compiled.code,
-        configurationField,
-        token == null ? compiled.offendingToken : token.text,
-        token == null ? 0 : token.startOffset,
-        token == null ? formula.length() : token.endOffset,
-        baseType,
-        null
-      )
+    Finding compileFinding = finding(
+      String.isBlank(compiled.code) ? 'INVALID_FORMULA' : compiled.code,
+      configurationField,
+      token == null ? compiled.offendingToken : token.text,
+      token == null ? 0 : token.startOffset,
+      token == null ? formula.length() : token.endOffset,
+      baseType,
+      null
     );
+    compileFinding.diagnosticDetail = compiled.diagnosticDetail;
+    plan.findings.add(compileFinding);
   }
 
   private static String normalizedReturnType(
@@ -251,6 +251,12 @@ public with sharing class RecordHealthCheckFormulaPlanService {
       configurationField == 'ApplicabilityFormula__c'
     ) {
       return 'BOOLEAN';
+    }
+    if (
+      configurationField == 'DisplayFoundFormula__c' ||
+      configurationField == 'DisplayExpectedFormula__c'
+    ) {
+      return 'AUTO';
     }
     return String.isBlank(declaredReturnType) ? 'AUTO' : declaredReturnType;
   }
@@ -332,15 +338,26 @@ public with sharing class RecordHealthCheckFormulaPlanService {
     public Boolean succeeded { get; private set; }
     public String code { get; private set; }
     public String offendingToken { get; private set; }
+    public String diagnosticDetail { get; private set; }
 
     public CompileResult(
       Boolean succeeded,
       String code,
       String offendingToken
     ) {
+      this(succeeded, code, offendingToken, null);
+    }
+
+    public CompileResult(
+      Boolean succeeded,
+      String code,
+      String offendingToken,
+      String diagnosticDetail
+    ) {
       this.succeeded = succeeded;
       this.code = code;
       this.offendingToken = offendingToken;
+      this.diagnosticDetail = diagnosticDetail;
     }
   }
 
@@ -351,6 +368,7 @@ public with sharing class RecordHealthCheckFormulaPlanService {
       String configurationField,
       String declaredReturnType
     ) {
+      List<String> diagnostics = new List<String>();
       for (
         formulaeval.FormulaReturnType returnType : returnTypes(
           declaredReturnType
@@ -366,31 +384,72 @@ public with sharing class RecordHealthCheckFormulaPlanService {
           if (compiled != null) {
             return new CompileResult(true, null, null);
           }
+          diagnostics.add(
+            RecordHealthCheckCompileDiagnostic.fromAttempt(
+              String.valueOf(returnType),
+              null
+            )
+          );
         } catch (Exception ex) {
+          diagnostics.add(
+            RecordHealthCheckCompileDiagnostic.fromAttempt(
+              String.valueOf(returnType),
+              ex
+            )
+          );
           continue;
         }
       }
-      return new CompileResult(false, 'INVALID_FORMULA', null);
+      return new CompileResult(
+        false,
+        'INVALID_FORMULA',
+        null,
+        RecordHealthCheckCompileDiagnostic.boundedCategories(diagnostics)
+      );
     }
 
     private List<formulaeval.FormulaReturnType> returnTypes(
       String declaredReturnType
     ) {
-      if (declaredReturnType == 'BOOLEAN') {
-        return new List<formulaeval.FormulaReturnType>{
-          formulaeval.FormulaReturnType.BOOLEAN
-        };
+      switch on declaredReturnType {
+        when 'BOOLEAN' {
+          return new List<formulaeval.FormulaReturnType>{
+            formulaeval.FormulaReturnType.BOOLEAN
+          };
+        }
+        when 'NUMBER' {
+          return new List<formulaeval.FormulaReturnType>{
+            formulaeval.FormulaReturnType.DECIMAL
+          };
+        }
+        when 'DATE' {
+          return new List<formulaeval.FormulaReturnType>{
+            formulaeval.FormulaReturnType.DATE
+          };
+        }
+        when 'DATETIME' {
+          return new List<formulaeval.FormulaReturnType>{
+            formulaeval.FormulaReturnType.DATETIME
+          };
+        }
+        when 'TEXT' {
+          return new List<formulaeval.FormulaReturnType>{
+            formulaeval.FormulaReturnType.STRING
+          };
+        }
+        when else {
+          return new List<formulaeval.FormulaReturnType>{
+            formulaeval.FormulaReturnType.BOOLEAN,
+            formulaeval.FormulaReturnType.DECIMAL,
+            formulaeval.FormulaReturnType.DATE,
+            formulaeval.FormulaReturnType.DATETIME,
+            formulaeval.FormulaReturnType.STRING,
+            formulaeval.FormulaReturnType.DOUBLE,
+            formulaeval.FormulaReturnType.INTEGER,
+            formulaeval.FormulaReturnType.LONG
+          };
+        }
       }
-      return new List<formulaeval.FormulaReturnType>{
-        formulaeval.FormulaReturnType.BOOLEAN,
-        formulaeval.FormulaReturnType.DECIMAL,
-        formulaeval.FormulaReturnType.DATE,
-        formulaeval.FormulaReturnType.DATETIME,
-        formulaeval.FormulaReturnType.STRING,
-        formulaeval.FormulaReturnType.DOUBLE,
-        formulaeval.FormulaReturnType.INTEGER,
-        formulaeval.FormulaReturnType.LONG
-      };
     }
   }
 
@@ -422,5 +481,7 @@ public with sharing class RecordHealthCheckFormulaPlanService {
     public Integer endOffset { get; private set; }
     public String baseObject { get; private set; }
     public String dependencyPath { get; private set; }
+    /** Authorized, bounded compiler categories; never a compiler message. */
+    public String diagnosticDetail { get; private set; }
   }
 }

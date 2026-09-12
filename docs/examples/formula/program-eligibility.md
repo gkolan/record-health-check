@@ -77,11 +77,11 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm employee count meets the program minimum. |
 | **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
+| **Summary Display** | Show below checks |
 | **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | Every check |
+| **Passed Checks** | Show each passed check |
+| **Skipped Checks** | Show each skipped check |
+| **Found/Expected Display** | Show for every check |
 | **Stop after a system error** | Unchecked |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |
@@ -101,7 +101,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 | **Pass Condition** | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | `BLANKVALUE(NumberOfEmployees, 0) >= 10` |
 | **Display: Found Formula** | [`DisplayFoundFormula__c`](../../reference/custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c) | `BLANKVALUE(NumberOfEmployees, 0)` |
 | **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../../reference/custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | `10` |
-| **Formula Result Type** | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Number |
+| **Formula Result Type** | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c) | Automatic |
 
 This scenario uses a confirmed minimum of 10 employees. When adapting the Check, replace `10` in the
 Pass Condition and Expected Formula with the minimum approved for your program.
@@ -151,7 +151,7 @@ The card turns the numeric Formula result and its display formulas into these us
 | **Found** | Found shows the Account's current Number of Employees. |
 | **Expected** | Expected shows the numeric program minimum: `10`. |
 
-This Check Set uses **Every check** for **Found/Expected Display** because the employee count and
+This Check Set uses **Show for every check** for **Found/Expected Display** because the employee count and
 program minimum are useful during both passing and failing eligibility reviews.
 
 The Found and Expected display formulas never change the Pass or Needs attention decision. If a

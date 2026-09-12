@@ -55,4 +55,34 @@ private class RecordHealthCheckSoqlBoundaryTest {
       'An equality before WITH USER_MODE must be recognized.'
     );
   }
+
+  @IsTest
+  static void equalityProofFollowsEquivalentBooleanStructure() {
+    Test.startTest();
+    String parenthesized = RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
+      'SELECT Id FROM Account WHERE (((CurrencyIsoCode = \'USD\')))',
+      'CurrencyIsoCode'
+    );
+    String distributed = RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
+      'SELECT Id FROM Account WHERE ' +
+        '(CurrencyIsoCode = \'USD\' AND Name = \'A\') OR ' +
+        '(CurrencyIsoCode = \'USD\' AND Name = \'B\')',
+      'CurrencyIsoCode'
+    );
+    String broadened = RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
+      'SELECT Id FROM Account WHERE CurrencyIsoCode = \'USD\' OR Name = \'A\'',
+      'CurrencyIsoCode'
+    );
+    String conflicting = RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
+      'SELECT Id FROM Account WHERE ' +
+      'CurrencyIsoCode = \'USD\' AND CurrencyIsoCode = \'CAD\'',
+      'CurrencyIsoCode'
+    );
+    Test.stopTest();
+
+    Assert.areEqual('USD', parenthesized);
+    Assert.areEqual('USD', distributed);
+    Assert.areEqual(null, broadened);
+    Assert.areEqual(null, conflicting);
+  }
 }

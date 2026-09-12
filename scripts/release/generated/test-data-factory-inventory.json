@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
   "summary": {
-    "classes": 112,
+    "classes": 116,
     "persistedCallSites": 0,
     "userCallSites": 0,
-    "safeClasses": 112
+    "safeClasses": 116
   },
   "classes": [
     {
@@ -18,6 +18,14 @@
     },
     {
       "className": "RHCAbsentSchemaRedTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCArchitectureDependencyTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -42,6 +50,14 @@
     },
     {
       "className": "RHCConfigCheckValidationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCConventionalQueryTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -153,6 +169,14 @@
       "userCalls": []
     },
     {
+      "className": "RHCFormulaCompilerCacheTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCFormulaEdgeBehaviorTest",
       "classification": "safe",
       "targetSteps": [],
@@ -242,6 +266,14 @@
     },
     {
       "className": "RHCPolymorphicQuerySafetyTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCPresentationResolverTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,

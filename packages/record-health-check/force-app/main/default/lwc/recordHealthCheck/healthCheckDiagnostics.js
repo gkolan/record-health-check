@@ -59,6 +59,12 @@ const COMPONENT_ERROR_PRESENTATIONS = {
     message: "This Record Health Check has a configuration problem.",
     guidance: "Ask your Salesforce admin to review this Check Set in Setup."
   },
+  FRAMEWORK_MAX_CHECKS_EXCEEDED: {
+    title: "Record Health Check Needs Setup",
+    message: "No Checks were run.",
+    guidance:
+      "Ask your Salesforce admin to reduce this Check Set to 25 active Checks, then try again."
+  },
   NOT_AUTHORIZED: {
     title: "Record Health Check Unavailable",
     message: "You don't have access to view or run Record Health Check.",

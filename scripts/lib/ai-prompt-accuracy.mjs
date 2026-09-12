@@ -74,6 +74,155 @@ export function mergeSyntaxProblems(pages) {
   return problems;
 }
 
+/**
+ * Reports prompt guidance that predates the current 2.0.10 authoring contract,
+ * or omits a release-defining capability from the self-contained prompt that
+ * is supposed to teach it.
+ *
+ * @param {{file: string, text: string}[]} pages Folder pages.
+ * @returns {string[]} Human-readable problems.
+ */
+export function currentContractProblems(pages) {
+  const problems = [];
+  const stalePrerequisiteOrder =
+    /PrerequisiteCheck__c[^.\n]*(?:lower|less than)[^.\n]*EvaluationOrder__c|PrerequisiteCheck__c[^.\n]*EvaluationOrder__c[^.\n]*(?:lower|less than)/gi;
+  for (const page of pages) {
+    const normalizedText = page.text.replaceAll("\\_", "_");
+    for (const match of page.text.matchAll(stalePrerequisiteOrder)) {
+      const line = page.text.slice(0, match.index).split("\n").length;
+      problems.push(
+        `${page.file}:${line} requires prerequisite presentation order; 2.0.10 ` +
+          `uses dependency order and permits the prerequisite to appear later`
+      );
+    }
+    for (const [pattern, message] of [
+      [
+        /FormulaResultType__c[^\n]*BOOLEAN[^\n]*(?:the\s+)?default/gi,
+        "calls BOOLEAN the Formula Result Type default; the field default is AUTO"
+      ],
+      [
+        /EvaluationOrder__c[^\n]*(?:determines?\s+(?:the\s+)?run order|Checks? run in order)/gi,
+        "treats Evaluation Order as execution order; it is presentation order after dependency scheduling"
+      ]
+    ]) {
+      for (const match of normalizedText.matchAll(pattern)) {
+        const line = normalizedText.slice(0, match.index).split("\n").length;
+        problems.push(`${page.file}:${line} ${message}`);
+      }
+    }
+  }
+
+  const shared = pages.find((page) => page.file.endsWith("shared-rules.md"));
+  if (
+    shared &&
+    !/\{!link\s+[^}]*\blabel="[^"]+"[^}]*\bhref="/.test(shared.text) &&
+    !/\{!link\s+[^}]*\bhref="[^"]+"[^}]*\blabel="/.test(shared.text)
+  ) {
+    problems.push(
+      `${shared.file} does not teach the 2.0.10 {!link label="..." ` +
+        `href="..."} inline-link syntax`
+    );
+  }
+
+  if (shared) {
+    for (const concept of [
+      "Lightning record card",
+      "Flow actions",
+      "public Apex API",
+      "RecordHealthCheckQueueable",
+      "RecordHealthCheckBatch",
+      "RecordHealthCheckScheduled",
+      "direct response",
+      "Platform Events",
+      "does not save normal run results"
+    ]) {
+      if (!shared.text.includes(concept)) {
+        problems.push(
+          `${shared.file} does not teach the non-agent ${concept} entry/exit contract`
+        );
+      }
+    }
+    if (
+      !shared.text.includes("child-subquery fields are not merge-addressable")
+    ) {
+      problems.push(
+        `${shared.file} does not teach that child-subquery fields are not merge-addressable`
+      );
+    }
+  }
+
+  const apex = pages.find((page) => page.file.endsWith("prompt-apex.md"));
+  if (apex) {
+    for (const concept of [
+      "RecordHealthCheckPluginDefinitionSource",
+      "RecordHealthCheckEvidence",
+      "RecordHealthCheckRecordEvaluator",
+      "RecordHealthCheckOutcome.tryEvaluate",
+      "RecordHealthCheckDisplayPlugin"
+    ]) {
+      if (!apex.text.includes(concept)) {
+        problems.push(
+          `${apex.file} does not teach the 2.0.10 ${concept} contract`
+        );
+      }
+    }
+  }
+
+  const formula = pages.find((page) => page.file.endsWith("prompt-formula.md"));
+  if (formula) {
+    for (const concept of [
+      "used only when a QUERY Check evaluates",
+      "deterministic token offsets",
+      "FIELD_NOT_ACCESSIBLE",
+      "FIELD_NOT_RESOLVED",
+      "AUTO return-type probing",
+      "formula-field dependencies up to 10 levels",
+      "unsupported formula globals"
+    ]) {
+      if (!formula.text.includes(concept)) {
+        problems.push(
+          `${formula.file} does not teach formula planning concept ${concept}`
+        );
+      }
+    }
+  }
+
+  const execution = pages.find((page) =>
+    page.file.endsWith("execution-workflow-generator.md")
+  );
+  if (!execution) {
+    problems.push(
+      "docs/build-checks/draft-with-ai/execution-workflow-generator.md is missing"
+    );
+  } else {
+    for (const concept of [
+      "RecordHealthCheck.evaluate",
+      "RecordHealthCheckQueueable.enqueue",
+      "RecordHealthCheckBatch.run",
+      "RecordHealthCheckScheduled.scheduleDaily",
+      "RecordHealthCheckRunCheckFlowAction",
+      "RecordHealthCheckRunSetFlowAction",
+      "AsyncApexJob ID is not a health result",
+      "fixed record-ID snapshot",
+      "subscriber-owned persistence",
+      "Platform Event receiver",
+      "with sharing",
+      "WITH USER_MODE",
+      "AccessLevel.USER_MODE",
+      "@future",
+      "red test",
+      "idempotent"
+    ]) {
+      if (!execution.text.includes(concept)) {
+        problems.push(
+          `${execution.file} does not teach execution workflow concept ${concept}`
+        );
+      }
+    }
+  }
+  return problems;
+}
+
 /** Uppercase words that appear in the pages but are never a stored value. */
 const NON_VALUES = new Set([
   // Result statuses an administrator reads on the card, not picklist values.
@@ -110,6 +259,9 @@ const NON_VALUES = new Set([
   "N/A",
   "AI",
   "LWC",
+  "EVALUATION_WITH_DISPLAY",
+  "VALIDATE_ONLY",
+  "USER_MODE",
   "ID",
   "IDS"
 ]);

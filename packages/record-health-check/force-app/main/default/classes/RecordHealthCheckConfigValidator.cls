@@ -179,6 +179,8 @@ public with sharing class RecordHealthCheckConfigValidator {
       validation.instance = RecordHealthCheckPluginDispatch.instantiate(
         pluginType
       );
+    } catch (RecordHealthCheckResourcePlan.BudgetException ex) {
+      throw ex;
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -203,6 +205,8 @@ public with sharing class RecordHealthCheckConfigValidator {
           check,
           validation.instance
         );
+      } catch (RecordHealthCheckResourcePlan.BudgetException ex) {
+        throw ex;
       } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
         throw ex;
       } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException ex) {

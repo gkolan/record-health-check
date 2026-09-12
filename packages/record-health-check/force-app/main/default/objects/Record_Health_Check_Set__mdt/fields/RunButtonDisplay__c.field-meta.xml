@@ -5,7 +5,7 @@
     <description
   >Choose how the Run and Rerun buttons appear in the card header. A Check Set that waits for the user must display a button. Hide is available only when checks run automatically when the page opens.</description>
     <inlineHelpText
-  >Show a label and icon, label only, or icon only. Hide the buttons only when When Checks Run is set to When the page opens.</inlineHelpText>
+  >Choose Show label and icon, Show label only, Show icon only, or Hide. Hide the buttons only when When Checks Run is set to When the page opens.</inlineHelpText>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
@@ -14,17 +14,17 @@
             <value>
                 <fullName>LABEL_AND_ICON</fullName>
                 <default>true</default>
-                <label>Label and icon</label>
+                <label>Show label and icon</label>
             </value>
             <value>
                 <fullName>LABEL_ONLY</fullName>
                 <default>false</default>
-                <label>Label only</label>
+                <label>Show label only</label>
             </value>
             <value>
                 <fullName>ICON_ONLY</fullName>
                 <default>false</default>
-                <label>Icon only</label>
+                <label>Show icon only</label>
             </value>
             <value>
                 <fullName>HIDE</fullName>

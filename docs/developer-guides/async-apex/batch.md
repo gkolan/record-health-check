@@ -138,8 +138,10 @@ checks that limit. Every remaining ID must match the selected Check Set object; 
 the entire submission, so requested and processed counts cannot silently diverge. It checks only the IDs supplied when the job starts. It does not automatically
 include records created or changed later.
 
-If the fourth argument is omitted, the package checks up to 100 records per transaction. To choose
-a different number, supply any whole number from 1 through 200.
+If the fourth argument is omitted, the package automatically chooses a scope from 1 through 100.
+It starts at 100 and lowers the scope when the selected Check Set's formulas would exceed the
+conservative FormulaEval budget. To request an explicit scope, supply any whole number from 1
+through 200; submission rejects a size that does not fit the remaining formula budget.
 
 ## Example: Check recently changed Accounts every night
 

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { z } from "zod";
@@ -72,7 +73,11 @@ export class SalesforceClient {
       })
       .strict()
       .parse(input);
-    return this.limiter.run(() => this.execute(parsed));
+    const effectiveInput: EvaluationRequest = {
+      ...parsed,
+      correlationId: parsed.correlationId ?? randomUUID()
+    };
+    return this.limiter.run(() => this.execute(effectiveInput));
   }
 
   private async execute(input: EvaluationRequest): Promise<AgentToolResponse> {
@@ -163,6 +168,20 @@ export class SalesforceClient {
         throw new ServiceError(
           "UPSTREAM_CONTRACT",
           "Salesforce returned an inconsistent response.",
+          502
+        );
+      }
+      if (parsed.data.correlationId !== input.correlationId) {
+        throw new ServiceError(
+          "UPSTREAM_CONTRACT",
+          "Salesforce returned an invalid response.",
+          502
+        );
+      }
+      if (parsed.data.success && parsed.data.operation !== input.operation) {
+        throw new ServiceError(
+          "UPSTREAM_CONTRACT",
+          "Salesforce returned an invalid response.",
           502
         );
       }

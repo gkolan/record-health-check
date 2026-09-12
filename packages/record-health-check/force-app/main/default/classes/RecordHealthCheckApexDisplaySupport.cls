@@ -24,6 +24,7 @@ public class RecordHealthCheckApexDisplaySupport {
         continue;
       }
       RecordHealthCheckInternalResult result = results.get(recordId);
+      result.presentationOverride = value;
       result.displayContent = new RecordHealthCheckDisplayContent();
       if (value.found != null) {
         result.displayContent.found = value.found.copyNodes();

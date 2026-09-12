@@ -82,6 +82,10 @@
       "marker": "@SuppressWarnings('PMD.IfStmtsMustUseBraces,PMD.IfElseStmtsMustUseBraces')"
     },
     {
+      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckReadinessService.cls",
+      "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: The authorized service writes server-owned immutable receipt evidence that administrators cannot forge through package permissions."
+    },
+    {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePlanner.cls",
       "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata is framework configuration; the selected business records are loaded separately WITH USER_MODE."
     },

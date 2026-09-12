@@ -60,7 +60,7 @@ a custom Apex Check.
 | `UNKNOWN_RESULT_STATUS` | `ERROR` | Apex returned an unsupported result status. |
 | `MISSING_TOKEN_VALUE` | `UNABLE_TO_EVALUATE` | A required merge-token value was unavailable. |
 | `CIRCULAR_DEPENDENCY` | `UNABLE_TO_EVALUATE` | Two or more Checks depend on each other. The Lightning card can identify this before calling Apex. |
-| `DEPENDENCY_NOT_IN_RUN` | `SKIPPED` | The Prerequisite Check was not included because it was inactive, missing, ordered after the Check that requires it, or outside the first 25 active Checks. Apex and the Lightning card enforce the same behavior. |
+| `DEPENDENCY_NOT_IN_RUN` | `SKIPPED` | The Prerequisite Check was not included because it was inactive, missing, or outside the selected run. Display order does not control dependency scheduling. |
 | `APPLICABILITY_NOT_MET` | `SKIPPED` | Query empty-result path chose skip via `NoRowsResult__c = SKIP` (distinct from applicability checks above). |
 | `VALUE_IS_EMPTY` | `SKIPPED` | Row comparison skipped because a compared field value was empty under `EmptyValueHandling__c = SKIP_RECORD`. |
 
@@ -90,14 +90,14 @@ a custom Apex Check.
 | `INVALID_CHECK_TYPE` | `UNABLE_TO_EVALUATE` | Evaluation Type missing or unrecognized. |
 | `INVALID_CONFIG` | definition / unable | Invalid Check Set display or identity configuration. |
 | `MISSING_REQUIRED_FIELD` | validation | A required Check Set or Check field (e.g. Base Object API Name, Card Title) is blank. |
-| `CHECK_LIMIT_EXCEEDED` | Lightning definition / validation warning | A Check Set has more than 25 active Checks. The Lightning card shows and runs the first 25; the metadata audit reports the excess. Direct Apex and Flow use `FRAMEWORK_MAX_CHECKS_EXCEEDED` instead. |
+| `FRAMEWORK_MAX_CHECKS_EXCEEDED` | request / Lightning definition / validation | A whole Check Set has more than 25 active Checks. Every entry point rejects the set before any Check runs. A request for one named Check remains independent. |
 | `APEX_DISPLAY_TEXT_IGNORED` | validation warning | An Apex Check configures Display Found or Expected formulas/text. Custom Apex Check outcomes supply those values, so the metadata audit warns that these fields are ignored. |
 | `CONFIGURATION_IGNORED` | validation warning | A Check populates a field its Evaluation Type or mode never reads, such as a Source Query on a Formula Check or an Applicability Formula while Applicability Mode uses a count query. The value is not invalid, so the Check still deploys and runs; it simply has no effect. Clear the field, or change the Check so the field applies. |
 | `QUERY_FIELD_NOT_SELECTED` | validation | A query row token names a field the query's `SELECT` list does not include. The message lists the fields the query does select. |
-| `QUERY_ORDER_NOT_DETERMINISTIC` | validation | A query row token addresses a row by position, but the query has no `ORDER BY` naming `Id`, so the row in that position can change between runs. A grouped query cannot be ordered by `Id` and is reported differently. |
-| `QUERY_PROJECTION_NOT_ANALYZABLE` | validation | The query's `SELECT` list cannot be fully read, usually because it contains a subquery, so the framework cannot prove which fields it omitted. |
+| `QUERY_ORDER_NOT_DETERMINISTIC` | validation | A query row token addresses a row by position, but a potentially multi-row query has no explicit `ORDER BY`. Add a business order such as `CreatedDate DESC`. |
+| `QUERY_PROJECTION_NOT_ANALYZABLE` | validation | The token's field cannot be proven from the readable outer projection. An independently selected scalar remains addressable beside an opaque child subquery. |
 | `QUERY_ROLE_NOT_AVAILABLE` | validation | A `comparisonRows` token on a Check with no Comparison Query, or a row count against a query that counts records rather than returning them. |
-| `TOKEN_ROW_INDEX_INVALID` | validation | A row number that is not a whole number starting at 1, or one the Check can never reach: beyond the query's own `LIMIT`, beyond Max Query Rows, or beyond the single row One Result and ungrouped aggregates return. |
+| `TOKEN_ROW_INDEX_INVALID` | validation | A row number that is not a whole number starting at 0, or one the Check can never reach: beyond the query's own `LIMIT`, beyond Max Query Rows, or beyond the single row One Result and ungrouped aggregates return. |
 | `USER_RUN_PUBLICATION_UNREACHABLE` | validation warning | An automatic card hides Run and Rerun while Check Set publication is enabled. Users cannot publish from the card, but Apex and Flow remain available. |
 | `USER_RESULT_PUBLICATION_UNREACHABLE` | validation warning | An automatic card hides Run and Rerun while publication is enabled for one of its Checks. Users cannot publish from the card, but Apex and Flow remain available. |
 | `INVALID_DEPENDENCY` | validation | Prerequisite metadata is invalid. |
@@ -147,8 +147,8 @@ a custom Apex Check.
 | `APEX_CLASS_INVALID` | `UNABLE_TO_EVALUATE` | `ApexClass__c` is not a simple class name or exactly `namespace.ClassName`. Remove embedded whitespace, extra dots, generic syntax, paths, or appended code. |
 | `APEX_CLASS_NOT_FOUND` | `UNABLE_TO_EVALUATE` | `ApexClass__c` did not resolve to a visible Apex type. Confirm the class API name, packaging namespace, installation, and caller visibility. |
 | `APEX_CLASS_LOAD_FAILED` | `UNABLE_TO_EVALUATE` | Salesforce raised an ordinary exception while loading the configured type. Authorized diagnostics retain the available cause. |
-| `INVALID_APEX_PARAMETERS` | `UNABLE_TO_EVALUATE` | `ApexParametersJson__c` is not valid JSON object input. |
-| `APEX_EVALUATOR_ERROR` | `ERROR` / `UNABLE_TO_EVALUATE` | Plugin returned an illegal status or omitted required Found/Expected on `PASS`/`FAIL`. |
+| `INVALID_APEX_PARAMETERS` | `UNABLE_TO_EVALUATE` | `ApexParametersJson__c` is not a valid JSON object or does not satisfy the plugin's 2.0.10 parameter definition, including unknown or duplicate keys, nested values, wrong scalar types, invalid choices, or out-of-range values. |
+| `APEX_EVALUATOR_ERROR` | `ERROR` / `UNABLE_TO_EVALUATE` | Plugin execution raised an ordinary exception, including a failed user-mode query, or returned an illegal status or omitted required Found/Expected on `PASS`/`FAIL`. |
 | `PLUGIN_RESULT_MISSING` | `ERROR` (per record) or thrown Apex exception | The plugin returned no entry for a requested record, or returned a null map for the whole request. Cover every requested ID. An empty request should return an empty map. |
 | `PLUGIN_RESULT_UNKNOWN_KEY` | Thrown Apex exception | The plugin returned an outcome for a record ID that was not requested. The complete custom Apex Check call fails. |
 | `PLUGIN_THREW` | Thrown Apex exception | The plugin threw an unhandled exception that cannot be assigned to one record. |

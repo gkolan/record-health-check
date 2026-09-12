@@ -135,4 +135,8 @@
         <field>DisplayValueFormat__c</field>
         <value xsi:type="xsd:string">TEXT</value>
     </values>
+  <values>
+    <field>FormulaResultType__c</field>
+    <value xsi:type="xsd:string">AUTO</value>
+  </values>
 </CustomMetadata>

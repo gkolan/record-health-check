@@ -39,6 +39,12 @@ private class RecordHealthCheckConfigServiceTest {
       automatic.get('inactiveCheckCount'),
       'The shell must include the inactive Check count.'
     );
+    Assert.isTrue(
+      RecordHealthCheckConstants.validCardHeadingDisplays.contains(
+        automatic.get('cardHeadingDisplay')
+      ),
+      'The shell must expose a safe Card Heading Display.'
+    );
   }
 
   @IsTest
@@ -150,6 +156,12 @@ private class RecordHealthCheckConfigServiceTest {
       'The integration fixture title must be returned for its overridden Check Set.'
     );
     Assert.areEqual('Automatic', response.triggerMode);
+    Assert.isTrue(
+      RecordHealthCheckConstants.validCardHeadingDisplays.contains(
+        response.cardHeadingDisplay
+      ),
+      'Definitions must carry the normalized Card Heading Display.'
+    );
     Assert.areEqual(
       'OnDemand',
       response.comparisonDisplay,

@@ -6,6 +6,70 @@ private with sharing class RHCSubscriberDiagnosticIntegrationTest {
   }
 
   @IsTest
+  static void diagnosticFixturePreservesBusinessPassAndFail() {
+    List<Account> fixtures = new List<Account>{
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{
+          'Name' => 'SP-D-Healthy',
+          'Industry' => 'Manufacturing',
+          'Website' => 'https://example.test'
+        }
+      ),
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{
+          'Name' => 'SP-D-Unhealthy',
+          'Industry' => 'Manufacturing',
+          'Website' => 'http://example.test'
+        }
+      )
+    };
+    RHCIntegrationTestDataFactory.createAccounts(fixtures);
+
+    Test.startTest();
+    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
+      RecordHealthCheckRequest.forCheckSet(
+          RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+            'RHC_SP_Diagnostics'
+          ),
+          new List<Id>{ fixtures[0].Id, fixtures[1].Id }
+        )
+        .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
+    );
+    Test.stopTest();
+
+    Map<Id, String> expectedStatusByRecordId = new Map<Id, String>{
+      fixtures[0].Id => RecordHealthCheckStatus.PASS,
+      fixtures[1].Id => RecordHealthCheckStatus.FAIL
+    };
+    Assert.areEqual(
+      2,
+      response.results.size(),
+      'The diagnostics fixture must return one result per input Account.'
+    );
+    for (RecordHealthCheckResultItem item : response.results) {
+      Assert.areEqual(
+        expectedStatusByRecordId.remove(item.evaluation.recordId),
+        item.evaluation.status,
+        'Diagnostics must not replace the underlying business verdict.'
+      );
+    }
+    Assert.areEqual(
+      0,
+      expectedStatusByRecordId.size(),
+      'Both independently specified Account outcomes must be returned.'
+    );
+    Assert.areEqual(1, response.summary.passed, 'Expected one PASS result.');
+    Assert.areEqual(1, response.summary.failed, 'Expected one FAIL result.');
+    Assert.areEqual(0, response.summary.skipped, 'No record should skip.');
+    Assert.areEqual(0, response.summary.unable, 'No record should be unable.');
+    Assert.areEqual(
+      0,
+      response.summary.systemError,
+      'No record should produce a system error.'
+    );
+  }
+
+  @IsTest
   static void unresolvedFieldFixtureStopsBeforePluginEvaluation() {
     Account fixture = RHCIntegrationTestDataFactory.createAccount(
       RecordHealthCheckTestDataFactory.account(

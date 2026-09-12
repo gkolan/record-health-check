@@ -107,7 +107,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       )
     );
     Assert.areEqual(
-      'QUERY_ORDER_NOT_DETERMINISTIC',
+      null,
       codeFor(
         check(
           'SELECT Id, LastName FROM Contact ORDER BY LastName',
@@ -116,7 +116,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
       )
     );
     Assert.areEqual(
-      'QUERY_ORDER_NOT_DETERMINISTIC',
+      null,
       codeFor(
         check(
           'SELECT LastName, COUNT(Id) total FROM Contact ' +
@@ -124,7 +124,7 @@ private class RecordHealthCheckQueryTokenRulesTest {
           '{!rhcQuery.sourceRows[0].total}'
         )
       ),
-      'A grouped aggregate has no repeatable order either.'
+      'An ordered grouped aggregate has an authored positional order.'
     );
   }
 

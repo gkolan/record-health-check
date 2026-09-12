@@ -3,9 +3,9 @@
     <fullName>SkippedChecksDisplay__c</fullName>
     <label>Skipped Checks</label>
     <description
-  >Controls how checks that were not run appear. This includes checks that do not apply to the record and checks whose prerequisite did not pass. "Show each check" lists every skipped check. "Show count only" removes skipped checks from the list; their count still appears in the summary bar at the bottom of the card. Defaults to "Show each check".</description>
+  >Controls how checks that were not run appear. This includes checks that do not apply to the record and checks whose prerequisite did not pass. "Show each skipped check" lists every skipped check. "Show skipped count only" removes skipped checks from the list; their count still appears in the summary. Defaults to "Show each skipped check".</description>
     <inlineHelpText
-  >How checks that were not run appear. "Show each check" (default) lists them. "Show count only" hides the rows while keeping the summary count.</inlineHelpText>
+  >How checks that were not run appear. "Show each skipped check" (default) lists them. "Show skipped count only" hides the rows while keeping the summary count.</inlineHelpText>
     <required>false</required>
     <type>Picklist</type>
     <valueSet>
@@ -13,8 +13,9 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value><fullName>SHOW_EACH_CHECK</fullName><label
-        >Show each check</label><default>true</default></value><value><fullName
-        >SHOW_COUNT_ONLY</fullName><label>Show count only</label><default
+        >Show each skipped check</label><default>true</default></value><value
+      ><fullName>SHOW_COUNT_ONLY</fullName><label
+        >Show skipped count only</label><default
         >false</default></value></valueSetDefinition>
     </valueSet>
 </CustomField>

@@ -72,6 +72,12 @@ private class RecordHealthCheckPluginDispatchTest {
                 .text('Step ')
                 .link('one', '/one')
             )
+            .withMessage(new RecordHealthCheckDisplayText().text('Message'))
+            .withFix(new RecordHealthCheckDisplayText().text('Fix'))
+            .withAction(new RecordHealthCheckDisplayAction('Open', '/open'))
+            .withExpectedLabel('Target')
+            .withFoundFormat('CURRENCY', 'USD')
+            .withExpectedFormat('NUMBER', null)
         );
       }
       if (extraKey != null) {
@@ -264,6 +270,15 @@ private class RecordHealthCheckPluginDispatchTest {
       'link',
       display.get(accounts[0].Id).found.copyNodes()[1].kind
     );
+    RecordHealthCheckDisplayOverride first = display.get(accounts[0].Id);
+    Assert.areEqual('Message', first.message.copyNodes()[0].text);
+    Assert.areEqual('Fix', first.fix.copyNodes()[0].text);
+    Assert.areEqual('Open', first.action.label);
+    Assert.areEqual('/open', first.action.destination);
+    Assert.areEqual('Target', first.expectedLabel);
+    Assert.areEqual('CURRENCY', first.foundFormat);
+    Assert.areEqual('USD', first.foundCurrencyIsoCode);
+    Assert.areEqual('NUMBER', first.expectedFormat);
   }
 
   @IsTest

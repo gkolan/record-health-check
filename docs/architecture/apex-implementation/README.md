@@ -33,7 +33,7 @@ records.
 
 ## Codebase size and verification
 
-The current source contains 321 packaged Apex classes, including 146 `@IsTest` classes and 2
+The current source contains 334 packaged Apex classes, including 151 `@IsTest` classes and 2
 global contract-test support class. Tests and contract support cover dynamic SOQL, formulas,
 metadata validation, security boundaries, bulk execution, asynchronous entry points, integrations,
 and failure diagnostics; those classes verify behavior rather than run ordinary health checks.
@@ -102,6 +102,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | ----- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
 | L5    | [`RecordHealthCheck`](./entry-points.md#recordhealthcheck)                                             | Public Apex `evaluate(request)` API                                                                                                    |
 | L5    | [`RecordHealthCheckController`](./entry-points.md#recordhealthcheckcontroller)                         | Aura-enabled API for the Lightning card                                                                                                |
+| L5    | [`RecordHealthCheckPreviewService`](./subscriber-foundations.md#recordhealthcheckpreviewservice)       | Privileged detached validation, execution Preview, and readiness evidence                                                              |
 | L5    | [`RecordHealthCheckRunCheckFlowAction`](./entry-points.md#recordhealthcheckruncheckflowaction)         | Packaged Flow action "Run Record Health Check"                                                                                         |
 | L5    | [`RecordHealthCheckRunSetFlowAction`](./entry-points.md#recordhealthcheckrunsetflowaction)             | Packaged Flow action "Run Record Health Check Set"                                                                                     |
 | L5    | [`RecordHealthCheckRunCheckAgentAction`](./entry-points.md#recordhealthcheckruncheckagentaction)       | Native Agentforce action for one exact Check and record                                                                                |
@@ -128,9 +129,13 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L4    | [`RecordHealthCheckEvaluatorRegistry`](./scope-orchestration.md#recordhealthcheckevaluatorregistry)     | Maps Evaluation Type values to a common scope evaluator contract       |
 | L4    | [`RecordHealthCheckFieldPlanner`](./scope-orchestration.md#recordhealthcheckfieldplanner)               | Safe record-field planning for scope evaluation                        |
 | L4    | [`RecordHealthCheckFormulaFieldScanner`](./scope-orchestration.md#recordhealthcheckformulafieldscanner) | Extracts selectable record paths from formula expressions              |
+| L4    | [`RecordHealthCheckFormulaPlanService`](./subscriber-foundations.md#recordhealthcheckformulaplanservice) | Produces permission-sensitive formula tokens, dependencies, compiler diagnostics, and field plans |
 | L4    | [`RecordHealthCheckBulkQuerySupport`](./scope-orchestration.md#recordhealthcheckbulkquerysupport)       | Executes supported query templates once for a complete scope           |
+| L4    | [`RecordHealthCheckBulkQueryShape`](./scope-orchestration.md#recordhealthcheckbulkqueryshape)           | Identifies a safe direct outer-WHERE correlation                        |
 | L4    | [`RecordHealthCheckBulkQueryRewriter`](./scope-orchestration.md#recordhealthcheckbulkqueryrewriter)     | Rewrites validated query templates for scope-wide execution            |
 | L4    | [`RecordHealthCheckScopePlanner`](./scope-orchestration.md#recordhealthcheckscopeplanner)               | Resolves selections, applicability, prerequisites, and request budgets |
+| L4    | [`RecordHealthCheckResourcePlan`](./scope-orchestration.md#recordhealthcheckresourceplan)               | Calculates formula and plugin-fence admission                           |
+| L4    | [`RecordHealthCheckPrerequisiteEligibility`](./scope-orchestration.md#recordhealthcheckprerequisiteeligibility) | Selects records eligible to reach applicability                         |
 | L4    | [`RecordHealthCheckScopeResultSupport`](./scope-orchestration.md#recordhealthcheckscoperesultsupport)   | Converts internal outcomes, diagnostics, display text, and safe URLs   |
 
 ### L3 - Evaluators
@@ -166,6 +171,7 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L2    | [`RecordHealthCheckComparisonEngine`](./shared-services.md#recordhealthcheckcomparisonengine)                | Operators, equality, empty/null behavior                                                                     |
 | L2    | [`RecordHealthCheckDisplayFormat`](./shared-services.md#recordhealthcheckdisplayformat)                      | Renders Found and Expected values for the card chips                                                         |
 | L2    | [`RecordHealthCheckSoqlTemplate`](./shared-services.md#recordhealthchecksoqltemplate)                        | Safe SOQL preparation (`WITH USER_MODE`, row limit, keyword rejection)                                       |
+| L2    | [`RecordHealthCheckQueryPredicateProof`](./shared-services.md#recordhealthcheckquerypredicateproof)          | Structural proof of required outer WHERE equality literals                                                   |
 | L2    | [`RecordHealthCheckValueResolver`](./shared-services.md#recordhealthcheckvalueresolver)                      | Extract, convert, and compare query values                                                                   |
 | L2    | [`RecordHealthCheckDescribeCache`](./shared-services.md#recordhealthcheckdescribecache)                      | Schema describe cache for the current transaction                                                            |
 | L2    | [`RecordHealthCheckEvaluatorException`](./shared-services.md#recordhealthcheckevaluatorexception)            | Evaluator failure carrying a reason code                                                                     |
@@ -203,6 +209,8 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L1       | `RecordHealthCheckValue`             | A typed Found or Expected value with one stored format per data type                                                                              |
 | L1       | `RecordHealthCheckDisplayGroup`      | Composes one keyed label/item row for structured Apex display                                                                                     |
 | L1       | `RecordHealthCheckDisplayText`       | Builds bounded text, links, breaks, record lists, and ordered groups                                                                              |
+| L1       | `RecordHealthCheckDisplayAction`     | Carries one optional plugin-authored remediation label and destination                                                                            |
+| L1       | `RecordHealthCheckDisplayOverride`   | Carries optional plugin presentation without changing evaluation or administrator policy                                                          |
 | L1       | `RecordHealthCheckEvaluationResult`  | Machine-readable status, identity, reason, and typed values                                                                                       |
 | L1       | `RecordHealthCheckResultDisplay`     | Optional human-facing rendering derived from evaluation data                                                                                      |
 | L1       | `RecordHealthCheckResultItem`        | Evaluation data plus optional display content                                                                                                     |
@@ -220,6 +228,12 @@ readability, but all three live at **L2** in the architecture layer diagram.
 | L1       | `RecordHealthCheckResultMode`        | Selects how much data a result carries                                                                                                            |
 | L1       | `RecordHealthCheckEventPublication`  | Whether a programmatic run publishes lifecycle Platform Events                                                                                    |
 | L1       | `RecordHealthCheckPluginDispatch`    | Runs a custom Check and verifies that it did not change Salesforce records, make callouts, send email, publish events, or start asynchronous work |
+| L1       | [`RecordHealthCheckPluginDefinitionSource`](./subscriber-foundations.md#recordhealthcheckplugindefinitionsource) | Optional typed plugin-parameter and capacity declaration contract |
+| L1       | [`RecordHealthCheckEvidence`](./subscriber-foundations.md#recordhealthcheckevidence) | Typed, bounded evidence returned by an Apex Check |
+| L1       | [`RecordHealthCheckRecordEvaluator`](./subscriber-foundations.md#recordhealthcheckrecordevaluator) | Per-record plugin recovery extension used with `RecordHealthCheckOutcome.tryEvaluate` |
+| L1       | [`RecordHealthCheckReadinessService`](./subscriber-foundations.md#recordhealthcheckreadinessservice) | Saves, decorates, verifies, and expires private Preview readiness evidence |
+| L1       | [`RecordHealthCheckDisplayPlugin`](./subscriber-foundations.md#recordhealthcheckdisplayplugin) | Optional presentation-only plugin extension |
+| L1       | [`RecordHealthCheckPresentationResolver`](./subscriber-foundations.md#recordhealthcheckpresentationresolver) | Resolves plugin display output with per-field metadata fallback |
 
 | L1 | [`RecordHealthCheckDefinition`](./results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | One Check row in the Lightning definition response |
 | L1 | [`RecordHealthCheckDefinitionResponse`](./results-and-plugins.md#recordhealthcheckdefinition--recordhealthcheckdefinitionresponse) | Check Set display settings + ordered Check definitions |

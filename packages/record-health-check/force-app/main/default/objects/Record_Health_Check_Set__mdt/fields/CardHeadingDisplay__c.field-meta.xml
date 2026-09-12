@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+<fullName>CardHeadingDisplay__c</fullName>
+<label>Card Heading Display</label>
+<description
+  >Controls whether the record-page card shows its title and subtitle. Run Button Display controls the Run and Rerun buttons separately.</description>
+<inlineHelpText
+  >Show the title and subtitle, show only the title, or hide both. The Run and Rerun buttons are controlled separately.</inlineHelpText>
+<required>false</required><type>Picklist</type>
+<valueSet><restricted>true</restricted><valueSetDefinition><sorted
+      >false</sorted>
+<value><fullName>TITLE_AND_SUBTITLE</fullName><default>true</default><label
+        >Show title and subtitle</label></value>
+<value><fullName>TITLE_ONLY</fullName><default>false</default><label
+        >Show title only</label></value>
+<value><fullName>HIDE</fullName><default>false</default><label
+        >Hide</label></value>
+</valueSetDefinition></valueSet>
+</CustomField>

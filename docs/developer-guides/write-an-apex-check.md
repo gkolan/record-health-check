@@ -19,6 +19,12 @@ global interface RecordHealthCheckPlugin {
 This is the interface declared inside the installed package. A class created in your org uses the
 `rhc.` prefix, as shown in the complete example below.
 
+Version 2.0.10 also provides three optional interfaces/helpers: declare parameters with
+`RecordHealthCheckPluginDefinitionSource`, isolate ordinary per-record failures with
+`RecordHealthCheckRecordEvaluator` plus `RecordHealthCheckOutcome.tryEvaluate`, and add card-only
+presentation with `RecordHealthCheckDisplayPlugin`. The [complete 2.0.10 contract](../reference/release-2.0.10.md)
+lists every builder, limit, failure rule, and fallback.
+
 Declare the class `global with sharing` so the installed package can call it. Run every SOQL query
 with the intended user access; the example uses `WITH USER_MODE`. Record Health Check validates the
 returned record IDs, Statuses, Reason Codes, and prohibited actions, but your class remains
@@ -83,9 +89,32 @@ refuse or deliberately normalize them according to the plugin's documented contr
 framework performs no currency conversion and does not infer plugin-internal units from display
 labels.
 
-The custom class does not set record identity, Check identity, Severity, display text, links, or
-diagnostics. Record Health Check gets those values from the returned map key and Check Custom
-Metadata.
+The custom class does not set record identity, Check identity, Severity, applicability,
+publication, or diagnostics. Check metadata owns those values. An optional 2.0.10 display plugin
+can add presentation only; it cannot change evaluation.
+
+### Declare and validate parameters
+
+Implement `rhc.RecordHealthCheckPluginDefinitionSource` when a Check accepts JSON parameters. The
+definition can declare integer, choice, string, and Boolean inputs; defaults; bounds; required and
+nullable behavior; administrator labels/help; and scope capacity. The engine rejects unknown keys,
+duplicate keys, wrong JSON types, invalid choices, and out-of-range values before evaluation. This
+gives administrators a stable contract and removes type guessing from plugin code.
+
+### Attach decision evidence
+
+Use `rhc.RecordHealthCheckEvidence` when Found and Expected alone do not explain the decision.
+Declare typed columns, add rows in the same order, and attach the snapshot with `.withEvidence()`.
+Synthetic cells use `RecordHealthCheckEvidenceCell.value`; cells derived from a business-record
+field use `.field(recordId, fieldPath, value)` so the framework can enforce field access. Evidence
+is bounded and explanatory. See [evidence limits and permission behavior](../reference/release-2.0.10.md#attach-evidence).
+
+### Isolate ordinary per-record failures
+
+When data is already loaded in bulk, `RecordHealthCheckOutcome.tryEvaluate(recordId, evaluator)`
+can turn one ordinary record exception into `RECORD_EVALUATION_FAILED` and a null record result into
+`RECORD_RESULT_MISSING`. Permission failures, fatal failures, and side-effect violations still
+escape to the engine. Never use this helper to place SOQL or DML inside the per-record loop.
 
 ### Provide Found and Expected values
 
@@ -97,12 +126,21 @@ the non-blocking `APEX_DISPLAY_TEXT_IGNORED` warning. Put the values in the cust
 `.withFound()`, `.withExpected()`, or `.withComparison()`; use the Check failure message when
 administrators need configurable explanatory wording.
 
-### Add clickable record collections to Found or Expected
+### Add optional presentation
 
-For interactive record-page runs, a custom Check may also implement
-`rhc.RecordHealthCheckDisplayPlugin`. Let the plugin decide which records belong to each business
-group, then let the display API own label/item separators and line breaks. The default item separator
-is comma-space, and every saved record receives its own canonical Lightning record link.
+For a request using `EVALUATION_WITH_DISPLAY`, a custom Check may also implement
+`rhc.RecordHealthCheckDisplayPlugin`. The callback runs once on the same instance after evaluation,
+so it must reuse data already loaded by `evaluate`; it cannot query or perform side effects.
+
+The optional override can provide rich message, remediation, Found and Expected content; one atomic
+action label and destination; an Expected label; and independent Found/Expected formats with an
+optional currency ISO code. A missing or invalid field falls back to Check configuration. Status,
+typed values, severity, identity, order, category, applicability, visibility and publication policy
+remain framework or administrator owned.
+
+Let the plugin decide which records belong to each business group, then let the display API own
+label/item separators and line breaks. The default item separator is comma-space, and every saved
+record receives its own canonical Lightning record link.
 
 ```apex
 List<SObject> stepOneRecords = new List<SObject>();
@@ -128,7 +166,12 @@ List<rhc.RecordHealthCheckDisplayGroup> groups =
 rhc.RecordHealthCheckDisplayText found =
   new rhc.RecordHealthCheckDisplayText().groups(groups);
 
-return new rhc.RecordHealthCheckDisplayOverride().withFound(found);
+return new rhc.RecordHealthCheckDisplayOverride()
+  .withFound(found)
+  .withMessage(new rhc.RecordHealthCheckDisplayText().text('Approval review is required.'))
+  .withFix(new rhc.RecordHealthCheckDisplayText().text('Complete each approval step.'))
+  .withAction(new rhc.RecordHealthCheckDisplayAction('Open approvals', '/lightning/page/home'))
+  .withExpectedLabel('Required state');
 ```
 
 The input lists may have different sizes, for example one, two, and three Users. The resulting groups
@@ -233,3 +276,4 @@ does not prove that a custom Apex Check compiles with that package version.
 - [Plugin verification](./verify-an-apex-check.md)
 - [Apex API](./run-from-apex.md)
 - [Recent activity example](../examples/apex/recent-activity.md)
+- [Complete 2.0.10 contract](../reference/release-2.0.10.md)

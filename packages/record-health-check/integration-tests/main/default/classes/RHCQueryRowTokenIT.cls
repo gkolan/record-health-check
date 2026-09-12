@@ -516,6 +516,29 @@ private with sharing class RHCQueryRowTokenIT {
     );
   }
 
+  @IsTest
+  static void readsOuterScalarBesideOpaqueChildSubquery() {
+    Account target = RecordHealthCheckTestDataFactory.accountFixture(
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{
+          'Name' => 'Scalar Beside Subquery',
+          'Website' => 'https://example.com'
+        }
+      )
+    );
+
+    Test.startTest();
+    RecordHealthCheckResultItem item = evaluate(
+      'Account_Rows_Scalar_Beside_Subquery',
+      target.Id
+    );
+    Test.stopTest();
+
+    Assert.areEqual(RecordHealthCheckStatus.PASS, item.evaluation.status);
+    Assert.isTrue(item.display.foundDisplayValue.contains('example.com'));
+    Assert.isFalse(item.display.foundDisplayValue.contains('{!'));
+  }
+
   /**
    * A message can name the card it is on and the run that produced it.
    *

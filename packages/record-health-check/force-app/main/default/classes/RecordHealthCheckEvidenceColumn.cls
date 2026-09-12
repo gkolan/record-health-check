@@ -1,11 +1,14 @@
 /** One ordered, typed column in plugin evidence. */
 global class RecordHealthCheckEvidenceColumn {
   /** Stable machine key. */
-  global String key { get; private set; }
+  @AuraEnabled
+  global String key;
   /** Plain-text visible heading. */
-  global String label { get; private set; }
+  @AuraEnabled
+  global String label;
   /** Declared scalar type. */
-  global String dataType { get; private set; }
+  @AuraEnabled
+  global String dataType;
 
   public RecordHealthCheckEvidenceColumn(
     String key,

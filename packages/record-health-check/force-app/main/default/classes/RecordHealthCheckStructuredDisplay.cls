@@ -17,22 +17,28 @@ public class RecordHealthCheckStructuredDisplay {
     RecordHealthCheckDisplayContent content = result.displayContent == null
       ? new RecordHealthCheckDisplayContent()
       : result.displayContent;
-    content.message = nodes(
-      authoredMessage,
-      messageSurface(result.status),
-      result.message,
-      record,
-      check,
-      result
-    );
-    content.fix = nodes(
-      check?.FixMessage__c,
-      RecordHealthCheckTokenSurfaces.FIX_MESSAGE,
-      result.fixInstructions,
-      record,
-      check,
-      result
-    );
+    if (content.message == null) {
+      content.message = nodes(
+        authoredMessage,
+        messageSurface(result.status),
+        result.message,
+        record,
+        check,
+        result
+      );
+    }
+    if (content.fix == null) {
+      content.fix = result.status == RecordHealthCheckStatus.FAIL
+        ? nodes(
+            check?.FixMessage__c,
+            RecordHealthCheckTokenSurfaces.FIX_MESSAGE,
+            result.fixInstructions,
+            record,
+            check,
+            result
+          )
+        : null;
+    }
     if (content.found == null) {
       content.found = nodes(
         check?.EvaluationType__c == 'APEX' ? null : check?.DisplayFoundText__c,

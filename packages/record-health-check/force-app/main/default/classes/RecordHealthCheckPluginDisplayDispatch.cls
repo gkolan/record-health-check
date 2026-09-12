@@ -25,6 +25,7 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
       scope.checkQualifiedApiName,
       scope.checkSetQualifiedApiName
     );
+    RecordHealthCheckResourcePlan.requireFenceCapacity(0);
     Savepoint before = Database.setSavepoint();
     Integer dmlBefore = Limits.getDmlStatements();
     Integer rowsBefore = Limits.getDmlRows();
@@ -84,14 +85,7 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
     Map<Id, RecordHealthCheckDisplayOverride> copy = new Map<Id, RecordHealthCheckDisplayOverride>();
     for (Id recordId : scope.recordIds) {
       RecordHealthCheckDisplayOverride value = returned.get(recordId);
-      copy.put(
-        recordId,
-        value == null ||
-          value.found?.valid == false ||
-          value.expected?.valid == false
-          ? null
-          : copyOverride(value)
-      );
+      copy.put(recordId, value == null ? null : copyOverride(value));
     }
     return copy;
   }
@@ -125,15 +119,51 @@ public with sharing class RecordHealthCheckPluginDisplayDispatch {
   private static RecordHealthCheckDisplayOverride copyOverride(
     RecordHealthCheckDisplayOverride source
   ) {
-    return new RecordHealthCheckDisplayOverride()
+    RecordHealthCheckDisplayOverride copy = new RecordHealthCheckDisplayOverride()
       .withFound(copyText(source.found))
-      .withExpected(copyText(source.expected));
+      .withExpected(copyText(source.expected))
+      .withMessage(copyText(source.message))
+      .withFix(copyText(source.fix))
+      .withAction(copyAction(source.action))
+      .withExpectedLabel(source.expectedLabel)
+      .withFoundFormat(source.foundFormat, source.foundCurrencyIsoCode)
+      .withExpectedFormat(
+        source.expectedFormat,
+        source.expectedCurrencyIsoCode
+      );
+    markInvalid(copy, source.found, 'found');
+    markInvalid(copy, source.expected, 'expected');
+    markInvalid(copy, source.message, 'message');
+    markInvalid(copy, source.fix, 'fix');
+    return copy;
+  }
+
+  private static void markInvalid(
+    RecordHealthCheckDisplayOverride target,
+    RecordHealthCheckDisplayText source,
+    String fieldName
+  ) {
+    if (source?.valid == false) {
+      target.invalidFields.add(fieldName);
+    }
+  }
+
+  private static RecordHealthCheckDisplayAction copyAction(
+    RecordHealthCheckDisplayAction source
+  ) {
+    return source == null
+      ? null
+      : new RecordHealthCheckDisplayAction(source.label, source.destination);
   }
 
   private static RecordHealthCheckDisplayText copyText(
     RecordHealthCheckDisplayText source
   ) {
-    if (source == null) {
+    if (
+      source == null ||
+      source.valid == false ||
+      source.copyNodes().isEmpty()
+    ) {
       return null;
     }
     RecordHealthCheckDisplayText copy = new RecordHealthCheckDisplayText();

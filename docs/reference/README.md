@@ -9,6 +9,7 @@ outcome, return to the [documentation home](../README.md) and choose a task-base
 | Folder | What you can find there |
 | --- | --- |
 | [Feature catalog](./feature-catalog.md) | Every shipped capability, its supported behavior, and the detailed guide that owns it |
+| [Version 2.0.10](./release-2.0.10.md) | Complete contract for the plugin, evidence, display, diagnostics, preview, readiness, limits, and compatibility changes introduced in 2.0.10 |
 | [Permission Sets](./permission-sets.md) | The six installed access bundles and the ways they authorize runs, diagnostics, and events |
 | [Custom Permissions](./custom-permissions.md) | The separate run and diagnostics authorization gates and which installed Permission Sets grant them |
 | [Configuration](./configuration/README.md) | Names, display formatting, and field limits |
@@ -27,6 +28,7 @@ Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term 
 | I need to know… | Reference |
 | --- | --- |
 | What the package supports | [Complete feature catalog](./feature-catalog.md) |
+| What changed in 2.0.10 | [Version 2.0.10 reference](./release-2.0.10.md) |
 | Which field to use in Setup | [Custom Metadata](./custom-metadata/README.md) |
 | Which Permission Set to assign | [Permission Sets](./permission-sets.md) |
 | What the Run Custom Permission controls, and how diagnostics access works | [Custom Permissions](./custom-permissions.md) |

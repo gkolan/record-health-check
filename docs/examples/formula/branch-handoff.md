@@ -81,11 +81,11 @@ create this Check Set:
 | **Card Title** | Account Data Quality |
 | **Card Subtitle** | Confirm the parent Account Billing City before branch handoff. |
 | **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
+| **Summary Display** | Show below checks |
 | **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
+| **Passed Checks** | Show each passed check |
+| **Skipped Checks** | Show each skipped check |
+| **Found/Expected Display** | Show on demand |
 | **Stop after a system error** | Unchecked |
 | **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
 | **Publish User Run Event** | Unchecked |
@@ -126,7 +126,7 @@ In **Setup → Custom Metadata Types → Record Health Check → Manage Records*
 The applicability formula prevents the action link from rendering on a top-level Account with no
 Parent ID. A blank URL token also suppresses the link, so the URL never opens a fabricated fallback
 record. Leave **Display: Found Formula** and **Display: Expected Formula** blank and leave **Formula
-Result Type** as **Auto**. Query and Apex fields do not apply.
+Result Type** as **Automatic**. Query and Apex fields do not apply.
 
 If the running user cannot read the parent relationship or field, the check may show unable to evaluate rather than a false pass.
 

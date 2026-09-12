@@ -44,9 +44,15 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
 
 - `agentforce/war-room-test-plan.md`: cross-layer MCP and Agentforce release, adversarial, failure,
   observability, and rollback matrix with P0/P1/P2 exit criteria
-- `agentforce/Record_Health_Assistant-testing-center.yaml.template`: non-importable source template for the
-  Agentforce Testing Center behavior suite. Generate a runnable copy with
-  `npm run generate:agentforce-testing-center -- --record-id <real-account-id> --second-record-id <real-account-id> --output /tmp/record-health-testing-center.yaml`; the generator rejects synthetic IDs and existing output files.
+- `agentforce/Record_Health_Assistant-testing-center.yaml.template`: non-importable source template
+  for the legacy Agentforce DX `testing-center` runner (`AiEvaluationDefinition`), not the
+  Agentforce Studio `agentforce-studio` runner. Generate an offline-validated copy with
+  `npm run generate:agentforce-testing-center -- --record-id <real-account-id> --second-record-id
+<real-account-id> --output /tmp/record-health-testing-center.yaml`; the generator rejects
+  synthetic IDs, incomplete case expectations, and existing output files. Before creation, run
+  `sf agent test create --json --test-runner testing-center --spec
+/tmp/record-health-testing-center.yaml --api-name <unique-name> --preview --target-org
+<authorized-existing-org>`.
 - `agentforce/record-health-agent-spec.md`: reviewable Agent Spec source draft; it is not generated
   or deployed without the explicit approval required by the Agentforce generation workflow
 - Sample Check Sets and Checks, including matching copies of the four shipped Example Check Set
@@ -69,6 +75,14 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   exact PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE results while its automated test proves one
   protected construction handoff and one bulk evaluation; see
   [plugin-compatibility-fixtures.md](./plugin-compatibility-fixtures.md)
+- The 2.0.10 subscriber fixtures keep business outcomes separate from failure mechanics:
+  `RHC_SP_Definition`, `RHC_SP_Values`, and `RHC_SP_Formula` have independently specified PASS and
+  FAIL records plus their applicable skipped, missing-data, recovery, and capacity cases;
+  `RHC_SP_Preview` executes an inactive draft across PASS, FAIL, SKIPPED, and
+  UNABLE_TO_EVALUATE records; `RHC_SP_Preview_Live` proves PASS and FAIL through the ordinary saved
+  Check API; and `RHC_SP_Diagnostics` proves both business verdicts as well as the separate
+  inapplicable lifecycle trace. The deliberately invalid diagnostic, definition, access, and
+  preview fixtures assert their exact safe failure instead of manufacturing a business verdict.
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
   `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
 - `npm run test:war-room -- --alias <alias>`: cross-platform deploy-optional runner for the negative
@@ -105,6 +119,12 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   claiming that DLRS implements the RHC plugin interface
 - Platform-event triggers used only in CI orgs
 - Apex classes that exercise the Framework against those samples
+
+The exhaustive launchers cover all 297 integration Check records in 50-record slices and all 50
+integration Check Set records in the platform's single-transaction 50-job limit. Source tests fail
+when a Check slice is missing or when another Check Set would exceed that limit. Exhaustive launch
+coverage proves that every metadata record can be selected and run; the scenario-specific tests
+above remain the authority for exact PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR behavior.
 
 The `RHC_Persona_*` access fixture is deliberately a namespaced-source test. Its Custom Metadata
 uses `rhc__RHC_Persona_Record__c` and `rhc__Accessible_Value__c` / `rhc__Restricted_Value__c`, so run
@@ -241,3 +261,10 @@ subscriber demo scenario.
 - [Source development](../../../docs/contributing/source-development.md)
 - [Package testing and upgrades](../../../docs/quality-gates/package-testing-and-upgrades.md)
 - [Create the demo scratch org](../../../docs/install/install-demo-in-a-scratch-org.md)
+
+## Card heading display
+
+[Card heading fixtures](card-heading-display.md) provide 28 Check Sets with paired employee-count
+Checks, including body-only cards, all valid button/run combinations and isolated negative cases.
+The field and fixture source exist; runtime heading implementation and org/browser evidence remain
+pending. Use the linked scenario procedures and offline fixture guard.

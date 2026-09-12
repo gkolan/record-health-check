@@ -18,7 +18,7 @@ It must return one result for every record ID.
 
 | Example | Salesforce question | What the Apex demonstrates | Availability |
 | --- | --- | --- | --- |
-| [Recent Account activity](./recent-activity.md) | Does the Account have a recent completed Task or Event? | Reads two objects and accepts a configurable number of days | Included with the installed package |
+| [Recent Account activity](./recent-activity.md) | Does the Account have a recent completed Task or Event? | Declares a typed parameter definition, returns typed evidence, recovers per record, and supplies an optional display override | Included with the installed package |
 | [Open Opportunity health](./open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Applies several conditions to each related record | Source example for package development and testing; not installed |
 | [Strategic Account readiness](./strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Calculates a score using several configurable values | Source example for package development and testing; not installed |
 
@@ -71,7 +71,9 @@ handling an optional installed product. It also requires a developer to create, 
 deploy the class.
 
 Start with [Recent Account activity](./recent-activity.md) for the complete, installed example. It
-shows the class, its test behavior, every Check field, and what an administrator sees.
+shows the class, its test behavior, every Check field, and what an administrator sees. Its 2.0.10
+contract also demonstrates bounded typed parameters, typed evidence projection, per-record recovery
+through the record evaluator, and presentation-only display overrides with metadata fallback.
 
 ## Related
 

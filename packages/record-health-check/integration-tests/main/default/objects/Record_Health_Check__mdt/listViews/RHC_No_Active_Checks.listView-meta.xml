@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RHC_No_Active_Checks</fullName>
+    <columns>MasterLabel</columns>
+    <columns>CheckTitle__c</columns>
+    <columns>EvaluationType__c</columns>
+    <columns>EvaluationOrder__c</columns>
+    <columns>IsActive__c</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Record_Health_Check_Set__c</field>
+        <operation>equals</operation>
+        <value>RHC_No_Active_Checks</value>
+    </filters>
+    <label>Diagnostics: No Active Checks</label>
+</ListView>

@@ -153,4 +153,8 @@
         <field>EmptyValueHandling__c</field>
         <value xsi:type="xsd:string">SKIP_RECORD</value>
     </values>
+  <values>
+    <field>FormulaResultType__c</field>
+    <value xsi:type="xsd:string">AUTO</value>
+  </values>
 </CustomMetadata>
