@@ -1,6 +1,6 @@
 /**
  * @author Gautam Kolan (https://github.com/gkolan)
- * @description Validates prerequisite references and ordering.
+ * @description Validates prerequisite references and cycles.
  * SPDX-License-Identifier: Apache-2.0
  */
 public with sharing class RHCMetadataDependencyValidator {
@@ -45,42 +45,23 @@ public with sharing class RHCMetadataDependencyValidator {
         );
         continue;
       }
-
-      if (dep.EvaluationOrder__c == null || check.EvaluationOrder__c == null) {
-        issues.add(
-          issue(
-            check,
-            'PrerequisiteCheck__c',
-            'Both this Check and its Prerequisite Check must have an Evaluation Order.',
-            'INVALID_DEPENDENCY'
-          )
-        );
-        continue;
-      }
-
-      // Must have strictly lower Evaluation Order
-      if (dep.EvaluationOrder__c >= check.EvaluationOrder__c) {
-        issues.add(
-          issue(
-            check,
-            'PrerequisiteCheck__c',
-            'Prerequisite Check must reference a check with a strictly lower Evaluation Order. ' +
-              '"' +
-              depDevName +
-              '" has Evaluation Order ' +
-              dep.EvaluationOrder__c +
-              ' which is not lower than this check\'s Evaluation Order ' +
-              check.EvaluationOrder__c +
-              '.',
-            'INVALID_DEPENDENCY'
-          )
-        );
-        continue;
-      }
     }
 
-    // Strictly decreasing Evaluation Order makes cycles impossible: following
-    // prerequisites must decrease at every edge and cannot return to the start.
+    Set<String> cycleMembers = RHCDefinitionDependencyIdentity.cycleMembers(
+      checks
+    );
+    for (Record_Health_Check__mdt check : checks) {
+      if (cycleMembers.contains(identityOf(check))) {
+        issues.add(
+          issue(
+            check,
+            'PrerequisiteCheck__c',
+            'Prerequisite Checks must not form a dependency cycle.',
+            'INVALID_DEPENDENCY'
+          )
+        );
+      }
+    }
     return issues;
   }
 

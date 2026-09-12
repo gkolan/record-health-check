@@ -19,9 +19,21 @@ private class AccountOpenOpportunityHealthCheckTest {
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
-    Assert.areEqual('PASS', result.status);
-    Assert.areEqual('0', result.actualValue);
-    Assert.areEqual('0', result.expectedValue);
+    Assert.areEqual(
+      'PASS',
+      result.status,
+      'An Account without open opportunities must pass.'
+    );
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'An Account without open opportunities must report zero unhealthy deals.'
+    );
+    Assert.areEqual(
+      '0',
+      result.expectedValue,
+      'The required unhealthy deal count must be zero.'
+    );
   }
 
   @IsTest
@@ -51,8 +63,16 @@ private class AccountOpenOpportunityHealthCheckTest {
       result.status,
       'A deal with a Next Step closing this quarter is healthy.'
     );
-    Assert.areEqual('0', result.actualValue);
-    Assert.areEqual('0', result.expectedValue);
+    Assert.areEqual(
+      '0',
+      result.actualValue,
+      'A healthy open opportunity must not count as unhealthy.'
+    );
+    Assert.areEqual(
+      '0',
+      result.expectedValue,
+      'A healthy deal result must retain the zero unhealthy-deal target.'
+    );
   }
 
   @IsTest
@@ -75,9 +95,21 @@ private class AccountOpenOpportunityHealthCheckTest {
 
     RecordHealthCheckInternalResult result = evaluate(account.Id, null);
 
-    Assert.areEqual('FAIL', result.status);
-    Assert.areEqual('1', result.actualValue);
-    Assert.areEqual('0', result.expectedValue);
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'An unhealthy open opportunity must fail.'
+    );
+    Assert.areEqual(
+      '1',
+      result.actualValue,
+      'The unhealthy opportunity must count exactly once.'
+    );
+    Assert.areEqual(
+      '0',
+      result.expectedValue,
+      'The failed result must retain the zero unhealthy-deal target.'
+    );
   }
 
   @IsTest
@@ -143,7 +175,8 @@ private class AccountOpenOpportunityHealthCheckTest {
         staleCutoff,
         quarterStart,
         quarterEnd
-      )
+      ),
+      'Missing activity and next step outside the quarter must be unhealthy.'
     );
 
     // A Next Step alone is enough to make it healthy (AND logic).
@@ -160,7 +193,8 @@ private class AccountOpenOpportunityHealthCheckTest {
         staleCutoff,
         quarterStart,
         quarterEnd
-      )
+      ),
+      'A next step alone must break the conjunction of unhealthy criteria.'
     );
 
     Opportunity explicitlyStale = (Opportunity) JSON.deserialize(
@@ -189,13 +223,15 @@ private class AccountOpenOpportunityHealthCheckTest {
       Date.newInstance(2026, 1, 1),
       AccountOpenOpportunityHealthCheck.getQuarterStart(
         Date.newInstance(2026, 2, 14)
-      )
+      ),
+      'A February date must resolve to the first-quarter start.'
     );
     Assert.areEqual(
       Date.newInstance(2026, 10, 1),
       AccountOpenOpportunityHealthCheck.getQuarterStart(
         Date.newInstance(2026, 12, 31)
-      )
+      ),
+      'The last day of December must resolve to the fourth-quarter start.'
     );
   }
 

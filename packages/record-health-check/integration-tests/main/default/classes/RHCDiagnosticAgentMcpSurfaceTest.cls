@@ -15,6 +15,8 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
       new List<String>{
         'RHC_Diag_Formula_Missing',
         'RHC_Diag_Formula_Syntax',
+        'RHC_Diag_Formula_Open_Quote',
+        'RHC_Diag_Formula_Escaped_End',
         'RHC_Diag_Formula_Null_Rel'
       }
     );
@@ -278,6 +280,8 @@ private with sharing class RHCDiagnosticAgentMcpSurfaceTest {
     return new Map<String, String>{
       'RHC_Diag_Formula_Missing' => 'INVALID_FORMULA',
       'RHC_Diag_Formula_Syntax' => 'INVALID_FORMULA',
+      'RHC_Diag_Formula_Open_Quote' => 'INVALID_FORMULA',
+      'RHC_Diag_Formula_Escaped_End' => 'INVALID_FORMULA',
       'RHC_Diag_Formula_Null_Rel' => 'FIELD_NOT_RESOLVED',
       'RHC_Diag_Query_Missing_Object' => 'OBJECT_NOT_RESOLVED',
       'RHC_Diag_Query_Missing_Field' => 'FIELD_NOT_RESOLVED',

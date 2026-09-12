@@ -18,15 +18,6 @@ public with sharing class RecordHealthCheckDefinitionLoader {
   private static final String RC_NO_RECORD_CONTEXT = RecordHealthCheckConfigService.RC_NO_RECORD_CONTEXT;
   private static final String RC_NO_ACTIVE_CHECKS = RecordHealthCheckConfigService.RC_NO_ACTIVE_CHECKS;
 
-  /**
-   * Loads and validates a Check Set and its active checks.
-   *
-   * @param service Service that loads the selected Custom Metadata.
-   * @param checkSetQualifiedApiName Exact selected Check Set identity.
-   * @param recordId Record page context used to enforce the configured object.
-   * @return Complete definition response within the Check limit.
-   * @throws RecordHealthCheckConfigService.ConfigException for missing, inactive, mismatched, empty, or invalid configuration.
-   */
   public static RecordHealthCheckDefinitionResponse getDefinitionResponse(
     RecordHealthCheckConfigService service,
     String checkSetQualifiedApiName,
@@ -52,7 +43,6 @@ public with sharing class RecordHealthCheckDefinitionLoader {
       );
     }
 
-    // Load Check Set
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by RecordHealthCheckAccess before definitions are exposed.
     List<Record_Health_Check_Set__mdt> checkSets = [
       SELECT
@@ -61,6 +51,7 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         MasterLabel,
         CardTitle__c,
         CardSubtitle__c,
+        CardHeadingDisplay__c,
         ObjectApiName__c,
         IsActive__c,
         CardRunMode__c,
@@ -115,15 +106,32 @@ public with sharing class RecordHealthCheckDefinitionLoader {
 
     Integer totalAvailable = allChecks.size();
     Boolean checksOmitted = totalAvailable > FRAMEWORK_MAX_CHECKS;
+    if (checksOmitted) {
+      logCheckLimitExceededWhenNeeded(
+        resolvedDeveloperName,
+        recordId,
+        totalAvailable
+      );
+      throw new RecordHealthCheckConfigService.ConfigException(
+        'FRAMEWORK_MAX_CHECKS_EXCEEDED: configured=' +
+          totalAvailable +
+          ', ceiling=' +
+          FRAMEWORK_MAX_CHECKS +
+          '. No Checks were run.',
+        'FRAMEWORK_MAX_CHECKS_EXCEEDED'
+      );
+    }
     List<Record_Health_Check__mdt> checksForRun = selectChecksForRun(allChecks);
     Integer inactiveCheckCount = countInactiveChecks(checkSet.QualifiedApiName);
 
-    // Build response
     RecordHealthCheckDefinitionResponse response = new RecordHealthCheckDefinitionResponse();
     response.checkSetQualifiedApiName = checkSet.QualifiedApiName;
     // Card Title is a required presentation contract validated above.
     response.displayTitle = definitionTitle(checkSet);
     response.displayDescription = checkSet.CardSubtitle__c;
+    response.cardHeadingDisplay = RecordHealthCheckConfigService.validatedCardHeadingDisplay(
+      checkSet.CardHeadingDisplay__c
+    );
     response.triggerMode = RecordHealthCheckConstants.toLwcTriggerMode(
       checkSet.CardRunMode__c
     );
@@ -155,20 +163,11 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     response.frameworkMaxChecks = RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
     response.checksOmittedByLimit = checksOmitted;
     response.inactiveCheckCount = inactiveCheckCount;
-    // Check names are configuration detail, so they ride along only for the
-    // diagnostics audience that already sees troubleshooting fields.
+    // Names are configuration detail and require the diagnostics audience.
     response.inactiveCheckLabels = inactiveCheckLabelsForDiagnostics(
       response.showDiagnostics,
       inactiveCheckCount,
       checkSet.QualifiedApiName
-    );
-
-    // Log WARN when active checks exceed FRAMEWORK_MAX_CHECKS, so truncation is
-    // visible server-side and not only in the LWC "First 25 of N shown" badge.
-    logCheckLimitExceededWhenNeeded(
-      resolvedDeveloperName,
-      recordId,
-      totalAvailable
     );
 
     response.checks = new List<RecordHealthCheckDefinition>();
@@ -246,7 +245,7 @@ public with sharing class RecordHealthCheckDefinitionLoader {
       checkSetDeveloperName,
       recordId,
       null,
-      'CHECK_LIMIT_EXCEEDED',
+      'FRAMEWORK_MAX_CHECKS_EXCEEDED',
       new Map<String, Object>{
         'totalAvailable' => totalAvailable,
         'maxPerRun' => FRAMEWORK_MAX_CHECKS,
@@ -367,6 +366,9 @@ public with sharing class RecordHealthCheckDefinitionLoader {
         RC_INVALID_CONFIG
       );
     }
+    RecordHealthCheckConfigService.validatedCardHeadingDisplay(
+      checkSet.CardHeadingDisplay__c
+    );
     if (!VALID_REVEAL_MODES.contains(checkSet.CardRevealMode__c)) {
       throw new RecordHealthCheckConfigService.ConfigException(
         'Reveal Mode "' +
@@ -484,8 +486,10 @@ public with sharing class RecordHealthCheckDefinitionLoader {
     List<Record_Health_Check__mdt> allChecks
   ) {
     List<Record_Health_Check__mdt> checksForRun = new List<Record_Health_Check__mdt>();
-    Integer checksToInclude = Math.min(FRAMEWORK_MAX_CHECKS, allChecks.size());
-    for (Integer i = 0; i < checksToInclude; i++) {
+    if (allChecks.size() > FRAMEWORK_MAX_CHECKS) {
+      return checksForRun;
+    }
+    for (Integer i = 0; i < allChecks.size(); i++) {
       checksForRun.add(allChecks[i]);
     }
     return checksForRun;

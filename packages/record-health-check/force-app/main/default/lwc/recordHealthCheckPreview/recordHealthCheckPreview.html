@@ -1,0 +1,248 @@
+<template>
+  <lightning-card
+    title="Validate and preview Check"
+    icon-name="standard:digital_verification_config"
+  >
+    <div class="slds-p-horizontal_medium" aria-busy={isLoading}>
+      <lightning-input
+        data-input="qualifiedSetName"
+        label="Qualified Check Set Name"
+        value={qualifiedSetName}
+        onchange={handleInput}
+        required
+      ></lightning-input>
+      <lightning-textarea
+        class="slds-m-top_small"
+        data-input="draftJson"
+        label="Draft Check JSON"
+        value={draftJson}
+        onchange={handleInput}
+        required
+      ></lightning-textarea>
+      <lightning-textarea
+        class="slds-m-top_small"
+        data-input="recordIds"
+        label="Representative record IDs"
+        field-level-help="Separate IDs with commas, spaces, or new lines. Validate does not evaluate records."
+        value={recordIdsText}
+        onchange={handleInput}
+      ></lightning-textarea>
+      <lightning-input
+        class="slds-m-top_small"
+        data-input="readiness"
+        type="checkbox"
+        label="Save a readiness receipt after a successful Preview"
+        checked={readinessRequested}
+        onchange={handleReadiness}
+      ></lightning-input>
+      <lightning-input
+        class="slds-m-top_small"
+        data-input="activate"
+        type="checkbox"
+        label="Activate after save"
+        checked={activationRequested}
+        onchange={handleActivation}
+      ></lightning-input>
+
+      <template lwc:if={showActivationWarning}>
+        <div
+          class="slds-notify slds-notify_alert slds-alert_warning slds-m-top_small"
+          role="alert"
+          data-activation-warning
+        >
+          <span class="slds-assistive-text">Warning</span>
+          <span>{activationWarning}</span>
+        </div>
+      </template>
+
+      <div class="slds-m-top_medium slds-button-group" role="group">
+        <lightning-button
+          data-action="validate"
+          label="Validate"
+          onclick={handleValidate}
+          disabled={isLoading}
+        ></lightning-button>
+        <lightning-button
+          class="slds-m-left_x-small"
+          data-action="preview"
+          variant="brand"
+          label="Preview"
+          onclick={handlePreview}
+          disabled={isLoading}
+        ></lightning-button>
+        <lightning-button
+          class="slds-m-left_x-small"
+          data-action="delete-expired"
+          label="Delete expired receipts"
+          onclick={handleDeleteExpired}
+          disabled={isLoading}
+        ></lightning-button>
+      </div>
+
+      <template lwc:if={isLoading}>
+        <lightning-spinner
+          size="small"
+          alternative-text="Validating detached Check"
+        ></lightning-spinner>
+      </template>
+      <div class="slds-assistive-text" aria-live="polite" aria-atomic="true">
+        {liveStatus}
+      </div>
+      <template lwc:if={errorMessage}>
+        <div class="slds-text-color_error slds-m-top_small" role="alert">
+          {errorMessage}
+        </div>
+      </template>
+      <template lwc:if={cleanupMessage}>
+        <div
+          class="slds-text-color_success slds-m-top_small"
+          role="status"
+          data-cleanup
+        >
+          {cleanupMessage}
+        </div>
+      </template>
+
+      <template lwc:if={hasResponse}>
+        <section
+          class="slds-m-top_large"
+          aria-labelledby="preview-result-heading"
+        >
+          <h2 id="preview-result-heading" class="slds-text-heading_small">
+            Preview result
+          </h2>
+          <p data-status class="slds-m-top_x-small">
+            Validation status: {response.validationStatus}
+          </p>
+          <p data-readiness-state>Readiness: {response.readinessState}</p>
+          <template lwc:if={isStale}>
+            <div data-stale class="slds-text-color_error" role="status">
+              This response is stale because the draft changed. Run Validate or
+              Preview again before using readiness.
+            </div>
+          </template>
+          <template lwc:if={showCurrentReadiness}>
+            <p data-readiness class="slds-text-color_success">
+              Readiness receipt saved until
+              {response.readinessReceipt.expiresAt}.
+            </p>
+          </template>
+          <template lwc:if={showReceiptWarning}>
+            <p data-receipt-warning role="alert" class="slds-text-color_error">
+              {response.readinessReceipt.warning}
+            </p>
+          </template>
+
+          <h3 class="slds-text-title_bold slds-m-top_medium">Capabilities</h3>
+          <ul class="slds-list_dotted">
+            <template for:each={response.capabilityRows} for:item="capability">
+              <li key={capability.key}>
+                {capability.name}: {capability.status}
+              </li>
+            </template>
+          </ul>
+
+          <template lwc:if={hasPluginParameters}>
+            <h3 class="slds-text-title_bold slds-m-top_medium">
+              Apex parameters
+            </h3>
+            <p class="slds-text-body_small">
+              These controls reflect the provider definition discovered during
+              Preview. Draft JSON remains the saved source.
+            </p>
+            <template
+              for:each={response.pluginParameterRows}
+              for:item="parameter"
+            >
+              <div
+                key={parameter.key}
+                class="slds-m-top_small"
+                data-plugin-parameter
+              >
+                <template lwc:if={parameter.isInteger}>
+                  <lightning-input
+                    data-parameter-key={parameter.key}
+                    data-parameter-type={parameter.typeName}
+                    type="number"
+                    name={parameter.key}
+                    label={parameter.label}
+                    field-level-help={parameter.helpText}
+                    min={parameter.minValue}
+                    max={parameter.maxValue}
+                    required={parameter.required}
+                    value={parameter.value}
+                    onchange={handlePluginParameter}
+                  ></lightning-input>
+                </template>
+                <template lwc:elseif={parameter.isChoice}>
+                  <lightning-combobox
+                    data-parameter-key={parameter.key}
+                    data-parameter-type={parameter.typeName}
+                    name={parameter.key}
+                    label={parameter.label}
+                    field-level-help={parameter.helpText}
+                    options={parameter.options}
+                    required={parameter.required}
+                    value={parameter.value}
+                    onchange={handlePluginParameter}
+                  ></lightning-combobox>
+                </template>
+                <template lwc:elseif={parameter.isString}>
+                  <lightning-input
+                    data-parameter-key={parameter.key}
+                    data-parameter-type={parameter.typeName}
+                    type="text"
+                    name={parameter.key}
+                    label={parameter.label}
+                    field-level-help={parameter.helpText}
+                    maxlength={parameter.maxLength}
+                    required={parameter.required}
+                    value={parameter.value}
+                    onchange={handlePluginParameter}
+                  ></lightning-input>
+                </template>
+                <template lwc:elseif={parameter.isBoolean}>
+                  <lightning-input
+                    data-parameter-key={parameter.key}
+                    data-parameter-type={parameter.typeName}
+                    type="checkbox"
+                    name={parameter.key}
+                    label={parameter.label}
+                    field-level-help={parameter.helpText}
+                    checked={parameter.checked}
+                    onchange={handlePluginParameter}
+                  ></lightning-input>
+                </template>
+              </div>
+            </template>
+          </template>
+
+          <template lwc:if={hasFindings}>
+            <h3 class="slds-text-title_bold slds-m-top_medium">Findings</h3>
+            <ul class="slds-has-dividers_top-space">
+              <template for:each={response.findingRows} for:item="finding">
+                <li key={finding.key} class="slds-item" data-finding>
+                  {finding.severity} {finding.code}: {finding.message}
+                </li>
+              </template>
+            </ul>
+          </template>
+
+          <template lwc:if={hasResults}>
+            <h3 class="slds-text-title_bold slds-m-top_medium">
+              Record results
+            </h3>
+            <ul class="slds-has-dividers_top-space">
+              <template for:each={response.resultRows} for:item="result">
+                <li key={result.key} class="slds-item" data-result>
+                  {result.recordId} — {result.checkName}: {result.status}
+                  {result.message}
+                </li>
+              </template>
+            </ul>
+          </template>
+        </section>
+      </template>
+    </div>
+  </lightning-card>
+</template>

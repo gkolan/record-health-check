@@ -32,20 +32,21 @@ An account manager opens an Account before a customer call and wants to know whe
 
 ## What you will learn
 
-| Skill | How this example teaches it |
-| --- | --- |
-| Choose Apex for multi-object logic | The Check evaluates completed Tasks and Events together. |
-| Accept administrator-controlled parameters | JSON configures the recent-activity window without changing Apex. |
-| Return a clear health result | The class supplies status, **Found**, and **Expected**; the Check supplies the message shown to the user. |
+| Skill                                      | How this example teaches it                                                                                                      |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| Choose Apex for multi-object logic         | The Check evaluates completed Tasks and Events together.                                                                         |
+| Accept administrator-controlled parameters | A typed definition validates JSON, applies defaults and bounds, and reports labels and help without changing Apex.               |
+| Explain the decision                       | The class supplies status, **Found**, **Expected**, and typed evidence for the observed count, requirement, window, and Account. |
+| Add safe presentation                      | An optional display hook adds guidance, a record link, formats, and an action without changing the verdict.                      |
 
 ## What the card shows
 
-| Card value | Activity found | No activity found |
-| --- | --- | --- |
-| **Status** | `PASS` | `FAIL` |
-| **Found** | Combined visible activity count | `0` |
-| **Expected** | `1` | `1` |
-| **Message** | No failure message | The Check's configured Warning message |
+| Card value   | Activity found                    | No activity found                                         |
+| ------------ | --------------------------------- | --------------------------------------------------------- |
+| **Status**   | `PASS`                            | `FAIL`                                                    |
+| **Found**    | Combined visible activity count   | `0`                                                       |
+| **Expected** | Configured minimum                | Configured minimum                                        |
+| **Message**  | Cadence met, with an Account link | Below requirement, with remediation and an Account action |
 
 Found reports the combined number of qualifying Tasks and Events. Expected reports the minimum
 passing count. The failure guidance tells the user which activity types and configured window to
@@ -53,18 +54,18 @@ review.
 
 ## Why use Verify with Apex
 
-| Evaluation Type | Why it fits |
-| --- | --- |
-| **Verify with Apex** | Best fit. One class can review completed Tasks and Events, apply the administrator's date window, and return one status. |
-| **Verify with a formula** using Last Activity Date | Can read the Account's Last Activity Date but cannot apply separate Task and Event filters. |
-| **Verify with a query** in two separate Checks | Would show separate Task and Event results instead of one recent-activity status. |
-| **Compare two queries** | Can compare the Task and Event counts but cannot pass when either count is greater than zero. |
+| Evaluation Type                                    | Why it fits                                                                                                              |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Verify with Apex**                               | Best fit. One class can review completed Tasks and Events, apply the administrator's date window, and return one status. |
+| **Verify with a formula** using Last Activity Date | Can read the Account's Last Activity Date but cannot apply separate Task and Event filters.                              |
+| **Verify with a query** in two separate Checks     | Would show separate Task and Event results instead of one recent-activity status.                                        |
+| **Compare two queries**                            | Can compare the Task and Event counts but cannot pass when either count is greater than zero.                            |
 
 ## What Record Health Check passes to Apex
 
 Shared scope inputs (`scope.recordIds`, `scope.parameters`) are documented once in the
 [Apex examples README](./README.md#what-record-health-check-passes-to-apex). This Check receives Account
-Ids and a `daysBack` parameter.
+Ids plus declared `daysBack` and `minimumActivities` parameters.
 
 ```apex
 List<Id> accountIds = scope.recordIds;
@@ -80,7 +81,10 @@ This class is included with the package. On a **Verify with Apex** Check, select
 into **Apex Parameters (JSON)**. In a subscriber org the underlying Apex type is namespaced, but do
 not invent or remove `rhc__` from a Custom Metadata Qualified API Name.
 
-`{"daysBack":30}` means 30 days. Invalid JSON produces `INVALID_CONFIG`. The class considers Tasks
+`{"daysBack":30}` means 30 days and uses the default minimum of one. The shipped Check uses
+`{"daysBack":60,"minimumActivities":2}`. Invalid JSON, unknown or duplicate keys, wrong types,
+and values outside the declared bounds produce `INVALID_APEX_PARAMETERS` before `evaluate` runs.
+The class considers Tasks
 and Events whose **Related To** (`WhatId`) is the Account; a Contact-only **Name** (`WhoId`)
 relationship is not enough. For a test Task, set Related To to the Account, mark it Completed, and
 use a current due date.
@@ -95,18 +99,22 @@ developer verification, not administrator setup.
 
 ## Step 1: Choose the activity window
 
-Use Check parameters to change the activity window without editing the Apex class. This Check uses:
+Use Check parameters to change the activity window and passing threshold without editing the Apex
+class. This Check uses:
 
 ```json
 {
-  "daysBack": 90
+  "daysBack": 90,
+  "minimumActivities": 2
 }
 ```
 
 Record Health Check parses the JSON automatically and passes it to the class as
-`scope.parameters`, a map of parameter names to values. The class uses 30 days only when `daysBack`
-is absent. A nonnumeric value or a whole number outside 1–3,650 returns `UNABLE_TO_EVALUATE` with
-reason code `INVALID_CONFIG`. This example explicitly uses 90 days. See
+`scope.parameters`, a map of parameter names to values. The class declares a 30-day default and a
+minimum of one activity. `daysBack` accepts 1–3,650 and `minimumActivities` accepts 1–1,000. A
+wrong type or out-of-range value returns `UNABLE_TO_EVALUATE` with reason code
+`INVALID_APEX_PARAMETERS` before the class runs.
+This copyable example uses 90 days and two activities. See
 [Parameter parsing patterns](../../developer-guides/write-an-apex-check.md#scope)
 for validation and type-conversion guidance.
 
@@ -136,22 +144,56 @@ the unprefixed type names used inside the package. A subscriber-owned plugin use
  * loop, and the loop does computation only. Two queries serve the whole scope,
  * whether that scope holds one record or two hundred.
  *
- * Failure message, severity, and label all come from the Check metadata. This
- * class decides PASS or FAIL and reports the values behind that decision; it
- * never stamps identity, severity, or anything the user sees.
+ * The class declares its JSON parameters, returns typed decision evidence, and
+ * can add display-only context after evaluation. Check metadata still owns
+ * identity, applicability, severity, publication, and safe fallback copy.
  */
-global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckPlugin {
+global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckPlugin, RecordHealthCheckPluginDefinitionSource, RecordHealthCheckDisplayPlugin {
   private static final Integer DEFAULT_DAYS_BACK = 30;
   private static final Integer MIN_DAYS_BACK = 1;
   private static final Integer MAX_DAYS_BACK = 3650;
   private static final Integer DEFAULT_MINIMUM_ACTIVITIES = 1;
   private static final Integer MINIMUM_ACTIVITIES = 1;
   private static final Integer MAXIMUM_ACTIVITIES = 1000;
+  private Map<Id, Integer> evaluatedActivityCounts = new Map<Id, Integer>();
+  private Integer evaluatedDaysBack;
+  private Integer evaluatedMinimumActivities;
+
+  /** Declares the accepted parameters and bulk scheduling characteristics. */
+  global RecordHealthCheckPluginDefinition getDefinition() {
+    return new RecordHealthCheckPluginDefinition()
+      .integerParameter(
+        'daysBack',
+        DEFAULT_DAYS_BACK,
+        MIN_DAYS_BACK,
+        MAX_DAYS_BACK
+      )
+      .describe(
+        'daysBack',
+        'Look-back days',
+        'Count completed Tasks and Events on or after this many days ago.'
+      )
+      .integerParameter(
+        'minimumActivities',
+        DEFAULT_MINIMUM_ACTIVITIES,
+        MINIMUM_ACTIVITIES,
+        MAXIMUM_ACTIVITIES
+      )
+      .describe(
+        'minimumActivities',
+        'Required activities',
+        'Minimum completed Tasks and Events required inside the look-back window.'
+      )
+      .capacity(200, true, 'LOW');
+  }
 
   /** Evaluates recent activity once for the complete requested scope. */
   global Map<Id, RecordHealthCheckOutcome> evaluate(
     RecordHealthCheckScope scope
   ) {
+    evaluatedActivityCounts.clear();
+    evaluatedDaysBack = null;
+    evaluatedMinimumActivities = null;
     Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
     List<Id> recordIds = scope.recordIds;
     if (recordIds == null || recordIds.isEmpty()) {
@@ -170,6 +212,8 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       }
       return results;
     }
+    evaluatedDaysBack = daysBack;
+    evaluatedMinimumActivities = minimumActivities;
     Date cutoff = Date.today().addDays(-daysBack);
 
     // Seed every Id with zero BEFORE overlaying the aggregates. An aggregate
@@ -204,12 +248,18 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     RecordHealthCheckValue expected = RecordHealthCheckValue.ofCount(
       minimumActivities
     );
+    ActivityOutcomeEvaluator recordEvaluator = new ActivityOutcomeEvaluator(
+      activityCounts,
+      minimumActivities,
+      daysBack,
+      expected
+    );
     for (Id recordId : recordIds) {
       Integer total = activityCounts.get(recordId);
+      evaluatedActivityCounts.put(recordId, total);
       results.put(
         recordId,
-        outcomeFor(total, minimumActivities)
-          .withComparison('GREATER_THAN_OR_EQUAL', expected)
+        RecordHealthCheckOutcome.tryEvaluate(recordId, recordEvaluator)
       );
     }
 
@@ -224,6 +274,126 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       ? RecordHealthCheckOutcome.pass('APEX_PASS')
       : RecordHealthCheckOutcome.fail('APEX_FAIL');
     return outcome.withFound(RecordHealthCheckValue.ofCount(total));
+  }
+
+  /** Builds one outcome with the typed evidence displayed by diagnostics 2.0. */
+  public static RecordHealthCheckOutcome outcomeFor(
+    Integer total,
+    Integer minimumActivities,
+    Integer daysBack,
+    Id recordId
+  ) {
+    RecordHealthCheckEvidence evidence = new RecordHealthCheckEvidence(
+        'Recent completed activity used for this decision.'
+      )
+      .column('accountId', 'Account', 'ID')
+      .column('activityCount', 'Completed activities', 'NUMBER')
+      .column('requiredCount', 'Required activities', 'NUMBER')
+      .column('windowDays', 'Look-back days', 'NUMBER')
+      .row(
+        new List<RecordHealthCheckEvidenceCell>{
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofId(recordId)
+          ),
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofCount(total)
+          ),
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofCount(minimumActivities)
+          ),
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofNumber(
+              Decimal.valueOf(String.valueOf(daysBack))
+            )
+          )
+        }
+      )
+      .groupBy('windowDays', 'accountId');
+    return outcomeFor(total, minimumActivities).withEvidence(evidence);
+  }
+
+  /**
+   * Adds presentation after evaluation without querying or changing outcomes.
+   * Missing state produces no override, allowing metadata fallback copy.
+   */
+  global Map<Id, RecordHealthCheckDisplayOverride> getDisplay(
+    RecordHealthCheckScope scope
+  ) {
+    Map<Id, RecordHealthCheckDisplayOverride> displayByRecordId = new Map<Id, RecordHealthCheckDisplayOverride>();
+    if (
+      scope == null ||
+      evaluatedDaysBack == null ||
+      evaluatedMinimumActivities == null
+    ) {
+      return displayByRecordId;
+    }
+    for (Id recordId : scope.recordIds) {
+      if (!evaluatedActivityCounts.containsKey(recordId)) {
+        continue;
+      }
+      Integer total = evaluatedActivityCounts.get(recordId);
+      Boolean passing = total >= evaluatedMinimumActivities;
+      RecordHealthCheckDisplayOverride displayValue = new RecordHealthCheckDisplayOverride()
+        .withMessage(
+          new RecordHealthCheckDisplayText()
+            .text(
+              passing
+                ? 'Recent follow-up meets the configured activity requirement.'
+                : 'Recent follow-up is below the configured activity requirement.'
+            )
+            .lineBreak()
+            .link('Open account', '/lightning/r/Account/' + recordId + '/view')
+        )
+        .withExpectedLabel('Required recent activity')
+        .withFoundFormat('NUMBER', null)
+        .withExpectedFormat('NUMBER', null)
+        .withAction(
+          new RecordHealthCheckDisplayAction(
+            'Open account',
+            '/lightning/r/Account/' + recordId + '/view'
+          )
+        );
+      if (!passing) {
+        displayValue.withFix(
+          new RecordHealthCheckDisplayText()
+            .text(
+              'Log a completed Task or Event for this Account, then run the Check again.'
+            )
+        );
+      }
+      displayByRecordId.put(recordId, displayValue);
+    }
+    return displayByRecordId;
+  }
+
+  /** Evaluates one record from the already loaded count map. */
+  private class ActivityOutcomeEvaluator implements RecordHealthCheckRecordEvaluator {
+    private Map<Id, Integer> activityCounts;
+    private Integer minimumActivities;
+    private Integer daysBack;
+    private RecordHealthCheckValue expected;
+
+    private ActivityOutcomeEvaluator(
+      Map<Id, Integer> activityCounts,
+      Integer minimumActivities,
+      Integer daysBack,
+      RecordHealthCheckValue expected
+    ) {
+      this.activityCounts = activityCounts;
+      this.minimumActivities = minimumActivities;
+      this.daysBack = daysBack;
+      this.expected = expected;
+    }
+
+    public RecordHealthCheckOutcome evaluateRecord(Id recordId) {
+      return outcomeFor(
+          activityCounts.get(recordId),
+          minimumActivities,
+          daysBack,
+          recordId
+        )
+        .withComparison('GREATER_THAN_OR_EQUAL', expected);
+    }
   }
 
   /**
@@ -251,7 +421,7 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
   }
 
   /**
-   * Limit the date range deliberately. An unlimited window is not a useful health check, and
+   * Bounded deliberately: an unbounded window is not a useful health check, and
    * a negative one would silently invert the question being asked.
    *
    * Null means the administrator supplied an invalid value; the caller returns
@@ -318,57 +488,59 @@ Map<Id, RecordHealthCheckOutcome> evaluate(RecordHealthCheckScope scope)
 
 The context contains:
 
-| Scope field | Type | What it contains |
-| --- | --- | --- |
-| `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
-| `objectApiName` | `String` | API name shared by every ID in the scope, such as `Account` |
-| `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `checkQualifiedApiName` | `String` | Qualified Check identity |
-| `checkSetQualifiedApiName` | `String` | Qualified Check Set identity |
-| `checkDeveloperName` | `String` | Unqualified Check `DeveloperName` |
-| `checkSetDeveloperName` | `String` | Unqualified parent Check Set `DeveloperName` |
-| `runId` | `String` | Correlation identifier for the evaluation run |
+| Scope field                | Type                  | What it contains                                                                   |
+| -------------------------- | --------------------- | ---------------------------------------------------------------------------------- |
+| `recordIds`                | `List<Id>`            | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
+| `objectApiName`            | `String`              | API name shared by every ID in the scope, such as `Account`                        |
+| `parameters`               | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank                 |
+| `checkQualifiedApiName`    | `String`              | Qualified Check identity                                                           |
+| `checkSetQualifiedApiName` | `String`              | Qualified Check Set identity                                                       |
+| `checkDeveloperName`       | `String`              | Unqualified Check `DeveloperName`                                                  |
+| `checkSetDeveloperName`    | `String`              | Unqualified parent Check Set `DeveloperName`                                       |
+| `runId`                    | `String`              | Correlation identifier for the evaluation run                                      |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a
 status factory and typed values:
 
-| Outcome field | What the class must return |
-| --- | --- |
-| `status` | An outcome created by `pass`, `fail`, `unableToEvaluate`, or `skipped` |
-| `reasonCode` | A stable, nonblank code that explains the programmatic reason |
-| `found` | A typed `RecordHealthCheckValue` describing what the class observed |
-| `comparisonOperator` | The operator behind the decision, such as `GREATER_THAN_OR_EQUAL` |
-| `expected` | A typed `RecordHealthCheckValue` describing the passing requirement |
+| Outcome field        | What the class must return                                                            |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `status`             | An outcome created by `pass`, `fail`, `unableToEvaluate`, or `skipped`                |
+| `reasonCode`         | A stable, nonblank code that explains the programmatic reason                         |
+| `found`              | A typed `RecordHealthCheckValue` describing what the class observed                   |
+| `comparisonOperator` | The operator behind the decision, such as `GREATER_THAN_OR_EQUAL`                     |
+| `expected`           | A typed `RecordHealthCheckValue` describing the passing requirement                   |
+| `evidence`           | Optional bounded rows explaining the decision; field provenance is filtered by access |
 
 For applicability, configure **Applies To** on the Check so Record Health Check skips before Apex
-runs. Record Health Check supplies identity, label, severity, messages, display values, and diagnostics.
+runs. Record Health Check supplies identity, label, severity, applicability, publication, and
+diagnostics. This example optionally supplies display-only message, fix, action, labels, and formats
+after evaluation; metadata remains the field-by-field fallback.
 Missing or extra map keys, a null outcome, an invalid status, forbidden writes, or an
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
 [Returning an outcome](../../developer-guides/write-an-apex-check.md#outcome).
-
 
 ## Step 3: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
 create this Check Set:
 
-| Setup field | Value |
-| --- | --- |
-| **Label** | Account Apex Readiness |
-| **Record Health Check Set Name** | `Account_Apex_Readiness` |
-| **Object** | `Account` |
-| **Card Title** | `Account Readiness` |
-| **Card Subtitle** | Confirm recent Tasks or Events within the configured window. |
-| **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+| Setup field                      | Value                                                             |
+| -------------------------------- | ----------------------------------------------------------------- |
+| **Label**                        | Account Apex Readiness                                            |
+| **Record Health Check Set Name** | `Account_Apex_Readiness`                                          |
+| **Object**                       | `Account`                                                         |
+| **Card Title**                   | `Account Readiness`                                               |
+| **Card Subtitle**                | Confirm recent Tasks or Events within the configured window.      |
+| **When Checks Run**              | When the user clicks Run                                          |
+| **Summary Display**              | Show below checks                                                 |
+| **Reveal Mode**                  | One by one                                                        |
+| **Passed Checks**                | Show each passed check                                            |
+| **Skipped Checks**               | Show each skipped check                                           |
+| **Found/Expected Display**       | Show on demand                                                    |
+| **Stop after a system error**    | Unchecked                                                         |
+| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event**       | Unchecked                                                         |
+| **Active**                       | Checked                                                           |
 
 Save the record. Because an administrator created it in your org, its **Qualified API Name** is
 normally `Account_Apex_Readiness` without `rhc__`.
@@ -377,37 +549,43 @@ normally `Account_Apex_Readiness` without `rhc__`.
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Account_Has_Recent_Activity` |
-| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Has Recent Activity |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Has Recent Activity |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c) | `AccountHasRecentActivityCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c) | `{"daysBack": 90}` |
+| Setup field                | API name                                                                                                              | Value                                      |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Developer Name**         | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                       | `Account_Has_Recent_Activity`              |
+| **Label**                  | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                    | Has Recent Activity                        |
+| **Check Set**              | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)  | `Account_Apex_Readiness`                   |
+| **Check Title**            | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                          | Has Recent Activity                        |
+| **Evaluation Type**        | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)              | Verify with Apex                           |
+| **Apex Class**             | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c)                             | `AccountHasRecentActivityCheck`            |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c) | `{"daysBack": 90, "minimumActivities": 2}` |
 
 ## Optional configuration
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks for a completed Task or Event related to the Account inside the selected number of days. |
-| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | Names the record, then asks for a completed Task or Event in the window: copy it from below the table |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check recent activity. Enter `daysBack` as a whole number from 1 through 3650. |
-| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review the Account activity timeline. Record missing activity only if it actually occurred; otherwise plan the next customer follow-up. |
-| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Log account activity` |
-| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `10` |
-| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks for a completed Task or Event related to the Account inside the selected number of days.                                           |
+| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                                                                   |
+| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | Names the record, then asks for a completed Task or Event in the window: copy it from below the table                                     |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check recent activity. Enter `daysBack` as a whole number from 1 through 3650.                                                  |
+| **Applies To**                      | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                                  | All records                                                                                                                               |
+| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                               |
+| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Review the activity timeline and include an explicit safe Account link as shown below. This remains the optional display hook's fallback. |
+| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Log account activity`                                                                                                                    |
+| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}`                                                                            |
+| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `10`                                                                                                                                      |
+| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                                                   |
+| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                 |
 
 Copy this value into **Message When Failed**:
 
 ```text
 {!record.Name fallback="this record"} has no completed tasks or logged events in the last 90 days. Review the timeline and record any completed activity that has not yet been logged.
+```
+
+Copy this value into **Fix Message** to exercise 2.0.10 inline-link syntax:
+
+```text
+Review completed Tasks and Events. {!link label="Open this Account" href="/lightning/r/Account/{!record.Id}/view"} to record genuine completed activity or plan the next follow-up.
 ```
 
 Change `daysBack` to change the window without redeploying the class.
@@ -446,16 +624,21 @@ Formula, Query, and Compare two queries fields do not apply because this is the 
 
 The Apex class turns the activity counts and effective date window into these user-facing values:
 
-| Health result or card value | What the user sees |
-| --- | --- |
-| **`PASS`** | A completed Task or Event with `ActivityDate` on or after the cutoff passes. |
-| **`FAIL`** | No matching activity shows Needs attention through a normal `FAIL`, not an evaluation error. |
-| **`SKIPPED`** | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`. |
-| **Found** | Found shows the combined number of visible completed Tasks and Events inside the effective activity window. |
-| **Expected** | Expected shows the minimum required activity count: `1`. |
+| Health result or card value | What the user sees                                                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`PASS`**                  | A completed Task or Event with `ActivityDate` on or after the cutoff passes.                                                                      |
+| **`FAIL`**                  | No matching activity shows Needs attention through a normal `FAIL`, not an evaluation error.                                                      |
+| **`SKIPPED`**               | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`.                                            |
+| **Found**                   | Found shows the combined number of visible completed Tasks and Events inside the effective activity window.                                       |
+| **Expected**                | Expected shows the configured minimum under **Required recent activity**.                                                                         |
+| **Evidence**                | One typed row contains Account ID, completed-activity count, required count, and look-back days.                                                  |
+| **Presentation**            | The Apex display hook adds a status-specific message, safe Account link, numeric formats, and failure remediation. Metadata remains the fallback. |
 
-Invalid `daysBack` values return `UNABLE_TO_EVALUATE` with `INVALID_CONFIG`. Test configuration changes before activation because the card intentionally shows the count comparison, not the parameter value. The Check supplies the
-label, severity, failure message, and display formatting.
+Invalid declared parameter input returns `UNABLE_TO_EVALUATE` with `INVALID_APEX_PARAMETERS`.
+The class's own `INVALID_CONFIG` branch is defensive behavior for a direct call that bypasses the
+normal definition service; it is not the expected reason from Record Health Check evaluation. Test
+configuration changes before activation. Check metadata always owns label, severity,
+applicability, publication, and fallback copy. Presentation cannot change PASS or FAIL.
 
 ## Security and access
 
@@ -478,12 +661,20 @@ access. The running user needs Read access to:
 
 ## Step 5: Test the Check
 
-1. Remove or push outside the window every completed Task and logged Event. Confirm Warning.
-2. Add either back inside the window, rerun, and confirm a pass.
-3. Edit `daysBack` in Apex Parameters (JSON) and confirm the window changes without a class redeploy.
-4. Enter `{"daysBack":"abc"}` and confirm `UNABLE_TO_EVALUATE` with reason code `INVALID_CONFIG`.
-   Restore `{"daysBack":90}` before continuing.
-5. Run as a user who cannot see a qualifying Task or Event. Confirm the result follows that user's
+1. Use an Account with at least two visible completed WhatId Tasks or Events inside 60 days. Confirm
+   PASS, Found `2` or more, Expected `2`, and complete evidence.
+2. Use an Account with exactly one qualifying activity. Confirm Warning/FAIL and remediation.
+3. Use an Account with no activity. Confirm Found is exactly `0`; it must not be absent.
+4. Add a Contact-only WhoId Task and an activity older than the window. Confirm neither changes the
+   count.
+5. Edit either declared parameter and confirm behavior changes without a class deployment.
+6. Enter `{"daysBack":"90","minimumActivities":2}`, an unknown key, zero, and a value above its
+   maximum. Confirm each returns `UNABLE_TO_EVALUATE` with `INVALID_APEX_PARAMETERS` before the
+   plugin runs. Restore valid JSON.
+7. Confirm the message link and **Open account** action use a same-org safe path. In a
+   subscriber-owned copy, try an unsafe scheme and confirm the readable label remains without a
+   clickable unsafe destination.
+8. Run as a user who cannot see a qualifying Task or Event. Confirm the result follows that user's
    visibility, then restore access and confirm the activity contributes again.
 
 You can also test without the card from **Developer Console → Debug → Open Execute Anonymous
@@ -508,16 +699,16 @@ System.debug(LoggingLevel.INFO, JSON.serializePretty(response));
 
 ## Failures and remedies
 
-| Symptom or reason | What to verify |
-| --- | --- |
-| `APEX_CLASS_NOT_FOUND` | Confirm the installed package contains `AccountHasRecentActivityCheck`, match the class name in **Apex Class**, and confirm any replacement class implements `rhc.RecordHealthCheckPlugin`. |
-| `APEX_EVALUATOR_ERROR` | Confirm the running user can read Task, Event, and the queried fields. Then use **Show Diagnostics** only with an authorized administrator to inspect the underlying exception. |
-| A known Task does not count | Confirm it is closed, its `WhatId` is this Account, its `ActivityDate` is inside the effective window, and the running user can see it. |
-| `INVALID_CONFIG` | Correct a null, nonnumeric, or out-of-range `daysBack`. Omit the key only when the deliberate 30-day default is appropriate. |
+| Symptom or reason           | What to verify                                                                                                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `APEX_CLASS_NOT_FOUND`      | Confirm the installed package contains `AccountHasRecentActivityCheck`, match the class name in **Apex Class**, and confirm any replacement class implements `rhc.RecordHealthCheckPlugin`. |
+| `APEX_EVALUATOR_ERROR`      | Confirm the running user can read Task, Event, and the queried fields. Then use **Show Diagnostics** only with an authorized administrator to inspect the underlying exception.             |
+| A known Task does not count | Confirm it is closed, its `WhatId` is this Account, its `ActivityDate` is inside the effective window, and the running user can see it.                                                     |
+| `INVALID_APEX_PARAMETERS`   | Remove unknown or duplicate keys; use JSON integers; keep `daysBack` in 1–3,650 and `minimumActivities` in 1–1,000. Omit a key only when its deliberate default is appropriate.             |
 
 ## Customize this Check
 
-Change `daysBack` in JSON to change the window without deploying code. Change the Task or Event
+Change `daysBack` or `minimumActivities` in JSON without deploying code. Change the Task or Event
 filters only when your definition of activity differs, and update the class tests and explanatory
 copy at the same time. If `LastActivityDate` alone answers the business question, replace this Apex
 Check with a simpler Verify with a formula.
@@ -526,3 +717,4 @@ Check with a simpler Verify with a formula.
 
 - [Next: Combine per-row conditions on a child object →](./open-opportunity-health.md)
 - [Browse Apex examples](./README.md)
+- [Complete 2.0.10 contract](../../reference/release-2.0.10.md)

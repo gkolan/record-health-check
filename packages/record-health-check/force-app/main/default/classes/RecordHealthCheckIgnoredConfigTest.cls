@@ -24,8 +24,14 @@ private class RecordHealthCheckIgnoredConfigTest {
       reported.size(),
       'Only authored query content is reported: ' + reported.keySet()
     );
-    Assert.isTrue(reported.containsKey('SourceQuery__c'));
-    Assert.isTrue(reported.containsKey('SourceQueryField__c'));
+    Assert.isTrue(
+      reported.containsKey('SourceQuery__c'),
+      'A Formula Check must report its unused source query.'
+    );
+    Assert.isTrue(
+      reported.containsKey('SourceQueryField__c'),
+      'A Formula Check must report its unused selected query field.'
+    );
     Assert.isFalse(
       reported.containsKey('MaxQueryRows__c'),
       'A defaulted number on every Check is noise, not a finding.'
@@ -59,8 +65,14 @@ private class RecordHealthCheckIgnoredConfigTest {
       reported.size(),
       'The count fields are unused in formula mode: ' + reported.keySet()
     );
-    Assert.isTrue(reported.containsKey('ApplicabilityCountQuery__c'));
-    Assert.isTrue(reported.containsKey('ApplicabilityCountThreshold__c'));
+    Assert.isTrue(
+      reported.containsKey('ApplicabilityCountQuery__c'),
+      'Formula applicability must report the unused count query.'
+    );
+    Assert.isTrue(
+      reported.containsKey('ApplicabilityCountThreshold__c'),
+      'Formula applicability must report the unused count threshold.'
+    );
     Assert.isFalse(
       reported.containsKey('ApplicabilityFormula__c'),
       'The field the mode does use is not reported.'
@@ -140,8 +152,14 @@ private class RecordHealthCheckIgnoredConfigTest {
       'Only a Formula Check evaluates the display formulas: ' +
       reported.keySet()
     );
-    Assert.isTrue(reported.containsKey('DisplayFoundFormula__c'));
-    Assert.isTrue(reported.containsKey('DisplayExpectedFormula__c'));
+    Assert.isTrue(
+      reported.containsKey('DisplayFoundFormula__c'),
+      'A Query Check must report its unused found display formula.'
+    );
+    Assert.isTrue(
+      reported.containsKey('DisplayExpectedFormula__c'),
+      'A Query Check must report its unused expected display formula.'
+    );
   }
 
   @IsTest
@@ -218,8 +236,16 @@ private class RecordHealthCheckIgnoredConfigTest {
         issue.severity,
         'Ignored configuration is confusing, not invalid.'
       );
-      Assert.areEqual('CONFIGURATION_IGNORED', issue.reasonCode);
-      Assert.areEqual('Mixed', issue.componentName);
+      Assert.areEqual(
+        'CONFIGURATION_IGNORED',
+        issue.reasonCode,
+        'Every ignored-field warning must retain the stable ignored-configuration reason.'
+      );
+      Assert.areEqual(
+        'Mixed',
+        issue.componentName,
+        'Every ignored-field warning must identify its authored Check.'
+      );
       Assert.isNotNull(issue.fieldName, 'A warning always names its field.');
     }
   }
@@ -246,8 +272,14 @@ private class RecordHealthCheckIgnoredConfigTest {
       reported.size(),
       'Both single-query expected fields are dead here: ' + reported.keySet()
     );
-    Assert.isTrue(reported.containsKey('ExpectedFixedValue__c'));
-    Assert.isTrue(reported.containsKey('ExpectedRecordFormula__c'));
+    Assert.isTrue(
+      reported.containsKey('ExpectedFixedValue__c'),
+      'A dual-query Check must report the unused fixed expected value.'
+    );
+    Assert.isTrue(
+      reported.containsKey('ExpectedRecordFormula__c'),
+      'A dual-query Check must report the unused expected record formula.'
+    );
     Assert.isFalse(
       reported.containsKey('ComparisonQuery__c'),
       'The comparison query is exactly what this Check does read.'

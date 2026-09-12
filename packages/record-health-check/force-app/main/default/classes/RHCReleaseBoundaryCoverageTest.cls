@@ -8,20 +8,44 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
       false,
       'card text'
     );
-    Assert.areEqual(RecordHealthCheckValue.TYPE_STRING, fallback.dataType);
-    Assert.areEqual('card text', fallback.storedValue);
+    Assert.areEqual(
+      RecordHealthCheckValue.TYPE_STRING,
+      fallback.dataType,
+      'Fallback card text must produce a STRING value.'
+    );
+    Assert.areEqual(
+      'card text',
+      fallback.storedValue,
+      'Fallback card text must retain its stored value.'
+    );
 
     RecordHealthCheckValue booleanValue = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
       true
     );
-    Assert.areEqual(RecordHealthCheckValue.TYPE_BOOLEAN, booleanValue.dataType);
-    Assert.areEqual('true', booleanValue.storedValue);
+    Assert.areEqual(
+      RecordHealthCheckValue.TYPE_BOOLEAN,
+      booleanValue.dataType,
+      'A Boolean operand must retain BOOLEAN type.'
+    );
+    Assert.areEqual(
+      'true',
+      booleanValue.storedValue,
+      'A true Boolean must retain its canonical stored value.'
+    );
 
     RecordHealthCheckValue integerValue = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
       7
     );
-    Assert.areEqual(RecordHealthCheckValue.TYPE_NUMBER, integerValue.dataType);
-    Assert.areEqual('7', integerValue.storedValue);
+    Assert.areEqual(
+      RecordHealthCheckValue.TYPE_NUMBER,
+      integerValue.dataType,
+      'An integer operand must produce NUMBER type.'
+    );
+    Assert.areEqual(
+      '7',
+      integerValue.storedValue,
+      'An integer operand must retain its canonical stored value.'
+    );
 
     Id accountId = RecordHealthCheckTestDataFactory.accountFixture(
         'Typed Flow value'
@@ -30,8 +54,16 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
     RecordHealthCheckValue idValue = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
       accountId
     );
-    Assert.areEqual(RecordHealthCheckValue.TYPE_ID, idValue.dataType);
-    Assert.areEqual(String.valueOf(accountId), idValue.storedValue);
+    Assert.areEqual(
+      RecordHealthCheckValue.TYPE_ID,
+      idValue.dataType,
+      'A record identity operand must retain ID type.'
+    );
+    Assert.areEqual(
+      String.valueOf(accountId),
+      idValue.storedValue,
+      'A record identity must retain its exact stored value.'
+    );
   }
 
   @TestSetup
@@ -162,8 +194,16 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
           setRequest
         }
       );
-      Assert.areEqual('LIMIT', checkOutputs[1].errorType);
-      Assert.areEqual('LIMIT', setOutputs[1].errorType);
+      Assert.areEqual(
+        'LIMIT',
+        checkOutputs[1].errorType,
+        'An exhausted payload budget must stop later Check rows.'
+      );
+      Assert.areEqual(
+        'LIMIT',
+        setOutputs[1].errorType,
+        'An exhausted payload budget must stop later Check Set rows.'
+      );
     } finally {
       RecordHealthCheckFlowSupport.payloadBudgetStartOverride = null;
       RecordHealthCheckAccess.setRunPermissionForTest(null);
@@ -183,7 +223,11 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
           checkFlowRequest(accountRecord.Id)
         }
       )[0];
-      Assert.areEqual('EXECUTION', output.errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        output.errorType,
+        'A malformed Check response must report execution failure.'
+      );
       Assert.areEqual(
         'The Check response could not be prepared.',
         output.errorMessage,
@@ -203,7 +247,11 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
       ),
       RecordHealthCheckFlowGroupExecutor.SelectionKind.CHECK_SET
     );
-    Assert.areEqual('LIMIT', result.errorType);
+    Assert.areEqual(
+      'LIMIT',
+      result.errorType,
+      'The framework Check count ceiling must report a limit failure.'
+    );
     Assert.isTrue(
       result.errorMessage.startsWith('FRAMEWORK_MAX_CHECKS_EXCEEDED:'),
       'The stable framework limit message must be retained.'
@@ -227,7 +275,11 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
     RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = 0;
     Object value = new RecordHealthCheckFormulaEvaluator()
       .resolveFormulaSingleValue('BillingCity', row, 'AUTO');
-    Assert.areEqual('Chicago', value);
+    Assert.areEqual(
+      'Chicago',
+      value,
+      'AUTO formula resolution must recover the text value after a wrong cached type.'
+    );
     Assert.areEqual(
       formulaeval.FormulaReturnType.STRING,
       RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.get(
@@ -285,8 +337,16 @@ private with sharing class RHCReleaseBoundaryCoverageTest {
     try {
       RecordHealthCheckValidateMetadataAction.Result result = RecordHealthCheckValidateMetadataAction.validateConfiguration()[0];
       Assert.isFalse(result.isValid, 'Any error must invalidate the result.');
-      Assert.areEqual(1, result.errorCount);
-      Assert.areEqual(1, result.warningCount);
+      Assert.areEqual(
+        1,
+        result.errorCount,
+        'Metadata validation must count the single error.'
+      );
+      Assert.areEqual(
+        1,
+        result.warningCount,
+        'Metadata validation must count the single warning.'
+      );
     } finally {
       RecordHealthCheckValidateMetadataAction.issuesOverride = null;
     }

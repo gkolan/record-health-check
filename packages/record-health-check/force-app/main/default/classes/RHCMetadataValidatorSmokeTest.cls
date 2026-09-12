@@ -8,7 +8,11 @@ private class RHCMetadataValidatorSmokeTest {
       .validate();
     Test.stopTest();
 
-    Assert.areNotEqual(null, issues);
+    Assert.areNotEqual(
+      null,
+      issues,
+      'Packaged metadata validation must return an issue collection.'
+    );
   }
 
   // validateAsJson() is the Apex/CI entry point and is intentionally not Aura-enabled.
@@ -76,10 +80,30 @@ private class RHCMetadataValidatorSmokeTest {
       'REASON'
     );
 
-    Assert.areEqual('ERROR', issue.severity);
-    Assert.areEqual('Component_Name', issue.componentName);
-    Assert.areEqual('Field__c', issue.fieldName);
-    Assert.areEqual('Message', issue.message);
-    Assert.areEqual('REASON', issue.reasonCode);
+    Assert.areEqual(
+      'ERROR',
+      issue.severity,
+      'A validation issue must preserve its severity.'
+    );
+    Assert.areEqual(
+      'Component_Name',
+      issue.componentName,
+      'A validation issue must preserve its component identity.'
+    );
+    Assert.areEqual(
+      'Field__c',
+      issue.fieldName,
+      'A validation issue must preserve its field identity.'
+    );
+    Assert.areEqual(
+      'Message',
+      issue.message,
+      'A validation issue must preserve its message.'
+    );
+    Assert.areEqual(
+      'REASON',
+      issue.reasonCode,
+      'A validation issue must preserve its stable reason code.'
+    );
   }
 }

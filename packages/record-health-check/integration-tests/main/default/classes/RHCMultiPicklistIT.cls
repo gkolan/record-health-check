@@ -17,8 +17,15 @@ private class RHCMultiPicklistIT {
       row
     );
 
-    Assert.areEqual('Alpha, Beta', resolution.value);
-    Assert.isTrue(resolution.isFinalText);
+    Assert.areEqual(
+      'Alpha, Beta',
+      resolution.value,
+      'Multi-select values must render as a readable comma-separated list.'
+    );
+    Assert.isTrue(
+      resolution.isFinalText,
+      'Rendered multi-select labels must be final text.'
+    );
     Assert.isTrue(bound.contains('INCLUDES (\'A\', \'B\')'), bound);
   }
 }

@@ -24,7 +24,11 @@ global with sharing class RecordHealthCheckContractHarnessTest extends RecordHea
       RecordHealthCheckPluginDispatch.run(new PerRecordQueryCheck(), scope);
       queryDeltas.add(Limits.getQueries() - beforeQueries);
     }
-    Assert.areEqual(new List<Integer>{ 1, 10 }, queryDeltas);
+    Assert.areEqual(
+      new List<Integer>{ 1, 10 },
+      queryDeltas,
+      'Query telemetry must retain the ordinary and excessive query deltas.'
+    );
     Assert.isFalse(
       RecordHealthCheckContractTest.hasStableQueryGrowth(queryDeltas),
       'The harness must reject a plugin whose query use follows record count.'

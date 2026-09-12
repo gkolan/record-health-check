@@ -19,12 +19,12 @@ apply to a subscriber org.
 
 ### Use a package version, not a source deployment
 
-| Use this approach | Do not use this approach |
-| --- | --- |
-| Install the promoted package version whose ID begins with `04t` | Clone the repository and deploy package source into a production org |
-| Test the upgrade in a sandbox first | Edit installed Apex classes or package test utilities |
-| Create your own Check Sets and Checks in Setup | Rename or repurpose installed example metadata as your business configuration |
-| Keep org-specific Apex and tests in your team's repository | Add org-specific code to the Record Health Check package source |
+| Use this approach                                               | Do not use this approach                                                      |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Install the promoted package version whose ID begins with `04t` | Clone the repository and deploy package source into a production org          |
+| Test the upgrade in a sandbox first                             | Edit installed Apex classes or package test utilities                         |
+| Create your own Check Sets and Checks in Setup                  | Rename or repurpose installed example metadata as your business configuration |
+| Keep org-specific Apex and tests in your team's repository      | Add org-specific code to the Record Health Check package source               |
 
 Custom Metadata records created by an administrator in your org belong to your team. The release
 process tests that those records remain after an upgrade. The four `Example_` Check Sets included
@@ -74,16 +74,25 @@ stronger deletion behavior and possible data loss have been explicitly approved.
 
 ## Which tests run where?
 
-| Tests | Location | Who runs them? | Purpose |
-| --- | --- | --- | --- |
-| Package unit tests | Test classes inside `packages/record-health-check/force-app` | Package maintainers during source validation and package-version creation | Verify the Apex and Lightning package code |
-| Package integration tests | `packages/record-health-check/integration-tests` | Package maintainers in release scratch orgs | Verify installed examples, access, events, and end-to-end behavior |
-| Org-specific tests | Your team's Salesforce repository | Your team in its normal deployment pipeline | Verify Check Sets, custom Apex Checks, Flows, and other business automation created for your org |
+| Tests                     | Location                                                     | Who runs them?                                                            | Purpose                                                                                          |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Package unit tests        | Test classes inside `packages/record-health-check/force-app` | Package maintainers during source validation and package-version creation | Verify the Apex and Lightning package code                                                       |
+| Package integration tests | `packages/record-health-check/integration-tests`             | Package maintainers in release scratch orgs                               | Verify installed examples, access, events, and end-to-end behavior                               |
+| Org-specific tests        | Your team's Salesforce repository                            | Your team in its normal deployment pipeline                               | Verify Check Sets, custom Apex Checks, Flows, and other business automation created for your org |
 
 An ordinary `RunLocalTests` deployment in an org with the namespaced package installed does not run
 the package's namespaced test classes. `RunAllTestsInOrg` or explicitly selected test classes can run
 them. Your own tests must not depend on or modify `RecordHealthCheckTestDataFactory`; that class is a
 package test utility, not a public extension point.
+
+Package-version creation is also its own Apex execution context. Its test principal must not be
+assumed to hold packaged Permission Sets, and assigning a packaged Permission Set to the current
+user in `@TestSetup` is not accepted as proof that later user-mode access will match an installed
+administrator. Do not create replacement User personas in unlocked-package tests: subscriber User
+automation can execute in the packaging org. Model customer records in user mode; model any private
+service-owned package store explicitly, authorize it at the public boundary, and pin every reviewed
+system-mode exception with `check:apex-surface` and focused source tests. A source-org green run does
+not close this boundary; the package version's own Apex tests must pass.
 
 ## For package contributors
 
@@ -97,10 +106,10 @@ uses `rhc`.
 An unpackaged no-namespace source deployment is retained as an optional contributor portability
 check:
 
-| Test org | What it proves |
-| --- | --- |
-| Namespaced `rhc` scratch org | Package source compiles when Salesforce applies the package namespace |
-| No-namespace scratch org | Optional proof that unpackaged repository source remains portable; this is not a second package shape |
+| Test org                     | What it proves                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Namespaced `rhc` scratch org | Package source compiles when Salesforce applies the package namespace                                 |
+| No-namespace scratch org     | Optional proof that unpackaged repository source remains portable; this is not a second package shape |
 
 Never build a Qualified API Name by adding `rhc__`. Tests query Salesforce for
 `QualifiedApiName`, and Apex uses schema describe results when an object or field name can differ by
@@ -122,10 +131,10 @@ For each proposed version, maintainers must:
 5. In each org, clean-install and verify the candidate, remove the subscriber harness, uninstall the
    candidate, install the immediately preceding promoted release, and upgrade to the candidate.
 6. Record that customer-owned Custom Metadata survived the exact previous-to-candidate upgrade.
-8. Promote the exact candidate after its package report and creation evidence are verified.
-9. Move the former stable version to `previous`, record the new promoted `04t` and installation
-    links in `config/package-releases.json`, update `CHANGELOG.md`, and create the matching release
-    tag.
+7. Promote the exact candidate after its package report and creation evidence are verified.
+8. Move the former stable version to `previous`, record the new promoted `04t` and installation
+   links in `config/package-releases.json`, update `CHANGELOG.md`, and create the matching release
+   tag.
 
 These are separate assertions executed sequentially in the same two orgs. A successful clean
 installation does not prove that an upgrade preserves an administrator's Custom Metadata, and a

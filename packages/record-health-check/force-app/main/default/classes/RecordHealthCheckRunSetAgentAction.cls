@@ -117,18 +117,7 @@ global with sharing class RecordHealthCheckRunSetAgentAction {
       RecordHealthCheckResponse evaluation = RecordHealthCheck.evaluate(
         request
       );
-      Response output = baseResponse(evaluation.runId);
-      output.success = true;
-      output.operation = OPERATION;
-      output.status = RecordHealthCheckFlowSupport.overallStatus(
-        evaluation.summary
-      );
-      output.passed = evaluation.summary.passed;
-      output.failed = evaluation.summary.failed;
-      output.skipped = evaluation.summary.skipped;
-      output.unable = evaluation.summary.unable;
-      output.systemError = evaluation.summary.systemError;
-      populateFirstDiagnosis(output, evaluation.results);
+      Response output = evaluationResponse(evaluation);
       return new List<Response>{ output };
     } catch (Exception error) {
       RecordHealthCheckLogger.log(
@@ -146,6 +135,24 @@ global with sharing class RecordHealthCheckRunSetAgentAction {
         errorResponse(correlationId, 'EXECUTION', EXECUTION_MESSAGE)
       };
     }
+  }
+
+  private static Response evaluationResponse(
+    RecordHealthCheckResponse evaluation
+  ) {
+    Response output = baseResponse(evaluation.runId);
+    output.success = true;
+    output.operation = OPERATION;
+    output.status = RecordHealthCheckFlowSupport.overallStatus(
+      evaluation.summary
+    );
+    output.passed = evaluation.summary.passed;
+    output.failed = evaluation.summary.failed;
+    output.skipped = evaluation.summary.skipped;
+    output.unable = evaluation.summary.unable;
+    output.systemError = evaluation.summary.systemError;
+    populateFirstDiagnosis(output, evaluation.results);
+    return output;
   }
 
   private static void populateFirstDiagnosis(

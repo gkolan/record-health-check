@@ -102,11 +102,11 @@ for (const directory of checkSetMetadataDirectories) {
     .filter((name) => name.startsWith("Record_Health_Check_Set."))) {
     const metadata = fs.readFileSync(path.join(directory, fileName), "utf8");
     const summaryDisplay = metadata.match(
-      /<field>SummaryDisplay__c<\/field>\s*<value[^>]*>(TOP|BOTTOM)<\/value>/
+      /<field>SummaryDisplay__c<\/field>\s*<value[^>]*>(TOP|BOTTOM|HIDE)<\/value>/
     )?.[1];
     if (!summaryDisplay) {
       failures.push(
-        `Check Set must explicitly set SummaryDisplay__c to TOP or BOTTOM: ${fileName}`
+        `Check Set must explicitly set SummaryDisplay__c to TOP, BOTTOM or HIDE: ${fileName}`
       );
     }
   }

@@ -6,24 +6,24 @@
 
 ## Result destinations
 
-| Start path | Immediate result | Optional result destination |
-| --- | --- | --- |
-| Lightning card | Rows on the card | Check Set Run and Check Result events only after Run or Rerun when enabled |
-| Flow action | Flow outputs and Result JSON | `ACTIONABLE` or `ALL` Platform Event publication |
-| Direct Apex | `RecordHealthCheckResponse` | `ACTIONABLE` or `ALL` Platform Event publication |
-| Queueable, Batch, or Scheduled Apex | Job or schedule ID to the submitter | Platform Events, or persistence implemented by your custom Batch |
-| Agentforce action | Structured action output | None; result-event publication is forced to `NONE` |
-| Agent REST or MCP | HTTP JSON | None; result-event publication is forced to `NONE` |
+| Start path                          | Immediate result                    | Optional result destination                                                |
+| ----------------------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
+| Lightning card                      | Rows on the card                    | Check Set Run and Check Result events only after Run or Rerun when enabled |
+| Flow action                         | Flow outputs and Result JSON        | `ACTIONABLE` or `ALL` Platform Event publication                           |
+| Direct Apex                         | `RecordHealthCheckResponse`         | `ACTIONABLE` or `ALL` Platform Event publication                           |
+| Queueable, Batch, or Scheduled Apex | Job or schedule ID to the submitter | Platform Events, or persistence implemented by your custom Batch           |
+| Agentforce action                   | Structured action output            | None; result-event publication is forced to `NONE`                         |
+| Agent REST or MCP                   | HTTP JSON                           | None; result-event publication is forced to `NONE`                         |
 
 There is no packaged custom object, report row, email, or history record for health results.
 
 ## Choose Platform Event publication deliberately
 
-| Publication value | What is published |
-| --- | --- |
-| `NONE` | No Check Set Run or Check Result events |
-| `ACTIONABLE` | Check Result events with `FAIL`, `UNABLE_TO_EVALUATE`, or `ERROR`, plus one completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs |
-| `ALL` | All eligible results |
+| Publication value | What is published                                                                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NONE`            | No Check Set Run or Check Result events                                                                                                                                   |
+| `ACTIONABLE`      | Check Result events with `FAIL`, `UNABLE_TO_EVALUATE`, or `ERROR`, plus one completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs |
+| `ALL`             | All eligible results                                                                                                                                                      |
 
 For a card Run, use **Publish User Run Event** on the Check Set and **Publish User Result Event** on
 each Check. Those checkboxes do not control Flow, Apex, Batch, Queueable, or Scheduled requests.

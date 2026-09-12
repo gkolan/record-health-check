@@ -123,7 +123,11 @@ private class RecordHealthCheckLifecyclePublisherTest {
       'Account_Data_Quality',
       'CUSTOM_TELEMETRY_SOURCE'
     );
-    Assert.areEqual(beforeDml + 2, Limits.getDmlStatements());
+    Assert.areEqual(
+      beforeDml + 2,
+      Limits.getDmlStatements(),
+      'ALL publication must emit both run and Check events.'
+    );
   }
 
   @IsTest
@@ -138,7 +142,11 @@ private class RecordHealthCheckLifecyclePublisherTest {
       250,
       200
     );
-    Assert.areEqual(beforeDml, Limits.getDmlStatements());
+    Assert.areEqual(
+      beforeDml,
+      Limits.getDmlStatements(),
+      'NONE must suppress the async terminal event.'
+    );
 
     RecordHealthCheckLifecyclePublisher.publishAsyncJobTerminal(
       'batch-707000000000001AAA',
@@ -166,7 +174,11 @@ private class RecordHealthCheckLifecyclePublisherTest {
       'Account_Data_Quality',
       RecordHealthCheckLifecyclePublisher.SOURCE_APEX_API
     );
-    Assert.areEqual(beforeDml, Limits.getDmlStatements());
+    Assert.areEqual(
+      beforeDml,
+      Limits.getDmlStatements(),
+      'Subscriber context must suppress event publication.'
+    );
   }
 
   @IsTest
@@ -177,7 +189,11 @@ private class RecordHealthCheckLifecyclePublisherTest {
       'Account_Data_Quality',
       RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
     );
-    Assert.areEqual(beforeDml, Limits.getDmlStatements());
+    Assert.areEqual(
+      beforeDml,
+      Limits.getDmlStatements(),
+      'Run-on-load must not use interactive publication.'
+    );
   }
 
   @IsTest
@@ -192,7 +208,11 @@ private class RecordHealthCheckLifecyclePublisherTest {
     }
     Integer beforeDml = Limits.getDmlStatements();
     RecordHealthCheckLifecyclePublisher.publishCheckEvents(events);
-    Assert.areEqual(beforeDml + 2, Limits.getDmlStatements());
+    Assert.areEqual(
+      beforeDml + 2,
+      Limits.getDmlStatements(),
+      'One more event than the chunk limit must require two publications.'
+    );
   }
 
   @IsTest

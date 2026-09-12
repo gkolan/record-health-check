@@ -61,7 +61,8 @@ private class RHCCurrencyAuthoringRedTest {
     } catch (RecordHealthCheckEvaluatorException expected) {
       Assert.areEqual(
         RecordHealthCheckReasonCodes.FIXED_CURRENCY_BASIS_MISSING,
-        expected.reasonCode
+        expected.reasonCode,
+        'A grouped currency aggregate without a fixed ISO basis must retain the runtime safety reason.'
       );
     }
   }
@@ -81,7 +82,8 @@ private class RHCCurrencyAuthoringRedTest {
     Assert.isFalse(
       RecordHealthCheckCurrencySupport.hasUngroupedCurrencyAggregate(
         'SELECT SUM(AnnualRevenue) totalValue FROM Account GROUP BY CurrencyIsoCode'
-      )
+      ),
+      'Grouping by CurrencyIsoCode must make the currency aggregate unit explicit.'
     );
     Assert.isFalse(
       RecordHealthCheckCurrencySupport.isCurrencySelection(null, 'Amount'),
@@ -91,31 +93,36 @@ private class RHCCurrencyAuthoringRedTest {
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         'not a query',
         'AnnualRevenue'
-      )
+      ),
+      'Malformed query text must not identify a currency selection.'
     );
     Assert.isFalse(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         'SELECT AnnualRevenue FROM RHC_Absent_Object__c',
         'AnnualRevenue'
-      )
+      ),
+      'An unknown query object must not identify a currency selection.'
     );
     Assert.isFalse(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         'SELECT RHC_Absent_Field__c FROM Account',
         'RHC_Absent_Field__c'
-      )
+      ),
+      'An unknown selected field must not identify a currency selection.'
     );
     Assert.isTrue(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         'SELECT annualrevenue FROM Account',
         'annualrevenue'
-      )
+      ),
+      'Currency selection must resolve case-insensitive field names.'
     );
     Assert.isTrue(
       RecordHealthCheckCurrencySupport.isCurrencySelection(
         'SELECT Account.AnnualRevenue FROM Opportunity',
         'Account.AnnualRevenue'
-      )
+      ),
+      'Currency selection must resolve the parent Account currency field.'
     );
     Assert.areEqual(
       'CurrencyIsoCode',
@@ -340,7 +347,11 @@ private class RHCCurrencyAuthoringRedTest {
       );
     Test.stopTest();
 
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'An unsafe comparison aggregate must return UNABLE_TO_EVALUATE before execution.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.CURRENCY_AGGREGATE_NOT_GROUPED,
       result.reasonCode,

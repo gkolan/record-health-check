@@ -329,20 +329,75 @@ test("the installed activity example must use its real parameter contract", () =
     ["ApexClass__c", "AccountHasRecentActivityCheck"]
   ]);
   const wrong = draftNarrativeProblems(
-    "daysBack accepts 1-365 and invalid values return INVALID_APEX_PARAMETERS.",
+    "daysBack accepts 1-365 and invalid values return INVALID_CONFIG.",
     fields
   );
   assert.ok(wrong.some((problem) => /3,650/.test(problem)));
-  assert.ok(wrong.some((problem) => /INVALID_CONFIG/.test(problem)));
+  assert.ok(wrong.some((problem) => /INVALID_APEX_PARAMETERS/.test(problem)));
+  assert.ok(
+    wrong.some((problem) =>
+      /RecordHealthCheckPluginDefinitionSource/.test(problem)
+    )
+  );
+  assert.ok(wrong.some((problem) => /RecordHealthCheckEvidence/.test(problem)));
+  assert.ok(
+    wrong.some((problem) => /RecordHealthCheckRecordEvaluator/.test(problem))
+  );
+  assert.ok(
+    wrong.some((problem) => /RecordHealthCheckDisplayPlugin/.test(problem))
+  );
 
   assert.deepEqual(
     draftNarrativeProblems(
-      "daysBack accepts 1 through 3,650; invalid values return INVALID_CONFIG. " +
-        "The class filters WhatId and ActivityDate.",
+      "## Execution and result-delivery plan\n\nUse the Lightning card.\n\n" +
+        "daysBack accepts 1 through 3,650; invalid declared values return " +
+        "INVALID_APEX_PARAMETERS. The class filters WhatId and ActivityDate. " +
+        "It implements RecordHealthCheckPluginDefinitionSource, attaches " +
+        "RecordHealthCheckEvidence, uses RecordHealthCheckRecordEvaluator with " +
+        "RecordHealthCheckOutcome.tryEvaluate, and implements " +
+        "RecordHealthCheckDisplayPlugin.",
       fields
     ),
     []
   );
+});
+
+test("provider-neutral drafts stay inactive until human sandbox review", () => {
+  const fields = new Map([
+    ["EvaluationType__c", "FORMULA"],
+    ["IsActive__c", "true"]
+  ]);
+  assert.ok(
+    draftNarrativeProblems("Human-reviewed draft.", fields).some((problem) =>
+      /IsActive__c = false/.test(problem)
+    )
+  );
+});
+
+test("provider-neutral drafts identify their execution and result delivery", () => {
+  const fields = new Map([["EvaluationType__c", "FORMULA"]]);
+  assert.ok(
+    draftNarrativeProblems("## Check configuration", fields).some((problem) =>
+      /Execution and result-delivery plan/.test(problem)
+    )
+  );
+  assert.ok(
+    !draftNarrativeProblems(
+      "## Execution and result-delivery plan\n\nUse the Lightning card.",
+      fields
+    ).some((problem) => /Execution and result-delivery plan/.test(problem))
+  );
+});
+
+test("provider-neutral drafts use current formula defaults and ordering", () => {
+  const fields = new Map([["EvaluationType__c", "FORMULA"]]);
+  const problems = draftNarrativeProblems(
+    "| Formula Result Type | FormulaResultType\\_\\_c | BOOLEAN | The default |\n" +
+      "| Evaluation Order | EvaluationOrder\\_\\_c | 100 | Checks run in order |",
+    fields
+  );
+  assert.ok(problems.some((problem) => /field default is AUTO/.test(problem)));
+  assert.ok(problems.some((problem) => /presentation order/.test(problem)));
 });
 
 /**

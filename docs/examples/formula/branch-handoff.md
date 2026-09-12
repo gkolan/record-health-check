@@ -23,19 +23,19 @@ A seller is preparing a branch Account for territory or service handoff.
 
 ## What you will learn
 
-| Skill | How this example teaches it |
-| --- | --- |
-| Read a parent Salesforce record | The formula follows the Account parent relationship. |
-| Check a handoff dependency | The branch passes only when headquarters information is ready. |
+| Skill                           | How this example teaches it                                            |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| Read a parent Salesforce record | The formula follows the Account parent relationship.                   |
+| Check a handoff dependency      | The branch passes only when headquarters information is ready.         |
 | Give users a direct next action | The Check can link from the branch to the record that needs attention. |
 
 ## Why use Verify with a formula
 
-| Evaluation Type | Why it fits |
-| --- | --- |
-| **Verify with a formula** | Best fit. An Account formula can read Billing City from the Parent Account. |
-| **Verify with a query** | Would add query setup for a Parent Account field the formula can already read. |
-| **Verify with Apex** | Would require an Apex class without providing a better result. |
+| Evaluation Type           | Why it fits                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| **Verify with a formula** | Best fit. An Account formula can read Billing City from the Parent Account.    |
+| **Verify with a query**   | Would add query setup for a Parent Account field the formula can already read. |
+| **Verify with Apex**      | Would require an Apex class without providing a better result.                 |
 
 ## Why not use a Validation Rule
 
@@ -73,60 +73,60 @@ user with **Record Health Check Card User**.
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
 create this Check Set:
 
-| Setup field | Value |
-| --- | --- |
-| **Label** | Account Data Quality |
-| **Record Health Check Set Name** | `Account_Data_Quality` |
-| **Object** | `Account` |
-| **Card Title** | Account Data Quality |
-| **Card Subtitle** | Confirm the parent Account Billing City before branch handoff. |
-| **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+| Setup field                      | Value                                                             |
+| -------------------------------- | ----------------------------------------------------------------- |
+| **Label**                        | Account Data Quality                                              |
+| **Record Health Check Set Name** | `Account_Data_Quality`                                            |
+| **Object**                       | `Account`                                                         |
+| **Card Title**                   | Account Data Quality                                              |
+| **Card Subtitle**                | Confirm the parent Account Billing City before branch handoff.    |
+| **When Checks Run**              | When the user clicks Run                                          |
+| **Summary Display**              | Show below checks                                                 |
+| **Reveal Mode**                  | One by one                                                        |
+| **Passed Checks**                | Show each passed check                                            |
+| **Skipped Checks**               | Show each skipped check                                           |
+| **Found/Expected Display**       | Show on demand                                                    |
+| **Stop after a system error**    | Unchecked                                                         |
+| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event**       | Unchecked                                                         |
+| **Active**                       | Checked                                                           |
 
 ## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Parent_Account_Has_Billing_City` |
-| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Parent Account Has Billing City |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Data_Quality` |
-| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Parent Account Has Billing City |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a formula |
-| **Pass Condition** | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c) | `NOT(ISBLANK(Parent.BillingCity))` |
-| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `NOT(ISBLANK(ParentId))` |
+| Setup field                | API name                                                                                                                  | Value                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| **Developer Name**         | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                           | `Parent_Account_Has_Billing_City`  |
+| **Label**                  | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                        | Parent Account Has Billing City    |
+| **Check Set**              | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)      | `Account_Data_Quality`             |
+| **Check Title**            | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                              | Parent Account Has Billing City    |
+| **Evaluation Type**        | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                  | Verify with a formula              |
+| **Pass Condition**         | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c)       | `NOT(ISBLANK(Parent.BillingCity))` |
+| **Applies To**             | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                 | When a formula is true             |
+| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `NOT(ISBLANK(ParentId))`           |
 
 ## Optional configuration
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks whether the parent Account has Billing City populated. |
-| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Completeness |
-| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | The parent Account for `{!record.Name fallback="this branch Account"}` is missing Billing City. Update Billing City on the parent Account. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to read the parent Billing City. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Open the parent Account and enter Billing City. |
-| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Edit parent billing address` |
-| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.ParentId}/edit` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `70` |
-| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks whether the parent Account has Billing City populated.                                                                              |
+| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Completeness                                                                                                                               |
+| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                                                                    |
+| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | The parent Account for `{!record.Name fallback="this branch Account"}` is missing Billing City. Update Billing City on the parent Account. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to read the parent Billing City.                                                                                                    |
+| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                                |
+| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Open the parent Account and enter Billing City.                                                                                            |
+| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Edit parent billing address`                                                                                                              |
+| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.ParentId}/edit`                                                                                             |
+| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `70`                                                                                                                                       |
+| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                                                    |
+| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                  |
 
 The applicability formula prevents the action link from rendering on a top-level Account with no
 Parent ID. A blank URL token also suppresses the link, so the URL never opens a fabricated fallback
 record. Leave **Display: Found Formula** and **Display: Expected Formula** blank and leave **Formula
-Result Type** as **Auto**. Query and Apex fields do not apply.
+Result Type** as **Automatic**. Query and Apex fields do not apply.
 
 If the running user cannot read the parent relationship or field, the check may show unable to evaluate rather than a false pass.
 
@@ -134,13 +134,13 @@ If the running user cannot read the parent relationship or field, the check may 
 
 Formula applicability and the parent-field check produce these health results and card values:
 
-| Health result or card value | What the user sees |
-| --- | --- |
-| **`PASS`** | A child Account passes when its parent Account has Billing City. |
-| **`FAIL`** | A child Account whose parent has blank Billing City shows Needs attention with Warning severity and an action link to the parent. |
-| **`SKIPPED`** | A top-level Account is skipped because it has no parent handoff requirement. |
-| **Found** | Blank because **Display: Found Formula** is blank. |
-| **Expected** | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(Parent.BillingCity))`. |
+| Health result or card value | What the user sees                                                                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **`PASS`**                  | A child Account passes when its parent Account has Billing City.                                                                  |
+| **`FAIL`**                  | A child Account whose parent has blank Billing City shows Needs attention with Warning severity and an action link to the parent. |
+| **`SKIPPED`**               | A top-level Account is skipped because it has no parent handoff requirement.                                                      |
+| **Found**                   | Blank because **Display: Found Formula** is blank.                                                                                |
+| **Expected**                | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(Parent.BillingCity))`.                     |
 
 ## Security and access
 
@@ -162,11 +162,11 @@ handoff users receive.
 
 ## Failures and remedies
 
-| What the user sees | What to check |
-| --- | --- |
-| An expected value fails | Confirm the field values, field types, and blank or picklist functions used by the formula. |
-| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition. |
-| **Unable to evaluate** | Confirm the formula syntax and the running user's access to every referenced field. |
+| What the user sees                  | What to check                                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------------- |
+| An expected value fails             | Confirm the field values, field types, and blank or picklist functions used by the formula. |
+| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition.    |
+| **Unable to evaluate**              | Confirm the formula syntax and the running user's access to every referenced field.         |
 
 ## Related
 

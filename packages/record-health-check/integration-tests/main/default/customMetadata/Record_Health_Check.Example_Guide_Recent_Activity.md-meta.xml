@@ -20,7 +20,7 @@
         <field>CheckDescription__c</field>
         <value
       xsi:type="xsd:string"
-    >The Apex check counts completed Tasks and Events related to the Account during the last 60 days. It passes when at least two completed activities are recorded.</value>
+    >The 2.0.10 Apex example declares typed parameters, counts completed Tasks and Events during the last 60 days, and returns typed evidence and safe display guidance. It passes when at least two completed activities are recorded.</value>
     </values>
     <values>
         <field>Category__c</field>
@@ -71,7 +71,7 @@
         <field>FixMessage__c</field>
         <value
       xsi:type="xsd:string"
-    >For {!record.Name fallback="this Account"}, review completed Tasks and Events related to the Account. Record only genuine completed activity, or change the example cadence to the organization's approved standard.</value>
+    >For {!record.Name fallback="this Account"}, review completed Tasks and Events. {!link label=&quot;Open this Account&quot; href=&quot;/lightning/r/Account/{!record.Id}/view&quot;} to record genuine completed activity, or change the example cadence to the approved standard.</value>
     </values>
     <values>
         <field>ActionLabel__c</field>
@@ -110,4 +110,16 @@
         <field>DisplayValueFormat__c</field>
         <value xsi:type="xsd:string">TEXT</value>
     </values>
+  <values>
+    <field>EmptyValueHandling__c</field>
+    <value xsi:type="xsd:string">AS_NO_MATCH</value>
+  </values>
+  <values>
+    <field>MaxQueryRows__c</field>
+    <value xsi:type="xsd:double">200</value>
+  </values>
+  <values>
+    <field>QueryResultHandling__c</field>
+    <value xsi:type="xsd:string">ONE_RESULT</value>
+  </values>
 </CustomMetadata>

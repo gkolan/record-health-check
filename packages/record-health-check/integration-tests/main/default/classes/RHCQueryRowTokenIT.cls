@@ -122,7 +122,11 @@ private with sharing class RHCQueryRowTokenIT {
     );
     Test.stopTest();
 
-    Assert.areEqual(RecordHealthCheckStatus.FAIL, item.evaluation.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.FAIL,
+      item.evaluation.status,
+      'The failing action-link fixture must retain its evaluation outcome.'
+    );
     Assert.areEqual(
       'View Linkable',
       item.display.actionLabel,
@@ -513,6 +517,39 @@ private with sharing class RHCQueryRowTokenIT {
     Assert.isFalse(
       found.contains(':'),
       'DATE formatting drops the time a DATETIME field would print: ' + found
+    );
+  }
+
+  @IsTest
+  static void readsOuterScalarBesideOpaqueChildSubquery() {
+    Account target = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{
+        'Name' => 'Scalar Beside Subquery',
+        'Website' => 'https://example.com'
+      }
+    );
+    RHCIntegrationTestDataFactory.createAccounts(new List<Account>{ target });
+
+    Test.startTest();
+    RecordHealthCheckResultItem item = evaluate(
+      'Account_Rows_Scalar_Beside_Subquery',
+      target.Id
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      RecordHealthCheckStatus.PASS,
+      item.evaluation.status,
+      'The outer scalar fixture must pass despite an opaque child subquery: ' +
+      JSON.serialize(item.evaluation)
+    );
+    Assert.isTrue(
+      item.display.foundDisplayValue.contains('example.com'),
+      'The Found projection must contain the selected outer website value.'
+    );
+    Assert.isFalse(
+      item.display.foundDisplayValue.contains('{!'),
+      'The Found projection must not expose unresolved merge syntax.'
     );
   }
 

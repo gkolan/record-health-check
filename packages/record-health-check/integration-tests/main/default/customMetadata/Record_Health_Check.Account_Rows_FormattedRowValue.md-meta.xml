@@ -11,7 +11,7 @@
     >Account_Row_Tokens_Positive</value></values>
     <values><field>CheckTitle__c</field><value
       xsi:type="xsd:string"
-    >First Contact Is Dated</value></values>
+    >Newest Contact Is Dated</value></values>
     <values><field>CheckDescription__c</field><value
       xsi:type="xsd:string"
     >A row token names a Salesforce field, so it accepts the same format attribute record tokens do. Rendered through Display: Found Text, which a passing Check still shows.</value></values>
@@ -20,7 +20,7 @@
     >QUERY</value></values>
     <values><field>SourceQuery__c</field><value
       xsi:type="xsd:string"
-    >SELECT Id, LastName, CreatedDate FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id</value></values>
+    >SELECT Id, LastName, CreatedDate FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate DESC</value></values>
     <values><field>SourceQueryField__c</field><value
       xsi:type="xsd:string"
     >Id</value></values>
@@ -51,4 +51,28 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
 </CustomMetadata>

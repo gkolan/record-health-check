@@ -78,7 +78,11 @@ private with sharing class RecordHealthCheckScopePrerequisiteIT {
       );
     Test.stopTest();
 
-    Assert.areEqual(RecordHealthCheckStatus.SKIPPED, result.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.SKIPPED,
+      result.status,
+      'An unresolved required prerequisite must skip the dependent Check.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.DEPENDENCY_NOT_IN_RUN,
       result.reasonCode,
@@ -246,7 +250,11 @@ private with sharing class RecordHealthCheckScopePrerequisiteIT {
     );
     Test.stopTest();
 
-    Assert.areEqual('namespace__Shared_Name', resolvedPrerequisite);
+    Assert.areEqual(
+      'namespace__Shared_Name',
+      resolvedPrerequisite,
+      'Prerequisite resolution must retain the managed qualified identity.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET,
       result.reasonCode,

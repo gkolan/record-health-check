@@ -14,5 +14,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Code Analyzer suppression allowlist passed: six file-scoped exceptions with exact rule and finding-count caps."
+  "Code Analyzer suppression allowlist passed: seven file-scoped exceptions with exact rule and finding-count caps."
 );

@@ -356,7 +356,11 @@ private with sharing class RecordHealthCheckSoqlEdgeTest {
       RecordHealthCheckTestDataFactory.account(new Map<String, Object>()),
       'Owner.Name'
     );
-    Assert.areEqual(Schema.DisplayType.STRING, polymorphicFallback);
+    Assert.areEqual(
+      Schema.DisplayType.STRING,
+      polymorphicFallback,
+      'Unresolved polymorphic fields must use the STRING fallback.'
+    );
     Object missingParent = RecordHealthCheckSoqlBindValueResolver.resolveFieldPath(
       RecordHealthCheckTestDataFactory.account(new Map<String, Object>()),
       'Parent.Name'

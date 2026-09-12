@@ -11,6 +11,10 @@ ignores:
     - "playwright-report/**"
 
 suppressions:
+  "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Readiness__c/fields/PassCount__c.field-meta.xml":
+    - rule_selector: "pmd:ProtectSensitiveData"
+      max_suppressed_violations: 1
+      reason: "This private readiness Number field counts passed Checks; it contains no password, token, credential, or authentication material."
   "packages/record-health-check/force-app/main/default/objects/Record_Health_Check_Set__mdt/fields/PassedChecksDisplay__c.field-meta.xml":
     - rule_selector: "pmd:ProtectSensitiveData"
       max_suppressed_violations: 1

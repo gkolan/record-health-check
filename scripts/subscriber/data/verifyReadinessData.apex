@@ -53,7 +53,7 @@ List<Opportunity> deals = [
 System.assertEquals(5, deals.size());
 Set<Id> dealIds = new Map<Id, Opportunity>(deals).keySet();
 System.assertEquals(
-  2,
+  3,
   [SELECT COUNT() FROM OpportunityContactRole WHERE OpportunityId IN :dealIds]
 );
 System.assertEquals(
@@ -152,7 +152,7 @@ System.assertEquals(
   ]
 );
 System.assertEquals(
-  3,
+  2,
   [
     SELECT COUNT()
     FROM Case

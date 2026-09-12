@@ -14,12 +14,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
   private static final Pattern PATTERN_WHERE = Pattern.compile(
     '(?i)\\bWHERE\\b'
   );
-  private static final Pattern PATTERN_BOOLEAN_DISJUNCTION = Pattern.compile(
-    '(?i)\\b(?:OR|NOT)\\b'
-  );
-  private static final Pattern PATTERN_FIELD_PATH = Pattern.compile(
-    '^[A-Za-z_][A-Za-z0-9_.]*$'
-  );
   private static final Pattern PATTERN_GROUP_BY = Pattern.compile(
     '(?i)\\bGROUP\\s+BY\\b'
   );
@@ -340,52 +334,22 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     String soql,
     String fieldApiName
   ) {
-    if (
-      String.isBlank(soql) ||
-      String.isBlank(fieldApiName) ||
-      !PATTERN_FIELD_PATH.matcher(fieldApiName.trim()).matches()
-    ) {
-      return false;
-    }
-    String masked = maskStringLiterals(soql);
-    List<Integer> whereBounds = firstDepth0MatchBounds(masked, PATTERN_WHERE);
-    if (whereBounds == null) {
-      return false;
-    }
-    Integer predicateEnd = masked.length();
-    for (Pattern tailPattern : TAIL_CLAUSE_PATTERNS) {
-      Integer tailAt = firstDepth0Match(masked, tailPattern);
-      if (tailAt > whereBounds[1] && tailAt < predicateEnd) {
-        predicateEnd = tailAt;
-      }
-    }
-    Integer withAt = firstDepth0Match(masked, PATTERN_WITH);
-    if (withAt > whereBounds[1] && withAt < predicateEnd) {
-      predicateEnd = withAt;
-    }
-    Pattern equality = Pattern.compile(
-      '(?i)\\b' + fieldApiName.trim().replace('.', '\\.') + '\\s*=\\s*\'\\s*\''
+    return equalityLiteralRequiredByWhere(soql, fieldApiName) != null;
+  }
+
+  /**
+   * Returns the one three-letter literal every outer WHERE branch requires for
+   * a field, or null when the expression can admit another value. Parentheses
+   * and equivalent AND/OR distribution do not change the proof.
+   */
+  public static String equalityLiteralRequiredByWhere(
+    String soql,
+    String fieldApiName
+  ) {
+    return RecordHealthCheckQueryPredicateProof.requiredLiteral(
+      soql,
+      fieldApiName
     );
-    for (
-      Pattern candidate : new List<Pattern>{
-        PATTERN_BOOLEAN_DISJUNCTION,
-        equality
-      }
-    ) {
-      Matcher matcher = candidate.matcher(masked);
-      matcher.region(whereBounds[1], predicateEnd);
-      Boolean found = false;
-      while (matcher.find()) {
-        if (depthAt(masked, matcher.start()) == 0) {
-          found = true;
-          break;
-        }
-      }
-      if (found) {
-        return candidate == equality;
-      }
-    }
-    return false;
   }
   /** Requires exactly one SELECT at depth 0; nested SELECTs remain valid. */
   private static void assertSingleOuterSelect(String soql) {

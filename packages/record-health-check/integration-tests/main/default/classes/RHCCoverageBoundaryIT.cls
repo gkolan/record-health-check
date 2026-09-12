@@ -22,8 +22,15 @@ private with sharing class RHCCoverageBoundaryIT {
         },
         RecordHealthCheckFlowGroupExecutor.SelectionKind.CHECK
       );
-      Assert.areEqual('AUTHORIZATION', result.errorType);
-      Assert.isTrue(result.errorMessage.contains('permission'));
+      Assert.areEqual(
+        'AUTHORIZATION',
+        result.errorType,
+        'Denied run permission must be classified as authorization failure.'
+      );
+      Assert.isTrue(
+        result.errorMessage.contains('permission'),
+        'Authorization failure must explain the required permission.'
+      );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
     }
@@ -45,15 +52,25 @@ private with sharing class RHCCoverageBoundaryIT {
     );
     Test.stopTest();
 
-    Assert.areEqual('EXECUTION', checkResult.errorType);
+    Assert.areEqual(
+      'EXECUTION',
+      checkResult.errorType,
+      'Malformed Check selection must be classified as execution failure.'
+    );
     Assert.areEqual(
       'The Check request could not be evaluated.',
-      checkResult.errorMessage
+      checkResult.errorMessage,
+      'Malformed Check selection must use the safe Check-specific message.'
     );
-    Assert.areEqual('EXECUTION', setResult.errorType);
+    Assert.areEqual(
+      'EXECUTION',
+      setResult.errorType,
+      'Malformed Check Set selection must be classified as execution failure.'
+    );
     Assert.areEqual(
       'The Check Set request could not be evaluated.',
-      setResult.errorMessage
+      setResult.errorMessage,
+      'Malformed Check Set selection must use the safe Check Set-specific message.'
     );
   }
 
@@ -74,7 +91,11 @@ private with sharing class RHCCoverageBoundaryIT {
         records,
         10
       );
-      Assert.areEqual(1, result.rowsByRecordId.get(account.Id).size());
+      Assert.areEqual(
+        1,
+        result.rowsByRecordId.get(account.Id).size(),
+        'Multicurrency rewriting must preserve the noncurrency query row.'
+      );
     } finally {
       RecordHealthCheckDisplayCurrencyResolver.multiCurrency = null;
     }
@@ -107,7 +128,8 @@ private with sharing class RHCCoverageBoundaryIT {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException expected) {
       Assert.areEqual(
         RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-        expected.reasonCode
+        expected.reasonCode,
+        'The controller must preserve the fatal side-effect reason.'
       );
     } finally {
       RecordHealthCheckScopePipeline.evaluatorFailureOverride = null;
@@ -134,7 +156,10 @@ private with sharing class RHCCoverageBoundaryIT {
     );
     Test.stopTest();
 
-    Assert.isFalse(fields.isEmpty());
+    Assert.isFalse(
+      fields.isEmpty(),
+      'An unqualified formula override must produce required record fields.'
+    );
   }
 
   @IsTest
@@ -166,9 +191,18 @@ private with sharing class RHCCoverageBoundaryIT {
     );
     Test.stopTest();
 
-    Assert.isFalse(applicabilityFindings.isEmpty());
-    Assert.isFalse(queryFindings.isEmpty());
-    Assert.isTrue(dualFindings.size() >= 2);
+    Assert.isFalse(
+      applicabilityFindings.isEmpty(),
+      'Unsupported applicability correlation must produce validation findings.'
+    );
+    Assert.isFalse(
+      queryFindings.isEmpty(),
+      'Unsupported comparison correlation must produce validation findings.'
+    );
+    Assert.isTrue(
+      dualFindings.size() >= 2,
+      'Both unsupported dual-query correlations must produce findings.'
+    );
   }
 
   @IsTest
@@ -186,7 +220,10 @@ private with sharing class RHCCoverageBoundaryIT {
     );
     Test.stopTest();
 
-    Assert.isFalse(findings.isEmpty());
+    Assert.isFalse(
+      findings.isEmpty(),
+      'Numeric selections must fail text-operator validation.'
+    );
   }
 
   @IsTest
@@ -271,7 +308,11 @@ private with sharing class RHCCoverageBoundaryIT {
     );
     Test.stopTest();
 
-    Assert.areEqual(1, rows.size());
+    Assert.areEqual(
+      1,
+      rows.size(),
+      'A constrained aggregate must retain its single result row.'
+    );
   }
 
   @IsTest
@@ -360,7 +401,8 @@ private with sharing class RHCCoverageBoundaryIT {
     } catch (RecordHealthCheckEvaluatorException expected) {
       Assert.areEqual(
         RecordHealthCheckReasonCodes.MIXED_CURRENCY,
-        expected.reasonCode
+        expected.reasonCode,
+        'Different aggregate units must retain the mixed-currency reason.'
       );
     }
     Test.stopTest();
@@ -386,7 +428,11 @@ private with sharing class RHCCoverageBoundaryIT {
       );
       Assert.fail('Missing aggregate unit evidence must be rejected.');
     } catch (RecordHealthCheckEvaluatorException expected) {
-      Assert.areEqual('CURRENCY_UNIT_UNKNOWN', expected.reasonCode);
+      Assert.areEqual(
+        'CURRENCY_UNIT_UNKNOWN',
+        expected.reasonCode,
+        'Missing aggregate units must retain the unknown-unit reason.'
+      );
     }
     Test.stopTest();
   }
@@ -408,9 +454,18 @@ private with sharing class RHCCoverageBoundaryIT {
     );
     Test.stopTest();
 
-    Assert.isFalse(blankAggregate);
-    Assert.isFalse(numericAggregate);
-    Assert.isNull(isoPath);
+    Assert.isFalse(
+      blankAggregate,
+      'A blank query must not be a currency aggregate.'
+    );
+    Assert.isFalse(
+      numericAggregate,
+      'A numeric aggregate must not be a currency aggregate.'
+    );
+    Assert.isNull(
+      isoPath,
+      'A noncurrency selection must not request an ISO field.'
+    );
   }
 
   private static Record_Health_Check__mdt baseCheck(String evaluationType) {

@@ -26,8 +26,8 @@ run ID. The method returns one `RecordHealthCheckResponse` containing the result
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                               | Purpose                                                                       |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
 | `evaluate(RecordHealthCheckRequest)` | Run the requested Check or Check Set and return a `RecordHealthCheckResponse` |
 
 **Notable behavior:**
@@ -46,24 +46,26 @@ run ID. The method returns one `RecordHealthCheckResponse` containing the result
 
 **Type:** Service class · `public with sharing`
 
-Exposes five card operations and nothing else. It cleans up the card's inputs, identifies whether the
+Adapts card operations to the package services. It cleans up the card's inputs, identifies whether the
 run came from page load or a button click, and passes the work to the package classes that load and
 run the Checks.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `getCheckSetAvailabilityForRecord(recordId)` | Active/inactive Check Sets for the record's object (setup banner) |
-| `getCheckSetShellConfig(checkSetQualifiedApiName)` | Lightweight active Check Set run mode, card text, active Check count, and Run-button presentation used before definitions load |
-| `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)` | Display settings and ordered Check definitions for the card |
-| `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)` | One Check evaluation (one Apex transaction per Check from the card) |
-| `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)` | After a user-initiated run: filters completed card results, calculates the summary, and publishes the Set completion event |
+| Member                                                                                        | Purpose                                                                                                                        |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `getCheckSetAvailabilityForRecord(recordId)`                                                  | Active/inactive Check Sets for the record's object (setup banner)                                                              |
+| `getCheckSetShellConfig(checkSetQualifiedApiName)`                                            | Lightweight active Check Set run mode, card text, active Check count, and Run-button presentation used before definitions load |
+| `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)`                              | Display settings and ordered Check definitions for the card                                                                    |
+| `evaluateCheckJson(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)` | JSON transport for one card Check; preserves null cells that Aura omits from nested lists                                      |
+| `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)`     | Typed evaluation used by the JSON adapter and existing Apex callers                                                            |
+| `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)`                 | After a user-initiated run: filters completed card results, calculates the summary, and publishes the Set completion event     |
 
 **Notable behavior:**
 
 - **Source behavior:** the browser may request only Lightning-allowed source values. Unknown values
-  are treated as `RUN_ON_LOAD`, which does not publish health-result Platform Events.
+  are rejected. Accepted values are `USER_INITIATED` and `RUN_ON_LOAD`; only an explicit
+  user-initiated run can publish the configured health-result Platform Events.
 - **Important:** `getCheckDefinitions` distinguishes a caught `ConfigException` (logged at `DEBUG`,
   reason code passed through as-is) from any other exception (logged at `ERROR` and returned as
   `LOAD_FAILED`). The card can therefore distinguish an invalid setup from an unexpected Apex
@@ -73,11 +75,28 @@ run the Checks.
 
 **See also:** [Lightning component](../../lightning-record-page/configure-the-component.md)
 
+### `RecordHealthCheckPreviewService` and `RecordHealthCheckPreviewController`
+
+**Role:** Validate or execute one detached Check against an existing server-owned Check Set.
+
+**Type:** Public Apex service · `global with sharing`; Lightning adapter · `public with sharing`
+
+The Preview service returns versioned findings, capabilities, resolved fields, optional execution
+results, and optional private readiness evidence. The controller serializes that response for the
+administrator-only Preview component and exposes bounded expired-receipt cleanup.
+
+**Notable behavior:**
+
+- **Important:** Preview requires administrator and run authorization. It publishes no user-result,
+  user-run, or error-log events, and it does not save or activate the detached Check.
+
+**See also:** [Validate and preview an AI draft](../../build-checks/draft-with-ai/validate-and-preview-an-ai-draft.md)
+
 ### `RecordHealthCheckRunCheckFlowAction`
 
 **Role:** Run one Check for each input record in Flow.
 
-**Type:** Invocable Flow action · `public with sharing`
+**Type:** Invocable Flow action · `global with sharing`
 
 This class provides the installed **Run Record Health Check** Flow action. Each input supplies a Check
 Qualified API Name, one record ID, and `NONE`, `ACTIONABLE`, or `ALL` for Platform Event publication.
@@ -92,7 +111,7 @@ Each output contains success or error details, Status, Reason Code, and the comp
 
 **Role:** Run every active Check in one Check Set for each input record in Flow.
 
-**Type:** Invocable Flow action · `public with sharing`
+**Type:** Invocable Flow action · `global with sharing`
 
 This class provides the installed **Run Record Health Check Set** Flow action. Each output contains
 success or error details, an overall Status, the PASS/FAIL/SKIPPED/UNABLE_TO_EVALUATE/ERROR counts,
@@ -104,6 +123,61 @@ and the complete response as JSON.
   Checks. Invalid bulk input therefore does not leave a partly completed run.
 
 **See also:** [Flow actions](../../flow-guides/action-inputs-and-outputs.md)
+
+### `RecordHealthCheckQueueable`
+
+**Role:** Run one Check Set asynchronously for a bounded list of known record IDs.
+
+**Type:** Public Queueable and Finalizer · `global with sharing`
+
+`enqueue(...)` returns an `AsyncApexJob` ID. The packaged job discards the typed response after
+optional lifecycle publication; its finalizer publishes terminal job state when requested and logs
+an unhandled job failure.
+
+**Notable behavior:**
+
+- The job ID reports platform execution, not health outcomes. With publication `NONE`, the health
+  results are transient unless subscriber-owned code uses a custom Queueable to save them.
+- Equivalent pending requests use a duplicate signature instead of consuming another Queueable slot.
+
+**See also:** [Queueable Apex](../../developer-guides/async-apex/queueable.md)
+
+### `RecordHealthCheckBatch`
+
+**Role:** Run one Check Set asynchronously across a bounded known population in several transactions.
+
+**Type:** Public Batch Apex adapter · `global with sharing`
+
+The two `run(...)` overloads return an `AsyncApexJob` ID. The three-argument overload automatically
+chooses a scope from 1 through 100 and lowers it for the selected Check Set's FormulaEval budget.
+The four-argument overload accepts a scope from 1 through 200 and rejects a size that does not fit
+the remaining formula budget. The Batch can publish per-result, per-record summary, and terminal
+job events according to the caller's publication choice.
+
+**Notable behavior:**
+
+- The packaged Batch does not persist ordinary results. Use events or a reviewed custom Batch that
+  consumes and saves the typed response in each `execute` transaction.
+
+**See also:** [Batch Apex](../../developer-guides/async-apex/batch.md)
+
+### `RecordHealthCheckScheduled`
+
+**Role:** Schedule a fixed record population for recurring Check Set Batch execution.
+
+**Type:** Public Scheduled Apex adapter · `global with sharing`
+
+`scheduleDaily(...)` returns a `CronTrigger` ID and runs at 2:00 AM in the scheduling user's time
+zone. Each scheduled execution delegates the captured IDs to `RecordHealthCheckBatch` with
+`SCHEDULED` lifecycle attribution.
+
+**Notable behavior:**
+
+- The schedule captures record IDs when it is created. It does not query for records that later
+  enter or leave a business population.
+- The schedule ID and later Batch job describe platform state, not the individual health outcomes.
+
+**See also:** [Scheduled Apex](../../developer-guides/async-apex/scheduled.md)
 
 ### `RecordHealthCheckValidateMetadataAction`
 
@@ -188,13 +262,13 @@ each EventBus call and logs a publication failure without failing the health che
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `CONTRACT_VERSION`, `FRAMEWORK_VERSION`, `SOURCE_*`, `PUBLISH_CHUNK_SIZE` | Event contract version, package version reported by the event, source values, and the 100-event publish group size |
-| `publishResponse(...)` | Publish Check and optional Set events for a deliberate programmatic run |
-| `publishInteractiveResponse(...)` | Publish filtered outcomes for an explicit Lightning Run / Rerun |
-| `isRunPublicationEnabled(...)` | Whether the Check Set's `PublishUserRunEvent__c` allows Set publication |
-| `enterSubscriberContext()` | Package-internal loop guard; custom Apex in an org that installs the package cannot call this `public` method through the `rhc` namespace |
+| Member                                                                    | Purpose                                                                                                                                   |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `CONTRACT_VERSION`, `FRAMEWORK_VERSION`, `SOURCE_*`, `PUBLISH_CHUNK_SIZE` | Event contract version, package version reported by the event, source values, and the 100-event publish group size                        |
+| `publishResponse(...)`                                                    | Publish Check and optional Set events for a deliberate programmatic run                                                                   |
+| `publishInteractiveResponse(...)`                                         | Publish filtered outcomes for an explicit Lightning Run / Rerun                                                                           |
+| `isRunPublicationEnabled(...)`                                            | Whether the Check Set's `PublishUserRunEvent__c` allows Set publication                                                                   |
+| `enterSubscriberContext()`                                                | Package-internal loop guard; custom Apex in an org that installs the package cannot call this `public` method through the `rhc` namespace |
 
 **Notable behavior:**
 

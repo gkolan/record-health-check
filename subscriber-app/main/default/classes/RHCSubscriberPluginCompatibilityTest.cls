@@ -71,13 +71,52 @@ private class RHCSubscriberPluginCompatibilityTest {
     );
   }
 
+  @IsTest
+  static void subscriberCanUsePluginTestFacade() {
+    Account accountRecord = RHCSubscriberTestDataFactory.createAccount(
+      'Subscriber Plugin Facade Healthy'
+    );
+    RHCSubscriberPlugin.evaluateCount = 0;
+    rhc.RecordHealthCheckScope scope = new rhc.RecordHealthCheckScope(
+      'Account',
+      new List<Id>{ accountRecord.Id },
+      new Map<String, Object>(),
+      'Subscriber_Facade_Check',
+      'Subscriber_Facade_Set',
+      'subscriber-facade-test'
+    );
+
+    rhc.RecordHealthCheckPluginTest.verify(new RHCSubscriberPlugin(), scope)
+      .assertComplete()
+      .assertNoSideEffects()
+      .assertRenderable();
+
+    System.assertEquals(
+      1,
+      RHCSubscriberPlugin.evaluateCount,
+      'The cross-namespace facade must evaluate the subscriber plugin once.'
+    );
+  }
+
   private static void assertPluginOutcome(
     rhc.RecordHealthCheckEvaluationResult result,
     String expectedStatus,
     String expectedReason
   ) {
-    System.assertNotEquals(null, result);
-    System.assertEquals(expectedStatus, result.status);
-    System.assertEquals(expectedReason, result.reasonCode);
+    System.assertNotEquals(
+      null,
+      result,
+      'The subscriber facade must return a result for each requested record.'
+    );
+    System.assertEquals(
+      expectedStatus,
+      result.status,
+      'The subscriber result must retain the expected business status.'
+    );
+    System.assertEquals(
+      expectedReason,
+      result.reasonCode,
+      'The subscriber result must retain the plugin reason code.'
+    );
   }
 }

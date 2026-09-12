@@ -15,94 +15,50 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     RecordHealthCheckInternalResult result,
     Boolean showDiagnostics
   ) {
-    if (result == null) {
-      return;
-    }
-    if (record != null && String.isNotBlank(result.message)) {
-      result.message = formulaEvaluator.resolveMergeFields(
-        result.message,
-        record,
-        check,
-        result,
-        true
-      );
-    }
-    if (result.status == RecordHealthCheckStatus.FAIL && record != null) {
-      result.fixInstructions = String.isBlank(check.FixMessage__c)
-        ? null
-        : formulaEvaluator.resolveMergeFields(
-            check.FixMessage__c,
-            record,
-            check,
-            result,
-            true
-          );
-      if (String.isNotBlank(check.ActionUrl__c)) {
-        try {
-          String url = sanitizeActionUrl(
-            formulaEvaluator.resolveUrlMergeFields(
-              check.ActionUrl__c,
-              record,
-              check,
-              result
-            )
-          );
-          if (url != null) {
-            result.actionUrl = url;
-            result.actionLabel = String.isBlank(check.ActionLabel__c)
-              ? 'Fix this'
-              : formulaEvaluator.resolveMergeFields(
-                  check.ActionLabel__c,
-                  record,
-                  check,
-                  result,
-                  true
-                );
-          }
-        } catch (RecordHealthCheckTemplateService.TemplateException error) {
-          result.detailMessage = error.getMessage();
-        }
-      }
-    }
-    Boolean restricted = RecordHealthCheckReasonCodes.isDiagnosticsOnly(
-      result.reasonCode
-    );
-    if (showDiagnostics && RecordHealthCheckAccess.canViewDetails()) {
-      result.adminDetail = new RecordHealthCheckAdminDetail();
-      result.adminDetail.containsRestrictedDetail = restricted;
-      result.adminDetail.reasonCode = result.reasonCode;
-      result.adminDetail.message = result.detailMessage;
-      result.adminDetail.incident = result.diagnosticIncident;
-      RecordHealthCheckDiagnosticTrace.populate(
-        check,
-        record,
-        result,
-        result.adminDetail
-      );
-    }
-    if (restricted) {
-      result.reasonCode = RecordHealthCheckReasonCodes.CANNOT_EVALUATE;
-    }
+    finalizeDisplay(check, record, result, showDiagnostics, false);
   }
 
+  /** Finalizes legacy strings and optionally supplies structured display nodes. */
+  public void finalizeDisplay(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult result,
+    Boolean showDiagnostics,
+    Boolean includeStructuredDisplay
+  ) {
+    finalizeDisplay(
+      check,
+      record,
+      result,
+      showDiagnostics,
+      includeStructuredDisplay,
+      record == null ||
+        record.Id == null
+        ? new Map<Id, SObject>()
+        : new Map<Id, SObject>{ record.Id => record }
+    );
+  }
+
+  public void finalizeDisplay(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult result,
+    Boolean showDiagnostics,
+    Boolean includeStructuredDisplay,
+    Map<Id, SObject> recordsById
+  ) {
+    new RecordHealthCheckScopeDisplayFinalizer(formulaEvaluator)
+      .finalizeDisplay(
+        check,
+        record,
+        result,
+        showDiagnostics,
+        includeStructuredDisplay,
+        recordsById
+      );
+  }
   public String sanitizeActionUrl(String value) {
-    if (String.isBlank(value)) {
-      return null;
-    }
-    String url = value.trim();
-    if (
-      url.length() > 2000 ||
-      url.contains('\n') ||
-      url.contains('\r') ||
-      url.contains('\t') ||
-      url.contains('\\') ||
-      url.startsWith('//')
-    ) {
-      return null;
-    }
-    return url.startsWith('/') || url.toLowerCase().startsWith('https://')
-      ? url
-      : null;
+    return RecordHealthCheckActionUrlPolicy.sanitize(value);
   }
 
   public RecordHealthCheckInternalResult findPrerequisiteBlock(
@@ -179,8 +135,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       : itemsByIdentity.get(itemKey(recordId, resolvedPrerequisite));
     if (prior == null) {
       if (fullCheckSetSelection != true) {
-        // A qualified single-Check request intentionally has no results from
-        // the rest of its owning Check Set.
+        // A qualified single-Check request omits the rest of its Check Set.
         return null;
       }
       RecordHealthCheckInternalResult missing = new RecordHealthCheckInternalResult();
@@ -304,30 +259,40 @@ public with sharing class RecordHealthCheckScopeResultSupport {
         recordsById,
         RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
       );
-      for (Id recordId : recordIds) {
-        if (!recordsById.containsKey(recordId)) {
-          continue;
-        }
-        List<SObject> rows = scopeCounts.rowsByRecordId.get(recordId);
-        Integer count = rows == null || rows.isEmpty()
-          ? 0
-          : aggregateCount((AggregateResult) rows[0]);
-        Boolean applies = compareCount(
-          check.ApplicabilityCountOperator__c,
-          count,
-          (Integer) check.ApplicabilityCountThreshold__c
-        );
-        if (applies == null) {
-          results.put(recordId, unavailableResult(check, 'INVALID_OPERATOR'));
-        } else if (!applies) {
-          results.put(recordId, skippedResult(check));
-        }
-      }
+      mapCountResults(check, recordIds, recordsById, scopeCounts, results);
       return results;
     } catch (RecordHealthCheckEvaluatorException ex) {
       return unavailableForScope(check, recordIds, ex.reasonCode);
     } catch (Exception ex) {
       return unavailableForScope(check, recordIds, 'UNABLE_TO_EVALUATE');
+    }
+  }
+
+  private void mapCountResults(
+    Record_Health_Check__mdt check,
+    List<Id> recordIds,
+    Map<Id, SObject> recordsById,
+    RecordHealthCheckBulkQuerySupport.Result scopeCounts,
+    Map<Id, RecordHealthCheckInternalResult> results
+  ) {
+    for (Id recordId : recordIds) {
+      if (!recordsById.containsKey(recordId)) {
+        continue;
+      }
+      List<SObject> rows = scopeCounts.rowsByRecordId.get(recordId);
+      Integer count = rows == null || rows.isEmpty()
+        ? 0
+        : aggregateCount((AggregateResult) rows[0]);
+      Boolean applies = compareCount(
+        check.ApplicabilityCountOperator__c,
+        count,
+        (Integer) check.ApplicabilityCountThreshold__c
+      );
+      if (applies == null) {
+        results.put(recordId, unavailableResult(check, 'INVALID_OPERATOR'));
+      } else if (!applies) {
+        results.put(recordId, skippedResult(check));
+      }
     }
   }
 
@@ -424,11 +389,8 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     evaluation.recordId = recordId;
     evaluation.checkQualifiedApiName = check.QualifiedApiName;
     evaluation.status = internalResult.status;
-    // The severity a caller receives is the severity Setup stores: CRITICAL,
-    // WARNING, or INFO. It used to be remapped here into the card's own words,
-    // so an automation matching the documented CRITICAL never fired and the
-    // Check Result event disagreed with its own reference page. Presentation
-    // words belong to the component, not to the contract.
+    // Preserve Setup's CRITICAL/WARNING/INFO contract for every caller.
+    // Components own any presentation-specific severity wording.
     evaluation.severity = internalResult.severity;
     evaluation.reasonCode = internalResult.reasonCode;
     if (internalResult.diagnosticIncident != null) {
@@ -440,9 +402,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
           .instruction;
       }
     }
-    // Recorded operands are the answer even when one side has none:
-    // IS_NOT_BLANK expects no value. The old string fallback is what handed
-    // automations "to not be blank" as though it were one.
+    // Recorded operands remain authoritative even when one side is empty.
     evaluation.found = RecordHealthCheckQueryEvaluatorSupport.machineValue(
       internalResult.evaluationFound,
       internalResult.operandsRecorded,
@@ -463,6 +423,7 @@ public with sharing class RecordHealthCheckScopeResultSupport {
     }
 
     RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
+    item.diagnosticSource = internalResult;
     item.evaluation = evaluation;
     if (resultMode == RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY) {
       RecordHealthCheckResultDisplay display = new RecordHealthCheckResultDisplay();
@@ -486,6 +447,12 @@ public with sharing class RecordHealthCheckScopeResultSupport {
       display.actionLabel = internalResult.actionLabel;
       display.actionUrl = internalResult.actionUrl;
       display.adminDetail = internalResult.adminDetail;
+      display.displayContent = hidesRawFormulaCondition
+        ? RecordHealthCheckDisplayRedaction.withoutExpected(
+            internalResult.displayContent
+          )
+        : internalResult.displayContent;
+      display.evidence = internalResult.evidenceEnvelope;
       item.display = display;
     }
     return item;

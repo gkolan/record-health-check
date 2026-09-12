@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>Diagnostic unresolved merge field</label>
+  <protected>false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_SP_Diagnostics_Invalid</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Diagnostic unresolved merge field</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Verify that a malformed display merge token retains its metadata origin.</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >20</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >APEX</value></values>
+  <values><field>FormulaResultType__c</field><value
+      xsi:type="xsd:string"
+    >AUTO</value></values>
+  <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >{!record.Missing_Field__c}</value></values>
+  <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The diagnostic merge fixture could not be evaluated.</value></values>
+  <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Correct the Failure Message merge token and rerun this Check.</value></values>
+  <values><field>PublishUserResultEvent__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+  <values><field>ApexClass__c</field><value
+      xsi:type="xsd:string"
+    >AccountOpenOpportunityHealthCheck</value></values>
+  <values><field>ApexParametersJson__c</field><value
+      xsi:type="xsd:string"
+    >{}</value></values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
+</CustomMetadata>

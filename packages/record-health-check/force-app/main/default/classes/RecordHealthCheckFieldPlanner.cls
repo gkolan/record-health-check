@@ -6,16 +6,14 @@
 public with sharing class RecordHealthCheckFieldPlanner {
   @TestVisible
   private Boolean multiCurrencyOrganizationOverride;
-  // GROUP BY / aggregate detection lives in RecordHealthCheckSoqlTemplate,
-  // the single SOQL-shape authority.
-  // Caps how deep a formula → formula → … chain is walked when expanding
-  // calculated-field dependencies, so a misconfigured or cyclic graph can never
-  // run away. The visited set already breaks true cycles; this is a hard ceiling.
   private static final Integer FORMULA_DEPENDENCY_DEPTH_CAP = 10;
   @TestVisible
   private Map<String, String> calculatedFormulaOverrideByField;
   private Set<String> inaccessibleFieldsBeingPlanned;
   private Map<String, String> unresolvedReasonCodesBeingPlanned;
+  private List<RecordHealthCheckFormulaPlanService.Finding> formulaFindingsBeingPlanned;
+  private Boolean formulaFindingsTruncatedBeingPlanned;
+  private String formulaReturnTypeBeingPlanned;
   private Boolean verdictDependenciesTruncatedBeingPlanned;
   public Set<String> collectRecordFields(
     Record_Health_Check__mdt check,
@@ -38,7 +36,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     if (info.inaccessible || (info.describe != null && !info.describe.isAccessible())) return RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE;
     return info.unresolvedReasonCode;
   }
-  /** Returns the terminal describe type for a resolved field path. */
   public Schema.DisplayType resolvedDisplayType(
     Schema.SObjectType objectType,
     String fieldPath
@@ -59,46 +56,93 @@ public with sharing class RecordHealthCheckFieldPlanner {
   ) {
     inaccessibleFieldsBeingPlanned = new Set<String>();
     unresolvedReasonCodesBeingPlanned = new Map<String, String>();
+    formulaFindingsBeingPlanned = new List<RecordHealthCheckFormulaPlanService.Finding>();
+    formulaFindingsTruncatedBeingPlanned = false;
+    formulaReturnTypeBeingPlanned = check.FormulaResultType__c;
     verdictDependenciesTruncatedBeingPlanned = false;
     Set<String> fields = new Set<String>{ 'Id' };
-    // Token syntax and registry membership were validated when the check loaded;
-    // collect the referenced record fields needed for message rendering.
-    addMergeFields(fields, objectType, check.FailureMessage__c);
-    addMergeFields(fields, objectType, check.UnableToEvaluateMessage__c);
-    addMergeFields(fields, objectType, check.ApplicabilityNotMetMessage__c);
-    // Remediation link fields may carry {!record.FieldName} tokens (including relationship
-    // paths like {!record.Owner.ManagerId}); load their fields so the token resolves.
-    addMergeFields(fields, objectType, check.ActionUrl__c);
-    addMergeFields(fields, objectType, check.ActionLabel__c);
-    addMergeFields(fields, objectType, check.FixMessage__c);
-    addMergeFields(fields, objectType, check.SourceQuery__c);
-    addMergeFields(fields, objectType, check.ComparisonQuery__c);
-    addMergeFields(fields, objectType, check.ApplicabilityCountQuery__c);
-    // Author wording for the Found / Expected values may reference record fields
-    // alongside the computed count and value tokens. Every Evaluation Type whose
-    // Found / Expected values the Framework writes can carry it.
-    addMergeFields(fields, objectType, check.DisplayFoundText__c);
-    addMergeFields(fields, objectType, check.DisplayExpectedText__c);
+    addMergeFields(
+      fields,
+      objectType,
+      check.FailureMessage__c,
+      'FailureMessage__c'
+    );
+    addMergeFields(
+      fields,
+      objectType,
+      check.UnableToEvaluateMessage__c,
+      'UnableToEvaluateMessage__c'
+    );
+    addMergeFields(
+      fields,
+      objectType,
+      check.ApplicabilityNotMetMessage__c,
+      'ApplicabilityNotMetMessage__c'
+    );
+    addMergeFields(fields, objectType, check.ActionUrl__c, 'ActionUrl__c');
+    addMergeFields(fields, objectType, check.ActionLabel__c, 'ActionLabel__c');
+    addMergeFields(fields, objectType, check.FixMessage__c, 'FixMessage__c');
+    addMergeFields(fields, objectType, check.SourceQuery__c, 'SourceQuery__c');
+    addMergeFields(
+      fields,
+      objectType,
+      check.ComparisonQuery__c,
+      'ComparisonQuery__c'
+    );
+    addMergeFields(
+      fields,
+      objectType,
+      check.ApplicabilityCountQuery__c,
+      'ApplicabilityCountQuery__c'
+    );
+    addMergeFields(
+      fields,
+      objectType,
+      check.DisplayFoundText__c,
+      'DisplayFoundText__c'
+    );
+    addMergeFields(
+      fields,
+      objectType,
+      check.DisplayExpectedText__c,
+      'DisplayExpectedText__c'
+    );
     if (check.EvaluationType__c == 'FORMULA') {
-      addFormulaFields(fields, objectType, check.PassConditionFormula__c, true);
-      // Optional Found / Expected single-value formulas get the SAME calculated-field
-      // dependency expansion as the pass/fail formula, so a balance check whose
-      // operands are formula fields can display resolved numbers instead of UNABLE.
-      addFormulaFields(fields, objectType, check.DisplayFoundFormula__c, false);
+      addFormulaFields(
+        fields,
+        objectType,
+        check.PassConditionFormula__c,
+        'PassConditionFormula__c',
+        true
+      );
+      addFormulaFields(
+        fields,
+        objectType,
+        check.DisplayFoundFormula__c,
+        'DisplayFoundFormula__c',
+        false
+      );
       addFormulaFields(
         fields,
         objectType,
         check.DisplayExpectedFormula__c,
+        'DisplayExpectedFormula__c',
         false
       );
     }
     if (check.EvaluationType__c == 'QUERY') {
-      // List checks read the single-value from FindInListFormula__c; RecordFormula compares to ExpectedRecordFormula__c.
-      addFormulaFields(fields, objectType, check.FindInListFormula__c, true);
+      addFormulaFields(
+        fields,
+        objectType,
+        check.FindInListFormula__c,
+        'FindInListFormula__c',
+        true
+      );
       addFormulaFields(
         fields,
         objectType,
         check.ExpectedRecordFormula__c,
+        'ExpectedRecordFormula__c',
         true
       );
     }
@@ -113,6 +157,7 @@ public with sharing class RecordHealthCheckFieldPlanner {
           fields,
           objectType,
           check.ApplicabilityFormula__c,
+          'ApplicabilityFormula__c',
           true
         );
       }
@@ -134,9 +179,14 @@ public with sharing class RecordHealthCheckFieldPlanner {
     result.unresolvedReasonCodesByField.putAll(
       unresolvedReasonCodesBeingPlanned
     );
+    result.formulaFindings.addAll(formulaFindingsBeingPlanned);
+    result.formulaFindingsTruncated = formulaFindingsTruncatedBeingPlanned;
     result.verdictDependenciesTruncated = verdictDependenciesTruncatedBeingPlanned;
     inaccessibleFieldsBeingPlanned = null;
     unresolvedReasonCodesBeingPlanned = null;
+    formulaFindingsBeingPlanned = null;
+    formulaFindingsTruncatedBeingPlanned = null;
+    formulaReturnTypeBeingPlanned = null;
     verdictDependenciesTruncatedBeingPlanned = null;
     return result;
   }
@@ -144,7 +194,8 @@ public with sharing class RecordHealthCheckFieldPlanner {
   private void addMergeFields(
     Set<String> fields,
     Schema.SObjectType objectType,
-    String template
+    String template,
+    String configurationField
   ) {
     if (String.isBlank(template)) {
       return;
@@ -157,97 +208,89 @@ public with sharing class RecordHealthCheckFieldPlanner {
     ) {
       addReadableField(fields, objectType, fieldPath);
     }
+    for (
+      RecordHealthCheckFormulaPlanService.Finding finding : RecordHealthCheckMergeFindingService.findings(
+        template,
+        configurationField,
+        objectType,
+        this
+      )
+    ) {
+      if (
+        formulaFindingsBeingPlanned.size() >=
+        RecordHealthCheckFormulaPlanService.FINDING_LIMIT
+      ) {
+        formulaFindingsTruncatedBeingPlanned = true;
+        break;
+      }
+      formulaFindingsBeingPlanned.add(finding);
+    }
   }
   private void addFormulaFields(
     Set<String> fields,
     Schema.SObjectType objectType,
     String formula,
+    String configurationField,
     Boolean verdictAffecting
   ) {
     if (String.isBlank(formula)) {
       return;
     }
-    // Walk the full dependency tree rooted at the record's own type. The visited
-    // set is shared across the whole walk. Its keys include the complete path
-    // from the root record, so repeated references to one calculated field are
-    // deduplicated without collapsing the same field reached through two
-    // different relationships.
-    expandFormulaDependencies(
-      fields,
-      objectType,
-      objectType,
+    RecordHealthCheckFormulaPlanService.FormulaPlan sharedPlan = RecordHealthCheckFormulaPlanService.plan(
       formula,
-      '',
-      0,
-      new Set<String>(),
-      verdictAffecting
+      objectType,
+      configurationField,
+      formulaReturnTypeBeingPlanned,
+      this
     );
-  }
-  /**
-   * Expands calculated operands because FormulaEval regenerates values from the hydrated SObject.
-   * Root-qualified visit keys break cycles without merging paths through different relationships;
-   * the depth cap records verdict truncation rather than evaluating a partial dependency graph.
-   */
-  private void expandFormulaDependencies(
-    Set<String> fields,
-    Schema.SObjectType baseType,
-    Schema.SObjectType resolveType,
-    String formula,
-    String pathPrefix,
-    Integer depth,
-    Set<String> visited,
-    Boolean verdictAffecting
-  ) {
-    if (String.isBlank(formula)) {
-      return;
-    }
-    for (
-      RecordHealthCheckFormulaFieldScanner.FieldReference reference : RecordHealthCheckFormulaFieldScanner.scan(
-        formula,
-        resolveType
-      )
-    ) {
-      String token = reference.path;
-      // Add the operand to the SELECT, rooted at the record's own type so the
-      // path is valid in the SOQL even when we are deep inside a cross-object
-      // formula definition.
-      addReadableField(fields, baseType, pathPrefix + token, reference);
-
-      // If the operand is itself a calculated field, expand the fields ITS
-      // definition references so the whole chain can be regenerated.
-      CalculatedDependency dependency = calculatedDependency(
-        resolveType,
-        token,
-        reference,
-        pathPrefix
-      );
-      if (
-        dependency != null &&
-        depth < FORMULA_DEPENDENCY_DEPTH_CAP &&
-        visited.add(
-          pathPrefix + dependency.relationshipPrefix + dependency.visitKey
-        )
+    fields.addAll(sharedPlan.selectedFields);
+    collectFormulaFindings(sharedPlan);
+    formulaFindingsTruncatedBeingPlanned =
+      formulaFindingsTruncatedBeingPlanned || sharedPlan.findingsTruncated;
+    if (verdictAffecting) {
+      for (
+        RecordHealthCheckFormulaPlanService.Finding finding : sharedPlan.findings
       ) {
-        expandFormulaDependencies(
-          fields,
-          baseType,
-          dependency.ownerType,
-          dependency.formula,
-          pathPrefix + dependency.relationshipPrefix,
-          depth + 1,
-          visited,
-          verdictAffecting
-        );
-      } else if (
-        dependency != null &&
-        depth >= FORMULA_DEPENDENCY_DEPTH_CAP &&
-        verdictAffecting
-      ) {
-        verdictDependenciesTruncatedBeingPlanned = true;
+        if (
+          finding.code ==
+          RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
+        ) {
+          verdictDependenciesTruncatedBeingPlanned = true;
+        }
       }
     }
   }
-  private CalculatedDependency calculatedDependency(
+
+  private void collectFormulaFindings(
+    RecordHealthCheckFormulaPlanService.FormulaPlan sharedPlan
+  ) {
+    for (
+      RecordHealthCheckFormulaPlanService.Finding finding : sharedPlan.findings
+    ) {
+      String plannedPath = String.isBlank(finding.dependencyPath)
+        ? finding.offendingToken
+        : finding.dependencyPath;
+      if (finding.code == RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE) {
+        inaccessibleFieldsBeingPlanned.add(plannedPath);
+      } else if (
+        finding.code == RecordHealthCheckReasonCodes.FIELD_NOT_RESOLVED ||
+        finding.code == RecordHealthCheckReasonCodes.RELATIONSHIP_NOT_RESOLVED
+      ) {
+        unresolvedReasonCodesBeingPlanned.put(plannedPath, finding.code);
+      }
+      if (
+        formulaFindingsBeingPlanned.size() <
+        RecordHealthCheckFormulaPlanService.FINDING_LIMIT
+      ) {
+        formulaFindingsBeingPlanned.add(finding);
+      } else {
+        formulaFindingsTruncatedBeingPlanned = true;
+      }
+    }
+  }
+
+  /** Describes one calculated field for shared dependency planning. */
+  public CalculatedDependency calculatedDependency(
     Schema.SObjectType resolveType,
     String token,
     RecordHealthCheckFormulaFieldScanner.FieldReference reference,
@@ -342,11 +385,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
   }
 
-  /**
-   * Resolves a relationship path while distinguishing readable, inaccessible, and unresolved
-   * schema. Typed polymorphism uses its declared type; untyped ambiguity fails closed instead of
-   * choosing a same-named field on an arbitrary candidate.
-   */
   private FieldPathDescribe describeFieldPath(
     Schema.SObjectType objectType,
     String fieldPath,
@@ -403,18 +441,11 @@ public with sharing class RecordHealthCheckFieldPlanner {
       : String.join(relationshipParts, '.') + '.';
     return out;
   }
-
   private FieldPathDescribe unresolvedPath(String reasonCode) {
     FieldPathDescribe unresolved = new FieldPathDescribe();
     unresolved.unresolvedReasonCode = reasonCode;
     return unresolved;
   }
-
-  /**
-   * Selects only targets representable by flat SOQL. Genuine polymorphism permits Name-entity fields;
-   * type-specific fields require TYPEOF. Ambiguity returns null so FormulaEval is unable rather than
-   * silently hydrating an unrelated same-named field from a guessed type.
-   */
   private Schema.SObjectType selectReferenceType(
     List<Schema.SObjectType> candidates,
     String nextPathPart
@@ -422,9 +453,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     if (candidates.size() == 1) {
       return candidates[0];
     }
-    // Flat SOQL exposes a polymorphic relationship through the Name entity.
-    // A field present on only one concrete candidate still requires TYPEOF;
-    // choosing that candidate here would emit an invalid flat SELECT.
     if (!RecordHealthCheckFormulaFieldScanner.isNameEntityPath(nextPathPart)) {
       return null;
     }
@@ -441,7 +469,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
     return null;
   }
-
   /**
    * Finds the field whose relationship name matches `relName` (case-insensitive)
    * e.g. `Parent` → the ParentId lookup, `Account__r` → the Account__c lookup.
@@ -463,7 +490,6 @@ public with sharing class RecordHealthCheckFieldPlanner {
     }
     return null;
   }
-
   private class FieldPathDescribe {
     Schema.DescribeFieldResult describe;
     Schema.SObjectType ownerType;
@@ -471,19 +497,19 @@ public with sharing class RecordHealthCheckFieldPlanner {
     Boolean inaccessible = false;
     String unresolvedReasonCode;
   }
-
-  private class CalculatedDependency {
-    private String formula;
-    private String visitKey;
-    private Schema.SObjectType ownerType;
-    private String relationshipPrefix;
+  public class CalculatedDependency {
+    public String formula { get; private set; }
+    public String visitKey { get; private set; }
+    public Schema.SObjectType ownerType { get; private set; }
+    public String relationshipPrefix { get; private set; }
   }
-
   /** Per-Check field requirements separated by the running user's access. */
   public class FieldPlan {
     public Set<String> selectedFields = new Set<String>();
     public Set<String> inaccessibleFields = new Set<String>();
     public Map<String, String> unresolvedReasonCodesByField = new Map<String, String>();
+    public List<RecordHealthCheckFormulaPlanService.Finding> formulaFindings = new List<RecordHealthCheckFormulaPlanService.Finding>();
+    public Boolean formulaFindingsTruncated = false;
     public Boolean verdictDependenciesTruncated = false;
   }
 }

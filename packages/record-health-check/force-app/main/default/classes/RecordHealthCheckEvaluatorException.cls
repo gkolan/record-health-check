@@ -9,7 +9,7 @@
  * one exception both evaluators recognize, so their error handlers map the same
  * reason codes to UNABLE_TO_EVALUATE results.
  */
-public class RecordHealthCheckEvaluatorException extends Exception {
+public class RecordHealthCheckEvaluatorException extends Exception implements RecordHealthCheckFatalFailure {
   public String reasonCode;
   public RecordHealthCheckEvaluatorException(
     String reasonCode,

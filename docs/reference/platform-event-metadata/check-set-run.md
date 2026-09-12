@@ -4,10 +4,10 @@
 > **Audience: Flow builders and integration developers looking up summary fields.** For the full
 > history-object and Flow recipe, use [Save Check Set run summaries](../../save-results/save-run-summaries.md).
 
-| Setup value | Name |
-| --- | --- |
-| Label | Record Health Check Set Run |
-| API name | `Record_Health_Check_Set_Run__e` |
+| Setup value | Name                             |
+| ----------- | -------------------------------- |
+| Label       | Record Health Check Set Run      |
+| API name    | `Record_Health_Check_Set_Run__e` |
 
 This Platform Event gives one summary for each Salesforce record after a Check Set finishes. It
 reports how many Checks passed, failed, were skipped, could not be evaluated, or encountered a
@@ -48,11 +48,11 @@ traffic.
 The code or Flow action chooses the publication value. The Check Set's **Publish User Run Event**
 checkbox does not control these runs.
 
-| Publication value | Is a Set Run event published? |
-| --- | --- |
-| `ALL` | Yes. Record Health Check also publishes every individual Check Result, including `PASS` and `SKIPPED`. |
-| `ACTIONABLE` | Yes. It publishes a completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs. Individual Check Result events remain limited to `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`. |
-| `NONE` | No Platform Events are published. The Flow or Apex code can use or save the returned results directly. |
+| Publication value | Is a Set Run event published?                                                                                                                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ALL`             | Yes. Record Health Check also publishes every individual Check Result, including `PASS` and `SKIPPED`.                                                                                                         |
+| `ACTIONABLE`      | Yes. It publishes a completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs. Individual Check Result events remain limited to `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`. |
+| `NONE`            | No Platform Events are published. The Flow or Apex code can use or save the returned results directly.                                                                                                         |
 
 See [Choose whether to publish result events](../../save-results/when-to-use-platform-events.md) for examples from
 every supported way to start a run.
@@ -86,26 +86,26 @@ history object or follow-up records it uses.
 
 The API names below are the field names used by Flow, Apex, and integrations.
 
-| Field label | API name | Type | What it contains |
-| --- | --- | --- | --- |
-| Event ID | `EventId__c` | Text(80), required | Unique ID generated for this event. Save it in a unique field to prevent duplicate follow-up work. |
-| Run ID | `RunId__c` | Text(120), required | ID shared by the Set Run event, its Check Result events, and the direct Flow or Apex response. |
-| Phase | `Phase__c` | Text(30), required | Per-record events use `COMPLETED`; async job envelopes use `COMPLETED` or `FAILED`. |
-| Submitted Record Count | `SubmittedRecordCount__c` | Number(7,0) | Async job population; blank for per-record events. |
-| Processed Record Count | `ProcessedRecordCount__c` | Number(7,0) | Records completed before the async terminal envelope; blank for per-record events. |
-| Check Set Qualified API Name | `CheckSetQualifiedApiName__c` | Text(80), required | Exact Qualified API Name of the Check Set that ran, such as `My_Account_Checks` or an installed-package name such as `rhc__Example_Account_Check_Builder_Guide`. |
-| Record ID | `RecordId__c` | Text(18) | Salesforce record summarized by this event. Record Health Check supplies it for current runs. |
-| Occurred At | `OccurredAt__c` | Date/Time, required | Date and time when Record Health Check created the event. |
-| Source | `Source__c` | Text(30), required | How the run started: `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT`. |
-| Contract Version | `ContractVersion__c` | Text(10), required | Version of this event's field contract. The current value is `1.0`. |
-| Framework Version | `FrameworkVersion__c` | Text(20), required | Record Health Check code version that created the event. |
-| Eligible Check Count | `EligibleCheckCount__c` | Number(5,0) | Number of active Checks selected for the run. |
-| Evaluated Check Count | `EvaluatedCheckCount__c` | Number(5,0) | Number of Check results included in this record's summary. |
-| Passed Count | `PassedCount__c` | Number(5,0) | Results with status `PASS`. |
-| Failed Count | `FailedCount__c` | Number(5,0) | Results with status `FAIL`. |
-| Skipped Count | `SkippedCount__c` | Number(5,0) | Results with status `SKIPPED`. |
-| Unable Count | `UnableCount__c` | Number(5,0) | Results with status `UNABLE_TO_EVALUATE`. |
-| System Error Count | `SystemErrorCount__c` | Number(5,0) | Results with status `ERROR`. |
+| Field label                  | API name                      | Type                | What it contains                                                                                                                                                 |
+| ---------------------------- | ----------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event ID                     | `EventId__c`                  | Text(80), required  | Unique ID generated for this event. Save it in a unique field to prevent duplicate follow-up work.                                                               |
+| Run ID                       | `RunId__c`                    | Text(120), required | ID shared by the Set Run event, its Check Result events, and the direct Flow or Apex response.                                                                   |
+| Phase                        | `Phase__c`                    | Text(30), required  | Per-record events use `COMPLETED`; async job envelopes use `COMPLETED` or `FAILED`.                                                                              |
+| Submitted Record Count       | `SubmittedRecordCount__c`     | Number(7,0)         | Async job population; blank for per-record events.                                                                                                               |
+| Processed Record Count       | `ProcessedRecordCount__c`     | Number(7,0)         | Records completed before the async terminal envelope; blank for per-record events.                                                                               |
+| Check Set Qualified API Name | `CheckSetQualifiedApiName__c` | Text(80), required  | Exact Qualified API Name of the Check Set that ran, such as `My_Account_Checks` or an installed-package name such as `rhc__Example_Account_Check_Builder_Guide`. |
+| Record ID                    | `RecordId__c`                 | Text(18)            | Salesforce record summarized by this event. Record Health Check supplies it for current runs.                                                                    |
+| Occurred At                  | `OccurredAt__c`               | Date/Time, required | Date and time when Record Health Check created the event.                                                                                                        |
+| Source                       | `Source__c`                   | Text(30), required  | How the run started: `APEX_API`, `FLOW`, `USER_INITIATED`, `SCHEDULED`, `BATCH`, `QUEUEABLE`, `FUTURE`, or `AGENT`.                                              |
+| Contract Version             | `ContractVersion__c`          | Text(10), required  | Version of this event's field contract. The current value is `1.0`.                                                                                              |
+| Framework Version            | `FrameworkVersion__c`         | Text(20), required  | Record Health Check code version that created the event.                                                                                                         |
+| Eligible Check Count         | `EligibleCheckCount__c`       | Number(5,0)         | Number of active Checks selected for the run.                                                                                                                    |
+| Evaluated Check Count        | `EvaluatedCheckCount__c`      | Number(5,0)         | Number of Check results included in this record's summary.                                                                                                       |
+| Passed Count                 | `PassedCount__c`              | Number(5,0)         | Results with status `PASS`.                                                                                                                                      |
+| Failed Count                 | `FailedCount__c`              | Number(5,0)         | Results with status `FAIL`.                                                                                                                                      |
+| Skipped Count                | `SkippedCount__c`             | Number(5,0)         | Results with status `SKIPPED`.                                                                                                                                   |
+| Unable Count                 | `UnableCount__c`              | Number(5,0)         | Results with status `UNABLE_TO_EVALUATE`.                                                                                                                        |
+| System Error Count           | `SystemErrorCount__c`         | Number(5,0)         | Results with status `ERROR`.                                                                                                                                     |
 
 The Set Run event does not include messages, SOQL, formula values, Found values, Expected values, or
 stack traces. It does contain a Salesforce record ID, so protect saved copies according to the

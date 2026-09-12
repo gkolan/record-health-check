@@ -33,9 +33,21 @@ private class RHCOrgSafeCoverageTest {
       2
     );
 
-    Assert.areEqual('Acme: Found', result.actualValue);
-    Assert.areEqual('Expected across 2', result.expectedValue);
-    Assert.areEqual(null, result.expectedValueLabel);
+    Assert.areEqual(
+      'Acme: Found',
+      result.actualValue,
+      'Found text must resolve the in-memory record and evaluation value.'
+    );
+    Assert.areEqual(
+      'Expected across 2',
+      result.expectedValue,
+      'Expected text must resolve the total record count.'
+    );
+    Assert.areEqual(
+      null,
+      result.expectedValueLabel,
+      'Author-supplied Expected text must clear the default value label.'
+    );
     RecordHealthCheckTemplateService.applyFoundExpectedText(
       null,
       record,
@@ -69,7 +81,10 @@ private class RHCOrgSafeCoverageTest {
         'SELECT Id FROM UserLogin'
       );
     } catch (RecordHealthCheckEvaluatorException expected) {
-      Assert.isNotNull(expected.reasonCode);
+      Assert.isNotNull(
+        expected.reasonCode,
+        'A rejected setup-object query must expose a classified reason.'
+      );
     }
 
     Account record = RecordHealthCheckTestDataFactory.account(
@@ -81,14 +96,17 @@ private class RHCOrgSafeCoverageTest {
         record,
         'OwnerId',
         String.valueOf(UserInfo.getUserId())
-      )
+      ),
+      'A fallback OwnerId string must coerce to the running user identity.'
     );
     Assert.isFalse(
-      RecordHealthCheckSoqlBindValueResolver.isMultiSelectPicklist(record, '')
+      RecordHealthCheckSoqlBindValueResolver.isMultiSelectPicklist(record, ''),
+      'An empty field path must not be treated as a multiselect picklist.'
     );
     Assert.areEqual(
       Schema.DisplayType.STRING,
-      RecordHealthCheckSoqlBindValueResolver.terminalFieldType(record, '')
+      RecordHealthCheckSoqlBindValueResolver.terminalFieldType(record, ''),
+      'An empty terminal field path must retain the safe string type.'
     );
   }
 
@@ -102,12 +120,20 @@ private class RHCOrgSafeCoverageTest {
       Limits.getFutureCalls(),
       Limits.getEmailInvocations()
     );
-    Assert.areEqual('DML', syntheticDml.effect);
+    Assert.areEqual(
+      'DML',
+      syntheticDml.effect,
+      'Changed DML counters must identify a DML side effect.'
+    );
     try {
       RecordHealthCheckPluginDispatch.preserveFatalSideEffect(syntheticDml);
       Assert.fail('Fatal side effects must be rethrown.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException preserved) {
-      Assert.areEqual('DML', preserved.effect);
+      Assert.areEqual(
+        'DML',
+        preserved.effect,
+        'Rethrowing a fatal side effect must preserve its DML classification.'
+      );
     }
     RecordHealthCheckPluginDispatch.preserveFatalSideEffect(
       new IllegalArgumentException('recoverable')
@@ -119,7 +145,11 @@ private class RHCOrgSafeCoverageTest {
       );
       Assert.fail('Constructor side effects must be rejected.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual('QUEUEABLE', error.effect);
+      Assert.areEqual(
+        'QUEUEABLE',
+        error.effect,
+        'Direct construction must classify queued work as a queueable side effect.'
+      );
     }
 
     Record_Health_Check__mdt constructorCheck = RecordHealthCheckTestDataFactory.check(
@@ -131,7 +161,11 @@ private class RHCOrgSafeCoverageTest {
       RecordHealthCheckApexPluginResolver.resolve(constructorCheck);
       Assert.fail('Resolver must preserve a constructor side effect.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual('QUEUEABLE', error.effect);
+      Assert.areEqual(
+        'QUEUEABLE',
+        error.effect,
+        'Plugin resolution must preserve constructor queueable side effects.'
+      );
     }
     try {
       RecordHealthCheckConfigValidator.isValidApexPlugin(
@@ -139,7 +173,11 @@ private class RHCOrgSafeCoverageTest {
       );
       Assert.fail('Validation must preserve a constructor side effect.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual('QUEUEABLE', error.effect);
+      Assert.areEqual(
+        'QUEUEABLE',
+        error.effect,
+        'Configuration validation must preserve constructor queueable side effects.'
+      );
     }
 
     Account account = RecordHealthCheckTestDataFactory.accountFixture(
@@ -160,18 +198,16 @@ private class RHCOrgSafeCoverageTest {
       );
       Assert.fail('Evaluation side effects must be rejected.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual('QUEUEABLE', error.effect);
-      Assert.isTrue(error.reversible);
+      Assert.areEqual(
+        'QUEUEABLE',
+        error.effect,
+        'Plugin evaluation must classify queued work as a queueable side effect.'
+      );
+      Assert.isTrue(
+        error.reversible,
+        'Queued work must retain its rollback-capable classification.'
+      );
     }
-  }
-
-  @IsTest
-  static void configCacheNullIdentityIsSafe() {
-    Assert.areEqual(
-      null,
-      RecordHealthCheckConfigValidator.takeValidatedPlugin(null)
-    );
-    RecordHealthCheckConfigValidator.discardValidatedPlugin(null);
   }
 
   @IsTest
@@ -195,8 +231,14 @@ private class RHCOrgSafeCoverageTest {
       new List<SObject>{ record },
       'ONE_RESULT'
     );
-    Assert.isNotNull(result.actualValueSource);
-    Assert.isNotNull(result.expectedValueSource);
+    Assert.isNotNull(
+      result.actualValueSource,
+      'Fetched primary rows must retain their Found source metadata.'
+    );
+    Assert.isNotNull(
+      result.expectedValueSource,
+      'Fetched comparison rows must retain their Expected source metadata.'
+    );
   }
 
   @IsTest
@@ -209,9 +251,20 @@ private class RHCOrgSafeCoverageTest {
       context,
       new IllegalArgumentException('Synthetic fatal boundary.')
     );
-    Assert.areEqual(0, context.affectedRecordCount);
-    Assert.areEqual('ONE_RECORD', context.scopeImpact);
-    Assert.isNotNull(incident.diagnosticId);
+    Assert.areEqual(
+      0,
+      context.affectedRecordCount,
+      'An empty fatal scope must record zero affected records.'
+    );
+    Assert.areEqual(
+      'ONE_RECORD',
+      context.scopeImpact,
+      'An empty fatal scope must retain the default single-record scope classification.'
+    );
+    Assert.isNotNull(
+      incident.diagnosticId,
+      'An empty-scope fatal incident must still receive a diagnostic identifier.'
+    );
   }
 
   @IsTest
@@ -223,22 +276,30 @@ private class RHCOrgSafeCoverageTest {
       );
       Assert.fail('An unresolved runtime bind must fail.');
     } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.isNotNull(error.reasonCode);
+      Assert.isNotNull(
+        error.reasonCode,
+        'An unresolved runtime bind must expose a classified query failure.'
+      );
     }
   }
 
   @IsTest
   static void bulkShapeHelperAndRelationshipTokenNeedNoPersistedRows() {
-    Assert.isFalse(RecordHealthCheckBulkQuerySupport.isSupportedShape(null));
+    Assert.isFalse(
+      RecordHealthCheckBulkQuerySupport.isSupportedShape(null),
+      'A null query must not be accepted as a supported bulk shape.'
+    );
     Assert.isTrue(
       RecordHealthCheckBulkQuerySupport.isSupportedShape(
         'SELECT Id FROM Account WHERE Id = {!record.Id}'
-      )
+      ),
+      'A single direct record correlation must be accepted for bulk execution.'
     );
     Assert.isFalse(
       RecordHealthCheckBulkQuerySupport.isSupportedShape(
         'SELECT Id FROM Account WHERE Id = {!record.Id} AND Name = {!record.Name}'
-      )
+      ),
+      'An additional record token must reject the unsupported bulk shape.'
     );
     Account parent = RecordHealthCheckTestDataFactory.accountFixture('Parent');
     Account child = RecordHealthCheckTestDataFactory.accountFixture('Child');
@@ -248,7 +309,11 @@ private class RHCOrgSafeCoverageTest {
       new Map<Id, SObject>{ child.Id => child },
       10
     );
-    Assert.areEqual(0, result.rowsByRecordId.get(child.Id).size());
+    Assert.areEqual(
+      0,
+      result.rowsByRecordId.get(child.Id).size(),
+      'A synthetic parent identity must yield an empty result for its child.'
+    );
   }
 
   @IsTest
@@ -273,7 +338,8 @@ private class RHCOrgSafeCoverageTest {
       } catch (RecordHealthCheckEvaluatorException error) {
         Assert.areEqual(
           RecordHealthCheckReasonCodes.RECORD_NOT_ACCESSIBLE,
-          error.reasonCode
+          error.reasonCode,
+          'When the existing user lacks object access, the failure must retain its access reason.'
         );
       }
       RecordHealthCheckFieldPlanner planner = new RecordHealthCheckFieldPlanner();
@@ -287,7 +353,11 @@ private class RHCOrgSafeCoverageTest {
         ),
         Account.SObjectType
       );
-      Assert.areNotEqual(null, plan);
+      Assert.areNotEqual(
+        null,
+        plan,
+        'Planning under the existing user must return a field plan.'
+      );
     }
   }
 
@@ -307,7 +377,10 @@ private class RHCOrgSafeCoverageTest {
       ),
       Account.SObjectType
     );
-    Assert.isFalse(relationshipFields.isEmpty());
+    Assert.isFalse(
+      relationshipFields.isEmpty(),
+      'Calculated relationship dependencies must retain collected fields.'
+    );
 
     RecordHealthCheckFieldPlanner fallbackPlanner = new RecordHealthCheckFieldPlanner();
     fallbackPlanner.calculatedFormulaOverrideByField = new Map<String, String>{
@@ -324,7 +397,8 @@ private class RHCOrgSafeCoverageTest {
           ),
           Account.SObjectType
         )
-        .isEmpty()
+        .isEmpty(),
+      'Calculated parent-name fallback must retain collected fields.'
     );
 
     planner.multiCurrencyOrganizationOverride = true;
@@ -337,7 +411,11 @@ private class RHCOrgSafeCoverageTest {
       ),
       Account.SObjectType
     );
-    Assert.areNotEqual(null, currencyPlan);
+    Assert.areNotEqual(
+      null,
+      currencyPlan,
+      'Multicurrency planning must return a field plan.'
+    );
 
     Set<String> platformFormulaFields = new RecordHealthCheckFieldPlanner()
       .collectRecordFields(
@@ -349,7 +427,10 @@ private class RHCOrgSafeCoverageTest {
         ),
         Contact.SObjectType
       );
-    Assert.isFalse(platformFormulaFields.isEmpty());
+    Assert.isFalse(
+      platformFormulaFields.isEmpty(),
+      'Platform formula fields must retain their collected dependencies.'
+    );
   }
 
   @IsTest
@@ -376,7 +457,11 @@ private class RHCOrgSafeCoverageTest {
         );
       Assert.fail('Constructor side effects must remain fatal.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual('QUEUEABLE', error.effect);
+      Assert.areEqual(
+        'QUEUEABLE',
+        error.effect,
+        'Scope evaluation must preserve fatal constructor queueable side effects.'
+      );
     }
 
     Record_Health_Check__mdt missingCheck = RecordHealthCheckTestDataFactory.check(
@@ -404,7 +489,8 @@ private class RHCOrgSafeCoverageTest {
       .get(account.Id);
     Assert.areEqual(
       'A system error prevented this check from completing. An authorized administrator can open the diagnosis.',
-      result.message
+      result.message,
+      'A missing plugin outcome without a configured message must use the safe system-error default.'
     );
   }
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+  <label>RHC SP Formula Access Restore</label>
+  <description
+  >Integration-only restoration of Annual Revenue read access.</description>
+  <hasActivationRequired>false</hasActivationRequired>
+  <fieldPermissions><editable>false</editable><field
+    >Account.AnnualRevenue</field><readable>true</readable></fieldPermissions>
+</PermissionSet>

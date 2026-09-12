@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <label>Inline link grammar: valid</label>
+  <protected>false</protected>
+  <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_Link_Grammar</value></values>
+  <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Valid final brace</value></values>
+  <values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Regression fixture for a final brace after closed inline-link attributes.</value></values>
+  <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >10</value></values>
+  <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+  <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+  <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT Id, Name, NumberOfEmployees, OwnerId, Owner.Name, Website FROM Account WHERE Id = {!record.Id} AND NumberOfEmployees != null ORDER BY Id LIMIT 1</value></values>
+  <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+  <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >NumberOfEmployees</value></values>
+  <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >EQUALS</value></values>
+  <values><field>ExpectedValueSource__c</field><value
+      xsi:type="xsd:string"
+    >FIXED_VALUE</value></values>
+  <values><field>ExpectedFixedValue__c</field><value
+      xsi:type="xsd:string"
+    >0</value></values>
+  <values><field>NoRowsResult__c</field><value
+      xsi:type="xsd:string"
+    >UNABLE_TO_EVALUATE</value></values>
+  <values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >WHEN_FORMULA_TRUE</value></values>
+  <values><field>ApplicabilityFormula__c</field><value
+      xsi:type="xsd:string"
+    >Site = &quot;RHC_LINK_FIXTURE&quot;</value></values>
+  <values><field>ApplicabilityNotMetMessage__c</field><value
+      xsi:type="xsd:string"
+    >This Account is outside the URL-story fixture.</value></values>
+  <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+  <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Review {!link label=&quot;account&quot; href=&quot;/lightning&quot;}</value></values>
+  <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Approval data is missing; add Number of Employees and rerun.</value></values>
+  <values><field>DisplayFoundText__c</field><value
+      xsi:type="xsd:string"
+    >{!link label=&quot;Step 1 - Payment Term Approvals&quot; href=&quot;/{!record.Id}&quot;},
+{!link label=&quot;Step 2 - Finance Approval&quot; href=&quot;/{!record.Id}&quot;},
+{!link label=&quot;{!record.Owner.Name}&quot; href=&quot;/{!record.OwnerId}&quot;},
+{!link label=&quot;Approval guide&quot; href=&quot;{!record.Website}&quot;}</value></values>
+  <values><field>DisplayExpectedText__c</field><value
+      xsi:type="xsd:string"
+    >0 inactive approvers for {!link label=&quot;{!record.Name}&quot; href=&quot;/lightning/r/Account/{!record.Id}/view&quot;}</value></values>
+  <values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Open {!link label=&quot;the approval guide&quot; href=&quot;{!record.Website}&quot;} and restore both synthetic approvers.</value></values>
+  <values><field>ActionLabel__c</field><value
+      xsi:type="xsd:string"
+    >View account</value></values>
+  <values><field>ActionUrl__c</field><value
+      xsi:type="xsd:string"
+    >/lightning/r/Account/{!record.Id}/view</value></values>
+  <values><field>PublishUserResultEvent__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+</CustomMetadata>

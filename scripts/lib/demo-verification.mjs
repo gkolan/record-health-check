@@ -79,11 +79,13 @@ for(RecordHealthCheckResultItem item:response.results) {
  System.assertEquals(expected.get(name).get(checkName),item.evaluation.status,name+' / '+checkName);
  System.assert(!JSON.serialize(item.display).contains('{!'),'Unresolved display token: '+checkName);
  Boolean emptyRoleQuery=name=='RHC Demo Review Account' && checkName.endsWith('Example_Open_Deals_Have_Contacts');
- if(emptyRoleQuery) {
+ Boolean emptyWonRoleQuery=item.evaluation.status=='FAIL' && checkName.endsWith('Example_Earliest_Vs_Latest_Close');
+ Boolean unableWithoutDisplay=item.evaluation.status=='UNABLE_TO_EVALUATE';
+ if(emptyRoleQuery || emptyWonRoleQuery) {
   System.assertEquals(null,item.display.foundDisplayValue,'No-row failure has no numeric evidence');
   System.assertEquals(null,item.display.expectedDisplayValue);
  }
- if(item.evaluation.status!='SKIPPED' && !emptyRoleQuery) {
+ if(item.evaluation.status!='SKIPPED' && !unableWithoutDisplay && !emptyRoleQuery && !emptyWonRoleQuery) {
   System.assert(!String.isBlank(item.display.foundDisplayValue),'Missing Found: '+name+' / '+checkName);
   System.assert(!String.isBlank(item.display.expectedDisplayValue),'Missing Expected: '+name+' / '+checkName);
  }

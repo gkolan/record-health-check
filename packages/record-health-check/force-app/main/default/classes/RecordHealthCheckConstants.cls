@@ -94,6 +94,11 @@ public with sharing class RecordHealthCheckConstants {
       return picklistValues(Record_Health_Check_Set__mdt.RunButtonDisplay__c);
     }
   }
+  public static Set<String> validCardHeadingDisplays {
+    get {
+      return picklistValues(Record_Health_Check_Set__mdt.CardHeadingDisplay__c);
+    }
+  }
   public static Set<String> validRevealModes {
     get {
       return picklistValues(Record_Health_Check_Set__mdt.CardRevealMode__c);
@@ -195,6 +200,12 @@ public with sharing class RecordHealthCheckConstants {
     return String.isBlank(runButtonDisplay)
       ? 'LABEL_AND_ICON'
       : runButtonDisplay;
+  }
+
+  public static String normalizedCardHeadingDisplay(String cardHeadingDisplay) {
+    return String.isBlank(cardHeadingDisplay)
+      ? 'TITLE_AND_SUBTITLE'
+      : cardHeadingDisplay;
   }
 
   public static String normalizedSummaryDisplay(String summaryDisplay) {

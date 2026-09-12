@@ -29,6 +29,13 @@ public class RecordHealthCheckTemplateValueResolver {
       }
       return setValue(context.checkSet, token.propertyPath);
     }
+    return executionValue(token, context);
+  }
+
+  private static Object executionValue(
+    RecordHealthCheckToken token,
+    RecordHealthCheckMergeContext context
+  ) {
     if (token.namespaceName == 'rhcResult') {
       if (!context.resultFinalized || context.result == null) {
         unavailable(token, 'The result is not finalized.');
@@ -51,11 +58,10 @@ public class RecordHealthCheckTemplateValueResolver {
   /**
    * Reads one value out of the rows the Check's own queries returned.
    *
-   * The collection an unavailable query would supply is null rather than
-   * empty, and the two cases mean different things: a Check with no comparison
-   * query can never satisfy a comparisonRows token, which is a configuration
-   * problem, while a query that ran and returned three rows simply has no
-   * fourth row, which is an empty value the author may cover with a fallback.
+   * Authoring validation checks whether the configured query can supply the
+   * token. At runtime, an unavailable collection or an out-of-range row resolves
+   * empty so a configured fallback can apply. A field missing from a returned
+   * row remains a configuration error rather than silently becoming empty.
    */
   private static Object queryValue(
     RecordHealthCheckToken token,
@@ -187,14 +193,7 @@ public class RecordHealthCheckTemplateValueResolver {
       return context.result.frameworkFound();
     }
     if (property == 'foundValuePluralSuffix') {
-      if (context.failedRecordCount != null) {
-        return context.failedRecordCount == 1 ? '' : 's';
-      }
-      return RecordHealthCheckDisplayFormat.isDisplayedNumberOne(
-          context.result.frameworkFound()
-        )
-        ? ''
-        : 's';
+      return foundPluralSuffix(context);
     }
     if (property == 'expectedValue') {
       return context.result.frameworkExpected();
@@ -209,6 +208,19 @@ public class RecordHealthCheckTemplateValueResolver {
       return context.result.reasonCode;
     }
     return null;
+  }
+
+  private static String foundPluralSuffix(
+    RecordHealthCheckMergeContext context
+  ) {
+    if (context.failedRecordCount != null) {
+      return context.failedRecordCount == 1 ? '' : 's';
+    }
+    return RecordHealthCheckDisplayFormat.isDisplayedNumberOne(
+        context.result.frameworkFound()
+      )
+      ? ''
+      : 's';
   }
 
   public static Object runValue(

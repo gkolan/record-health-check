@@ -11,6 +11,8 @@ public class RecordHealthCheckDefinitionResponse {
   @AuraEnabled
   public String displayDescription;
   @AuraEnabled
+  public String cardHeadingDisplay; // TITLE_AND_SUBTITLE, TITLE_ONLY, HIDE
+  @AuraEnabled
   public String triggerMode; // Automatic, Manual — mapped from CardRunMode__c
   @AuraEnabled
   public String runButtonDisplay; // LABEL_AND_ICON, LABEL_ONLY, ICON_ONLY, HIDE
@@ -33,11 +35,11 @@ public class RecordHealthCheckDefinitionResponse {
   @AuraEnabled
   public Boolean stopOnFirstError;
   @AuraEnabled
-  public Integer totalAvailableCheckCount; // active checks before framework cap truncation
+  public Integer totalAvailableCheckCount; // active checks in an accepted Check Set
   @AuraEnabled
   public Integer frameworkMaxChecks;
   @AuraEnabled
-  public Boolean checksOmittedByLimit; // true when active checks were omitted
+  public Boolean checksOmittedByLimit; // legacy compatibility; accepted responses are false
   @AuraEnabled
   public Integer inactiveCheckCount; // inactive Checks on the Check Set (not run)
   @AuraEnabled

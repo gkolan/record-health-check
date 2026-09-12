@@ -2,8 +2,8 @@
 
 [![License: Apache 2.0](./assets/img/badge-license.svg)](./LICENSE)
 [![CI](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml/badge.svg)](https://github.com/gkolan/record-health-check/actions/workflows/ci.yml)
-[![Apex coverage: 99.60%](https://img.shields.io/badge/Apex_coverage-99.60%25-brightgreen)](./config/quality-metrics.json)
-[![LWC line coverage: 98.89%](https://img.shields.io/badge/LWC_lines-98.89%25-brightgreen)](./config/quality-metrics.json)
+[![Apex coverage: 97.86%](https://img.shields.io/badge/Apex_coverage-97.86%25-brightgreen)](./config/quality-metrics.json)
+[![LWC line coverage: 98.52%](https://img.shields.io/badge/LWC_lines-98.52%25-brightgreen)](./config/quality-metrics.json)
 [![Salesforce API](./assets/img/badge-salesforce-api.svg)](./packages/record-health-check/sfdx-project.json)
 
 [![Install in Sandbox](https://img.shields.io/badge/Install_in_Sandbox-032D60?style=for-the-badge)](https://recordhealthcheck.com/install/sandbox)
@@ -28,9 +28,10 @@ When a record needs attention, the card explains what was **Found**, what was **
 ## Get started
 
 [Documentation](./docs/README.md) ·
-[Install and verify in your org](./docs/install/install-in-a-sandbox.md) ·
-[Deploy to a demo scratch org](./docs/install/install-demo-in-a-scratch-org.md) ·
-[Examples](./docs/examples/README.md)
+[Install and verify](./docs/install/install-in-a-sandbox.md) ·
+[Build with AI](./docs/build-checks/draft-with-ai/README.md) ·
+[Examples](./docs/examples/README.md) ·
+[Deploy a demo](./docs/install/install-demo-in-a-scratch-org.md)
 
 ## See it in action
 
@@ -86,17 +87,17 @@ When a record needs attention, the card explains what was **Found**, what was **
 
 This inventory describes the current source checkout. See [version availability](./docs/install/choose-a-package-version.md#documentation-and-installed-version) for differences from the published package.
 
-| Area                  | Details                                                                                                                                                                                                                                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Package               | Salesforce 2GP unlocked package with the `rhc` namespace                                                                                                                                                                                                                                                             |
-| Apex                  | 244 classes, including 126 `@IsTest` classes and 1 global contract-test support class · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 99.60% coverage from the complete namespaced 2.0.9 source test run · Salesforce-validated 2.0.9.2 package coverage: 99% |
-| LWC                   | 1 Lightning Web Component · 305 Jest tests · 98.89% line coverage · 92.88% branch coverage                                                                                                                                                                                                                           |
-| Packaged examples     | 4 active Example Check Set records containing 50 Check records; 49 Checks are active                                                                                                                                                                                                                                 |
-| Permission sets       | Card User, User, Admin, MCP Integration, Diagnostics Viewer, and Error Log Publisher                                                                                                                                                                                                                                 |
-| Custom permissions    | Record Health Check Run                                                                                                                                                                                                                                                                                              |
-| Custom Metadata Types | Record Health Check Set (18 fields) and Record Health Check (45 fields)                                                                                                                                                                                                                                              |
-| Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields)                                                                                                                                                                                             |
-| Documentation         | 146 maintained pages, including 18 documented Check examples                                                                                                                                                                                                                                                         |
+| Area                  | Details                                                                                                                                                                                                                                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Package               | Salesforce 2GP unlocked package with the `rhc` namespace                                                                                                                                                                                                                                                                 |
+| Apex                  | 350 classes, including 164 `@IsTest` classes and 2 global contract-test support classes · [size breakdown](./docs/architecture/apex-implementation/README.md#codebase-size-and-verification) · 97.86% coverage from the complete namespaced 2.0.10 source test run · Salesforce-validated 2.0.10.1 package coverage: 97% |
+| LWC                   | 2 Lightning Web Components · 392 Jest tests · 98.52% line coverage · 93.30% branch coverage                                                                                                                                                                                                                              |
+| Packaged examples     | 4 active Example Check Set records containing 50 Check records; 49 Checks are active                                                                                                                                                                                                                                     |
+| Permission sets       | Card User, User, Admin, MCP Integration, Diagnostics Viewer, Error Log Publisher, and Readiness Auditor                                                                                                                                                                                                                  |
+| Custom permissions    | Record Health Check Run                                                                                                                                                                                                                                                                                                  |
+| Custom Metadata Types | Record Health Check Set (19 fields) and Record Health Check (45 fields)                                                                                                                                                                                                                                                  |
+| Platform Events       | Record Health Check Log (14 fields), Record Health Check Result (13 fields), and Record Health Check Set Run (18 fields)                                                                                                                                                                                                 |
+| Documentation         | 157 maintained pages, including 18 documented Check examples                                                                                                                                                                                                                                                             |
 
 </details>
 

@@ -205,7 +205,11 @@ private class RHCPolymorphicOwnerAcceptanceTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('PASS', activeResult.status);
+    Assert.areEqual(
+      'PASS',
+      activeResult.status,
+      'The active owner scenario must pass.'
+    );
     Assert.areEqual(
       'Owner is active',
       activeResult.actualValue,

@@ -141,4 +141,8 @@
         <field>DisplayExpectedText__c</field>
         <value xsi:type="xsd:string">No exceptions</value>
     </values>
+  <values>
+    <field>FormulaResultType__c</field>
+    <value xsi:type="xsd:string">AUTO</value>
+  </values>
 </CustomMetadata>

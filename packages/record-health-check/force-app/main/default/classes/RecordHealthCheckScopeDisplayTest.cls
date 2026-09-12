@@ -1,10 +1,8 @@
 /**
- * Verifies qualified selection, scope validation, ordering, and response modes.
+ * Verifies display finalization, typed evidence, and authorized diagnostic projection.
  */
 @IsTest
 private with sharing class RecordHealthCheckScopeDisplayTest {
-  private static final String FORMULA_CHECK = 'Example_Website_URL_Valid';
-
   @IsTest
   static void displayFinalizationHandlesActionTemplateFailure() {
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
@@ -66,9 +64,21 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     }
     Test.stopTest();
 
-    Assert.areEqual('Fix this', result.actionLabel);
-    Assert.areEqual('/lightning/page/home', result.actionUrl);
-    Assert.areEqual('Diagnostic detail', result.adminDetail.message);
+    Assert.areEqual(
+      'Fix this',
+      result.actionLabel,
+      'An action without a label must use the default label.'
+    );
+    Assert.areEqual(
+      '/lightning/page/home',
+      result.actionUrl,
+      'The safe action destination must be retained.'
+    );
+    Assert.areEqual(
+      'Diagnostic detail',
+      result.adminDetail.message,
+      'Authorized admin detail must retain its diagnostic message.'
+    );
     Assert.isTrue(
       result.adminDetail.configurationJson.contains('sourceQueryTemplate'),
       'Authorized diagnostics must include the authored query template.'
@@ -212,8 +222,12 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     );
     Test.stopTest();
 
-    Assert.areEqual(0, emptyCount);
-    Assert.areEqual(1, populatedCount);
+    Assert.areEqual(0, emptyCount, 'An empty aggregate must count as zero.');
+    Assert.areEqual(
+      1,
+      populatedCount,
+      'A populated aggregate must retain its count.'
+    );
     Assert.isNull(
       unsafeScheme,
       'Only relative and HTTPS action URLs are allowed.'
@@ -244,9 +258,45 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
     new RecordHealthCheckScopeResultSupport()
       .finalizeDisplay(check, record, result, false);
 
-    Assert.areEqual('Fix Acme', result.fixInstructions);
-    Assert.areEqual('Open Acme', result.actionLabel);
-    Assert.isTrue(result.actionUrl.endsWith('/view'));
+    Assert.areEqual(
+      'Fix Acme',
+      result.fixInstructions,
+      'The fix template must resolve the record name.'
+    );
+    Assert.areEqual(
+      'Open Acme',
+      result.actionLabel,
+      'The action label must resolve the record name.'
+    );
+    Assert.isTrue(
+      result.actionUrl.endsWith('/view'),
+      'The action destination must retain its view suffix.'
+    );
+  }
+
+  @IsTest
+  static void structuredFixInstructionsRemainFailOnly() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'QualifiedApiName' => 'Structured_Fix_Status',
+        'FixMessage__c' => 'Review {!link label="the record" href="/lightning/page/home"}'
+      }
+    );
+    Account record = RecordHealthCheckTestDataFactory.account(
+      new Map<String, Object>{ 'Name' => 'Structured fix' }
+    );
+    for (String status : new List<String>{ 'PASS', 'SKIPPED' }) {
+      RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+      result.status = status;
+      new RecordHealthCheckStructuredDisplay(
+          new RecordHealthCheckFormulaEvaluator()
+        )
+        .attach(check, record, result, 'Complete.');
+      Assert.isNull(
+        result.displayContent.fix,
+        status + ' must not expose remediation instructions.'
+      );
+    }
   }
 
   @IsTest
@@ -268,6 +318,10 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
       'typed expected'
     );
     internalResult.expectedValueLabel = RecordHealthCheckInternalResult.PASSES_WHEN_LABEL;
+    internalResult.displayContent = new RecordHealthCheckDisplayContent();
+    internalResult.displayContent.expected = new RecordHealthCheckDisplayText()
+      .text('raw condition')
+      .copyNodes();
 
     RecordHealthCheckResultItem item = new RecordHealthCheckScopeResultSupport()
       .toItem(
@@ -277,78 +331,77 @@ private with sharing class RecordHealthCheckScopeDisplayTest {
         RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
       );
 
-    Assert.areEqual('typed found', item.evaluation.found.storedValue);
-    Assert.areEqual('typed expected', item.evaluation.expected.storedValue);
+    Assert.areEqual(
+      'typed found',
+      item.evaluation.found.storedValue,
+      'Typed found evidence must take precedence over raw text.'
+    );
+    Assert.areEqual(
+      'typed expected',
+      item.evaluation.expected.storedValue,
+      'Typed expected evidence must take precedence over raw text.'
+    );
     if (RecordHealthCheckAccess.canViewDetails()) {
-      Assert.areEqual('raw condition', item.display.expectedDisplayValue);
+      Assert.areEqual(
+        'raw condition',
+        item.display.expectedDisplayValue,
+        'An authorized viewer must retain the raw condition display.'
+      );
       Assert.areEqual(
         RecordHealthCheckInternalResult.PASSES_WHEN_LABEL,
-        item.display.expectedValueLabel
+        item.display.expectedValueLabel,
+        'An authorized viewer must retain the condition label.'
       );
     } else {
-      Assert.areEqual(null, item.display.expectedDisplayValue);
-      Assert.areEqual(null, item.display.expectedValueLabel);
+      Assert.areEqual(
+        null,
+        item.display.expectedDisplayValue,
+        'A restricted viewer must not receive the condition display.'
+      );
+      Assert.areEqual(
+        null,
+        item.display.expectedValueLabel,
+        'A restricted viewer must not receive the condition label.'
+      );
+      Assert.isNull(
+        item.display.displayContent.expected,
+        'Restricted Formula conditions must be removed from structured content too.'
+      );
     }
   }
 
-  private static RecordHealthCheckScopePipeline.SelectionContext evaluationContext() {
-    RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePipeline.SelectionContext();
-    context.objectApiName = 'Account';
-    context.checkSetDeveloperName = 'Synthetic_Set';
-    context.showDiagnostics = false;
-    return context;
-  }
-
-  private static Record_Health_Check__mdt queryCountCheck(
-    String developerName,
-    String failureMessage
-  ) {
-    return RecordHealthCheckTestDataFactory.check(
+  @IsTest
+  static void queryDisplayFinalizationDoesNotReformatSettledValues() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{
-        'QualifiedApiName' => developerName,
-        'DeveloperName' => developerName,
-        'CheckTitle__c' => developerName,
-        'EvaluationOrder__c' => 1,
+        'QualifiedApiName' => 'Query_Display_Isolation',
         'EvaluationType__c' => 'QUERY',
-        'ApplicabilityMode__c' => 'ALL_RECORDS',
-        'SourceQuery__c' => 'SELECT COUNT() total FROM Contact WHERE AccountId = {!record.Id}',
-        'SourceQueryField__c' => 'total',
-        'QueryResultHandling__c' => 'ONE_RESULT',
-        'ExpectedValueSource__c' => 'FIXED_VALUE',
-        'ExpectedFixedValue__c' => '0',
-        'ComparisonOperator__c' => 'GREATER_THAN',
-        'EmptyValueHandling__c' => 'AS_NO_MATCH',
-        'NoRowsResult__c' => 'PASS',
-        'FailureSeverity__c' => 'WARNING',
-        'FailureMessage__c' => failureMessage,
-        'UnableToEvaluateMessage__c' => 'Unable.',
-        'MaxQueryRows__c' => 100
+        'DisplayValueFormat__c' => 'NUMBER'
       }
     );
-  }
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.status = RecordHealthCheckStatus.FAIL;
+    result.actualValue = 'Authored 7';
+    result.evaluationFound = RecordHealthCheckValue.ofNumber(7);
+    result.operandsRecorded = true;
 
-  private static Record_Health_Check__mdt buildCheckWithPrerequisite(
-    String prerequisiteName
-  ) {
-    return RecordHealthCheckTestDataFactory.check(
-      new Map<String, Object>{
-        'DeveloperName' => 'Check_B',
-        'QualifiedApiName' => 'namespace__Check_B',
-        'PrerequisiteCheck__c' => prerequisiteName
-      }
+    Test.startTest();
+    new RecordHealthCheckScopeResultSupport()
+      .finalizeDisplay(
+        check,
+        RecordHealthCheckTestDataFactory.account(
+          new Map<String, Object>{ 'Name' => 'Display isolation' }
+        ),
+        result,
+        false,
+        true
+      );
+    Test.stopTest();
+
+    Assert.areEqual(
+      'Authored 7',
+      result.actualValue,
+      'The Apex plugin presentation resolver must not rewrite Query display output.'
     );
-  }
-
-  private static RecordHealthCheckResultItem buildPrerequisiteResultItem(
-    Id recordId,
-    String qualifiedCheckName,
-    String status
-  ) {
-    RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
-    item.evaluation = new RecordHealthCheckEvaluationResult();
-    item.evaluation.recordId = recordId;
-    item.evaluation.checkQualifiedApiName = qualifiedCheckName;
-    item.evaluation.status = status;
-    return item;
   }
 }

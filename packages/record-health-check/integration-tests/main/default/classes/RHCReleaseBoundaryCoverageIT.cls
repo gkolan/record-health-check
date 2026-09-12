@@ -131,8 +131,16 @@ private with sharing class RHCReleaseBoundaryCoverageIT {
           setRequest
         }
       );
-      Assert.areEqual('LIMIT', checkOutputs[1].errorType);
-      Assert.areEqual('LIMIT', setOutputs[1].errorType);
+      Assert.areEqual(
+        'LIMIT',
+        checkOutputs[1].errorType,
+        'An exhausted payload budget must stop later Check rows.'
+      );
+      Assert.areEqual(
+        'LIMIT',
+        setOutputs[1].errorType,
+        'An exhausted payload budget must stop later Check Set rows.'
+      );
     } finally {
       RecordHealthCheckFlowSupport.payloadBudgetStartOverride = null;
       RecordHealthCheckAccess.setRunPermissionForTest(null);
@@ -154,7 +162,11 @@ private with sharing class RHCReleaseBoundaryCoverageIT {
           checkFlowRequest(accountRecord.Id)
         }
       )[0];
-      Assert.areEqual('EXECUTION', output.errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        output.errorType,
+        'A malformed Check response must report execution failure.'
+      );
       Assert.areEqual(
         'The Check response could not be prepared.',
         output.errorMessage,
@@ -174,7 +186,11 @@ private with sharing class RHCReleaseBoundaryCoverageIT {
       ),
       RecordHealthCheckFlowGroupExecutor.SelectionKind.CHECK_SET
     );
-    Assert.areEqual('LIMIT', result.errorType);
+    Assert.areEqual(
+      'LIMIT',
+      result.errorType,
+      'The framework Check count ceiling must report a limit failure.'
+    );
     Assert.isTrue(
       result.errorMessage.startsWith('FRAMEWORK_MAX_CHECKS_EXCEEDED:'),
       'The stable framework limit message must be retained.'
@@ -198,7 +214,11 @@ private with sharing class RHCReleaseBoundaryCoverageIT {
     RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = 0;
     Object value = new RecordHealthCheckFormulaEvaluator()
       .resolveFormulaSingleValue('BillingCity', row, 'AUTO');
-    Assert.areEqual('Chicago', value);
+    Assert.areEqual(
+      'Chicago',
+      value,
+      'AUTO formula resolution must recover the text value after a wrong cached type.'
+    );
     Assert.areEqual(
       formulaeval.FormulaReturnType.STRING,
       RecordHealthCheckFormulaEvaluator.resolvedReturnTypeByFormula.get(
@@ -278,11 +298,13 @@ private with sharing class RHCReleaseBoundaryCoverageIT {
       );
     Assert.areEqual(
       'FIELD_NOT_RESOLVED',
-      items.get(itemKey(stored.Id)).evaluation.reasonCode
+      items.get(itemKey(stored.Id)).evaluation.reasonCode,
+      'A visible record must retain its unresolved-field reason.'
     );
     Assert.areEqual(
       'RECORD_NOT_VISIBLE',
-      items.get(itemKey(missingId)).evaluation.reasonCode
+      items.get(itemKey(missingId)).evaluation.reasonCode,
+      'A missing record must retain its visibility reason before field evaluation.'
     );
   }
 
@@ -339,8 +361,16 @@ private with sharing class RHCReleaseBoundaryCoverageIT {
     try {
       RecordHealthCheckValidateMetadataAction.Result result = RecordHealthCheckValidateMetadataAction.validateConfiguration()[0];
       Assert.isFalse(result.isValid, 'Any error must invalidate the result.');
-      Assert.areEqual(1, result.errorCount);
-      Assert.areEqual(1, result.warningCount);
+      Assert.areEqual(
+        1,
+        result.errorCount,
+        'Metadata validation must count the single error.'
+      );
+      Assert.areEqual(
+        1,
+        result.warningCount,
+        'Metadata validation must count the single warning.'
+      );
     } finally {
       RecordHealthCheckValidateMetadataAction.issuesOverride = null;
     }

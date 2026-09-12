@@ -24,9 +24,9 @@ public with sharing class RecordHealthCheckQueryTokenRules {
    * Validation happens here, while the author is still looking at the field,
    * because none of these faults can be detected at resolution time without
    * either disclosing data the query never selected or silently inserting a
-   * blank. The projection analysis fails closed: a SELECT list this framework
-   * cannot fully read proves nothing about what it omitted, so a token against
-   * it is refused rather than assumed valid.
+   * blank. Projection analysis requires proof of the requested outer field.
+   * An opaque child subquery does not hide an independently selected scalar;
+   * unsupported outer expressions and unproven fields are refused.
    */
   public static RecordHealthCheckTokenIssue firstIssue(
     Record_Health_Check__mdt check
@@ -170,10 +170,26 @@ public with sharing class RecordHealthCheckQueryTokenRules {
       }
       return null;
     }
+    return projectedTokenIssue(check, token, shape, comparison, soql);
+  }
+
+  private static RecordHealthCheckTokenIssue projectedTokenIssue(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckToken token,
+    RecordHealthCheckTokenShape shape,
+    Boolean comparison,
+    String soql
+  ) {
     RecordHealthCheckQueryProjection projection = RecordHealthCheckQueryProjection.of(
       soql
     );
-    if (!projection.isFullyAnalyzable) {
+    // A supported scalar remains addressable when another SELECT item is an
+    // opaque relationship subquery. Check the requested name before failing
+    // closed on the rest of the projection.
+    if (
+      projection.hasInvalidOuterShape ||
+      (!projection.projects(shape.fieldPath) && !projection.isFullyAnalyzable)
+    ) {
       return new RecordHealthCheckTokenIssue(
         'QUERY_PROJECTION_NOT_ANALYZABLE',
         token.expression,
@@ -195,6 +211,17 @@ public with sharing class RecordHealthCheckQueryTokenRules {
           '.'
       );
     }
+    return orderedTokenIssue(check, token, shape, projection, comparison, soql);
+  }
+
+  private static RecordHealthCheckTokenIssue orderedTokenIssue(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckToken token,
+    RecordHealthCheckTokenShape shape,
+    RecordHealthCheckQueryProjection projection,
+    Boolean comparison,
+    String soql
+  ) {
     String queryLabel = comparison ? 'Comparison Query' : 'Source Query';
     // An aggregate with no GROUP BY returns exactly one row whatever the data,
     // so index 0 is repeatable without an ORDER BY — and SOQL would reject
@@ -210,19 +237,18 @@ public with sharing class RecordHealthCheckQueryTokenRules {
               ' returns exactly one row, so only index 0 exists.'
           );
     }
-    if (!projection.hasStableRowOrder()) {
-      // Telling the author of a grouped query to add ", Id" would be advice
-      // SOQL refuses, so a grouped aggregate is named for what it is instead.
+    if (
+      !projection.hasExplicitRowOrder() &&
+      !projection.returnsAtMostOneRowPerRecord(soql)
+    ) {
       return new RecordHealthCheckTokenIssue(
         'QUERY_ORDER_NOT_DETERMINISTIC',
         token.expression,
         projection.hasGroupBy
           ? 'A grouped query returns one row per group in no guaranteed ' +
-            'order, and SOQL cannot order it by Id. Read the value with an ' +
-            'aggregate alias on a query that returns a single row, or drop ' +
-            'the row token.'
-          : 'Addressing a row by position needs a repeatable order. Add a ' +
-            'stable tie-breaker such as ", Id" to the ORDER BY of the ' +
+            'order. Add an ORDER BY using a grouped field or aggregate alias.'
+          : 'Addressing a row by position needs an explicit business order. ' +
+            'Add an ORDER BY such as "CreatedDate DESC" to the ' +
             queryLabel +
             '.'
       );
@@ -240,6 +266,22 @@ public with sharing class RecordHealthCheckQueryTokenRules {
           'handling mode.'
       );
     }
+    return rowLimitAndEvidenceIssue(
+      check,
+      token,
+      shape,
+      projection,
+      queryLabel
+    );
+  }
+
+  private static RecordHealthCheckTokenIssue rowLimitAndEvidenceIssue(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckToken token,
+    RecordHealthCheckTokenShape shape,
+    RecordHealthCheckQueryProjection projection,
+    String queryLabel
+  ) {
     Integer cap = check.MaxQueryRows__c == null
       ? RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS
       : Integer.valueOf(check.MaxQueryRows__c);

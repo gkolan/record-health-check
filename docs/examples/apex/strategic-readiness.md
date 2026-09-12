@@ -39,40 +39,40 @@ separate reviews:
 
 ## What you will learn
 
-| Skill | How this example teaches it |
-| --- | --- |
-| Build a weighted readiness score | Apex combines several Account signals into one score. |
-| Keep thresholds configurable | Apex Parameters (JSON) lets an admin tune the decision. |
-| Explain a calculated outcome | The result shows the score and passing target; the guidance names the four inputs to review. |
+| Skill                            | How this example teaches it                                                                  |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| Build a weighted readiness score | Apex combines several Account signals into one score.                                        |
+| Keep thresholds configurable     | Apex Parameters (JSON) lets an admin tune the decision.                                      |
+| Explain a calculated outcome     | The result shows the score and passing target; the guidance names the four inputs to review. |
 
 ## Readiness criteria
 
 ### What contributes to readiness
 
-| Criterion | Passes when |
-| --- | --- |
-| Contacts | At least one related Contact exists |
-| Open pipeline | Sum of open Opportunity `Amount` is greater than zero |
-| Recent activity | At least one completed Task or Event exists inside `activityDaysBack` |
+| Criterion        | Passes when                                                            |
+| ---------------- | ---------------------------------------------------------------------- |
+| Contacts         | At least one related Contact exists                                    |
+| Open pipeline    | Sum of open Opportunity `Amount` is greater than zero                  |
+| Recent activity  | At least one completed Task or Event exists inside `activityDaysBack`  |
 | Billing complete | `BillingStreet`, `BillingCity`, and `BillingCountry` are all populated |
 
 ### How the result is decided
 
-| Outcome | When it happens |
-| --- | --- |
-| **Pass** (`PASS`) | The score meets or exceeds `minScore` |
-| **Fail** (`FAIL`) | The score is below `minScore` |
+| Outcome                 | When it happens                                                  |
+| ----------------------- | ---------------------------------------------------------------- |
+| **Pass** (`PASS`)       | The score meets or exceeds `minScore`                            |
+| **Fail** (`FAIL`)       | The score is below `minScore`                                    |
 | **Skipped** (`SKIPPED`) | Account Type is not Strategic, so the scoring class does not run |
 
 ### Choose how your org measures readiness
 
 The included configuration uses:
 
-| Parameter | Default | Meaning |
-| --- | --- | --- |
-| Points per criterion | **25** | Each of the four criteria adds 25 points when it passes |
-| Minimum passing score | **80** | Score must meet or exceed this value to Pass |
-| Recent activity window | **60 days** | Look-back for completed Tasks and Events |
+| Parameter               | Default                     | Meaning                                                                           |
+| ----------------------- | --------------------------- | --------------------------------------------------------------------------------- |
+| Points per criterion    | **25**                      | Each of the four criteria adds 25 points when it passes                           |
+| Minimum passing score   | **80**                      | Score must meet or exceed this value to Pass                                      |
+| Recent activity window  | **60 days**                 | Look-back for completed Tasks and Events                                          |
 | Missing or invalid JSON | **80** points / **30 days** | Fallback `minScore` and `activityDaysBack` when parameters are missing or invalid |
 
 The possible scores are 0, 25, 50, 75, and 100. A minimum of 80 therefore requires all four
@@ -80,28 +80,28 @@ criteria and is effectively the same as a minimum of 100.
 
 Before activation, choose the policy that matches your process:
 
-| Goal | Configuration |
-| --- | --- |
-| One missing area is acceptable | Change `minScore` to **75** |
-| Every area is required, one combined result | Keep `minScore` at **80** |
+| Goal                                             | Configuration                               |
+| ------------------------------------------------ | ------------------------------------------- |
+| One missing area is acceptable                   | Change `minScore` to **75**                 |
+| Every area is required, one combined result      | Keep `minScore` at **80**                   |
 | Every area is required, separate visible results | Create four Checks instead of using a score |
 
 ## What the card shows
 
-| Card value | Meets minimum | Below minimum | Not Strategic |
-| --- | --- | --- | --- |
-| **Status** | `PASS` | `FAIL` | `SKIPPED` |
-| **Found** | Numeric score from `0` through `100` | Numeric score from `0` through `100` | Not applicable |
-| **Expected** | Configured minimum score | Configured minimum score | Not applicable |
-| **Message** | None | Configured Critical message | Applicability explains skip |
+| Card value   | Meets minimum                        | Below minimum                        | Not Strategic               |
+| ------------ | ------------------------------------ | ------------------------------------ | --------------------------- |
+| **Status**   | `PASS`                               | `FAIL`                               | `SKIPPED`                   |
+| **Found**    | Numeric score from `0` through `100` | Numeric score from `0` through `100` | Not applicable              |
+| **Expected** | Configured minimum score             | Configured minimum score             | Not applicable              |
+| **Message**  | None                                 | Configured Critical message          | Applicability explains skip |
 
 ## Why use Verify with Apex
 
-| Approach | What the user gets |
-| --- | --- |
-| **One Verify with Apex** | One readiness result with a score out of 100 and a configurable passing score. The failure and fix guidance names the four source areas to review. |
-| **Four separate Query or Checks that use Verify with a formula** | Four pass-or-fail results, one for Contacts, pipeline, activity, and billing. Use this approach when every area is required or should remain visible on its own. |
-| **Checks with prerequisites** | Checks can run in a required order, but their results are not added into one score. Use prerequisites when a later check should wait for an earlier check to pass. |
+| Approach                                                         | What the user gets                                                                                                                                                 |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **One Verify with Apex**                                         | One readiness result with a score out of 100 and a configurable passing score. The failure and fix guidance names the four source areas to review.                 |
+| **Four separate Query or Checks that use Verify with a formula** | Four pass-or-fail results, one for Contacts, pipeline, activity, and billing. Use this approach when every area is required or should remain visible on its own.   |
+| **Checks with prerequisites**                                    | Checks can run in a required order, but their results are not added into one score. Use prerequisites when a later check should wait for an earlier check to pass. |
 
 ## What Record Health Check passes to Apex
 
@@ -218,7 +218,9 @@ global with sharing class AccountStrategicReadinessCheck implements rhc.RecordHe
     Set<Id> withPipeline = accountsWithOpenPipeline(recordIds);
     Set<Id> withActivity = accountsWithRecentActivity(recordIds, activityDays);
 
-    rhc.RecordHealthCheckValue expected = rhc.RecordHealthCheckValue.ofCount(minScore);
+    rhc.RecordHealthCheckValue expected = rhc.RecordHealthCheckValue.ofCount(
+      minScore
+    );
     Map<Id, rhc.RecordHealthCheckOutcome> results = new Map<Id, rhc.RecordHealthCheckOutcome>();
     for (Id recordId : recordIds) {
       Account acct = accounts.get(recordId);
@@ -379,27 +381,27 @@ Map<Id, rhc.RecordHealthCheckOutcome> evaluate(rhc.RecordHealthCheckScope scope)
 
 The context contains:
 
-| Scope field | Type | What it contains |
-| --- | --- | --- |
-| `recordIds` | `List<Id>` | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
-| `objectApiName` | `String` | API name shared by every ID in the scope, such as `Account` |
-| `parameters` | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank |
-| `checkQualifiedApiName` | `String` | Qualified Check identity |
-| `checkSetQualifiedApiName` | `String` | Qualified Check Set identity |
-| `checkDeveloperName` | `String` | Unqualified Check `DeveloperName` |
-| `checkSetDeveloperName` | `String` | Unqualified parent Check Set `DeveloperName` |
-| `runId` | `String` | Correlation identifier for the evaluation run |
+| Scope field                | Type                  | What it contains                                                                   |
+| -------------------------- | --------------------- | ---------------------------------------------------------------------------------- |
+| `recordIds`                | `List<Id>`            | Detached IDs to evaluate, with duplicates removed; use the collection in bulk SOQL |
+| `objectApiName`            | `String`              | API name shared by every ID in the scope, such as `Account`                        |
+| `parameters`               | `Map<String, Object>` | Parsed **Apex Parameters (JSON)**; an empty map when JSON is blank                 |
+| `checkQualifiedApiName`    | `String`              | Qualified Check identity                                                           |
+| `checkSetQualifiedApiName` | `String`              | Qualified Check Set identity                                                       |
+| `checkDeveloperName`       | `String`              | Unqualified Check `DeveloperName`                                                  |
+| `checkSetDeveloperName`    | `String`              | Unqualified parent Check Set `DeveloperName`                                       |
+| `runId`                    | `String`              | Correlation identifier for the evaluation run                                      |
 
 The returned map must contain exactly one entry for every requested ID. Build each outcome with a
 status factory and typed values:
 
-| Outcome field | What the class must return |
-| --- | --- |
-| `status` | An outcome created by `pass`, `fail`, `unableToEvaluate`, or `skipped` |
-| `reasonCode` | A stable, nonblank code that explains the programmatic reason |
-| `found` | A typed `RecordHealthCheckValue` describing what the class observed |
-| `comparisonOperator` | The operator behind the decision, such as `GREATER_THAN_OR_EQUAL` |
-| `expected` | A typed `RecordHealthCheckValue` describing the passing requirement |
+| Outcome field        | What the class must return                                             |
+| -------------------- | ---------------------------------------------------------------------- |
+| `status`             | An outcome created by `pass`, `fail`, `unableToEvaluate`, or `skipped` |
+| `reasonCode`         | A stable, nonblank code that explains the programmatic reason          |
+| `found`              | A typed `RecordHealthCheckValue` describing what the class observed    |
+| `comparisonOperator` | The operator behind the decision, such as `GREATER_THAN_OR_EQUAL`      |
+| `expected`           | A typed `RecordHealthCheckValue` describing the passing requirement    |
 
 For applicability, configure **Applies To** on the Check so Record Health Check skips before Apex
 runs. The framework supplies identity, label, severity, messages, display values, and diagnostics.
@@ -407,63 +409,62 @@ Missing or extra map keys, a null outcome, an invalid status, forbidden writes, 
 unhandled exception produces `APEX_EVALUATOR_ERROR`, not a pass. See
 [Returning an outcome](../../developer-guides/write-an-apex-check.md#outcome).
 
-
 ## Step 3: Create the Check Set
 
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
 create this Check Set:
 
-| Setup field | Value |
-| --- | --- |
-| **Label** | Account Apex Readiness |
-| **Record Health Check Set Name** | `Account_Apex_Readiness` |
-| **Object** | `Account` |
-| **Card Title** | Account Readiness |
-| **Card Subtitle** | Confirm the Account meets the strategic readiness score. |
-| **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+| Setup field                      | Value                                                             |
+| -------------------------------- | ----------------------------------------------------------------- |
+| **Label**                        | Account Apex Readiness                                            |
+| **Record Health Check Set Name** | `Account_Apex_Readiness`                                          |
+| **Object**                       | `Account`                                                         |
+| **Card Title**                   | Account Readiness                                                 |
+| **Card Subtitle**                | Confirm the Account meets the strategic readiness score.          |
+| **When Checks Run**              | When the user clicks Run                                          |
+| **Summary Display**              | Show below checks                                                 |
+| **Reveal Mode**                  | One by one                                                        |
+| **Passed Checks**                | Show each passed check                                            |
+| **Skipped Checks**               | Show each skipped check                                           |
+| **Found/Expected Display**       | Show on demand                                                    |
+| **Stop after a system error**    | Unchecked                                                         |
+| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event**       | Unchecked                                                         |
+| **Active**                       | Checked                                                           |
 
 ## Step 4: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Strategic_Account_Is_Ready` |
-| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Strategic Account Is Ready |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Apex_Readiness` |
-| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Strategic Account Is Ready |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with Apex |
-| **Apex Class** | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c) | `AccountStrategicReadinessCheck` |
-| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c) | `{"minScore": 80, "activityDaysBack": 60}` |
-| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Strategic")` |
+| Setup field                | API name                                                                                                                  | Value                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Developer Name**         | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                           | `Strategic_Account_Is_Ready`               |
+| **Label**                  | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                        | Strategic Account Is Ready                 |
+| **Check Set**              | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)      | `Account_Apex_Readiness`                   |
+| **Check Title**            | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                              | Strategic Account Is Ready                 |
+| **Evaluation Type**        | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                  | Verify with Apex                           |
+| **Apex Class**             | [`ApexClass__c`](../../reference/custom-metadata/check-fields.md#apex-class-apexclass__c)                                 | `AccountStrategicReadinessCheck`           |
+| **Apex Parameters (JSON)** | [`ApexParametersJson__c`](../../reference/custom-metadata/check-fields.md#apex-parameters-json-apexparametersjson__c)     | `{"minScore": 80, "activityDaysBack": 60}` |
+| **Applies To**             | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                 | When a formula is true                     |
+| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `ISPICKVAL(Type, "Strategic")`             |
 
 Confirm the `Strategic` Type picklist API value in your org. Skip comes from applicability: the class always returns PASS or FAIL when it runs.
 
 ## Optional configuration
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Scores Contact coverage, open pipeline, recent activity, and billing-address completeness for Strategic Accounts. |
-| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Critical |
-| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | This strategic account is not ready: readiness score is below the required minimum. Improve the readiness checks or lower `minScore` in Apex Parameters (JSON). |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to calculate strategic readiness. Confirm the running user can read the Account and related records used by this Check. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review Contact coverage, open pipeline, recent activity, and billing address to identify which criteria did not add points. |
-| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | Leave blank: one portable link cannot correct all four readiness areas. |
-| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | Leave blank; use an org-specific readiness report or playbook only after verifying it. |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `30` |
-| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Scores Contact coverage, open pipeline, recent activity, and billing-address completeness for Strategic Accounts.                                               |
+| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Critical                                                                                                                                                        |
+| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | This strategic account is not ready: readiness score is below the required minimum. Improve the readiness checks or lower `minScore` in Apex Parameters (JSON). |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to calculate strategic readiness. Confirm the running user can read the Account and related records used by this Check.                                  |
+| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                                                     |
+| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Review Contact coverage, open pipeline, recent activity, and billing address to identify which criteria did not add points.                                     |
+| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | Leave blank: one portable link cannot correct all four readiness areas.                                                                                         |
+| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | Leave blank; use an org-specific readiness report or playbook only after verifying it.                                                                          |
+| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `30`                                                                                                                                                            |
+| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                                                                         |
+| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                                       |
 
 `minScore` and `activityDaysBack` change the passing score and activity window without changing the class.
 
@@ -475,13 +476,13 @@ Account view link alone does not explain which criterion lost points.
 
 The Apex class turns the weighted score and configured threshold into these user-facing values:
 
-| Health result or card value | What the user sees |
-| --- | --- |
-| **`PASS`** | A Strategic Account at or above `minScore` passes. |
-| **`FAIL`** | A score below `minScore` shows Needs attention with Critical severity. |
-| **`SKIPPED`** | A non-Strategic Account is skipped by Formula applicability before the Apex class runs. |
-| **Found** | Found shows the calculated score, such as `75`. |
-| **Expected** | Expected shows the configured passing threshold, such as `80`. |
+| Health result or card value | What the user sees                                                                      |
+| --------------------------- | --------------------------------------------------------------------------------------- |
+| **`PASS`**                  | A Strategic Account at or above `minScore` passes.                                      |
+| **`FAIL`**                  | A score below `minScore` shows Needs attention with Critical severity.                  |
+| **`SKIPPED`**               | A non-Strategic Account is skipped by Formula applicability before the Apex class runs. |
+| **Found**                   | Found shows the calculated score, such as `75`.                                         |
+| **Expected**                | Expected shows the configured passing threshold, such as `80`.                          |
 
 Scores move in 25-point increments, so a minimum of 80 effectively requires 100. Use 75 when
 meeting three of the four criteria should pass.
@@ -539,11 +540,11 @@ Confirm `evaluation.status`, `display.foundDisplayValue`, and
 
 ## Failures, remedies, and customization
 
-| Symptom | What to verify |
-| --- | --- |
-| Check always skips | Confirm the Type value is exactly `Strategic`, or adapt the applicability formula. |
+| Symptom                   | What to verify                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| Check always skips        | Confirm the Type value is exactly `Strategic`, or adapt the applicability formula.   |
 | Score is unexpectedly low | Check all four criteria, blank Amount, activity window, and running-user visibility. |
-| `APEX_EVALUATOR_ERROR` | Verify object/field access and inspect authorized diagnostics. |
+| `APEX_EVALUATOR_ERROR`    | Verify object/field access and inspect authorized diagnostics.                       |
 
 Use JSON to change the minimum or window. Changing criteria or weights requires matching class,
 test, threshold, and documentation updates.

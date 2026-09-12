@@ -5,10 +5,10 @@
 > [Save or route restricted errors](../../save-results/save-restricted-errors.md). Do not branch permanent
 > business automation on diagnostic `Code__c`; use public result Status and Reason Code instead.
 
-| Setup value | Name |
-| --- | --- |
-| Label | Record Health Check Log |
-| API name | `Record_Health_Check_Log__e` |
+| Setup value | Name                         |
+| ----------- | ---------------------------- |
+| Label       | Record Health Check Log      |
+| API name    | `Record_Health_Check_Log__e` |
 
 This Platform Event reports technical errors that Record Health Check encounters while it is trying
 to run. It can include an Apex exception message and stack trace, so use it only for restricted
@@ -16,10 +16,10 @@ administrator, developer, or support monitoring.
 
 This event is different from the result events:
 
-| If you need to know... | Use... |
-| --- | --- |
-| Whether a Salesforce record passed or failed a Check | [Record Health Check Result](./check-result.md) |
-| The totals for an entire Check Set run | [Record Health Check Set Run](./check-set-run.md) |
+| If you need to know...                                | Use...                                              |
+| ----------------------------------------------------- | --------------------------------------------------- |
+| Whether a Salesforce record passed or failed a Check  | [Record Health Check Result](./check-result.md)     |
+| The totals for an entire Check Set run                | [Record Health Check Set Run](./check-set-run.md)   |
 | Why Record Health Check encountered a technical error | **Record Health Check Log**, described on this page |
 
 ## When this event is useful
@@ -80,23 +80,23 @@ events.
 
 The API names below are the field names used by Flow, Apex, and integrations.
 
-| Field label | API name | Type | What it contains |
-| --- | --- | --- | --- |
-| Event ID | `EventId__c` | Text(80), required | Unique ID generated for this error event. Save it in a unique field to prevent the same event from creating duplicate work. |
-| Run ID | `RunId__c` | Text(120), required | ID that connects errors from the same Record Health Check run. |
-| Occurred At | `OccurredAt__c` | Date/Time, required | Date and time when Record Health Check created the event. |
-| Contract Version | `ContractVersion__c` | Text(10), required | Version of this event's field contract. The current value is `1.0`. |
-| Framework Version | `FrameworkVersion__c` | Text(20) | Record Health Check code version that created the event. |
-| Level | `Level__c` | Text(10), required | Always `ERROR` for events published by Record Health Check. |
-| Code | `Code__c` | Text(120) | Technical error code, such as `APEX_EVALUATOR_ERROR` or `UNHANDLED_EXCEPTION`. These codes can change as the package implementation changes. |
-| Message | `Message__c` | Long Text Area(32,768) | Cleaned exception message or a short summary of the error details available to Record Health Check. |
-| Structured Diagnostic Details | `DetailsJson__c` | Long Text Area(32,768) | JSON object containing machine-readable Diagnostic ID, category, phase, reason, fingerprint, owner, retryability, scope impact, top frame, and exception context when available. |
-| Exception Type | `ExceptionType__c` | Text(120) | Apex exception type, when an exception caused the error. |
-| Stack Trace | `StackTrace__c` | Long Text Area(32,768) | Cleaned Apex stack trace, when one is available. |
-| Record ID | `RecordId__c` | Text(18) | Salesforce record that was being checked, when known. |
-| Check Set Developer Name | `CheckSetDeveloperName__c` | Text(120) | Developer Name of the Check Set associated with the error, when known. |
-| Check Developer Name | `CheckDeveloperName__c` | Text(120) | Developer Name of the Check associated with the error, when known. |
-| User ID | `UserId__c` | Text(18) | ID of the Salesforce user whose transaction ran Record Health Check. |
+| Field label                   | API name                   | Type                   | What it contains                                                                                                                                                                 |
+| ----------------------------- | -------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event ID                      | `EventId__c`               | Text(80), required     | Unique ID generated for this error event. Save it in a unique field to prevent the same event from creating duplicate work.                                                      |
+| Run ID                        | `RunId__c`                 | Text(120), required    | ID that connects errors from the same Record Health Check run.                                                                                                                   |
+| Occurred At                   | `OccurredAt__c`            | Date/Time, required    | Date and time when Record Health Check created the event.                                                                                                                        |
+| Contract Version              | `ContractVersion__c`       | Text(10), required     | Version of this event's field contract. The current value is `1.0`.                                                                                                              |
+| Framework Version             | `FrameworkVersion__c`      | Text(20)               | Record Health Check code version that created the event.                                                                                                                         |
+| Level                         | `Level__c`                 | Text(10), required     | Always `ERROR` for events published by Record Health Check.                                                                                                                      |
+| Code                          | `Code__c`                  | Text(120)              | Technical error code, such as `APEX_EVALUATOR_ERROR` or `UNHANDLED_EXCEPTION`. These codes can change as the package implementation changes.                                     |
+| Message                       | `Message__c`               | Long Text Area(32,768) | Cleaned exception message or a short summary of the error details available to Record Health Check.                                                                              |
+| Structured Diagnostic Details | `DetailsJson__c`           | Long Text Area(32,768) | JSON object containing machine-readable Diagnostic ID, category, phase, reason, fingerprint, owner, retryability, scope impact, top frame, and exception context when available. |
+| Exception Type                | `ExceptionType__c`         | Text(120)              | Apex exception type, when an exception caused the error.                                                                                                                         |
+| Stack Trace                   | `StackTrace__c`            | Long Text Area(32,768) | Cleaned Apex stack trace, when one is available.                                                                                                                                 |
+| Record ID                     | `RecordId__c`              | Text(18)               | Salesforce record that was being checked, when known.                                                                                                                            |
+| Check Set Developer Name      | `CheckSetDeveloperName__c` | Text(120)              | Developer Name of the Check Set associated with the error, when known.                                                                                                           |
+| Check Developer Name          | `CheckDeveloperName__c`    | Text(120)              | Developer Name of the Check associated with the error, when known.                                                                                                               |
+| User ID                       | `UserId__c`                | Text(18)               | ID of the Salesforce user whose transaction ran Record Health Check.                                                                                                             |
 
 **Developer Name or Qualified API Name?** These two event fields contain developer names used by
 the package while it runs. When Apex or Flow starts a health check, continue to pass the Check Set's
@@ -142,7 +142,9 @@ available to code created in an installing org. The practical safeguard is to ke
 trigger focused on saving or routing the error and never call Record Health Check from it.
 
 ```apex
-trigger RecordHealthCheckLogSubscriber on rhc__Record_Health_Check_Log__e (after insert) {
+trigger RecordHealthCheckLogSubscriber on rhc__Record_Health_Check_Log__e(
+  after insert
+) {
   // Pass the events to your restricted handler. The handler should check EventId__c
   // before creating a record, notification, or other follow-up work.
   MyRecordHealthCheckLogHandler.handle(Trigger.new);
@@ -158,13 +160,13 @@ receives this event. That can create a repeating loop.
 
 ## What this event cannot guarantee
 
-| Situation | What to do |
-| --- | --- |
-| A transaction stops before Record Health Check can publish its held errors | Keep Salesforce debug logs and your normal Apex exception monitoring available. |
-| Salesforce accepts the event, but receiving automation later fails | Monitor the Platform Event-triggered Flow, Apex trigger, or integration separately. |
-| Your team needs a lasting error history | Save the event to a restricted custom object or external monitoring system because Platform Event retention is temporary. |
-| Record ID, Check Set, or Check is blank | Continue investigating with Run ID, Code, User ID, and time. The error can occur before Record Health Check knows every value. |
-| Your automation needs stable business outcome codes | Use the public [Reason Code reference](../results/reason-codes.md). `Code__c` on this technical event can contain package-internal codes. |
+| Situation                                                                  | What to do                                                                                                                                |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| A transaction stops before Record Health Check can publish its held errors | Keep Salesforce debug logs and your normal Apex exception monitoring available.                                                           |
+| Salesforce accepts the event, but receiving automation later fails         | Monitor the Platform Event-triggered Flow, Apex trigger, or integration separately.                                                       |
+| Your team needs a lasting error history                                    | Save the event to a restricted custom object or external monitoring system because Platform Event retention is temporary.                 |
+| Record ID, Check Set, or Check is blank                                    | Continue investigating with Run ID, Code, User ID, and time. The error can occur before Record Health Check knows every value.            |
+| Your automation needs stable business outcome codes                        | Use the public [Reason Code reference](../results/reason-codes.md). `Code__c` on this technical event can contain package-internal codes. |
 
 ## Related
 

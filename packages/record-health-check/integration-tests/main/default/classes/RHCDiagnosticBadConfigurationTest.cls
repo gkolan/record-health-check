@@ -29,6 +29,71 @@ private class RHCDiagnosticBadConfigurationTest {
   }
 
   @IsTest
+  static void loneFormulaQuoteIsDiagnosed() {
+    assertDiagnostic(
+      'RHC_Diag_Formula_Open_Quote',
+      'UNABLE_TO_EVALUATE',
+      'INVALID_FORMULA',
+      'FORMULA'
+    );
+  }
+
+  @IsTest
+  static void escapedFinalFormulaQuoteIsDiagnosed() {
+    assertDiagnostic(
+      'RHC_Diag_Formula_Escaped_End',
+      'UNABLE_TO_EVALUATE',
+      'INVALID_FORMULA',
+      'FORMULA'
+    );
+  }
+
+  @IsTest
+  static void savedUnterminatedLiteralsHaveRedactedLexicalFindings() {
+    List<Record_Health_Check__mdt> definitions = [
+      SELECT DeveloperName, PassConditionFormula__c
+      FROM Record_Health_Check__mdt
+      WHERE
+        DeveloperName IN (
+          'RHC_Diag_Formula_Open_Quote',
+          'RHC_Diag_Formula_Escaped_End'
+        )
+    ];
+    Assert.areEqual(
+      2,
+      definitions.size(),
+      'Both saved malformed-literal fixtures must exist.'
+    );
+    for (Record_Health_Check__mdt definition : definitions) {
+      RecordHealthCheckFormulaPlanService.FormulaPlan plan = RecordHealthCheckFormulaPlanService.plan(
+        definition.PassConditionFormula__c,
+        Account.SObjectType,
+        'PassConditionFormula__c'
+      );
+      Assert.areEqual(
+        1,
+        plan.findings.size(),
+        definition.DeveloperName + ' must produce one lexical finding.'
+      );
+      Assert.areEqual(
+        'INVALID_FORMULA_LITERAL',
+        plan.findings[0].code,
+        definition.DeveloperName + ' must identify the unclosed literal.'
+      );
+      Assert.areEqual(
+        '[redacted literal]',
+        plan.findings[0].offendingToken,
+        definition.DeveloperName + ' must redact literal contents.'
+      );
+      Assert.areEqual(
+        0,
+        plan.selectedFields.size(),
+        definition.DeveloperName + ' must not create an executable field plan.'
+      );
+    }
+  }
+
+  @IsTest
   static void missingRelationshipFieldIsDiagnosed() {
     assertDiagnostic(
       'RHC_Diag_Formula_Null_Rel',

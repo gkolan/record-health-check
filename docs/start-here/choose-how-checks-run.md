@@ -8,18 +8,18 @@ Choose the person or process that needs to start evaluation, then follow the lin
 
 ## Supported start paths
 
-| Who or what starts the run | Entry point | Best for | Continue with |
-| --- | --- | --- | --- |
-| A person opens a record | Lightning card with **When the page opens** | Immediate advisory guidance on one record | [Add the Lightning card](../lightning-record-page/configure-the-component.md) |
-| A person selects Run or Rerun | Lightning card with **When the user clicks Run** | Deliberate review of one record | [Add the Lightning card](../lightning-record-page/configure-the-component.md) |
-| A Flow | **Run Record Health Check Set** or **Run Record Health Check** action | Automation that needs the result in the same Flow interview | [Flow actions](../flow-guides/action-inputs-and-outputs.md) |
-| Apex in the current transaction | `rhc.RecordHealthCheck.evaluate` | Code that must branch on the response immediately | [Apex API](../developer-guides/run-from-apex.md) |
-| Queueable Apex | `rhc.RecordHealthCheckQueueable.enqueue` | Up to 200 known record IDs processed later | [Queueable API](../developer-guides/async-apex/queueable.md) |
-| Packaged Batch Apex | `rhc.RecordHealthCheckBatch.run` | 1 to 2,000 known record IDs | [Batch API](../developer-guides/async-apex/batch.md) |
-| Custom Batch Apex | Your `Database.Batchable` calls `evaluate` | A query locator or custom persistence requirement | [Batch API](../developer-guides/async-apex/batch.md) |
-| Scheduled Apex | Your schedulable class or packaged scheduling helper | Recurring asynchronous evaluation | [Scheduled API](../developer-guides/async-apex/scheduled.md) |
-| Agentforce | Packaged Check or Check Set action | An agent that needs structured health results | [Agentforce actions](../developer-guides/agentforce-and-mcp/agentforce-actions.md) |
-| Hosted service or MCP client | Agent REST resource | A reviewed server-side integration | [Agent REST API](../developer-guides/agentforce-and-mcp/agent-tool-rest-api.md) |
+| Who or what starts the run      | Entry point                                                           | Best for                                                    | Continue with                                                                      |
+| ------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| A person opens a record         | Lightning card with **When the page opens**                           | Immediate advisory guidance on one record                   | [Add the Lightning card](../lightning-record-page/configure-the-component.md)      |
+| A person selects Run or Rerun   | Lightning card with **When the user clicks Run**                      | Deliberate review of one record                             | [Add the Lightning card](../lightning-record-page/configure-the-component.md)      |
+| A Flow                          | **Run Record Health Check Set** or **Run Record Health Check** action | Automation that needs the result in the same Flow interview | [Flow actions](../flow-guides/action-inputs-and-outputs.md)                        |
+| Apex in the current transaction | `rhc.RecordHealthCheck.evaluate`                                      | Code that must branch on the response immediately           | [Apex API](../developer-guides/run-from-apex.md)                                   |
+| Queueable Apex                  | `rhc.RecordHealthCheckQueueable.enqueue`                              | Up to 200 known record IDs processed later                  | [Queueable API](../developer-guides/async-apex/queueable.md)                       |
+| Packaged Batch Apex             | `rhc.RecordHealthCheckBatch.run`                                      | 1 to 2,000 known record IDs                                 | [Batch API](../developer-guides/async-apex/batch.md)                               |
+| Custom Batch Apex               | Your `Database.Batchable` calls `evaluate`                            | A query locator or custom persistence requirement           | [Batch API](../developer-guides/async-apex/batch.md)                               |
+| Scheduled Apex                  | Your schedulable class or packaged scheduling helper                  | Recurring asynchronous evaluation                           | [Scheduled API](../developer-guides/async-apex/scheduled.md)                       |
+| Agentforce                      | Packaged Check or Check Set action                                    | An agent that needs structured health results               | [Agentforce actions](../developer-guides/agentforce-and-mcp/agentforce-actions.md) |
+| Hosted service or MCP client    | Agent REST resource                                                   | A reviewed server-side integration                          | [Agent REST API](../developer-guides/agentforce-and-mcp/agent-tool-rest-api.md)    |
 
 Do not create new `@future` integrations. Move existing work to Queueable Apex.
 
@@ -33,14 +33,14 @@ Do not create new `@future` integrations. Move existing work to Queueable Apex.
 
 ## Important limits at the start
 
-| Where the Check runs | Limit or behavior |
-| --- | --- |
-| Lightning card | Evaluates one record and the first 25 active Checks in the selected Check Set |
-| Direct Apex or one Flow request group | Up to 200 records and 25 active Checks |
-| One Flow action call | Up to 10 distinct Check or Check Set and Event Publication groups |
-| Queueable helper | Up to 200 known record IDs |
-| Packaged Batch helper | 1 to 2,000 known record IDs; default scope size 100 |
-| Agentforce and REST | Event publication is always `NONE` |
+| Where the Check runs                  | Limit or behavior                                                                                           |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Lightning card                        | Evaluates one record and up to 25 active Checks; an oversized whole set runs none                           |
+| Direct Apex or one Flow request group | Up to 200 records and 25 active Checks                                                                      |
+| One Flow action call                  | Up to 10 distinct Check or Check Set and Event Publication groups                                           |
+| Queueable helper                      | Up to 200 known record IDs                                                                                  |
+| Packaged Batch helper                 | 1 to 2,000 known record IDs; automatic scope is 1–100 and is reduced when needed for the FormulaEval budget |
+| Agentforce and REST                   | Event publication is always `NONE`                                                                          |
 
 ## Card load, record save, and Run
 

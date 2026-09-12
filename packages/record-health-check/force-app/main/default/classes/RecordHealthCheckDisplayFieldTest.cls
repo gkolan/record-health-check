@@ -6,9 +6,8 @@
 /**
  * Covers Display: Value Format rendering for Found and Expected values.
  *
- * Assertions that involve grouping separators run as a user with a pinned
- * locale, so the suite reads the same way in an org whose default locale is not
- * English (US).
+ * Exercises field-driven format selection and readable fallback values.
+ * These tests use the running user and do not create locale personas.
  */
 @IsTest
 private class RecordHealthCheckDisplayFieldTest {
@@ -22,33 +21,6 @@ private class RecordHealthCheckDisplayFieldTest {
   private static final String DATETIME_FORMAT = 'DATETIME';
   private static final String TEXT_FORMAT = 'TEXT';
   private static final String RAW_FORMAT = 'RAW';
-
-  /** A user pinned to a locale so separator assertions are deterministic. */
-  private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.currentUser();
-  }
-
-  /**
-   * How an amount reads in this org: an org with more than one currency leads
-   * with the ISO code because a bare symbol would be ambiguous, and a
-   * single-currency org uses the symbol. Building the expectation the same way
-   * the renderer decides keeps these assertions true in both kinds of org.
-   */
-  private static String money(String isoCode, String amount) {
-    Map<String, String> symbols = new Map<String, String>{
-      'USD' => '$',
-      'EUR' => '€',
-      'JPY' => '¥',
-      'KRW' => '₩'
-    };
-    String symbol = symbols.get(isoCode);
-    if (symbol == null || UserInfo.isMultiCurrencyOrganization()) {
-      return isoCode + ' ' + amount;
-    }
-    return amount.startsWith('-')
-      ? '-' + symbol + amount.substring(1)
-      : symbol + amount;
-  }
 
   // ─── Auto ─────────────────────────────────────────────────────────────────
 
@@ -85,7 +57,11 @@ private class RecordHealthCheckDisplayFieldTest {
       ),
       'A text field has no format of its own, so Auto keeps its wording'
     );
-    Assert.areEqual(null, RecordHealthCheckDisplayFormat.formatForField(null));
+    Assert.areEqual(
+      null,
+      RecordHealthCheckDisplayFormat.formatForField(null),
+      'An absent field describe must not invent a display format.'
+    );
   }
 
   @IsTest
@@ -180,7 +156,7 @@ private class RecordHealthCheckDisplayFieldTest {
     );
 
     Assert.areEqual(
-      'On demand',
+      picklistLabel('ON_DEMAND'),
       RecordHealthCheckDisplayFormat.valueForDisplay(
         'ON_DEMAND',
         AUTO,
@@ -222,7 +198,11 @@ private class RecordHealthCheckDisplayFieldTest {
       'FoundExpectedDisplay__c'
     );
     Assert.areEqual(
-      new List<Object>{ 'On demand', 'Failed checks only', 'UNKNOWN' },
+      new List<Object>{
+        picklistLabel('ON_DEMAND'),
+        picklistLabel('FAILURES_ONLY'),
+        'UNKNOWN'
+      },
       labels,
       'Lists preserve order, resolve known labels, and tolerate a short row list'
     );
@@ -259,7 +239,7 @@ private class RecordHealthCheckDisplayFieldTest {
       'The true list total is retained'
     );
     Assert.areEqual(
-      'On demand',
+      picklistLabel('ON_DEMAND'),
       displayed[9],
       'Every visible entry uses its label'
     );
@@ -304,7 +284,11 @@ private class RecordHealthCheckDisplayFieldTest {
       'Original value',
       null
     );
-    Assert.areEqual('Original value', missingDescribe.value);
+    Assert.areEqual(
+      'Original value',
+      missingDescribe.value,
+      'Without field metadata the original value must pass through unchanged.'
+    );
     Assert.isFalse(
       missingDescribe.isFinalText,
       'A value without field metadata has not been converted to final label text.'
@@ -315,7 +299,11 @@ private class RecordHealthCheckDisplayFieldTest {
       'Account name',
       textField
     );
-    Assert.areEqual('Account name', textResolution.value);
+    Assert.areEqual(
+      'Account name',
+      textResolution.value,
+      'A text field must preserve its text rather than attempt picklist label resolution.'
+    );
     Assert.isFalse(
       textResolution.isFinalText,
       'A non-picklist value should pass through without becoming final label text.'
@@ -384,5 +372,20 @@ private class RecordHealthCheckDisplayFieldTest {
       blankResolution.isFinalText,
       'An unresolved blank selection is not final label text.'
     );
+  }
+  /** Expected labels follow the metadata and the running user's language. */
+  private static String picklistLabel(String value) {
+    for (
+      Schema.PicklistEntry entry : Record_Health_Check_Set__mdt.FoundExpectedDisplay__c.getDescribe()
+        .getPicklistValues()
+    ) {
+      if (entry.getValue() == value) {
+        return entry.getLabel();
+      }
+    }
+    Assert.fail(
+      'The display fixture requires the declared picklist value: ' + value
+    );
+    return null;
   }
 }

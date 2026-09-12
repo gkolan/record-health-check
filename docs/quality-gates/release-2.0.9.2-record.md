@@ -53,8 +53,7 @@ not the contents of `04tak000000gX9FAAU`.
 
 ## Retained release orgs
 
-The 2.0.9 LWS and Locker subscriber orgs were created on September 9, 2026, and expire on October 9,
-2026. They are retained under the rolling two-release policy and must be reused rather than replaced
+The 2.0.9 LWS and Locker subscriber orgs were created on September 9, 2026, and expire on October 9, 2026. They are retained under the rolling two-release policy and must be reused rather than replaced
 during any follow-up 2.0.9 verification.
 
 ## Related

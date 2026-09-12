@@ -20,8 +20,12 @@ export function checkIdentity(check) {
 export function checkNamespace(check) {
   const qualifiedApiName = check?.qualifiedApiName;
   const developerName = check?.developerName;
-  if (!qualifiedApiName || !developerName) return null;
-  if (qualifiedApiName === developerName) return "";
+  if (!qualifiedApiName || !developerName) {
+    return null;
+  }
+  if (qualifiedApiName === developerName) {
+    return "";
+  }
   const suffix = `__${developerName}`;
   return qualifiedApiName.endsWith(suffix)
     ? qualifiedApiName.slice(0, -suffix.length)
@@ -34,7 +38,9 @@ export function prerequisiteIdentity(check, checks) {
     check?.dependsOnCheckQualifiedApiName ||
     check?.dependsOnCheckDeveloperName ||
     null;
-  if (!configuredIdentity || !checks) return configuredIdentity;
+  if (!configuredIdentity || !checks) {
+    return configuredIdentity;
+  }
 
   const normalized = configuredIdentity.toLowerCase();
   const candidates = checks.filter(
@@ -42,7 +48,9 @@ export function prerequisiteIdentity(check, checks) {
       checkIdentity(candidate)?.toLowerCase() === normalized ||
       candidate?.developerName?.toLowerCase() === normalized
   );
-  if (candidates.length === 0) return configuredIdentity;
+  if (candidates.length === 0) {
+    return configuredIdentity;
+  }
 
   const dependentNamespace = checkNamespace(check)?.toLowerCase();
   const sameNamespace = candidates.find((candidate) => {
@@ -75,6 +83,13 @@ export function synthesizeResult(check, status, reasonCode, message) {
 
 /** Normalize Apex result; malformed responses become ERROR. */
 export function normalizeResult(result, check) {
+  if (typeof result === "string") {
+    try {
+      result = JSON.parse(result);
+    } catch {
+      result = null;
+    }
+  }
   if (!result || typeof result !== "object") {
     return synthesizeResult(
       check,
@@ -98,10 +113,12 @@ export function normalizeResult(result, check) {
           result.display?.foundDisplayValue ??
           result.evaluation.found?.storedValue ??
           null,
-        expectedValue:
-          result.display?.expectedDisplayValue ??
-          result.evaluation.expected?.storedValue ??
-          null,
+        // A display projection is authoritative for the card. In particular,
+        // an explicit null can be a server-side redaction and must never fall
+        // through to the machine-readable evaluation operand.
+        expectedValue: result.display
+          ? (result.display.expectedDisplayValue ?? null)
+          : (result.evaluation.expected?.storedValue ?? null),
         expectedValueLabel: result.display?.expectedValueLabel,
         actualDisplayFormat: result.display?.foundDisplayFormat,
         expectedDisplayFormat: result.display?.expectedDisplayFormat,
@@ -111,6 +128,8 @@ export function normalizeResult(result, check) {
         fixInstructions: result.display?.renderedFix,
         actionLabel: result.display?.actionLabel,
         actionUrl: result.display?.actionUrl,
+        displayContent: result.display?.displayContent,
+        evidence: result.display?.evidence,
         adminDetail: result.display?.adminDetail
       }
     : result;
@@ -151,7 +170,9 @@ export function detectDependencyCycles(checks) {
   const cycleMembers = new Set();
   for (const check of checks) {
     const identity = checkIdentity(check);
-    if (!depMap.has(identity)) continue;
+    if (!depMap.has(identity)) {
+      continue;
+    }
     const path = [];
     const pathSet = new Set();
     let current = identity;

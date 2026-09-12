@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata">
+  <label>RHC lint fixture</label>
+  <protected>false</protected>
+  <values>
+    <field>PrerequisiteCheck__c</field>
+    <value>RHC_SP_Cycle_B</value>
+  </values>
+</CustomMetadata>

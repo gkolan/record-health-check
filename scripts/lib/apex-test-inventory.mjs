@@ -81,6 +81,13 @@ function classFiles(directory) {
   });
 }
 
+export function isEmptyApexTestClass(source) {
+  const code = apexWithoutComments(source);
+  return /^\s*@istest(?:\s*\([^)]*\))?\s+(?:(?:private|public|global|with|without|inherited|sharing)\s+)*class\s+[a-z_$][\w$]*\s*\{\s*\}\s*$/i.test(
+    code
+  );
+}
+
 function hasExecutableTestMethod(source, classDeclarationEnd) {
   const classBody = source.slice(classDeclarationEnd);
   return (

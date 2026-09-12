@@ -19,21 +19,21 @@ does not create a second configuration model.
 
 ## Recommended path
 
-| Step | Guide | What you finish |
-| ---: | --- | --- |
-| 1 | [Lightning component](../lightning-record-page/configure-the-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
-| 2 | [Flow actions](../flow-guides/action-inputs-and-outputs.md) | Branch in automation without custom Apex |
-| 3 | [Lifecycle events](../save-results/when-to-use-platform-events.md) | Optional Platform Events for a separate receiving process |
+| Step | Guide                                                                      | What you finish                                                 |
+| ---: | -------------------------------------------------------------------------- | --------------------------------------------------------------- |
+|    1 | [Lightning component](../lightning-record-page/configure-the-component.md) | Card on a record page: automatic vs explicit runs, visible rows |
+|    2 | [Flow actions](../flow-guides/action-inputs-and-outputs.md)                | Branch in automation without custom Apex                        |
+|    3 | [Lifecycle events](../save-results/when-to-use-platform-events.md)         | Optional Platform Events for a separate receiving process       |
 
 Stop after the row that meets your requirement. Agentforce is an optional administrator track when
 the org has Agentforce enabled. MCP and REST are platform-engineering tracks and are not part of a
 normal card or Flow rollout.
 
-| Optional advanced track | Guide | Audience |
-| --- | --- | --- |
-| Native agent tools | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md) | Agentforce administrator |
-| Hosted MCP service | [Deploy the MCP service](./agentforce-and-mcp/deploy-mcp-service.md) | Platform and security engineer |
-| Service-identity API | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md) | Salesforce and integration developer |
+| Optional advanced track | Guide                                                                | Audience                             |
+| ----------------------- | -------------------------------------------------------------------- | ------------------------------------ |
+| Native agent tools      | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md)     | Agentforce administrator             |
+| Hosted MCP service      | [Deploy the MCP service](./agentforce-and-mcp/deploy-mcp-service.md) | Platform and security engineer       |
+| Service-identity API    | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md)   | Salesforce and integration developer |
 
 For immediate and background Apex patterns, use [API examples](./README.md). For receiving
 Flow, Apex, or external-integration examples, use
@@ -48,16 +48,16 @@ statuses.
 
 ## Choose an integration
 
-| Goal | Start here | What you will learn |
-| --- | --- | --- |
-| Show health to a user on a record page | [Lightning component](../lightning-record-page/configure-the-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events |
-| Make an immediate or background decision in code | [API examples](./README.md) | Choose the direct Apex API, Queueable, Batch, or Scheduled Apex |
-| Branch in automation without custom Apex | [Flow actions](../flow-guides/action-inputs-and-outputs.md) | Configure an Action and Decision element with explicit status paths |
-| Answer record-health questions with a native agent action | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md) | Configure exact Check or Check Set tools and preserve five-state results |
-| Deploy the separately hosted MCP service | [Deploy the MCP service](./agentforce-and-mcp/deploy-mcp-service.md) | Follow and test all 11 HTTP, identity, tool, operational, and Salesforce security gates |
-| Call approved agent tools from a hosted MCP service | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md) | Authenticate a service identity and preserve the versioned tool contract |
-| Notify a separate process after the health-check transaction completes | [Platform Event subscriptions](../save-results/README.md) | Build a receiving Flow, Apex trigger, or external integration and handle repeated delivery |
-| Implement a decision the other Evaluation Types cannot express | [Recent Account activity](../examples/apex/recent-activity.md) | Write the class used by a Verify with Apex Check |
+| Goal                                                                   | Start here                                                                 | What you will learn                                                                        |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Show health to a user on a record page                                 | [Lightning component](../lightning-record-page/configure-the-component.md) | Automatic versus explicit runs, visible rows, and optional user-initiated events           |
+| Make an immediate or background decision in code                       | [API examples](./README.md)                                                | Choose the direct Apex API, Queueable, Batch, or Scheduled Apex                            |
+| Branch in automation without custom Apex                               | [Flow actions](../flow-guides/action-inputs-and-outputs.md)                | Configure an Action and Decision element with explicit status paths                        |
+| Answer record-health questions with a native agent action              | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md)           | Configure exact Check or Check Set tools and preserve five-state results                   |
+| Deploy the separately hosted MCP service                               | [Deploy the MCP service](./agentforce-and-mcp/deploy-mcp-service.md)       | Follow and test all 11 HTTP, identity, tool, operational, and Salesforce security gates    |
+| Call approved agent tools from a hosted MCP service                    | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md)         | Authenticate a service identity and preserve the versioned tool contract                   |
+| Notify a separate process after the health-check transaction completes | [Platform Event subscriptions](../save-results/README.md)                  | Build a receiving Flow, Apex trigger, or external integration and handle repeated delivery |
+| Implement a decision the other Evaluation Types cannot express         | [Recent Account activity](../examples/apex/recent-activity.md)             | Write the class used by a Verify with Apex Check                                           |
 
 ### Integration decision flow
 
@@ -111,40 +111,40 @@ Record Health Check evaluates Salesforce records and returns the results to what
 run. The Lightning card, Flow action, and direct Apex API receive their response during the current
 request. Queueable, Batch, and Scheduled Apex perform the work in the background.
 
-| Concept | Meaning |
-| --- | --- |
-| **Check Set** | The parent configuration and normal unit of execution |
-| **Check** | One ordered check inside a Check Set |
-| Immediate response | The Lightning card, Flow, or direct Apex caller receives structured status data during its request. |
-| Lifecycle events | Optional Platform Events announce completed runs only after Salesforce successfully commits the transaction. |
-| Access | Evaluation respects the running user's Salesforce access |
+| Concept            | Meaning                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
+| **Check Set**      | The parent configuration and normal unit of execution                                                        |
+| **Check**          | One ordered check inside a Check Set                                                                         |
+| Immediate response | The Lightning card, Flow, or direct Apex caller receives structured status data during its request.          |
+| Lifecycle events   | Optional Platform Events announce completed runs only after Salesforce successfully commits the transaction. |
+| Access             | Evaluation respects the running user's Salesforce access                                                     |
 
 Start with a Check Set. Use a single Check only when your process intentionally needs one specific
 check rather than the complete configured health assessment.
 
 ## What it is not
 
-| Not this | Why |
-| --- | --- |
-| A database of historical results | Record Health Check does not automatically create a result record. Flow, Apex, Batch Apex, or receiving automation must save one when history is required. |
-| A Validation Rule | It reports health; it does not block record save |
-| A remediation engine | It does not automatically update unhealthy records |
-| A guaranteed-message queue | Platform Event publication or delivery can fail, and the same event can be delivered again. |
-| A record-change listener | A run happens only when Lightning, Apex, Flow, or scheduled code invokes it |
-| A replacement for Salesforce security | It evaluates with the caller's effective access |
-| An all-record bulk scanner | Public requests are deliberately bounded |
+| Not this                              | Why                                                                                                                                                        |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A database of historical results      | Record Health Check does not automatically create a result record. Flow, Apex, Batch Apex, or receiving automation must save one when history is required. |
+| A Validation Rule                     | It reports health; it does not block record save                                                                                                           |
+| A remediation engine                  | It does not automatically update unhealthy records                                                                                                         |
+| A guaranteed-message queue            | Platform Event publication or delivery can fail, and the same event can be delivered again.                                                                |
+| A record-change listener              | A run happens only when Lightning, Apex, Flow, or scheduled code invokes it                                                                                |
+| A replacement for Salesforce security | It evaluates with the caller's effective access                                                                                                            |
+| An all-record bulk scanner            | Public requests are deliberately bounded                                                                                                                   |
 
 ## Compare integration outputs
 
-| Goal | Start here | Immediate output | Optional event source |
-| --- | --- | --- | --- |
-| Show health on a record page | [Lightning component](../lightning-record-page/configure-the-component.md) | Rows and Set summary | `USER_INITIATED`; automatic load is blocked |
-| Make a code-level decision | [Apex API](./run-from-apex.md) | Typed Check or Set response | `APEX_API`, `SCHEDULED`, or `BATCH` |
-| Branch in automation without code | [Flow actions](../flow-guides/action-inputs-and-outputs.md) | Flow output variables and JSON | `FLOW` |
-| Answer through native Agentforce actions | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md) | Versioned structured Check or Check Set fields | `AGENT` |
-| Call through an approved MCP service identity | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md) | Versioned JSON Check or Check Set fields | `AGENT` |
-| Notify a separate process or export results | [Platform events](../save-results/when-to-use-platform-events.md) | Platform Event fields | Depends on what started the run |
-| Add a custom evaluation algorithm | [Recent Account activity](../examples/apex/recent-activity.md) | Normal Check result | Inherits the calling run |
+| Goal                                          | Start here                                                                 | Immediate output                               | Optional event source                       |
+| --------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------- |
+| Show health on a record page                  | [Lightning component](../lightning-record-page/configure-the-component.md) | Rows and Set summary                           | `USER_INITIATED`; automatic load is blocked |
+| Make a code-level decision                    | [Apex API](./run-from-apex.md)                                             | Typed Check or Set response                    | `APEX_API`, `SCHEDULED`, or `BATCH`         |
+| Branch in automation without code             | [Flow actions](../flow-guides/action-inputs-and-outputs.md)                | Flow output variables and JSON                 | `FLOW`                                      |
+| Answer through native Agentforce actions      | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md)           | Versioned structured Check or Check Set fields | `AGENT`                                     |
+| Call through an approved MCP service identity | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md)         | Versioned JSON Check or Check Set fields       | `AGENT`                                     |
+| Notify a separate process or export results   | [Platform events](../save-results/when-to-use-platform-events.md)          | Platform Event fields                          | Depends on what started the run             |
+| Add a custom evaluation algorithm             | [Recent Account activity](../examples/apex/recent-activity.md)             | Normal Check result                            | Inherits the calling run                    |
 
 ## Evaluation model
 
@@ -161,13 +161,13 @@ evaluate(request) -> RecordHealthCheckResponse
 
 The successful status is `PASS`, not `SUCCESS`.
 
-| Status | Meaning |
-| --- | --- |
-| `PASS` | The configured health condition was satisfied |
-| `FAIL` | Evaluation completed and found an unhealthy business condition |
-| `SKIPPED` | Evaluation was intentionally prevented by applicability, dependency, or stop behavior |
-| `UNABLE_TO_EVALUATE` | Configuration, access, or data conditions prevented a reliable conclusion |
-| `ERROR` | Unexpected system or evaluator failure |
+| Status               | Meaning                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `PASS`               | The configured health condition was satisfied                                         |
+| `FAIL`               | Evaluation completed and found an unhealthy business condition                        |
+| `SKIPPED`            | Evaluation was intentionally prevented by applicability, dependency, or stop behavior |
+| `UNABLE_TO_EVALUATE` | Configuration, access, or data conditions prevented a reliable conclusion             |
+| `ERROR`              | Unexpected system or evaluator failure                                                |
 
 A Check Set uses the strongest contained result in this order:
 `ERROR → UNABLE_TO_EVALUATE → FAIL → PASS → SKIPPED`.
@@ -212,10 +212,10 @@ For every input and output, use the [Flow actions reference](../flow-guides/acti
 
 ## Synchronous results versus events
 
-| Output | Timing | Use |
-| --- | --- | --- |
-| Apex/Flow/LWC result | During the call | Make the current decision or render the card |
-| Platform Event | After Salesforce commits successfully | Notify a separate process, save history, or export results |
+| Output               | Timing                                | Use                                                        |
+| -------------------- | ------------------------------------- | ---------------------------------------------------------- |
+| Apex/Flow/LWC result | During the call                       | Make the current decision or render the card               |
+| Platform Event       | After Salesforce commits successfully | Notify a separate process, save history, or export results |
 
 Enabling events does not change the result returned to the caller. A successful run does not prove
 that the receiving Flow, Apex trigger, or integration completed.
@@ -232,11 +232,11 @@ Lifecycle and restricted error-log publication are off by default:
 
 ## Limits
 
-| Limit | Value |
-| --- | --- |
-| Records in one public Apex or Flow call | 200 |
-| Concurrent Lightning Check evaluations | 5 |
-| Platform-event publish chunk | 100 |
+| Limit                                   | Value |
+| --------------------------------------- | ----- |
+| Records in one public Apex or Flow call | 200   |
+| Concurrent Lightning Check evaluations  | 5     |
+| Platform-event publish chunk            | 100   |
 
 For a Set request, planned evaluations equal records × active Checks.
 
@@ -244,15 +244,15 @@ For a Set request, planned evaluations equal records × active Checks.
 
 Handle these cases separately:
 
-| Case | Status / handling | Notes |
-| --- | --- | --- |
-| Valid unhealthy result | `FAIL` | The Check ran and found something that needs attention |
-| Intentional non-run | `SKIPPED` | Applicability or a dependency kept the Check from running |
-| No reliable conclusion | `UNABLE_TO_EVALUATE` | Card label: **Unable to Check**; Setup says **Unable to Evaluate** |
-| Unexpected execution problem | `ERROR` | Card label: **System Error** |
-| Exception before a response | Thrown fault | Invalid request, missing access, or a governor limit |
-| Successful response, then rollback | Events suppressed | Publish After Commit events do not fire when the transaction rolls back |
-| Repeated or replayed event work | Receiving automation responsibility | Use `EventId__c` so repeated delivery does not repeat the same follow-up action. |
+| Case                               | Status / handling                   | Notes                                                                            |
+| ---------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
+| Valid unhealthy result             | `FAIL`                              | The Check ran and found something that needs attention                           |
+| Intentional non-run                | `SKIPPED`                           | Applicability or a dependency kept the Check from running                        |
+| No reliable conclusion             | `UNABLE_TO_EVALUATE`                | Card label: **Unable to Check**; Setup says **Unable to Evaluate**               |
+| Unexpected execution problem       | `ERROR`                             | Card label: **System Error**                                                     |
+| Exception before a response        | Thrown fault                        | Invalid request, missing access, or a governor limit                             |
+| Successful response, then rollback | Events suppressed                   | Publish After Commit events do not fire when the transaction rolls back          |
+| Repeated or replayed event work    | Receiving automation responsibility | Use `EventId__c` so repeated delivery does not repeat the same follow-up action. |
 
 Use stable Statuses, Reason Codes, Failure Severities, and Qualified API Names for automation. Branch
 automation on those fields rather than administrator-authored message text.

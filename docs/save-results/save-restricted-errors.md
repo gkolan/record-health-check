@@ -3,10 +3,10 @@
 Use the **Record Health Check Log** Platform Event when restricted administrator, developer, or
 support automation must receive technical errors encountered by Record Health Check.
 
-| Setup value | Name |
-| --- | --- |
-| Platform Event label | Record Health Check Log |
-| API name | `Record_Health_Check_Log__e` |
+| Setup value                          | Name                              |
+| ------------------------------------ | --------------------------------- |
+| Platform Event label                 | Record Health Check Log           |
+| API name                             | `Record_Health_Check_Log__e`      |
 | Apex name after package installation | `rhc__Record_Health_Check_Log__e` |
 
 This event can contain Salesforce record and user IDs, exception messages, exception types, and
@@ -55,20 +55,20 @@ Create a custom object owned by your team, such as **Record Health Check Error**
 
 Add only fields approved by your security team:
 
-| Destination field | Suggested type | Platform Event field |
-| --- | --- | --- |
-| Event ID | Text(80), Unique | `$Record.EventId__c` |
-| Run ID | Text(120) | `$Record.RunId__c` |
-| Occurred At | Date/Time | `$Record.OccurredAt__c` |
-| Code | Text(120) | `$Record.Code__c` |
-| Check Set Developer Name | Text(120) | `$Record.CheckSetDeveloperName__c` |
-| Check Developer Name | Text(120) | `$Record.CheckDeveloperName__c` |
-| Salesforce Record ID | Text(18) | `$Record.RecordId__c` |
-| Running User ID | Text(18) | `$Record.UserId__c` |
-| Exception Type | Text(120) | `$Record.ExceptionType__c` |
-| Message | Long Text Area | `$Record.Message__c` |
-| Stack Trace | Long Text Area | `$Record.StackTrace__c` |
-| Contract Version | Text(10) | `$Record.ContractVersion__c` |
+| Destination field        | Suggested type   | Platform Event field               |
+| ------------------------ | ---------------- | ---------------------------------- |
+| Event ID                 | Text(80), Unique | `$Record.EventId__c`               |
+| Run ID                   | Text(120)        | `$Record.RunId__c`                 |
+| Occurred At              | Date/Time        | `$Record.OccurredAt__c`            |
+| Code                     | Text(120)        | `$Record.Code__c`                  |
+| Check Set Developer Name | Text(120)        | `$Record.CheckSetDeveloperName__c` |
+| Check Developer Name     | Text(120)        | `$Record.CheckDeveloperName__c`    |
+| Salesforce Record ID     | Text(18)         | `$Record.RecordId__c`              |
+| Running User ID          | Text(18)         | `$Record.UserId__c`                |
+| Exception Type           | Text(120)        | `$Record.ExceptionType__c`         |
+| Message                  | Long Text Area   | `$Record.Message__c`               |
+| Stack Trace              | Long Text Area   | `$Record.StackTrace__c`            |
+| Contract Version         | Text(10)         | `$Record.ContractVersion__c`       |
 
 Message and Stack Trace are optional. Omit them when the use case needs only error counts and codes.
 If you save them, restrict those fields and every report, export, backup, or integration that can
@@ -99,7 +99,7 @@ saves only identifying fields and the error code. Add Message or Stack Trace onl
 and retention review.
 
 ```apex
-trigger RecordHealthCheckLogTrigger on rhc__Record_Health_Check_Log__e (
+trigger RecordHealthCheckLogTrigger on rhc__Record_Health_Check_Log__e(
   after insert
 ) {
   RecordHealthCheckLogHandler.saveErrors(Trigger.new);
@@ -108,9 +108,7 @@ trigger RecordHealthCheckLogTrigger on rhc__Record_Health_Check_Log__e (
 
 ```apex
 public with sharing class RecordHealthCheckLogHandler {
-  public static void saveErrors(
-    List<rhc__Record_Health_Check_Log__e> events
-  ) {
+  public static void saveErrors(List<rhc__Record_Health_Check_Log__e> events) {
     Set<String> eventIds = new Set<String>();
     for (rhc__Record_Health_Check_Log__e eventRecord : events) {
       eventIds.add(eventRecord.EventId__c);
@@ -125,8 +123,7 @@ public with sharing class RecordHealthCheckLogHandler {
       savedEventIds.add(savedError.Event_Id__c);
     }
 
-    List<Record_Health_Check_Error__c> errorsToSave =
-      new List<Record_Health_Check_Error__c>();
+    List<Record_Health_Check_Error__c> errorsToSave = new List<Record_Health_Check_Error__c>();
 
     for (rhc__Record_Health_Check_Log__e eventRecord : events) {
       if (savedEventIds.contains(eventRecord.EventId__c)) {

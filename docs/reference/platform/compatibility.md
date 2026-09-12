@@ -17,12 +17,12 @@ support or test that combination of package, Apex, API, Platform Event, and Ligh
 
 ## Salesforce release and API version
 
-| Item | Required value | Where this repository records it |
-| --- | --- | --- |
-| Metadata API version | `66.0` | `sourceApiVersion` in the root and package `sfdx-project.json` files |
-| Package type | Namespaced second-generation unlocked package | `packages/record-health-check/sfdx-project.json` |
-| Installed package namespace | `rhc` | `namespace` in `packages/record-health-check/sfdx-project.json` |
-| Current installation links | The `stable` entry | [`config/package-releases.json`](../../../config/package-releases.json) |
+| Item                        | Required value                                | Where this repository records it                                        |
+| --------------------------- | --------------------------------------------- | ----------------------------------------------------------------------- |
+| Metadata API version        | `66.0`                                        | `sourceApiVersion` in the root and package `sfdx-project.json` files    |
+| Package type                | Namespaced second-generation unlocked package | `packages/record-health-check/sfdx-project.json`                        |
+| Installed package namespace | `rhc`                                         | `namespace` in `packages/record-health-check/sfdx-project.json`         |
+| Current installation links  | The `stable` entry                            | [`config/package-releases.json`](../../../config/package-releases.json) |
 
 Install the package in an org running a Salesforce release that supports API version 66.0. If an
 installation or source deployment rejects that API version, update the org to a supported
@@ -33,15 +33,15 @@ installs a promoted package version does not need to enable Dev Hub in the desti
 
 ## Salesforce editions
 
-| Edition | Project support | Reason |
-| --- | --- | --- |
-| Enterprise | Supported | Includes the Salesforce features used by the package |
-| Unlimited | Supported | Includes the Salesforce features used by the package |
-| Performance | Supported | Includes the Salesforce features used by the package |
-| Developer | Supported for development and testing | Includes the required features, subject to Developer Edition limits |
-| Professional | Not supported | The complete set of required package and platform capabilities has not been validated in this edition |
-| Group | Not supported | The complete set of required package and platform capabilities has not been validated in this edition |
-| Essentials | Not supported | The complete set of required package and platform capabilities has not been validated in this edition |
+| Edition      | Project support                       | Reason                                                                                                |
+| ------------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Enterprise   | Supported                             | Includes the Salesforce features used by the package                                                  |
+| Unlimited    | Supported                             | Includes the Salesforce features used by the package                                                  |
+| Performance  | Supported                             | Includes the Salesforce features used by the package                                                  |
+| Developer    | Supported for development and testing | Includes the required features, subject to Developer Edition limits                                   |
+| Professional | Not supported                         | The complete set of required package and platform capabilities has not been validated in this edition |
+| Group        | Not supported                         | The complete set of required package and platform capabilities has not been validated in this edition |
+| Essentials   | Not supported                         | The complete set of required package and platform capabilities has not been validated in this edition |
 
 Edition names and entitlements can change. Before a production rollout, confirm the required
 features with your Salesforce account team and install the package in a sandbox with the same
@@ -49,12 +49,12 @@ edition and licenses as production.
 
 ## Salesforce user interfaces
 
-| Where a person uses Salesforce | Project support | What to do |
-| --- | --- | --- |
-| Lightning Experience record page | Supported | Add the **Record Health Check** component in Lightning App Builder |
-| Salesforce Classic | Not supported | Classic pages cannot display the package's Lightning Web Component |
-| Salesforce mobile app | Not tested | Add the component to the intended record page and test it in the mobile app before rollout |
-| Experience Cloud site | Not supported by the component metadata | The component is exposed only to `lightning__RecordPage`, not an Experience Builder page |
+| Where a person uses Salesforce   | Project support                         | What to do                                                                                 |
+| -------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Lightning Experience record page | Supported                               | Add the **Record Health Check** component in Lightning App Builder                         |
+| Salesforce Classic               | Not supported                           | Classic pages cannot display the package's Lightning Web Component                         |
+| Salesforce mobile app            | Not tested                              | Add the component to the intended record page and test it in the mobile app before rollout |
+| Experience Cloud site            | Not supported by the component metadata | The component is exposed only to `lightning__RecordPage`, not an Experience Builder page   |
 
 Apex and Flow automation do not depend on a person opening the Lightning component. They still
 require an otherwise supported Salesforce edition and the package permissions described in
@@ -86,17 +86,17 @@ Core is describe- and API-name-driven; it does not contain product object names 
 semantics. The following classifications describe what the framework supports, not whether a
 particular Salesforce feature is licensed in an org.
 
-| Shape | Compatibility status |
-| --- | --- |
-| Standard/custom/namespaced objects and plain or relationship fields | Supported when global describe and user-mode SOQL expose the complete authored API name; foreign package prefixes are never inferred |
-| Number, Currency, Percent, ID, URL, Email, Phone, Date, Date/Time, and Time | Supported within the documented comparison/display boundaries |
-| Compound Address or Location | Select individual fields or use supported SOQL functions; no compound typed value is published |
-| Base64/Blob fields | Deliberately unsupported for Query comparison; a plain selected Base64 field is refused before execution with `FIELD_TYPE_NOT_SUPPORTED`, and binary values must not enter result or diagnostic contracts |
-| History objects | Exact user-mode query must satisfy that object's platform restrictions |
-| Knowledge data categories | Deliberately unsupported in core Query templates; use reviewed user-mode Apex |
-| File links | Validate the exact user-mode query in a representative org; binary Version Data is unsupported |
-| External objects, Big Objects, Data 360 objects | Not tested because the project fixtures do not provision those licensed object families |
-| Shield-encrypted strings and Geolocation custom fields | Not tested; validate with a licensed neutral fixture before relying on them |
+| Shape                                                                       | Compatibility status                                                                                                                                                                                      |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Standard/custom/namespaced objects and plain or relationship fields         | Supported when global describe and user-mode SOQL expose the complete authored API name; foreign package prefixes are never inferred                                                                      |
+| Number, Currency, Percent, ID, URL, Email, Phone, Date, Date/Time, and Time | Supported within the documented comparison/display boundaries                                                                                                                                             |
+| Compound Address or Location                                                | Select individual fields or use supported SOQL functions; no compound typed value is published                                                                                                            |
+| Base64/Blob fields                                                          | Deliberately unsupported for Query comparison; a plain selected Base64 field is refused before execution with `FIELD_TYPE_NOT_SUPPORTED`, and binary values must not enter result or diagnostic contracts |
+| History objects                                                             | Exact user-mode query must satisfy that object's platform restrictions                                                                                                                                    |
+| Knowledge data categories                                                   | Deliberately unsupported in core Query templates; use reviewed user-mode Apex                                                                                                                             |
+| File links                                                                  | Validate the exact user-mode query in a representative org; binary Version Data is unsupported                                                                                                            |
+| External objects, Big Objects, Data 360 objects                             | Not tested because the project fixtures do not provision those licensed object families                                                                                                                   |
+| Shield-encrypted strings and Geolocation custom fields                      | Not tested; validate with a licensed neutral fixture before relying on them                                                                                                                               |
 
 Query templates support ordinary field values, relationships, semi/anti-joins, aggregate queries, and grouped
 aggregate shapes when Salesforce accepts them under user mode. `ALL ROWS`, system mode, and

@@ -30,11 +30,11 @@ for applicability formulas, Expected Value formulas, and `FindInListFormula__c`.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `evaluate(check, recordId, record)` | Main entry point for a Formula Check |
-| `resolveFormulaSingleValue(...)` | Shared formula resolution used by other paths |
-| Formula limit protection | Stops before Salesforce's 100 Formula Evaluation calls per transaction and remembers a formula's result type for the remaining records |
+| Member                              | Purpose                                                                                                                                |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `evaluate(check, recordId, record)` | Main entry point for a Formula Check                                                                                                   |
+| `resolveFormulaSingleValue(...)`    | Shared formula resolution used by other paths                                                                                          |
+| Formula limit protection            | Stops before Salesforce's 100 Formula Evaluation calls per transaction and remembers a formula's result type for the remaining records |
 
 **Notable behavior:**
 
@@ -84,8 +84,8 @@ follows `NoRowsResult__c`, consistent with the single-query evaluator.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                                                      | Purpose                                                                                                                                      |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `LISTS_OVERLAP`, `LISTS_CONTAIN_ALL`, `LISTS_MATCH_EXACTLY` | Supported list operators (the last compares how often each cleaned-up value appears, so duplicate counts must match, not just shared values) |
 
 **Notable behavior:**
@@ -109,8 +109,8 @@ for every requested record and did not perform a prohibited database write.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                                                                                                                                                                             | Purpose                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | `APEX_CLASS_INVALID`, `APEX_CLASS_NOT_FOUND`, `APEX_CLASS_LOAD_FAILED`, `PLUGIN_CONSTRUCTOR_FAILED`, `PLUGIN_INTERFACE_INVALID`, `INVALID_APEX_PARAMETERS`, `APEX_EVALUATOR_ERROR` | Typical failure reason codes |
 
 **Notable behavior:**
@@ -137,11 +137,11 @@ returns no records or an empty field value.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `runQuery(...)` | Shared, limited query execution for both SOQL evaluators |
-| `buildEmptyResult(...)` | Shared zero-row result shape, based on `NoRowsResult__c` |
-| `buildNullIndeterminateResult(...)` | Shared null-value result shape |
+| Member                              | Purpose                                                  |
+| ----------------------------------- | -------------------------------------------------------- |
+| `runQuery(...)`                     | Shared, limited query execution for both SOQL evaluators |
+| `buildEmptyResult(...)`             | Shared zero-row result shape, based on `NoRowsResult__c` |
+| `buildNullIndeterminateResult(...)` | Shared null-value result shape                           |
 
 **Notable behavior:**
 

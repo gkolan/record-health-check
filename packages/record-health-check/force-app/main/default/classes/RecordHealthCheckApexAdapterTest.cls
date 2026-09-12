@@ -32,7 +32,8 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException expected) {
       Assert.areEqual(
         RecordHealthCheckReasonCodes.APEX_CLASS_LOAD_FAILED,
-        expected.reasonCode
+        expected.reasonCode,
+        'A platform type-load failure must retain its load-failed reason.'
       );
       Assert.isTrue(
         expected.originalExceptionType.endsWith(
@@ -42,7 +43,8 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       );
       Assert.areEqual(
         'Expected platform type-load failure.',
-        expected.originalExceptionMessage
+        expected.originalExceptionMessage,
+        'The wrapped load failure must preserve the original exception message.'
       );
     } finally {
       RecordHealthCheckApexPluginResolver.configuredTypeFailureForTest = null;
@@ -54,7 +56,6 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Blank class'
     );
-
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
       .evaluate(checkFor(null, null), record.Id, record);
@@ -68,7 +69,6 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     Account record = RecordHealthCheckTestDataFactory.accountFixture(
       'Missing class'
     );
-
     Test.startTest();
     RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
       .evaluate(checkFor('Class_That_Does_Not_Exist', null), record.Id, record);
@@ -197,16 +197,21 @@ private with sharing class RecordHealthCheckApexAdapterTest {
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
-      result.reasonCode
+      result.reasonCode,
+      'Constructor failure must retain its specific reason.'
     );
     Assert.areEqual(
       'This check could not be evaluated. Contact your administrator.',
       result.message,
       'A constructor configuration failure must use the safe unable message when no Check message is configured.'
     );
-    Assert.isTrue(
+    Assert.isFalse(
       result.detailMessage.contains('Expected constructor failure'),
-      'Administrator detail must retain the constructor failure cause.'
+      'Arbitrary subscriber exception text must remain withheld.'
+    );
+    Assert.isTrue(
+      result.detailMessage.contains('[message withheld]'),
+      'Administrator detail retains a fixed disclosure-safe marker.'
     );
   }
 
@@ -322,9 +327,10 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       missingActualResult,
       RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING
     );
-    Assert.isTrue(
-      missingActualResult.detailMessage.contains('result.actualValue'),
-      missingActualResult.detailMessage
+    Assert.areEqual(
+      'A PASS outcome must include a nonblank Found value.',
+      missingActualResult.detailMessage,
+      'A PASS result missing Found must explain the missing operand.'
     );
 
     RecordHealthCheckInternalResult missingExpected = new RecordHealthCheckInternalResult();
@@ -340,9 +346,10 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       missingExpectedResult,
       RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING
     );
-    Assert.isTrue(
-      missingExpectedResult.detailMessage.contains('result.expectedValue'),
-      missingExpectedResult.detailMessage
+    Assert.areEqual(
+      'A FAIL outcome must include a nonblank Expected value.',
+      missingExpectedResult.detailMessage,
+      'A FAIL result missing Expected must explain the missing operand.'
     );
 
     RecordHealthCheckInternalResult typedValues = new RecordHealthCheckInternalResult();
@@ -357,8 +364,16 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       new RecordHealthCheckInternalResult(),
       typedValues
     );
-    Assert.areEqual('75%', typedResult.actualValue);
-    Assert.areEqual('80%', typedResult.expectedValue);
+    Assert.areEqual(
+      '75%',
+      typedResult.actualValue,
+      'Typed found ratio must format as 75 percent.'
+    );
+    Assert.areEqual(
+      '80%',
+      typedResult.expectedValue,
+      'Typed expected ratio must format as 80 percent.'
+    );
 
     RecordHealthCheckInternalResult explicitStringsWin = new RecordHealthCheckInternalResult();
     explicitStringsWin.status = 'PASS';
@@ -372,8 +387,16 @@ private with sharing class RecordHealthCheckApexAdapterTest {
       new RecordHealthCheckInternalResult(),
       explicitStringsWin
     );
-    Assert.areEqual('Plugin Found', explicitResult.actualValue);
-    Assert.areEqual('Plugin Expected', explicitResult.expectedValue);
+    Assert.areEqual(
+      'Plugin Found',
+      explicitResult.actualValue,
+      'Explicit found text must take precedence over typed formatting.'
+    );
+    Assert.areEqual(
+      'Plugin Expected',
+      explicitResult.expectedValue,
+      'Explicit expected text must take precedence over typed formatting.'
+    );
 
     RecordHealthCheckInternalResult invalidTypedFormat = new RecordHealthCheckInternalResult();
     invalidTypedFormat.status = 'PASS';

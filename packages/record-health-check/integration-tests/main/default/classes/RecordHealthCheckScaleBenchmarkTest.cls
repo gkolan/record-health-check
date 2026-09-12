@@ -132,11 +132,13 @@ private class RecordHealthCheckScaleBenchmarkTest {
 
     Assert.areEqual(
       0,
-      [SELECT COUNT() FROM Account WHERE Name LIKE 'RHC_BENCH_clean_me_%']
+      [SELECT COUNT() FROM Account WHERE Name LIKE 'RHC_BENCH_clean_me_%'],
+      'Cleanup must remove every Account with the requested tag.'
     );
     Assert.areEqual(
       1,
-      [SELECT COUNT() FROM Account WHERE Name LIKE 'RHC_BENCH_keep_me_%']
+      [SELECT COUNT() FROM Account WHERE Name LIKE 'RHC_BENCH_keep_me_%'],
+      'Cleanup must preserve Accounts with another tag.'
     );
     Assert.areEqual(
       'CLEANED',
@@ -145,7 +147,8 @@ private class RecordHealthCheckScaleBenchmarkTest {
         FROM RHC_Benchmark_Result__c
         WHERE Run_Tag__c = 'clean_me'
       ]
-      .Status__c
+      .Status__c,
+      'Cleanup must record its completed status.'
     );
   }
 
@@ -166,13 +169,19 @@ private class RecordHealthCheckScaleBenchmarkTest {
       RecordHealthCheckScaleBenchmark.run('valid', null, 50);
       Assert.fail('A blank Check Set must be rejected.');
     } catch (RecordHealthCheckScaleBenchmark.BenchmarkException ex) {
-      Assert.isTrue(ex.getMessage().contains('Check Set'));
+      Assert.isTrue(
+        ex.getMessage().contains('Check Set'),
+        'A blank Check Set must produce the Check Set diagnostic.'
+      );
     }
     try {
       RecordHealthCheckScaleBenchmark.run('valid', 'set', 201);
       Assert.fail('An unsafe scope size must be rejected.');
     } catch (RecordHealthCheckScaleBenchmark.BenchmarkException ex) {
-      Assert.isTrue(ex.getMessage().contains('Scope size'));
+      Assert.isTrue(
+        ex.getMessage().contains('Scope size'),
+        'An oversized scope must produce the scope-size diagnostic.'
+      );
     }
   }
 
@@ -201,7 +210,10 @@ private class RecordHealthCheckScaleBenchmarkTest {
       RecordHealthCheckScaleBenchmark.seed(tag, count);
       Assert.fail('Invalid seed input must be rejected.');
     } catch (RecordHealthCheckScaleBenchmark.BenchmarkException ex) {
-      Assert.isTrue(ex.getMessage().contains(expected));
+      Assert.isTrue(
+        ex.getMessage().contains(expected),
+        'Rejected seed input must identify the invalid parameter.'
+      );
     }
   }
 }

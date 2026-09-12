@@ -1,0 +1,410 @@
+{
+  "status": "fixtures_only_runtime_pending",
+  "records": [
+    {
+      "name": "RHC Heading Healthy",
+      "employees": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "RHC Heading Needs Review",
+      "employees": 0,
+      "status": "FAIL"
+    },
+    {
+      "name": "RHC Heading Missing Count",
+      "employees": null,
+      "status": "FAIL"
+    }
+  ],
+  "sets": [
+    {
+      "name": "RHC_Heading_Full",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_Title",
+      "heading": "TITLE_ONLY",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_Action",
+      "heading": "HIDE",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_None",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_Legacy",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_FullAuto",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_TitleAuto",
+      "heading": "TITLE_ONLY",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_FullBothAuto",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_FullLabelAuto",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_FullLabelManual",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_FullIconAuto",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_FullIconManual",
+      "heading": "TITLE_AND_SUBTITLE",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_TitleBothAuto",
+      "heading": "TITLE_ONLY",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_TitleLabelAuto",
+      "heading": "TITLE_ONLY",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_TitleLabelManual",
+      "heading": "TITLE_ONLY",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_TitleIconAuto",
+      "heading": "TITLE_ONLY",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_TitleIconManual",
+      "heading": "TITLE_ONLY",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneBothAuto",
+      "heading": "HIDE",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneLabelAuto",
+      "heading": "HIDE",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneLabelManual",
+      "heading": "HIDE",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneIconAuto",
+      "heading": "HIDE",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneIconManual",
+      "heading": "HIDE",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneTop",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "TOP",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneCount",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_COUNT_ONLY",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneProgressive",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ONE_BY_ONE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneEmpty",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": false
+    },
+    {
+      "name": "RHC_Heading_NoneManual",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_REQUEST",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true
+    },
+    {
+      "name": "RHC_Heading_NoneSkipped",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "reveal": "ALL_AT_ONCE",
+      "summary": "BOTTOM",
+      "passed": "SHOW_EACH_CHECK",
+      "activeCheck": true,
+      "skipped": true
+    }
+  ],
+  "scenarios": {
+    "S-01": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-01 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-02": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-02 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-03": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-03 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-04": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-04 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-05": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-05 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-06": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-06 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-07": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-07 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-08": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-08 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-09": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-09 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-10": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-10 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-11": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-11 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-12": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-12 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-13": {
+      "fixture": "RHC_Heading_Full",
+      "procedure": "S-13 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-14": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-14 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-15": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-15 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-16": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-16 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-17": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-17 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-18": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-18 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-19": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-19 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-20": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-20 in card-heading-display.md",
+      "status": "pending"
+    },
+    "S-21": {
+      "fixture": "RHC_Heading_None",
+      "procedure": "S-21 in card-heading-display.md",
+      "status": "pending"
+    }
+  }
+}

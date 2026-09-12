@@ -8,6 +8,9 @@ public class RecordHealthCheckTokenIssue {
   public String reasonCode;
   public String token;
   public String message;
+  public Integer startIndex;
+  public Integer endIndex;
+  public String attribute;
 
   public RecordHealthCheckTokenIssue(
     String reasonCode,

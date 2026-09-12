@@ -6,9 +6,9 @@
 /**
  * Covers Display: Value Format rendering for Found and Expected values.
  *
- * Assertions that involve grouping separators run as a user with a pinned
- * locale, so the suite reads the same way in an org whose default locale is not
- * English (US).
+ * Numeric expectations use native platform formatting for the running user.
+ * The integration variant additionally exercises these same contracts under
+ * explicit English and German personas; package tests create no users.
  */
 @IsTest
 private class RecordHealthCheckDisplayFormatTest {
@@ -23,38 +23,11 @@ private class RecordHealthCheckDisplayFormatTest {
   private static final String TEXT_FORMAT = 'TEXT';
   private static final String RAW_FORMAT = 'RAW';
 
-  /** A user pinned to a locale so separator assertions are deterministic. */
-  private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.createUserWithLocale(locale, alias);
-  }
-
-  /**
-   * How an amount reads in this org: an org with more than one currency leads
-   * with the ISO code because a bare symbol would be ambiguous, and a
-   * single-currency org uses the symbol. Building the expectation the same way
-   * the renderer decides keeps these assertions true in both kinds of org.
-   */
-  private static String money(String isoCode, String amount) {
-    Map<String, String> symbols = new Map<String, String>{
-      'USD' => '$',
-      'EUR' => '€',
-      'JPY' => '¥',
-      'KRW' => '₩'
-    };
-    String symbol = symbols.get(isoCode);
-    if (symbol == null || UserInfo.isMultiCurrencyOrganization()) {
-      return isoCode + ' ' + amount;
-    }
-    return amount.startsWith('-')
-      ? '-' + symbol + amount.substring(1)
-      : symbol + amount;
-  }
-
   // ─── Auto ─────────────────────────────────────────────────────────────────
 
   @IsTest
   static void autoKeepsTheShippedHumanizeBehavior() {
-    System.runAs(userWithLocale('en_US', 'rhcus')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
         '(blank)',
         RecordHealthCheckDisplayFormat.render(null, AUTO),
@@ -67,10 +40,19 @@ private class RecordHealthCheckDisplayFormatTest {
       );
       Assert.areEqual(
         'Technology',
-        RecordHealthCheckDisplayFormat.render('Technology', AUTO)
+        RecordHealthCheckDisplayFormat.render('Technology', AUTO),
+        'Auto must preserve ordinary text without reinterpretation.'
       );
-      Assert.areEqual('Yes', RecordHealthCheckDisplayFormat.render(true, AUTO));
-      Assert.areEqual('No', RecordHealthCheckDisplayFormat.render(false, AUTO));
+      Assert.areEqual(
+        'Yes',
+        RecordHealthCheckDisplayFormat.render(true, AUTO),
+        'Auto must render a typed true value as Yes.'
+      );
+      Assert.areEqual(
+        'No',
+        RecordHealthCheckDisplayFormat.render(false, AUTO),
+        'Auto must render a typed false value as No.'
+      );
       Assert.areEqual(
         'Yes',
         RecordHealthCheckDisplayFormat.render('true', AUTO),
@@ -82,21 +64,30 @@ private class RecordHealthCheckDisplayFormatTest {
         'Boolean text match is case-insensitive'
       );
       Assert.areEqual(
-        '70,000',
+        Decimal.valueOf('70000').format(),
         RecordHealthCheckDisplayFormat.render(70000.0, AUTO),
         'An all-zero fractional part is dropped'
       );
       Assert.areEqual(
-        '70,000.5',
+        Decimal.valueOf('70000.5').format(),
         RecordHealthCheckDisplayFormat.render(70000.5, AUTO),
         'A real fraction keeps its digits'
       );
       Assert.areEqual(
-        '-1,234,567',
-        RecordHealthCheckDisplayFormat.render(-1234567, AUTO)
+        '-' + Decimal.valueOf('1234567').format(),
+        RecordHealthCheckDisplayFormat.render(-1234567, AUTO),
+        'Auto must preserve ASCII minus while applying native numeric grouping.'
       );
-      Assert.areEqual('1', RecordHealthCheckDisplayFormat.render(1, AUTO));
-      Assert.areEqual('0', RecordHealthCheckDisplayFormat.render(0, AUTO));
+      Assert.areEqual(
+        '1',
+        RecordHealthCheckDisplayFormat.render(1, AUTO),
+        'Auto must render numeric one as a number rather than a checkbox.'
+      );
+      Assert.areEqual(
+        '0',
+        RecordHealthCheckDisplayFormat.render(0, AUTO),
+        'Auto must render numeric zero as a number rather than a checkbox.'
+      );
       Assert.areEqual(
         '1',
         RecordHealthCheckDisplayFormat.render('1', AUTO),
@@ -140,43 +131,49 @@ private class RecordHealthCheckDisplayFormatTest {
 
   @IsTest
   static void autoLeavesIdentifierShapedTextAlone() {
-    System.runAs(userWithLocale('en_US', 'rhcid')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       // Digit-only text may be a postal code, a year, or an Id. Grouping it or
       // dropping leading zeros would change what the value means.
       Assert.areEqual(
         '500000',
-        RecordHealthCheckDisplayFormat.render('500000', AUTO)
+        RecordHealthCheckDisplayFormat.render('500000', AUTO),
+        'Auto must not group digit-only identifier text.'
       );
       Assert.areEqual(
         '0012345',
-        RecordHealthCheckDisplayFormat.render('0012345', AUTO)
+        RecordHealthCheckDisplayFormat.render('0012345', AUTO),
+        'Auto must retain every leading zero in identifier text.'
       );
       Assert.areEqual(
         '90210',
-        RecordHealthCheckDisplayFormat.render('90210', AUTO)
+        RecordHealthCheckDisplayFormat.render('90210', AUTO),
+        'Auto must preserve a postal-code-shaped string.'
       );
       Assert.areEqual(
         '1-800-CALL',
-        RecordHealthCheckDisplayFormat.render('1-800-CALL', AUTO)
+        RecordHealthCheckDisplayFormat.render('1-800-CALL', AUTO),
+        'Auto must preserve a phone-shaped identifier verbatim.'
       );
       Assert.areEqual(
         'ACM-0092',
-        RecordHealthCheckDisplayFormat.render('ACM-0092', AUTO)
+        RecordHealthCheckDisplayFormat.render('ACM-0092', AUTO),
+        'Auto must preserve mixed letters and digits in an identifier.'
       );
     }
   }
 
   @IsTest
   static void blankAndUnrecognizedFormatsFallBackToAuto() {
-    System.runAs(userWithLocale('en_US', 'rhcfb')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
-        '70,000',
+        Decimal.valueOf('70000').format(),
         RecordHealthCheckDisplayFormat.render(70000.0, null),
         'A blank format renders on Auto'
       );
       Assert.areEqual(
-        '70,000',
-        RecordHealthCheckDisplayFormat.render(70000.0, '   ')
+        Decimal.valueOf('70000').format(),
+        RecordHealthCheckDisplayFormat.render(70000.0, '   '),
+        'A whitespace-only format must fall back to native Auto rendering.'
       );
       Assert.areEqual(
         'Yes',
@@ -184,7 +181,7 @@ private class RecordHealthCheckDisplayFormatTest {
         'A format this release does not implement falls back to Auto'
       );
       Assert.areEqual(
-        '70,000',
+        Decimal.valueOf('70000').format(),
         RecordHealthCheckDisplayFormat.render(70000.0, 'number'),
         'Format matching is case-insensitive'
       );
@@ -195,15 +192,18 @@ private class RecordHealthCheckDisplayFormatTest {
   static void checkboxForcesYesAndNo() {
     Assert.areEqual(
       'Yes',
-      RecordHealthCheckDisplayFormat.render(true, BOOLEAN_FORMAT)
+      RecordHealthCheckDisplayFormat.render(true, BOOLEAN_FORMAT),
+      'Explicit Checkbox must render typed true as Yes.'
     );
     Assert.areEqual(
       'No',
-      RecordHealthCheckDisplayFormat.render(false, BOOLEAN_FORMAT)
+      RecordHealthCheckDisplayFormat.render(false, BOOLEAN_FORMAT),
+      'Explicit Checkbox must render typed false as No.'
     );
     Assert.areEqual(
       'Yes',
-      RecordHealthCheckDisplayFormat.render('TRUE', BOOLEAN_FORMAT)
+      RecordHealthCheckDisplayFormat.render('TRUE', BOOLEAN_FORMAT),
+      'Explicit Checkbox must recognize uppercase boolean text.'
     );
     Assert.areEqual(
       'No',
@@ -270,31 +270,39 @@ private class RecordHealthCheckDisplayFormatTest {
 
   @IsTest
   static void listsRenderEveryEntryWithTheSameFormat() {
-    System.runAs(userWithLocale('en_US', 'rhclist')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
         '(none)',
         RecordHealthCheckComparisonDisplay.formatList(
           new List<Object>(),
           CURRENCY_FORMAT
-        )
+        ),
+        'An empty list must use the none placeholder even under Currency formatting.'
       );
       Assert.areEqual(
         '(none)',
-        RecordHealthCheckComparisonDisplay.formatList(null, CURRENCY_FORMAT)
+        RecordHealthCheckComparisonDisplay.formatList(null, CURRENCY_FORMAT),
+        'An absent list must use the same none placeholder as an empty list.'
       );
       Assert.areEqual(
-        '[1,000, 2,000]',
+        '[' +
+          Decimal.valueOf('1000').format() +
+          ', ' +
+          Decimal.valueOf('2000').format() +
+          ']',
         RecordHealthCheckComparisonDisplay.formatList(
           new List<Object>{ 1000, 2000 },
           NUMBER_FORMAT
-        )
+        ),
+        'Number formatting must apply native grouping independently to every list entry.'
       );
       Assert.areEqual(
         '[Hot, Warm]',
         RecordHealthCheckComparisonDisplay.formatList(
           new List<Object>{ 'Hot', 'Warm' },
           AUTO
-        )
+        ),
+        'Auto list rendering must preserve entry order and readable separators.'
       );
 
       List<Object> big = new List<Object>();
@@ -322,8 +330,48 @@ private class RecordHealthCheckDisplayFormatTest {
           'LIST_CONTAINS_ANY',
           new List<Object>{ 'Hot', 'Warm' },
           AUTO
-        )
+        ),
+        'An any-match expected list must retain its explanatory phrase and entry order.'
       );
+    }
+  }
+  @IsTest
+  static void formatContractsFollowExplicitLocales() {
+    User english = RecordHealthCheckTestDataFactory.createUserWithLocale(
+      'en_US',
+      'rhceng'
+    );
+    User german = RecordHealthCheckTestDataFactory.createUserWithLocale(
+      'de_DE',
+      'rhcger'
+    );
+    User swedish = RecordHealthCheckTestDataFactory.createUserWithLocale(
+      'sv_SE',
+      'rhcsv'
+    );
+    Test.startTest();
+    assertFormatContractsForPersona(english, 'en_US');
+    assertFormatContractsForPersona(german, 'de_DE');
+    assertFormatContractsForPersona(swedish, 'sv_SE');
+    Test.stopTest();
+  }
+
+  private static void assertFormatContractsForPersona(
+    User persona,
+    String expectedLocale
+  ) {
+    System.runAs(persona) {
+      Assert.areEqual(
+        expectedLocale,
+        UserInfo.getLocale(),
+        'The integration persona must actually use the requested locale.'
+      );
+      autoKeepsTheShippedHumanizeBehavior();
+      autoLeavesIdentifierShapedTextAlone();
+      blankAndUnrecognizedFormatsFallBackToAuto();
+      checkboxForcesYesAndNo();
+      aListPassedToTheSingleValueRendererUsesTheListContract();
+      listsRenderEveryEntryWithTheSameFormat();
     }
   }
 }

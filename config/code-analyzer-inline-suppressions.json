@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "entries": [
     {
-      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckConfigService.cls",
-      "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by the controller."
-    },
-    {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckAsyncSupport.cls",
       "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata defines the packaged Check Set object and must remain available to authorized async runners."
+    },
+    {
+      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckConfigService.cls",
+      "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata configuration is framework setup data; access is enforced by the controller."
     },
     {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckConfigService.cls",
@@ -70,12 +70,20 @@
       "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Validator intentionally reads framework Custom Metadata setup records."
     },
     {
+      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckPreviewService.cls",
+      "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata is server-owned package configuration and is authorized before discovery."
+    },
+    {
+      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckPreviewService.cls",
+      "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata identity is server-owned configuration used to prevent a detached caller from forging an inactive Check."
+    },
+    {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckQuerySchemaValidator.cls",
       "marker": "@SuppressWarnings('PMD.IfStmtsMustUseBraces,PMD.IfElseStmtsMustUseBraces')"
     },
     {
-      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePipeline.cls",
-      "marker": "// code-analyzer-suppress-next-line ApexSOQLInjection: object and field identifiers are resolved from Schema describe metadata, recordIds is a bind variable, and the query runs WITH USER_MODE."
+      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckReadinessService.cls",
+      "marker": "// code-analyzer-suppress-next-line ApexCRUDViolation: The authorized service writes server-owned immutable receipt evidence that administrators cannot forge through package permissions."
     },
     {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePlanner.cls",
@@ -84,6 +92,10 @@
     {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePlannerTest.cls",
       "marker": "// code-analyzer-suppress-next-line OperationWithLimitsInLoop: This boundary test deliberately consumes all but two query slots so the planner must reject three-slot comparison work before execution."
+    },
+    {
+      "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopeRecordLoader.cls",
+      "marker": "// code-analyzer-suppress-next-line ApexSOQLInjection: identifiers are Schema-resolved, IDs are bound, and USER_MODE enforces access."
     },
     {
       "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckSetPicklist.cls",

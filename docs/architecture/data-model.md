@@ -14,10 +14,10 @@ create a result-history table.
 
 Record Health Check stores its configuration in two Custom Metadata Types:
 
-| Custom Metadata Type | What one record represents |
-| --- | --- |
-| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) | A group of Checks for one Salesforce object and the way its Lightning card behaves |
-| **Record Health Check** (`Record_Health_Check__mdt`) | One data-quality question, how to evaluate it, and what to show when it passes, fails, is skipped, or cannot be evaluated |
+| Custom Metadata Type                                         | What one record represents                                                                                                |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| **Record Health Check Set** (`Record_Health_Check_Set__mdt`) | A group of Checks for one Salesforce object and the way its Lightning card behaves                                        |
+| **Record Health Check** (`Record_Health_Check__mdt`)         | One data-quality question, how to evaluate it, and what to show when it passes, fails, is skipped, or cannot be evaluated |
 
 Every Check must belong to one Check Set through the required **Check Set**
 (`Record_Health_Check_Set__c`) Custom Metadata relationship. A Check Set can contain many Checks.
@@ -62,10 +62,10 @@ Qualified API Name.
 
 Example:
 
-| Check | Developer Name | Evaluation Order | Prerequisite Check |
-| --- | --- | --- | --- |
-| Billing country is present | `Billing_Country_Present` | 10 | Leave blank |
-| Billing state is valid | `Billing_State_Valid` | 20 | `Billing_Country_Present` |
+| Check                      | Developer Name            | Evaluation Order | Prerequisite Check        |
+| -------------------------- | ------------------------- | ---------------- | ------------------------- |
+| Billing country is present | `Billing_Country_Present` | 10               | Leave blank               |
+| Billing state is valid     | `Billing_State_Valid`     | 20               | `Billing_Country_Present` |
 
 Salesforce runs `Billing_State_Valid` only when `Billing_Country_Present` returns `PASS`. A missing,
 later, or circular prerequisite is reported by the Check Set validation and produces the documented
@@ -92,14 +92,14 @@ your reporting requirement needs, configure field-level security, create a tab o
 users require one, and use the [Flow action](../flow-guides/run-a-check.md) to map returned result fields into a
 Create Records element. These are customer-owned components and are not installed by the package.
 
-| Example custom field | Suggested API name | Value to save |
-| --- | --- | --- |
-| Checked Record ID | `Checked_Record_Id__c` | `result.evaluation.recordId` |
-| Check API Name | `Check_API_Name__c` | `result.evaluation.checkQualifiedApiName` |
-| Status | `Status__c` | `result.evaluation.status` |
-| Reason Code | `Reason_Code__c` | `result.evaluation.reasonCode` |
-| Severity | `Severity__c` | `result.evaluation.severity` |
-| Run ID | `Run_Id__c` | `response.runId` |
+| Example custom field | Suggested API name     | Value to save                             |
+| -------------------- | ---------------------- | ----------------------------------------- |
+| Checked Record ID    | `Checked_Record_Id__c` | `result.evaluation.recordId`              |
+| Check API Name       | `Check_API_Name__c`    | `result.evaluation.checkQualifiedApiName` |
+| Status               | `Status__c`            | `result.evaluation.status`                |
+| Reason Code          | `Reason_Code__c`       | `result.evaluation.reasonCode`            |
+| Severity             | `Severity__c`          | `result.evaluation.severity`              |
+| Run ID               | `Run_Id__c`            | `response.runId`                          |
 
 The object and field names above are examples; they are not installed by Record Health Check. Save
 the returned values in your Flow or Apex process. For a complete Batch Apex example, see
@@ -111,11 +111,11 @@ Use Platform Events when a separate Flow, Apex trigger, or external integration 
 results after the run. Publishing an event does not create a reportable history record. The receiver
 must save the fields to an object if long-term storage is required.
 
-| Platform Event | What one event describes |
-| --- | --- |
-| `Record_Health_Check_Result__e` | One Check result for one checked record |
+| Platform Event                   | What one event describes                                     |
+| -------------------------------- | ------------------------------------------------------------ |
+| `Record_Health_Check_Result__e`  | One Check result for one checked record                      |
 | `Record_Health_Check_Set_Run__e` | The final Status counts for one checked record and Check Set |
-| `Record_Health_Check_Log__e` | Restricted troubleshooting detail for an `ERROR` log entry |
+| `Record_Health_Check_Log__e`     | Restricted troubleshooting detail for an `ERROR` log entry   |
 
 Programmatic Apex and Flow runs choose `NONE`, `ACTIONABLE`, or `ALL`. A person clicking the
 Lightning card's Run or Rerun button uses the two publication settings in Custom Metadata. Automatic
@@ -124,13 +124,13 @@ setting. See [Lifecycle events](../save-results/when-to-use-platform-events.md) 
 
 ## What is metadata and what is run data?
 
-| Data | Exists after installation? | Saved by the package after each run? |
-| --- | --- | --- |
-| Check Sets and Checks | Yes, as Custom Metadata | Not applicable; these records are configuration |
-| Apex or Flow response | Only during the request | No |
-| Lightning card result | Only in the current component state | No |
-| Platform Event message | Only when publication is enabled or requested | No custom-object history is created |
-| Your team's result custom object | Only if your team creates it | Yes, when your Flow or Apex code inserts a record |
+| Data                             | Exists after installation?                    | Saved by the package after each run?              |
+| -------------------------------- | --------------------------------------------- | ------------------------------------------------- |
+| Check Sets and Checks            | Yes, as Custom Metadata                       | Not applicable; these records are configuration   |
+| Apex or Flow response            | Only during the request                       | No                                                |
+| Lightning card result            | Only in the current component state           | No                                                |
+| Platform Event message           | Only when publication is enabled or requested | No custom-object history is created               |
+| Your team's result custom object | Only if your team creates it                  | Yes, when your Flow or Apex code inserts a record |
 
 ## Related
 

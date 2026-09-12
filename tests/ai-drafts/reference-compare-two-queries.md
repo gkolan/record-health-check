@@ -8,30 +8,42 @@ This Check compares the number of open Opportunities on an Account against the n
 
 None. The requirement supplies all API names and business logic.
 
+## Execution and result-delivery plan
+
+- **Entry:** Lightning record card, running the complete Check Set synchronously when the user
+  selects Run.
+- **Principal and scope:** The interactive Account user evaluates one Account and only the open
+  Opportunities and line items visible through that user's access.
+- **Exit:** The card displays the comparison and guidance. Platform Event publication remains off;
+  there is no separate consumer or durable result history.
+- **Failure and recovery:** Query access or configuration problems remain UNABLE_TO_EVALUATE or
+  ERROR health outcomes; browser or Apex execution failures follow administrator diagnostics.
+
 ## Check Set table
 
-| Setup label              | API field name            | Proposed value                          | Why                                              |
-| ------------------------ | ------------------------- | --------------------------------------- | ------------------------------------------------ |
-| Label                    | MasterLabel               | Account Opportunity Products            | Describes this Check Set's purpose               |
-| Developer Name           | DeveloperName             | account_opportunity_products            | Administrator-created name; no rhc\_\_ prefix    |
-| Object                   | ObjectApiName\_\_c        | Account                                 | Base object for the card                         |
-| Active                   | IsActive\_\_c             | ✓ (checked)                             | Default is true; Check Set is active             |
-| Card Title               | CardTitle\_\_c            | Opportunity Product Coverage            | Titles the card on the Account page              |
-| Card Subtitle            | CardSubtitle\_\_c         | Verify open opportunities have products | Explains what the card covers for this object    |
-| Card Run Mode            | CardRunMode\_\_c          | RUN_ON_REQUEST                          | User clicks Run to trigger the check             |
-| Card Reveal Mode         | CardRevealMode\_\_c       | ONE_BY_ONE                              | Default reveal mode; Checks appear one at a time |
-| Summary Display          | SummaryDisplay\_\_c       | BOTTOM                                  | Summary shows below the Checks                   |
-| Passed Checks Display    | PassedChecksDisplay\_\_c  | SHOW_EACH_CHECK                         | Default; show each passed Check row              |
-| Skipped Checks Display   | SkippedChecksDisplay\_\_c | SHOW_EACH_CHECK                         | Default; show each skipped Check row             |
-| Found / Expected Display | FoundExpectedDisplay\_\_c | ON_DEMAND                               | Default; display on demand                       |
-| Run Button Display       | RunButtonDisplay\_\_c     | LABEL_AND_ICON                          | Default; show both label and icon                |
-| Run Button Label         | RunButtonLabel\_\_c       | Run                                     | Default label; explicit to make it editable      |
-| Rerun Button Label       | RerunButtonLabel\_\_c     | Rerun                                   | Default label; explicit to make it editable      |
-| Run Button Icon          | RunButtonIcon\_\_c        | utility:refresh                         | Standard SLDS refresh icon                       |
-| Stop on System Error     | StopOnSystemError\_\_c    | (unchecked)                             | Default is false; continue on error              |
-| Show Diagnostics         | ShowDiagnostics\_\_c      | (unchecked)                             | Default is false; diagnostics off in production  |
-| Publish User Run Event   | PublishUserRunEvent\_\_c  | (unchecked)                             | Default is false; no platform events             |
-| Publish Error Log Event  | PublishErrorLogEvent\_\_c | (unchecked)                             | Default is false; no platform events             |
+| Setup label              | API field name            | Proposed value                          | Why                                                       |
+| ------------------------ | ------------------------- | --------------------------------------- | --------------------------------------------------------- |
+| Label                    | MasterLabel               | Account Opportunity Products            | Describes this Check Set's purpose                        |
+| Developer Name           | DeveloperName             | account_opportunity_products            | Administrator-created name; no rhc\_\_ prefix             |
+| Object                   | ObjectApiName\_\_c        | Account                                 | Base object for the card                                  |
+| Active                   | IsActive\_\_c             | false                                   | Keep the draft Check Set inactive until human review.     |
+| Card Title               | CardTitle\_\_c            | Opportunity Product Coverage            | Titles the card on the Account page                       |
+| Card Subtitle            | CardSubtitle\_\_c         | Verify open opportunities have products | Explains what the card covers for this object             |
+| Card Heading Display     | CardHeadingDisplay\_\_c   | TITLE_AND_SUBTITLE                      | The default; show both heading lines independently of Run |
+| Card Run Mode            | CardRunMode\_\_c          | RUN_ON_REQUEST                          | User clicks Run to trigger the check                      |
+| Card Reveal Mode         | CardRevealMode\_\_c       | ONE_BY_ONE                              | Default reveal mode; Checks appear one at a time          |
+| Summary Display          | SummaryDisplay\_\_c       | BOTTOM                                  | Summary shows below the Checks                            |
+| Passed Checks Display    | PassedChecksDisplay\_\_c  | SHOW_EACH_CHECK                         | Default; show each passed Check row                       |
+| Skipped Checks Display   | SkippedChecksDisplay\_\_c | SHOW_EACH_CHECK                         | Default; show each skipped Check row                      |
+| Found / Expected Display | FoundExpectedDisplay\_\_c | ON_DEMAND                               | Default; display on demand                                |
+| Run Button Display       | RunButtonDisplay\_\_c     | LABEL_AND_ICON                          | Default; show both label and icon                         |
+| Run Button Label         | RunButtonLabel\_\_c       | Run                                     | Default label; explicit to make it editable               |
+| Rerun Button Label       | RerunButtonLabel\_\_c     | Rerun                                   | Default label; explicit to make it editable               |
+| Run Button Icon          | RunButtonIcon\_\_c        | utility:refresh                         | Standard SLDS refresh icon                                |
+| Stop on System Error     | StopOnSystemError\_\_c    | (unchecked)                             | Default is false; continue on error                       |
+| Show Diagnostics         | ShowDiagnostics\_\_c      | (unchecked)                             | Default is false; diagnostics off in production           |
+| Publish User Run Event   | PublishUserRunEvent\_\_c  | (unchecked)                             | Default is false; no platform events                      |
+| Publish Error Log Event  | PublishErrorLogEvent\_\_c | (unchecked)                             | Default is false; no platform events                      |
 
 ## Check table
 
@@ -45,8 +57,8 @@ None. The requirement supplies all API names and business logic.
 | Evaluation Type               | EvaluationType\_\_c              | COMPARE_TWO_QUERIES                                                                                                                                    | Required; compares two SOQL queries                                                    |
 | Category                      | Category\_\_c                    | RELATIONSHIP_COVERAGE                                                                                                                                  | Relationship coverage between Opportunity and OpportunityLineItem                      |
 | Failure Severity              | FailureSeverity\_\_c             | WARNING                                                                                                                                                | Optional; default is WARNING                                                           |
-| Evaluation Order              | EvaluationOrder\_\_c             | 100                                                                                                                                                    | Default; determines run order                                                          |
-| Active                        | IsActive\_\_c                    | ✓ (checked)                                                                                                                                            | Default is true; Check is active                                                       |
+| Evaluation Order              | EvaluationOrder\_\_c             | 100                                                                                                                                                    | Default presentation order; dependency scheduling is resolved separately               |
+| Active                        | IsActive\_\_c                    | false                                                                                                                                                  | Keep the draft Check inactive until human review.                                      |
 | Failure Message               | FailureMessage\_\_c              | {!record.Name fallback="this record"} has {!rhcResult.failedRecordCount} open Opportunit{!rhcResult.foundValuePluralSuffix} with no products.          | Tells the user what is wrong and how many. Uses merge tokens for record name and count |
 | Unable to Evaluate Message    | UnableToEvaluateMessage\_\_c     | Check that you have Read access to the Opportunity and OpportunityLineItem objects and their IsClosed and OpportunityId fields.                        | Names what could not be reached; does not blame the user                               |
 | Fix Message                   | FixMessage\_\_c                  | Add at least one product to each open Opportunity on {!record.Name fallback="this record"}.                                                            | Tells the user what to do next                                                         |

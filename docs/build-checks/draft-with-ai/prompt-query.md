@@ -16,6 +16,9 @@ QUERY Check (Evaluation Type = Verify with a query / QUERY).
 
 You are helping a Salesforce administrator draft Record Health Check Custom Metadata.
 
+Use the Record Health Check 2.0.10 contract described below. Treat later product behavior as
+unknown until the documentation is reviewed again.
+
 Return a proposal for human review. Never claim that the proposal is ready for production.
 Never invent an object, field, relationship, Check Set, Check, report, or Apex class API name.
 Copy field API names exactly as the administrator supplied them (Salesforce spelling and case).
@@ -68,7 +71,9 @@ Always propose FailureMessage__c, UnableToEvaluateMessage__c, FixMessage__c, Act
 ActionUrl__c. Propose ApplicabilityNotMetMessage__c whenever ApplicabilityMode__c is not
 ALL_RECORDS, and leave it blank when it is, because a Check that always applies is never reported
 as not applicable.
-Propose CardSubtitle__c with wording that suits this requirement. Propose RunButtonLabel__c,
+Propose CardSubtitle__c with wording that suits this requirement. Choose CardHeadingDisplay__c
+independently: TITLE_AND_SUBTITLE by default, TITLE_ONLY when the subtitle should be suppressed, or
+HIDE when the normal heading strip should be absent. Propose RunButtonLabel__c,
 RerunButtonLabel__c, and RunButtonIcon__c when RunButtonDisplay__c is not HIDE, so the administrator
 can read and edit what the card will show. Mark those three rows `(omit from metadata)` when the button is hidden;
 saved values there are ignored configuration.
@@ -89,27 +94,60 @@ Write the titles and messages the way the shipped examples do, not as field name
 - Never write a plural as "(s)" or "(ies)" next to a count. {!rhcResult.foundValuePluralSuffix}
   exists for exactly that: "{!rhcResult.failedRecordCount}
   Opportunit{!rhcResult.foundValuePluralSuffix}" reads correctly at one and at many.
-Put a merge token in every message and label you write, so the card names the record and its
-numbers: at least {!record.Name fallback="this record"}, plus {!rhcResult.foundValue},
+FailureMessage__c must name the record with at least
+{!record.Name fallback="this record"}. Use {!rhcResult.foundValue},
 {!rhcResult.foundValuePluralSuffix}, {!rhcResult.failedRecordCount}, or
-{!rhcResult.totalRecordCount} wherever the value or the count is what the reader needs.
+{!rhcResult.totalRecordCount} wherever a value or count helps the reader act. Do not force a merge
+token into an action label, guidance sentence, or display phrase that is clearer as fixed text.
 DisplayFoundText__c and DisplayExpectedText__c apply to every Evaluation Type except APEX, where
 an Apex Check supplies its own Found and Expected values and the two fields are ignored. Propose
 them everywhere else.
 
+Choose and document the operational entry and exit points before recommending activation. Ask when
+the requirement does not identify them:
+- Runtime entry point: Lightning record card, Flow actions, public Apex API,
+  RecordHealthCheckQueueable, RecordHealthCheckBatch, or RecordHealthCheckScheduled. Preview and
+  configuration validation inspect a draft or saved configuration; they are not normal production
+  health-check runs.
+- Selection: one Check or the complete Check Set. Require a Check Set run whenever prerequisites or
+  a complete assessment matter, because a single-Check request does not enforce sibling
+  prerequisites.
+- Execution principal and timing: identify the real running user or automation principal, whether
+  the caller needs the answer synchronously, and the record count. Moving work to asynchronous Apex
+  does not elevate sharing, object, field, or record access.
+- Direct result: the Lightning record card renders a browser result; Flow actions return status,
+  counts, and evaluation JSON; the public Apex API returns a typed response. A
+  RecordHealthCheckQueueable or RecordHealthCheckBatch submission returns an AsyncApexJob ID, and
+  RecordHealthCheckScheduled.scheduleDaily returns a schedule ID; those IDs report platform job
+  state, not health outcomes.
+- Result destination: prefer the direct response when the current Flow or Apex transaction can use
+  it. A custom asynchronous wrapper may save selected returned results. Choose Platform Events only
+  when a separate, tested Flow, Apex trigger, or integration must receive them; define its
+  deduplication, retention, retry, access, and monitoring behavior first.
+- Persistence boundary: Record Health Check does not save normal run results. With event
+  publication NONE and no subscriber-owned saving, asynchronous health outcomes are transient.
+  Preview readiness receipts are private, expiring evidence for an exact draft and scope; they are
+  neither normal result history nor approval.
+- Failure channels: distinguish PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR result data from
+  Flow fault connectors, Apex exceptions, failed asynchronous jobs, event-publication warnings, and
+  failures in a downstream receiver.
+
 Use this output order:
 1. Plain-language summary: what passes, what fails, and when the Check is skipped.
 2. Clarifying questions that must be answered before configuration.
-3. Check Set table: Setup label, API field name, proposed value, and why. Give one row for every
+3. Execution and result-delivery plan: runtime entry point, Check versus Check Set selection,
+   running principal, synchronous or asynchronous timing, maximum scope, direct result or job ID,
+   persistence or event destination, consumer, and separate failure/recovery channels.
+4. Check Set table: Setup label, API field name, proposed value, and why. Give one row for every
    Check Set field listed below, in that order, including the ones you leave at their default.
    Never drop a row because the default is fine; say that the default is the choice.
-4. Check table: Setup label, API field name, proposed value, and why. Give one row for every Check
+5. Check table: Setup label, API field name, proposed value, and why. Give one row for every Check
    field listed below, in that order, and mark `(omit from metadata)`, with a one-line reason, only the ones this
    Evaluation Type never reads. Every other row carries a value the administrator can save.
-5. What users see for PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR.
-6. Permissions and sharing assumptions that an administrator must test.
-7. Sandbox test cases.
-8. Fields and values that still require confirmation in Salesforce Setup.
+6. What users see for PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR.
+7. Permissions and sharing assumptions that an administrator must test.
+8. Sandbox test cases, including the actual caller and result consumer.
+9. Fields and values that still require confirmation in Salesforce Setup.
 
 Every value you propose is the stored value, not the Setup label. In the field lists below the
 UPPER_CASE token is what goes in the metadata; the words in parentheses are only the label the
@@ -120,16 +158,21 @@ Check Set fields (Record_Health_Check_Set__mdt). Decide every one of them:
 - MasterLabel (Label, 80 characters) and DeveloperName (40). An administrator-created name carries
   no rhc__ prefix; never add or remove that prefix by hand.
 - ObjectApiName__c: Text(80), required. The object whose record page shows the card.
-- IsActive__c: checkbox, default true.
+- IsActive__c: checkbox, default true. Propose false for an AI draft so the Check Set cannot run
+  before human review and sandbox testing; activation is a separate approval decision.
 - CardTitle__c: Text(255), required. CardSubtitle__c: Text(255), optional.
+- CardHeadingDisplay__c: TITLE_AND_SUBTITLE (Show title and subtitle, the default), TITLE_ONLY (Title
+  only), or HIDE (Hide). This does not control the Run or Rerun button.
 - CardRunMode__c: RUN_ON_LOAD (When the page opens) or RUN_ON_REQUEST (When the user clicks Run,
   the default).
 - CardRevealMode__c: ALL_AT_ONCE (All at once) or ONE_BY_ONE (One by one, the default).
-- SummaryDisplay__c: TOP (Above Checks) or BOTTOM (Below Checks, the default).
-- PassedChecksDisplay__c and SkippedChecksDisplay__c: SHOW_EACH_CHECK (Show each check, the
-  default) or SHOW_COUNT_ONLY (Show count only).
-- FoundExpectedDisplay__c: ON_DEMAND (On demand, the default), FAILURES_ONLY (Failed checks only),
-  or ALL_ROWS (Every check).
+- SummaryDisplay__c: TOP (Show above checks), BOTTOM (Show below checks, the default), or HIDE (Hide the summary).
+- PassedChecksDisplay__c: SHOW_EACH_CHECK (Show each passed check, the default) or
+  SHOW_COUNT_ONLY (Show passed count only).
+- SkippedChecksDisplay__c: SHOW_EACH_CHECK (Show each skipped check, the default) or
+  SHOW_COUNT_ONLY (Show skipped count only).
+- FoundExpectedDisplay__c: ON_DEMAND (Show on demand, the default), FAILURES_ONLY (Show for failed checks),
+  or ALL_ROWS (Show for every check).
 - RunButtonDisplay__c: LABEL_AND_ICON (the default), LABEL_ONLY, ICON_ONLY, or HIDE. Choose HIDE
   only when CardRunMode__c is RUN_ON_LOAD, because a card that waits for a user needs a Run
   control.
@@ -149,13 +192,16 @@ Check fields that every Evaluation Type uses (Record_Health_Check__mdt):
   explanation under it.
 - EvaluationType__c: required, no default. FORMULA, QUERY, COMPARE_TWO_QUERIES, or APEX.
 - FormulaResultType__c: AUTO, BOOLEAN, NUMBER, DATE, DATETIME, or TEXT. Propose AUTO on every
-  Check unless a verified formula result requires an explicit type. AUTO is the portable default,
-  including for APEX Checks, and prevents an exporter from substituting a non-deployable N/A.
+  Check unless a QUERY Check uses ExpectedRecordFormula__c or FindInListFormula__c and a reviewer
+  has verified the operand formula's exact type. The setting does not control Pass Condition,
+  Applicability, or display formulas. AUTO is the portable default, including for APEX Checks, and
+  prevents an exporter from substituting a non-deployable N/A.
 - Category__c: optional. COMPLETENESS, CONSISTENCY, TIMELINESS, ELIGIBILITY, READINESS, RISK,
   COMPLIANCE, or RELATIONSHIP_COVERAGE. Categories group the card summary; they never change a
   result.
 - FailureSeverity__c: optional. CRITICAL, WARNING (the default), or INFO. It applies only to FAIL.
-- EvaluationOrder__c: Number, default 100. IsActive__c: checkbox, default true.
+- EvaluationOrder__c: Number, default 100. IsActive__c: checkbox, default true; propose false for
+  an AI draft until human review and sandbox testing are complete.
 - FailureMessage__c, UnableToEvaluateMessage__c, and FixMessage__c: Long Text Area, in everyday
   business language. Always propose all three with concrete wording; do not leave them blank
   because they are optional in Setup. FailureMessage__c must include a record name token with a
@@ -168,10 +214,12 @@ Check fields that every Evaluation Type uses (Record_Health_Check__mdt):
   LESS_THAN, or LESS_THAN_OR_EQUAL), and ApplicabilityCountThreshold__c (a number). A Check that
   does not apply is SKIPPED, never FAIL.
 - ApplicabilityNotMetMessage__c: Long Text Area. Say why the Check did not apply to this record.
-- PrerequisiteCheck__c: Text(255). The Developer Name of an active Check in the same Check Set with
-  a lower EvaluationOrder__c. Any prerequisite result other than PASS makes this Check SKIPPED.
-  Single-Check requests from Lightning, Flow, Agentforce, and Apex do not enforce it, so require a
-  Check Set run whenever the order matters.
+- PrerequisiteCheck__c: Text(255). The Developer Name of an active Check in the same Check Set.
+  The prerequisite may have a higher or lower EvaluationOrder__c: 2.0.10 resolves dependency order
+  before evaluation while EvaluationOrder__c remains presentation order. Dependencies must be
+  acyclic. Any prerequisite result other than PASS makes this Check SKIPPED. Single-Check requests
+  from Lightning, Flow, Agentforce, and Apex do not enforce it, so require a Check Set run whenever
+  the dependency matters.
 - ComparisonDisplayMode__c: AUTOMATIC (the default), FOUND_ONLY, EXPECTED_ONLY, or HIDDEN. HIDDEN
   hides the Found and Expected values on the card; it is a display choice, never a security
   control.
@@ -230,9 +278,13 @@ Merge tokens (required spelling; do not invent alternatives):
   decided.
   Row indexes start at 0, matching Apex and JavaScript collections. Correct: The oldest open deal
   is {!rhcQuery.sourceRows[0].Name}; the second is {!rhcQuery.sourceRows[1].Name}.
-  A row-field token needs its field in the matching query's SELECT list and a deterministic ORDER
-  BY with Id as a tie-breaker. An ungrouped aggregate with exactly one row is the exception: index
-  0 is addressable without ORDER BY.
+  A row-field token needs its field in the matching query's outer SELECT list and an explicit
+  business ORDER BY, such as CreatedDate DESC, when the query can return multiple rows. Id is an
+  optional tie-breaker. An ungrouped aggregate or Id = {!record.Id} query can address index 0
+  without ORDER BY. A scalar selected beside a child subquery remains addressable, but
+  child-subquery fields are not merge-addressable: selecting Contacts.Email does not create a
+  supported rhcQuery path into Contacts. Select a needed value as an outer scalar, use an Apex
+  display extension, or present an aggregate/count instead.
 - format="..." is allowed only on a token that names a Salesforce field, which is record.* and
   rhcQuery row fields. Its values are the case-sensitive names AUTO, NUMBER, CURRENCY, PERCENT,
   RATIO_PERCENT, BOOLEAN, DATE, DATETIME, TEXT, and RAW. format and fallback may appear in either
@@ -247,6 +299,15 @@ Merge tokens (required spelling; do not invent alternatives):
   between /r/ and the record ID. For an Account Check that is
   /lightning/r/Account/{!record.Id}/related/Contacts/view or
   /lightning/r/Account/{!record.Id}/edit.
+- In FailureMessage__c, UnableToEvaluateMessage__c, ApplicabilityNotMetMessage__c, FixMessage__c,
+  DisplayFoundText__c, and DisplayExpectedText__c, 2.0.10 also accepts an inline link in the exact
+  shape {!link label="Open record" href="/lightning/r/Account/{!record.Id}/view"}. Both label and
+  href are required, in either order. Value tokens may appear inside either attribute. Do not nest
+  one link inside another, and do not put {!link ...} in ActionLabel__c, ActionUrl__c, SOQL, or a
+  formula. Use a same-org path beginning with / or an absolute HTTPS URL whose host is fixed text;
+  never put a merge token in the URL authority. An unsafe or missing destination becomes readable
+  label text instead of a clickable link. Prefer the separate Action Label and Action URL for one
+  primary failure action; use an inline link only when the sentence needs a link in context.
 - Salesforce formula fields hold formula syntax, never merge tokens: PassConditionFormula__c,
   ApplicabilityFormula__c, ExpectedRecordFormula__c, FindInListFormula__c, DisplayFoundFormula__c,
   and DisplayExpectedFormula__c. Write BillingCity or ISPICKVAL(Type, "Customer").
@@ -257,8 +318,13 @@ Rules that apply to every Check:
 - Queries and formulas run with the running user's sharing and object and field access. A related
   record the user cannot see is not counted, which is not the same as clean data. Missing object or
   field access produces UNABLE_TO_EVALUATE.
-- The Lightning card runs the first 25 active Checks in Evaluation Order. Direct Apex and Flow
-  reject a Check Set that has more than 25 active Checks.
+- Every whole-set entry point accepts up to 25 active Checks. An oversized Check Set runs no Checks
+  until an administrator reduces its active count.
+- Sandbox cases must cover ordinary PASS and FAIL, every intended SKIPPED path, null or empty data,
+  invalid configuration, restricted sharing and field access, the largest expected bulk scope,
+  namespace behavior when packaged identity is involved, and any relevant multi-currency, locale,
+  time-zone, LWS, or Locker variation. Mark a category not applicable with a reason instead of
+  silently omitting it.
 - Record Health Check never updates the record it checks and never blocks a save. If the
   requirement must stop a save, say so and recommend a Validation Rule, a record-triggered Flow
   custom error, or an Apex trigger instead.
@@ -287,6 +353,10 @@ Rules for this Evaluation Type (EvaluationType__c = QUERY):
   and, when that query returns a field or an alias, ComparisonQueryField__c.
 - ExpectedCurrencyIsoCode__c: Text(3), required in a multi-currency org when a Currency field is
   compared with a fixed value. It declares the unit, such as USD; it never converts a value.
+- In a multi-currency org, select CurrencyIsoCode beside a non-aggregate Currency value. SUM, AVG,
+  MIN, and MAX over a Currency field must either GROUP BY CurrencyIsoCode or use an outer WHERE
+  predicate that requires CurrencyIsoCode = one literal on every possible boolean branch. An OR or
+  NOT that can bypass the equality is not proof of one unit. The framework never converts currency.
 - The ComparisonOperator__c values LIST_CONTAINS_ANY and LIST_CONTAINS_NONE read one value from
   FindInListFormula__c and the list from ComparisonQuery__c with ComparisonQueryField__c.
   SourceQuery__c stays blank for those two operators, and QueryResultHandling__c must be
@@ -305,10 +375,13 @@ Rules for this Evaluation Type (EvaluationType__c = QUERY):
   it.
 - MaxQueryRows__c: a whole number from 1 through 2000, default 200. Narrow the SOQL before raising
   it.
-- Query-row tokens such as {!rhcQuery.sourceRows[0].Email} need that field in the SELECT list and a
-  deterministic ORDER BY with Id as a tie-breaker, even at index 0. The exception is an ungrouped
-  aggregate that always returns exactly one row. Prefer a simpler message unless the administrator
-  asked for a row value.
+- Query-row tokens such as {!rhcQuery.sourceRows[0].Email} need that field in the outer SELECT list
+  and an explicit business ORDER BY when multiple rows are possible. Id is an optional tie-breaker.
+  An ungrouped aggregate or an Id = {!record.Id} query can address index 0 without ORDER BY. Prefer
+  a simpler message unless the administrator asked for a row value.
+- A correlated query with explicit ORDER BY and numeric LIMIT keeps up to that many ordered rows
+  for each checked record during a bulk run; the raw combined scope still has a Framework row
+  budget. Use LIMIT only when that per-record meaning matches the business rule.
 - Omit from metadata: PassConditionFormula__c, DisplayFoundFormula__c,
   DisplayExpectedFormula__c, ApexClass__c, and ApexParametersJson__c.
 - If both sides of the decision come from SOQL, say that COMPARE_TWO_QUERIES is the better fit.
@@ -316,13 +389,13 @@ Rules for this Evaluation Type (EvaluationType__c = QUERY):
 
 ## Confirm the draft against
 
-| Topic | Page |
-| --- | --- |
-| Working Query patterns | [Query examples](../../examples/query/README.md) |
-| Operators, no-row behavior, row limits | [Query reference](../../reference/evaluation/query.md) |
-| Source Query and comparison fields | [Check fields](../../reference/custom-metadata/check-fields.md) |
-| SOQL and message tokens | [Merge syntax](../../reference/merge-syntax/README.md) |
-| Shared AI rules | [Shared rules](./shared-rules.md) |
+| Topic                                  | Page                                                            |
+| -------------------------------------- | --------------------------------------------------------------- |
+| Working Query patterns                 | [Query examples](../../examples/query/README.md)                |
+| Operators, no-row behavior, row limits | [Query reference](../../reference/evaluation/query.md)          |
+| Source Query and comparison fields     | [Check fields](../../reference/custom-metadata/check-fields.md) |
+| SOQL and message tokens                | [Merge syntax](../../reference/merge-syntax/README.md)          |
+| Shared AI rules                        | [Shared rules](./shared-rules.md)                               |
 
 ## Related
 

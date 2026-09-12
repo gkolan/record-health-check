@@ -21,12 +21,19 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
     result.evaluatorType = template.evaluatorType;
     result.status = outcome.status;
     result.reasonCode = outcome.reasonCode;
+    result.reasonOrigin = 'PLUGIN';
+    result.pluginInvoked = true;
     result.actualValue = renderValue(outcome.found);
     result.expectedValue = renderValue(outcome.expected);
     result.operandsRecorded = true;
     result.evaluationFound = outcome.found;
     result.evaluationExpected = outcome.expected;
     result.evaluationComparisonOperator = outcome.comparisonOperator;
+    result.evidence = outcome.evidence?.snapshot();
+    List<RecordHealthCheckOutcomeValidator.Violation> violations = RecordHealthCheckOutcomeValidator.validate(
+      outcome
+    );
+    result.pluginValueViolation = violations.isEmpty() ? null : violations[0];
     return result;
   }
 
@@ -37,7 +44,9 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
     }
     if (value.isList()) {
       List<String> members = value.storedValues;
-      return members == null ? null : String.join(members, ', ');
+      return members == null
+        ? null
+        : members.isEmpty() ? '0 items' : String.join(members, ', ');
     }
     return value.storedValue;
   }
@@ -59,11 +68,17 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
     RecordHealthCheckInternalResult apexResult,
     RecordHealthCheckFormulaEvaluator formulaEvaluator
   ) {
-    if (!VALID_STATUSES.contains(apexResult.status)) {
+    if (
+      apexResult.pluginValueViolation?.reasonCode ==
+      RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID ||
+      (!VALID_STATUSES.contains(apexResult.status) &&
+      apexResult.pluginValueViolation == null)
+    ) {
       return contractError(
         check,
         fallbackResult,
         RecordHealthCheckReasonCodes.PLUGIN_STATUS_INVALID,
+        apexResult.reasonCode,
         '"' +
           check.ApexClass__c +
           '" returned an unsupported status: "' +
@@ -72,13 +87,17 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
       );
     }
     if (
+      apexResult.pluginValueViolation?.reasonCode ==
+      RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID ||
+      (apexResult.pluginValueViolation == null &&
       apexResult.reasonCode != null &&
-      apexResult.reasonCode.length() > REASON_CODE_MAX
+      apexResult.reasonCode.length() > REASON_CODE_MAX)
     ) {
       return contractError(
         check,
         fallbackResult,
         RecordHealthCheckReasonCodes.PLUGIN_REASON_CODE_INVALID,
+        apexResult.reasonCode,
         '"' +
           check.ApexClass__c +
           '" returned a reason code longer than ' +
@@ -92,25 +111,42 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
         check,
         fallbackResult,
         RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID,
+        apexResult.reasonCode,
         '"' + check.ApexClass__c + '" ' + displayContractError
       );
     }
     if (
       (apexResult.status == 'PASS' || apexResult.status == 'FAIL') &&
+      (apexResult.pluginValueViolation?.reasonCode ==
+      RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING ||
+      (apexResult.pluginValueViolation == null &&
       (String.isBlank(apexResult.actualValue) ||
-      String.isBlank(apexResult.expectedValue))
+      String.isBlank(apexResult.expectedValue))))
     ) {
       return contractError(
         check,
         fallbackResult,
         RecordHealthCheckReasonCodes.PLUGIN_VALUES_MISSING,
-        '"' +
-          check.ApexClass__c +
-          '" returned ' +
-          apexResult.status +
-          ' without required Found / Expected values. Apex checks must set both result.actualValue and result.expectedValue for PASS and FAIL.'
+        apexResult.reasonCode,
+        apexResult.pluginValueViolation == null
+          ? 'A ' +
+            apexResult.status +
+            ' outcome must include a nonblank ' +
+            (String.isBlank(apexResult.actualValue) ? 'Found' : 'Expected') +
+            ' value.'
+          : apexResult.pluginValueViolation.message,
+        apexResult.pluginValueViolation
       );
     }
+    return enrichValidResult(check, record, apexResult, formulaEvaluator);
+  }
+
+  private static RecordHealthCheckInternalResult enrichValidResult(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult apexResult,
+    RecordHealthCheckFormulaEvaluator formulaEvaluator
+  ) {
     if (apexResult.status == 'FAIL') {
       apexResult.severity = check.FailureSeverity__c;
       if (String.isBlank(apexResult.message)) {
@@ -125,6 +161,16 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
           ? resolved
           : 'Check failed.';
       }
+    } else if (apexResult.status == 'UNABLE_TO_EVALUATE') {
+      apexResult.message = String.isNotBlank(check.UnableToEvaluateMessage__c)
+        ? check.UnableToEvaluateMessage__c
+        : 'This check could not be evaluated. Contact your administrator.';
+    } else if (apexResult.status == 'SKIPPED') {
+      apexResult.message = String.isNotBlank(
+          check.ApplicabilityNotMetMessage__c
+        )
+        ? check.ApplicabilityNotMetMessage__c
+        : 'This check does not apply to this record.';
     }
     apexResult.checkDeveloperName = check.DeveloperName;
     apexResult.label = check.CheckTitle__c;
@@ -137,12 +183,35 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
     Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult fallbackResult,
     String reasonCode,
+    String priorReasonCode,
     String detailMessage
+  ) {
+    return contractError(
+      check,
+      fallbackResult,
+      reasonCode,
+      priorReasonCode,
+      detailMessage,
+      null
+    );
+  }
+
+  private static RecordHealthCheckInternalResult contractError(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckInternalResult fallbackResult,
+    String reasonCode,
+    String priorReasonCode,
+    String detailMessage,
+    RecordHealthCheckOutcomeValidator.Violation valueViolation
   ) {
     fallbackResult.status = 'ERROR';
     fallbackResult.reasonCode = reasonCode;
+    fallbackResult.reasonOrigin = 'FRAMEWORK';
+    fallbackResult.priorReasonCode = priorReasonCode;
+    fallbackResult.pluginInvoked = true;
     fallbackResult.message = safeCannotEvaluateMessage(check);
     fallbackResult.detailMessage = detailMessage;
+    fallbackResult.pluginValueViolation = valueViolation;
     return fallbackResult;
   }
 

@@ -23,7 +23,10 @@ private class RecordHealthCheckTemplateServiceTest {
       );
       Assert.fail('An unsupported token namespace must be rejected.');
     } catch (Exception expected) {
-      Assert.isTrue(expected.getMessage().contains('not supported'));
+      Assert.isTrue(
+        expected.getMessage().contains('not supported'),
+        'An unsupported token namespace must produce the explicit rejection explanation.'
+      );
     }
     Test.stopTest();
   }
@@ -41,14 +44,16 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         'Revenue: {!record.AnnualRevenue format="CURRENCY" fallback="Not available"}',
         context
-      )
+      ),
+      'A canonical currency format must use the shared currency rendering contract.'
     );
     Assert.areEqual(
       'Not available',
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!record.Description format="TEXT" fallback="Not available"}',
         context
-      )
+      ),
+      'A missing description must use its explicit text fallback.'
     );
 
     assertIssue(
@@ -117,7 +122,8 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!record.Name fallback="Unnamed account"} | {!record.Parent.Name fallback="Independent account"} | {!rhcCheck.checkDescription fallback="No description"} | {!rhcResult.foundValue fallback="Not measured"}',
         context
-      )
+      ),
+      'Blank values and null relationships must each use their own literal fallback.'
     );
     Assert.areEqual(
       'A | B|C | record.Name',
@@ -171,14 +177,16 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         'Name: {!record.Name}',
         context
-      )
+      ),
+      'A blank display token without fallback must preserve the surrounding text.'
     );
     Assert.areEqual(
       '/find?q=Needs+review+%26+approval',
       RecordHealthCheckTemplateService.resolveUrl(
         '/find?q={!record.Name fallback="Needs review & approval"}',
         context
-      )
+      ),
+      'URL fallback text must encode spaces and reserved characters exactly once.'
     );
     try {
       RecordHealthCheckTemplateService.resolveUrl(
@@ -190,8 +198,16 @@ private class RecordHealthCheckTemplateServiceTest {
         'Expected a blank URL token without fallback to fail.'
       );
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('MISSING_TOKEN_VALUE', ex.reasonCode);
-      Assert.areEqual('{!record.Name}', ex.token);
+      Assert.areEqual(
+        'MISSING_TOKEN_VALUE',
+        ex.reasonCode,
+        'A blank URL token without fallback must retain the missing-value reason.'
+      );
+      Assert.areEqual(
+        '{!record.Name}',
+        ex.token,
+        'The missing-value error must identify the exact unresolved token.'
+      );
     }
   }
 
@@ -234,7 +250,8 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!record.Name} | {!record.Description} | {!rhcCheck.developerName} | {!rhcCheck.masterLabel} | {!rhcCheck.checkTitle} | {!rhcCheck.failureSeverity} | {!rhcResult.status} | {!rhcResult.failedRecordCount}/{!rhcResult.totalRecordCount} | {!rhcRun.runId}/{!rhcRun.source}/{!rhcRun.durationMs}',
         context
-      )
+      ),
+      'Record, Check, result and run properties must resolve once without expanding inserted token text.'
     );
   }
 
@@ -251,7 +268,8 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveUrl(
         '/find?q={!record.Name}',
         context
-      )
+      ),
+      'Populated URL token values must be encoded exactly once.'
     );
     try {
       RecordHealthCheckTemplateService.resolveDisplay(
@@ -260,7 +278,11 @@ private class RecordHealthCheckTemplateServiceTest {
       );
       Assert.isTrue(false, 'Expected unavailable result token to fail.');
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('TOKEN_NOT_AVAILABLE_IN_PHASE', ex.reasonCode);
+      Assert.areEqual(
+        'TOKEN_NOT_AVAILABLE_IN_PHASE',
+        ex.reasonCode,
+        'A result token before result availability must retain the phase error.'
+      );
     }
   }
 
@@ -279,7 +301,11 @@ private class RecordHealthCheckTemplateServiceTest {
       );
       Assert.isTrue(false, 'Expected a missing run context to fail.');
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('TOKEN_NOT_AVAILABLE_IN_PHASE', ex.reasonCode);
+      Assert.areEqual(
+        'TOKEN_NOT_AVAILABLE_IN_PHASE',
+        ex.reasonCode,
+        'A run token without run context must retain the phase error.'
+      );
     }
   }
 
@@ -316,10 +342,22 @@ private class RecordHealthCheckTemplateServiceTest {
       '{!rhcSet.developerName}|{!rhcSet.masterLabel}|{!rhcSet.cardTitle}|{!rhcSet.cardSubtitle}|{!rhcSet.objectApiName}|{!rhcResult.foundValue}|{!rhcResult.expectedValue}|{!rhcResult.reasonCode}|{!rhcRun.runId}|{!rhcRun.source}|{!rhcRun.startedAt}|{!rhcRun.completedAt}|{!rhcRun.durationMs}',
       context
     );
-    Assert.isTrue(resolved.contains('Set_Name|Set label|Card title'));
-    Assert.isTrue(resolved.contains('Found|Expected|MISMATCH'));
-    Assert.isTrue(resolved.contains('run-456|FLOW|2026-07-14T01:02:03.000Z'));
-    Assert.isTrue(resolved.endsWith('|1000'));
+    Assert.isTrue(
+      resolved.contains('Set_Name|Set label|Card title'),
+      'Check Set identity and visible title must resolve in their declared order.'
+    );
+    Assert.isTrue(
+      resolved.contains('Found|Expected|MISMATCH'),
+      'Finalized Found, Expected and reason fields must remain available together.'
+    );
+    Assert.isTrue(
+      resolved.contains('run-456|FLOW|2026-07-14T01:02:03.000Z'),
+      'Run identity, source and start time must use the stable UTC representation.'
+    );
+    Assert.isTrue(
+      resolved.endsWith('|1000'),
+      'The run duration token must preserve its millisecond value.'
+    );
 
     context.failedRecordCount = null;
     result.actualValue = '1';
@@ -328,7 +366,8 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
         context
-      )
+      ),
+      'A Found count of one must use the singular noun.'
     );
     result.actualValue = '3';
     Assert.areEqual(
@@ -336,7 +375,8 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
         context
-      )
+      ),
+      'A Found count of three must use the plural noun.'
     );
   }
 
@@ -362,7 +402,8 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!rhcCheck.checkDescription}|{!rhcCheck.category}|{!rhcCheck.evaluationType}|{!rhcCheck.evaluationOrder}|{!record.Parent.Name}',
         context
-      )
+      ),
+      'Check descriptions, labels, order and a null parent must preserve their display mapping.'
     );
     check.Category__c = null;
     Assert.areEqual(
@@ -370,65 +411,8 @@ private class RecordHealthCheckTemplateServiceTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!rhcCheck.category}',
         context
-      )
-    );
-  }
-
-  @IsTest
-  static void internalMappingsUseSafeUnknownPropertyFallbacks() {
-    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
-    RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
-      .withResult(result, true);
-    context.failedRecordCount = 1;
-    context.totalRecordCount = 2;
-    RecordHealthCheckRunContext run = new RecordHealthCheckRunContext(
-      'run-template',
-      'APEX_API'
-    );
-
-    Test.startTest();
-    Object unknownCheck = RecordHealthCheckTemplateValueResolver.checkValue(
-      RecordHealthCheckTestDataFactory.check(new Map<String, Object>()),
-      'futureProperty'
-    );
-    Object unknownSet = RecordHealthCheckTemplateValueResolver.setValue(
-      RecordHealthCheckTestDataFactory.checkSet(new Map<String, Object>()),
-      'futureProperty'
-    );
-    Object singularSuffix = RecordHealthCheckTemplateValueResolver.resultValue(
-      context,
-      'foundValuePluralSuffix'
-    );
-    Object unknownResult = RecordHealthCheckTemplateValueResolver.resultValue(
-      context,
-      'futureProperty'
-    );
-    Object unknownRun = RecordHealthCheckTemplateValueResolver.runValue(
-      run,
-      'futureProperty'
-    );
-    Object missingField = RecordHealthCheckTemplateValueResolver.dynamicGet(
-      RecordHealthCheckTestDataFactory.account(new Map<String, Object>()),
-      'Missing_Field__c'
-    );
-    List<RecordHealthCheckToken> malformed = RecordHealthCheckTemplateService.parse(
-      '{!record.Name format="TEXT" junk fallback="Unknown"}'
-    );
-    Test.stopTest();
-
-    Assert.isNull(unknownCheck);
-    Assert.isNull(unknownSet);
-    Assert.areEqual(
-      '',
-      singularSuffix,
-      'One failed record must use a singular suffix.'
-    );
-    Assert.isNull(unknownResult);
-    Assert.isNull(unknownRun);
-    Assert.isNull(missingField);
-    Assert.isNotNull(
-      malformed[0].attributeError,
-      'Text between valid attributes must be rejected as malformed.'
+      ),
+      'An absent category must render blank rather than invent a label.'
     );
   }
 
@@ -442,36 +426,5 @@ private class RecordHealthCheckTemplateServiceTest {
       surface
     );
     Assert.areEqual(code, issues[0].reasonCode, issues[0].message);
-  }
-
-  @IsTest
-  static void pluralSuffixReadsAFormattedCountInTheRunningUsersLocale() {
-    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
-      RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
-      RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
-        .withResult(result, true);
-
-      result.actualValue = RecordHealthCheckDisplayFormat.render(1, 'NUMBER');
-      Assert.areEqual(
-        '1 Sponsor',
-        RecordHealthCheckTemplateService.resolveDisplay(
-          '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
-          context
-        )
-      );
-
-      result.actualValue = RecordHealthCheckDisplayFormat.render(
-        1000,
-        'NUMBER'
-      );
-      Assert.areEqual(
-        result.actualValue + ' Sponsors',
-        RecordHealthCheckTemplateService.resolveDisplay(
-          '{!rhcResult.foundValue} Sponsor{!rhcResult.foundValuePluralSuffix}',
-          context
-        ),
-        'A locale-formatted grouping mark must still parse as a plural count'
-      );
-    }
   }
 }

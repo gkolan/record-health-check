@@ -7,6 +7,7 @@ import {
   OPERATION_CHECK,
   OPERATION_CHECK_SET,
   toolInputSchema,
+  toolOutputSchema,
   type AgentToolFailure,
   type AgentToolResponse
 } from "./contract.js";
@@ -21,7 +22,7 @@ export function createToolServer(
 ): McpServer {
   const server = new McpServer({
     name: "record-health-check",
-    version: "1.0.0"
+    version: "0.1.0"
   });
   register(server, client, logger, "run_record_health_check", OPERATION_CHECK);
   register(
@@ -59,9 +60,10 @@ function register(
           : "Run Record Health Check Set",
       description:
         operation === OPERATION_CHECK
-          ? "Evaluate one configured Record Health Check against one Salesforce record."
-          : "Evaluate one configured Record Health Check Set against one Salesforce record.",
+          ? "Use when the user asks for the actual result of one specifically named Record Health Check on one Salesforce record. Supply one record ID and the exact Check QualifiedApiName copied from Salesforce; never guess, translate a label, or retry namespace variants. Read success before status: FAIL is a completed business finding and SKIPPED is not PASS. Never treat UNABLE_TO_EVALUATE or ERROR as healthy. Use only the bounded reason and diagnosis fields returned by the tool."
+          : "Use when the user asks for the overall health, readiness, completeness, or quality of one Salesforce record under one specifically named Record Health Check Set. Supply one record ID and the exact Check Set QualifiedApiName copied from Salesforce; never guess, translate a label, or retry namespace variants. Read success before status and report every count: FAIL is a completed business finding, SKIPPED is not PASS. Never treat UNABLE_TO_EVALUATE or ERROR as healthy. Use only the bounded diagnosis fields returned by the tool.",
       inputSchema: toolInputSchema,
+      outputSchema: toolOutputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -71,8 +73,12 @@ function register(
     },
     async (input) => {
       const started = Date.now();
+      const effectiveInput = {
+        ...input,
+        correlationId: input.correlationId ?? `mcp-${randomUUID()}`
+      };
       try {
-        const result = await client.evaluate({ operation, ...input });
+        const result = await client.evaluate({ operation, ...effectiveInput });
         logger.log("info", "MCP tool call completed.", {
           event: "tool_completed",
           operation,
@@ -84,7 +90,7 @@ function register(
         if (error instanceof ConcurrencyLimitError) {
           const failure: AgentToolFailure = {
             contractVersion: CONTRACT_VERSION,
-            correlationId: input.correlationId ?? `mcp-${randomUUID()}`,
+            correlationId: effectiveInput.correlationId,
             success: false,
             errorType: "LIMIT",
             errorMessage:
@@ -102,7 +108,7 @@ function register(
         if (serviceError) {
           const failure: AgentToolFailure = {
             contractVersion: CONTRACT_VERSION,
-            correlationId: input.correlationId ?? `mcp-${randomUUID()}`,
+            correlationId: effectiveInput.correlationId,
             success: false,
             errorType: errorTypeForServiceError(serviceError.code),
             errorMessage: serviceError.safeMessage
@@ -137,13 +143,37 @@ function register(
 }
 
 function toolResult(result: AgentToolResponse) {
-  const summary =
-    "operation" in result
-      ? `${result.operation} completed with status ${result.status}. Correlation ID: ${result.correlationId}.`
-      : `${result.errorType}: ${result.errorMessage} Correlation ID: ${result.correlationId}.`;
+  const summary = summarizeResult(result);
   return {
     isError: !result.success,
     content: [{ type: "text" as const, text: summary }],
     structuredContent: result
   };
+}
+
+function summarizeResult(result: AgentToolResponse): string {
+  if (!result.success) {
+    return `${result.errorType}: ${result.errorMessage} No health conclusion was reached. Correlation ID: ${result.correlationId}.`;
+  }
+  const details = [
+    `${result.operation} completed with status ${result.status}.`
+  ];
+  if (result.operation === OPERATION_CHECK_SET) {
+    details.push(
+      `Counts: passed=${result.passed}, failed=${result.failed}, skipped=${result.skipped}, unable=${result.unable}, systemError=${result.systemError}.`
+    );
+  } else if (result.reasonCode) {
+    details.push(`Reason code: ${result.reasonCode}.`);
+  }
+  if (result.diagnosticSummary) {
+    details.push(`Diagnosis: ${result.diagnosticSummary}`);
+  }
+  if (result.recommendedAction) {
+    details.push(`Recommended action: ${result.recommendedAction}`);
+  }
+  if (result.diagnosticId) {
+    details.push(`Diagnostic ID: ${result.diagnosticId}.`);
+  }
+  details.push(`Correlation ID: ${result.correlationId}.`);
+  return details.join(" ");
 }

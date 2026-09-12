@@ -11,10 +11,15 @@ private class RecordHealthCheckQueryProjectionTest {
       'SELECT Id, Name, Owner.Name FROM Account ORDER BY Name DESC NULLS LAST, Id ASC LIMIT 5'
     );
     Assert.isTrue(projection.isFullyAnalyzable, 'A flat SELECT is analyzable.');
-    Assert.areEqual('Account', projection.objectApiName);
+    Assert.areEqual(
+      'Account',
+      projection.objectApiName,
+      'The scalar projection must retain the Account query root.'
+    );
     Assert.areEqual(
       new List<String>{ 'Id', 'Name', 'Owner.Name' },
-      projection.selectedPaths
+      projection.selectedPaths,
+      'The projection must retain all three selected field paths in order.'
     );
     Assert.isTrue(projection.projects('owner.name'), 'Paths ignore case.');
     Assert.isFalse(
@@ -41,6 +46,13 @@ private class RecordHealthCheckQueryProjectionTest {
         .hasStableRowOrder(),
       'Rows that tie on CreatedDate have no defined order.'
     );
+    Assert.isTrue(
+      RecordHealthCheckQueryProjection.of(
+          'SELECT Id, Name FROM Account ORDER BY CreatedDate DESC LIMIT 1'
+        )
+        .hasExplicitRowOrder(),
+      'An ordinary business sort is an explicit positional contract.'
+    );
     Assert.isFalse(
       RecordHealthCheckQueryProjection.of('SELECT Id FROM Account LIMIT 1')
         .hasStableRowOrder(),
@@ -65,7 +77,10 @@ private class RecordHealthCheckQueryProjectionTest {
       aliased.isFullyAnalyzable,
       'Aliased aggregates are readable.'
     );
-    Assert.isTrue(aliased.isAggregate);
+    Assert.isTrue(
+      aliased.isAggregate,
+      'Explicitly aliased aggregate expressions must retain the aggregate classification.'
+    );
     Assert.isTrue(
       aliased.projects('total'),
       'An explicit alias is addressable.'
@@ -113,7 +128,10 @@ private class RecordHealthCheckQueryProjectionTest {
       'SELECT Id, Name FROM Account ' +
       'WHERE Name = \'Acme, Inc. ORDER BY Nothing\' ORDER BY Id'
     );
-    Assert.isTrue(projection.isFullyAnalyzable);
+    Assert.isTrue(
+      projection.isFullyAnalyzable,
+      'Commas and clause keywords inside literals must not invalidate a flat projection.'
+    );
     Assert.areEqual(
       new List<String>{ 'Id', 'Name' },
       projection.selectedPaths,
@@ -139,7 +157,10 @@ private class RecordHealthCheckQueryProjectionTest {
       projection.hasStableRowOrder(),
       'An unreadable order is never treated as stable.'
     );
-    Assert.isFalse(projection.isFullyAnalyzable);
+    Assert.isFalse(
+      projection.isFullyAnalyzable,
+      'An unreadable ORDER BY expression must invalidate complete analysis.'
+    );
   }
 
   @IsTest
@@ -164,7 +185,11 @@ private class RecordHealthCheckQueryProjectionTest {
       semiJoin.isFullyAnalyzable,
       'A subquery in WHERE filters rows, it does not add columns.'
     );
-    Assert.areEqual(new List<String>{ 'Id', 'Name' }, semiJoin.selectedPaths);
+    Assert.areEqual(
+      new List<String>{ 'Id', 'Name' },
+      semiJoin.selectedPaths,
+      'A semi-join must retain only the outer selected field paths.'
+    );
     Assert.areEqual(
       'Account',
       semiJoin.objectApiName,

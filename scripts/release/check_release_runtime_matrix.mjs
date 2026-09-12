@@ -33,7 +33,7 @@ assertReleaseQuotaPolicy(
 releaseUpgradeBases(matrix, readPackageReleases());
 requireEqual(
   matrix.upgradeBases.map((base) => base.version),
-  ["2.0.8.1"],
+  ["2.0.9.2"],
   "Required upgrade origins"
 );
 if (
@@ -107,7 +107,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.8.1-to-2.0.9.2",
+  "upgrade-2.0.9.2-to-2.0.10.1",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -290,11 +290,11 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.9.2") {
-  errors.push("Candidate version must be exactly 2.0.9.2.");
+if (matrix.candidateVersion !== "2.0.10.1") {
+  errors.push("Candidate version must be exactly 2.0.10.1.");
 }
-if (matrix.upgradeFromVersion !== "2.0.8.1") {
-  errors.push("Upgrade base version must be exactly 2.0.8.1.");
+if (matrix.upgradeFromVersion !== "2.0.9.2") {
+  errors.push("Upgrade base version must be exactly 2.0.9.2.");
 }
 for (const scenario of requiredScenarios) {
   const evidence = matrix.lifecycleEvidence?.[scenario];

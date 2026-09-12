@@ -1393,7 +1393,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Id, LastName, CreatedDate FROM Contact WHERE AccountId = {!record.Id} ORDER BY Id",
+    "soql": "SELECT Id, LastName, CreatedDate FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate DESC",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -1426,7 +1426,7 @@
     "field": "SourceQuery__c",
     "note": "GROUP BY AccountId",
     "package": "integration-tests",
-    "soql": "SELECT Id, LastName, Email FROM Contact WHERE AccountId = {!record.Id} ORDER BY LastName",
+    "soql": "SELECT Id, LastName, Email FROM Contact WHERE AccountId = {!record.Id}",
     "strategy": "CHILD_DIRECT"
   },
   {
@@ -2488,23 +2488,23 @@
   {
     "aggregate": false,
     "bareCount": false,
-    "check": "Account_DVF_Date",
-    "correlation": "AccountId = record.Id",
-    "field": "SourceQuery__c",
-    "note": "MIN/MAX(CloseDate) GROUP BY AccountId",
-    "package": "integration-tests",
-    "soql": "SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false ORDER BY CloseDate ASC LIMIT 1",
-    "strategy": "ORDERED_PICK_AGGREGATE"
-  },
-  {
-    "aggregate": false,
-    "bareCount": false,
     "check": "Account_CTQ_T7_ContactCityMatchesBilling",
     "correlation": "AccountId = record.Id",
     "field": "SourceQuery__c",
     "note": "Selects MailingCity but orders by CreatedDate",
     "package": "integration-tests",
     "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate ASC LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_DVF_Date",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects CloseDate but orders by CloseDate",
+    "package": "integration-tests",
+    "soql": "SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false ORDER BY CloseDate ASC LIMIT 1",
     "strategy": "ORDERED_PICK_IN_MEMORY"
   },
   {
@@ -2538,6 +2538,39 @@
     "note": "Selects MailingCity but orders by CreatedDate",
     "package": "integration-tests",
     "soql": "SELECT MailingCity FROM Contact WHERE AccountId = {!record.Id} ORDER BY CreatedDate ASC LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Link_Grammar_Open",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects Id but orders by Id",
+    "package": "integration-tests",
+    "soql": "SELECT Id, Name, NumberOfEmployees, OwnerId, Owner.Name, Website FROM Account WHERE Id = {!record.Id} AND NumberOfEmployees != null ORDER BY Id LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Link_Grammar_Valid",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects Id but orders by Id",
+    "package": "integration-tests",
+    "soql": "SELECT Id, Name, NumberOfEmployees, OwnerId, Owner.Name, Website FROM Account WHERE Id = {!record.Id} AND NumberOfEmployees != null ORDER BY Id LIMIT 1",
+    "strategy": "ORDERED_PICK_IN_MEMORY"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "RHC_Link_Metadata",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Selects Id but orders by Id",
+    "package": "integration-tests",
+    "soql": "SELECT Id, Name, NumberOfEmployees, OwnerId, Owner.Name, Website FROM Account WHERE Id = {!record.Id} AND NumberOfEmployees != null ORDER BY Id LIMIT 1",
     "strategy": "ORDERED_PICK_IN_MEMORY"
   },
   {
@@ -2802,6 +2835,17 @@
     "note": "Correlation column is Id; redundant LIMIT 1 dropped",
     "package": "integration-tests",
     "soql": "SELECT Id, RHC_Encrypted_Note__c FROM Account WHERE Id = {!record.Id} ORDER BY Id",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
+    "check": "Account_Rows_Scalar_Beside_Subquery",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT Id, Website, (SELECT Id FROM Contacts LIMIT 1) FROM Account WHERE Id = {!record.Id}",
     "strategy": "SELF"
   },
   {

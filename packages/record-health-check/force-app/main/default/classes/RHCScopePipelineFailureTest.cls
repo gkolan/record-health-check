@@ -144,11 +144,13 @@ private with sharing class RHCScopePipelineFailureTest {
       );
     Assert.areEqual(
       'FIELD_NOT_RESOLVED',
-      items.get(itemKey(stored.Id)).evaluation.reasonCode
+      items.get(itemKey(stored.Id)).evaluation.reasonCode,
+      'An existing record with unresolved fields must retain the field-resolution reason.'
     );
     Assert.areEqual(
       'RECORD_NOT_VISIBLE',
-      items.get(itemKey(missingId)).evaluation.reasonCode
+      items.get(itemKey(missingId)).evaluation.reasonCode,
+      'A missing record must retain the visibility reason despite a sibling field failure.'
     );
   }
 
@@ -180,7 +182,8 @@ private with sharing class RHCScopePipelineFailureTest {
     }
     Assert.areEqual(
       RecordHealthCheckReasonCodes.GOVERNOR_LIMIT_RISK,
-      items.values()[0].evaluation.reasonCode
+      items.values()[0].evaluation.reasonCode,
+      'An exhausted bulk budget must retain the governor-risk classification.'
     );
   }
 
@@ -207,7 +210,8 @@ private with sharing class RHCScopePipelineFailureTest {
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
       Assert.areEqual(
         RecordHealthCheckReasonCodes.PLUGIN_SIDE_EFFECT_DETECTED,
-        error.reasonCode
+        error.reasonCode,
+        'A fatal plugin side effect must escape with its specific side-effect reason.'
       );
     } finally {
       RecordHealthCheckScopePipeline.evaluatorFailureOverride = null;

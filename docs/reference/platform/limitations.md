@@ -19,11 +19,11 @@ Roll-up summary fields are different: their queried value is supplied to Formula
 Check does not reproduce the roll-up query. Boolean `false` is `FAIL`; a null or unbuildable result is
 `UNABLE_TO_EVALUATE`.
 
-| Depth boundary | Ceiling | When exceeded |
-| --- | --- | --- |
-| `{!record.Parent...}` merge path | 5 relationship hops | Token validation/resolution fails; fallback is only for an optional value, not an invalid path |
-| Calculated-formula dependency expansion | 10 expansions | `UNABLE_TO_EVALUATE` / `FORMULA_DEPENDENCY_DEPTH_EXCEEDED` |
-| Salesforce cross-object formula spanning | Salesforce compiler limit (commonly 5 levels) | Salesforce rejects the formula at save/compile time |
+| Depth boundary                           | Ceiling                                       | When exceeded                                                                                  |
+| ---------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `{!record.Parent...}` merge path         | 5 relationship hops                           | Token validation/resolution fails; fallback is only for an optional value, not an invalid path |
+| Calculated-formula dependency expansion  | 10 expansions                                 | `UNABLE_TO_EVALUATE` / `FORMULA_DEPENDENCY_DEPTH_EXCEEDED`                                     |
+| Salesforce cross-object formula spanning | Salesforce compiler limit (commonly 5 levels) | Salesforce rejects the formula at save/compile time                                            |
 
 The dependency ceiling is larger because one formula input can expand through several stored formula
 fields. Keep author-written formula and merge paths within five relationship hops. For an optional
@@ -59,13 +59,13 @@ policy; never build `/lightning/r/User/{id}/view` from generic OwnerId unless it
 The packaged `AccountHasRecentActivityCheck` counts only completed Tasks and Events whose `WhatId`
 is the Account. Its bulk contract does not silently broaden to related people or child records.
 
-| Activity shape | Packaged example | Safe pattern when it must count |
-| --- | --- | --- |
-| `WhatId = Account.Id` | Counted | Use the packaged Apex Check |
-| Contact `WhoId`, null `WhatId` | Not counted | Resolve Contacts for scoped Accounts, then query activity by WhoId in Apex |
-| Lead `WhoId` | Not Account activity | Evaluate the Lead directly |
-| `TaskRelation` / `EventRelation` | Not counted | Use an org-specific, feature-aware Apex plugin |
-| Opportunity/Case `WhatId` | Not counted | Deliberately roll child activity up in custom Apex |
+| Activity shape                   | Packaged example     | Safe pattern when it must count                                            |
+| -------------------------------- | -------------------- | -------------------------------------------------------------------------- |
+| `WhatId = Account.Id`            | Counted              | Use the packaged Apex Check                                                |
+| Contact `WhoId`, null `WhatId`   | Not counted          | Resolve Contacts for scoped Accounts, then query activity by WhoId in Apex |
+| Lead `WhoId`                     | Not Account activity | Evaluate the Lead directly                                                 |
+| `TaskRelation` / `EventRelation` | Not counted          | Use an org-specific, feature-aware Apex plugin                             |
+| Opportunity/Case `WhatId`        | Not counted          | Deliberately roll child activity up in custom Apex                         |
 
 A safe bulk Who recipe queries `Contact(Id, AccountId)` once for all Account IDs, queries recent
 Task/Event rows by those WhoIds, maps each WhoId back to AccountId, seeds every requested Account
@@ -86,16 +86,16 @@ a generic “at least one Contact” Check can vacuously `PASS` without proving 
 separate business contact. Use explicit Person Account applicability instead of interpreting that
 count as relationship coverage.
 
-| Business Account concept | Person Account counterpart | Guidance |
-| --- | --- | --- |
-| `BillingStreet/City/...` | `PersonMailingStreet/City/...` | Use explicit applicability |
-| Contact `Email` | Account `PersonEmail` | Do not infer PA completeness from Contact count |
-| `Website`, `Industry` | Often not meaningful | Gate B2B checks with `NOT(IsPersonAccount)` |
-| `ParentId` hierarchy | Usually business-only | Mark hierarchy checks business-only |
-| Contact identity | `PersonContactId` | Use only in PA-enabled org-specific metadata/code |
+| Business Account concept | Person Account counterpart     | Guidance                                          |
+| ------------------------ | ------------------------------ | ------------------------------------------------- |
+| `BillingStreet/City/...` | `PersonMailingStreet/City/...` | Use explicit applicability                        |
+| Contact `Email`          | Account `PersonEmail`          | Do not infer PA completeness from Contact count   |
+| `Website`, `Industry`    | Often not meaningful           | Gate B2B checks with `NOT(IsPersonAccount)`       |
+| `ParentId` hierarchy     | Usually business-only          | Mark hierarchy checks business-only               |
+| Contact identity         | `PersonContactId`              | Use only in PA-enabled org-specific metadata/code |
 
 Business-only recipe: `NOT(IsPersonAccount)`. A PA recipe can use
-`IsPersonAccount && NOT(ISBLANK(PersonEmail))` in a PA-enabled org, but metadata containing Person*
+`IsPersonAccount && NOT(ISBLANK(PersonEmail))` in a PA-enabled org, but metadata containing Person\*
 fields is not portable to an org without the feature. Action links should target Account unless the
 implementation deliberately resolves and authorizes `PersonContactId`.
 
@@ -141,12 +141,12 @@ values.
 
 Use the smallest existing mechanism that can prove the policy:
 
-| Available evidence | Recommended Check design | Safe stale or unknown outcome |
-| --- | --- | --- |
-| Stored calculation timestamp and source `LastModifiedDate` | Formula or Compare Two Queries compares the two timestamps | `FAIL` when the source is newer; never infer freshness from the derived value alone |
-| Stored watermark and maximum permitted age | Formula compares the watermark with `NOW()` or `TODAY()` using the intended timezone/date boundary | `FAIL` outside the threshold; missing watermark follows an explicit applicability or prerequisite policy |
-| Child or aggregate source changes | Query or Compare Two Queries obtains a source maximum/change signal and compares it with the watermark | A cap, inaccessible source, or unprovable unit returns unable rather than a partial `PASS` |
-| Processing job history or external provenance | Reviewed subscriber Apex reads the authorized evidence and returns one outcome per root record within the documented limits | Missing, failed, inaccessible, or never-run evidence cannot default to `PASS` |
+| Available evidence                                         | Recommended Check design                                                                                                    | Safe stale or unknown outcome                                                                            |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Stored calculation timestamp and source `LastModifiedDate` | Formula or Compare Two Queries compares the two timestamps                                                                  | `FAIL` when the source is newer; never infer freshness from the derived value alone                      |
+| Stored watermark and maximum permitted age                 | Formula compares the watermark with `NOW()` or `TODAY()` using the intended timezone/date boundary                          | `FAIL` outside the threshold; missing watermark follows an explicit applicability or prerequisite policy |
+| Child or aggregate source changes                          | Query or Compare Two Queries obtains a source maximum/change signal and compares it with the watermark                      | A cap, inaccessible source, or unprovable unit returns unable rather than a partial `PASS`               |
+| Processing job history or external provenance              | Reviewed subscriber Apex reads the authorized evidence and returns one outcome per root record within the documented limits | Missing, failed, inaccessible, or never-run evidence cannot default to `PASS`                            |
 
 The same derived field can legitimately have different freshness policies in different
 organizations. Keeping those thresholds and evidence paths in Check configuration makes the policy

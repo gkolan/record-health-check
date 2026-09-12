@@ -27,6 +27,7 @@ import {
 } from "../lib/ai-draft-validation.mjs";
 import {
   capabilityGaps,
+  currentContractProblems,
   fieldNameProblems,
   mergeSyntaxProblems,
   picklistValueProblems,
@@ -112,6 +113,7 @@ const problems = [
   ...fieldNameProblems(pages, declared, external),
   ...picklistValueProblems(pages, picklists, reasonCodes),
   ...mergeSyntaxProblems(pages),
+  ...currentContractProblems(pages),
   ...capabilityGaps(pages, [...declared], WITHHELD)
 ];
 

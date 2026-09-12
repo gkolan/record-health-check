@@ -39,7 +39,7 @@ private class RHCMetadataDependencyValidatorTest {
       new Map<String, Object>{
         'DeveloperName' => 'Prerequisite_Check',
         'Record_Health_Check_Set__c' => checkSetId,
-        'EvaluationOrder__c' => 10
+        'EvaluationOrder__c' => 30
       }
     );
     Record_Health_Check__mdt dependent = RecordHealthCheckTestDataFactory.check(
@@ -61,7 +61,7 @@ private class RHCMetadataDependencyValidatorTest {
     Assert.areEqual(
       0,
       issues.size(),
-      'A dependency on an earlier Check in the same Check Set should be valid.'
+      'A dependency on a later displayed Check should be valid.'
     );
   }
 
@@ -108,7 +108,7 @@ private class RHCMetadataDependencyValidatorTest {
   }
 
   @IsTest
-  static void rejectsDependencyWithMissingEvaluationOrder() {
+  static void acceptsDependencyWithoutUsingDisplayOrder() {
     Id checkSetId = RecordHealthCheckTestDataFactory.syntheticId(
       Record_Health_Check_Set__mdt.SObjectType,
       3
@@ -133,10 +133,51 @@ private class RHCMetadataDependencyValidatorTest {
       new List<Record_Health_Check__mdt>{ prerequisite, dependent }
     );
 
-    Assert.areEqual(1, issues.size());
-    Assert.isTrue(
-      issues[0].message.contains('must have an Evaluation Order'),
-      'Validation must explain why nullable dependency ordering is unsafe.'
+    Assert.areEqual(
+      0,
+      issues.size(),
+      'Dependency validity must not be coupled to presentation order.'
+    );
+  }
+
+  @IsTest
+  static void rejectsDependencyCycle() {
+    Id checkSetId = RecordHealthCheckTestDataFactory.syntheticId(
+      Record_Health_Check_Set__mdt.SObjectType,
+      4
+    );
+    Record_Health_Check__mdt first = check(
+      checkSetId,
+      'First',
+      'First',
+      10,
+      'Second'
+    );
+    Record_Health_Check__mdt second = check(
+      checkSetId,
+      'Second',
+      'Second',
+      20,
+      'First'
+    );
+
+    Test.startTest();
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RHCMetadataDependencyValidator.validate(
+      'Set',
+      new List<Record_Health_Check__mdt>{ first, second }
+    );
+    Test.stopTest();
+
+    Assert.areEqual(2, issues.size(), 'Every cycle member must be identified.');
+    Assert.areEqual(
+      'INVALID_DEPENDENCY',
+      issues[0].reasonCode,
+      'The first cycle member must report INVALID_DEPENDENCY.'
+    );
+    Assert.areEqual(
+      'INVALID_DEPENDENCY',
+      issues[1].reasonCode,
+      'The second cycle member must report INVALID_DEPENDENCY.'
     );
   }
 

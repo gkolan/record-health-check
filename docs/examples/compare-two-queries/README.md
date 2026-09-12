@@ -12,11 +12,11 @@ compare open-pipeline Product IDs with previously purchased Product IDs.
 
 ## Choose a Compare two queries example
 
-| Example | Salesforce question | What the example demonstrates |
-| --- | --- | --- |
-| [Opportunity Contact Role coverage](./opportunity-contact-role-coverage.md) | Does every open Opportunity have a Contact Role? | Aggregate aliases, two-query equality, and count-query applicability |
-| [Open-pipeline product continuity](./open-pipeline-product-continuity.md) | Does open pipeline include a Product the customer previously purchased? | Two lists compared with **Lists overlap** |
-| [Account Team coverage](./account-team-opportunity-coverage.md) | Does the Account Team include every open Opportunity owner? | Two lists compared with **Lists contain all** and no-row failure |
+| Example                                                                     | Salesforce question                                                     | What the example demonstrates                                        |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| [Opportunity Contact Role coverage](./opportunity-contact-role-coverage.md) | Does every open Opportunity have a Contact Role?                        | Aggregate aliases, two-query equality, and count-query applicability |
+| [Open-pipeline product continuity](./open-pipeline-product-continuity.md)   | Does open pipeline include a Product the customer previously purchased? | Two lists compared with **Lists overlap**                            |
+| [Account Team coverage](./account-team-opportunity-coverage.md)             | Does the Account Team include every open Opportunity owner?             | Two lists compared with **Lists contain all** and no-row failure     |
 
 These examples are instructions; the installed package does not create these Checks. Follow one
 example to create a Check in **Setup → Custom Metadata Types → Record Health Check → Manage
@@ -35,20 +35,20 @@ aggregate an alias in SOQL and enter that alias in the matching query-field sett
 
 Every example configures these fields:
 
-| Setup field | What it does |
-| --- | --- |
-| **Source Query** | Produces the value shown as **Found** |
-| **Comparison Query** | Produces the value shown as **Expected** |
+| Setup field                   | What it does                                                       |
+| ----------------------------- | ------------------------------------------------------------------ |
+| **Source Query**              | Produces the value shown as **Found**                              |
+| **Comparison Query**          | Produces the value shown as **Expected**                           |
 | **How To Read Query Results** | Chooses whether each query is read as one count/value or as a list |
-| **Comparison Operator** | Decides whether Found passes when compared with Expected |
+| **Comparison Operator**       | Decides whether Found passes when compared with Expected           |
 
 The three list operators answer different questions:
 
-| Comparison Operator | Passes when |
-| --- | --- |
-| **Lists overlap** | Found and Expected share at least one value |
-| **Lists contain all** | Expected contains every value in Found; Expected can contain additional values |
-| **Lists match exactly** | Found and Expected contain the same values |
+| Comparison Operator     | Passes when                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| **Lists overlap**       | Found and Expected share at least one value                                    |
+| **Lists contain all**   | Expected contains every value in Found; Expected can contain additional values |
+| **Lists match exactly** | Found and Expected contain the same values                                     |
 
 For example, Source `[005A, 005B]` and Comparison `[005A, 005B, 005C]` pass **Lists contain all**
 because the Comparison side covers every required Source value. Reversing the queries asks a

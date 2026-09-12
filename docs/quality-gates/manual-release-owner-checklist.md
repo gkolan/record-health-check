@@ -36,15 +36,15 @@ may follow creation when the owner authorizes their environments.
 
 Record these values in the pull request or retained release evidence before starting:
 
-| Value | Example or source |
-| --- | --- |
-| Semantic release | `MAJOR.MINOR.PATCH` from `package.json` |
-| Exact package version | `MAJOR.MINOR.PATCH.BUILD` from `config/release-runtime-matrix.json` |
-| Release branch | The pull-request head branch |
-| Release commit | Full output of `git rev-parse HEAD` |
-| Upgrade bases | Every entry in `upgradeBases` in `config/release-runtime-matrix.json` |
-| Candidate package ID | The new `04t` returned by package creation |
-| Optional hosted evidence | Workflow URLs only when the owner authorized those scratch-org runs |
+| Value                    | Example or source                                                     |
+| ------------------------ | --------------------------------------------------------------------- |
+| Semantic release         | `MAJOR.MINOR.PATCH` from `package.json`                               |
+| Exact package version    | `MAJOR.MINOR.PATCH.BUILD` from `config/release-runtime-matrix.json`   |
+| Release branch           | The pull-request head branch                                          |
+| Release commit           | Full output of `git rev-parse HEAD`                                   |
+| Upgrade bases            | Every entry in `upgradeBases` in `config/release-runtime-matrix.json` |
+| Candidate package ID     | The new `04t` returned by package creation                            |
+| Optional hosted evidence | Workflow URLs only when the owner authorized those scratch-org runs   |
 
 Do not reuse evidence from another commit, pull-request merge commit, branch head, package build, or
 `04t`.
@@ -209,13 +209,13 @@ Coordinate access with its owner; never
 use production as the test environment. Record the org, persona, expected/actual outcome, and a safe
 evidence reference for each scenario below. Do not include credentials or customer record contents.
 
-| Scenario | Acceptance evidence required |
-| --- | --- |
-| `cpq-quote-lifecycle` | The affected Quote page loads, runs manually and on load, saves, refreshes, and navigates without the reported error, duplicate execution, or an RHC loading overlay. Builder and configuration previews remain quiet. |
-| `existing-page-and-access-preservation` | Existing page placements and customer Check Sets survive the upgrade. Admin, Card User, User, and a user without Run permission behave as documented; diagnostics require the separate entitlement. |
-| `four-type-business-outcomes` | Representative Formula, Query, Compare Two Queries, and Apex Checks return the expected outcomes, including failure, no-data, and restricted-data cases. A successful transaction alone is insufficient. |
-| `existing-automation` | Existing Flow, Apex, REST/MCP, and asynchronous consumers still return their expected results and publish only requested events. Existing validation rules, triggers, and flows remain enabled. |
-| `configuration-recovery` | Customer metadata and page-placement backups exist, the documented restore procedure is rehearsed in the sandbox, and a forward-fix/rollout-stop plan is recorded. Do not assume an in-place package downgrade. |
+| Scenario                                | Acceptance evidence required                                                                                                                                                                                           |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cpq-quote-lifecycle`                   | The affected Quote page loads, runs manually and on load, saves, refreshes, and navigates without the reported error, duplicate execution, or an RHC loading overlay. Builder and configuration previews remain quiet. |
+| `existing-page-and-access-preservation` | Existing page placements and customer Check Sets survive the upgrade. Admin, Card User, User, and a user without Run permission behave as documented; diagnostics require the separate entitlement.                    |
+| `four-type-business-outcomes`           | Representative Formula, Query, Compare Two Queries, and Apex Checks return the expected outcomes, including failure, no-data, and restricted-data cases. A successful transaction alone is insufficient.               |
+| `existing-automation`                   | Existing Flow, Apex, REST/MCP, and asynchronous consumers still return their expected results and publish only requested events. Existing validation rules, triggers, and flows remain enabled.                        |
+| `configuration-recovery`                | Customer metadata and page-placement backups exist, the documented restore procedure is rehearsed in the sandbox, and a forward-fix/rollout-stop plan is recorded. Do not assume an in-place package downgrade.        |
 
 Copy [`config/release-acceptance-template.json`](../../config/release-acceptance-template.json) to
 `packages/record-health-check/.package-evidence/<candidate-04t>-acceptance.json`. Fill in the exact

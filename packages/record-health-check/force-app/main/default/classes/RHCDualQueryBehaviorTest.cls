@@ -8,7 +8,6 @@ private class RHCDualQueryBehaviorTest {
   static void setup() {
     RecordHealthCheckTestDataFactory.prepareCoverageFixtures();
   }
-
   private static Record_Health_Check__mdt baseCheck(
     String developerName,
     String checkType
@@ -31,11 +30,9 @@ private class RHCDualQueryBehaviorTest {
       }
     );
   }
-
   private static Record_Health_Check__mdt dualCheck(String developerName) {
     return baseCheck(developerName, 'COMPARE_TWO_QUERIES');
   }
-
   private static Record_Health_Check__mdt validDualCheck(String developerName) {
     Record_Health_Check__mdt check = dualCheck(developerName);
     check.SourceQuery__c = 'SELECT COUNT(Id) totalCount FROM Contact WHERE AccountId = {!record.Id}';
@@ -46,16 +43,22 @@ private class RHCDualQueryBehaviorTest {
     check.ComparisonOperator__c = 'EQUALS';
     return check;
   }
-
   private static void assertUnable(
     RecordHealthCheckInternalResult result,
     String reasonCode
   ) {
     Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'Invalid dual-query input must be unable to evaluate.'
+    );
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'Dual-query rejection must preserve its specific reason.'
+    );
   }
-
   private static void assertStatus(
     RecordHealthCheckInternalResult result,
     String status
@@ -67,7 +70,6 @@ private class RHCDualQueryBehaviorTest {
       'Unexpected detail: ' + result.detailMessage
     );
   }
-
   private static void assertReason(
     RecordHealthCheckInternalResult result,
     String reasonCode
@@ -79,13 +81,19 @@ private class RHCDualQueryBehaviorTest {
       'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
     );
   }
-
   @IsTest
   static void dualSoqlEvaluatorCoversSingleValueListAndErrorBranches() {
     Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     RecordHealthCheckCompareQueriesEvaluator evaluator = new RecordHealthCheckCompareQueriesEvaluator();
     seedQueryRows(evaluator, accountRecord);
-
+    assertScalarCases(evaluator, accountRecord);
+    assertNullAndEmptyCases(evaluator, accountRecord);
+    assertListCases(evaluator, accountRecord);
+  }
+  private static void assertScalarCases(
+    RecordHealthCheckCompareQueriesEvaluator evaluator,
+    Account accountRecord
+  ) {
     assertStatus(
       evaluator.evaluate(
         validDualCheck('D_Counts_Equal'),
@@ -94,7 +102,6 @@ private class RHCDualQueryBehaviorTest {
       ),
       'PASS'
     );
-
     Record_Health_Check__mdt notEquals = validDualCheck('D_Not_Equals');
     notEquals.ComparisonOperator__c = 'NOT_EQUALS';
     notEquals.ComparisonQuery__c = 'SELECT COUNT(Id) totalCount FROM Opportunity WHERE AccountId = {!record.Id}';
@@ -102,7 +109,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(notEquals, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     Record_Health_Check__mdt contains = validDualCheck('D_Contains');
     contains.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
     contains.SourceQueryField__c = 'BillingCity';
@@ -113,7 +119,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(contains, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     Record_Health_Check__mdt containsPositive = validDualCheck(
       'D_Contains_Positive'
     );
@@ -126,7 +131,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(containsPositive, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     Record_Health_Check__mdt numericOrder = validDualCheck('D_Numeric_Order');
     numericOrder.SourceQuery__c = 'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}';
     numericOrder.SourceQueryField__c = 'NumberOfEmployees';
@@ -136,7 +140,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(numericOrder, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     Record_Health_Check__mdt dateOrder = validDualCheck('D_Date_Order');
     dateOrder.SourceQuery__c = 'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} LIMIT 1';
     dateOrder.SourceQueryField__c = 'CloseDate';
@@ -147,7 +150,11 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(dateOrder, accountRecord.Id, accountRecord),
       'PASS'
     );
-
+  }
+  private static void assertNullAndEmptyCases(
+    RecordHealthCheckCompareQueriesEvaluator evaluator,
+    Account accountRecord
+  ) {
     Record_Health_Check__mdt nullSkip = validDualCheck('D_Null_Skip');
     nullSkip.SourceQuery__c = 'SELECT Description FROM Account WHERE Id = {!record.Id}';
     nullSkip.SourceQueryField__c = 'Description';
@@ -159,7 +166,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(nullSkip, accountRecord.Id, accountRecord),
       'SKIPPED'
     );
-
     Record_Health_Check__mdt nullFail = nullSkip.clone();
     nullFail.DeveloperName = 'D_Null_Fail';
     nullFail.EmptyValueHandling__c = 'AS_NO_MATCH';
@@ -167,7 +173,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(nullFail, accountRecord.Id, accountRecord),
       'FAIL'
     );
-
     Record_Health_Check__mdt nullBlank = nullSkip.clone();
     nullBlank.DeveloperName = 'D_Null_Blank';
     nullBlank.EmptyValueHandling__c = 'AS_BLANK';
@@ -178,7 +183,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(nullBlank, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     // a zero-row query in OneResult is governed by
     // NoRowsResult__c, NOT by the null-value behavior. The impossible Name filter
     // guarantees an empty primary regardless of org data. An empty side with
@@ -197,7 +201,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(emptyPrimarySkip, accountRecord.Id, accountRecord),
       'SKIPPED'
     );
-
     Record_Health_Check__mdt emptyPrimaryFail = emptyPrimarySkip.clone();
     emptyPrimaryFail.DeveloperName = 'D_Empty_Primary_Fail';
     emptyPrimaryFail.NoRowsResult__c = 'FAIL';
@@ -205,7 +208,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(emptyPrimaryFail, accountRecord.Id, accountRecord),
       'FAIL'
     );
-
     // WhenZeroRows = UnableToEvaluate on an empty side surfaces NO_ROWS_RETURNED.
     Record_Health_Check__mdt emptyPrimaryUnable = emptyPrimarySkip.clone();
     emptyPrimaryUnable.DeveloperName = 'D_Empty_Primary_Unable';
@@ -216,8 +218,11 @@ private class RHCDualQueryBehaviorTest {
       accountRecord
     );
     assertStatus(unableResult, 'UNABLE_TO_EVALUATE');
-    Assert.areEqual('NO_ROWS_RETURNED', unableResult.reasonCode);
-
+    Assert.areEqual(
+      'NO_ROWS_RETURNED',
+      unableResult.reasonCode,
+      'The no-row policy must report NO_ROWS_RETURNED.'
+    );
     // An invalid query field surfaces through the compare-queries runQuery error path.
     Record_Health_Check__mdt badQuery = emptyPrimarySkip.clone();
     badQuery.DeveloperName = 'D_Bad_Query';
@@ -229,7 +234,11 @@ private class RHCDualQueryBehaviorTest {
       accountRecord
     );
     assertStatus(badQueryResult, 'UNABLE_TO_EVALUATE');
-
+  }
+  private static void assertListCases(
+    RecordHealthCheckCompareQueriesEvaluator evaluator,
+    Account accountRecord
+  ) {
     Record_Health_Check__mdt listOverlap = validDualCheck('D_List_Overlap');
     listOverlap.QueryResultHandling__c = 'COMPARE_AS_LISTS';
     listOverlap.ComparisonOperator__c = 'LISTS_OVERLAP';
@@ -241,7 +250,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(listOverlap, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     Record_Health_Check__mdt containsAll = listOverlap.clone();
     containsAll.DeveloperName = 'D_List_Contains_All';
     containsAll.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
@@ -249,7 +257,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(containsAll, accountRecord.Id, accountRecord),
       'FAIL'
     );
-
     Record_Health_Check__mdt containsAllPass = listOverlap.clone();
     containsAllPass.DeveloperName = 'D_List_Contains_All_Pass';
     containsAllPass.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
@@ -259,7 +266,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(containsAllPass, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     Record_Health_Check__mdt exactMatch = listOverlap.clone();
     exactMatch.DeveloperName = 'D_Exact_Match';
     exactMatch.ComparisonOperator__c = 'LISTS_MATCH_EXACTLY';
@@ -269,7 +275,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(exactMatch, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     // CompareAsLists where every primary value is null and dropped by
     // SkipRecordsWithMissingValue → empty list with non-empty rows → SKIPPED
     // (indeterminate), not a silent FAIL from comparing empty sets.
@@ -284,7 +289,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(allNullSkip, accountRecord.Id, accountRecord),
       'SKIPPED'
     );
-
     // Treat as not matching (AS_NO_MATCH) keeps null values as distinct placeholders (non-empty
     // list), so an all-null primary cannot overlap a real comparison value.
     Record_Health_Check__mdt allNullNoMatch = allNullSkip.clone();
@@ -294,7 +298,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(allNullNoMatch, accountRecord.Id, accountRecord),
       'FAIL'
     );
-
     // TreatMissingAsBlank coerces a null value to '' (a matchable blank).
     Record_Health_Check__mdt allNullBlank = allNullSkip.clone();
     allNullBlank.DeveloperName = 'D_List_All_Null_Blank';
@@ -306,7 +309,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(allNullBlank, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     // WhenZeroRows = Pass on a genuinely empty side.
     Record_Health_Check__mdt emptyPass = listOverlap.clone();
     emptyPass.DeveloperName = 'D_List_Empty_Pass';
@@ -316,7 +318,15 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(emptyPass, accountRecord.Id, accountRecord),
       'PASS'
     );
+    assertListBoundaryCases(evaluator, accountRecord, listOverlap, exactMatch);
+  }
 
+  private static void assertListBoundaryCases(
+    RecordHealthCheckCompareQueriesEvaluator evaluator,
+    Account accountRecord,
+    Record_Health_Check__mdt listOverlap,
+    Record_Health_Check__mdt exactMatch
+  ) {
     // OneResult FAIL with a blank MessageWhenFailed falls back to the default text.
     Record_Health_Check__mdt blankMsgFail = validDualCheck('D_Blank_Msg_Fail');
     blankMsgFail.SourceQuery__c = 'SELECT NumberOfEmployees FROM Account WHERE Id = {!record.Id}';
@@ -331,8 +341,11 @@ private class RHCDualQueryBehaviorTest {
       accountRecord
     );
     assertStatus(blankMsgResult, 'FAIL');
-    Assert.areEqual('Check failed.', blankMsgResult.message);
-
+    Assert.areEqual(
+      'Check failed.',
+      blankMsgResult.message,
+      'A blank failure message must use the default.'
+    );
     // A template-invalid query (disallowed access level) surfaces through the
     // compare-queries runQuery TemplateException path.
     Record_Health_Check__mdt templateBad = validDualCheck('D_Template_Bad');
@@ -343,7 +356,6 @@ private class RHCDualQueryBehaviorTest {
       accountRecord
     );
     assertStatus(templateBadResult, 'UNABLE_TO_EVALUATE');
-
     Record_Health_Check__mdt exactMismatch = exactMatch.clone();
     exactMismatch.DeveloperName = 'D_Exact_Mismatch';
     exactMismatch.ComparisonQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
@@ -352,7 +364,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(exactMismatch, accountRecord.Id, accountRecord),
       'FAIL'
     );
-
     Record_Health_Check__mdt listsNoOverlap = listOverlap.clone();
     listsNoOverlap.DeveloperName = 'D_Lists_No_Overlap';
     listsNoOverlap.ComparisonQuery__c = 'SELECT BillingState FROM Account WHERE Id = {!record.Id}';
@@ -361,7 +372,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(listsNoOverlap, accountRecord.Id, accountRecord),
       'FAIL'
     );
-
     Record_Health_Check__mdt emptyListPass = listOverlap.clone();
     emptyListPass.DeveloperName = 'D_Empty_List_Pass';
     emptyListPass.SourceQuery__c = 'SELECT MailingCity FROM Contact WHERE AccountId = null';
@@ -370,7 +380,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(emptyListPass, accountRecord.Id, accountRecord),
       'PASS'
     );
-
     Record_Health_Check__mdt emptyListUnable = emptyListPass.clone();
     emptyListUnable.DeveloperName = 'D_Empty_List_Unable';
     emptyListUnable.NoRowsResult__c = 'UNABLE_TO_EVALUATE';
@@ -378,7 +387,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(emptyListUnable, accountRecord.Id, accountRecord),
       'UNABLE_TO_EVALUATE'
     );
-
     Record_Health_Check__mdt emptyListSkip = emptyListPass.clone();
     emptyListSkip.DeveloperName = 'D_Empty_List_Skip';
     emptyListSkip.NoRowsResult__c = 'SKIP';
@@ -386,7 +394,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(emptyListSkip, accountRecord.Id, accountRecord),
       'SKIPPED'
     );
-
     Record_Health_Check__mdt multipleRows = validDualCheck('D_Multiple_Rows');
     multipleRows.SourceQuery__c = 'SELECT Id FROM Contact WHERE AccountId = {!record.Id}';
     multipleRows.SourceQueryField__c = 'Id';
@@ -394,7 +401,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(multipleRows, accountRecord.Id, accountRecord),
       'MULTIPLE_ROWS_RETURNED'
     );
-
     Record_Health_Check__mdt missingFieldName = validDualCheck(
       'D_Missing_Field_Name'
     );
@@ -404,7 +410,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(missingFieldName, accountRecord.Id, accountRecord),
       'INVALID_SOQL_TEMPLATE'
     );
-
     Record_Health_Check__mdt badFieldName = listOverlap.clone();
     badFieldName.DeveloperName = 'D_Bad_Field_Name';
     badFieldName.SourceQueryField__c = 'Missing__c';
@@ -412,7 +417,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(badFieldName, accountRecord.Id, accountRecord),
       'FIELD_NOT_RESOLVED'
     );
-
     Record_Health_Check__mdt invalidMode = validDualCheck(
       'D_Invalid_Mode_Runtime'
     );
@@ -421,7 +425,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(invalidMode, accountRecord.Id, accountRecord),
       'INVALID_OPERATOR'
     );
-
     Record_Health_Check__mdt invalidListOperator = listOverlap.clone();
     invalidListOperator.DeveloperName = 'D_Invalid_List_Operator_Runtime';
     invalidListOperator.ComparisonOperator__c = 'EQUALS';
@@ -429,7 +432,6 @@ private class RHCDualQueryBehaviorTest {
       evaluator.evaluate(invalidListOperator, accountRecord.Id, accountRecord),
       'INVALID_OPERATOR'
     );
-
     Record_Health_Check__mdt incompatible = validDualCheck('D_Incompatible');
     incompatible.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id}';
     incompatible.SourceQueryField__c = 'BillingCity';
@@ -441,7 +443,6 @@ private class RHCDualQueryBehaviorTest {
       'INCOMPATIBLE_COMPARISON_TYPES'
     );
   }
-
   private static void seedQueryRows(
     RecordHealthCheckCompareQueriesEvaluator evaluator,
     Account accountRecord
@@ -549,7 +550,6 @@ private class RHCDualQueryBehaviorTest {
       new List<SObject>()
     );
   }
-
   private static void seed(
     RecordHealthCheckCompareQueriesEvaluator evaluator,
     SObject record,

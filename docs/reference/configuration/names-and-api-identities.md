@@ -14,11 +14,11 @@ normally copy it yourself only for a Flow or Apex request, an integration, or tr
 
 A Custom Metadata record has several names. Only one belongs in Record Health Check requests.
 
-| Name shown in Salesforce | Example | Use in Apex or Flow? |
-| --- | --- | --- |
-| Label | Account checks | No. This is text shown to administrators |
-| Developer Name | `My_Account_Checks` | Do not use it as a substitute for the Qualified API Name |
-| Qualified API Name | `My_Account_Checks` or `rhc__Example_Account_Check_Builder_Guide` | Yes. Copy this exact value |
+| Name shown in Salesforce | Example                                                           | Use in Apex or Flow?                                     |
+| ------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------- |
+| Label                    | Account checks                                                    | No. This is text shown to administrators                 |
+| Developer Name           | `My_Account_Checks`                                               | Do not use it as a substitute for the Qualified API Name |
+| Qualified API Name       | `My_Account_Checks` or `rhc__Example_Account_Check_Builder_Guide` | Yes. Copy this exact value                               |
 
 For a Check Set created by an administrator in your org, Developer Name and Qualified API Name
 usually look the same. They are still different Salesforce fields. Always copy **Qualified API
@@ -29,11 +29,11 @@ Name** so the same instructions also work for metadata installed from a package.
 `rhc` is the Record Health Check package namespace. Salesforce adds `rhc__` to the Qualified API
 Name of a Custom Metadata record included with that installed package.
 
-| Who created the Custom Metadata record? | Developer Name | Qualified API Name example |
-| --- | --- | --- |
-| An administrator in your org | `My_Account_Checks` | `My_Account_Checks` |
-| The installed Record Health Check package | `Example_Account_Check_Builder_Guide` | `rhc__Example_Account_Check_Builder_Guide` |
-| Another installed package with namespace `other` | `Account_Readiness` | `other__Account_Readiness` |
+| Who created the Custom Metadata record?          | Developer Name                        | Qualified API Name example                 |
+| ------------------------------------------------ | ------------------------------------- | ------------------------------------------ |
+| An administrator in your org                     | `My_Account_Checks`                   | `My_Account_Checks`                        |
+| The installed Record Health Check package        | `Example_Account_Check_Builder_Guide` | `rhc__Example_Account_Check_Builder_Guide` |
+| Another installed package with namespace `other` | `Account_Readiness`                   | `other__Account_Readiness`                 |
 
 The prefix belongs to the package that supplied that particular Custom Metadata record. It does not
 come from the Check Set's object or from the Apex class calling Record Health Check.

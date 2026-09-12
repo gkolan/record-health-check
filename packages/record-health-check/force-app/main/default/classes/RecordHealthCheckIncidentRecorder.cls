@@ -33,8 +33,13 @@ public with sharing class RecordHealthCheckIncidentRecorder {
         : context.evaluatorType;
       result.status = incident.status;
       result.reasonCode = incident.reasonCode;
+      result.reasonOrigin = incident.reasonOrigin;
+      result.priorReasonCode = incident.priorReasonCode;
+      result.pluginInvoked = incident.pluginInvoked;
       result.message = safeOutcomeMessage(check, incident.status);
-      result.detailMessage = incident.likelyCause;
+      result.detailMessage = String.isNotBlank(context.technicalMessage)
+        ? context.technicalMessage
+        : incident.likelyCause;
       result.diagnosticIncident = incident;
       results.put(recordId, result);
     }
@@ -91,6 +96,9 @@ public with sharing class RecordHealthCheckIncidentRecorder {
       context
     );
     result.diagnosticIncident = incident;
+    result.reasonOrigin = incident.reasonOrigin;
+    result.priorReasonCode = incident.priorReasonCode;
+    result.pluginInvoked = incident.pluginInvoked;
     if (String.isBlank(result.detailMessage)) {
       result.detailMessage = incident.likelyCause;
     }

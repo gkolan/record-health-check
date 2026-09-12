@@ -64,7 +64,11 @@ private class RHCMixedCurrencyRedTest {
         'Missing unit evidence must never produce a currency verdict.'
       );
     } catch (RecordHealthCheckEvaluatorException error) {
-      Assert.areEqual('CURRENCY_UNIT_UNKNOWN', error.reasonCode);
+      Assert.areEqual(
+        'CURRENCY_UNIT_UNKNOWN',
+        error.reasonCode,
+        'Unknown currency must report CURRENCY_UNIT_UNKNOWN.'
+      );
     }
   }
 

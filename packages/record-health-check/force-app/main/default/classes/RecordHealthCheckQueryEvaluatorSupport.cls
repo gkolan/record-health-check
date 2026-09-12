@@ -202,8 +202,13 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
       return RecordHealthCheckDescribeCache.describeSObject(objectType)
         .getLabelPlural();
     }
+    return fallbackPlural(objectName);
+  }
+
+  private static String fallbackPlural(String objectName) {
     String lower = objectName.toLowerCase();
     if (
+      lower.length() > 1 &&
       lower.endsWith('y') &&
       !'aeiou'.contains(lower.substring(lower.length() - 2, lower.length() - 1))
     ) {

@@ -61,8 +61,15 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       (String) interview.getVariableValue('checkStatus'),
       'Check'
     );
-    Assert.areEqual(null, interview.getVariableValue('checkErrorType'));
-    Assert.isNotNull(interview.getVariableValue('checkResultJson'));
+    Assert.areEqual(
+      null,
+      interview.getVariableValue('checkErrorType'),
+      'A successful Check interview must not expose an error type.'
+    );
+    Assert.isNotNull(
+      interview.getVariableValue('checkResultJson'),
+      'A successful Check interview must expose its JSON result.'
+    );
 
     Assert.areEqual(
       true,
@@ -73,8 +80,15 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       (String) interview.getVariableValue('setStatus'),
       'Check Set'
     );
-    Assert.areEqual(null, interview.getVariableValue('setErrorType'));
-    Assert.isNotNull(interview.getVariableValue('setResultJson'));
+    Assert.areEqual(
+      null,
+      interview.getVariableValue('setErrorType'),
+      'A successful Check Set interview must not expose an error type.'
+    );
+    Assert.isNotNull(
+      interview.getVariableValue('setResultJson'),
+      'A successful Check Set interview must expose its JSON result.'
+    );
     Assert.areEqual(
       configuredChecks.size(),
       terminalCount(interview),
@@ -105,8 +119,16 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       List<RecordHealthCheckRunSetFlowAction.Response> setOutputs = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('AUTHORIZATION', checkOutputs[0].errorType);
-      Assert.areEqual('AUTHORIZATION', setOutputs[0].errorType);
+      Assert.areEqual(
+        'AUTHORIZATION',
+        checkOutputs[0].errorType,
+        'A denied Check action must report authorization failure.'
+      );
+      Assert.areEqual(
+        'AUTHORIZATION',
+        setOutputs[0].errorType,
+        'A denied Check Set action must report authorization failure.'
+      );
     } finally {
       RecordHealthCheckAccess.setRunPermissionForTest(null);
     }
@@ -136,10 +158,24 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
     );
     Test.stopTest();
 
-    Assert.areEqual('VALIDATION', checkOutputs[0].errorType);
-    Assert.areEqual('VALIDATION', setOutputs[0].errorType);
-    Assert.isTrue(checkOutputs[0].errorMessage.contains('was not found'));
-    Assert.isTrue(setOutputs[0].errorMessage.contains('was not found'));
+    Assert.areEqual(
+      'VALIDATION',
+      checkOutputs[0].errorType,
+      'A missing Check identity must report validation failure.'
+    );
+    Assert.areEqual(
+      'VALIDATION',
+      setOutputs[0].errorType,
+      'A missing Check Set identity must report validation failure.'
+    );
+    Assert.isTrue(
+      checkOutputs[0].errorMessage.contains('was not found'),
+      'A missing Check identity must explain that it was not found.'
+    );
+    Assert.isTrue(
+      setOutputs[0].errorMessage.contains('was not found'),
+      'A missing Check Set identity must explain that it was not found.'
+    );
   }
 
   @IsTest
@@ -217,9 +253,14 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       checkOutputs[0].errorType,
       'The normalized but unknown Check must be a validation error.'
     );
-    Assert.areEqual('VALIDATION', setOutputs[0].errorType);
+    Assert.areEqual(
+      'VALIDATION',
+      setOutputs[0].errorType,
+      'An overlong Check Set identity must report validation failure.'
+    );
     Assert.isTrue(
-      setOutputs[0].errorMessage.contains('must not exceed 255 characters')
+      setOutputs[0].errorMessage.contains('must not exceed 255 characters'),
+      'An overlong identity must explain the 255-character limit.'
     );
   }
 
@@ -246,7 +287,11 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       List<RecordHealthCheckRunCheckFlowAction.Response> missingCheck = RecordHealthCheckRunCheckFlowAction.runCheck(
         new List<RecordHealthCheckRunCheckFlowAction.Request>{ checkRequest }
       );
-      Assert.areEqual('EXECUTION', missingCheck[0].errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        missingCheck[0].errorType,
+        'A missing aligned Check result must report execution failure.'
+      );
 
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = true;
@@ -257,10 +302,15 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
         emptySet[0].isSuccess,
         'Missing aligned Set results must fail closed.'
       );
-      Assert.areEqual('EXECUTION', emptySet[0].errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        emptySet[0].errorType,
+        'A missing aligned Check Set result must report execution failure.'
+      );
       Assert.areEqual(
         'No aligned Check Set result was returned.',
-        emptySet[0].errorMessage
+        emptySet[0].errorMessage,
+        'A missing aligned Check Set result must retain the specific safe message.'
       );
 
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = false;
@@ -270,7 +320,11 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       List<RecordHealthCheckRunSetFlowAction.Response> malformedSet = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('EXECUTION', malformedSet[0].errorType);
+      Assert.areEqual(
+        'EXECUTION',
+        malformedSet[0].errorType,
+        'A malformed Check Set response must report execution failure.'
+      );
       Assert.areEqual(
         'The Check Set response could not be prepared.',
         malformedSet[0].errorMessage,
@@ -285,8 +339,16 @@ private with sharing class RecordHealthCheckAutomationFlowIT {
       List<RecordHealthCheckRunSetFlowAction.Response> oversizedSet = RecordHealthCheckRunSetFlowAction.runSet(
         new List<RecordHealthCheckRunSetFlowAction.Request>{ setRequest }
       );
-      Assert.areEqual('LIMIT', oversizedCheck[0].errorType);
-      Assert.areEqual('LIMIT', oversizedSet[0].errorType);
+      Assert.areEqual(
+        'LIMIT',
+        oversizedCheck[0].errorType,
+        'An oversized Check response must report a limit failure.'
+      );
+      Assert.areEqual(
+        'LIMIT',
+        oversizedSet[0].errorType,
+        'An oversized Check Set response must report a limit failure.'
+      );
     } finally {
       RecordHealthCheckFlowSupport.itemsByRecordOverride = null;
       RecordHealthCheckFlowSupport.nullItemsByRecordOverride = false;

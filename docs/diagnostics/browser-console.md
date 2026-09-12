@@ -32,12 +32,12 @@ on [Install and verify](../install/install-in-a-sandbox.md).
 
 ## What you will learn
 
-| Question | Answer on this page |
-| --- | --- |
-| Why does checking Show Diagnostics appear to do nothing? | The viewer also needs a direct **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** assignment |
-| What changes on the card? | Authorized troubleshooting lines and details appear after a run |
-| What appears in the browser console? | One `[RHC]` summary; only results needing review receive per-Check groups, and full support evidence is reserved for technical outcomes |
-| How do I return to normal operation? | Uncheck Show Diagnostics and remove temporary administrator access when appropriate |
+| Question                                                 | Answer on this page                                                                                                                     |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Why does checking Show Diagnostics appear to do nothing? | The viewer also needs a direct **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** assignment                   |
+| What changes on the card?                                | Authorized troubleshooting lines and details appear after a run                                                                         |
+| What appears in the browser console?                     | One `[RHC]` summary; only results needing review receive per-Check groups, and full support evidence is reserved for technical outcomes |
+| How do I return to normal operation?                     | Uncheck Show Diagnostics and remove temporary administrator access when appropriate                                                     |
 
 ## Start with the symptom users see
 
@@ -47,30 +47,30 @@ user, Salesforce record, Check Set Qualified API Name, and Run ID. Then choose t
 Copy the Check Set Qualified API Name from its Custom Metadata record in Setup. Copy the Run ID
 from the authorized Diagnosis or `[RHC]` browser-console summary after the run finishes.
 
-| Symptom | Check first | Likely cause area | Go to |
-| --- | --- | --- | --- |
-| Card is missing, empty, or says no Check Set is configured | App Builder Check Set selection and Check Set identity | Lightning page or metadata selection | [Card and definition problems](#card-and-definition-problems) |
-| Run button is absent | **When Checks Run** and **Run Button Display** on the Check Set | Intended card configuration | [Card and definition problems](#card-and-definition-problems) |
-| One user succeeds and another does not | Permission Sets, record sharing, object access, and field access | Salesforce authorization | [Access differences](#access-differences-between-users) |
-| Check is Skipped | Reason Code and prerequisite/applicability diagnostics | Applicability or dependency | [Read the result first](#read-the-result-first) |
-| Check is Unable to Check | Reason Code, troubleshooting detail, and source details | Data, access, query, formula, or limit | [Show Diagnostics](#both-steps-are-required) |
-| Check shows System Error | Expanded **Diagnosis** and Diagnostic ID | Configuration, custom Apex, or Record Health Check | [Read the diagnosis](#read-the-diagnosis) |
-| Flow action faults or returns an aligned error | Flow interview details and returned category/message | Flow input, grouping, size, or evaluation | [Flow action inputs and outputs](../flow-guides/action-inputs-and-outputs.md) |
-| Apex call throws | Exception type/message and calling request | Invalid request, missing authorization, or prohibited custom Apex behavior | [Salesforce debug logs](./salesforce-debug-logs.md) |
-| Queueable, Batch, or Scheduled job fails | Async job status plus the submitting/running user's debug log | Submission, scope, or finalization | [Salesforce debug logs](./salesforce-debug-logs.md) |
-| Expected Platform Event never arrives | Publication option, Check settings, event access, and receiving automation logs | Event publication or receiving Flow, Apex, or integration | [Platform Event publication](../save-results/when-to-use-platform-events.md) |
+| Symptom                                                    | Check first                                                                     | Likely cause area                                                          | Go to                                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Card is missing, empty, or says no Check Set is configured | App Builder Check Set selection and Check Set identity                          | Lightning page or metadata selection                                       | [Card and definition problems](#card-and-definition-problems)                 |
+| Run button is absent                                       | **When Checks Run** and **Run Button Display** on the Check Set                 | Intended card configuration                                                | [Card and definition problems](#card-and-definition-problems)                 |
+| One user succeeds and another does not                     | Permission Sets, record sharing, object access, and field access                | Salesforce authorization                                                   | [Access differences](#access-differences-between-users)                       |
+| Check is Skipped                                           | Reason Code and prerequisite/applicability diagnostics                          | Applicability or dependency                                                | [Read the result first](#read-the-result-first)                               |
+| Check is Unable to Check                                   | Reason Code, troubleshooting detail, and source details                         | Data, access, query, formula, or limit                                     | [Show Diagnostics](#both-steps-are-required)                                  |
+| Check shows System Error                                   | Expanded **Diagnosis** and Diagnostic ID                                        | Configuration, custom Apex, or Record Health Check                         | [Read the diagnosis](#read-the-diagnosis)                                     |
+| Flow action faults or returns an aligned error             | Flow interview details and returned category/message                            | Flow input, grouping, size, or evaluation                                  | [Flow action inputs and outputs](../flow-guides/action-inputs-and-outputs.md) |
+| Apex call throws                                           | Exception type/message and calling request                                      | Invalid request, missing authorization, or prohibited custom Apex behavior | [Salesforce debug logs](./salesforce-debug-logs.md)                           |
+| Queueable, Batch, or Scheduled job fails                   | Async job status plus the submitting/running user's debug log                   | Submission, scope, or finalization                                         | [Salesforce debug logs](./salesforce-debug-logs.md)                           |
+| Expected Platform Event never arrives                      | Publication option, Check settings, event access, and receiving automation logs | Event publication or receiving Flow, Apex, or integration                  | [Platform Event publication](../save-results/when-to-use-platform-events.md)  |
 
 ## Read the result first
 
 Status and Reason Code are the fastest route to the correct layer:
 
-| Status | Meaning | Troubleshooting posture |
-| --- | --- | --- |
-| Pass | The Check ran and its condition was met | Investigate only if the business expectation or displayed value is wrong |
-| Fail | The Check ran and its condition was not met | Inspect Found, Expected, operator, and Check configuration; this is normally not a system defect |
-| Skipped | The Check did not apply | Inspect applicability, prerequisite, and no-row behavior |
-| Unable to Check | Record Health Check could not reach a reliable result | Inspect access, missing data, query or formula validity, and limits |
-| System Error | Configuration or execution is broken | Open **Diagnosis**, follow its fix and verification steps, and retain the Diagnostic ID |
+| Status          | Meaning                                               | Troubleshooting posture                                                                          |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Pass            | The Check ran and its condition was met               | Investigate only if the business expectation or displayed value is wrong                         |
+| Fail            | The Check ran and its condition was not met           | Inspect Found, Expected, operator, and Check configuration; this is normally not a system defect |
+| Skipped         | The Check did not apply                               | Inspect applicability, prerequisite, and no-row behavior                                         |
+| Unable to Check | Record Health Check could not reach a reliable result | Inspect access, missing data, query or formula validity, and limits                              |
+| System Error    | Configuration or execution is broken                  | Open **Diagnosis**, follow its fix and verification steps, and retain the Diagnostic ID          |
 
 Look up the exact machine value in [Reason Codes](../reference/results/reason-codes.md). Do not
 reinterpret Unable or Skipped as Fail; each means a different remediation and automation outcome.
@@ -111,7 +111,7 @@ testing as the intended user because administrators can see records and fields o
 1. In Lightning App Builder, confirm the component's **Check Set** value matches the intended
    Custom Metadata Developer Name.
 2. Confirm the Check Set is active, uses the record's object API name, and has at least one active
-   Check in the first 25 ordered Checks.
+   Check in the selected whole-set run.
 3. Treat a hidden Run button as configuration until proven otherwise. Check **When Checks Run**,
    **Run Button Display** on the selected Check Set. Hidden and icon-only controls intentionally
    release their unused header space to the title.
@@ -149,10 +149,10 @@ in step 2 instead. Diagnostics is authorized by the packaged assignment itself, 
 cloned Permission Set cannot grant it.
 See [Permission Sets](../reference/permission-sets.md) for the access each set grants.
 
-| Step | What to do | Where in Setup |
-| ---- | ---------- | -------------- |
-| **1. Check Set** | Check **Show Diagnostics** | **Custom Metadata Types** → **Record Health Check Set** → open your Check Set → **Show Diagnostics** (`ShowDiagnostics__c`) |
-| **2. User** | Assign **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) alongside the user's existing runner Permission Set | **Permission Sets** → open **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) → **Manage Assignments** → add the troubleshooting user |
+| Step             | What to do                                                                                                                                            | Where in Setup                                                                                                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Check Set** | Check **Show Diagnostics**                                                                                                                            | **Custom Metadata Types** → **Record Health Check Set** → open your Check Set → **Show Diagnostics** (`ShowDiagnostics__c`)                                                   |
+| **2. User**      | Assign **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) alongside the user's existing runner Permission Set | **Permission Sets** → open **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) → **Manage Assignments** → add the troubleshooting user |
 
 Step 2 authorizes advanced detail. The Check Set's **Show Diagnostics** flag then decides when that detail appears on the card and in the console.
 
@@ -169,12 +169,12 @@ timing, Reason Codes, source details, or access failures to every user of the Li
 
 ### Which Permission Set unlocks troubleshooting detail?
 
-| Permission Set | API name | Can run checks | Authorizes diagnostics |
-| --- | --- | --- | --- |
-| Record Health Check Card User | `rhc__Record_Health_Check_Card_User` | Card only | No |
-| Record Health Check User | `rhc__Record_Health_Check_User` | Yes | No |
-| Record Health Check Admin | `rhc__Record_Health_Check_Admin` | Yes | Yes |
-| Record Health Check Diagnostics Viewer | `rhc__Record_Health_Check_Diagnostics_Viewer` | No; combine with Card User or User | Yes, and nothing else |
+| Permission Set                         | API name                                      | Can run checks                     | Authorizes diagnostics |
+| -------------------------------------- | --------------------------------------------- | ---------------------------------- | ---------------------- |
+| Record Health Check Card User          | `rhc__Record_Health_Check_Card_User`          | Card only                          | No                     |
+| Record Health Check User               | `rhc__Record_Health_Check_User`               | Yes                                | No                     |
+| Record Health Check Admin              | `rhc__Record_Health_Check_Admin`              | Yes                                | Yes                    |
+| Record Health Check Diagnostics Viewer | `rhc__Record_Health_Check_Diagnostics_Viewer` | No; combine with Card User or User | Yes, and nothing else  |
 
 If you checked Show Diagnostics on the Check Set but still see a normal card, confirm that the
 viewing user has **Record Health Check Diagnostics Viewer** or **Record Health Check Admin**. Also
@@ -185,15 +185,15 @@ confirm that the user still has a runner Permission Set appropriate to the entry
 A direct **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** assignment
 authorizes advanced result and troubleshooting information.
 
-| Capability | Diagnostics access required | Show Diagnostics required | What the authorized user receives |
-| --- | --- | --- | --- |
-| Formula **Passes when** | Yes | No | The Formula Check's pass condition when the row uses the default Formula comparison display. Users without diagnostics access see the business message instead of the formula expression. |
-| Result troubleshooting line | Yes | Yes | Status, Reason Code, duration, and Evaluation Type beneath each result. |
-| **Diagnosis** | Yes | Yes | A concise Issue, Where, and Why explanation for `UNABLE_TO_EVALUATE` or `ERROR`. |
-| Browser-console prompt | Yes | Yes | A reminder that full technical evidence and next steps are available in the browser console. |
-| `[RHC]` run summary | Yes | Yes | Run identity, outcome counts, timing, and ordered next steps. A completely passing run states that no diagnostic issues were found and does not create per-Check groups. |
-| Results needing review | Yes | Yes | A concise collapsed group for each Fail, Skipped, Unable to Check, or System Error result. Passing Checks are omitted from console detail. |
-| Advanced diagnostics and support report | Yes | Yes | Technical evidence for `UNABLE_TO_EVALUATE` and `ERROR` only. Ordinary business Fail and Skipped results remain concise and do not produce a support bundle. |
+| Capability                              | Diagnostics access required | Show Diagnostics required | What the authorized user receives                                                                                                                                                         |
+| --------------------------------------- | --------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formula **Passes when**                 | Yes                         | No                        | The Formula Check's pass condition when the row uses the default Formula comparison display. Users without diagnostics access see the business message instead of the formula expression. |
+| Result troubleshooting line             | Yes                         | Yes                       | Status, Reason Code, duration, and Evaluation Type beneath each result.                                                                                                                   |
+| **Diagnosis**                           | Yes                         | Yes                       | A concise Issue, Where, and Why explanation for `UNABLE_TO_EVALUATE` or `ERROR`.                                                                                                          |
+| Browser-console prompt                  | Yes                         | Yes                       | A reminder that full technical evidence and next steps are available in the browser console.                                                                                              |
+| `[RHC]` run summary                     | Yes                         | Yes                       | Run identity, outcome counts, timing, and ordered next steps. A completely passing run states that no diagnostic issues were found and does not create per-Check groups.                  |
+| Results needing review                  | Yes                         | Yes                       | A concise collapsed group for each Fail, Skipped, Unable to Check, or System Error result. Passing Checks are omitted from console detail.                                                |
+| Advanced diagnostics and support report | Yes                         | Yes                       | Technical evidence for `UNABLE_TO_EVALUATE` and `ERROR` only. Ordinary business Fail and Skipped results remain concise and do not produce a support bundle.                              |
 
 Diagnostics access does not grant record or field access. Record Health Check still uses the
 running user's Salesforce access, and diagnostic output can describe only information the user was
@@ -205,13 +205,13 @@ After changing the Check Set or Permission Set assignment, **refresh the record 
 
 After you **run** the checks (automatic or manual), and only when both steps above are complete:
 
-| What | Description |
-| ---- | ----------- |
-| **Gray line under each result** | Compact summary, for example `FAIL · FORMULA_FALSE · 38ms · Formula`: Status, Reason Code, duration, and Evaluation Type (API value). |
-| **Diagnosis** | An automatically expanded explanation limited to Issue, Where, and Why. Remediation, verification, IDs, and evidence stay in the browser console. |
-| **Found / Expected** | On failing checks, labelled chips when the engine captured values. Found / Expected visibility is controlled by **Found/Expected Display** on the Check Set. |
+| What                                  | Description                                                                                                                                                                                                    |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gray line under each result**       | Compact summary, for example `FAIL · FORMULA_FALSE · 38ms · Formula`: Status, Reason Code, duration, and Evaluation Type (API value).                                                                          |
+| **Diagnosis**                         | An automatically expanded explanation limited to Issue, Where, and Why. Remediation, verification, IDs, and evidence stay in the browser console.                                                              |
+| **Found / Expected**                  | On failing checks, labelled chips when the engine captured values. Found / Expected visibility is controlled by **Found/Expected Display** on the Check Set.                                                   |
 | **Found and Expected source details** | For Unable to Check and System Error outcomes, source details may be included in the browser console's **Advanced diagnostics** group. Business Fail and Skipped results do not produce that technical bundle. |
-| **Console hint** | Small footnote directing technical users to the browser console (F12) for evidence and next steps. |
+| **Console hint**                      | Small footnote directing technical users to the browser console (F12) for evidence and next steps.                                                                                                             |
 
 Users **without** a **Record Health Check Diagnostics Viewer** or **Record Health Check Admin** assignment never see the gray lines, Diagnosis panels, or the console hint: even when Show Diagnostics is checked on the Check Set. This is intentional so technical detail is not exposed to everyday users.
 
@@ -225,14 +225,14 @@ Users **without** a **Record Health Check Diagnostics Viewer** or **Record Healt
 The group shows the Run ID and ordered next steps. Use the Check Set Developer Name in its title to
 distinguish multiple Record Health Check cards on the same Lightning record page.
 
-| Console entry | What it contains |
-| --- | --- |
-| **Outcome summary** | A count such as `3 Passed, 2 Failed · 847ms total`. |
-| **Next steps** | Ordered plain-language guidance. System Error guidance appears before Unable, Fail, or Skipped guidance. |
-| **Results needing review** | Every non-Pass result, ordered with System Error, Unable, Fail, and Skipped. Passing Checks do not create per-Check console noise. |
-| **Check summary** | Readable Status, Severity, Reason Code, Evaluation Type, duration, Issue, Where, Why, Fix, and Verify lines when available. |
-| **Advanced diagnostics** | For Unable to Check or System Error only, a collapsed JSON view with the Check name, configuration, values, source details, server diagnosis, and complete result returned by the server. |
-| **Support report for this check** | For Unable to Check or System Error only, a collapsed standalone JSON report for the Check plus the Run ID and Set details needed to identify it. Review and redact it before sharing. |
+| Console entry                     | What it contains                                                                                                                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Outcome summary**               | A count such as `3 Passed, 2 Failed · 847ms total`.                                                                                                                                       |
+| **Next steps**                    | Ordered plain-language guidance. System Error guidance appears before Unable, Fail, or Skipped guidance.                                                                                  |
+| **Results needing review**        | Every non-Pass result, ordered with System Error, Unable, Fail, and Skipped. Passing Checks do not create per-Check console noise.                                                        |
+| **Check summary**                 | Readable Status, Severity, Reason Code, Evaluation Type, duration, Issue, Where, Why, Fix, and Verify lines when available.                                                               |
+| **Advanced diagnostics**          | For Unable to Check or System Error only, a collapsed JSON view with the Check name, configuration, values, source details, server diagnosis, and complete result returned by the server. |
+| **Support report for this check** | For Unable to Check or System Error only, a collapsed standalone JSON report for the Check plus the Run ID and Set details needed to identify it. Review and redact it before sharing.    |
 
 For a Fail or Skipped result, read the concise Check summary and correct the business data,
 applicability, prerequisite, or configuration. Those expected outcomes are not system incidents and

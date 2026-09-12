@@ -14,7 +14,7 @@
     >Example: Account Over 25 Checks</value></values>
     <values><field>CardSubtitle__c</field><value
       xsi:type="xsd:string"
-    >Thirty active checks demonstrate the Framework limit: the card runs and displays the first 25 in evaluation order and reports that 5 are omitted.</value></values>
+    >Thirty active checks demonstrate the Framework limit: every whole-set entry point reports FRAMEWORK_MAX_CHECKS_EXCEEDED and runs none until the active count is reduced to 25.</value></values>
     <values><field>CardRunMode__c</field><value
       xsi:type="xsd:string"
     >RUN_ON_REQUEST</value></values>
@@ -57,5 +57,13 @@
     <values>
         <field>SummaryDisplay__c</field>
         <value xsi:type="xsd:string">BOTTOM</value>
+    </values>
+    <values>
+        <field>CardHeadingDisplay__c</field>
+        <value xsi:type="xsd:string">TITLE_AND_SUBTITLE</value>
+    </values>
+    <values>
+        <field>PublishUserRunEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
     </values>
 </CustomMetadata>

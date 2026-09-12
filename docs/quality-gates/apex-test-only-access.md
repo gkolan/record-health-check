@@ -32,13 +32,13 @@ The command scans Apex in `force-app` and `integration-tests`. It fails when a c
 
 ## Approved `@TestVisible` categories
 
-| Category | Why it currently exists | Required direction |
-| --- | --- | --- |
-| Permission and setting override | A focused test cannot always change Salesforce permissions or Custom Metadata. | Replace the override with a replaceable access or settings provider when that class is introduced. |
-| Forced failure | A test must verify a known error path without causing an unrelated Salesforce failure. | Replace it with an evaluator, publisher, or logger that the test can supply. |
-| Transaction cache reset | Tests must isolate static object, field, and currency information between cases. | Keep only reset or state access that cannot be verified through the public API. |
-| Internal calculation access | Parser, formatter, comparison, and field-planning tests still call private methods. | Move the calculation to a focused helper, test that helper, and remove the original `@TestVisible`. |
-| Integration test support | Scratch-org examples expose state used only to verify scale and custom Apex Check behavior. | Keep it in `integration-tests` and remove access that no test still verifies. |
+| Category                        | Why it currently exists                                                                     | Required direction                                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Permission and setting override | A focused test cannot always change Salesforce permissions or Custom Metadata.              | Replace the override with a replaceable access or settings provider when that class is introduced.  |
+| Forced failure                  | A test must verify a known error path without causing an unrelated Salesforce failure.      | Replace it with an evaluator, publisher, or logger that the test can supply.                        |
+| Transaction cache reset         | Tests must isolate static object, field, and currency information between cases.            | Keep only reset or state access that cannot be verified through the public API.                     |
+| Internal calculation access     | Parser, formatter, comparison, and field-planning tests still call private methods.         | Move the calculation to a focused helper, test that helper, and remove the original `@TestVisible`. |
+| Integration test support        | Scratch-org examples expose state used only to verify scale and custom Apex Check behavior. | Keep it in `integration-tests` and remove access that no test still verifies.                       |
 
 When you remove an approved annotation, reduce its baseline count in the same change. Moving an
 annotation to a different file counts as new test-only access and fails the check.
@@ -49,6 +49,13 @@ Production authorization no longer changes when Apex tests run. Restricted-perso
 tests exercise the real Custom Permission assignment or absence. Focused unit tests may still use
 the private `@TestVisible` override to force an authorization branch that is unrelated to the test's
 metadata setup.
+
+That override may select the authorized branch; it may not change query/DML access mode or grant
+object and field access. A same-user Permission Set assignment in `@TestSetup` is not a substitute
+for a real restricted-persona test and is not reliable evidence for the package-version test
+principal. Do not add a package-test User factory as a workaround: subscriber User automation can
+run during unlocked-package testing. For package-owned operational data, follow the
+[service-owned data contract](./regression-testing-standard.md#service-owned-data-and-package-build-principals).
 
 No production method may branch on `Test.isRunningTest()`. Do not add a branch to preserve behavior
 from an older org or API.

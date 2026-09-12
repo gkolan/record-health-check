@@ -42,6 +42,7 @@ public with sharing class RecordHealthCheckScopePlanner {
     // code-analyzer-suppress-next-line ApexCRUDViolation: Custom Metadata is framework configuration; the selected business records are loaded separately WITH USER_MODE.
     List<Record_Health_Check_Set__mdt> sets = [
       SELECT
+        Id,
         QualifiedApiName,
         DeveloperName,
         IsActive__c,
@@ -200,44 +201,14 @@ public with sharing class RecordHealthCheckScopePlanner {
     List<Record_Health_Check__mdt> checks,
     Integer recordCount
   ) {
-    Integer plannedCalls = 0;
-    for (Record_Health_Check__mdt check : checks) {
-      if (check.ApplicabilityMode__c == 'WHEN_FORMULA_TRUE') {
-        plannedCalls += recordCount;
-      }
-      if (check.EvaluationType__c == 'FORMULA') {
-        plannedCalls += recordCount;
-        // Display formulas resolve their own type rather than inheriting the
-        // pass condition's, so they always probe and must be budgeted that way.
-        // Budgeting them at the declared rate would under-count every scope run
-        // whose author named a type.
-        plannedCalls += plannedDisplayFormulaCalls(
-          check.DisplayFoundFormula__c,
-          RecordHealthCheckDisplayFormat.FORMAT_AUTO,
-          recordCount
-        );
-        plannedCalls += plannedDisplayFormulaCalls(
-          check.DisplayExpectedFormula__c,
-          RecordHealthCheckDisplayFormat.FORMAT_AUTO,
-          recordCount
-        );
-      } else if (check.EvaluationType__c == 'QUERY') {
-        plannedCalls += plannedDisplayFormulaCalls(
-          check.FindInListFormula__c,
-          check.FormulaResultType__c,
-          recordCount
-        );
-        plannedCalls += plannedDisplayFormulaCalls(
-          check.ExpectedRecordFormula__c,
-          check.FormulaResultType__c,
-          recordCount
-        );
-      }
-    }
+    Integer plannedCalls = RecordHealthCheckResourcePlan.formulaCalls(
+      checks,
+      recordCount
+    );
     Integer callsUsed = RecordHealthCheckFormulaEvaluator.callsUsed();
     Integer remainingCalls = Math.max(0, FORMULA_CALL_BUDGET - callsUsed);
     if (plannedCalls > remainingCalls) {
-      throw new RecordHealthCheckScopePipeline.ScopePipelineException(
+      throw new RecordHealthCheckResourcePlan.BudgetException(
         'This request plans ' +
           plannedCalls +
           ' FormulaEval calls, but only ' +
@@ -256,9 +227,9 @@ public with sharing class RecordHealthCheckScopePlanner {
     Integer requiredDmlStatements = 0;
     for (Record_Health_Check__mdt check : checks) {
       if (check.EvaluationType__c == 'APEX') {
-        // Validation constructs the plugin under one savepoint; dispatch runs
-        // it under a second. Both count against the DML statement limit.
-        requiredDmlStatements += 2;
+        // Construction and execution each set and release a savepoint.
+        // Those four operations count against the DML statement limit.
+        requiredDmlStatements += 4;
       }
     }
     Integer remainingDmlStatements =
@@ -328,7 +299,7 @@ public with sharing class RecordHealthCheckScopePlanner {
           recordCount
         );
       } else if (check.EvaluationType__c == 'APEX') {
-        requiredDml += 2;
+        requiredDml += 4;
       }
       largestQueryRows = Math.max(largestQueryRows, checkQueryRows);
     }
@@ -338,6 +309,9 @@ public with sharing class RecordHealthCheckScopePlanner {
     ) {
       requiredDml += ceilingDivide(recordCount * checks.size(), 100);
       requiredDml += ceilingDivide(recordCount, 100);
+    }
+    if (requiredDml > 0) {
+      requiredDml++;
     }
     Integer remainingQueries = Limits.getLimitQueries() - Limits.getQueries();
     Integer requiredQueryRows = preloadQueryRows + largestQueryRows;
@@ -429,13 +403,14 @@ public with sharing class RecordHealthCheckScopePlanner {
     String declaredType,
     Integer recordCount
   ) {
-    if (String.isBlank(expression) || recordCount == 0) {
-      return 0;
-    }
-    // AUTO probes at most eight types once, then uses either the resolved type
-    // or the evaluator's negative cache for later records in the transaction.
-    return String.isBlank(declaredType) || declaredType == 'AUTO'
-      ? recordCount + 7
-      : recordCount;
+    Record_Health_Check__mdt check = new Record_Health_Check__mdt(
+      EvaluationType__c = 'QUERY',
+      FormulaResultType__c = declaredType,
+      FindInListFormula__c = expression
+    );
+    return RecordHealthCheckResourcePlan.formulaCalls(
+      new List<Record_Health_Check__mdt>{ check },
+      recordCount
+    );
   }
 }

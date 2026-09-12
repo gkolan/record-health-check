@@ -5,7 +5,6 @@
  */
 public with sharing class RecordHealthCheckSoqlEvaluation {
   private static final Integer DEFAULT_MAX_ROWS = RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS;
-
   /** Evaluates one SOQL-backed check using the owning evaluator's scoped query state. */
   public static RecordHealthCheckInternalResult evaluate(
     Record_Health_Check__mdt check,
@@ -24,185 +23,47 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
     Integer maxRows = check.MaxQueryRows__c != null
       ? (Integer) check.MaxQueryRows__c
       : DEFAULT_MAX_ROWS;
-
-    // ── Resolve primary value / list ──────────────────────────────────────
-    Object primaryValue = null;
-    List<Object> primaryList = null;
-    SObject primaryRow = null;
-    List<SObject> primaryRows = null;
-
-    if (isListOperator) {
-      // List-membership mode: primary side comes from FindInListFormula__c.
-      try {
-        primaryValue = evaluator.formulaEvaluatorForEvaluation()
-          .resolveFormulaSingleValue(
-            check.FindInListFormula__c,
-            record,
-            check.FormulaResultType__c
-          );
-      } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException fex) {
-        throw new RecordHealthCheckEvaluatorException(
-          fex.reasonCode,
-          fex.getMessage()
-        );
-      }
-    } else {
-      // Tiers 3–5, 8: primary side from SourceQuery__c
-      String soql = evaluator.bindTokens(check.SourceQuery__c, record);
-      List<SObject> rows = evaluator.runQueryForEvaluation(soql, maxRows);
-      primaryRows = rows;
-      // Attached here rather than at the end, because the branches below can
-      // throw on cardinality after the rows are already in hand. An unable
-      // message that says how many rows were found, or names the first, has to
-      // still be able to read them.
-      result.querySourceRows = rows;
-
-      if (check.QueryResultHandling__c == 'ONE_RESULT') {
-        if (rows.isEmpty() && evaluator.isScopeZeroCountForEvaluation(soql)) {
-          primaryValue = 0;
-        } else if (rows.isEmpty()) {
-          // Aggregate COUNT() always returns 1 row (with count=0), so this branch
-          // is only reached by non-aggregate queries with no matching rows.
-          // Route through configured EmptyResultBehavior rather than returning 0.
-          return evaluator.buildEmptyOrNullResult(check, result, null);
-        } else if (rows.size() > 1) {
-          throw new RecordHealthCheckEvaluatorException(
-            'MULTIPLE_ROWS_RETURNED',
-            'OneResult check returned ' + rows.size() + ' rows.'
-          );
-        } else {
-          primaryRow = rows[0];
-          primaryValue = evaluator.readQueryFieldValue(
-            rows[0],
-            check.SourceQueryField__c
-          );
-        }
-      } else {
-        // AnyRowPasses, AllRowsPass, CompareAsLists
-        primaryList = evaluator.resolveFieldList(
-          rows,
-          check.SourceQueryField__c
-        );
-        primaryRows = rows;
-        primaryRow = rows.isEmpty() ? null : rows[0];
-      }
+    RecordHealthCheckSoqlValueResolver.Side primary = RecordHealthCheckSoqlValueResolver.primary(
+      check,
+      record,
+      result,
+      evaluator,
+      isListOperator,
+      maxRows
+    );
+    if (primary.earlyResult != null) {
+      return primary.earlyResult;
     }
-
-    // ── Resolve comparison value / list ───────────────────────────────────
-    Object comparisonValue = null;
-    List<Object> comparisonList = null;
-    // The Expected side can come from its own query and currency.
-    SObject comparisonRow = null;
-    List<SObject> comparisonRows = null;
-    // Distinguishes a comparison query returning zero rows from one where the field was
-    // simply null on a present row (→ null-value, handled by EmptyValueHandling__c).
-    Boolean comparisonQueryWasEmpty = false;
-
-    if (!isUnaryOperator) {
-      if (isListOperator) {
-        // Comparison side: query result list
-        String compSoql = evaluator.bindTokens(
-          check.ComparisonQuery__c,
-          record
-        );
-        List<SObject> compRows = evaluator.runQueryForEvaluation(
-          compSoql,
-          maxRows
-        );
-        comparisonList = evaluator.resolveFieldList(
-          compRows,
-          check.ComparisonQueryField__c
-        );
-        comparisonRows = compRows;
-        result.queryComparisonRows = compRows;
-        comparisonRow = compRows.isEmpty() ? null : compRows[0];
-      } else if (check.ExpectedValueSource__c == 'FIXED_VALUE') {
-        comparisonValue = check.ExpectedFixedValue__c;
-      } else if (check.ExpectedValueSource__c == 'RECORD_FORMULA') {
-        try {
-          comparisonValue = evaluator.formulaEvaluatorForEvaluation()
-            .resolveFormulaSingleValue(
-              check.ExpectedRecordFormula__c,
-              record,
-              check.FormulaResultType__c
-            );
-        } catch (RecordHealthCheckFormulaEvaluator.FormulaEvaluationException fex) {
-          throw new RecordHealthCheckEvaluatorException(
-            fex.reasonCode,
-            fex.getMessage()
-          );
-        }
-      } else if (check.ExpectedValueSource__c == 'COMPARISON_QUERY') {
-        String compSoql = evaluator.bindTokens(
-          check.ComparisonQuery__c,
-          record
-        );
-        List<SObject> compRows = evaluator.runQueryForEvaluation(
-          compSoql,
-          maxRows
-        );
-        comparisonRows = compRows;
-        result.queryComparisonRows = compRows;
-        if (
-          compRows.isEmpty() &&
-          evaluator.isScopeZeroCountForEvaluation(compSoql)
-        ) {
-          comparisonValue = 0;
-        } else if (compRows.isEmpty()) {
-          comparisonValue = null;
-          comparisonQueryWasEmpty = true;
-        } else if (compRows.size() == 1) {
-          comparisonRow = compRows[0];
-          comparisonValue = evaluator.readQueryFieldValue(
-            compRows[0],
-            check.ComparisonQueryField__c
-          );
-        } else {
-          throw new RecordHealthCheckEvaluatorException(
-            'MULTIPLE_ROWS_RETURNED',
-            'Comparison Query returned ' +
-              compRows.size() +
-              ' rows for a single-value comparison. ' +
-              'Add a LIMIT 1 clause or use AnyRowPasses/AllRowsPass mode.'
-          );
-        }
-      }
-    }
-
+    Object primaryValue = primary.value;
+    List<Object> primaryList = primary.values;
+    List<SObject> primaryRows = primary.rows;
+    RecordHealthCheckSoqlValueResolver.Side comparison = RecordHealthCheckSoqlValueResolver.comparison(
+      check,
+      record,
+      result,
+      evaluator,
+      isListOperator,
+      isUnaryOperator,
+      maxRows
+    );
+    Object comparisonValue = comparison.value;
+    List<Object> comparisonList = comparison.values;
+    List<SObject> comparisonRows = comparison.rows;
+    Boolean comparisonQueryWasEmpty = comparison.queryWasEmpty;
     // ── Apply operator ──────────────────────────────────────────────────
     Boolean passed;
     if (!isListOperator) {
       requireCompatibleCurrencyUnits(check, primaryRows, comparisonRows);
     }
-    if (isListOperator) {
-      passed = RecordHealthCheckComparisonEngine.applyListComparison(
-        check.ComparisonOperator__c,
-        primaryValue,
-        comparisonList,
-        check
-      );
-    } else if (primaryList != null) {
-      // Multi-row primary (AnyRowPasses / AllRowsPass / CompareAsLists)
-      passed = RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
-        check,
-        primaryList,
-        comparisonValue,
-        comparisonList
-      );
-    } else if (isUnaryOperator) {
-      passed = RecordHealthCheckComparisonEngine.applyUnaryComparison(
-        check.ComparisonOperator__c,
-        primaryValue
-      );
-    } else {
-      passed = RecordHealthCheckComparisonEngine.applySingleComparison(
-        check.ComparisonOperator__c,
-        primaryValue,
-        comparisonValue,
-        check
-      );
-    }
-
+    passed = applyComparison(
+      check,
+      primaryValue,
+      primaryList,
+      comparisonValue,
+      comparisonList,
+      isListOperator,
+      isUnaryOperator
+    );
     if (passed == null) {
       // An indeterminate operator result has two distinct causes that must NOT
       // be treated alike. A genuine zero-rows result is governed by
@@ -220,7 +81,47 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
         ? evaluator.buildEmptyOrNullResult(check, result, primaryList)
         : evaluator.buildNullIndeterminateResult(result);
     }
-
+    renderComparison(
+      check,
+      record,
+      result,
+      evaluator,
+      isListOperator,
+      primary,
+      comparison
+    );
+    attachValueSources(
+      check,
+      result,
+      evaluator,
+      primaryValue,
+      primaryList,
+      comparisonValue,
+      comparisonList,
+      isUnaryOperator,
+      isListOperator
+    );
+    applyOutcome(result, check, passed, primaryValue, comparisonValue);
+    return result;
+  }
+  /** Renders resolved query values while retaining side-specific currency and row context. */
+  private static void renderComparison(
+    Record_Health_Check__mdt check,
+    SObject record,
+    RecordHealthCheckInternalResult result,
+    RecordHealthCheckSoqlEvaluator evaluator,
+    Boolean isListOperator,
+    RecordHealthCheckSoqlValueResolver.Side primary,
+    RecordHealthCheckSoqlValueResolver.Side comparison
+  ) {
+    Object primaryValue = primary.value;
+    List<Object> primaryList = primary.values;
+    SObject primaryRow = primary.row;
+    List<SObject> primaryRows = primary.rows;
+    Object comparisonValue = comparison.value;
+    List<Object> comparisonList = comparison.values;
+    SObject comparisonRow = comparison.row;
+    List<SObject> comparisonRows = comparison.rows;
     // How the queried field is defined in Setup fills in the format when the
     // author left Display: Value Format on Auto, and the row names the currency
     // its amounts are in. On a list-membership check the value under test comes
@@ -228,32 +129,23 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
     // from the record — a Find in List Formula that names a field, such as
     // AnnualRevenue, reads as money with no Check change. Anything longer than a
     // field path does not resolve and is left on Auto.
-    String displayFormat = isListOperator
-      ? RecordHealthCheckDisplayFormat.formatForRow(
-          check.DisplayValueFormat__c,
-          record,
-          check.FindInListFormula__c
-        )
-      : RecordHealthCheckDisplayFormat.formatForRow(
-          check.DisplayValueFormat__c,
-          primaryRow,
-          check.SourceQueryField__c
-        );
+    String displayFormat = primaryDisplayFormat(
+      check,
+      record,
+      primaryRow,
+      isListOperator
+    );
     // When the query read the same record the card is on, that record's currency
     // is this amount's currency. A query over a different object is left on the
     // running user's currency instead of borrowing an unrelated one.
-    String displayIsoCode = isListOperator
-      ? RecordHealthCheckDisplayFormat.currencyIsoCodeFrom(record)
-      : RecordHealthCheckDisplayFormat.currencyIsoCodeFor(
-          primaryRow,
-          record,
-          check.SourceQueryField__c
-        );
-
-    // An Expected side that came from its own query keeps that query's currency,
-    // which can differ from the Found side — a corporate-currency aggregate
-    // against a record's own amount, for instance. A fixed value or a formula on
-    // this record has no second currency, so it stays on the Found side's.
+    String displayIsoCode = primaryCurrencyIsoCode(
+      check,
+      record,
+      primaryRow,
+      isListOperator
+    );
+    // A comparison query retains its own currency, which may differ from Found.
+    // A fixed value or record formula uses the Found currency.
     String comparisonIsoCode = comparisonRow == null
       ? displayIsoCode
       : RecordHealthCheckDisplayFormat.currencyIsoCodeFor(
@@ -261,9 +153,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
           record,
           check.ComparisonQueryField__c
         );
-
-    // A list preview labels each entry with the currency of the row it came
-    // from, so rows in different currencies do not all read as the first one's.
     List<String> displayIsoCodes = RecordHealthCheckDisplayFormat.currencyIsoCodesFor(
       primaryRows,
       record,
@@ -274,7 +163,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       record,
       check.ComparisonQueryField__c
     );
-
     SObject primaryDisplayRow = isListOperator ? record : primaryRow;
     String primaryDisplayField = isListOperator
       ? check.FindInListFormula__c
@@ -291,7 +179,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       primaryRows,
       check.SourceQueryField__c
     );
-
     SObject expectedDisplayRow = comparisonRow;
     String expectedDisplayField = check.ComparisonQueryField__c;
     if (expectedDisplayRow == null) {
@@ -315,16 +202,10 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       comparisonRows,
       check.ComparisonQueryField__c
     );
-
-    // Capture what the record produced vs what the check required so the UI can
-    // show the comparison on a non-passing row.
     if (
       primaryList != null &&
       check.QueryResultHandling__c == 'ALL_ROWS_PASS'
     ) {
-      // "Every row must pass" over many rows: a raw value dump does not scale, so
-      // summarize as a count ("1 of 5 Contacts did not pass"). An admin can
-      // override the phrasing per check for friendlier wording.
       Integer totalRows = primaryList.size();
       Integer failingRows = RecordHealthCheckComparisonEngine.countFailingRows(
         check,
@@ -387,9 +268,91 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
         result
       );
     }
-
-    // Value source — where each side came from and its raw value/row count, so an
-    // entitled viewer can tell a true value from an empty/converted one.
+  }
+  private static String primaryDisplayFormat(
+    Record_Health_Check__mdt check,
+    SObject record,
+    SObject primaryRow,
+    Boolean isListOperator
+  ) {
+    return isListOperator
+      ? RecordHealthCheckDisplayFormat.formatForRow(
+          check.DisplayValueFormat__c,
+          record,
+          check.FindInListFormula__c
+        )
+      : RecordHealthCheckDisplayFormat.formatForRow(
+          check.DisplayValueFormat__c,
+          primaryRow,
+          check.SourceQueryField__c
+        );
+  }
+  private static String primaryCurrencyIsoCode(
+    Record_Health_Check__mdt check,
+    SObject record,
+    SObject primaryRow,
+    Boolean isListOperator
+  ) {
+    return isListOperator
+      ? RecordHealthCheckDisplayFormat.currencyIsoCodeFrom(record)
+      : RecordHealthCheckDisplayFormat.currencyIsoCodeFor(
+          primaryRow,
+          record,
+          check.SourceQueryField__c
+        );
+  }
+  /** Selects the configured comparison without changing value-source resolution. */
+  private static Boolean applyComparison(
+    Record_Health_Check__mdt check,
+    Object primaryValue,
+    List<Object> primaryList,
+    Object comparisonValue,
+    List<Object> comparisonList,
+    Boolean isListOperator,
+    Boolean isUnaryOperator
+  ) {
+    Boolean passed;
+    if (isListOperator) {
+      passed = RecordHealthCheckComparisonEngine.applyListComparison(
+        check.ComparisonOperator__c,
+        primaryValue,
+        comparisonList,
+        check
+      );
+    } else if (primaryList != null) {
+      passed = RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
+        check,
+        primaryList,
+        comparisonValue,
+        comparisonList
+      );
+    } else if (isUnaryOperator) {
+      passed = RecordHealthCheckComparisonEngine.applyUnaryComparison(
+        check.ComparisonOperator__c,
+        primaryValue
+      );
+    } else {
+      passed = RecordHealthCheckComparisonEngine.applySingleComparison(
+        check.ComparisonOperator__c,
+        primaryValue,
+        comparisonValue,
+        check
+      );
+    }
+    return passed;
+  }
+  /** Attaches the original value and row-count provenance after display rendering. */
+  private static void attachValueSources(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckInternalResult result,
+    RecordHealthCheckSoqlEvaluator evaluator,
+    Object primaryValue,
+    List<Object> primaryList,
+    Object comparisonValue,
+    List<Object> comparisonList,
+    Boolean isUnaryOperator,
+    Boolean isListOperator
+  ) {
     result.actualValueSource = new RecordHealthCheckValueSource.Detail(
       evaluator.describePrimarySource(check),
       primaryList != null
@@ -398,10 +361,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       null
     );
     if (isUnaryOperator) {
-      // A unary operator has no comparison value or source, so the "source" of
-      // the requirement is the operator itself. Labeling it 'Operator' (not
-      // 'Expected requirement') avoids the row reading "Expected Expected …" once
-      // the UI prefixes it with the "Expected" caption.
       result.expectedValueSource = new RecordHealthCheckValueSource.Detail(
         'Comparison operator',
         result.expectedValue,
@@ -418,11 +377,7 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
         null
       );
     }
-
-    applyOutcome(result, check, passed, primaryValue, comparisonValue);
-    return result;
   }
-
   /**
    * Tells a genuine zero-rows outcome apart from a present-but-null value.
    *
@@ -438,20 +393,13 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
     Boolean comparisonQueryWasEmpty
   ) {
     if (isListOperator) {
-      // The list operator's comparison side is the query; the primary is a
-      // single value, so this is zero rows only when that query returned none.
       return comparisonList == null || comparisonList.isEmpty();
     }
     if (primaryList != null) {
-      // Multi-row primary: an empty list is zero rows, while a non-empty list
-      // that still resolved to null means every row's value was null-skipped.
       return primaryList.isEmpty();
     }
-    // One Result or a single value: an empty primary was routed earlier, so the
-    // only zero-rows cause left is an empty comparison query.
     return comparisonQueryWasEmpty;
   }
-
   private static void requireCompatibleCurrencyUnits(
     Record_Health_Check__mdt check,
     List<SObject> primaryRows,
@@ -469,7 +417,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
         : null
     );
   }
-
   private static void applyOutcome(
     RecordHealthCheckInternalResult result,
     Record_Health_Check__mdt check,
@@ -477,10 +424,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
     Object primaryValue,
     Object comparisonValue
   ) {
-    // `actualValue` and `expectedValue` hold sentences by now, because the card
-    // reads "to equal Manufacturing" beside a value. A caller comparing Found
-    // or Expected needs the operand instead, and the operator already travels
-    // on its own field, so it never belongs inside the value.
     result.evaluationFound = RecordHealthCheckQueryEvaluatorSupport.typedOperand(
       primaryValue
     );
@@ -494,7 +437,6 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
     }
     result.status = 'FAIL';
     result.severity = check.FailureSeverity__c;
-    // Display templates are resolved once by ScopePipeline.finalizeDisplay.
     result.message = check.FailureMessage__c;
   }
 }

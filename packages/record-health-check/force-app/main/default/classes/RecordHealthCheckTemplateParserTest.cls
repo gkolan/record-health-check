@@ -11,16 +11,41 @@ private class RecordHealthCheckTemplateParserTest {
     List<RecordHealthCheckToken> tokens = RecordHealthCheckTemplateService.parse(
       template
     );
-    Assert.areEqual(2, tokens.size());
-    Assert.areEqual('record', tokens[0].namespaceName);
-    Assert.areEqual('Name', tokens[0].propertyPath);
-    Assert.areEqual('Unnamed account', tokens[0].fallbackValue);
-    Assert.areEqual('TEXT', tokens[0].formatName);
+    Assert.areEqual(
+      2,
+      tokens.size(),
+      'The template must parse into exactly two tokens.'
+    );
+    Assert.areEqual(
+      'record',
+      tokens[0].namespaceName,
+      'The first token must use the record namespace.'
+    );
+    Assert.areEqual(
+      'Name',
+      tokens[0].propertyPath,
+      'The first token must retain the Name field path.'
+    );
+    Assert.areEqual(
+      'Unnamed account',
+      tokens[0].fallbackValue,
+      'The explicit fallback must retain its literal text.'
+    );
+    Assert.areEqual(
+      'TEXT',
+      tokens[0].formatName,
+      'The format attribute must retain canonical TEXT.'
+    );
     Assert.areEqual(
       '{!record.Name format="TEXT" fallback="Unnamed account"}',
-      template.substring(tokens[0].startIndex, tokens[0].endIndex)
+      template.substring(tokens[0].startIndex, tokens[0].endIndex),
+      'Token offsets must delimit the complete original token.'
     );
-    Assert.areEqual('rhcCheck', tokens[1].namespaceName);
+    Assert.areEqual(
+      'rhcCheck',
+      tokens[1].namespaceName,
+      'The second token must retain the rhcCheck namespace.'
+    );
   }
 
   @IsTest
@@ -54,7 +79,11 @@ private class RecordHealthCheckTemplateParserTest {
         'Resolution must enforce the same attribute checks as validation.'
       );
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('MALFORMED_TOKEN', ex.reasonCode);
+      Assert.areEqual(
+        'MALFORMED_TOKEN',
+        ex.reasonCode,
+        'Runtime resolution must reject trailing malformed attributes.'
+      );
     }
     assertIssue(
       '{!record.Name format="TEXT"}',
@@ -141,11 +170,13 @@ private class RecordHealthCheckTemplateParserTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         'Value: {!record.Name}',
         new RecordHealthCheckMergeContext().withRecord(accountRecord)
-      )
+      ),
+      'A blank record value must preserve the surrounding display text.'
     );
     Assert.areEqual(
       null,
-      RecordHealthCheckTemplateService.resolveDisplay(null, null)
+      RecordHealthCheckTemplateService.resolveDisplay(null, null),
+      'An absent template and context must resolve to null.'
     );
     // Too deep a path is now refused while the author is still editing, rather
     // than surfacing as a runtime failure on a record page. The resolver keeps
@@ -156,7 +187,11 @@ private class RecordHealthCheckTemplateParserTest {
       RecordHealthCheckTemplateService.SURFACE_DISPLAY
     );
     Assert.areEqual(1, depthIssues.size(), 'Refused before the Check runs.');
-    Assert.areEqual('UNKNOWN_TOKEN_PROPERTY', depthIssues[0].reasonCode);
+    Assert.areEqual(
+      'UNKNOWN_TOKEN_PROPERTY',
+      depthIssues[0].reasonCode,
+      'Excessive relationship depth must fail validation with an unknown-property reason.'
+    );
     Assert.isTrue(
       depthIssues[0].message.contains('relationships'),
       'The message names the limit: ' + depthIssues[0].message
@@ -168,7 +203,11 @@ private class RecordHealthCheckTemplateParserTest {
       );
       Assert.isTrue(false, 'Expected relationship depth to fail.');
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('UNKNOWN_TOKEN_PROPERTY', ex.reasonCode);
+      Assert.areEqual(
+        'UNKNOWN_TOKEN_PROPERTY',
+        ex.reasonCode,
+        'Runtime resolution must preserve the same excessive-depth reason.'
+      );
     }
 
     String longTemplate = ''.leftPad(20001, 'x');
@@ -179,7 +218,11 @@ private class RecordHealthCheckTemplateParserTest {
       );
       Assert.isTrue(false, 'Expected resolved length to fail.');
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('RESOLVED_TEMPLATE_TOO_LONG', ex.reasonCode);
+      Assert.areEqual(
+        'RESOLVED_TEMPLATE_TOO_LONG',
+        ex.reasonCode,
+        'An overlong resolved template must retain its length-limit reason.'
+      );
     }
   }
 
@@ -200,28 +243,45 @@ private class RecordHealthCheckTemplateParserTest {
         );
         Assert.isTrue(false, 'Expected unavailable context for ' + template);
       } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-        Assert.areEqual('TOKEN_NOT_AVAILABLE_IN_PHASE', ex.reasonCode);
+        Assert.areEqual(
+          'TOKEN_NOT_AVAILABLE_IN_PHASE',
+          ex.reasonCode,
+          'Each unavailable namespace context must retain the phase error.'
+        );
       }
     }
     try {
       RecordHealthCheckTemplateService.resolveDisplay('{!record.Name}', null);
       Assert.isTrue(false, 'Expected a missing merge context to fail.');
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('TOKEN_NOT_AVAILABLE_IN_PHASE', ex.reasonCode);
+      Assert.areEqual(
+        'TOKEN_NOT_AVAILABLE_IN_PHASE',
+        ex.reasonCode,
+        'A null merge context must retain the phase error.'
+      );
     }
     try {
       RecordHealthCheckTemplateService.assertValid('{!bad.value}', 'DISPLAY'); // rejected-token-fixture: intentional invalid namespace
       Assert.isTrue(false, 'Expected assertValid to throw.');
     } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-      Assert.areEqual('UNSUPPORTED_TOKEN_NAMESPACE', ex.reasonCode);
-      Assert.areEqual('{!bad.value}', ex.token); // rejected-token-fixture: intentional invalid namespace
+      Assert.areEqual(
+        'UNSUPPORTED_TOKEN_NAMESPACE',
+        ex.reasonCode,
+        'assertValid must preserve the unsupported-namespace reason.'
+      );
+      Assert.areEqual(
+        '{!bad.value}', // rejected-token-fixture: intentional invalid namespace
+        ex.token,
+        'The validation exception must identify the exact invalid token.'
+      ); // rejected-token-fixture: intentional invalid namespace
     }
     Assert.areEqual(
       new Set<String>{ 'Name', 'Owner.Name' },
       RecordHealthCheckTemplateService.recordPaths(
         '{!record.Name} {!record.Owner.Name} {!rhcRun.runId}',
         'DISPLAY'
-      )
+      ),
+      'Record-path extraction must include only record namespace fields.'
     );
   }
 

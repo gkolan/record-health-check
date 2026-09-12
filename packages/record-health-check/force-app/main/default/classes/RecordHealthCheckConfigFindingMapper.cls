@@ -354,6 +354,13 @@ public with sharing class RecordHealthCheckConfigFindingMapper {
           'The configured Apex Check could not be constructed.'
         );
       }
+      when APEX_PLUGIN_DEFINITION_INVALID {
+        return buildUnableResult(
+          check,
+          RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID,
+          'The configured Apex Check definition is invalid.'
+        );
+      }
       when APEX_PARAMS_INVALID {
         return buildUnableResult(
           check,

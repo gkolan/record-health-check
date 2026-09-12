@@ -4,6 +4,10 @@ Use this standard whenever a release changes a packaged example, adds Record Hea
 or changes how an existing Check is evaluated. It turns the expected Salesforce results into
 repeatable release evidence instead of relying on one successful demonstration.
 
+For implementation and test authoring, also follow the
+[regression testing standard](./regression-testing-standard.md). It defines independent data-based
+expectations, red evidence, isolated and mixed configurations, transport tests, and evidence limits.
+
 ## Required outcomes
 
 Every active packaged example Check must run against:
@@ -49,10 +53,13 @@ For a bug fix or new feature that affects Check behavior:
 4. Add deterministic Salesforce data and exact expected results for user-visible packaged examples.
 5. Make the smallest implementation change that satisfies the expected behavior.
 6. Run the focused tests, `npm run check:demo-outcome-coverage`, and then `npm run ci:gates`.
-7. Deploy current source to the namespaced LWS and Locker validation orgs and run the complete demo
-   verifier.
-8. Create the package candidate, install that exact `04t`, and rerun the same expected-result
-   contract in the subscriber validation orgs.
+7. For authorized source validation, deploy current source to the identified existing validation
+   orgs and run the complete demo verifier. Record the runtime actually exercised and any pending
+   variation. This step does not authorize creating an org.
+8. When the release owner requests package creation and authorizes subscriber testing, install that
+   exact `04t` and rerun the same expected-result contract. Source evidence does not establish
+   installed-package behavior. Follow the [release runtime matrix](./release-runtime-matrix.md) for
+   required local gates and optional hosted evidence; do not invent an extra package prerequisite.
 
 Repository-only work may not have a meaningful Check or Check Set. In that case, provide an
 equivalent executable self-test and record why Salesforce Custom Metadata does not apply.
@@ -76,7 +83,9 @@ jobs provide that evidence.
 
 ## Release review
 
-Before approving a release, confirm all of the following for the exact commit and package candidate:
+For each authorized release-validation scope, record which of the following passed for the exact
+source and package candidate, and which remain unexecuted. These are evidence boundaries, not
+authorization to create orgs or an additional hosted prerequisite for package creation/promotion:
 
 - all source gates pass from a clean checkout;
 - the namespaced source verifier returns every declared outcome under LWS;
@@ -94,4 +103,3 @@ actual status, source commit, package ID when applicable, security mode, and Sal
 - [Package testing and upgrades](./package-testing-and-upgrades.md)
 - [Source development](../contributing/source-development.md)
 - [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md)
-

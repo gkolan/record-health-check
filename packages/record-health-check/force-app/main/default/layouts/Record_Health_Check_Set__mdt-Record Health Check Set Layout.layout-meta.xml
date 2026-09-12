@@ -4,7 +4,7 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Identity &amp; Scope</label>
+        <label>1. Name the review and choose its object</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -14,10 +14,6 @@
                 <behavior>Required</behavior>
                 <field>ObjectApiName__c</field>
             </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>IsProtected</field>
-            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -25,12 +21,8 @@
                 <field>DeveloperName</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Required</behavior>
+                <behavior>Edit</behavior>
                 <field>IsActive__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Readonly</behavior>
-                <field>NamespacePrefix</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>
@@ -39,26 +31,28 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Card Content</label>
+        <label>2. Describe the card to users</label>
         <layoutColumns>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>CardHeadingDisplay__c</field>
+            </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
                 <field>CardTitle__c</field>
             </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>CardSubtitle__c</field>
             </layoutItems>
         </layoutColumns>
-        <style>TwoColumnsLeftToRight</style>
+        <style>OneColumn</style>
     </layoutSections>
     <layoutSections>
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Run Timing &amp; Progress</label>
+        <label>3. Choose how users start the review</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -67,8 +61,8 @@
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
-                <behavior>Required</behavior>
-                <field>CardRevealMode__c</field>
+                <behavior>Edit</behavior>
+                <field>RunButtonDisplay__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>
@@ -77,22 +71,18 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Optional Button Customization</label>
+        <label>4. Customize the Run button (optional)</label>
         <layoutColumns>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>RunButtonDisplay__c</field>
-            </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>RunButtonLabel__c</field>
             </layoutItems>
-        </layoutColumns>
-        <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>RunButtonIcon__c</field>
             </layoutItems>
+        </layoutColumns>
+        <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>RerunButtonLabel__c</field>
@@ -104,11 +94,15 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Result Presentation</label>
+        <label>5. Choose how results appear</label>
         <layoutColumns>
             <layoutItems>
-                <behavior>Edit</behavior>
-                <field>SummaryDisplay__c</field>
+                <behavior>Required</behavior>
+                <field>CardRevealMode__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Required</behavior>
+                <field>PassedChecksDisplay__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -117,8 +111,8 @@
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
-                <behavior>Required</behavior>
-                <field>PassedChecksDisplay__c</field>
+                <behavior>Edit</behavior>
+                <field>SummaryDisplay__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Required</behavior>
@@ -131,17 +125,25 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Errors &amp; Diagnostics</label>
+        <label>6. Advanced settings and troubleshooting</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>StopOnSystemError__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>PublishUserRunEvent__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>ShowDiagnostics__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>PublishErrorLogEvent__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>
@@ -150,15 +152,17 @@
         <customLabel>true</customLabel>
         <detailHeading>true</detailHeading>
         <editHeading>true</editHeading>
-        <label>Platform Events</label>
-        <layoutColumns>
-            <layoutItems><behavior>Edit</behavior><field
-        >PublishUserRunEvent__c</field></layoutItems>
-        </layoutColumns>
+        <label>Package information</label>
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
-                <field>PublishErrorLogEvent__c</field>
+                <field>IsProtected</field>
+            </layoutItems>
+        </layoutColumns>
+        <layoutColumns>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>NamespacePrefix</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>

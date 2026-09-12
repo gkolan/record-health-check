@@ -139,4 +139,8 @@
         <field>ExpectedFixedValue__c</field>
         <value xsi:type="xsd:string">1</value>
     </values>
+  <values>
+    <field>FormulaResultType__c</field>
+    <value xsi:type="xsd:string">AUTO</value>
+  </values>
 </CustomMetadata>

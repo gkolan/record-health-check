@@ -1,5 +1,6 @@
 import {
   createMcpExpressApp,
+  getOAuthProtectedResourceMetadataUrl,
   originValidation,
   requireBearerAuth
 } from "@modelcontextprotocol/express";
@@ -32,13 +33,32 @@ export function createApp(
   });
   const middleware: RequestHandler[] = [];
   if (config.authMode === "jwt") {
+    if (!config.authIssuer) {
+      throw new Error("JWT authentication requires an authorization issuer.");
+    }
+    const authIssuer = config.authIssuer;
+    const resourceMetadataUrl = getOAuthProtectedResourceMetadataUrl(
+      config.serverUrl
+    );
+    app.get(new URL(resourceMetadataUrl).pathname, (_request, response) => {
+      response.status(200).json({
+        resource: config.serverUrl.href,
+        authorization_servers: [authIssuer],
+        scopes_supported: [config.requiredScope],
+        bearer_methods_supported: ["header"]
+      });
+    });
     middleware.push(
       requireBearerAuth({
         verifier: new JwtTokenVerifier(config),
-        requiredScopes: [config.requiredScope]
+        requiredScopes: [config.requiredScope],
+        resourceMetadataUrl
       })
     );
   }
+  app.get("/mcp", ...middleware, (_request, response) => {
+    response.set("Allow", "POST").status(405).end();
+  });
   app.post("/mcp", ...middleware, async (request, response) => {
     if (config.killSwitch) {
       response.status(503).json({ error: "Service is disabled." });

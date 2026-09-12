@@ -16,6 +16,19 @@ All required details are supplied by the requirement. No confirmation needed bef
 
 ---
 
+## Execution and result-delivery plan
+
+- **Entry:** Lightning record card, running the complete Check Set synchronously when the Account
+  page opens.
+- **Principal and scope:** The interactive Account user evaluates one Account and only visible open
+  Opportunities. The user's sharing and field access apply.
+- **Exit:** The card displays the result. Automatic page-load evaluation never publishes lifecycle
+  events, so the outcome is intentionally transient and no receiver is required.
+- **Failure and recovery:** The card distinguishes health statuses from a load or execution error;
+  administrators use the documented browser and Apex diagnostic paths for the latter.
+
+---
+
 ## Check Set Table
 
 | Setup Label                | API Field Name            | Proposed Value                                         | Why                                                                |
@@ -23,9 +36,10 @@ All required details are supplied by the requirement. No confirmation needed bef
 | Label                      | MasterLabel               | Account Opportunity Readiness                          | Descriptive label for the card setup.                              |
 | Developer Name             | DeveloperName             | Account_Opportunity_Readiness                          | Administrator-created name, no rhc\_\_ prefix per requirement.     |
 | Object                     | ObjectApiName\_\_c        | Account                                                | The object whose record page shows this card.                      |
-| Active                     | IsActive\_\_c             | true                                                   | Card is active by default.                                         |
+| Active                     | IsActive\_\_c             | false                                                  | Keep the draft Check Set inactive until human sandbox review.      |
 | Card Title                 | CardTitle\_\_c            | Opportunity Readiness                                  | Title displayed at the top of the card on the Account record page. |
 | Card Subtitle              | CardSubtitle\_\_c         | Checks that open Opportunities have Next Steps defined | Subtitle explains what this card covers for Account records.       |
+| Card Heading Display       | CardHeadingDisplay\_\_c   | TITLE_AND_SUBTITLE                                     | The default; show the title and subtitle independently of Run.     |
 | Run Mode                   | CardRunMode\_\_c          | RUN_ON_LOAD                                            | Requirement specifies "run when the page opens."                   |
 | Reveal Mode                | CardRevealMode\_\_c       | ONE_BY_ONE                                             | Default; Checks are revealed one by one as they complete.          |
 | Summary Display            | SummaryDisplay\_\_c       | TOP                                                    | Requirement specifies "summary above the Checks."                  |
@@ -56,7 +70,7 @@ All required details are supplied by the requirement. No confirmation needed bef
 | Category                      | Category\_\_c                    | READINESS                                                                                                                                                                     | Requirement specifies Readiness category.                                                                                                                                                                                |
 | Failure Severity              | FailureSeverity\_\_c             | CRITICAL                                                                                                                                                                      | Requirement specifies Critical severity.                                                                                                                                                                                 |
 | Evaluation Order              | EvaluationOrder\_\_c             | 100                                                                                                                                                                           | Default; only one Check in this Set.                                                                                                                                                                                     |
-| Active                        | IsActive\_\_c                    | true                                                                                                                                                                          | Check is active by default.                                                                                                                                                                                              |
+| Active                        | IsActive\_\_c                    | false                                                                                                                                                                         | Keep the draft Check inactive until human sandbox review.                                                                                                                                                                |
 | Failure Message               | FailureMessage\_\_c              | {!rhcResult.failedRecordCount} of {!rhcResult.totalRecordCount} open Opportunit{!rhcResult.foundValuePluralSuffix} on {!record.Name fallback="this record"} lack a Next Step. | Concrete message stating what is wrong and how many are affected; includes record name token and plural handling.                                                                                                        |
 | Unable to Evaluate Message    | UnableToEvaluateMessage\_\_c     | Check that you have Read access to the Opportunity object and its AccountId, IsClosed, and NextStep fields.                                                                   | Describes what could not be reached without blaming the user; ends with a full stop.                                                                                                                                     |
 | Fix Message                   | FixMessage\_\_c                  | Add or update the Next Step field on each open Opportunity to document the planned next action.                                                                               | Tells the user what to do next in the order they would do it; ends with a full stop.                                                                                                                                     |

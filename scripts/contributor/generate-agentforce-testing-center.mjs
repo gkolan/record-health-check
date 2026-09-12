@@ -1,6 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import {
+  AGENTFORCE_TEST_RUNNER,
+  validateLegacyAgentTestSpec
+} from "../lib/agentforce-testing-center.mjs";
+
 const SYNTHETIC_PRIMARY = "001000000000001AAA";
 const SYNTHETIC_SECONDARY = "001000000000002AAA";
 const SOURCE = resolve(
@@ -36,6 +41,7 @@ if (!output) {
 }
 
 const source = await readFile(SOURCE, "utf8");
+validateLegacyAgentTestSpec(source);
 if (
   !source.includes(SYNTHETIC_PRIMARY) ||
   !source.includes(SYNTHETIC_SECONDARY)
@@ -53,4 +59,7 @@ if (/00100000000000[12]AAA/.test(generated)) {
 }
 
 await writeFile(resolve(output), generated, { flag: "wx" });
-console.log(`Generated runnable Testing Center suite at ${resolve(output)}`);
+console.log(
+  `Generated validated ${AGENTFORCE_TEST_RUNNER} suite at ${resolve(output)}\n` +
+    `Preview it against an authorized existing org with: sf agent test create --json --test-runner ${AGENTFORCE_TEST_RUNNER} --spec ${resolve(output)} --api-name <UNIQUE_API_NAME> --preview --target-org <ALIAS>`
+);

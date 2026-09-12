@@ -36,6 +36,59 @@ public with sharing class RecordHealthCheckApexPluginResolver {
     }
   }
 
+  /** Applies a provider definition when the resolved plugin declares one. */
+  public static Map<String, Object> parameters(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckPlugin plugin
+  ) {
+    return configuration(check, plugin).parameters;
+  }
+
+  /** Resolves normalized parameters and the same provider snapshot together. */
+  public static PluginConfiguration configuration(
+    Record_Health_Check__mdt check,
+    RecordHealthCheckPlugin plugin
+  ) {
+    PluginConfiguration result = new PluginConfiguration();
+    if (!(plugin instanceof RecordHealthCheckPluginDefinitionSource)) {
+      result.parameters = parameters(check);
+      return result;
+    }
+    try {
+      RecordHealthCheckPluginDefinition definition = RecordHealthCheckPluginDispatch.define(
+        plugin
+      );
+      result.definition = definition == null ? null : definition.snapshot();
+      result.parameters = RecordHealthCheckPluginDefinitionService.normalize(
+        definition,
+        check.ApexParametersJson__c
+      );
+      return result;
+    } catch (RecordHealthCheckResourcePlan.BudgetException ex) {
+      throw ex;
+    } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
+      throw ex;
+    } catch (RecordHealthCheckPluginDefinitionService.InvalidParametersException ex) {
+      throw configurationError(
+        RecordHealthCheckReasonCodes.INVALID_APEX_PARAMETERS,
+        ex.getMessage(),
+        ex
+      );
+    } catch (Exception ex) {
+      throw configurationError(
+        RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID,
+        ex.getMessage(),
+        ex
+      );
+    }
+  }
+
+  /** One-definition-discovery result consumed by the Apex evaluator. */
+  public class PluginConfiguration {
+    public Map<String, Object> parameters;
+    public RecordHealthCheckPluginDefinition definition;
+  }
+
   public static Type configuredType(String className) {
     if (String.isBlank(className)) {
       throw configurationError(
@@ -87,6 +140,8 @@ public with sharing class RecordHealthCheckApexPluginResolver {
   private static RecordHealthCheckPlugin instantiatePlugin(Type evaluatorType) {
     try {
       return RecordHealthCheckPluginDispatch.instantiate(evaluatorType);
+    } catch (RecordHealthCheckResourcePlan.BudgetException ex) {
+      throw ex;
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
       throw ex;
     } catch (Exception ex) {

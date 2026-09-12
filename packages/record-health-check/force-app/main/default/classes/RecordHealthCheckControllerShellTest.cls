@@ -16,6 +16,7 @@ private class RecordHealthCheckControllerShellTest {
         MasterLabel,
         CardTitle__c,
         CardSubtitle__c,
+        CardHeadingDisplay__c,
         RunButtonDisplay__c,
         RunButtonLabel__c,
         RerunButtonLabel__c,
@@ -66,6 +67,13 @@ private class RecordHealthCheckControllerShellTest {
       expectedCheckSet.CardSubtitle__c,
       shellConfig.get('cardDescription'),
       'The shell should expose the configured subtitle.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckConstants.normalizedCardHeadingDisplay(
+        expectedCheckSet.CardHeadingDisplay__c
+      ),
+      shellConfig.get('cardHeadingDisplay'),
+      'The shell should expose the normalized heading display.'
     );
     Assert.areEqual(
       expectedActiveCount,

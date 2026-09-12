@@ -61,6 +61,23 @@ public class RecordHealthCheckTestDataFactory {
     );
   }
 
+  public static Record_Health_Check_Readiness__c readinessReceipt(
+    Map<String, Object> fields
+  ) {
+    return (Record_Health_Check_Readiness__c) buildRecord(
+      Record_Health_Check_Readiness__c.SObjectType,
+      fields
+    );
+  }
+
+  public static Record_Health_Check_Readiness__c createReadinessReceipt(
+    Map<String, Object> fields
+  ) {
+    Record_Health_Check_Readiness__c receipt = readinessReceipt(fields);
+    insert receipt;
+    return receipt;
+  }
+
   public static User currentUser() {
     return RecordHealthCheckPersonaTestDataFactory.currentUser();
   }

@@ -12,11 +12,23 @@ MCP prompts, record mutation, or event-publication controls.
 For an administrator-friendly deployment walkthrough with a successful and rejection test for every
 security gate, use [Deploy the MCP service one security gate at a time](../../docs/developer-guides/agentforce-and-mcp/deploy-mcp-service.md).
 
+## Response contract and service version
+
+Tool discovery advertises the same strict alternatives used to validate Salesforce responses:
+a completed single Check, a completed Check Set with all five counts, or a failure with a safe
+error category and message. Unknown and contradictory fields are rejected. Count totals and
+count-derived status are additionally checked at runtime; JSON Schema discovery does not express
+that arithmetic. The initialization version identifies this service package (currently 0.1.0),
+separately from the agent-tool payload contract version 1.0.
+
 ## Security model
 
 Inbound clients use JWT bearer authentication in production. The verifier checks the signature,
 issuer, audience, expiration, and `rhc.run` scope. `AUTH_MODE=none` is accepted only outside
-production. Host and Origin checks protect the HTTP boundary.
+production. The service publishes RFC 9728 protected-resource metadata at
+`/.well-known/oauth-protected-resource/mcp`, includes that URL and the required scope in `401`
+challenges, and returns an explicit `405` for the unsupported stateless `GET /mcp` stream. Host and
+Origin checks protect the HTTP boundary.
 
 Salesforce calls use OAuth client credentials and a dedicated integration principal. The service
 permits only HTTPS login and instance hosts listed in `SALESFORCE_ALLOWED_HOSTS`. Redirects fail,
@@ -66,7 +78,8 @@ npm run check
 ```
 
 The check formats and lints source, type-checks, runs the Vitest suite with coverage floors, runs an
-official MCP SDK client against the Streamable HTTP endpoint, and produces the deployable build.
+official MCP SDK client against the Streamable HTTP endpoint, verifies OAuth resource discovery and
+the stateless GET response, and produces the deployable build.
 
 ## Runtime configuration
 

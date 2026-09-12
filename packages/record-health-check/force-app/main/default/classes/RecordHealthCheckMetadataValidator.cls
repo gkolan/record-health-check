@@ -1,8 +1,4 @@
-/**
- * @author Gautam Kolan (https://github.com/gkolan)
- * SPDX-License-Identifier: Apache-2.0
- */
-
+// SPDX-License-Identifier: Apache-2.0
 public with sharing class RecordHealthCheckMetadataValidator {
   private static final Set<String> VALID_DISPLAY_MODES = RecordHealthCheckConstants.validDisplayModes;
   private static final Set<String> VALID_TRIGGER_MODES = RecordHealthCheckConstants.validTriggerModes;
@@ -13,14 +9,16 @@ public with sharing class RecordHealthCheckMetadataValidator {
   private static final Set<String> VALID_SEVERITIES = RecordHealthCheckConstants.validSeverities;
   private static final Integer FRAMEWORK_MAX_ROWS = RecordHealthCheckConstants.FRAMEWORK_MAX_ROWS;
 
-  // ─── Validation issue data holder ─────────────────────────────────────────
-
   public class ValidationIssue {
     public String severity; // ERROR, WARNING
     public String componentName; // DeveloperName of the CMT record
     public String fieldName; // field involved, null for cross-record issues
     public String message;
     public String reasonCode;
+    public String offendingToken;
+    public String diagnosticDetail;
+    public Integer startOffset;
+    public Integer endOffset;
 
     public ValidationIssue(
       String severity,
@@ -44,8 +42,6 @@ public with sharing class RecordHealthCheckMetadataValidator {
   // this class keeps the baseline + Check Set + dependency-graph checks (inline) plus a
   // collect-all adapter (toIssue). The operator/source/null-empty value sets live with
   // those producers.
-  // ─── Public API ───────────────────────────────────────────────────────────
-
   /**
    * Validates all Check Sets and Checks in the org, including inactive drafts.
    * Returns a list of ValidationIssues — empty list means everything is valid.
@@ -59,6 +55,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         ObjectApiName__c,
         IsActive__c,
         CardRunMode__c,
+        CardHeadingDisplay__c,
         RunButtonDisplay__c,
         RunButtonLabel__c,
         RerunButtonLabel__c,
@@ -84,6 +81,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         IsActive__c,
         EvaluationType__c,
         FailureSeverity__c,
+        FormulaResultType__c,
         PassConditionFormula__c,
         FindInListFormula__c,
         SourceQuery__c,
@@ -151,11 +149,24 @@ public with sharing class RecordHealthCheckMetadataValidator {
     List<Record_Health_Check__mdt> allChecks
   ) {
     List<ValidationIssue> issues = new List<ValidationIssue>();
+    Map<String, Schema.SObjectType> objectTypeByCheckSet = new Map<String, Schema.SObjectType>();
 
     // Validate each Check Set on its own; dependency validation scopes by
     // Check Set Id below.
     for (Record_Health_Check_Set__mdt cs : checkSets) {
       issues.addAll(validateCheckSet(cs));
+      if (
+        RecordHealthCheckConfigValidator.isValidObjectApiName(
+          cs.ObjectApiName__c
+        )
+      ) {
+        Schema.SObjectType objectType = Schema.getGlobalDescribe()
+          .get(cs.ObjectApiName__c);
+        objectTypeByCheckSet.put(cs.DeveloperName, objectType);
+        if (cs.Id != null) {
+          objectTypeByCheckSet.put(String.valueOf(cs.Id), objectType);
+        }
+      }
     }
 
     Set<String> hiddenAutomaticSetKeys = new Set<String>();
@@ -182,6 +193,12 @@ public with sharing class RecordHealthCheckMetadataValidator {
       }
       checksByCheckSet.get(csName).add(check);
       issues.addAll(validateCheck(check));
+      issues.addAll(
+        RecordHealthCheckFormulaMetadataAdapter.issues(
+          check,
+          objectTypeByCheckSet.get(csName)
+        )
+      );
       if (
         check.PublishUserResultEvent__c == true &&
         hiddenAutomaticSetKeys.contains(csName)
@@ -204,48 +221,15 @@ public with sharing class RecordHealthCheckMetadataValidator {
       if (setChecks.size() > RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS) {
         issues.add(
           new ValidationIssue(
-            'WARNING',
+            'ERROR',
             csName,
             null,
-            'The Lightning card includes only the first ' +
+            'The Check Set has more than ' +
               RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS +
-              ' active Checks; direct Apex, Flow, Batch, Queueable, and Scheduled requests reject the entire oversized Check Set.',
-            'CHECK_LIMIT_EXCEEDED'
+              ' active Checks. Whole-set runs reject the configuration and run no Checks.',
+            'FRAMEWORK_MAX_CHECKS_EXCEEDED'
           )
         );
-        Set<String> included = new Set<String>();
-        for (
-          Integer i = 0;
-          i < RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
-          i++
-        ) {
-          included.add(identityOf(setChecks[i]));
-        }
-        for (
-          Integer i = 0;
-          i < RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS;
-          i++
-        ) {
-          Record_Health_Check__mdt includedCheck = setChecks[i];
-          if (
-            String.isNotBlank(includedCheck.PrerequisiteCheck__c) &&
-            !included.contains(
-              RHCDefinitionDependencyIdentity.resolve(includedCheck, setChecks)
-            )
-          ) {
-            issues.add(
-              new ValidationIssue(
-                'WARNING',
-                includedCheck.DeveloperName,
-                'PrerequisiteCheck__c',
-                'The dependency is outside the first-' +
-                  RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS +
-                  ' execution window, so this check will be skipped.',
-                'DEPENDENCY_NOT_IN_RUN'
-              )
-            );
-          }
-        }
       }
       issues.addAll(RHCMetadataDependencyValidator.validate(csName, setChecks));
     }
@@ -263,7 +247,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
 
   // ─── Check validation ──────────────────────────────────────────────────────
 
-  private List<ValidationIssue> validateCheck(Record_Health_Check__mdt check) {
+  public List<ValidationIssue> validateCheck(Record_Health_Check__mdt check) {
     List<ValidationIssue> issues = new List<ValidationIssue>();
     RecordHealthCheckTokenIssue tokenIssue = RecordHealthCheckConfigValidator.firstTemplateIssue(
       check
@@ -440,12 +424,6 @@ public with sharing class RecordHealthCheckMetadataValidator {
     issues.addAll(RecordHealthCheckIgnoredConfig.issues(check));
 
     return issues;
-  }
-
-  private static String identityOf(Record_Health_Check__mdt check) {
-    return String.isBlank(check.QualifiedApiName)
-      ? check.DeveloperName
-      : check.QualifiedApiName;
   }
 
   // ─── Dependency graph validation is delegated to RHCMetadataDependencyValidator. ───

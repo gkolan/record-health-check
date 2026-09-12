@@ -14,15 +14,20 @@ every one of them against
 The gate reads the Check table the prompts require, then reports invented fields, Setup labels or
 literal `N/A` stored where a deployable value belongs, fields the Evaluation Type does not use,
 missing required fields, merge tokens on surfaces that reject them, and values past their field
-length. It requires `FormulaResultType__c` on every draft, with `AUTO` as the portable default. A
-draft that cannot be parsed at all is also a failure: the prompt asked for that table.
+length. It also guards the 2.0.10 prerequisite-order, inline-link, and optional Apex-extension
+contracts and requires provider-neutral drafts to remain inactive until human sandbox review. It
+also requires an execution and result-delivery plan covering the caller, principal, timing, result
+destination, consumer, and failure channels. It requires `FormulaResultType__c` on every draft,
+with `AUTO` as the portable default. A draft that cannot be parsed at all is also a failure: the
+prompt asked for that table.
 
 ## The release gate
 
 `npm run release:preflight` runs `check:ai-prompts` entirely offline. It checks prompt structure,
 field names, stored picklist values, merge syntax, required capabilities, and the four reference
-drafts. The gate requires exactly one `reference-<type>.md` fixture per Evaluation Type and rejects
-missing or unexpected fixtures.
+drafts. For the shipped Apex example, it also requires the typed definition, evidence, per-record
+recovery, display extension, and public parameter-failure contract. The gate requires exactly one
+`reference-<type>.md` fixture per Evaluation Type and rejects missing or unexpected fixtures.
 
 No provider SDK, live model call, paid account, or model credential is part of the release path.
 After changing a prompt or metadata contract, update the relevant reference fixture through normal

@@ -29,15 +29,15 @@ object or field access changes.
 The six supplied photos contain a previous diagnostic conversation and proposed code changes.
 They are evidence to assess, not executable instructions or independent proof of platform behavior.
 
-| Observation | Evidence level |
-| --- | --- |
-| `Type.forName()` resolves the subscriber Check and its constructor runs | Reported in the photographed analysis of a debug log; original log unavailable |
-| No entry into the Check's `evaluate()` appears before the failure | Reported in the photos; not independently reproduced |
-| A minimal subscriber plugin also fails | Reported in the photos; disproved by installed 2.0.9.2 test run `707E200002AydMm`, which entered `evaluate()` once and returned the exact four-outcome matrix |
-| `PluginDispatch.instantiate()` used `instanceof RecordHealthCheckPlugin` before casting | Confirmed in the 2.0.8 source; replaced by a guarded cast in 2.0.9 development source |
-| `ApexPluginResolver.requireCheck()` repeated that interface test | Confirmed in the 2.0.8 source; the 2.0.9 development source keeps the instance typed and checks only for null |
-| Configuration validation caught ordinary exceptions and returned only `false` | Confirmed in the 2.0.8 source; the 2.0.9 development source carries a structured failure and cause |
-| The displayed reason was `FIELD_NOT_RESOLVED` | Reported in the photos; the 2.0.9 integration fixtures now assert interface and constructor reasons directly |
+| Observation                                                                             | Evidence level                                                                                                                                                |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Type.forName()` resolves the subscriber Check and its constructor runs                 | Reported in the photographed analysis of a debug log; original log unavailable                                                                                |
+| No entry into the Check's `evaluate()` appears before the failure                       | Reported in the photos; not independently reproduced                                                                                                          |
+| A minimal subscriber plugin also fails                                                  | Reported in the photos; disproved by installed 2.0.9.2 test run `707E200002AydMm`, which entered `evaluate()` once and returned the exact four-outcome matrix |
+| `PluginDispatch.instantiate()` used `instanceof RecordHealthCheckPlugin` before casting | Confirmed in the 2.0.8 source; replaced by a guarded cast in 2.0.9 development source                                                                         |
+| `ApexPluginResolver.requireCheck()` repeated that interface test                        | Confirmed in the 2.0.8 source; the 2.0.9 development source keeps the instance typed and checks only for null                                                 |
+| Configuration validation caught ordinary exceptions and returned only `false`           | Confirmed in the 2.0.8 source; the 2.0.9 development source carries a structured failure and cause                                                            |
+| The displayed reason was `FIELD_NOT_RESOLVED`                                           | Reported in the photos; the 2.0.9 integration fixtures now assert interface and constructor reasons directly                                                  |
 
 The original working hypothesis was that the interface guard rejected an otherwise cast-compatible
 subscriber instance. The guarded cast removed that extra rejection condition. Installed 2.0.9.2
@@ -51,13 +51,13 @@ constructor accessibility, and preview return shape therefore remain unverified.
 
 ### 2.1 Implemented evidence
 
-| Boundary | Result |
-| --- | --- |
-| Source mutation guard | Seven self-tests reject either restored `instanceof` gate, direct resolver construction, and a cast moved before constructor failure handling |
-| Namespaced source | 58 focused methods passed in run `707RL00001g1UAG`, including exact interface/constructor reasons and the four-outcome compatibility Set |
+| Boundary                                     | Result                                                                                                                                                                                                                                      |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Source mutation guard                        | Seven self-tests reject either restored `instanceof` gate, direct resolver construction, and a cast moved before constructor failure handling                                                                                               |
+| Namespaced source                            | 58 focused methods passed in run `707RL00001g1UAG`, including exact interface/constructor reasons and the four-outcome compatibility Set                                                                                                    |
 | Released 2.0.9.2 plus empty-namespace plugin | Focused test run `707E200002AydMm` passed in retained Locker org `rhc-2-0-9-locker`; the subscriber plugin was constructed once, evaluated once, returned exact PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE outcomes, and had 100% coverage |
-| Foreign installed namespace lookup | `SBQQ.ServiceRouter` resolved in an existing `rhc` source org and was correctly classified at construction; it does not implement the RHC interface and therefore is not NS-03 success evidence |
-| Static analysis | Salesforce Code Analyzer Recommended scan found zero violations in the package, integration, subscriber, and partner fixture Apex workspaces |
+| Foreign installed namespace lookup           | `SBQQ.ServiceRouter` resolved in an existing `rhc` source org and was correctly classified at construction; it does not implement the RHC interface and therefore is not NS-03 success evidence                                             |
+| Static analysis                              | Salesforce Code Analyzer Recommended scan found zero violations in the package, integration, subscriber, and partner fixture Apex workspaces                                                                                                |
 
 The source repository now includes `RHC_Plugin_Compatibility`, the subscriber outcome matrix, and
 `namespace-fixture/`. The last is package-ready source, but NS-03 remains unverified until a release
@@ -68,14 +68,14 @@ owner supplies a registered second namespace and authorizes creation of both can
 This table maps the substantive points visible in each supplied photo. Repeated content is mapped
 once to the same requirement; photographed recommendations remain proposals until verified.
 
-| Photo | Visible claim or recommendation | Required coverage in this specification |
-| --- | --- | --- |
-| IMG_5601.JPEG | Constructor succeeds, evaluate is not entered; both approval Checks affected; field error misleading; use instantiate-and-cast, avoid inspecting plugin dependencies, retain exception details, install corrected package and recompile/redeploy subscriber classes | Sections 4–7 and 11.1; both named customer Checks remain in the conditional integration matrix |
-| IMG_5602.JPEG | Global plugin class/method and exact signature; public same-namespace Callable service; implicit no-argument constructor; subscriber service lookup; failure precedes service invocation, SBAA preview, and user/group queries | Sections 5.4 and 8 distinguish the two caller boundaries and forbid attributing a pre-evaluate failure to downstream work |
-| IMG_5603.JPEG | PREVIEW_SERVICE_NOT_FOUND and PREVIEW_FAILED differ from RHC's FIELD_NOT_RESOLVED; correction to blanket constructor advice; MinimalRhcPlugin isolates dispatch without fields or external logic | Sections 5.4, 6, 8, and 10; minimal subscriber fixture must prove evaluate entry independently of SBAA |
-| IMG_5604.JPEG | Replace the instanceof branch with a cast in a narrow TypeException catch after constructionFailure propagation; fix the second occurrence | Sections 5.1–5.2; mutation guards must protect each occurrence independently |
-| IMG_5606.JPEG | Validator.apexFindings calls isValidApexPlugin; null becomes invalid; package-local valid/invalid tests are insufficient for a subscriber boundary | Sections 6 and 9–10; full validation-to-execution regression and actual installed-package evidence |
-| IMG_5607.JPEG | Valid/invalid cast tests; namespace-free subscriber installation smoke test; PLUGIN_INTERFACE_INVALID or APEX_CLASS_INVALID rather than a field error; minimal plugin first, real preview Check next | Sections 6 and 9–11; progressive verification and separate evidence categories |
+| Photo         | Visible claim or recommendation                                                                                                                                                                                                                                     | Required coverage in this specification                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| IMG_5601.JPEG | Constructor succeeds, evaluate is not entered; both approval Checks affected; field error misleading; use instantiate-and-cast, avoid inspecting plugin dependencies, retain exception details, install corrected package and recompile/redeploy subscriber classes | Sections 4–7 and 11.1; both named customer Checks remain in the conditional integration matrix                            |
+| IMG_5602.JPEG | Global plugin class/method and exact signature; public same-namespace Callable service; implicit no-argument constructor; subscriber service lookup; failure precedes service invocation, SBAA preview, and user/group queries                                      | Sections 5.4 and 8 distinguish the two caller boundaries and forbid attributing a pre-evaluate failure to downstream work |
+| IMG_5603.JPEG | PREVIEW_SERVICE_NOT_FOUND and PREVIEW_FAILED differ from RHC's FIELD_NOT_RESOLVED; correction to blanket constructor advice; MinimalRhcPlugin isolates dispatch without fields or external logic                                                                    | Sections 5.4, 6, 8, and 10; minimal subscriber fixture must prove evaluate entry independently of SBAA                    |
+| IMG_5604.JPEG | Replace the instanceof branch with a cast in a narrow TypeException catch after constructionFailure propagation; fix the second occurrence                                                                                                                          | Sections 5.1–5.2; mutation guards must protect each occurrence independently                                              |
+| IMG_5606.JPEG | Validator.apexFindings calls isValidApexPlugin; null becomes invalid; package-local valid/invalid tests are insufficient for a subscriber boundary                                                                                                                  | Sections 6 and 9–10; full validation-to-execution regression and actual installed-package evidence                        |
+| IMG_5607.JPEG | Valid/invalid cast tests; namespace-free subscriber installation smoke test; PLUGIN_INTERFACE_INVALID or APEX_CLASS_INVALID rather than a field error; minimal plugin first, real preview Check next                                                                | Sections 6 and 9–11; progressive verification and separate evidence categories                                            |
 
 The photos do not establish that every possible defect has been identified. Coverage here means
 every visible substantive point has an explicit requirement or an explicitly recorded uncertainty.
@@ -231,15 +231,15 @@ mapping receive the same classification. Update all exhaustive mapping tests. Th
 `APEX_CLASS_INVALID` fallback, when no richer cause exists, must say `APEX_CLASS_INVALID`; it
 must not claim a class is missing or a field failed to resolve.
 
-| Actual condition | Runtime status | Reason code | Phase |
-| --- | --- | --- | --- |
-| Blank or unresolvable class name | UNABLE_TO_EVALUATE | APEX_CLASS_NOT_FOUND | PLUGIN_RESOLVE |
-| Class constructs but cannot cast to the plugin interface | UNABLE_TO_EVALUATE | PLUGIN_INTERFACE_INVALID | PLUGIN_RESOLVE |
-| Constructor throws or cannot be invoked | UNABLE_TO_EVALUATE | PLUGIN_CONSTRUCTOR_FAILED | PLUGIN_CONSTRUCT |
-| Malformed or non-object parameters | UNABLE_TO_EVALUATE | INVALID_APEX_PARAMETERS | PLUGIN_PARAMETERS |
-| Plugin throws during evaluation without a detected side effect | ERROR | PLUGIN_THREW | Existing execution phase |
-| Constructor or evaluation performs a detected prohibited effect | Fatal exception; no ordinary result conversion | PLUGIN_SIDE_EFFECT_DETECTED | Actual construction/execution phase |
-| Field resolution genuinely fails on a field-dependent path | Existing field-failure behavior | Existing field-specific reason | Actual field phase |
+| Actual condition                                                | Runtime status                                 | Reason code                    | Phase                               |
+| --------------------------------------------------------------- | ---------------------------------------------- | ------------------------------ | ----------------------------------- |
+| Blank or unresolvable class name                                | UNABLE_TO_EVALUATE                             | APEX_CLASS_NOT_FOUND           | PLUGIN_RESOLVE                      |
+| Class constructs but cannot cast to the plugin interface        | UNABLE_TO_EVALUATE                             | PLUGIN_INTERFACE_INVALID       | PLUGIN_RESOLVE                      |
+| Constructor throws or cannot be invoked                         | UNABLE_TO_EVALUATE                             | PLUGIN_CONSTRUCTOR_FAILED      | PLUGIN_CONSTRUCT                    |
+| Malformed or non-object parameters                              | UNABLE_TO_EVALUATE                             | INVALID_APEX_PARAMETERS        | PLUGIN_PARAMETERS                   |
+| Plugin throws during evaluation without a detected side effect  | ERROR                                          | PLUGIN_THREW                   | Existing execution phase            |
+| Constructor or evaluation performs a detected prohibited effect | Fatal exception; no ordinary result conversion | PLUGIN_SIDE_EFFECT_DETECTED    | Actual construction/execution phase |
+| Field resolution genuinely fails on a field-dependent path      | Existing field-failure behavior                | Existing field-specific reason | Actual field phase                  |
 
 Metadata audits return issues rather than runtime result rows, but must use the corresponding
 reason and attribute plugin configuration errors to `ApexClass__c` or `ApexParametersJson__c`.
@@ -293,15 +293,15 @@ them as the result of a fresh preview.
 
 Proposed outcome contract:
 
-| Preview scenario | Expected result |
-| --- | --- |
-| Nonempty complete preview; all resolved approvers are active | PASS; inactive count 0 |
-| Complete preview; at least one resolved approver is inactive | FAIL; distinct inactive-user count greater than 0 |
-| Successfully evaluated preview has no required approvers | SKIPPED / PREVIEW_NO_APPROVERS; never interpret an absent or malformed response as this case |
-| Service class is unavailable | UNABLE_TO_EVALUATE / PREVIEW_SERVICE_NOT_FOUND |
-| Service invocation or preview fails | UNABLE_TO_EVALUATE / PREVIEW_FAILED |
-| Approver identity cannot be resolved, or required user/group data is inaccessible | UNABLE_TO_EVALUATE with a specific documented resolution/access reason |
-| Record is outside the configured applicability or a prerequisite prevents execution | Existing SKIPPED result; do not invoke preview |
+| Preview scenario                                                                    | Expected result                                                                              |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Nonempty complete preview; all resolved approvers are active                        | PASS; inactive count 0                                                                       |
+| Complete preview; at least one resolved approver is inactive                        | FAIL; distinct inactive-user count greater than 0                                            |
+| Successfully evaluated preview has no required approvers                            | SKIPPED / PREVIEW_NO_APPROVERS; never interpret an absent or malformed response as this case |
+| Service class is unavailable                                                        | UNABLE_TO_EVALUATE / PREVIEW_SERVICE_NOT_FOUND                                               |
+| Service invocation or preview fails                                                 | UNABLE_TO_EVALUATE / PREVIEW_FAILED                                                          |
+| Approver identity cannot be resolved, or required user/group data is inaccessible   | UNABLE_TO_EVALUATE with a specific documented resolution/access reason                       |
+| Record is outside the configured applicability or a prerequisite prevents execution | Existing SKIPPED result; do not invoke preview                                               |
 
 For this example, incomplete evidence takes precedence over PASS or FAIL; diagnostics may retain
 known inactive counts but must not imply the full preview was inspected. These defaults require
@@ -330,22 +330,22 @@ service behind Callable or changing its visibility does not repair rejection of 
 Write and run the relevant guards before production edits. Follow
 [Check and Check Set outcome verification](../quality-gates/check-outcome-verification.md).
 
-| Area | Scenarios and required assertion |
-| --- | --- |
-| Interface compatibility | Valid package-local, empty-namespace subscriber, and qualified subscriber types reach evaluate; unrelated concrete type is rejected |
-| Loading boundaries | Validation then cached execution, direct uncached resolution, definition loading, metadata audit; identical classifications |
+| Area                       | Scenarios and required assertion                                                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Interface compatibility    | Valid package-local, empty-namespace subscriber, and qualified subscriber types reach evaluate; unrelated concrete type is rejected                                             |
+| Loading boundaries         | Validation then cached execution, direct uncached resolution, definition loading, metadata audit; identical classifications                                                     |
 | Null/invalid configuration | Null Type, blank/missing class, wrong type, missing accessible no-argument constructor, malformed/scalar/array/null parameter JSON; existing empty-parameter behavior preserved |
-| Constructor failures | Ordinary exception and constructor TypeException classified as constructor failures; original cause retained |
-| Side effects | Constructor/evaluation DML with and without a subsequent throw; rollback and fatal precedence unchanged |
-| Cache isolation | Different Check identities and parameters, consumed cache, discarded cache, failed revalidation; no instance leaks or duplicate construction in a successful handoff |
-| Ordinary outcomes | Plugin-controlled PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE preserved; thrown evaluation error classified separately |
-| Result contract | Null map, missing record entry, unknown returned ID, invalid outcome; existing dispatcher behavior preserved |
-| Bulk/limits | Single record and maximum supported scope, one evaluate call per scope, more than five sequential constructions; no savepoint accumulation |
-| Namespace variants | Package-local source, namespaced source, installed package with subscriber-owned class; namespace collisions retain documented precedence |
-| Security | Runner without diagnostic access, authorized diagnostic viewer, inaccessible data, missing run permission; no new exposure or elevated execution |
-| Runtime variants | LWS and Locker display safe reasons when browser verification is available; no loader/rendering change required |
-| Data variations | Currency, locale, and time zone cannot affect interface acceptance or reason classification; verify the dispatch fixture has no dependence on them |
-| Legacy integration | Active/inactive/no approvers, service failure, unresolved groups, duplicate users, permissions, supported bulk bound; conditional on actual SBQQ/SBAA availability |
+| Constructor failures       | Ordinary exception and constructor TypeException classified as constructor failures; original cause retained                                                                    |
+| Side effects               | Constructor/evaluation DML with and without a subsequent throw; rollback and fatal precedence unchanged                                                                         |
+| Cache isolation            | Different Check identities and parameters, consumed cache, discarded cache, failed revalidation; no instance leaks or duplicate construction in a successful handoff            |
+| Ordinary outcomes          | Plugin-controlled PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE preserved; thrown evaluation error classified separately                                                          |
+| Result contract            | Null map, missing record entry, unknown returned ID, invalid outcome; existing dispatcher behavior preserved                                                                    |
+| Bulk/limits                | Single record and maximum supported scope, one evaluate call per scope, more than five sequential constructions; no savepoint accumulation                                      |
+| Namespace variants         | Package-local source, namespaced source, installed package with subscriber-owned class; namespace collisions retain documented precedence                                       |
+| Security                   | Runner without diagnostic access, authorized diagnostic viewer, inaccessible data, missing run permission; no new exposure or elevated execution                                |
+| Runtime variants           | LWS and Locker display safe reasons when browser verification is available; no loader/rendering change required                                                                 |
+| Data variations            | Currency, locale, and time zone cannot affect interface acceptance or reason classification; verify the dispatch fixture has no dependence on them                              |
+| Legacy integration         | Active/inactive/no approvers, service failure, unresolved groups, duplicate users, permissions, supported bulk bound; conditional on actual SBQQ/SBAA availability              |
 
 Existing starting points include `RecordHealthCheckPluginDispatchTest`,
 `RecordHealthCheckApexAdapterTest`, `RecordHealthCheckConfigValidationTest`,
@@ -371,15 +371,15 @@ of formatting or reject explanatory comments as executable code.
 
 Use the shared Check fixtures through each public surface that can reach the Apex evaluator:
 
-| Surface | Required observable checks |
-| --- | --- |
-| Record card, including definition loading and rerun | Valid subscriber plugin runs; load failures name the plugin phase; rerun reads changed class/parameters; no header-only or stuck-loading state |
-| Public Apex single Check and Check Set requests | Exact result count, identity, status, reason, and evaluate-entry marker for cached and uncached paths |
-| Flow Check/Set actions and agent Check/Set actions | Adapter output retains the specific plugin failure, identity, and safe diagnostics; side-effect failures cannot become ordinary results |
-| Agent REST and any supported MCP bridge into these APIs | No generic field error or diagnostic leakage introduced by serialization or error translation |
-| Queueable, Batch, and Scheduled adapters | Scope processing and permitted lifecycle output preserve failure meaning; no false successful completion or swallowed fatal side effect |
-| Metadata validation action and definition service | No evaluate call; correct class/parameter issue, no repeated construction to recover a diagnostic |
-| Plugin-author contract test harness | Compatible typed instance reaches protected run; result and side-effect guarantees remain enforced |
+| Surface                                                 | Required observable checks                                                                                                                     |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Record card, including definition loading and rerun     | Valid subscriber plugin runs; load failures name the plugin phase; rerun reads changed class/parameters; no header-only or stuck-loading state |
+| Public Apex single Check and Check Set requests         | Exact result count, identity, status, reason, and evaluate-entry marker for cached and uncached paths                                          |
+| Flow Check/Set actions and agent Check/Set actions      | Adapter output retains the specific plugin failure, identity, and safe diagnostics; side-effect failures cannot become ordinary results        |
+| Agent REST and any supported MCP bridge into these APIs | No generic field error or diagnostic leakage introduced by serialization or error translation                                                  |
+| Queueable, Batch, and Scheduled adapters                | Scope processing and permitted lifecycle output preserve failure meaning; no false successful completion or swallowed fatal side effect        |
+| Metadata validation action and definition service       | No evaluate call; correct class/parameter issue, no repeated construction to recover a diagnostic                                              |
+| Plugin-author contract test harness                     | Compatible typed instance reaches protected run; result and side-effect guarantees remain enforced                                             |
 
 Exercise the lowest shared layer thoroughly and add adapter assertions at each meaningful
 translation boundary; duplicating all permutations at every adapter is unnecessary. Record the
@@ -512,16 +512,16 @@ requirements, not a claim that current source already satisfies them.
 
 ### 13.1 Supported namespace topologies
 
-| ID | Topology | Required outcome and evidence |
-| --- | --- | --- |
-| NS-01 | Unnamespaced RHC source and local plugin | Valid plugin constructs and evaluates; development baseline only |
-| NS-02 | Installed `rhc` package and subscriber-owned class in the empty namespace | Unqualified local class resolves through the documented fallback and evaluates; installed-package test |
+| ID    | Topology                                                                      | Required outcome and evidence                                                                                                      |
+| ----- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| NS-01 | Unnamespaced RHC source and local plugin                                      | Valid plugin constructs and evaluates; development baseline only                                                                   |
+| NS-02 | Installed `rhc` package and subscriber-owned class in the empty namespace     | Unqualified local class resolves through the documented fallback and evaluates; installed-package test                             |
 | NS-03 | Installed `rhc` package and compatible global plugin in a different namespace | Explicit `othernamespace.PluginClass` resolves and evaluates; real second-namespace test, not a dotted name on a local test double |
-| NS-04 | Plugin distributed separately under the same `rhc` namespace | Explicit global contract remains usable; package dependencies and exposed surface verified with the actual package topology |
-| NS-05 | Plugin in another namespace calling its own helper or another package | RHC accepts the outer plugin; helper accessibility/failure is attributed to construction or evaluation where it occurs |
-| NS-06 | Same simple class name in package and subscriber namespaces | Existing lookup precedence is stable; explicitly qualified names select only the requested namespace |
-| NS-07 | Check metadata namespace differs from implementation namespace | `ApexClass__c` determines implementation resolution; neither Set nor Check namespace is automatically prepended |
-| NS-08 | Requested namespace/package absent, inaccessible, or incompatible | Specific bounded failure; no fallback to a similarly named class in another namespace |
+| NS-04 | Plugin distributed separately under the same `rhc` namespace                  | Explicit global contract remains usable; package dependencies and exposed surface verified with the actual package topology        |
+| NS-05 | Plugin in another namespace calling its own helper or another package         | RHC accepts the outer plugin; helper accessibility/failure is attributed to construction or evaluation where it occurs             |
+| NS-06 | Same simple class name in package and subscriber namespaces                   | Existing lookup precedence is stable; explicitly qualified names select only the requested namespace                               |
+| NS-07 | Check metadata namespace differs from implementation namespace                | `ApexClass__c` determines implementation resolution; neither Set nor Check namespace is automatically prepended                    |
+| NS-08 | Requested namespace/package absent, inaccessible, or incompatible             | Specific bounded failure; no fallback to a similarly named class in another namespace                                              |
 
 NS-03 is essential to a claim that RHC works with other namespaces. NS-02 alone is insufficient.
 Provide a minimal partner-package fixture source and deployment/install instructions independent
@@ -562,19 +562,19 @@ instance. Audit any proposed change to lookup order as a separate compatibility 
 
 Every reachable load/evaluate failure must fit a documented category. Extend section 6 as follows:
 
-| Condition | Required behavior |
-| --- | --- |
-| Invalid class-name syntax | UNABLE_TO_EVALUATE / APEX_CLASS_INVALID; no reflection or constructor |
-| Lookup returns no Type | UNABLE_TO_EVALUATE / APEX_CLASS_NOT_FOUND; guidance says missing or not visible to this caller, not conclusively deleted |
-| Reflection itself throws a catchable exception | UNABLE_TO_EVALUATE / APEX_CLASS_LOAD_FAILED, an additive reason; PLUGIN_RESOLVE phase, original cause retained |
-| Interface type, abstract class, or inaccessible/parameterized-only constructor resolves but cannot construct | UNABLE_TO_EVALUATE / PLUGIN_CONSTRUCTOR_FAILED; do not report interface mismatch without a constructed object |
-| Constructed class has the wrong interface, including a same-named unrelated interface | UNABLE_TO_EVALUATE / PLUGIN_INTERFACE_INVALID |
-| Concrete subclass inherits a compatible plugin implementation | Accept when Salesforce permits construction and cast; no requirement to redeclare implements on the concrete class |
-| Static initialization or nested helper fails during construction | PLUGIN_CONSTRUCTOR_FAILED with original cause; nested stack does not change the phase |
-| Missing dependency, license, or package-version incompatibility surfaces during construction/evaluation | Classify by the observed phase and preserve available evidence; do not infer a license failure from all TypeExceptions |
-| Interface signature or dependency cannot compile at deployment/install time | Deployment/package error, not a fabricated runtime result; save exact component and compiler error |
-| Missing/malformed returned outcome data | Existing PLUGIN_RESULT/STATUS/VALUES/DISPLAY reason and scope-impact contract; never treat as PASS |
-| No safe catchable classification exists | Existing FRAMEWORK_UNEXPECTED diagnostic path; no default FIELD_NOT_RESOLVED and no swallowed fatal error |
+| Condition                                                                                                    | Required behavior                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Invalid class-name syntax                                                                                    | UNABLE_TO_EVALUATE / APEX_CLASS_INVALID; no reflection or constructor                                                    |
+| Lookup returns no Type                                                                                       | UNABLE_TO_EVALUATE / APEX_CLASS_NOT_FOUND; guidance says missing or not visible to this caller, not conclusively deleted |
+| Reflection itself throws a catchable exception                                                               | UNABLE_TO_EVALUATE / APEX_CLASS_LOAD_FAILED, an additive reason; PLUGIN_RESOLVE phase, original cause retained           |
+| Interface type, abstract class, or inaccessible/parameterized-only constructor resolves but cannot construct | UNABLE_TO_EVALUATE / PLUGIN_CONSTRUCTOR_FAILED; do not report interface mismatch without a constructed object            |
+| Constructed class has the wrong interface, including a same-named unrelated interface                        | UNABLE_TO_EVALUATE / PLUGIN_INTERFACE_INVALID                                                                            |
+| Concrete subclass inherits a compatible plugin implementation                                                | Accept when Salesforce permits construction and cast; no requirement to redeclare implements on the concrete class       |
+| Static initialization or nested helper fails during construction                                             | PLUGIN_CONSTRUCTOR_FAILED with original cause; nested stack does not change the phase                                    |
+| Missing dependency, license, or package-version incompatibility surfaces during construction/evaluation      | Classify by the observed phase and preserve available evidence; do not infer a license failure from all TypeExceptions   |
+| Interface signature or dependency cannot compile at deployment/install time                                  | Deployment/package error, not a fabricated runtime result; save exact component and compiler error                       |
+| Missing/malformed returned outcome data                                                                      | Existing PLUGIN_RESULT/STATUS/VALUES/DISPLAY reason and scope-impact contract; never treat as PASS                       |
+| No safe catchable classification exists                                                                      | Existing FRAMEWORK_UNEXPECTED diagnostic path; no default FIELD_NOT_RESOLVED and no swallowed fatal error                |
 
 Only add APEX_CLASS_LOAD_FAILED to the published reason contract with synchronized constants,
 diagnostic classification/guidance, mapper coverage, API/adapter assertions, and documentation.
@@ -630,16 +630,16 @@ and plugin-reported UNABLE_TO_EVALUATE as distinct from framework contract ERROR
 
 The following deliverables are mandatory for the implementation, not optional follow-up ideas:
 
-| Deliverable | Owner in the codebase / acceptance |
-| --- | --- |
-| Safe interface acceptance | PluginDispatch and ApexPluginResolver; both old predicates removed, independently guarded |
-| Structured validation | ConfigValidator and Validator; no loss of cause, no constructor rerun, stable failure order |
-| Consistent diagnostics | ConfigFindingMapper, MetadataIssueMapper, DiagnosticFactory/Guidance and consumers; every taxonomy row covered |
+| Deliverable                   | Owner in the codebase / acceptance                                                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Safe interface acceptance     | PluginDispatch and ApexPluginResolver; both old predicates removed, independently guarded                                         |
+| Structured validation         | ConfigValidator and Validator; no loss of cause, no constructor rerun, stable failure order                                       |
+| Consistent diagnostics        | ConfigFindingMapper, MetadataIssueMapper, DiagnosticFactory/Guidance and consumers; every taxonomy row covered                    |
 | Public contract compatibility | Global plugin/DTO surface consumer compilation and existing API surface gate; no accidental breaking signature/visibility changes |
-| CI prevention | Named source guard registered in scripts/lib/release-gates.mjs, self-tests and mutation evidence |
-| Namespace proof | NS-01 through NS-08 mapped to exact tests and environment evidence; real foreign-namespace consumer |
-| Reusable user fixtures | Valid, invalid, constructor, result, and mixed-Set cases wired to tests and admin procedures |
-| Release handoff | Exact candidate and previous-version evidence, corrected reason-code notes, blocked scenarios disclosed |
+| CI prevention                 | Named source guard registered in scripts/lib/release-gates.mjs, self-tests and mutation evidence                                  |
+| Namespace proof               | NS-01 through NS-08 mapped to exact tests and environment evidence; real foreign-namespace consumer                               |
+| Reusable user fixtures        | Valid, invalid, constructor, result, and mixed-Set cases wired to tests and admin procedures                                      |
+| Release handoff               | Exact candidate and previous-version evidence, corrected reason-code notes, blocked scenarios disclosed                           |
 
 Core loading and failure classification requirements are closed by this specification. No further
 business input is needed to implement them. Legacy example defaults are also selected: complete
@@ -667,15 +667,15 @@ namespaces. "Multiple namespace org" here means those packages coexist and call 
 boundaries. An org with no development namespace can still contain an installed `rhc` package;
 that differs from deploying all RHC source without a namespace.
 
-| Environment | Required fixture composition | What it proves |
-| --- | --- | --- |
-| E-01: no namespace source org | Unnamespaced RHC source and local plugin fixtures | Local source behavior and negative cases |
-| E-02: namespaced source org | RHC source in `rhc`, package-local fixtures | Namespaced compilation and internal paths; not subscriber-package proof |
-| E-03: no development namespace, installed RHC | Exact managed `rhc` candidate plus empty-namespace subscriber fixtures | Actual package-to-subscriber construction, validation, and execution |
-| E-04: multiple installed namespaces | Exact `rhc` candidate, two distinct external namespace fixtures, and an empty-namespace fixture | Isolation across multiple plugins; same simple names select the intended class; package-to-package and package-to-subscriber calls coexist |
-| E-05: separate packages sharing a namespace | RHC and compatible separately distributed same-namespace fixture | Package visibility/dependency boundaries distinct from namespace identity |
-| E-06: upgrade topology | Previous RHC release plus existing external fixtures, upgraded to exact candidate | Existing subscriber implementations/configuration survive upgrade |
-| E-07: legacy integration | SBQQ, SBAA, RHC, and subscriber preview adapter | Actual approval API semantics; conditional environment evidence |
+| Environment                                   | Required fixture composition                                                                    | What it proves                                                                                                                             |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| E-01: no namespace source org                 | Unnamespaced RHC source and local plugin fixtures                                               | Local source behavior and negative cases                                                                                                   |
+| E-02: namespaced source org                   | RHC source in `rhc`, package-local fixtures                                                     | Namespaced compilation and internal paths; not subscriber-package proof                                                                    |
+| E-03: no development namespace, installed RHC | Exact managed `rhc` candidate plus empty-namespace subscriber fixtures                          | Actual package-to-subscriber construction, validation, and execution                                                                       |
+| E-04: multiple installed namespaces           | Exact `rhc` candidate, two distinct external namespace fixtures, and an empty-namespace fixture | Isolation across multiple plugins; same simple names select the intended class; package-to-package and package-to-subscriber calls coexist |
+| E-05: separate packages sharing a namespace   | RHC and compatible separately distributed same-namespace fixture                                | Package visibility/dependency boundaries distinct from namespace identity                                                                  |
+| E-06: upgrade topology                        | Previous RHC release plus existing external fixtures, upgraded to exact candidate               | Existing subscriber implementations/configuration survive upgrade                                                                          |
+| E-07: legacy integration                      | SBQQ, SBAA, RHC, and subscriber preview adapter                                                 | Actual approval API semantics; conditional environment evidence                                                                            |
 
 E-01 through E-06 are the required general compatibility evidence plan. E-04 must use actual
 distinct namespaces, not strings, mocks, or renamed local classes. E-07 is additional evidence for
@@ -685,16 +685,16 @@ with a failing runtime test or a pass.
 
 ### 14.2 Required red demonstrations
 
-| ID | Defect or mutation | Required failing assertion |
-| --- | --- | --- |
-| RED-01 | Original dispatcher predicate in an affected installed-package environment | Compatible subscriber plugin does not reach its required marker result; if the old runtime passes, record hypothesis not reproduced |
-| RED-02 | Restore dispatcher predicate after the repair | Source guard fails independently; runtime regression must fail where the platform reproduces the problem |
-| RED-03 | Restore resolver predicate only | Independent source guard fails; cached and uncached consumer tests protect the second boundary |
-| RED-04 | Collapse invalid interface/constructor/load failures into a missing-class or field error | Exact reason and phase assertions fail in runtime and metadata mapping |
-| RED-05 | Drop original exception context or expose it to ordinary callers | Authorized-detail or unauthorized-redaction assertion fails |
-| RED-06 | Reuse a plugin under the wrong Check/parameters or retain it after failure | Identity, invocation count, or parameter-isolation assertion fails |
-| RED-07 | Swallow a side-effect exception or remove rollback | Fatal-propagation or fixture-state assertion fails in an isolated test transaction |
-| RED-08 | Make a required global DTO member inaccessible or change the plugin signature | External consumer compilation fails |
+| ID     | Defect or mutation                                                                       | Required failing assertion                                                                                                          |
+| ------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| RED-01 | Original dispatcher predicate in an affected installed-package environment               | Compatible subscriber plugin does not reach its required marker result; if the old runtime passes, record hypothesis not reproduced |
+| RED-02 | Restore dispatcher predicate after the repair                                            | Source guard fails independently; runtime regression must fail where the platform reproduces the problem                            |
+| RED-03 | Restore resolver predicate only                                                          | Independent source guard fails; cached and uncached consumer tests protect the second boundary                                      |
+| RED-04 | Collapse invalid interface/constructor/load failures into a missing-class or field error | Exact reason and phase assertions fail in runtime and metadata mapping                                                              |
+| RED-05 | Drop original exception context or expose it to ordinary callers                         | Authorized-detail or unauthorized-redaction assertion fails                                                                         |
+| RED-06 | Reuse a plugin under the wrong Check/parameters or retain it after failure               | Identity, invocation count, or parameter-isolation assertion fails                                                                  |
+| RED-07 | Swallow a side-effect exception or remove rollback                                       | Fatal-propagation or fixture-state assertion fails in an isolated test transaction                                                  |
+| RED-08 | Make a required global DTO member inaccessible or change the plugin signature            | External consumer compilation fails                                                                                                 |
 
 Mutation runs belong in isolated local copies or disposable test transactions. Never deploy
 deliberately weakened safety code to a customer org. Restore the implementation and rerun the same
@@ -703,22 +703,22 @@ installed-package runtime evidence.
 
 ### 14.3 Combined failures and hostile plugin scenarios
 
-| ID | War-room scenario | Required outcome |
-| --- | --- | --- |
-| WAR-01 | One Set contains local, namespace A, namespace B, invalid-interface, and throwing plugins | Correct per-Check identity/results; recoverable failures remain attributable; no namespace or instance bleed |
-| WAR-02 | Same class names across namespaces; explicitly selected type fails to construct | Do not switch to a working lookalike; retain configured/resolved identity and actual error |
-| WAR-03 | Constructor performs DML then throws TypeException | Roll back plugin work and propagate the side-effect failure, not interface invalidity |
-| WAR-04 | Caller made legitimate changes before a plugin mutates and fails | Plugin boundary rollback does not itself erase pre-boundary caller work; an uncaught fatal exception may still cause Salesforce to roll back the whole transaction |
-| WAR-05 | Plugin attempts to alter scope parameters/record IDs and returns extra, missing, or malformed results | Detached scope and existing completeness/identity validation hold; no fabricated healthy result |
-| WAR-06 | Maximum supported Check and record scope with repeated construction/failure cycles | Bounded overhead and released savepoints; no hidden per-record construction or automatic retries |
-| WAR-07 | Two requests/users run the same configuration with different data visibility | No cross-request cache or diagnostic leakage; permissions evaluated for the actual caller |
-| WAR-08 | Check metadata changes between card runs or an external package changes between transactions | New attempt reads current configuration/type; no persistent stale acceptance or result |
-| WAR-09 | Invalid class name and invalid parameters occur together | Stable configuration-failure precedence, no constructor invocation |
-| WAR-10 | Helper/dependency throws while the outer plugin is constructing versus evaluating | Distinct constructor/evaluation phases, original cause retained; no guessed field-access diagnosis |
-| WAR-11 | Plugin returns a very large result/message, or throws sensitive text | Existing size bounds and sanitization hold across JSON/API/card diagnostics; no raw data leakage |
-| WAR-12 | Healthy plugin follows an ordinary failed plugin and a prerequisite depends on the failed one | Healthy independent path remains correct; prerequisite behavior stays explicit; failed Check does not become PASS |
-| WAR-13 | Nested/cyclic group membership, inactive member plus active delegate, partial preview response | Bounded traversal/deduplication; no false zero-inactive verdict; incomplete evidence is unable |
-| WAR-14 | Preview or plugin approaches a governor limit or attempts prohibited asynchronous work | Existing prevention/detection limits and fatal behavior preserved; no claim that all platform effects are catchable |
+| ID     | War-room scenario                                                                                     | Required outcome                                                                                                                                                   |
+| ------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| WAR-01 | One Set contains local, namespace A, namespace B, invalid-interface, and throwing plugins             | Correct per-Check identity/results; recoverable failures remain attributable; no namespace or instance bleed                                                       |
+| WAR-02 | Same class names across namespaces; explicitly selected type fails to construct                       | Do not switch to a working lookalike; retain configured/resolved identity and actual error                                                                         |
+| WAR-03 | Constructor performs DML then throws TypeException                                                    | Roll back plugin work and propagate the side-effect failure, not interface invalidity                                                                              |
+| WAR-04 | Caller made legitimate changes before a plugin mutates and fails                                      | Plugin boundary rollback does not itself erase pre-boundary caller work; an uncaught fatal exception may still cause Salesforce to roll back the whole transaction |
+| WAR-05 | Plugin attempts to alter scope parameters/record IDs and returns extra, missing, or malformed results | Detached scope and existing completeness/identity validation hold; no fabricated healthy result                                                                    |
+| WAR-06 | Maximum supported Check and record scope with repeated construction/failure cycles                    | Bounded overhead and released savepoints; no hidden per-record construction or automatic retries                                                                   |
+| WAR-07 | Two requests/users run the same configuration with different data visibility                          | No cross-request cache or diagnostic leakage; permissions evaluated for the actual caller                                                                          |
+| WAR-08 | Check metadata changes between card runs or an external package changes between transactions          | New attempt reads current configuration/type; no persistent stale acceptance or result                                                                             |
+| WAR-09 | Invalid class name and invalid parameters occur together                                              | Stable configuration-failure precedence, no constructor invocation                                                                                                 |
+| WAR-10 | Helper/dependency throws while the outer plugin is constructing versus evaluating                     | Distinct constructor/evaluation phases, original cause retained; no guessed field-access diagnosis                                                                 |
+| WAR-11 | Plugin returns a very large result/message, or throws sensitive text                                  | Existing size bounds and sanitization hold across JSON/API/card diagnostics; no raw data leakage                                                                   |
+| WAR-12 | Healthy plugin follows an ordinary failed plugin and a prerequisite depends on the failed one         | Healthy independent path remains correct; prerequisite behavior stays explicit; failed Check does not become PASS                                                  |
+| WAR-13 | Nested/cyclic group membership, inactive member plus active delegate, partial preview response        | Bounded traversal/deduplication; no false zero-inactive verdict; incomplete evidence is unable                                                                     |
+| WAR-14 | Preview or plugin approaches a governor limit or attempts prohibited asynchronous work                | Existing prevention/detection limits and fatal behavior preserved; no claim that all platform effects are catchable                                                |
 
 Pair each applicable row with null/empty, one-element, supported maximum, and one-over-limit
 inputs at the relevant boundary. Derive maxima from the existing constants/schema instead of

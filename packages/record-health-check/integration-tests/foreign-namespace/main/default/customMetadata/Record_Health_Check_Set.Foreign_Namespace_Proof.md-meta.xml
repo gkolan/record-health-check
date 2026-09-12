@@ -50,4 +50,28 @@
       xsi:type="xsd:string"
     >Three Checks reading a CPQ field by its full SBQQ__ API name through a formula, a query, and a merged message. Deploy this card only in a namespaced org with CPQ installed; it is excluded from ordinary integration deployments.</value>
     </values>
+    <values>
+        <field>CardHeadingDisplay__c</field>
+        <value xsi:type="xsd:string">TITLE_AND_SUBTITLE</value>
+    </values>
+    <values>
+        <field>PublishErrorLogEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>PublishUserRunEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>RunButtonDisplay__c</field>
+        <value xsi:type="xsd:string">LABEL_AND_ICON</value>
+    </values>
+    <values>
+        <field>ShowDiagnostics__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>SummaryDisplay__c</field>
+        <value xsi:type="xsd:string">BOTTOM</value>
+    </values>
 </CustomMetadata>

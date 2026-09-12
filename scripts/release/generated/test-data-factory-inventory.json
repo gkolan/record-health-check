@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
   "summary": {
-    "classes": 96,
+    "classes": 128,
     "persistedCallSites": 0,
     "userCallSites": 0,
-    "safeClasses": 96
+    "safeClasses": 128
   },
   "classes": [
     {
@@ -18,6 +18,22 @@
     },
     {
       "className": "RHCAbsentSchemaRedTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCArchitectureDependencyTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCBulkQueryRuntimeBoundaryTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -42,6 +58,14 @@
     },
     {
       "className": "RHCConfigCheckValidationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCConventionalQueryTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -82,6 +106,22 @@
     },
     {
       "className": "RHCDefinitionDependencyIdentityTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDiagnosticProjectionBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCDiagnosticTraceContractTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -145,6 +185,30 @@
       "userCalls": []
     },
     {
+      "className": "RHCEvidenceRowValidationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCFlowAdapterContractTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCFormulaCompilerCacheTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCFormulaEdgeBehaviorTest",
       "classification": "safe",
       "targetSteps": [],
@@ -153,7 +217,23 @@
       "userCalls": []
     },
     {
+      "className": "RHCFormulaFindingOrderTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCFormulaRelationshipPlanningTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCFoundationBoundaryTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -209,7 +289,31 @@
       "userCalls": []
     },
     {
+      "className": "RHCPluginDisplayBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCPluginDisplayBulkBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCPluginScopeIntegrityTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCPluginVerificationFacadeTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -225,7 +329,23 @@
       "userCalls": []
     },
     {
+      "className": "RHCPresentationResolverTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RHCProtocolBoundaryRegressionTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCRecentActivityContractTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -237,6 +357,22 @@
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCResponseDisplayBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCResponseEvidenceBudgetTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
       "persistedCalls": [],
       "userCalls": []
     },
@@ -277,6 +413,62 @@
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSubscriberDefinitionSpecTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSubscriberDiagnosticSpecTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSubscriberEvidenceSpecTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSubscriberFormulaSpecTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSubscriberRecordIsolationTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCSubscriberValueSpecTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCTemplateFallbackContractTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
       "persistedCalls": [],
       "userCalls": []
     },
@@ -529,6 +721,14 @@
       "userCalls": []
     },
     {
+      "className": "RecordHealthCheckDisplayGroupTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RecordHealthCheckDisplayNumberTest",
       "classification": "safe",
       "targetSteps": [],
@@ -537,7 +737,7 @@
       "userCalls": []
     },
     {
-      "className": "RecordHealthCheckDisplayTemporalTest",
+      "className": "RecordHealthCheckDisplayTextTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -570,6 +770,14 @@
     },
     {
       "className": "RecordHealthCheckFormulaDisplayTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckInlineLinkParserTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -625,6 +833,38 @@
       "userCalls": []
     },
     {
+      "className": "RecordHealthCheckPreviewControllerTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckPreviewFingerprintTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckPreviewRequestTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckPreviewServiceTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
       "className": "RecordHealthCheckQueryRowUsageTest",
       "classification": "safe",
       "targetSteps": [],
@@ -634,6 +874,14 @@
     },
     {
       "className": "RecordHealthCheckQueryTokenTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckReadinessStateTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,
@@ -698,6 +946,14 @@
     },
     {
       "className": "RecordHealthCheckSecurityAndOpsTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckSoqlBoundaryTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,

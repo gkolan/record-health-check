@@ -6,9 +6,8 @@
 /**
  * Covers Display: Value Format rendering for Found and Expected values.
  *
- * Assertions that involve grouping separators run as a user with a pinned
- * locale, so the suite reads the same way in an org whose default locale is not
- * English (US).
+ * Exercises typed and textual date/time rendering, invalid input fallback,
+ * and native formatting for the running user locale and time zone.
  */
 @IsTest
 private class RecordHealthCheckDisplayTemporalTest {
@@ -23,33 +22,6 @@ private class RecordHealthCheckDisplayTemporalTest {
   private static final String TEXT_FORMAT = 'TEXT';
   private static final String RAW_FORMAT = 'RAW';
 
-  /** A user pinned to a locale so separator assertions are deterministic. */
-  private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.currentUser();
-  }
-
-  /**
-   * How an amount reads in this org: an org with more than one currency leads
-   * with the ISO code because a bare symbol would be ambiguous, and a
-   * single-currency org uses the symbol. Building the expectation the same way
-   * the renderer decides keeps these assertions true in both kinds of org.
-   */
-  private static String money(String isoCode, String amount) {
-    Map<String, String> symbols = new Map<String, String>{
-      'USD' => '$',
-      'EUR' => '€',
-      'JPY' => '¥',
-      'KRW' => '₩'
-    };
-    String symbol = symbols.get(isoCode);
-    if (symbol == null || UserInfo.isMultiCurrencyOrganization()) {
-      return isoCode + ' ' + amount;
-    }
-    return amount.startsWith('-')
-      ? '-' + symbol + amount.substring(1)
-      : symbol + amount;
-  }
-
   // ─── Auto ─────────────────────────────────────────────────────────────────
 
   @IsTest
@@ -59,7 +31,8 @@ private class RecordHealthCheckDisplayTemporalTest {
 
     Assert.areEqual(
       july4.format(),
-      RecordHealthCheckDisplayFormat.render(july4, DATE_FORMAT)
+      RecordHealthCheckDisplayFormat.render(july4, DATE_FORMAT),
+      'A typed Date must use the running user native date format.'
     );
     Assert.areEqual(
       july4.format(),
@@ -73,7 +46,8 @@ private class RecordHealthCheckDisplayTemporalTest {
     );
     Assert.areEqual(
       july4Evening.format(),
-      RecordHealthCheckDisplayFormat.render(july4Evening, DATETIME_FORMAT)
+      RecordHealthCheckDisplayFormat.render(july4Evening, DATETIME_FORMAT),
+      'A typed Datetime must use the running user native date/time format.'
     );
     Assert.areEqual(
       july4Evening.format(),
@@ -105,7 +79,8 @@ private class RecordHealthCheckDisplayTemporalTest {
     );
     Assert.areEqual(
       'Technology',
-      RecordHealthCheckDisplayFormat.render('Technology', DATETIME_FORMAT)
+      RecordHealthCheckDisplayFormat.render('Technology', DATETIME_FORMAT),
+      'Date/Time must preserve non-date text instead of inventing a timestamp.'
     );
   }
 
@@ -166,7 +141,8 @@ private class RecordHealthCheckDisplayTemporalTest {
       );
       Assert.areEqual(
         '0012345',
-        RecordHealthCheckDisplayFormat.render('0012345', format)
+        RecordHealthCheckDisplayFormat.render('0012345', format),
+        'Text and Raw must preserve leading zeros in numeric-looking identifiers.'
       );
       Assert.areEqual(
         '(blank)',
@@ -175,7 +151,8 @@ private class RecordHealthCheckDisplayTemporalTest {
       );
       Assert.areEqual(
         '(blank)',
-        RecordHealthCheckDisplayFormat.render('  ', format)
+        RecordHealthCheckDisplayFormat.render('  ', format),
+        'Text and Raw must render whitespace-only input as the blank placeholder.'
       );
     }
   }
@@ -233,7 +210,8 @@ private class RecordHealthCheckDisplayTemporalTest {
         'GREATER_THAN_OR_EQUAL',
         70000.0,
         50000.0
-      )
+      ),
+      'The raw numeric comparison must pass when Found exceeds Expected.'
     );
     Assert.areEqual(
       false,
@@ -241,7 +219,8 @@ private class RecordHealthCheckDisplayTemporalTest {
         'GREATER_THAN_OR_EQUAL',
         40000.0,
         50000.0
-      )
+      ),
+      'The raw numeric comparison must fail when Found is below Expected.'
     );
     Assert.areEqual(
       true,

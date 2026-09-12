@@ -6,9 +6,8 @@
 /**
  * Covers Display: Value Format rendering for Found and Expected values.
  *
- * Assertions that involve grouping separators run as a user with a pinned
- * locale, so the suite reads the same way in an org whose default locale is not
- * English (US).
+ * Expected numeric separators come from native platform formatting.
+ * Integration personas exercise these same contracts in English and German.
  */
 @IsTest
 private class RecordHealthCheckDisplayNumberTest {
@@ -23,11 +22,6 @@ private class RecordHealthCheckDisplayNumberTest {
   private static final String TEXT_FORMAT = 'TEXT';
   private static final String RAW_FORMAT = 'RAW';
 
-  /** A user pinned to a locale so separator assertions are deterministic. */
-  private static User userWithLocale(String locale, String alias) {
-    return RecordHealthCheckTestDataFactory.currentUser();
-  }
-
   /**
    * How an amount reads in this org: an org with more than one currency leads
    * with the ISO code because a bare symbol would be ambiguous, and a
@@ -41,6 +35,7 @@ private class RecordHealthCheckDisplayNumberTest {
       'JPY' => '¥',
       'KRW' => '₩'
     };
+    amount = localizedAmount(amount);
     String symbol = symbols.get(isoCode);
     if (symbol == null || UserInfo.isMultiCurrencyOrganization()) {
       return isoCode + ' ' + amount;
@@ -50,35 +45,52 @@ private class RecordHealthCheckDisplayNumberTest {
       : symbol + amount;
   }
 
+  /** Translate the literal expected US separators using native platform samples. */
+  private static String localizedAmount(String expectedUsAmount) {
+    String groupingMark = Decimal.valueOf('1000')
+      .format()
+      .replace('1', '')
+      .replace('0', '');
+    String decimalMark = Decimal.valueOf('1.5')
+      .format()
+      .replace('1', '')
+      .replace('5', '');
+    return expectedUsAmount.replace('.', '|')
+      .replace(',', groupingMark)
+      .replace('|', decimalMark);
+  }
+
   // ─── Auto ─────────────────────────────────────────────────────────────────
 
   @IsTest
   static void numberGroupsOptedInDigitStrings() {
-    System.runAs(userWithLocale('en_US', 'rhcnum')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
-        '500,000',
+        localizedAmount('500,000'),
         RecordHealthCheckDisplayFormat.render('500000', NUMBER_FORMAT),
         'Naming Number opts a digit string into grouping'
       );
       Assert.areEqual(
-        '90,210',
-        RecordHealthCheckDisplayFormat.render('90210', NUMBER_FORMAT)
+        localizedAmount('90,210'),
+        RecordHealthCheckDisplayFormat.render('90210', NUMBER_FORMAT),
+        'Explicit Number must group numeric text even when it resembles a postal code.'
       );
       Assert.areEqual(
-        '1,234.5',
+        localizedAmount('1,234.5'),
         RecordHealthCheckDisplayFormat.render('1234.50', NUMBER_FORMAT),
         'Trailing zeros are dropped but a real fraction survives'
       );
       Assert.areEqual(
-        '1,000',
-        RecordHealthCheckDisplayFormat.render(1000, NUMBER_FORMAT)
+        localizedAmount('1,000'),
+        RecordHealthCheckDisplayFormat.render(1000, NUMBER_FORMAT),
+        'Explicit Number must apply native grouping to a typed integer.'
       );
     }
   }
 
   @IsTest
   static void numberKeepsValuesItCannotSafelyGroup() {
-    System.runAs(userWithLocale('en_US', 'rhcnumf')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
         '0012345',
         RecordHealthCheckDisplayFormat.render('0012345', NUMBER_FORMAT),
@@ -101,29 +113,34 @@ private class RecordHealthCheckDisplayNumberTest {
       );
       Assert.areEqual(
         '(blank)',
-        RecordHealthCheckDisplayFormat.render(null, NUMBER_FORMAT)
+        RecordHealthCheckDisplayFormat.render(null, NUMBER_FORMAT),
+        'An absent numeric value must display the blank placeholder.'
       );
     }
   }
 
   @IsTest
   static void percentAddsTheSymbolWithoutDoublingIt() {
-    System.runAs(userWithLocale('en_US', 'rhcpct')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
-        '12.5%',
-        RecordHealthCheckDisplayFormat.render(12.5, PERCENT_FORMAT)
+        localizedAmount('12.5') + '%',
+        RecordHealthCheckDisplayFormat.render(12.5, PERCENT_FORMAT),
+        'Percent must retain the decimal fraction and append one percent sign.'
       );
       Assert.areEqual(
         '80%',
-        RecordHealthCheckDisplayFormat.render(80, PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render(80, PERCENT_FORMAT),
+        'Percent must not multiply an ordinary numeric percentage.'
       );
       Assert.areEqual(
         '0%',
-        RecordHealthCheckDisplayFormat.render(0, PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render(0, PERCENT_FORMAT),
+        'Zero percent must remain present rather than display blank.'
       );
       Assert.areEqual(
         '-5%',
-        RecordHealthCheckDisplayFormat.render(-5, PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render(-5, PERCENT_FORMAT),
+        'A negative percentage must preserve its sign.'
       );
       Assert.areEqual(
         '12%',
@@ -137,36 +154,42 @@ private class RecordHealthCheckDisplayNumberTest {
       );
       Assert.areEqual(
         'Technology',
-        RecordHealthCheckDisplayFormat.render('Technology', PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render('Technology', PERCENT_FORMAT),
+        'Percent must preserve nonnumeric text verbatim.'
       );
     }
   }
 
   @IsTest
   static void ratioPercentMultipliesForDisplayOnly() {
-    System.runAs(userWithLocale('en_US', 'rhcratio')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
         '75%',
-        RecordHealthCheckDisplayFormat.render(0.75, RATIO_PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render(0.75, RATIO_PERCENT_FORMAT),
+        'Ratio Percent must multiply a fractional ratio by one hundred for display.'
       );
       Assert.areEqual(
         '100%',
-        RecordHealthCheckDisplayFormat.render(1, RATIO_PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render(1, RATIO_PERCENT_FORMAT),
+        'A unit ratio must display as one hundred percent.'
       );
       Assert.areEqual(
         '-5%',
-        RecordHealthCheckDisplayFormat.render(-0.05, RATIO_PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render(-0.05, RATIO_PERCENT_FORMAT),
+        'A negative ratio must preserve its sign after display scaling.'
       );
       Assert.areEqual(
         '125%',
-        RecordHealthCheckDisplayFormat.render(1.25, RATIO_PERCENT_FORMAT)
+        RecordHealthCheckDisplayFormat.render(1.25, RATIO_PERCENT_FORMAT),
+        'Ratios above one must be allowed to display above one hundred percent.'
       );
       Assert.areEqual(
         'already formatted',
         RecordHealthCheckDisplayFormat.render(
           'already formatted',
           RATIO_PERCENT_FORMAT
-        )
+        ),
+        'Ratio Percent must preserve unparseable text rather than invent a number.'
       );
       Assert.areEqual(
         false,
@@ -253,7 +276,7 @@ private class RecordHealthCheckDisplayNumberTest {
 
   @IsTest
   static void foundAndExpectedReadInTheSameUnits() {
-    System.runAs(userWithLocale('en_US', 'rhcsym')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       String found = RecordHealthCheckComparisonDisplay.formatValue(
         70000.0,
         CURRENCY_FORMAT
@@ -270,7 +293,11 @@ private class RecordHealthCheckDisplayNumberTest {
         'The operator phrase still leads the Expected chip: ' + expected
       );
       String iso = UserInfo.getDefaultCurrency();
-      Assert.areEqual(money(iso, '70,000.00'), found);
+      Assert.areEqual(
+        money(iso, '70,000.00'),
+        found,
+        'The Found currency chip must retain its amount and currency label.'
+      );
       Assert.areEqual(
         'at least ' + money(iso, '50,000.00'),
         expected,
@@ -278,11 +305,12 @@ private class RecordHealthCheckDisplayNumberTest {
       );
 
       Assert.areEqual(
-        '100,000',
-        RecordHealthCheckComparisonDisplay.formatValue(100000.0, AUTO)
+        localizedAmount('100,000'),
+        RecordHealthCheckComparisonDisplay.formatValue(100000.0, AUTO),
+        'Auto must apply native grouping to a typed comparison-display number.'
       );
       Assert.areEqual(
-        'to equal 100,000',
+        'to equal ' + localizedAmount('100,000'),
         RecordHealthCheckComparisonDisplay.describeExpectedForActual(
           'EQUALS',
           '100000',
@@ -305,19 +333,19 @@ private class RecordHealthCheckDisplayNumberTest {
 
   @IsTest
   static void highScaleNumbersAreRoundedForTheChip() {
-    System.runAs(userWithLocale('en_US', 'rhcscl')) {
+    System.runAs(RecordHealthCheckTestDataFactory.currentUser()) {
       Assert.areEqual(
-        '1.123457',
+        localizedAmount('1.123457'),
         RecordHealthCheckDisplayFormat.render(1.123456789, NUMBER_FORMAT),
         'A chip shows at most six decimal places'
       );
       Assert.areEqual(
-        '1.123457',
+        localizedAmount('1.123457'),
         RecordHealthCheckDisplayFormat.render(1.123456789, AUTO),
         'Auto caps the same way'
       );
       Assert.areEqual(
-        '1.12345',
+        localizedAmount('1.12345'),
         RecordHealthCheckDisplayFormat.render(1.12345, NUMBER_FORMAT),
         'A number inside the cap keeps every digit it has'
       );

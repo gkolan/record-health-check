@@ -47,27 +47,6 @@ private class RHCDualQueryEdgeBehaviorTest {
     return check;
   }
 
-  private static void assertUnable(
-    RecordHealthCheckInternalResult result,
-    String reasonCode
-  ) {
-    Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
-  }
-
-  private static void assertStatus(
-    RecordHealthCheckInternalResult result,
-    String status
-  ) {
-    Assert.areNotEqual(null, result, 'Expected a result.');
-    Assert.areEqual(
-      status,
-      result.status,
-      'Unexpected detail: ' + result.detailMessage
-    );
-  }
-
   private static void assertReason(
     RecordHealthCheckInternalResult result,
     String reasonCode
@@ -95,14 +74,14 @@ private class RHCDualQueryEdgeBehaviorTest {
     dualCheck.SourceQueryField__c = 'BillingCity';
     dualCheck.ComparisonQueryField__c = 'BillingCity';
     dualCheck.EmptyValueHandling__c = 'AS_NO_MATCH';
-
     Assert.areEqual(
       false,
       RecordHealthCheckCompareQuerySupport.evaluateSingleVsSingle(
         dualCheck,
         emptyRows,
         accountRows
-      )
+      ),
+      'AS_NO_MATCH must reject the missing scalar operand.'
     );
     dualCheck.EmptyValueHandling__c = 'AS_BLANK';
     Assert.areEqual(
@@ -111,7 +90,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         dualCheck,
         emptyRows,
         emptyRows
-      )
+      ),
+      'AS_BLANK must equate two missing scalar operands.'
     );
     dualCheck.EmptyValueHandling__c = null;
     Assert.areEqual(
@@ -120,7 +100,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         dualCheck,
         emptyRows,
         accountRows
-      )
+      ),
+      'An absent empty mode must leave the scalar comparison indeterminate.'
     );
     try {
       RecordHealthCheckCompareQuerySupport.resolveSingleValue(
@@ -130,7 +111,11 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected multiple row exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('MULTIPLE_ROWS_RETURNED', ex.reasonCode);
+      Assert.areEqual(
+        'MULTIPLE_ROWS_RETURNED',
+        ex.reasonCode,
+        'Multiple scalar rows must retain the multiple-row reason.'
+      );
     }
     try {
       RecordHealthCheckCompareQuerySupport.resolveSingleValue(
@@ -140,9 +125,96 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected missing field exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'A missing scalar field must reject the query template.'
+      );
     }
+    assertListComparisonEdges(accountRows);
+    assertScalarComparisonEdges();
+    assertRemainingQueryEdges(dualCheck);
+  }
 
+  @IsTest
+  static void evaluatorMapsPlatformQueryFailuresToStableConfigurationResult() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
+      'Invalid dual query'
+    );
+    Record_Health_Check__mdt check = validDualCheck('Invalid_Query');
+    check.SourceQuery__c = 'SELECT DefinitelyMissing__c FROM Account';
+    Test.startTest();
+    RecordHealthCheckInternalResult result = new RecordHealthCheckCompareQueriesEvaluator()
+      .evaluate(check, accountRecord.Id, accountRecord);
+    Test.stopTest();
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'A missing selected field must prevent evaluation.'
+    );
+    Assert.areEqual(
+      'FIELD_NOT_RESOLVED',
+      result.reasonCode,
+      'A supported flat selected field must be describe-validated before execution.'
+    );
+  }
+
+  @IsTest
+  static void scopeEvaluatorMapsBlankAndUnexpectedCachedQueryFailures() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
+      'Cached dual query'
+    );
+    Record_Health_Check__mdt blankCheck = validDualCheck('Blank_Scope_Query');
+    blankCheck.SourceQuery__c = ' ';
+    blankCheck.ComparisonQuery__c = ' ';
+    RecordHealthCheckCompareQueriesEvaluator blankEvaluator = new RecordHealthCheckCompareQueriesEvaluator();
+    blankEvaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>();
+    blankEvaluator.scopeZeroCountSoql = new Set<String>();
+    blankEvaluator.scopeExecutionActive = true;
+    RecordHealthCheckInternalResult blankResult = blankEvaluator.evaluate(
+      blankCheck,
+      accountRecord.Id,
+      accountRecord
+    );
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      blankResult.status,
+      'Blank cached queries must prevent evaluation.'
+    );
+    Assert.areEqual(
+      'INVALID_SOQL_TEMPLATE',
+      blankResult.reasonCode,
+      'Blank cached queries must retain the invalid-template reason.'
+    );
+    Record_Health_Check__mdt cachedCheck = validDualCheck(
+      'Unexpected_Cached_Query'
+    );
+    String boundQuery = new RecordHealthCheckSoqlEvaluator()
+      .bindTokens(cachedCheck.SourceQuery__c, accountRecord);
+    RecordHealthCheckCompareQueriesEvaluator cachedEvaluator = new RecordHealthCheckCompareQueriesEvaluator();
+    cachedEvaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>{
+      boundQuery => null
+    };
+    cachedEvaluator.scopeZeroCountSoql = new Set<String>();
+    cachedEvaluator.scopeExecutionActive = true;
+    RecordHealthCheckInternalResult cachedResult = cachedEvaluator.evaluate(
+      cachedCheck,
+      accountRecord.Id,
+      accountRecord
+    );
+    Assert.areEqual(
+      'ERROR',
+      cachedResult.status,
+      'Unexpected null cached rows must become ERROR.'
+    );
+    Assert.areEqual(
+      'APEX_EVALUATOR_ERROR',
+      cachedResult.reasonCode,
+      'Unexpected null cached rows must retain the evaluator-error reason.'
+    );
+  }
+
+  private static void assertListComparisonEdges(List<SObject> accountRows) {
     Record_Health_Check__mdt dualList = validDualCheck('Helper_Dual_List');
     dualList.QueryResultHandling__c = 'COMPARE_AS_LISTS';
     dualList.SourceQueryField__c = 'BillingCity';
@@ -154,7 +226,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         dualList,
         accountRows,
         accountRows
-      )
+      ),
+      'Different list fields must not overlap.'
     );
     dualList.ComparisonOperator__c = 'LISTS_CONTAIN_ALL';
     dualList.ComparisonQueryField__c = 'BillingCity';
@@ -164,7 +237,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         dualList,
         accountRows,
         accountRows
-      )
+      ),
+      'A list must contain all of its own values.'
     );
     dualList.ComparisonOperator__c = 'LISTS_MATCH_EXACTLY';
     Assert.areEqual(
@@ -173,7 +247,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         dualList,
         accountRows,
         accountRows
-      )
+      ),
+      'A list must match its own values exactly.'
     );
     dualList.ComparisonOperator__c = 'BadList';
     try {
@@ -184,7 +259,11 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected invalid compare-queries list operator.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_OPERATOR', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_OPERATOR',
+        ex.reasonCode,
+        'An unknown list operator must be rejected.'
+      );
     }
     try {
       RecordHealthCheckCompareQuerySupport.toStringList(
@@ -195,7 +274,11 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected missing list field exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'An absent list field must reject the query template.'
+      );
     }
     try {
       RecordHealthCheckCompareQuerySupport.toStringList(
@@ -206,16 +289,23 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected invalid list field exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'An unresolved list field must reject the query template.'
+      );
     }
+  }
 
+  private static void assertScalarComparisonEdges() {
     Assert.areEqual(
       true,
       RecordHealthCheckComparisonEngine.applySingleValueComparison(
         'NOT_EQUALS',
         'a',
         'b'
-      )
+      ),
+      'Different text values must satisfy NOT_EQUALS.'
     );
     Assert.areEqual(
       true,
@@ -223,7 +313,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         'CONTAINS',
         'abc',
         'b'
-      )
+      ),
+      'A matching substring must satisfy CONTAINS.'
     );
     Assert.areEqual(
       true,
@@ -231,7 +322,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         'DOES_NOT_CONTAIN',
         'abc',
         'z'
-      )
+      ),
+      'An absent substring must satisfy DOES_NOT_CONTAIN.'
     );
     try {
       RecordHealthCheckComparisonEngine.applySingleValueComparison(
@@ -241,7 +333,11 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.fail('Numeric values must not be compared as substrings.');
     } catch (RecordHealthCheckEvaluatorException expected) {
-      Assert.areEqual('INCOMPATIBLE_COMPARISON_TYPES', expected.reasonCode);
+      Assert.areEqual(
+        'INCOMPATIBLE_COMPARISON_TYPES',
+        expected.reasonCode,
+        'Substring comparison must reject numeric operands.'
+      );
     }
     Assert.areEqual(
       true,
@@ -249,7 +345,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         'GREATER_THAN_OR_EQUAL',
         2,
         2
-      )
+      ),
+      'Equal numbers must satisfy GREATER_THAN_OR_EQUAL.'
     );
     Assert.areEqual(
       true,
@@ -257,7 +354,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         'LESS_THAN_OR_EQUAL',
         Datetime.now(),
         Datetime.now().addSeconds(1)
-      )
+      ),
+      'An earlier timestamp must satisfy LESS_THAN_OR_EQUAL.'
     );
     Assert.areEqual(
       true,
@@ -265,7 +363,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         'LESS_THAN',
         Date.today(),
         Date.today().addDays(1)
-      )
+      ),
+      'Today must compare less than tomorrow.'
     );
     try {
       RecordHealthCheckComparisonEngine.applySingleValueComparison(
@@ -275,7 +374,11 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected invalid single-value operator.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_OPERATOR', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_OPERATOR',
+        ex.reasonCode,
+        'An unknown scalar operator must be rejected.'
+      );
     }
     try {
       RecordHealthCheckComparisonEngine.applySingleValueComparison(
@@ -285,9 +388,17 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected incompatible single-value operator.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INCOMPATIBLE_COMPARISON_TYPES', ex.reasonCode);
+      Assert.areEqual(
+        'INCOMPATIBLE_COMPARISON_TYPES',
+        ex.reasonCode,
+        'Ordering text operands must retain the incompatible-types reason.'
+      );
     }
+  }
 
+  private static void assertRemainingQueryEdges(
+    Record_Health_Check__mdt dualCheck
+  ) {
     Assert.areEqual(
       false,
       RecordHealthCheckCompareQuerySupport.frequencyMapsEqual(
@@ -297,7 +408,8 @@ private class RHCDualQueryEdgeBehaviorTest {
         RecordHealthCheckCompareQuerySupport.toFrequencyMap(
           new List<String>{ 'a', 'a' }
         )
-      )
+      ),
+      'Duplicate counts must distinguish frequency maps.'
     );
     try {
       RecordHealthCheckComparisonEngine.valuesEqual(
@@ -313,9 +425,14 @@ private class RHCDualQueryEdgeBehaviorTest {
     }
     Assert.areEqual(
       true,
-      RecordHealthCheckValueResolver.isNumericObject(Decimal.valueOf('1'))
+      RecordHealthCheckValueResolver.isNumericObject(Decimal.valueOf('1')),
+      'A Decimal must be recognized as numeric.'
     );
-    Assert.areEqual(false, RecordHealthCheckValueResolver.isNumericObject('1'));
+    Assert.areEqual(
+      false,
+      RecordHealthCheckValueResolver.isNumericObject('1'),
+      'Numeric-looking text must not be a numeric object.'
+    );
     try {
       RecordHealthCheckQueryEvaluatorSupport.runQuery(
         'SELECT COUNT() FROM Account',
@@ -323,7 +440,11 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected compare-queries row cap exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('ROW_LIMIT_EXCEEDED', ex.reasonCode);
+      Assert.areEqual(
+        'ROW_LIMIT_EXCEEDED',
+        ex.reasonCode,
+        'A zero row cap must retain the row-limit reason.'
+      );
     }
     try {
       RecordHealthCheckQueryEvaluatorSupport.runQuery(
@@ -332,15 +453,21 @@ private class RHCDualQueryEdgeBehaviorTest {
       );
       Assert.isTrue(false, 'Expected compare-queries invalid query exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('FIELD_NOT_RESOLVED', ex.reasonCode);
+      Assert.areEqual(
+        'FIELD_NOT_RESOLVED',
+        ex.reasonCode,
+        'An unresolved query field must retain its reason.'
+      );
     }
     Assert.areEqual(
       false,
-      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('FAIL')
+      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('FAIL'),
+      'An empty FAIL result must resolve as false.'
     );
     Assert.areEqual(
       null,
-      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('SKIP')
+      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('SKIP'),
+      'An empty SKIP result must remain indeterminate.'
     );
     Assert.areEqual(
       'FAIL',
@@ -349,7 +476,8 @@ private class RHCDualQueryEdgeBehaviorTest {
           new RecordHealthCheckInternalResult(),
           null
         )
-        .status
+        .status,
+      'The empty-result builder must retain FAIL.'
     );
     dualCheck.NoRowsResult__c = 'UNABLE_TO_EVALUATE';
     assertReason(
@@ -360,69 +488,5 @@ private class RHCDualQueryEdgeBehaviorTest {
       ),
       'NO_ROWS_RETURNED'
     );
-  }
-
-  @IsTest
-  static void evaluatorMapsPlatformQueryFailuresToStableConfigurationResult() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
-      'Invalid dual query'
-    );
-    Record_Health_Check__mdt check = validDualCheck('Invalid_Query');
-    check.SourceQuery__c = 'SELECT DefinitelyMissing__c FROM Account';
-
-    Test.startTest();
-    RecordHealthCheckInternalResult result = new RecordHealthCheckCompareQueriesEvaluator()
-      .evaluate(check, accountRecord.Id, accountRecord);
-    Test.stopTest();
-
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(
-      'FIELD_NOT_RESOLVED',
-      result.reasonCode,
-      'A supported flat selected field must be describe-validated before execution.'
-    );
-  }
-
-  @IsTest
-  static void scopeEvaluatorMapsBlankAndUnexpectedCachedQueryFailures() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
-      'Cached dual query'
-    );
-
-    Record_Health_Check__mdt blankCheck = validDualCheck('Blank_Scope_Query');
-    blankCheck.SourceQuery__c = ' ';
-    blankCheck.ComparisonQuery__c = ' ';
-    RecordHealthCheckCompareQueriesEvaluator blankEvaluator = new RecordHealthCheckCompareQueriesEvaluator();
-    blankEvaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>();
-    blankEvaluator.scopeZeroCountSoql = new Set<String>();
-    blankEvaluator.scopeExecutionActive = true;
-
-    RecordHealthCheckInternalResult blankResult = blankEvaluator.evaluate(
-      blankCheck,
-      accountRecord.Id,
-      accountRecord
-    );
-    Assert.areEqual('UNABLE_TO_EVALUATE', blankResult.status);
-    Assert.areEqual('INVALID_SOQL_TEMPLATE', blankResult.reasonCode);
-
-    Record_Health_Check__mdt cachedCheck = validDualCheck(
-      'Unexpected_Cached_Query'
-    );
-    String boundQuery = new RecordHealthCheckSoqlEvaluator()
-      .bindTokens(cachedCheck.SourceQuery__c, accountRecord);
-    RecordHealthCheckCompareQueriesEvaluator cachedEvaluator = new RecordHealthCheckCompareQueriesEvaluator();
-    cachedEvaluator.scopeRowsByBoundSoql = new Map<String, List<SObject>>{
-      boundQuery => null
-    };
-    cachedEvaluator.scopeZeroCountSoql = new Set<String>();
-    cachedEvaluator.scopeExecutionActive = true;
-
-    RecordHealthCheckInternalResult cachedResult = cachedEvaluator.evaluate(
-      cachedCheck,
-      accountRecord.Id,
-      accountRecord
-    );
-    Assert.areEqual('ERROR', cachedResult.status);
-    Assert.areEqual('APEX_EVALUATOR_ERROR', cachedResult.reasonCode);
   }
 }

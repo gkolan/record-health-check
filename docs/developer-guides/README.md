@@ -22,14 +22,14 @@ Metadata first, and decide where results should go before choosing a background 
 
 ## Terms used in the examples
 
-| Term | Plain-language meaning |
-| --- | --- |
-| `rhc.` | The Record Health Check managed-package namespace used before an Apex class or type, such as `rhc.RecordHealthCheckResponse`. |
-| `rhc__` | The prefix used inside the API name of a Check or Check Set included with the installed Record Health Check package, such as `rhc__Example_Account_Check_Builder_Guide`. It uses two underscores because that is Salesforce metadata naming syntax. |
-| Qualified API Name | The exact API name Salesforce assigns to a Check or Check Set Custom Metadata record. Copy this value from Setup. |
-| Platform Event | A Salesforce message sent after a health check so a Flow, Apex trigger, or external integration can receive the result. |
-| Run ID | Text used to connect related results and jobs during troubleshooting. It does not identify a Salesforce record. |
-| Custom Permission | A Salesforce access flag used by package entry points. Administrators normally grant it through a Permission Set. **Record Health Check Run** is included in the packaged Card User, User, Admin, and MCP Integration Permission Sets; Error Log Publisher does not include it. |
+| Term               | Plain-language meaning                                                                                                                                                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rhc.`             | The Record Health Check managed-package namespace used before an Apex class or type, such as `rhc.RecordHealthCheckResponse`.                                                                                                                                                   |
+| `rhc__`            | The prefix used inside the API name of a Check or Check Set included with the installed Record Health Check package, such as `rhc__Example_Account_Check_Builder_Guide`. It uses two underscores because that is Salesforce metadata naming syntax.                             |
+| Qualified API Name | The exact API name Salesforce assigns to a Check or Check Set Custom Metadata record. Copy this value from Setup.                                                                                                                                                               |
+| Platform Event     | A Salesforce message sent after a health check so a Flow, Apex trigger, or external integration can receive the result.                                                                                                                                                         |
+| Run ID             | Text used to connect related results and jobs during troubleshooting. It does not identify a Salesforce record.                                                                                                                                                                 |
+| Custom Permission  | A Salesforce access flag used by package entry points. Administrators normally grant it through a Permission Set. **Record Health Check Run** is included in the packaged Card User, User, Admin, and MCP Integration Permission Sets; Error Log Publisher does not include it. |
 
 The two prefixes have different purposes:
 
@@ -49,15 +49,16 @@ exact **Qualified API Name**. Do not add or remove `rhc__` yourself.
 
 ## Choose the simplest option that fits
 
-| Need | Use | Why |
-| --- | --- | --- |
-| A Flow must make a decision immediately | [Flow API](../flow-guides/run-a-check.md) | The action returns statuses that a Decision element can use in the same transaction. |
-| Apex must make a decision immediately | [Apex API](./run-from-apex.md) | The response is available to the calling code immediately. |
-| Up to 200 known record IDs can run later | [Queueable Apex](./async-apex/queueable.md) | One separate transaction processes the complete request and provides an Apex job ID. |
-| Many records must be checked after a change or on a schedule | [Batch Apex](./async-apex/batch.md) | Salesforce checks the records in smaller groups. |
-| The same work must run on a schedule | [Scheduled Apex](./async-apex/scheduled.md) | A scheduler starts Queueable or Batch work with a known record limit. |
-| Existing code uses a future method | [Move from Future to Queueable](./async-apex/replace-future-with-queueable.md) | Queueable Apex provides better inputs, monitoring, and failure handling. |
-| A custom Apex Check must be validated before activation | [Verify a custom Apex Check](./verify-an-apex-check.md) | The contract test checks bulk behavior and prohibited side effects. |
+| Need                                                                                                           | Use                                                                            | Why                                                                                  |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| A Flow must make a decision immediately                                                                        | [Flow API](../flow-guides/run-a-check.md)                                      | The action returns statuses that a Decision element can use in the same transaction. |
+| Apex must make a decision immediately                                                                          | [Apex API](./run-from-apex.md)                                                 | The response is available to the calling code immediately.                           |
+| Up to 200 known record IDs can run later                                                                       | [Queueable Apex](./async-apex/queueable.md)                                    | One separate transaction processes the complete request and provides an Apex job ID. |
+| Many records must be checked after a change or on a schedule                                                   | [Batch Apex](./async-apex/batch.md)                                            | Salesforce checks the records in smaller groups.                                     |
+| The same work must run on a schedule                                                                           | [Scheduled Apex](./async-apex/scheduled.md)                                    | A scheduler starts Queueable or Batch work with a known record limit.                |
+| Existing code uses a future method                                                                             | [Move from Future to Queueable](./async-apex/replace-future-with-queueable.md) | Queueable Apex provides better inputs, monitoring, and failure handling.             |
+| A custom Apex Check must be validated before activation                                                        | [Verify a custom Apex Check](./verify-an-apex-check.md)                        | The contract test checks bulk behavior and prohibited side effects.                  |
+| A plugin needs the typed parameters, evidence, display overrides, preview, or diagnostics introduced in 2.0.10 | [2.0.10 reference](../reference/release-2.0.10.md)                             | One contract lists the APIs, limits, fallbacks, security rules, and shipped example. |
 
 > [!TIP]
 > Use Flow or Apex when the current process needs the answer immediately. Use Queueable when up to
@@ -78,6 +79,7 @@ Confirm all of the following:
    **Custom Permission API name:** `rhc__Record_Health_Check_Run`, and the required package Apex
    class access.
    **Record Health Check Run** is a Custom Permission, not the name of a Permission Set.
+
 3. The running user can access the target records, fields, Apex classes, and Record Health Check
    Custom Metadata required by the selected Checks.
 4. You know the Custom Metadata **Qualified API Name** of the Check or Check Set. Records created by
@@ -106,14 +108,14 @@ status, counts, Reason Code, and Result JSON outputs through the packaged action
 
 A request supplies:
 
-| Input | Meaning |
-| --- | --- |
-| Check or Check Set | The exact Qualified API Name copied from Setup |
-| Record IDs | The complete list of records for this request, within the documented limit |
-| Result mode | How much result detail the response should contain |
-| Event publication | Whether Platform Events should be published |
-| Run ID | Optional text used to connect related jobs and results during troubleshooting |
-| Execution origin | The type of process that started the run |
+| Input              | Meaning                                                                       |
+| ------------------ | ----------------------------------------------------------------------------- |
+| Check or Check Set | The exact Qualified API Name copied from Setup                                |
+| Record IDs         | The complete list of records for this request, within the documented limit    |
+| Result mode        | How much result detail the response should contain                            |
+| Event publication  | Whether Platform Events should be published                                   |
+| Run ID             | Optional text used to connect related jobs and results during troubleshooting |
+| Execution origin   | The type of process that started the run                                      |
 
 ### Choose what results to publish as events
 
@@ -126,34 +128,34 @@ The response and events are two different ways to receive results:
 - The packaged Queueable, Batch, and Scheduled classes do not give their response back to the code
   that submitted the job. Use events when those classes must send health results somewhere.
 
-| Mode | Events published | Use it when |
-| --- | --- | --- |
-| `NONE` | No result events | Apex or Flow reads the response directly, or only background-job completion is needed. This is the default. |
+| Mode         | Events published                                                              | Use it when                                                                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NONE`       | No result events                                                              | Apex or Flow reads the response directly, or only background-job completion is needed. This is the default.                                                        |
 | `ACTIONABLE` | `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`; plus a completed Set Run heartbeat | Another automation receives only Check results that need attention while still seeing that every record was scanned. `PASS` Check Result events are not published. |
-| `ALL` | `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` | Another automation must receive every result, including successful Checks. |
+| `ALL`        | `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR`                  | Another automation must receive every result, including successful Checks.                                                                                         |
 
 Publishing an event does not save a permanent history by itself. A Flow, Apex trigger, or external
 integration must receive the event and decide what to do with it.
 
 ### Example result choices
 
-| Workflow | Result choice |
-| --- | --- |
-| A record-triggered Flow needs to branch immediately | Use the Flow action, read its returned status, and leave publication as `NONE`. |
-| Apex needs to decide whether to continue immediately | Read `response.results`; use `NONE` unless another automation also needs an event. |
-| An overnight job should create work only for problems | Use `ACTIONABLE` and configure an event receiver for the failure statuses. |
-| An audit process must record successes and problems | Use `ALL` and configure an event receiver that saves every required result. |
+| Workflow                                                     | Result choice                                                                                                        |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| A record-triggered Flow needs to branch immediately          | Use the Flow action, read its returned status, and leave publication as `NONE`.                                      |
+| Apex needs to decide whether to continue immediately         | Read `response.results`; use `NONE` unless another automation also needs an event.                                   |
+| An overnight job should create work only for problems        | Use `ACTIONABLE` and configure an event receiver for the failure statuses.                                           |
+| An audit process must record successes and problems          | Use `ALL` and configure an event receiver that saves every required result.                                          |
 | An administrator needs to know only whether the Apex job ran | Use `NONE` and monitor **Setup → Apex Jobs**. The packaged background class will not save individual health results. |
 
 ## Read statuses correctly
 
-| Status | Meaning | Typical handling |
-| --- | --- | --- |
-| `PASS` | The record met the Check condition. | Continue the process. |
-| `FAIL` | The record did not meet the business condition. | Show guidance or start approved follow-up. This is not an Apex or Flow fault. |
-| `SKIPPED` | The Check did not apply to this record. | Continue or report separately, according to the business process. |
-| `UNABLE_TO_EVALUATE` | Access, data, or configuration prevented a reliable answer. | Review the reason code and correct the underlying issue. |
-| `ERROR` | The Framework contained an evaluator or system problem as result data. | Send the result to operational monitoring. |
+| Status               | Meaning                                                                | Typical handling                                                              |
+| -------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `PASS`               | The record met the Check condition.                                    | Continue the process.                                                         |
+| `FAIL`               | The record did not meet the business condition.                        | Show guidance or start approved follow-up. This is not an Apex or Flow fault. |
+| `SKIPPED`            | The Check did not apply to this record.                                | Continue or report separately, according to the business process.             |
+| `UNABLE_TO_EVALUATE` | Access, data, or configuration prevented a reliable answer.            | Review the reason code and correct the underlying issue.                      |
+| `ERROR`              | The Framework contained an evaluator or system problem as result data. | Send the result to operational monitoring.                                    |
 
 Some request, authorization, or fatal plugin failures are thrown instead of returned as statuses.
 Each guide explains the correct fault or job-monitoring path.

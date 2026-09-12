@@ -63,6 +63,10 @@ private class RecordHealthCheckMetadataIssueMapperTest {
         issue.componentName,
         'Every issue must retain the selected Check identity.'
       );
+      Assert.isNotNull(
+        issue.fieldName,
+        'Every declared Check finding must identify its configuration field.'
+      );
       Assert.isFalse(
         String.isBlank(issue.reasonCode),
         'Every mapped issue must expose a stable reason code.'
@@ -84,7 +88,50 @@ private class RecordHealthCheckMetadataIssueMapperTest {
     );
 
     Assert.areEqual(1, issues.size(), 'The corrupted finding remains visible.');
-    Assert.areEqual('INVALID_CONFIG', issues[0].reasonCode);
-    Assert.areEqual('This check could not be validated.', issues[0].message);
+    Assert.areEqual(
+      'INVALID_CONFIG',
+      issues[0].reasonCode,
+      'A finding without a code must retain the generic invalid-configuration reason.'
+    );
+    Assert.areEqual(
+      'This check could not be validated.',
+      issues[0].message,
+      'A corrupt finding must expose the stable generic validation explanation.'
+    );
+  }
+  @IsTest
+  static void preservesPluginDefinitionFindingAttribution() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'DeveloperName' => 'Invalid_Definition' }
+    );
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataIssueMapper.toIssues(
+      new List<RecordHealthCheckValidator.Finding>{
+        new RecordHealthCheckValidator.Finding(
+          RecordHealthCheckValidator.FindingCode.APEX_PLUGIN_DEFINITION_INVALID,
+          null
+        )
+      },
+      check
+    );
+    Assert.areEqual(
+      1,
+      issues.size(),
+      'A definition finding must produce one issue.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PLUGIN_DEFINITION_INVALID,
+      issues[0].reasonCode,
+      'The shared mapper must preserve the specific plugin-definition reason.'
+    );
+    Assert.areEqual(
+      'ApexParametersJson__c',
+      issues[0].fieldName,
+      'The shared mapper must retain the dedicated Apex mapper field attribution.'
+    );
+    Assert.areEqual(
+      'The configured Apex Check definition is invalid.',
+      issues[0].message,
+      'The specific definition explanation must survive the shared mapping boundary.'
+    );
   }
 }

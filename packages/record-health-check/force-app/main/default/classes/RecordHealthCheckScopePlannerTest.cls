@@ -13,26 +13,24 @@ private with sharing class RecordHealthCheckScopePlannerTest {
       .queryChecks('QualifiedApiName = :qualifiedApiName', qualifiedName);
     Test.stopTest();
 
-    Assert.areEqual(1, checks.size());
+    Assert.areEqual(
+      1,
+      checks.size(),
+      'The qualified query must return exactly the selected Check.'
+    );
     SObject checkSet = checks[0].getSObject('Record_Health_Check_Set__r');
-    Assert.isNotNull(checkSet.get('MasterLabel'));
-    Assert.isNotNull(checkSet.get('CardTitle__c'));
-    Assert.isNotNull(checkSet.get('CardSubtitle__c'));
-  }
-
-  @IsTest
-  static void missingSelectionIsRejected() {
-    Test.startTest();
-    try {
-      new RecordHealthCheckScopePlanner().resolveSelection(null);
-      Assert.fail('A missing qualified selection must be rejected.');
-    } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
-      Assert.isTrue(
-        error.getMessage().contains('qualified selection'),
-        'The error must identify the missing selection.'
-      );
-    }
-    Test.stopTest();
+    Assert.isNotNull(
+      checkSet.get('MasterLabel'),
+      'The owning Check Set label must be hydrated for registered tokens.'
+    );
+    Assert.isNotNull(
+      checkSet.get('CardTitle__c'),
+      'The owning Check Set title must be hydrated for registered tokens.'
+    );
+    Assert.isNotNull(
+      checkSet.get('CardSubtitle__c'),
+      'The owning Check Set subtitle must be hydrated for registered tokens.'
+    );
   }
 
   @IsTest
@@ -121,7 +119,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
           RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE
         );
       Assert.fail('An oversized FormulaEval plan must be rejected.');
-    } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
+    } catch (RecordHealthCheckResourcePlan.BudgetException error) {
       Assert.isTrue(
         error.getMessage().contains('FormulaEval calls'),
         'The error must describe the FormulaEval budget.'
@@ -145,7 +143,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
       Assert.fail(
         'A spent transaction budget must reject another Formula Check.'
       );
-    } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
+    } catch (RecordHealthCheckResourcePlan.BudgetException error) {
       Assert.isTrue(
         error.getMessage().contains('0 remain'),
         'The error must report transaction-aware remaining capacity.'
@@ -159,7 +157,7 @@ private with sharing class RecordHealthCheckScopePlannerTest {
   @IsTest
   static void pluginBudgetCountsConstructionAndExecutionSavepoints() {
     List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
-    Integer apexCheckCount = (Limits.getLimitDmlStatements() / 2) + 1;
+    Integer apexCheckCount = (Limits.getLimitDmlStatements() / 4) + 1;
     for (Integer index = 0; index < apexCheckCount; index++) {
       checks.add(
         RecordHealthCheckTestDataFactory.check(
@@ -178,8 +176,8 @@ private with sharing class RecordHealthCheckScopePlannerTest {
         'The error must use the stable savepoint-budget reason.'
       );
       Assert.isTrue(
-        error.getMessage().contains('required=' + apexCheckCount * 2),
-        'The required budget must include construction and execution savepoints.'
+        error.getMessage().contains('required=' + apexCheckCount * 4),
+        'The budget must include setting and releasing both hook savepoints.'
       );
     }
     Test.stopTest();

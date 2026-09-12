@@ -22,19 +22,19 @@ A strategic-account seller is preparing for a pipeline review and needs to know 
 
 ## What you will learn
 
-| Skill | How this example teaches it |
-| --- | --- |
+| Skill                                      | How this example teaches it                                            |
+| ------------------------------------------ | ---------------------------------------------------------------------- |
 | Compare query data with the current record | Opportunity Amount is evaluated against an Account-specific threshold. |
-| Resolve a record formula as **Expected** | The target can vary from Account to Account. |
-| Detect meaningful pipeline | At least one returned Opportunity must meet the threshold. |
+| Resolve a record formula as **Expected**   | The target can vary from Account to Account.                           |
+| Detect meaningful pipeline                 | At least one returned Opportunity must meet the threshold.             |
 
 ## Why use Verify with a query
 
-| Evaluation Type | Why it fits |
-| --- | --- |
-| **Verify with a query** | Best fit. The query reviews related Opportunity Amounts, and the expected-value formula calculates 10% of the Account's Annual Revenue. |
-| **Verify with a formula** | Can read Annual Revenue on the Account but cannot review Amount on every related Opportunity. |
-| **Verify with a query** with a fixed expected value | Would use the same amount for every Account instead of adjusting to Account size. |
+| Evaluation Type                                     | Why it fits                                                                                                                             |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Verify with a query**                             | Best fit. The query reviews related Opportunity Amounts, and the expected-value formula calculates 10% of the Account's Annual Revenue. |
+| **Verify with a formula**                           | Can read Annual Revenue on the Account but cannot review Amount on every related Opportunity.                                           |
+| **Verify with a query** with a fixed expected value | Would use the same amount for every Account instead of adjusting to Account size.                                                       |
 
 ## Why not use a Validation Rule or Report
 
@@ -71,66 +71,66 @@ with **Record Health Check Card User**.
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
 create this Check Set:
 
-| Setup field | Value |
-| --- | --- |
-| **Label** | Account Related Record Review |
-| **Record Health Check Set Name** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | Related Record Review |
-| **Card Subtitle** | Confirm an open Opportunity is significant for this Account. |
-| **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked |
-| **Active** | Checked |
+| Setup field                      | Value                                                             |
+| -------------------------------- | ----------------------------------------------------------------- |
+| **Label**                        | Account Related Record Review                                     |
+| **Record Health Check Set Name** | `Account_Related_Record_Review`                                   |
+| **Object**                       | `Account`                                                         |
+| **Card Title**                   | Related Record Review                                             |
+| **Card Subtitle**                | Confirm an open Opportunity is significant for this Account.      |
+| **When Checks Run**              | When the user clicks Run                                          |
+| **Summary Display**              | Show below checks                                                 |
+| **Reveal Mode**                  | One by one                                                        |
+| **Passed Checks**                | Show each passed check                                            |
+| **Skipped Checks**               | Show each skipped check                                           |
+| **Found/Expected Display**       | Show on demand                                                    |
+| **Stop after a system error**    | Unchecked                                                         |
+| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
+| **Publish User Run Event**       | Unchecked                                                         |
+| **Active**                       | Checked                                                           |
 
 ## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `Has_Significant_Open_Opportunity` |
-| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | Has Significant Open Opportunity |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | Has Significant Open Opportunity |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null` |
-| **Source Query Field** | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | `Amount` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Any record passes |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Greater than |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Record formula |
-| **Expected Value (Formula)** | [`ExpectedRecordFormula__c`](../../reference/custom-metadata/check-fields.md#expected-value-formula-expectedrecordformula__c) | `AnnualRevenue * 0.1` |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c) | Fail |
-| **If Field Value Is Empty** | [`EmptyValueHandling__c`](../../reference/custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c) | Treat as not matching; the query excludes blank Amount |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200` |
-| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | When a formula is true |
-| **Applies When (Formula)** | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c) | `BLANKVALUE(AnnualRevenue, 0) > 0` |
+| Setup field                   | API name                                                                                                                      | Value                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Developer Name**            | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                               | `Has_Significant_Open_Opportunity`                                                                      |
+| **Label**                     | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                            | Has Significant Open Opportunity                                                                        |
+| **Check Set**                 | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)          | `Account_Related_Record_Review`                                                                         |
+| **Check Title**               | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                  | Has Significant Open Opportunity                                                                        |
+| **Evaluation Type**           | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                      | Verify with a query                                                                                     |
+| **Source Query**              | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c)                               | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null` |
+| **Source Query Field**        | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)               | `Amount`                                                                                                |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c)  | Any record passes                                                                                       |
+| **Comparison Operator**       | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)          | Greater than                                                                                            |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c)  | Record formula                                                                                          |
+| **Expected Value (Formula)**  | [`ExpectedRecordFormula__c`](../../reference/custom-metadata/check-fields.md#expected-value-formula-expectedrecordformula__c) | `AnnualRevenue * 0.1`                                                                                   |
+| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c)                | Fail                                                                                                    |
+| **If Field Value Is Empty**   | [`EmptyValueHandling__c`](../../reference/custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c)      | Treat as not matching; the query excludes blank Amount                                                  |
+| **Max Query Rows (1-2000)**   | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c)                    | `200`                                                                                                   |
+| **Applies To**                | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                     | When a formula is true                                                                                  |
+| **Applies When (Formula)**    | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c)     | `BLANKVALUE(AnnualRevenue, 0) > 0`                                                                      |
 
 This scenario uses a confirmed 10% threshold. When adapting the Check, replace `0.1` with the
 percentage approved for your pipeline review.
 
 ## Optional configuration
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Checks whether an open Opportunity exceeds 10% of Annual Revenue when Annual Revenue is available. |
-| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Readiness |
-| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Info |
-| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has no open Opportunity that exceeds 10% of Annual Revenue. Increase an open Opportunity Amount or revisit the Account Annual Revenue. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare open Opportunity Amount with Annual Revenue. Confirm access to both objects and fields. |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank; applicability already prevents a meaningless zero threshold. |
-| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review Annual Revenue and open Opportunity Amounts, then correct the value that is inaccurate. |
-| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | Leave blank: one portable link cannot edit both Account and Opportunity values. |
-| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | Leave blank; use a verified org-specific report or playbook if needed. |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `60` |
-| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked |
+| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks whether an open Opportunity exceeds 10% of Annual Revenue when Annual Revenue is available.                                                                             |
+| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Readiness                                                                                                                                                                      |
+| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Info                                                                                                                                                                           |
+| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has no open Opportunity that exceeds 10% of Annual Revenue. Increase an open Opportunity Amount or revisit the Account Annual Revenue. |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare open Opportunity Amount with Annual Revenue. Confirm access to both objects and fields.                                                                      |
+| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank; applicability already prevents a meaningless zero threshold.                                                                                                      |
+| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Review Annual Revenue and open Opportunity Amounts, then correct the value that is inaccurate.                                                                                 |
+| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | Leave blank: one portable link cannot edit both Account and Opportunity values.                                                                                                |
+| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | Leave blank; use a verified org-specific report or playbook if needed.                                                                                                         |
+| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `60`                                                                                                                                                                           |
+| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                                                                                        |
+| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                                                      |
 
 Leave **Display: Found Text** and **Display: Expected Text** blank to show the Opportunity Amount and
 calculated threshold produced by the query and formula. Those optional fields can customize any
@@ -141,13 +141,13 @@ Formula, and Apex fields do not apply.
 
 Formula applicability and the query comparison produce these health results and card values:
 
-| Health result or card value | What the user sees |
-| --- | --- |
-| **`PASS`** | At least one visible open Opportunity Amount is greater than 10% of Account Annual Revenue. |
-| **`FAIL`** | No visible open Opportunity exceeds the Account-specific threshold, so the card shows Needs attention with Info severity. |
-| **`SKIPPED`** | Blank or zero Annual Revenue skips the Check so a zero threshold cannot create a misleading pass. |
-| **Found** | Found shows the Opportunity Amount evaluated by the successful or representative query result. |
-| **Expected** | Expected shows the Account-specific threshold calculated from Annual Revenue. |
+| Health result or card value | What the user sees                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **`PASS`**                  | At least one visible open Opportunity Amount is greater than 10% of Account Annual Revenue.                               |
+| **`FAIL`**                  | No visible open Opportunity exceeds the Account-specific threshold, so the card shows Needs attention with Info severity. |
+| **`SKIPPED`**               | Blank or zero Annual Revenue skips the Check so a zero threshold cannot create a misleading pass.                         |
+| **Found**                   | Found shows the Opportunity Amount evaluated by the successful or representative query result.                            |
+| **Expected**                | Expected shows the Account-specific threshold calculated from Annual Revenue.                                             |
 
 ## Security and access
 
@@ -168,11 +168,11 @@ Before activation, run the Check with the Account and Opportunity access assigne
 
 ## Failures and remedies
 
-| What the user sees | What to check |
-| --- | --- |
-| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records. |
-| Empty results behave incorrectly | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**. |
-| **Unable to evaluate** | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
+| What the user sees                     | What to check                                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records.                      |
+| Empty results behave incorrectly       | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**.                         |
+| **Unable to evaluate**                 | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
 
 ## Related
 

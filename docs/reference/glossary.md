@@ -52,12 +52,12 @@ Do not add or remove `rhc__`. See
 
 The method a Check uses to answer its question.
 
-| Setup label (API value) | What it does | Reference |
-| --- | --- | --- |
-| Verify with a formula (`FORMULA`) | Evaluates a Salesforce formula against the checked record | [Formula](./evaluation/formula.md) |
-| Verify with a query (`QUERY`) | Runs one SOQL query and compares its result with an expected value | [Query](./evaluation/query.md) |
-| Compare two queries (`COMPARE_TWO_QUERIES`) | Runs two SOQL queries and compares their results | [Compare two queries](./evaluation/compare-two-queries.md) |
-| Verify with Apex (`APEX`) | Calls a developer-owned class that implements `rhc.RecordHealthCheckPlugin` | [Custom Apex Check](../developer-guides/write-an-apex-check.md) |
+| Setup label (API value)                     | What it does                                                                | Reference                                                       |
+| ------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Verify with a formula (`FORMULA`)           | Evaluates a Salesforce formula against the checked record                   | [Formula](./evaluation/formula.md)                              |
+| Verify with a query (`QUERY`)               | Runs one SOQL query and compares its result with an expected value          | [Query](./evaluation/query.md)                                  |
+| Compare two queries (`COMPARE_TWO_QUERIES`) | Runs two SOQL queries and compares their results                            | [Compare two queries](./evaluation/compare-two-queries.md)      |
+| Verify with Apex (`APEX`)                   | Calls a developer-owned class that implements `rhc.RecordHealthCheckPlugin` | [Custom Apex Check](../developer-guides/write-an-apex-check.md) |
 
 ## Found and Expected
 
@@ -72,13 +72,13 @@ the comparison. See [Display value format](./configuration/display-found-and-exp
 
 The result of one Check for one Salesforce record.
 
-| API Status | Lightning card wording | Meaning |
-| --- | --- | --- |
-| `PASS` | Pass | The record met the Check |
-| `FAIL` | Failed, Warning, or Info | The record did not meet the Check; wording follows Failure Severity |
-| `SKIPPED` | Skipped | The Check did not apply, or its prerequisite did not pass |
-| `UNABLE_TO_EVALUATE` | Unable to Check | Missing access, data, or valid configuration prevented an answer |
-| `ERROR` | System Error | An unexpected Apex or Salesforce problem occurred |
+| API Status           | Lightning card wording   | Meaning                                                             |
+| -------------------- | ------------------------ | ------------------------------------------------------------------- |
+| `PASS`               | Pass                     | The record met the Check                                            |
+| `FAIL`               | Failed, Warning, or Info | The record did not meet the Check; wording follows Failure Severity |
+| `SKIPPED`            | Skipped                  | The Check did not apply, or its prerequisite did not pass           |
+| `UNABLE_TO_EVALUATE` | Unable to Check          | Missing access, data, or valid configuration prevented an answer    |
+| `ERROR`              | System Error             | An unexpected Apex or Salesforce problem occurred                   |
 
 The Run Check Set Flow action also returns one overall Status. It uses the first matching status in
 this order: `ERROR`, `UNABLE_TO_EVALUATE`, `FAIL`, `PASS`, then `SKIPPED`. Apex responses provide the
@@ -89,10 +89,10 @@ individual results and a count for each Status; they do not provide one overall 
 The importance assigned to a `FAIL`. It does not change whether the Check passes.
 
 | Setup value | Lightning card wording |
-| --- | --- |
-| `CRITICAL` | Failed |
-| `WARNING` | Warning |
-| `INFO` | Info |
+| ----------- | ---------------------- |
+| `CRITICAL`  | Failed                 |
+| `WARNING`   | Warning                |
+| `INFO`      | Info                   |
 
 ## Reason Code
 
@@ -168,11 +168,11 @@ The choice that controls whether a programmatic run publishes health-result Plat
 On the Lightning card, administrators use the **Publish User Run Event** setting on the Check Set
 and **Publish User Result Event** on each Check. Apex and Flow instead choose one of these API values:
 
-| Value | Events published |
-| --- | --- |
-| `NONE` | No health-result events |
+| Value        | Events published                                                                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NONE`       | No health-result events                                                                                                                                                        |
 | `ACTIONABLE` | Check Result events only for `FAIL`, `UNABLE_TO_EVALUATE`, and `ERROR`, plus one completed Set Run heartbeat for every scanned record, including all-pass and all-skipped runs |
-| `ALL` | Every result, including `PASS` and `SKIPPED` |
+| `ALL`        | Every result, including `PASS` and `SKIPPED`                                                                                                                                   |
 
 Publishing an event does not save a result-history record. A receiving Flow, Apex trigger, or
 external integration must save the event if the org needs a permanent record. See

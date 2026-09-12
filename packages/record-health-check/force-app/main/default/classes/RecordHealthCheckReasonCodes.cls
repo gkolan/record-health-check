@@ -27,6 +27,7 @@ public class RecordHealthCheckReasonCodes {
   public static final String NOT_APPLICABLE_BY_COUNT = 'NOT_APPLICABLE_BY_COUNT';
   public static final String PREREQUISITE_NOT_MET = 'PREREQUISITE_NOT_MET';
   public static final String DEPENDENCY_NOT_IN_RUN = 'DEPENDENCY_NOT_IN_RUN';
+  public static final String CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY';
   public static final String APEX_CLASS_INVALID = 'APEX_CLASS_INVALID';
   public static final String APEX_CLASS_NOT_FOUND = 'APEX_CLASS_NOT_FOUND';
   public static final String APEX_CLASS_LOAD_FAILED = 'APEX_CLASS_LOAD_FAILED';
@@ -46,6 +47,8 @@ public class RecordHealthCheckReasonCodes {
   /** The Check threw and did not handle it. The engine cannot attribute it to one record. */
   public static final String PLUGIN_THREW = 'PLUGIN_THREW';
   public static final String PLUGIN_CONSTRUCTOR_FAILED = 'PLUGIN_CONSTRUCTOR_FAILED';
+  public static final String PLUGIN_DEFINITION_INVALID = 'PLUGIN_DEFINITION_INVALID';
+  public static final String PLUGIN_SCOPE_LIMIT_EXCEEDED = 'PLUGIN_SCOPE_LIMIT_EXCEEDED';
   public static final String PLUGIN_INTERFACE_INVALID = 'PLUGIN_INTERFACE_INVALID';
   public static final String PLUGIN_STATUS_INVALID = 'PLUGIN_STATUS_INVALID';
   public static final String PLUGIN_REASON_CODE_INVALID = 'PLUGIN_REASON_CODE_INVALID';

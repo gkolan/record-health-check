@@ -45,4 +45,16 @@
     <values><field>IsActive__c</field><value
       xsi:type="xsd:boolean"
     >true</value></values>
+    <values>
+        <field>CardHeadingDisplay__c</field>
+        <value xsi:type="xsd:string">TITLE_AND_SUBTITLE</value>
+    </values>
+    <values>
+        <field>PublishUserRunEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>RunButtonDisplay__c</field>
+        <value xsi:type="xsd:string">LABEL_AND_ICON</value>
+    </values>
 </CustomMetadata>

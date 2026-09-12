@@ -39,8 +39,12 @@ function acquirePageEvaluationSlot(isCurrent) {
 }
 
 function tryAcquirePageEvaluationSlot(isCurrent) {
-  if (!isCurrent()) return false;
-  if (pageScheduler.active >= MAX_CONCURRENT_EVALUATIONS) return null;
+  if (!isCurrent()) {
+    return false;
+  }
+  if (pageScheduler.active >= MAX_CONCURRENT_EVALUATIONS) {
+    return null;
+  }
   pageScheduler.active++;
   return pageScheduler;
 }
@@ -112,7 +116,9 @@ export class HealthCheckRunner {
   }
 
   run(reuseRunId = false, source = "USER_INITIATED") {
-    if (this._runInProgress) return;
+    if (this._runInProgress) {
+      return;
+    }
     if (!["USER_INITIATED", "RUN_ON_LOAD"].includes(source)) {
       throw Object.assign(
         new Error("The execution source is not recognized."),
@@ -259,7 +265,9 @@ export class HealthCheckRunner {
   }
 
   async _runOneCheck(check, taskMap, checkMap, runCheck, token) {
-    if (this._stopped || token !== this._runToken) return;
+    if (this._stopped || token !== this._runToken) {
+      return;
+    }
 
     // Enforce the Prerequisite Check before calling Apex.
     const prerequisiteKey = prerequisiteIdentity(check, this.host.checks);
@@ -280,7 +288,9 @@ export class HealthCheckRunner {
         runCheck(prerequisiteCheck);
       }
       await taskMap.get(prerequisiteKey);
-      if (this._stopped || token !== this._runToken) return;
+      if (this._stopped || token !== this._runToken) {
+        return;
+      }
       const prereqResult = this._resultBuffer.get(prerequisiteKey);
       if (!prereqResult || prereqResult.status !== "PASS") {
         const prereqLabel =
@@ -308,7 +318,9 @@ export class HealthCheckRunner {
     if (acquiredScheduler === null) {
       acquiredScheduler = await this._acquireEvaluationSlot(token);
     }
-    if (!acquiredScheduler) return;
+    if (!acquiredScheduler) {
+      return;
+    }
     if (token !== this._runToken) {
       this._releaseEvaluationSlot(acquiredScheduler);
       return;
@@ -339,7 +351,9 @@ export class HealthCheckRunner {
     }
 
     // Discard result if a newer run has started since this call was fired
-    if (token !== this._runToken) return;
+    if (token !== this._runToken) {
+      return;
+    }
 
     this._resultBuffer.set(
       checkIdentity(check),
@@ -349,7 +363,9 @@ export class HealthCheckRunner {
   }
 
   _drain(token) {
-    if (token !== this._runToken) return;
+    if (token !== this._runToken) {
+      return;
+    }
 
     this.host.checks = this.host.checks.map((c) => {
       const identity = checkIdentity(c);

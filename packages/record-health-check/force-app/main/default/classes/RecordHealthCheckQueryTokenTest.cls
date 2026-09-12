@@ -34,7 +34,8 @@ private class RecordHealthCheckQueryTokenTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         'Found {!rhcQuery.sourceRowCount}',
         context
-      )
+      ),
+      'The source count token must render the two available rows.'
     );
   }
 
@@ -102,7 +103,8 @@ private class RecordHealthCheckQueryTokenTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         'Compared with {!rhcQuery.comparisonRows[0].Name fallback="nothing"}',
         context
-      )
+      ),
+      'An absent comparison row must use its literal fallback.'
     );
     Assert.areEqual(
       'Count ',
@@ -150,8 +152,16 @@ private class RecordHealthCheckQueryTokenTest {
       RecordHealthCheckTestDataFactory.accountFixture('Page record'),
       result
     );
-    Assert.areEqual('3 on Widget Co', result.actualValue);
-    Assert.areEqual('none on Widget Co', result.expectedValue);
+    Assert.areEqual(
+      '3 on Widget Co',
+      result.actualValue,
+      'Found text must combine the query result with its first row label.'
+    );
+    Assert.areEqual(
+      'none on Widget Co',
+      result.expectedValue,
+      'Expected text must combine its fallback with the same row label.'
+    );
   }
 
   @IsTest
@@ -166,7 +176,8 @@ private class RecordHealthCheckQueryTokenTest {
         '{!rhcQuery.sourceRowCount fallback="an unknown number of"} rows',
         new RecordHealthCheckMergeContext()
           .withRecord(RecordHealthCheckTestDataFactory.accountFixture('Acme'))
-      )
+      ),
+      'An unavailable query count must use fallback text without a second failure.'
     );
   }
 
@@ -207,7 +218,11 @@ private class RecordHealthCheckQueryTokenTest {
       );
       Assert.fail('A URL must not be built from a row that does not exist.');
     } catch (RecordHealthCheckTemplateService.TemplateException expected) {
-      Assert.areEqual('MISSING_TOKEN_VALUE', expected.reasonCode);
+      Assert.areEqual(
+        'MISSING_TOKEN_VALUE',
+        expected.reasonCode,
+        'An absent URL row must retain the missing-token-value reason.'
+      );
     }
   }
 
@@ -245,9 +260,9 @@ private class RecordHealthCheckQueryTokenTest {
 
   @IsTest
   static void countsRowsWithoutNeedingAReadableProjection() {
-    // A count reads no column and does not depend on row order, so a query
-    // whose SELECT list cannot be fully read still supports counting it. Only
-    // a token that reads a field needs the projection proven.
+    // A count reads no column and does not depend on row order. Independently
+    // selected outer fields remain readable beside an opaque child subquery,
+    // but the child collection itself is not an addressable scalar.
     Record_Health_Check__mdt check = new Record_Health_Check__mdt(
       DeveloperName = 'NestedCount',
       EvaluationType__c = 'QUERY',
@@ -261,21 +276,26 @@ private class RecordHealthCheckQueryTokenTest {
     );
 
     check.FailureMessage__c = 'Open {!rhcQuery.sourceRows[0].Name}';
+    Assert.isNull(
+      RecordHealthCheckQueryTokenRules.firstIssue(check),
+      'An independently selected outer Name remains readable beside a child subquery.'
+    );
+    check.FailureMessage__c = 'Open {!rhcQuery.sourceRows[0].Contacts}';
     RecordHealthCheckTokenIssue issue = RecordHealthCheckQueryTokenRules.firstIssue(
       check
     );
     Assert.areEqual(
       'QUERY_PROJECTION_NOT_ANALYZABLE',
       issue?.reasonCode,
-      'Reading a field from that same query is not.'
+      'A child relationship remains opaque and cannot be read as a scalar.'
     );
   }
 
   @IsTest
   static void refusesAChildRelationshipAsATerminalValue() {
-    // A child relationship is a collection, not a value. Authoring refuses the
-    // query shape that produces one; if metadata changed underneath a running
-    // transaction the runtime still reports it rather than inserting nothing.
+    // A child relationship is a collection, not a scalar token value. Authoring
+    // refuses a token addressing that collection; if metadata changes during
+    // a run, an unselected field still reports an error instead of empty text.
     List<SObject> rows = Database.query(
       'SELECT Id, DeveloperName FROM Record_Health_Check__mdt LIMIT 1'
     );
@@ -419,7 +439,8 @@ private class RecordHealthCheckQueryTokenTest {
       RecordHealthCheckTemplateService.resolveDisplay(
         '{!rhcQuery.sourceRows[0].Name}',
         single
-      )
+      ),
+      'The first row of a singleton query must remain addressable.'
     );
     Assert.areEqual(
       'absent',

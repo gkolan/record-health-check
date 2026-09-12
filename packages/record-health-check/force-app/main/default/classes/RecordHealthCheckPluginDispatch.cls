@@ -27,6 +27,19 @@
  *    mutation is to let the transaction die.
  */
 public with sharing class RecordHealthCheckPluginDispatch {
+  private static TestDispatchCapture lastTestCapture;
+
+  /** Test-only snapshot taken after guarded invocation and before map completion. */
+  public class TestDispatchCapture {
+    public Map<Id, RecordHealthCheckOutcome> rawResults;
+    public Integer dmlStatements;
+    public Integer dmlRows;
+    public Integer callouts;
+    public Integer queueables;
+    public Integer futures;
+    public Integer emails;
+  }
+
   /**
    * Prohibited effects, with the counter that detects each. Where Apex exposes
    * no reliable counter (batch and scheduled dispatch, event publication) the
@@ -39,7 +52,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     public Boolean reversible;
   }
 
-  public class ContractException extends Exception {
+  public class ContractException extends Exception implements RecordHealthCheckFatalFailure {
     public String reasonCode;
     public String originalExceptionType;
     public String originalExceptionMessage;
@@ -56,6 +69,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     if (pluginType == null) {
       return null;
     }
+    RecordHealthCheckResourcePlan.requireFenceCapacity(0);
     Savepoint before = Database.setSavepoint();
     Integer dmlBefore = Limits.getDmlStatements();
     Integer dmlRowsBefore = Limits.getDmlRows();
@@ -96,15 +110,72 @@ public with sharing class RecordHealthCheckPluginDispatch {
   }
 
   /**
+   * Discovers an optional definition on the already-constructed plugin while
+   * applying the same mutation fence used by construction and evaluation.
+   */
+  public static RecordHealthCheckPluginDefinition define(
+    RecordHealthCheckPlugin plugin
+  ) {
+    if (!(plugin instanceof RecordHealthCheckPluginDefinitionSource)) {
+      return null;
+    }
+    RecordHealthCheckResourcePlan.requireFenceCapacity(0);
+    Savepoint before = Database.setSavepoint();
+    Integer dmlBefore = Limits.getDmlStatements();
+    Integer dmlRowsBefore = Limits.getDmlRows();
+    Integer calloutsBefore = Limits.getCallouts();
+    Integer queueableBefore = Limits.getQueueableJobs();
+    Integer futureBefore = Limits.getFutureCalls();
+    Integer emailBefore = Limits.getEmailInvocations();
+    Integer queriesBefore = Limits.getQueries();
+    RecordHealthCheckPluginDefinition definition;
+    Exception definitionFailure;
+    try {
+      definition = ((RecordHealthCheckPluginDefinitionSource) plugin)
+        .getDefinition();
+    } catch (Exception ex) {
+      definitionFailure = ex;
+    } finally {
+      SideEffectException violation = detect(
+        dmlBefore,
+        dmlRowsBefore,
+        calloutsBefore,
+        queueableBefore,
+        futureBefore,
+        emailBefore
+      );
+      if (violation != null) {
+        Database.rollback(before);
+        Database.releaseSavepoint(before);
+        throw violation;
+      }
+      Database.releaseSavepoint(before);
+    }
+    if (definitionFailure != null) {
+      throw definitionFailure;
+    }
+    if (Limits.getQueries() > queriesBefore) {
+      throw new RecordHealthCheckPluginDefinitionService.DefinitionFailureException(
+        'Plugin definitions must not query business data.'
+      );
+    }
+    return definition;
+  }
+
+  /**
    * Runs one plugin against one scope and returns an outcome per record Id.
    *
    * @throws SideEffectException when the plugin mutated state. Fatal by design:
-   *         the caller must let it propagate so the transaction rolls back.
+   *         callers must propagate the violation. Reversible effects have
+   *         already been rolled back before the exception is thrown.
    */
   public static Map<Id, RecordHealthCheckOutcome> run(
     RecordHealthCheckPlugin plugin,
     RecordHealthCheckScope scope
   ) {
+    if (Test.isRunningTest()) {
+      lastTestCapture = null;
+    }
     // Taken BEFORE the counters are captured, because setting a savepoint is
     // itself a DML statement and would otherwise look like the very violation
     // this exists to undo.
@@ -124,6 +195,7 @@ public with sharing class RecordHealthCheckPluginDispatch {
     // offending check. A scan would lose the records it had already written,
     // and the framework would cause more damage cleaning up than the check did.
     // Rollback has to reach exactly as far as this one call and no further.
+    RecordHealthCheckResourcePlan.requireFenceCapacity(0);
     Savepoint before = Database.setSavepoint();
 
     Integer dmlBefore = Limits.getDmlStatements();
@@ -165,6 +237,29 @@ public with sharing class RecordHealthCheckPluginDispatch {
       Database.releaseSavepoint(before);
     }
 
+    throwPluginFailure(pluginFailure);
+
+    if (Test.isRunningTest()) {
+      TestDispatchCapture capture = new TestDispatchCapture();
+      capture.rawResults = returned == null
+        ? null
+        : new Map<Id, RecordHealthCheckOutcome>(returned);
+      capture.dmlStatements = Math.max(
+        0,
+        Limits.getDmlStatements() - dmlBefore - 1
+      );
+      capture.dmlRows = Limits.getDmlRows() - dmlRowsBefore;
+      capture.callouts = Limits.getCallouts() - calloutsBefore;
+      capture.queueables = Limits.getQueueableJobs() - queueableBefore;
+      capture.futures = Limits.getFutureCalls() - futureBefore;
+      capture.emails = Limits.getEmailInvocations() - emailBefore;
+      lastTestCapture = capture;
+    }
+
+    return validate(returned, scope);
+  }
+
+  private static void throwPluginFailure(Exception pluginFailure) {
     if (pluginFailure != null) {
       // No prohibited effect, so the throw is attributable to the check and can
       // safely become results. The engine cannot tell WHICH record caused it,
@@ -179,8 +274,16 @@ public with sharing class RecordHealthCheckPluginDispatch {
       contractFailure.originalLineNumber = pluginFailure.getLineNumber();
       throw contractFailure;
     }
+  }
 
-    return validate(returned, scope);
+  /** Returns and clears the raw guarded snapshot for the contract-test facade. */
+  public static TestDispatchCapture consumeTestCapture() {
+    if (!Test.isRunningTest()) {
+      return null;
+    }
+    TestDispatchCapture captured = lastTestCapture;
+    lastTestCapture = null;
+    return captured;
   }
 
   /**

@@ -21,16 +21,17 @@ This page is part of the [Apex class reference](./README.md). For the architectu
 
 **Type:** Service class · `public with sharing`
 
-`RecordHealthCheck.evaluate`, the installed Flow actions, and the Lightning card's `evaluateCheck`
-method use this class. It validates the request, loads the requested Salesforce records with user
+`RecordHealthCheck.evaluate`, the installed Flow actions, and the Lightning card use this class.
+The card reaches it through `evaluateCheckJson`, which delegates to `evaluateCheck`.
+It validates the request, loads the requested Salesforce records with user
 access enforced, runs the applicable Checks in order, optionally adds display content, publishes the
 requested Platform Events, and returns `RecordHealthCheckResponse`. The Lightning card's
 `completeRun` method publishes already-completed results and does not run this class again.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member          | Purpose                                                          |
+| --------------- | ---------------------------------------------------------------- |
 | `evaluate(...)` | Run the requested Check or Check Set for the supplied record IDs |
 
 **Notable behavior:**
@@ -84,8 +85,8 @@ uses `RecordHealthCheck.evaluate(request)` and does not call this class directly
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member                     | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
 | `collectRecordFields(...)` | Identify the record fields referenced by a Check |
 
 **Notable behavior:**
@@ -107,8 +108,8 @@ formula dependencies; custom Apex does not call it directly.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
+| Member      | Purpose                                                                       |
+| ----------- | ----------------------------------------------------------------------------- |
 | `scan(...)` | Return described record-field paths in document order with duplicates removed |
 
 ### `RecordHealthCheckBulkQuerySupport`
@@ -135,18 +136,77 @@ Changes a validated SOQL template so one query can serve all requested record ID
 the condition configured by the Check author. An unsupported query shape is rejected instead of
 falling back to a query inside a record loop.
 
+### `RecordHealthCheckBulkQueryShape`
+
+**Role:** Recognize the one record-token equality that can safely drive a scope-wide query rewrite.
+
+**Type:** Parsing service · `public with sharing`
+
+Masks quoted values, isolates the outer `WHERE` expression, and accepts the correlation only when it
+is a direct `AND` conjunct. Tokens under `OR`, `NOT`, a subquery, or a second executable occurrence
+leave the query unclassified so execution fails before dynamic SOQL runs.
+
+### `RecordHealthCheckResourcePlan`
+
+**Role:** Calculate formula-call sizing and check savepoint capacity before work starts.
+
+**Type:** Admission service · `public with sharing`
+
+Computes conservative Formula Evaluation calls for a record scope, selects the largest safe default
+Batch scope, and verifies that a plugin hook has capacity for its savepoint, possible rollback, and
+release. A shortage raises `TRANSACTION_BUDGET_EXCEEDED` before the hook is invoked.
+
+### `RecordHealthCheckPrerequisiteEligibility`
+
+**Role:** Select the records allowed to reach a Check's applicability phase.
+
+**Type:** Coordination service · `public with sharing`
+
+Keeps inaccessible records and records blocked by a failed prerequisite out of formula and query
+applicability work. It returns the eligible IDs, their authorized record map, and the already-decided
+results so the pipeline can reassemble output in the original request order.
+
 ### `RecordHealthCheckScopeResultSupport`
 
 **Role:** Convert each internal result into the response returned to Apex, Flow, or Lightning.
 
 **Type:** Service class · `public with sharing`
 
-Adds requested display text, hides or replaces access-sensitive Reason Codes when needed, and checks
-that an Action URL is safe before returning it.
+Converts evaluation and display results and delegates display finalization to
+`RecordHealthCheckScopeDisplayFinalizer`. Scope callers pass the authorized record map explicitly;
+standalone callers retain current-record provenance only.
+
+### `RecordHealthCheckScopeDisplayFinalizer`
+
+**Role:** Resolve legacy display text, apply plugin presentation, and attach authorized evidence.
+
+**Type:** Service class · `public with sharing`
+
+Keeps message resolution, FAIL-only fixes and safe Action URLs, diagnostics redaction, and structured
+content in their existing order. It forwards the scope loader's user-mode record map to evidence
+projection so another authorized record in that scope can supply provenance. It does not query or
+expand that map. Evaluation-only responses omit display and evidence.
+
+Planning failures carry a transient internal flag. Display finalization preserves their diagnostic
+and reason-code behavior without resolving authored templates against fields the Check did not
+plan or load. Plain unavailable messages remain; messages containing unresolved token syntax use
+the standard unavailable fallback. This applies equally to a Check run alone and in a Check Set.
 
 **See also:** [Security and data access](../security-and-data-access.md), [Results and plugins](./results-and-plugins.md)
 
 ---
+
+### `RecordHealthCheckResponseDisplayBudget`
+
+**Role:** Allocate structured fields and authorized evidence within one optional-presentation budget.
+
+**Type:** Coordination service · `public with sharing`
+
+Response finalization applies the budget before lifecycle publication and diagnostic attachment.
+Allocation follows selected Check order and normalized record order. Within a result, message, fix,
+Found and Expected precede evidence. Fields are retained whole; evidence retains whole leading rows
+with corrected completeness and counts. Original plugin plain-value fallbacks remain transient and
+are restored when the corresponding optional field is omitted. Machine evaluation facts are unchanged.
 
 ## Related
 

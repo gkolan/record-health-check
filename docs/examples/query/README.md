@@ -28,15 +28,15 @@ Records**.
 
 ## Choose a Query example
 
-| Example | Salesforce question | What the example demonstrates |
-| --- | --- | --- |
-| [Customer handoff](./customer-contact.md) | Does the Account have at least one Contact? | Aggregate `COUNT()` compared with a fixed minimum |
-| [Pipeline next steps](./opportunity-next-steps.md) | Does every open Opportunity have a Next Step? | `ALL_ROWS_PASS`, empty-field failure, and no-row `SKIPPED` |
-| [Meaningful pipeline](./significant-opportunity.md) | Is any open Opportunity meaningful for this Account? | `ANY_ROW_PASSES`, record-formula comparison, and Formula applicability |
-| [Proposal qualification floor](./forecast-amounts.md) | Does every proposal-stage Opportunity meet the approved deal-review floor? | Numeric `ALL_ROWS_PASS`, stage-aware filtering, and policy-oriented Found/Expected text |
-| [Placeholder email cleanup](./placeholder-contact-emails.md) | Are populated Contact emails free of a placeholder domain? | Text exclusion, ignored blanks, and a prerequisite Check |
-| [Account Owner team membership](./account-owner-team-membership.md) | Is the Account Owner represented on the Account Team? | List membership using a record formula and Comparison Query |
-| [Case review capacity](./high-priority-case-capacity.md) | Is the high-priority Case backlog within its maximum? | Aggregate upper limit and optional lifecycle-event publication |
+| Example                                                             | Salesforce question                                                        | What the example demonstrates                                                           |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [Customer handoff](./customer-contact.md)                           | Does the Account have at least one Contact?                                | Aggregate `COUNT()` compared with a fixed minimum                                       |
+| [Pipeline next steps](./opportunity-next-steps.md)                  | Does every open Opportunity have a Next Step?                              | `ALL_ROWS_PASS`, empty-field failure, and no-row `SKIPPED`                              |
+| [Meaningful pipeline](./significant-opportunity.md)                 | Is any open Opportunity meaningful for this Account?                       | `ANY_ROW_PASSES`, record-formula comparison, and Formula applicability                  |
+| [Proposal qualification floor](./forecast-amounts.md)               | Does every proposal-stage Opportunity meet the approved deal-review floor? | Numeric `ALL_ROWS_PASS`, stage-aware filtering, and policy-oriented Found/Expected text |
+| [Placeholder email cleanup](./placeholder-contact-emails.md)        | Are populated Contact emails free of a placeholder domain?                 | Text exclusion, ignored blanks, and a prerequisite Check                                |
+| [Account Owner team membership](./account-owner-team-membership.md) | Is the Account Owner represented on the Account Team?                      | List membership using a record formula and Comparison Query                             |
+| [Case review capacity](./high-priority-case-capacity.md)            | Is the high-priority Case backlog within its maximum?                      | Aggregate upper limit and optional lifecycle-event publication                          |
 
 ## When Query is the right choice
 
@@ -47,12 +47,12 @@ Salesforce objects.
 
 Choose **How To Read Query Results** based on what the query returns:
 
-| Value | Use it when |
-| --- | --- |
+| Value                    | Use it when                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
 | **One row or aggregate** | The query returns one field value, `COUNT()`, `SUM()`, or another single aggregate value |
-| **Any record passes** | At least one returned record must meet the comparison |
-| **Every record passes** | Every returned record must meet the comparison |
-| **Compare as lists** | The Check searches a returned list or compares it with another list |
+| **Any record passes**    | At least one returned record must meet the comparison                                    |
+| **Every record passes**  | Every returned record must meet the comparison                                           |
+| **Compare as lists**     | The Check searches a returned list or compares it with another list                      |
 
 For **Any record passes**, **Every record passes**, and **Compare as lists**, also choose **If Query
 Finds No Records**. Do not select its result mechanically. Decide what no matching records means for

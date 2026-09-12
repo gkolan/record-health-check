@@ -98,6 +98,11 @@ global class RecordHealthCheckRequest {
     return copyWith(options.withExecutionOrigin(value));
   }
 
+  /** Returns a copy requesting an explicit diagnostic projection version. */
+  global RecordHealthCheckRequest withDiagnosticContractVersion(String value) {
+    return copyWith(options.withDiagnosticContractVersion(value));
+  }
+
   private RecordHealthCheckRequest copyWith(RecordHealthCheckOptions value) {
     return new RecordHealthCheckRequest(selection, recordIdsInternal, value);
   }

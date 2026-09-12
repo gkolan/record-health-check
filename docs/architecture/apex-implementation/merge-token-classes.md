@@ -28,11 +28,11 @@ replacing the template.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `SURFACE_DISPLAY`, `SURFACE_URL`, `SURFACE_SOQL` | Identify whether the completed text is a message, URL, or SOQL query |
-| `resolveFieldPath(...)` | Read the value of a `record.*` field path |
-| `applyFoundExpectedText(...)` | Add the administrator's Found Value and Expected Value wording after a Check finishes |
+| Member                                           | Purpose                                                                               |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `SURFACE_DISPLAY`, `SURFACE_URL`, `SURFACE_SOQL` | Identify whether the completed text is a message, URL, or SOQL query                  |
+| `resolveFieldPath(...)`                          | Read the value of a `record.*` field path                                             |
+| `applyFoundExpectedText(...)`                    | Add the administrator's Found Value and Expected Value wording after a Check finishes |
 
 **Important behavior:**
 
@@ -58,13 +58,13 @@ property lists.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun`, `rhcQuery` | The allowed first parts of a token |
-| `RESULT_PROPERTIES` | Allowed properties after `rhcResult.` |
-| `QUERY_COUNT_PROPERTIES` | The two row-count properties after `rhcQuery.` |
-| `MAX_ROW_INDEX` | The highest row position a token may address |
-| `resolve(namespace, property)` | Turns the two parts into a `RecordHealthCheckTokenShape` |
+| Member                                                            | Purpose                                                  |
+| ----------------------------------------------------------------- | -------------------------------------------------------- |
+| `record`, `rhcCheck`, `rhcSet`, `rhcResult`, `rhcRun`, `rhcQuery` | The allowed first parts of a token                       |
+| `RESULT_PROPERTIES`                                               | Allowed properties after `rhcResult.`                    |
+| `QUERY_COUNT_PROPERTIES`                                          | The two row-count properties after `rhcQuery.`           |
+| `MAX_ROW_INDEX`                                                   | The highest row position a token may address             |
+| `resolve(namespace, property)`                                    | Turns the two parts into a `RecordHealthCheckTokenShape` |
 
 For example, `foundValuePluralSuffix` lets a message display **1 Contact** or **2 Contacts** without
 requiring an administrator to write conditional logic.
@@ -81,15 +81,15 @@ again.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `expression` | Complete token text, including `{!` and `}` |
-| `namespaceName` | First part, such as `record` or `rhcCheck` |
-| `propertyPath` | Property or Salesforce field path after the first part |
-| `formatName` | Optional uppercase Value Format API name from `format="..."` |
-| `fallbackValue` | Optional text from `fallback="..."`; `null` when omitted |
-| `attributeError` | Error for an unknown, repeated, unquoted, or otherwise invalid setting |
-| `startIndex` / `endIndex` | Token's location in the complete template |
+| Member                    | Purpose                                                                |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `expression`              | Complete token text, including `{!` and `}`                            |
+| `namespaceName`           | First part, such as `record` or `rhcCheck`                             |
+| `propertyPath`            | Property or Salesforce field path after the first part                 |
+| `formatName`              | Optional uppercase Value Format API name from `format="..."`           |
+| `fallbackValue`           | Optional text from `fallback="..."`; `null` when omitted               |
+| `attributeError`          | Error for an unknown, repeated, unquoted, or otherwise invalid setting |
+| `startIndex` / `endIndex` | Token's location in the complete template                              |
 
 A shorter constructor omits `fallbackValue` and leaves it `null` for package code that does not need
 a fallback.
@@ -122,12 +122,12 @@ record counts for messages that need singular or plural wording.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `withRecord(...)` | Supply the Salesforce record for `record.*` tokens |
-| `withCheck(...)` | Supply the Check and its parent Check Set for `rhcCheck.*` and `rhcSet.*` tokens |
-| `withResult(value, finalized)` | Supply the result; `rhcResult.*` is available only when `finalized` is `true` |
-| `withRun(...)` | Supply the run details for `rhcRun.*` tokens |
+| Member                         | Purpose                                                                          |
+| ------------------------------ | -------------------------------------------------------------------------------- |
+| `withRecord(...)`              | Supply the Salesforce record for `record.*` tokens                               |
+| `withCheck(...)`               | Supply the Check and its parent Check Set for `rhcCheck.*` and `rhcSet.*` tokens |
+| `withResult(value, finalized)` | Supply the result; `rhcResult.*` is available only when `finalized` is `true`    |
+| `withRun(...)`                 | Supply the run details for `rhcRun.*` tokens                                     |
 
 **Important behavior:**
 
@@ -154,14 +154,14 @@ into this shape and every consumer downstream reads typed fields.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `kind` | `KIND_PROPERTY` for a named value, or one of the two query row kinds |
-| `collection` | `sourceRows` or `comparisonRows` for a query token |
-| `rowIndex` | The zero-based row index a query token addresses |
-| `fieldPath` | The terminal field or relationship path the token reads |
-| `isTypedField` | Whether Salesforce still knows the value's data type, which is what `format` needs |
-| `reasonCode`, `message` | Why the token is unusable, and the change that fixes it |
+| Member                  | Purpose                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `kind`                  | `KIND_PROPERTY` for a named value, or one of the two query row kinds               |
+| `collection`            | `sourceRows` or `comparisonRows` for a query token                                 |
+| `rowIndex`              | The zero-based row index a query token addresses                                   |
+| `fieldPath`             | The terminal field or relationship path the token reads                            |
+| `isTypedField`          | Whether Salesforce still knows the value's data type, which is what `format` needs |
+| `reasonCode`, `message` | Why the token is unusable, and the change that fixes it                            |
 
 An unusable token is described rather than thrown, so the caller decides whether it is an authoring
 finding or a runtime configuration error.
@@ -181,13 +181,13 @@ query row token be accepted in the failure message and refused in the not-applic
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `FAILURE_MESSAGE`, `UNABLE_MESSAGE`, `NOT_APPLICABLE_MESSAGE`, `FIX_MESSAGE` | One surface per message field |
-| `ACTION_LABEL`, `ACTION_URL` | The two action fields |
-| `DISPLAY_FOUND`, `DISPLAY_EXPECTED` | The two Found/Expected text fields |
-| `allows(surface, namespace)` | Whether that field accepts tokens from that namespace |
-| `allowsFormat(surface)` | Whether a `format` attribute means anything on that field |
+| Member                                                                       | Purpose                                                   |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `FAILURE_MESSAGE`, `UNABLE_MESSAGE`, `NOT_APPLICABLE_MESSAGE`, `FIX_MESSAGE` | One surface per message field                             |
+| `ACTION_LABEL`, `ACTION_URL`                                                 | The two action fields                                     |
+| `DISPLAY_FOUND`, `DISPLAY_EXPECTED`                                          | The two Found/Expected text fields                        |
+| `allows(surface, namespace)`                                                 | Whether that field accepts tokens from that namespace     |
+| `allowsFormat(surface)`                                                      | Whether a `format` attribute means anything on that field |
 
 ### `RecordHealthCheckQueryProjection`
 
@@ -206,18 +206,19 @@ than assuming.
 
 **Key members:**
 
-| Member | Purpose |
-| --- | --- |
-| `selectedPaths`, `aliases` | Every name the query projects, in source order |
-| `orderPaths` | The depth-zero `ORDER BY` field paths. Direction and null handling are not kept: only the fields an order names decide whether it can tie |
-| `isFullyAnalyzable` | False forbids any conclusion about what the query did not select |
-| `hasStableRowOrder()` | Whether repeating the query returns rows in the same order every time |
-| `projects(name)` | Whether the query projects an addressable column under that name |
-| `addressableNames()` | Every name a merge token may read on a row of this query |
+| Member                     | Purpose                                                                                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectedPaths`, `aliases` | Every name the query projects, in source order                                                                                            |
+| `orderPaths`               | The depth-zero `ORDER BY` field paths. Direction and null handling are not kept: only the fields an order names decide whether it can tie |
+| `isFullyAnalyzable`        | False forbids any conclusion about what the query did not select                                                                          |
+| `hasStableRowOrder()`      | Whether repeating the query returns rows in the same order every time                                                                     |
+| `hasExplicitRowOrder()`    | Whether the outer query declares a readable business order                                                                                |
+| `projects(name)`           | Whether the query projects an addressable column under that name                                                                          |
+| `addressableNames()`       | Every name a merge token may read on a row of this query                                                                                  |
 
-`hasStableRowOrder()` requires an `ORDER BY` that names `Id`. Salesforce promises no order without
-`ORDER BY`, and no order between rows that tie on every named key; `Id` is unique, so no two rows
-can tie once it takes part.
+Positional tokens use `hasExplicitRowOrder()`: the administrator's `ORDER BY` defines what “first”
+means. Adding `Id` is optional. Rows tied on every authored key retain Salesforce's native tie
+behavior. `hasStableRowOrder()` remains the stronger uniqueness check for callers that need it.
 
 ### `RecordHealthCheckIgnoredConfig`
 
@@ -238,7 +239,6 @@ editing must keep deploying.
 Display: Found Text and Display: Expected Text on an Apex Check are the one case already covered
 elsewhere, as `APEX_DISPLAY_TEXT_IGNORED`.
 
-
 ### `RecordHealthCheckQueryTokenRules`
 
 **Role:** Everything a `{!rhcQuery...}` token must satisfy before a Check can run.
@@ -252,21 +252,20 @@ rendered a sentence with a hole in it, or worse, a plausible wrong number.
 
 **Refusals:**
 
-| Reason code | Refused when |
-| --- | --- |
-| `TOKEN_NOT_ALLOWED_ON_SURFACE` | The Check is Formula or Apex, so it runs no query |
-| `QUERY_ROLE_NOT_AVAILABLE` | A `comparisonRows` token with no Comparison Query, or a row count against a query that counts rather than returns |
-| `QUERY_FIELD_NOT_SELECTED` | The `SELECT` omits the field; the message lists what it does select |
-| `QUERY_ORDER_NOT_DETERMINISTIC` | No `ORDER BY` naming `Id`. Grouped queries get a message that does not suggest one, because SOQL would reject it |
-| `QUERY_PROJECTION_NOT_ANALYZABLE` | The `SELECT` list cannot be fully read, so nothing can be proven about what it omitted |
-| `TOKEN_ROW_INDEX_INVALID` | The index exceeds the query's own `LIMIT`, the Check's Max Query Rows, or the single row a One Result Check or ungrouped aggregate can return |
-| `FIELD_TYPE_NOT_SUPPORTED` | The field is Classic encrypted |
-| `FIXED_CURRENCY_BASIS_MISSING` | A currency-rendered row amount in a multi-currency org whose query did not select the matching `CurrencyIsoCode` |
+| Reason code                       | Refused when                                                                                                                                  |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TOKEN_NOT_ALLOWED_ON_SURFACE`    | The Check is Formula or Apex, so it runs no query                                                                                             |
+| `QUERY_ROLE_NOT_AVAILABLE`        | A `comparisonRows` token with no Comparison Query, or a row count against a query that counts rather than returns                             |
+| `QUERY_FIELD_NOT_SELECTED`        | The `SELECT` omits the field; the message lists what it does select                                                                           |
+| `QUERY_ORDER_NOT_DETERMINISTIC`   | A potentially multi-row query has no readable outer `ORDER BY`                                                                                |
+| `QUERY_PROJECTION_NOT_ANALYZABLE` | The requested field cannot be proven from the readable outer projection                                                                       |
+| `TOKEN_ROW_INDEX_INVALID`         | The index exceeds the query's own `LIMIT`, the Check's Max Query Rows, or the single row a One Result Check or ungrouped aggregate can return |
+| `FIELD_TYPE_NOT_SUPPORTED`        | The field is Classic encrypted                                                                                                                |
+| `FIXED_CURRENCY_BASIS_MISSING`    | A currency-rendered row amount in a multi-currency org whose query did not select the matching `CurrencyIsoCode`                              |
 
-Two exemptions are deliberate and each prevents advice SOQL would reject. An ungrouped aggregate
-returns exactly one row, so it needs no `ORDER BY`, and Salesforce refuses a bare `CurrencyIsoCode`
-beside it, so it is not asked for one. A row count reads no column and no order, so it needs
-neither a readable projection nor a stable order.
+An ungrouped aggregate returns exactly one row, and an outer `Id = {!record.Id}` equality returns at
+most one record, so index 0 needs no `ORDER BY`. A row count reads no column and no order. A scalar
+selected beside an opaque relationship subquery remains independently addressable.
 
 ## Related
 

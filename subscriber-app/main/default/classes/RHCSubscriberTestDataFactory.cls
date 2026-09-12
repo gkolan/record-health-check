@@ -144,6 +144,13 @@ public class RHCSubscriberTestDataFactory {
     ) {
       return 1;
     }
+    return sampleDateOrPicklistValue(fieldDescribe, fieldType);
+  }
+
+  private static Object sampleDateOrPicklistValue(
+    Schema.DescribeFieldResult fieldDescribe,
+    Schema.DisplayType fieldType
+  ) {
     if (fieldType == Schema.DisplayType.Date) {
       return Date.today();
     }

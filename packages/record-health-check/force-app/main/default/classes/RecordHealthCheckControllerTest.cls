@@ -301,8 +301,16 @@ private class RecordHealthCheckControllerTest {
       RecordHealthCheckLifecyclePublisher.SOURCE_RUN_ON_LOAD
     );
 
-    Assert.areEqual('ERROR', result.evaluation.status);
-    Assert.areEqual('APEX_EVALUATOR_ERROR', result.evaluation.reasonCode);
+    Assert.areEqual(
+      'ERROR',
+      result.evaluation.status,
+      'Evaluator failure must return ERROR.'
+    );
+    Assert.areEqual(
+      'APEX_EVALUATOR_ERROR',
+      result.evaluation.reasonCode,
+      'Evaluator failure must retain APEX_EVALUATOR_ERROR.'
+    );
   }
 
   @IsTest
@@ -488,7 +496,15 @@ private class RecordHealthCheckControllerTest {
       userAvailability.hasInactive,
       'User should not report inactive Check Sets either.'
     );
-    Assert.areEqual(false, nullAvailability.hasActive);
-    Assert.areEqual(false, nullAvailability.hasInactive);
+    Assert.areEqual(
+      false,
+      nullAvailability.hasActive,
+      'Null availability must not report active Checks.'
+    );
+    Assert.areEqual(
+      false,
+      nullAvailability.hasInactive,
+      'Null availability must not report inactive Checks.'
+    );
   }
 }

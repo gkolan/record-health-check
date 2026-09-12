@@ -9,11 +9,13 @@ private class RecordHealthCheckSecurityAndOpsTest {
   static void structuredLogValuesCannotForgeNewLines() {
     Assert.areEqual(
       'ticket forged value',
-      RecordHealthCheckLogger.normalizeIdentifier('ticket\nforged\tvalue', 120)
+      RecordHealthCheckLogger.normalizeIdentifier('ticket\nforged\tvalue', 120),
+      'Log identifiers must normalize newline and tab characters to spaces.'
     );
     Assert.areEqual(
       '12345',
-      RecordHealthCheckLogger.normalizeIdentifier('123456789', 5)
+      RecordHealthCheckLogger.normalizeIdentifier('123456789', 5),
+      'Log identifiers must truncate at the requested character limit.'
     );
   }
 
@@ -30,10 +32,22 @@ private class RecordHealthCheckSecurityAndOpsTest {
     Set<String> fields = new RecordHealthCheckFieldPlanner()
       .collectRecordFields(check, Account.SObjectType);
 
-    Assert.isTrue(fields.contains('Website'));
-    Assert.isTrue(fields.contains('Parent.Name'));
-    Assert.isTrue(!fields.contains('example.com'));
-    Assert.isTrue(!fields.contains('Parent.Missing__c'));
+    Assert.isTrue(
+      fields.contains('Website'),
+      'The formula Website operand must enter the field plan.'
+    );
+    Assert.isTrue(
+      fields.contains('Parent.Name'),
+      'The formula Parent.Name operand must enter the field plan.'
+    );
+    Assert.isTrue(
+      !fields.contains('example.com'),
+      'A quoted formula literal must not become a field path.'
+    );
+    Assert.isTrue(
+      !fields.contains('Parent.Missing__c'),
+      'An unresolved message-only field must not enter the query plan.'
+    );
   }
 
   @IsTest
@@ -112,9 +126,14 @@ private class RecordHealthCheckSecurityAndOpsTest {
     Assert.isFalse(wrongInterface.isValid, 'An unrelated class must fail.');
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_INTERFACE_INVALID,
-      wrongInterface.reasonCode
+      wrongInterface.reasonCode,
+      'An incompatible plugin must retain the interface-invalid reason.'
     );
-    Assert.areEqual('PLUGIN_RESOLVE', wrongInterface.phase);
+    Assert.areEqual(
+      'PLUGIN_RESOLVE',
+      wrongInterface.phase,
+      'An incompatible interface must fail during plugin resolution.'
+    );
     Assert.isFalse(
       String.isBlank(wrongInterface.resolvedTypeIdentity),
       'A resolved incompatible type must retain its identity.'
@@ -127,9 +146,14 @@ private class RecordHealthCheckSecurityAndOpsTest {
     Assert.isFalse(constructorFailure.isValid, 'A throwing constructor fails.');
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
-      constructorFailure.reasonCode
+      constructorFailure.reasonCode,
+      'A throwing constructor must retain the constructor-failed reason.'
     );
-    Assert.areEqual('PLUGIN_CONSTRUCT', constructorFailure.phase);
+    Assert.areEqual(
+      'PLUGIN_CONSTRUCT',
+      constructorFailure.phase,
+      'A throwing constructor must fail during plugin construction.'
+    );
     Assert.isFalse(
       String.isBlank(constructorFailure.resolvedTypeIdentity),
       'A resolved type must remain identifiable after its constructor fails.'
@@ -150,12 +174,20 @@ private class RecordHealthCheckSecurityAndOpsTest {
     RecordHealthCheckConfigValidator.ApexPluginValidation nullCheck = RecordHealthCheckConfigValidator.validateApexPlugin(
       (Record_Health_Check__mdt) null
     );
-    Assert.isFalse(nullCheck.isValid);
+    Assert.isFalse(
+      nullCheck.isValid,
+      'A null Check must not validate as an Apex plugin.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.APEX_CLASS_NOT_FOUND,
-      nullCheck.reasonCode
+      nullCheck.reasonCode,
+      'A null Check must retain the missing-class reason.'
     );
-    Assert.areEqual('PLUGIN_RESOLVE', nullCheck.phase);
+    Assert.areEqual(
+      'PLUGIN_RESOLVE',
+      nullCheck.phase,
+      'A null Check must be attributed to plugin resolution.'
+    );
 
     try {
       RecordHealthCheckApexPluginResolver.configuredType(
@@ -165,7 +197,8 @@ private class RecordHealthCheckSecurityAndOpsTest {
     } catch (RecordHealthCheckApexPluginResolver.PluginConfigurationException expected) {
       Assert.areEqual(
         RecordHealthCheckReasonCodes.APEX_CLASS_INVALID,
-        expected.reasonCode
+        expected.reasonCode,
+        'An overqualified class name must retain the invalid-class reason.'
       );
     }
   }
@@ -215,19 +248,30 @@ private class RecordHealthCheckSecurityAndOpsTest {
 
     Assert.areEqual(
       RecordHealthCheckValidator.FindingCode.APEX_CLASS_MISSING,
-      missing[0].code
+      missing[0].code,
+      'An absent Apex class must produce the missing-class finding.'
     );
     Assert.areEqual(
       RecordHealthCheckValidator.FindingCode.APEX_CLASS_INVALID,
-      invalid[0].code
+      invalid[0].code,
+      'Malformed class syntax must produce the invalid-class finding.'
     );
     Assert.areEqual(0, valid.size(), 'A valid plugin must have no findings.');
     Assert.areEqual(7, issues.size(), 'Every Apex authoring reason must map.');
-    Assert.areEqual('ApexClass__c', issues[0].fieldName);
-    Assert.areEqual('ApexParametersJson__c', issues[6].fieldName);
+    Assert.areEqual(
+      'ApexClass__c',
+      issues[0].fieldName,
+      'The missing-class issue must identify the class field.'
+    );
+    Assert.areEqual(
+      'ApexParametersJson__c',
+      issues[6].fieldName,
+      'Invalid parameters must identify the JSON parameters field.'
+    );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_CONSTRUCTOR_FAILED,
-      issues[5].reasonCode
+      issues[5].reasonCode,
+      'Constructor metadata issues must preserve the constructor-failed reason.'
     );
   }
 
@@ -396,7 +440,10 @@ private class RecordHealthCheckSecurityAndOpsTest {
       }
       Assert.fail('An unknown ' + mapping + ' mode must be rejected.');
     } catch (IllegalArgumentException error) {
-      Assert.isTrue(error.getMessage().contains('Unknown'));
+      Assert.isTrue(
+        error.getMessage().contains('Unknown'),
+        'Unknown presentation modes must expose the explicit rejection explanation.'
+      );
     }
   }
 

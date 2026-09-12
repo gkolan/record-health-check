@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   capabilityGaps,
+  currentContractProblems,
   fieldNameProblems,
   mergeSyntaxProblems,
   picklistValueProblems,
@@ -159,4 +160,171 @@ test("stale one-based rhcQuery guidance is reported", () => {
   assert.equal(problems.length, 2);
   assert.match(problems[0], /indexes start at 0/);
   assert.match(problems[1], /indexes start at 0/);
+});
+
+test("stale prerequisite-order guidance is reported", () => {
+  const problems = currentContractProblems(
+    page(
+      "PrerequisiteCheck__c must name a Check with a lower EvaluationOrder__c."
+    )
+  );
+  assert.ok(problems.some((problem) => /dependency order/.test(problem)));
+});
+
+test("the shared prompt must teach the 2.0.10 inline-link syntax", () => {
+  const problems = currentContractProblems([
+    {
+      file: "docs/build-checks/draft-with-ai/shared-rules.md",
+      text: "Use ordinary merge tokens in messages."
+    },
+    {
+      file: "docs/build-checks/draft-with-ai/prompt-apex.md",
+      text:
+        "RecordHealthCheckPluginDefinitionSource RecordHealthCheckEvidence " +
+        "RecordHealthCheckRecordEvaluator RecordHealthCheckOutcome.tryEvaluate " +
+        "RecordHealthCheckDisplayPlugin"
+    }
+  ]);
+  assert.ok(problems.some((problem) => /inline-link syntax/.test(problem)));
+});
+
+test("the Apex prompt must teach each optional 2.0.10 extension", () => {
+  const problems = currentContractProblems([
+    {
+      file: "docs/build-checks/draft-with-ai/shared-rules.md",
+      text: '{!link label="Open record" href="/lightning/r/Account/{!record.Id}/view"}'
+    },
+    {
+      file: "docs/build-checks/draft-with-ai/prompt-apex.md",
+      text: "Implement RecordHealthCheckPlugin."
+    }
+  ]);
+  for (const concept of [
+    "RecordHealthCheckPluginDefinitionSource",
+    "RecordHealthCheckEvidence",
+    "RecordHealthCheckRecordEvaluator",
+    "RecordHealthCheckOutcome.tryEvaluate",
+    "RecordHealthCheckDisplayPlugin"
+  ]) {
+    assert.ok(problems.some((problem) => problem.includes(concept)));
+  }
+});
+
+test("the shared prompt must cover non-agent entry and exit points", () => {
+  const problems = currentContractProblems([
+    {
+      file: "docs/build-checks/draft-with-ai/shared-rules.md",
+      text: '{!link label="Open record" href="/lightning/r/Account/{!record.Id}/view"}'
+    },
+    {
+      file: "docs/build-checks/draft-with-ai/prompt-apex.md",
+      text:
+        "RecordHealthCheckPluginDefinitionSource RecordHealthCheckEvidence " +
+        "RecordHealthCheckRecordEvaluator RecordHealthCheckOutcome.tryEvaluate " +
+        "RecordHealthCheckDisplayPlugin"
+    }
+  ]);
+  for (const concept of [
+    "Lightning record card",
+    "Flow actions",
+    "public Apex API",
+    "RecordHealthCheckQueueable",
+    "RecordHealthCheckBatch",
+    "RecordHealthCheckScheduled",
+    "direct response",
+    "Platform Events",
+    "does not save normal run results"
+  ]) {
+    assert.ok(problems.some((problem) => problem.includes(concept)));
+  }
+});
+
+test("the execution generator is a guarded part of the AI series", () => {
+  const problems = currentContractProblems([
+    {
+      file: "docs/build-checks/draft-with-ai/shared-rules.md",
+      text:
+        "Lightning record card Flow actions public Apex API RecordHealthCheckQueueable " +
+        "RecordHealthCheckBatch RecordHealthCheckScheduled direct response Platform Events " +
+        'does not save normal run results {!link label="Open" href="/lightning"}'
+    },
+    {
+      file: "docs/build-checks/draft-with-ai/prompt-apex.md",
+      text:
+        "RecordHealthCheckPluginDefinitionSource RecordHealthCheckEvidence " +
+        "RecordHealthCheckRecordEvaluator RecordHealthCheckOutcome.tryEvaluate " +
+        "RecordHealthCheckDisplayPlugin"
+    }
+  ]);
+  assert.ok(
+    problems.some((problem) =>
+      problem.includes("execution-workflow-generator.md is missing")
+    )
+  );
+});
+
+test("current prompt checks reject formula defaults and execution-order claims", () => {
+  const problems = currentContractProblems([
+    {
+      file: "tests/ai-drafts/reference-formula.md",
+      text:
+        "| Formula Result Type | FormulaResultType\\_\\_c | BOOLEAN | The default |\n" +
+        "| Evaluation Order | EvaluationOrder\\_\\_c | 100 | Checks run in order |"
+    }
+  ]);
+  assert.ok(problems.some((problem) => /field default is AUTO/.test(problem)));
+  assert.ok(problems.some((problem) => /presentation order/.test(problem)));
+});
+
+test("current prompt checks require child-query opacity and formula planning", () => {
+  const problems = currentContractProblems([
+    {
+      file: "docs/build-checks/draft-with-ai/shared-rules.md",
+      text:
+        "Lightning record card Flow actions public Apex API RecordHealthCheckQueueable " +
+        "RecordHealthCheckBatch RecordHealthCheckScheduled direct response Platform Events " +
+        'does not save normal run results {!link label="Open" href="/lightning"}'
+    },
+    {
+      file: "docs/build-checks/draft-with-ai/prompt-formula.md",
+      text: "Use Salesforce formulas."
+    }
+  ]);
+  assert.ok(problems.some((problem) => /child-subquery fields/.test(problem)));
+  assert.ok(
+    problems.some((problem) =>
+      /used only when a QUERY Check evaluates/.test(problem)
+    )
+  );
+  assert.ok(
+    problems.some((problem) => /deterministic token offsets/.test(problem))
+  );
+  assert.ok(problems.some((problem) => /FIELD_NOT_ACCESSIBLE/.test(problem)));
+});
+
+test("the README supports link-first AI routing and current merge examples", () => {
+  const problems = currentContractProblems([
+    {
+      file: "docs/build-checks/draft-with-ai/README.md",
+      text: "Choose a prompt yourself. Example: {!record.Id}"
+    }
+  ]);
+  for (const concept of [
+    "Give this README link to an AI",
+    "assistant chooses the simplest Evaluation Type",
+    "open the chosen Evaluation Type prompt",
+    "{!record.Amount format=",
+    "{!rhcCheck.checkTitle}",
+    "{!rhcSet.cardTitle}",
+    "{!rhcResult.foundValue}",
+    "{!rhcRun.runId}",
+    "{!rhcQuery.sourceRows[0].Name",
+    "{!link label=",
+    "representative, not the complete token reference"
+  ]) {
+    assert.ok(
+      problems.some((problem) => problem.includes(concept)),
+      `Expected a README problem for ${concept}`
+    );
+  }
 });

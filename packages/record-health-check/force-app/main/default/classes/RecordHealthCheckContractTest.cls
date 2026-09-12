@@ -37,10 +37,12 @@ global abstract class RecordHealthCheckContractTest {
       Integer futuresBefore = Limits.getFutureCalls();
       Integer emailsBefore = Limits.getEmailInvocations();
 
-      Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
+      RecordHealthCheckPluginVerification verification = RecordHealthCheckPluginTest.verify(
         newCheck(),
         scope
       );
+      verification.assertComplete().assertNoSideEffects().assertRenderable();
+      Map<Id, RecordHealthCheckOutcome> outcomes = verification.rawResults();
 
       Integer queryDelta = Limits.getQueries() - queriesBefore;
       queryDeltas.add(queryDelta);

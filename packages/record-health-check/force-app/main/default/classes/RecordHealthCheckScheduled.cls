@@ -104,6 +104,13 @@ global with sharing class RecordHealthCheckScheduled implements Schedulable {
       RecordHealthCheckConstants.MAX_ASYNC_RECORDS,
       'Scheduled population'
     );
+    List<Record_Health_Check__mdt> checks = new RecordHealthCheckScopePlanner()
+      .resolveCheckSet(checkSetQualifiedApiName)
+      .checks;
+    RecordHealthCheckResourcePlan.defaultAsyncScope(
+      checks,
+      RecordHealthCheckBatch.DEFAULT_SCOPE_SIZE
+    );
   }
 
   private static void validateJobName(String jobName) {

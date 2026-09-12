@@ -15,22 +15,56 @@
  * loop, and the loop does computation only. Two queries serve the whole scope,
  * whether that scope holds one record or two hundred.
  *
- * Failure message, severity, and label all come from the Check metadata. This
- * class decides PASS or FAIL and reports the values behind that decision; it
- * never stamps identity, severity, or anything the user sees.
+ * The class declares its JSON parameters, returns typed decision evidence, and
+ * can add display-only context after evaluation. Check metadata still owns
+ * identity, applicability, severity, publication, and safe fallback copy.
  */
-global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckPlugin {
+global with sharing class AccountHasRecentActivityCheck implements RecordHealthCheckPlugin, RecordHealthCheckPluginDefinitionSource, RecordHealthCheckDisplayPlugin {
   private static final Integer DEFAULT_DAYS_BACK = 30;
   private static final Integer MIN_DAYS_BACK = 1;
   private static final Integer MAX_DAYS_BACK = 3650;
   private static final Integer DEFAULT_MINIMUM_ACTIVITIES = 1;
   private static final Integer MINIMUM_ACTIVITIES = 1;
   private static final Integer MAXIMUM_ACTIVITIES = 1000;
+  private Map<Id, Integer> evaluatedActivityCounts = new Map<Id, Integer>();
+  private Integer evaluatedDaysBack;
+  private Integer evaluatedMinimumActivities;
+
+  /** Declares the accepted parameters and bulk scheduling characteristics. */
+  global RecordHealthCheckPluginDefinition getDefinition() {
+    return new RecordHealthCheckPluginDefinition()
+      .integerParameter(
+        'daysBack',
+        DEFAULT_DAYS_BACK,
+        MIN_DAYS_BACK,
+        MAX_DAYS_BACK
+      )
+      .describe(
+        'daysBack',
+        'Look-back days',
+        'Count completed Tasks and Events on or after this many days ago.'
+      )
+      .integerParameter(
+        'minimumActivities',
+        DEFAULT_MINIMUM_ACTIVITIES,
+        MINIMUM_ACTIVITIES,
+        MAXIMUM_ACTIVITIES
+      )
+      .describe(
+        'minimumActivities',
+        'Required activities',
+        'Minimum completed Tasks and Events required inside the look-back window.'
+      )
+      .capacity(200, true, 'LOW');
+  }
 
   /** Evaluates recent activity once for the complete requested scope. */
   global Map<Id, RecordHealthCheckOutcome> evaluate(
     RecordHealthCheckScope scope
   ) {
+    evaluatedActivityCounts.clear();
+    evaluatedDaysBack = null;
+    evaluatedMinimumActivities = null;
     Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
     List<Id> recordIds = scope.recordIds;
     if (recordIds == null || recordIds.isEmpty()) {
@@ -49,6 +83,8 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       }
       return results;
     }
+    evaluatedDaysBack = daysBack;
+    evaluatedMinimumActivities = minimumActivities;
     Date cutoff = Date.today().addDays(-daysBack);
 
     // Seed every Id with zero BEFORE overlaying the aggregates. An aggregate
@@ -83,12 +119,18 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
     RecordHealthCheckValue expected = RecordHealthCheckValue.ofCount(
       minimumActivities
     );
+    ActivityOutcomeEvaluator recordEvaluator = new ActivityOutcomeEvaluator(
+      activityCounts,
+      minimumActivities,
+      daysBack,
+      expected
+    );
     for (Id recordId : recordIds) {
       Integer total = activityCounts.get(recordId);
+      evaluatedActivityCounts.put(recordId, total);
       results.put(
         recordId,
-        outcomeFor(total, minimumActivities)
-          .withComparison('GREATER_THAN_OR_EQUAL', expected)
+        RecordHealthCheckOutcome.tryEvaluate(recordId, recordEvaluator)
       );
     }
 
@@ -103,6 +145,126 @@ global with sharing class AccountHasRecentActivityCheck implements RecordHealthC
       ? RecordHealthCheckOutcome.pass('APEX_PASS')
       : RecordHealthCheckOutcome.fail('APEX_FAIL');
     return outcome.withFound(RecordHealthCheckValue.ofCount(total));
+  }
+
+  /** Builds one outcome with the typed evidence displayed by diagnostics 2.0. */
+  public static RecordHealthCheckOutcome outcomeFor(
+    Integer total,
+    Integer minimumActivities,
+    Integer daysBack,
+    Id recordId
+  ) {
+    RecordHealthCheckEvidence evidence = new RecordHealthCheckEvidence(
+        'Recent completed activity used for this decision.'
+      )
+      .column('accountId', 'Account', 'ID')
+      .column('activityCount', 'Completed activities', 'NUMBER')
+      .column('requiredCount', 'Required activities', 'NUMBER')
+      .column('windowDays', 'Look-back days', 'NUMBER')
+      .row(
+        new List<RecordHealthCheckEvidenceCell>{
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofId(recordId)
+          ),
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofCount(total)
+          ),
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofCount(minimumActivities)
+          ),
+          RecordHealthCheckEvidenceCell.value(
+            RecordHealthCheckValue.ofNumber(
+              Decimal.valueOf(String.valueOf(daysBack))
+            )
+          )
+        }
+      )
+      .groupBy('windowDays', 'accountId');
+    return outcomeFor(total, minimumActivities).withEvidence(evidence);
+  }
+
+  /**
+   * Adds presentation after evaluation without querying or changing outcomes.
+   * Missing state produces no override, allowing metadata fallback copy.
+   */
+  global Map<Id, RecordHealthCheckDisplayOverride> getDisplay(
+    RecordHealthCheckScope scope
+  ) {
+    Map<Id, RecordHealthCheckDisplayOverride> displayByRecordId = new Map<Id, RecordHealthCheckDisplayOverride>();
+    if (
+      scope == null ||
+      evaluatedDaysBack == null ||
+      evaluatedMinimumActivities == null
+    ) {
+      return displayByRecordId;
+    }
+    for (Id recordId : scope.recordIds) {
+      if (!evaluatedActivityCounts.containsKey(recordId)) {
+        continue;
+      }
+      Integer total = evaluatedActivityCounts.get(recordId);
+      Boolean passing = total >= evaluatedMinimumActivities;
+      RecordHealthCheckDisplayOverride displayValue = new RecordHealthCheckDisplayOverride()
+        .withMessage(
+          new RecordHealthCheckDisplayText()
+            .text(
+              passing
+                ? 'Recent follow-up meets the configured activity requirement.'
+                : 'Recent follow-up is below the configured activity requirement.'
+            )
+            .lineBreak()
+            .link('Open account', '/lightning/r/Account/' + recordId + '/view')
+        )
+        .withExpectedLabel('Required recent activity')
+        .withFoundFormat('NUMBER', null)
+        .withExpectedFormat('NUMBER', null)
+        .withAction(
+          new RecordHealthCheckDisplayAction(
+            'Open account',
+            '/lightning/r/Account/' + recordId + '/view'
+          )
+        );
+      if (!passing) {
+        displayValue.withFix(
+          new RecordHealthCheckDisplayText()
+            .text(
+              'Log a completed Task or Event for this Account, then run the Check again.'
+            )
+        );
+      }
+      displayByRecordId.put(recordId, displayValue);
+    }
+    return displayByRecordId;
+  }
+
+  /** Evaluates one record from the already loaded count map. */
+  private class ActivityOutcomeEvaluator implements RecordHealthCheckRecordEvaluator {
+    private Map<Id, Integer> activityCounts;
+    private Integer minimumActivities;
+    private Integer daysBack;
+    private RecordHealthCheckValue expected;
+
+    private ActivityOutcomeEvaluator(
+      Map<Id, Integer> activityCounts,
+      Integer minimumActivities,
+      Integer daysBack,
+      RecordHealthCheckValue expected
+    ) {
+      this.activityCounts = activityCounts;
+      this.minimumActivities = minimumActivities;
+      this.daysBack = daysBack;
+      this.expected = expected;
+    }
+
+    public RecordHealthCheckOutcome evaluateRecord(Id recordId) {
+      return outcomeFor(
+          activityCounts.get(recordId),
+          minimumActivities,
+          daysBack,
+          recordId
+        )
+        .withComparison('GREATER_THAN_OR_EQUAL', expected);
+    }
   }
 
   /**

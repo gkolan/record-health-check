@@ -9,6 +9,9 @@ export function documentationAudienceIssues(relativePath, markdown) {
   if (maintainerPage) return [];
 
   const visible = markdown.replace(/<!--[\s\S]*?-->/g, "");
+  // Link destinations are not reader-facing scoring prose. Other rules still
+  // inspect them, including the guard against hard-coded package install IDs.
+  const scoringText = visible.replace(/\[([^\]\n]*)\]\([^\n)]*\)/g, "$1");
   const rules = [
     [
       "internal quality scoring",
@@ -36,6 +39,10 @@ export function documentationAudienceIssues(relativePath, markdown) {
     ]);
   }
   return rules
-    .filter(([, pattern]) => pattern.test(visible))
+    .filter(([message, pattern]) =>
+      pattern.test(
+        message === "internal quality scoring" ? scoringText : visible
+      )
+    )
     .map(([message]) => message);
 }

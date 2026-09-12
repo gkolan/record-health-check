@@ -31,6 +31,60 @@ private class RecordHealthCheckPluginDispatchTest {
     }
   }
 
+  /** Supplies optional display without repeating evaluation or querying. */
+  private class DisplayCheck implements RecordHealthCheckPlugin, RecordHealthCheckDisplayPlugin {
+    public Integer evaluationCalls = 0;
+    public Integer displayCalls = 0;
+    public Id extraKey;
+    public Boolean queryDuringDisplay = false;
+    public Map<Id, RecordHealthCheckOutcome> evaluate(
+      RecordHealthCheckScope scope
+    ) {
+      evaluationCalls++;
+      Map<Id, RecordHealthCheckOutcome> values = new Map<Id, RecordHealthCheckOutcome>();
+      for (Id recordId : scope.recordIds) {
+        values.put(recordId, RecordHealthCheckOutcome.pass('OK'));
+      }
+      return values;
+    }
+    public Map<Id, RecordHealthCheckDisplayOverride> getDisplay(
+      RecordHealthCheckScope scope
+    ) {
+      displayCalls++;
+      if (queryDuringDisplay) {
+        List<Account> queriedAccounts = [
+          SELECT Id
+          FROM Account
+          WITH USER_MODE
+          LIMIT 1
+        ];
+        queriedAccounts.clear();
+      }
+      Map<Id, RecordHealthCheckDisplayOverride> values = new Map<Id, RecordHealthCheckDisplayOverride>();
+      for (Id recordId : scope.recordIds) {
+        values.put(
+          recordId,
+          new RecordHealthCheckDisplayOverride()
+            .withFound(
+              new RecordHealthCheckDisplayText()
+                .text('Step ')
+                .link('one', '/one')
+            )
+            .withMessage(new RecordHealthCheckDisplayText().text('Message'))
+            .withFix(new RecordHealthCheckDisplayText().text('Fix'))
+            .withAction(new RecordHealthCheckDisplayAction('Open', '/open'))
+            .withExpectedLabel('Target')
+            .withFoundFormat('CURRENCY', 'USD')
+            .withExpectedFormat('NUMBER', null)
+        );
+      }
+      if (extraKey != null) {
+        values.put(extraKey, new RecordHealthCheckDisplayOverride());
+      }
+      return values;
+    }
+  }
+
   /** Throws, but changes nothing. Attributable to the check, so it may become results. */
   private class ThrowingCheck implements RecordHealthCheckPlugin {
     public Map<Id, RecordHealthCheckOutcome> evaluate(
@@ -116,7 +170,6 @@ private class RecordHealthCheckPluginDispatchTest {
       Type.forName('RecordHealthCheckConstants')
     );
     Test.stopTest();
-
     Assert.isNull(nullType, 'A null Type must not produce a plugin.');
     Assert.isNull(
       wrongType,
@@ -128,7 +181,6 @@ private class RecordHealthCheckPluginDispatchTest {
   static void sequentialPluginConstructionDoesNotExhaustSavepoints() {
     Type pluginType = Type.forName('AccountHasRecentActivityCheck');
     Integer constructed = 0;
-
     Test.startTest();
     for (Integer i = 0; i < 10; i++) {
       RecordHealthCheckPlugin plugin = RecordHealthCheckPluginDispatch.instantiate(
@@ -139,7 +191,6 @@ private class RecordHealthCheckPluginDispatchTest {
       }
     }
     Test.stopTest();
-
     Assert.areEqual(
       10,
       constructed,
@@ -157,7 +208,6 @@ private class RecordHealthCheckPluginDispatchTest {
   @IsTest
   static void throwingWithoutSideEffectsBecomesAnAttributableFailure() {
     List<Account> accounts = makeAccounts(1);
-
     Test.startTest();
     String reasonCode;
     try {
@@ -169,7 +219,6 @@ private class RecordHealthCheckPluginDispatchTest {
       reasonCode = ex.reasonCode;
     }
     Test.stopTest();
-
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_THREW,
       reasonCode,
@@ -180,14 +229,12 @@ private class RecordHealthCheckPluginDispatchTest {
   @IsTest
   static void wellBehavedCheckIsNotFlaggedAsASideEffect() {
     List<Account> accounts = makeAccounts(25);
-
     Test.startTest();
     Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
       new WellBehavedCheck(),
       scopeFor(accounts)
     );
     Test.stopTest();
-
     Assert.areEqual(
       25,
       outcomes.size(),
@@ -196,11 +243,165 @@ private class RecordHealthCheckPluginDispatchTest {
   }
 
   @IsTest
+  static void optionalDisplayRunsOnceOnSameInstanceAndReturnsCopies() {
+    List<Account> accounts = makeAccounts(2);
+    DisplayCheck plugin = new DisplayCheck();
+    RecordHealthCheckScope scope = scopeFor(accounts);
+    RecordHealthCheckPluginDispatch.run(plugin, scope);
+    Map<Id, RecordHealthCheckDisplayOverride> display = RecordHealthCheckPluginDisplayDispatch.run(
+      plugin,
+      scope
+    );
+    Assert.areEqual(
+      1,
+      plugin.evaluationCalls,
+      'Optional display must not repeat evaluation.'
+    );
+    Assert.areEqual(
+      1,
+      plugin.displayCalls,
+      'Optional display must run exactly once on the evaluated instance.'
+    );
+    Assert.areEqual(2, display.size(), 'Both records need display.');
+    Assert.areEqual(
+      'link',
+      display.get(accounts[0].Id).found.copyNodes()[1].kind,
+      'Copied found content must retain its link node.'
+    );
+    RecordHealthCheckDisplayOverride first = display.get(accounts[0].Id);
+    Assert.areEqual(
+      'Message',
+      first.message.copyNodes()[0].text,
+      'Copied message content must retain its text.'
+    );
+    Assert.areEqual(
+      'Fix',
+      first.fix.copyNodes()[0].text,
+      'Copied fix content must retain its text.'
+    );
+    Assert.areEqual('Open', first.action.label, 'Retain the action label.');
+    Assert.areEqual(
+      '/open',
+      first.action.destination,
+      'Copied action must retain its destination.'
+    );
+    Assert.areEqual(
+      'Target',
+      first.expectedLabel,
+      'Copied expected label must retain its text.'
+    );
+    Assert.areEqual('CURRENCY', first.foundFormat, 'Retain the found format.');
+    Assert.areEqual(
+      'USD',
+      first.foundCurrencyIsoCode,
+      'Copied found formatting must retain USD.'
+    );
+    Assert.areEqual(
+      'NUMBER',
+      first.expectedFormat,
+      'Retain the expected format.'
+    );
+  }
+
+  @IsTest
+  static void optionalDisplayRejectsQueriesAndUnknownRecordKeys() {
+    List<Account> accounts = makeAccounts(2);
+    DisplayCheck querying = new DisplayCheck();
+    querying.queryDuringDisplay = true;
+    String queryReason;
+    try {
+      RecordHealthCheckPluginDisplayDispatch.run(querying, scopeFor(accounts));
+    } catch (RecordHealthCheckPluginDisplayDispatch.DisplayException ex) {
+      queryReason = ex.reasonCode;
+    }
+    Assert.areEqual(
+      'PLUGIN_DISPLAY_QUERIED',
+      queryReason,
+      'A display query must be rejected with the query-specific reason.'
+    );
+    Account foreign = makeAccounts(1)[0];
+    DisplayCheck extra = new DisplayCheck();
+    extra.extraKey = foreign.Id;
+    String keyReason;
+    try {
+      RecordHealthCheckPluginDisplayDispatch.run(extra, scopeFor(accounts));
+    } catch (RecordHealthCheckPluginDisplayDispatch.DisplayException ex) {
+      keyReason = ex.reasonCode;
+    }
+    Assert.areEqual(
+      'PLUGIN_DISPLAY_UNKNOWN_KEY',
+      keyReason,
+      'An unrequested display record must reject the display map.'
+    );
+  }
+
+  @IsTest
+  static void optionalDisplayFailurePreservesCompletedEvaluation() {
+    Account record = RecordHealthCheckTestDataFactory.accountFixture(
+      'Display failure'
+    );
+    RecordHealthCheckDiagModeTestPlugin.mode = 'DISPLAY_THROW_SECRET';
+    try {
+      Test.startTest();
+      RecordHealthCheckInternalResult result = new RecordHealthCheckApexEvaluator()
+        .withCardPresentation(true)
+        .evaluate(
+          RecordHealthCheckTestDataFactory.check(
+            new Map<String, Object>{
+              'DeveloperName' => 'Display_Failure',
+              'QualifiedApiName' => 'Display_Failure',
+              'EvaluationType__c' => 'APEX',
+              'ApexClass__c' => 'RecordHealthCheckDiagModeTestPlugin',
+              'ApexParametersJson__c' => '{}'
+            }
+          ),
+          record.Id,
+          record
+        );
+      Test.stopTest();
+      Assert.areEqual(
+        RecordHealthCheckStatus.PASS,
+        result.status,
+        'Optional presentation failure must not replace a completed verdict.'
+      );
+      Assert.areEqual(
+        'DISPLAY_EVALUATION_PRESERVED',
+        result.reasonCode,
+        'A display exception must preserve the completed evaluation reason.'
+      );
+      Assert.areEqual(
+        'Evaluated found',
+        result.actualValue,
+        'A display exception must preserve the evaluated found value.'
+      );
+      Assert.areEqual(
+        'Evaluated found',
+        result.expectedValue,
+        'A display exception must preserve the evaluated expected value.'
+      );
+      Assert.areEqual(
+        'PLUGIN_DISPLAY_THREW',
+        result.detailMessage,
+        'Only the bounded framework reason may describe display failure.'
+      );
+      Assert.isFalse(
+        result.detailMessage.contains('display-secret'),
+        'Subscriber exception text must not leak into the result.'
+      );
+      Assert.isNull(
+        result.displayContent,
+        'Rejected display content must fall back to the original value.'
+      );
+    } finally {
+      RecordHealthCheckDiagModeTestPlugin.mode = null;
+    }
+  }
+
+  @IsTest
   static void sequentialPluginRunsDoNotExhaustSavepoints() {
     List<Account> accounts = makeAccounts(1);
     RecordHealthCheckScope scope = scopeFor(accounts);
     Integer completed = 0;
-
     Test.startTest();
     for (Integer i = 0; i < 10; i++) {
       Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
@@ -212,7 +413,6 @@ private class RecordHealthCheckPluginDispatchTest {
       }
     }
     Test.stopTest();
-
     Assert.areEqual(
       10,
       completed,
@@ -231,10 +431,8 @@ private class RecordHealthCheckPluginDispatchTest {
   static void answeringAboutAnUnrequestedRecordFailsTheWholeScope() {
     List<Account> inScope = makeAccounts(3);
     List<Account> outOfScope = makeAccounts(1);
-
     ExtraKeyCheck check = new ExtraKeyCheck();
     check.foreignId = outOfScope[0].Id;
-
     Test.startTest();
     String reasonCode;
     try {
@@ -243,10 +441,10 @@ private class RecordHealthCheckPluginDispatchTest {
       reasonCode = ex.reasonCode;
     }
     Test.stopTest();
-
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_UNKNOWN_KEY,
-      reasonCode
+      reasonCode,
+      'An unrequested result key must reject the complete evaluation scope.'
     );
   }
 
@@ -256,22 +454,22 @@ private class RecordHealthCheckPluginDispatchTest {
     List<Account> accounts = makeAccounts(4);
     RecordHealthCheckScope scope = scopeFor(accounts);
     Id dropped = scope.recordIds[0];
-
     Test.startTest();
     Map<Id, RecordHealthCheckOutcome> outcomes = RecordHealthCheckPluginDispatch.run(
       new SkippingCheck(),
       scope
     );
     Test.stopTest();
-
     Assert.areEqual(4, outcomes.size(), 'Every requested Id is answered.');
     Assert.areEqual(
       RecordHealthCheckStatus.ERROR,
-      outcomes.get(dropped).status
+      outcomes.get(dropped).status,
+      'A dropped record must receive an ERROR verdict.'
     );
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING,
-      outcomes.get(dropped).reasonCode
+      outcomes.get(dropped).reasonCode,
+      'A dropped record must retain the missing-result reason.'
     );
     for (Integer i = 1; i < scope.recordIds.size(); i++) {
       Assert.areEqual(
@@ -285,7 +483,6 @@ private class RecordHealthCheckPluginDispatchTest {
   @IsTest
   static void returningNothingIsAContractViolation() {
     List<Account> accounts = makeAccounts(2);
-
     Test.startTest();
     String reasonCode;
     try {
@@ -294,10 +491,10 @@ private class RecordHealthCheckPluginDispatchTest {
       reasonCode = ex.reasonCode;
     }
     Test.stopTest();
-
     Assert.areEqual(
       RecordHealthCheckReasonCodes.PLUGIN_RESULT_MISSING,
-      reasonCode
+      reasonCode,
+      'A null result map must retain the missing-result contract reason.'
     );
   }
 }

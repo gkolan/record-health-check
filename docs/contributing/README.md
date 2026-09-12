@@ -3,18 +3,21 @@
 This folder is for contributors and maintainers changing Record Health Check itself. Administrators
 installing or configuring the package can skip it.
 
-| Task | Guide |
-| --- | --- |
-| Set up a contributor workspace | [Source development](./source-development.md) |
-| Create a disposable demo org | [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md) |
-| Understand package layers | [Package architecture](../architecture/framework.md) |
-| Understand or locate a package Apex class | [Package Apex implementation reference](../architecture/apex-implementation/README.md) |
-| Check release requirements | [Quality gates](../quality-gates/README.md) |
-| Plan the subscriber Apex plugin compatibility fix | [Plugin compatibility and approval-preview specification](./subscriber-apex-plugin-compatibility-spec.md) |
-| Review subscriber Apex plugin test results and remaining external validation | [Plugin compatibility evidence](./subscriber-apex-plugin-compatibility-evidence.md) |
-| Write or review documentation | [Documentation standard](../quality-gates/documentation-standard.md) |
-| Understand package validation and upgrades | [Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md) |
-| Review static-analysis exceptions | [Code Analyzer suppressions](../quality-gates/code-analyzer-suppressions.md) |
+| Task                                                                         | Guide                                                                                                     |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Set up a contributor workspace                                               | [Source development](./source-development.md)                                                             |
+| Create a disposable demo org                                                 | [Create a demo scratch org](../install/install-demo-in-a-scratch-org.md)                                  |
+| Understand package layers                                                    | [Package architecture](../architecture/framework.md)                                                      |
+| Understand or locate a package Apex class                                    | [Package Apex implementation reference](../architecture/apex-implementation/README.md)                    |
+| Check release requirements                                                   | [Quality gates](../quality-gates/README.md)                                                               |
+| Plan the subscriber Apex plugin compatibility fix                            | [Plugin compatibility and approval-preview specification](./subscriber-apex-plugin-compatibility-spec.md) |
+| Review subscriber Apex plugin test results and remaining external validation | [Plugin compatibility evidence](./subscriber-apex-plugin-compatibility-evidence.md)                       |
+| Write or review documentation                                                | [Documentation standard](../quality-gates/documentation-standard.md)                                      |
+| Understand package validation and upgrades                                   | [Package testing and upgrades](../quality-gates/package-testing-and-upgrades.md)                          |
+| Review static-analysis exceptions                                            | [Code Analyzer suppressions](../quality-gates/code-analyzer-suppressions.md)                              |
+
+For code and test changes, start with the [regression testing standard](../quality-gates/regression-testing-standard.md)
+and [Check outcome verification](../quality-gates/check-outcome-verification.md).
 
 ## Related
 

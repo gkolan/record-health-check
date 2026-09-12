@@ -75,17 +75,16 @@ private with sharing class RecordHealthCheckAdversarialBoundaryTest {
   }
 
   @IsTest
-  static void descendingOrderedPickUsesMaximumAggregate() {
+  static void descendingOrderedPickPreservesRowSelection() {
     Test.startTest();
-    String rewritten = RecordHealthCheckBulkQueryRewriter.rewriteOrderedPickAggregate(
-      'SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY Amount DESC LIMIT 1',
-      'AccountId'
+    String strategy = RecordHealthCheckBulkQuerySupport.classify(
+      'SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY Amount DESC NULLS FIRST LIMIT 1'
     );
     Test.stopTest();
-
-    Assert.isTrue(
-      rewritten.contains('MAX(Amount)'),
-      'Descending ordered picks must use MAX, never MIN.'
+    Assert.areEqual(
+      RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
+      strategy,
+      'Descending nullable picks must select ordered rows; MAX would discard null precedence.'
     );
   }
 

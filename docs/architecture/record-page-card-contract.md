@@ -26,12 +26,12 @@ Check, and the reader has just pressed a button, so the wait is expected.
 
 **Where it is implemented.**
 
-| Concern | Source |
-| --- | --- |
-| Single entry point for every card-initiated run | `_loadDefinitions` in `recordHealthCheck.js` |
-| Run and Rerun | `handleAction` in `recordHealthCheck.js` |
-| Record-save refresh | `_scheduleRecordRefresh` in `recordHealthCheck.js` |
-| Server response, deliberately not cacheable | `getCheckDefinitions` in `RecordHealthCheckController.cls` |
+| Concern                                         | Source                                                     |
+| ----------------------------------------------- | ---------------------------------------------------------- |
+| Single entry point for every card-initiated run | `_loadDefinitions` in `recordHealthCheck.js`               |
+| Run and Rerun                                   | `handleAction` in `recordHealthCheck.js`                   |
+| Record-save refresh                             | `_scheduleRecordRefresh` in `recordHealthCheck.js`         |
+| Server response, deliberately not cacheable     | `getCheckDefinitions` in `RecordHealthCheckController.cls` |
 
 **Supporting behaviors that must survive a refactor.**
 
@@ -49,22 +49,23 @@ on the change, not an oversight.
 
 ## Contract 2: The card body always renders
 
-**Behavior.** From the first frame the reader sees a complete card: the bordered box, the grey
-header with a title, and the white body with content in it. The body never collapses to a
-header-only strip, and the component never renders bare page space.
+**Behavior.** From the first frame the reader sees a complete bordered card with meaningful body
+content. The normal default includes the grey heading strip. A Check Set may deliberately hide that
+strip through Card Heading Display, but the body never collapses to an empty card and the component
+never renders bare page space.
 
 **Reason.** The header and body are separate regions of one card. Three states left the body empty
 while the header rendered normally, so the card appeared truncated rather than busy.
 
 **Where it is implemented.**
 
-| Concern | Source |
-| --- | --- |
-| The card box and header always render | `recordHealthCheck.html`, both branches of `hasComponentError` |
-| Default title before any response | `displayTitle` initializer in `recordHealthCheck.js` |
-| Loading state covers both Apex calls | `_resolveConfiguredLifecycle` and `_loadDefinitions` |
-| Last-resort body content | `showEmptyBodyNotice` in `recordHealthCheck.js` |
-| Spinner keeps a real body height | `.rhc-card-loading` in `recordHealthCheck.css` |
+| Concern                                                               | Source                                                         |
+| --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| The card box always renders; the normal heading follows configuration | `recordHealthCheck.html`, both branches of `hasComponentError` |
+| Default title before any response                                     | `displayTitle` initializer in `recordHealthCheck.js`           |
+| Loading state covers both Apex calls                                  | `_resolveConfiguredLifecycle` and `_loadDefinitions`           |
+| Last-resort body content                                              | `showEmptyBodyNotice` in `recordHealthCheck.js`                |
+| Spinner keeps a real body height                                      | `.rhc-card-loading` in `recordHealthCheck.css`                 |
 
 `showEmptyBodyNotice` is written as the negation of every other body block rather than as a list of
 empty states. When nothing else renders below the header, it renders a short status line. A state
@@ -73,6 +74,17 @@ added later cannot reintroduce the header-only card without also being added to 
 **Maintenance rule.** Adding a block to the card body means adding it to the `showEmptyBodyNotice`
 condition. Adding an `await` to the load path means giving that window a loading state, because the
 scheduled-load handle is cleared before the awaited call begins.
+
+Card Heading Display and Run Button Display are independent. `TITLE_ONLY` suppresses only the
+subtitle. `HIDE` removes the normal heading; a visible Run/Rerun action moves to the first visual body
+row and remains right aligned. If both settings hide their elements, no empty heading or action container renders. The body
+retains top clearance equal to the card radius so the first status accent remains straight. Error cards retain their setup heading, and App Builder retains the selected Check
+Set identity. The normal card article keeps the resolved Card Title as its accessible name.
+
+Summary Display also supports `HIDE`: it suppresses overall and category summaries without changing
+Check evaluation or the hidden-results notice. When the list is the final body block, bottom padding
+equal to the card radius keeps accents away from the curved edge. Only adjacent Check rows receive
+a separator, so a lone Check has no row separator.
 
 **What an administrator actually sees for an empty Check Set.** Deactivating every Check in a Check
 Set was tested in a scratch org. Apex raises `NO_ACTIVE_CHECKS` before returning definitions, so the
@@ -86,20 +98,20 @@ it is what stops a future response change from reintroducing a header-only card.
 Each row was observed by rendering the component and inspecting the card body, not by reading the
 source. The Before column describes the component prior to these changes.
 
-| State | Before | Now |
-| --- | --- | --- |
-| First frame after connect | Full card with spinner | Unchanged |
-| `getCheckSetShellConfig` in flight | Header only | Full card with spinner |
-| `getCheckDefinitions` in flight | Full card with spinner | Unchanged |
-| Loaded, before the first manual run | Pre-run hint | Unchanged |
-| Run in flight, either reveal mode | Check rows | Unchanged |
-| Run complete | Rows and summary | Unchanged |
-| Every row hidden by display settings | Hidden-results notice | Unchanged |
-| Check Set with no active checks | Header only | Explanatory body line |
-| Shell reports zero active checks | Header only | Explanatory body line |
-| Component has no record | Header only | Explanatory body line |
-| No Check Set selected | Header only | Explanatory body line |
-| Definition load failed | Error row | Unchanged |
+| State                                | Before                 | Now                    |
+| ------------------------------------ | ---------------------- | ---------------------- |
+| First frame after connect            | Full card with spinner | Unchanged              |
+| `getCheckSetShellConfig` in flight   | Header only            | Full card with spinner |
+| `getCheckDefinitions` in flight      | Full card with spinner | Unchanged              |
+| Loaded, before the first manual run  | Pre-run hint           | Unchanged              |
+| Run in flight, either reveal mode    | Check rows             | Unchanged              |
+| Run complete                         | Rows and summary       | Unchanged              |
+| Every row hidden by display settings | Hidden-results notice  | Unchanged              |
+| Check Set with no active checks      | Header only            | Explanatory body line  |
+| Shell reports zero active checks     | Header only            | Explanatory body line  |
+| Component has no record              | Header only            | Explanatory body line  |
+| No Check Set selected                | Header only            | Explanatory body line  |
+| Definition load failed               | Error row              | Unchanged              |
 
 ## How to verify these claims
 
@@ -111,10 +123,10 @@ npm run test:unit
 
 The two describe blocks below own these contracts. Their names are the search keys.
 
-| Contract | Describe block |
-| --- | --- |
-| Configuration is reread before every run | `Rerun re-reads Check Set configuration` |
-| The card body always renders | `the card body never collapses to a header` |
+| Contract                                 | Describe block                              |
+| ---------------------------------------- | ------------------------------------------- |
+| Configuration is reread before every run | `Rerun re-reads Check Set configuration`    |
+| The card body always renders             | `the card body never collapses to a header` |
 
 Those tests run against jsdom, where no stylesheet is applied and no Apex is called. They prove the
 rendered structure and the request sequence, not the painted card. The release gate covers that:
@@ -143,10 +155,10 @@ implements the behavior. Confirm that the tests still fail when the behavior is 
 
 Both mutations were measured when these tests were written:
 
-| Removed behavior | Failing tests | Reported detail |
-| --- | --- | --- |
-| Body notice and shell loading state | 9 of 305 | 16 states named as `Header-only card in scenario` |
-| Reread on Run and Rerun | 9 of 305 | 5 in the configuration block, 4 in existing load tests |
+| Removed behavior                    | Failing tests | Reported detail                                        |
+| ----------------------------------- | ------------- | ------------------------------------------------------ |
+| Body notice and shell loading state | 9 of 305      | 16 states named as `Header-only card in scenario`      |
+| Reread on Run and Rerun             | 9 of 305      | 5 in the configuration block, 4 in existing load tests |
 
 If either mutation stops failing, the tests have stopped protecting the behavior. Repair them
 rather than deleting them, and treat the passing suite as unproven until they fail again.
@@ -156,14 +168,14 @@ rather than deleting them, and treat the passing suite as unproven until they fa
 Recorded on 2026-09-05 in the namespaced Lightning Web Security scratch org `rhc-2063-ns-lws`,
 against the release-matrix record page.
 
-| What was exercised | Result |
-| --- | --- |
-| Package `RunLocalTests` | 1281 tests, 100% pass, run `707Ru000029OYsJ` |
-| Card at load, during a run, and after completion | Box, header, and painted body throughout |
+| What was exercised                                                     | Result                                                             |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Package `RunLocalTests`                                                | 1281 tests, 100% pass, run `707Ru000029OYsJ`                       |
+| Card at load, during a run, and after completion                       | Box, header, and painted body throughout                           |
 | Deactivating one Check in Setup, then **Rerun** with the tab left open | Completed Checks moved from 25 / 25 to 24 / 24 with no page reload |
-| Deactivating every Check in a Check Set | Setup error card, per the note above |
-| `card-contract.spec.mjs` against the current component | Passed |
-| `card-contract.spec.mjs` against the component before this change | Failed: `Rerun did not request Check Set definitions again` |
+| Deactivating every Check in a Check Set                                | Setup error card, per the note above                               |
+| `card-contract.spec.mjs` against the current component                 | Passed                                                             |
+| `card-contract.spec.mjs` against the component before this change      | Failed: `Rerun did not request Check Set definitions again`        |
 
 **Limit of the browser evidence.** The pre-change run failed only on the configuration assertion.
 Its painted-body assertion still passed, because the release-matrix page has no empty Check Set and
@@ -176,3 +188,24 @@ which holds the request open deliberately.
 - [Framework architecture](./framework.md)
 - [Configure the Lightning component](../lightning-record-page/configure-the-component.md)
 - [Setup and troubleshooting FAQ](../faqs/setup-and-troubleshooting.md)
+
+## Nullable evidence transport
+
+The card calls `RecordHealthCheckController.evaluateCheckJson`, which delegates to the existing
+typed `evaluateCheck` method and serializes its display plus the five card evaluation fields
+(`recordId`, `checkQualifiedApiName`, `status`, `severity`, and `reasonCode`). Raw machine operands
+are excluded. Null object properties are omitted, while null array cells retain their positions.
+`healthCheckModel.normalizeResult`
+decodes that JSON before validating the result. Aura otherwise removes null entries from nested
+Apex lists: a valid one-column evidence row `[[null]]` arrives as `[[]]` and correctly fails the
+browser's row-width validation. Do not pad malformed rows or weaken that validation to compensate.
+
+The Preview controller already returns JSON text. Public Apex, REST and native action contracts
+retain their existing typed or JSON responses; the new adapter changes only the card transport.
+The adapter preserves authorization, Check membership, source validation and per-Check execution.
+
+The LWC regression `preserves typed null cells through serialized Apex responses` verifies a rendered
+null cell and the retained evidence summary. `RHCControllerEvidenceTransportTest` verifies PASS and
+FAIL through the saved typed-null fixture and confirms that the adapter rejects an unauthorized
+caller. It also guards omitted raw operands and text nodes without null link properties. The
+malformed serialized-response and malformed evidence-row tests must continue to pass.

@@ -27,13 +27,13 @@ result is published.
 In this guide, **receiving automation** means a Platform Event-triggered Flow, Apex trigger, or
 external integration that listens for a Record Health Check event.
 
-| Practice | Why it matters |
-| --- | --- |
-| Enable **Publish User Run Event** and **Publish User Result Event** for one Check Set or Check at a time | Makes it clear which configuration caused an unexpected increase in event volume. |
-| Review Platform Event usage regularly instead of waiting for a limit error | The allocation is shared by every Platform Event publisher in your org, not reserved for Record Health Check. |
-| Keep **Publish Error Log Event** off until restricted error monitoring is ready | It defaults off. Enable it only after assigning **Record Health Check Error Log Publisher** narrowly and securing the receiver. |
-| Review which Check Sets and Checks have publication enabled at least quarterly | A copied or retired Check can continue publishing events that no process uses. |
-| Confirm receiving automation handles `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` as intended | A completed Batch or Check Set can still contain business failures or results that could not be evaluated. |
+| Practice                                                                                                      | Why it matters                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Enable **Publish User Run Event** and **Publish User Result Event** for one Check Set or Check at a time      | Makes it clear which configuration caused an unexpected increase in event volume.                                               |
+| Review Platform Event usage regularly instead of waiting for a limit error                                    | The allocation is shared by every Platform Event publisher in your org, not reserved for Record Health Check.                   |
+| Keep **Publish Error Log Event** off until restricted error monitoring is ready                               | It defaults off. Enable it only after assigning **Record Health Check Error Log Publisher** narrowly and securing the receiver. |
+| Review which Check Sets and Checks have publication enabled at least quarterly                                | A copied or retired Check can continue publishing events that no process uses.                                                  |
+| Confirm receiving automation handles `PASS`, `FAIL`, `SKIPPED`, `UNABLE_TO_EVALUATE`, and `ERROR` as intended | A completed Batch or Check Set can still contain business failures or results that could not be evaluated.                      |
 
 See [Lifecycle events: Admin checklist before enabling](../save-results/when-to-use-platform-events.md#admin-checklist-before-enabling)
 for the pre-enablement checklist and [What controls publication](../save-results/when-to-use-platform-events.md#what-controls-publication)
@@ -67,12 +67,12 @@ Check Set and Check configuration is Custom Metadata, so it deploys and can be v
 like other metadata. Direct Setup edits can still leave a production org out of sync with source.
 Use a repeatable schedule, not a one-time export:
 
-| Cadence | Action |
-| --- | --- |
-| Before every deployment | Back up every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) record, per [Back up and restore configuration](./back-up-configuration.md) |
-| On a recurring schedule appropriate for your change volume, such as weekly | Export current production configuration between deployments to find direct Setup edits that are not yet in source control. |
-| Before any planned removal | Follow [Preserve the configuration first](../install/uninstall.md#preserve-the-configuration-first) |
-| After any bulk Setup edit session | Re-export immediately so the backup reflects the edit, not the state before it |
+| Cadence                                                                    | Action                                                                                                                                                                                                          |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Before every deployment                                                    | Back up every **Record Health Check Set** (`Record_Health_Check_Set__mdt`) and **Record Health Check** (`Record_Health_Check__mdt`) record, per [Back up and restore configuration](./back-up-configuration.md) |
+| On a recurring schedule appropriate for your change volume, such as weekly | Export current production configuration between deployments to find direct Setup edits that are not yet in source control.                                                                                      |
+| Before any planned removal                                                 | Follow [Preserve the configuration first](../install/uninstall.md#preserve-the-configuration-first)                                                                                                             |
+| After any bulk Setup edit session                                          | Re-export immediately so the backup reflects the edit, not the state before it                                                                                                                                  |
 
 Store the retrieved metadata in the repository your team uses for Salesforce changes. Periodically
 deploy the backup to a sandbox and confirm the Check Sets and Checks are restored correctly. A file
@@ -84,13 +84,13 @@ An event can fail to publish, or it can publish successfully and then fail in th
 Apex trigger, or integration. Neither failure changes the health result already returned to the
 caller, so monitor both sides separately.
 
-| What to monitor | Why |
-| --- | --- |
-| Publish failures in debug logs | Publishing is best-effort; a failed publish is logged as a warning and does not retry automatically |
-| Receiving automation errors, including Flow fault paths and Apex trigger exceptions | A Platform Event can publish successfully even when the process receiving it fails. |
-| Repeated or replayed events | Confirm receiving automation uses `EventId__c` so the same event does not create the same follow-up record or notification twice. |
-| `Record_Health_Check_Log__e` access list | Confirm only the users and integrations responsible for error monitoring have access because this event contains restricted troubleshooting details. |
-| Event volume by Check Set and Check | An increase can mean a new caller, a changed schedule, or automation starting the same health check more often than intended. |
+| What to monitor                                                                     | Why                                                                                                                                                  |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Publish failures in debug logs                                                      | Publishing is best-effort; a failed publish is logged as a warning and does not retry automatically                                                  |
+| Receiving automation errors, including Flow fault paths and Apex trigger exceptions | A Platform Event can publish successfully even when the process receiving it fails.                                                                  |
+| Repeated or replayed events                                                         | Confirm receiving automation uses `EventId__c` so the same event does not create the same follow-up record or notification twice.                    |
+| `Record_Health_Check_Log__e` access list                                            | Confirm only the users and integrations responsible for error monitoring have access because this event contains restricted troubleshooting details. |
+| Event volume by Check Set and Check                                                 | An increase can mean a new caller, a changed schedule, or automation starting the same health check more often than intended.                        |
 
 For debug logs, open **Setup → Debug Logs**, add a trace flag for the user or automated process, run
 one controlled test, and inspect the newest log. Remove broad trace flags when the investigation

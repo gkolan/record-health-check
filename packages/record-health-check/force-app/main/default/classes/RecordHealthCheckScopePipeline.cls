@@ -3,20 +3,38 @@ public with sharing class RecordHealthCheckScopePipeline {
   private RecordHealthCheckConfigService configService = new RecordHealthCheckConfigService();
   private RecordHealthCheckScopePlanner scopePlanner = new RecordHealthCheckScopePlanner();
   private RecordHealthCheckScopeResultSupport resultSupport = new RecordHealthCheckScopeResultSupport();
+  private RecordHealthCheckScopeRuntime scopeRuntime;
   @TestVisible
   private Boolean planningFailureOverride = false;
   @TestVisible
   private static String evaluatorFailureOverride;
-
   /**
    * @param request Immutable qualified selection, record IDs, and options.
    */
   public RecordHealthCheckResponse evaluate(RecordHealthCheckRequest request) {
+    List<Id> recordIds = prepare(request);
+    SelectionContext context = scopePlanner.resolveSelection(request.selection);
+    return evaluatePrepared(request, recordIds, context);
+  }
+  /** Evaluates an already authorized detached definition context. */
+  public RecordHealthCheckResponse evaluateResolvedContext(
+    RecordHealthCheckRequest request,
+    SelectionContext context
+  ) {
+    return evaluatePrepared(request, prepare(request), context);
+  }
+  private List<Id> prepare(RecordHealthCheckRequest request) {
     if (request == null) {
       throw new ScopePipelineException(
         'A Record Health Check request is required.'
       );
     }
+    RecordHealthCheckDiagnosticRuntime.validateVersion(
+      request.options.diagnosticContractVersion
+    );
+    scopeRuntime = new RecordHealthCheckScopeRuntime(
+      request.options.diagnosticContractVersion
+    );
     if (evaluatorFailureOverride == 'REST_SIDE_EFFECT') {
       RecordHealthCheckPluginDispatch.SideEffectException sideEffect = new RecordHealthCheckPluginDispatch.SideEffectException(
         'Synthetic plugin side effect.'
@@ -26,8 +44,9 @@ public with sharing class RecordHealthCheckScopePipeline {
       sideEffect.reversible = true;
       throw sideEffect;
     }
-
-    List<Id> recordIds = dedupeRecordIds(request.recordIds);
+    List<Id> recordIds = RecordHealthCheckScopeRuntime.dedupe(
+      request.recordIds
+    );
     Integer dedupedCount = recordIds.size();
     if (dedupedCount > RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE) {
       throw new ScopePipelineException(
@@ -37,8 +56,19 @@ public with sharing class RecordHealthCheckScopePipeline {
           RecordHealthCheckConstants.MAX_RECORDS_PER_SCOPE
       );
     }
-
-    SelectionContext context = scopePlanner.resolveSelection(request.selection);
+    return recordIds;
+  }
+  private RecordHealthCheckResponse evaluatePrepared(
+    RecordHealthCheckRequest request,
+    List<Id> recordIds,
+    SelectionContext context
+  ) {
+    if (context == null) {
+      throw new ScopePipelineException(
+        'A resolved selection context is required.'
+      );
+    }
+    scopeRuntime.initializeTraces(context.checks, recordIds);
     scopePlanner.validateScope(context, recordIds);
     scopePlanner.enforceFormulaBudget(context.checks, recordIds.size());
     scopePlanner.enforceTransactionBudget(
@@ -46,10 +76,9 @@ public with sharing class RecordHealthCheckScopePipeline {
       recordIds.size(),
       request.options.eventPublication
     );
-
     RecordHealthCheckResponse response = new RecordHealthCheckResponse();
     response.runId = String.isBlank(request.options.runId)
-      ? newRunId()
+      ? RecordHealthCheckScopeRuntime.newRunId()
       : request.options.runId;
     context.executionOrigin = String.valueOf(request.options.executionOrigin);
     response.recordIds.addAll(recordIds);
@@ -57,13 +86,30 @@ public with sharing class RecordHealthCheckScopePipeline {
       response.checkQualifiedApiNames.add(check.QualifiedApiName);
     }
     if (recordIds.isEmpty() || context.checks.isEmpty()) {
+      RecordHealthCheckDiagnosticRuntime.attach(
+        response,
+        new List<RecordHealthCheckResultItem>(),
+        request.options.diagnosticContractVersion,
+        context.showDiagnostics
+      );
       return response;
     }
-
-    RecordLoadPlan recordLoad = loadRecords(
+    Map<String, RecordHealthCheckInternalResult> invalidConfigurationByCheck = new Map<String, RecordHealthCheckInternalResult>();
+    List<Record_Health_Check__mdt> plannableChecks = new List<Record_Health_Check__mdt>();
+    Set<String> cycleMembers = context.fullCheckSetSelection
+      ? RHCDefinitionDependencyIdentity.cycleMembers(context.checks)
+      : new Set<String>();
+    validateConfigurations(
+      context,
+      recordIds,
+      cycleMembers,
+      invalidConfigurationByCheck,
+      plannableChecks
+    );
+    RecordHealthCheckScopeRecordLoader.Plan recordLoad = loadRecords(
       context.objectApiName,
       recordIds,
-      context.checks
+      plannableChecks
     );
     Map<Id, SObject> recordsById = recordLoad.recordsById;
     Map<String, RecordHealthCheckResultItem> itemsByIdentity = new Map<String, RecordHealthCheckResultItem>();
@@ -73,8 +119,10 @@ public with sharing class RecordHealthCheckScopePipeline {
         context,
         recordIds,
         recordsById,
+        invalidConfigurationByCheck.get(check.QualifiedApiName),
         recordLoad.inaccessibleCheckNames.contains(check.QualifiedApiName),
         recordLoad.unresolvedReasonCodeByCheckName.get(check.QualifiedApiName),
+        recordLoad.primaryFormulaFindingByCheckName.get(check.QualifiedApiName),
         recordLoad.incompletePlanningCheckNames.contains(
           check.QualifiedApiName
         ),
@@ -83,41 +131,63 @@ public with sharing class RecordHealthCheckScopePipeline {
         itemsByIdentity
       );
     }
-
-    List<RecordHealthCheckResultItem> allItems = new List<RecordHealthCheckResultItem>();
-    for (Id recordId : recordIds) {
-      for (Record_Health_Check__mdt check : context.checks) {
-        RecordHealthCheckResultItem item = itemsByIdentity.get(
-          itemKey(recordId, check.QualifiedApiName)
+    return RecordHealthCheckScopeResultCoordinator.finishResponse(
+      request,
+      response,
+      recordIds,
+      context,
+      itemsByIdentity
+    );
+  }
+  private void validateConfigurations(
+    SelectionContext context,
+    List<Id> recordIds,
+    Set<String> cycleMembers,
+    Map<String, RecordHealthCheckInternalResult> invalidConfigurationByCheck,
+    List<Record_Health_Check__mdt> plannableChecks
+  ) {
+    for (Record_Health_Check__mdt check : context.checks) {
+      Map<Id, RecordHealthCheckExecutionTrace> traces = scopeRuntime.traces(
+        check.QualifiedApiName
+      );
+      scopeRuntime.begin(traces, recordIds, 'CONFIG_VALIDATE');
+      RecordHealthCheckInternalResult invalidConfiguration = configService.validateCheckForEvaluation(
+        check
+      );
+      if (invalidConfiguration == null) {
+        scopeRuntime.configurationCompleted(
+          traces,
+          recordIds,
+          check,
+          RecordHealthCheckConfigValidator.validatedDefinitionWasProvided(check)
         );
-        allItems.add(item);
-        response.summary.add(item.evaluation.status);
-        if (
-          request.options.resultMode != RecordHealthCheckResultMode.SUMMARY ||
-          RecordHealthCheckStatus.isActionable(item.evaluation.status)
-        ) {
-          response.results.add(item);
+        if (cycleMembers.contains(check.QualifiedApiName)) {
+          RecordHealthCheckConfigValidator.discardValidatedPlugin(check);
+          invalidConfigurationByCheck.put(
+            check.QualifiedApiName,
+            resultSupport.unavailableResult(
+              check,
+              RecordHealthCheckReasonCodes.CIRCULAR_DEPENDENCY
+            )
+          );
+        } else {
+          plannableChecks.add(check);
         }
+      } else {
+        scopeRuntime.configurationFailed(
+          traces,
+          recordIds,
+          invalidConfiguration
+        );
+        RecordHealthCheckConfigValidator.discardValidatedPlugin(check);
+        invalidConfigurationByCheck.put(
+          check.QualifiedApiName,
+          invalidConfiguration
+        );
       }
     }
-    RecordHealthCheckResponse publicationEnvelope = new RecordHealthCheckResponse();
-    publicationEnvelope.runId = response.runId;
-    publicationEnvelope.recordIds.addAll(response.recordIds);
-    publicationEnvelope.checkQualifiedApiNames.addAll(
-      response.checkQualifiedApiNames
-    );
-    publicationEnvelope.results.addAll(allItems);
-    publicationEnvelope.summary = response.summary;
-    RecordHealthCheckLifecyclePublisher.publishResponse(
-      publicationEnvelope,
-      request.options.eventPublication,
-      context.checkSetQualifiedApiName,
-      String.valueOf(request.options.executionOrigin)
-    );
-    return response;
   }
-
-  private RecordLoadPlan loadRecords(
+  private RecordHealthCheckScopeRecordLoader.Plan loadRecords(
     String objectApiName,
     List<Id> recordIds,
     List<Record_Health_Check__mdt> checks
@@ -129,63 +199,21 @@ public with sharing class RecordHealthCheckScopePipeline {
       new RecordHealthCheckFieldPlanner()
     );
   }
-
-  private RecordLoadPlan loadRecords(
+  private RecordHealthCheckScopeRecordLoader.Plan loadRecords(
     String objectApiName,
     List<Id> recordIds,
     List<Record_Health_Check__mdt> checks,
     RecordHealthCheckFieldPlanner fieldPlanner
   ) {
-    Set<String> fields = new Set<String>{ 'Id' };
-    RecordLoadPlan result = new RecordLoadPlan();
-    Schema.SObjectType objectType = recordIds[0].getSObjectType();
-    for (Record_Health_Check__mdt check : checks) {
-      try {
-        if (planningFailureOverride) {
-          throw new RecordHealthCheckTemplateService.TemplateException(
-            'Synthetic planning failure.'
-          );
-        }
-        RecordHealthCheckFieldPlanner.FieldPlan fieldPlan = fieldPlanner.planRecordFields(
-          check,
-          objectType
-        );
-        if (!fieldPlan.inaccessibleFields.isEmpty()) {
-          result.inaccessibleCheckNames.add(check.QualifiedApiName);
-        }
-        if (!fieldPlan.unresolvedReasonCodesByField.isEmpty()) {
-          result.unresolvedReasonCodeByCheckName.put(
-            check.QualifiedApiName,
-            primaryUnresolvedReasonCode(fieldPlan.unresolvedReasonCodesByField)
-          );
-        }
-        if (fieldPlan.verdictDependenciesTruncated) {
-          result.incompletePlanningCheckNames.add(check.QualifiedApiName);
-        }
-        // Keep display and message fields even when verdict dependencies are
-        // incomplete so the aligned UNABLE result can still be rendered.
-        fields.addAll(fieldPlan.selectedFields);
-      } catch (RecordHealthCheckTemplateService.TemplateException ex) {
-        // Runtime validation turns this Check into INVALID_CONFIG. Planning must
-        // skip its fields so one malformed admin template cannot abort the
-        // complete scope before per-Check isolation begins.
-        continue;
-      }
-    }
-    List<String> orderedFields = new List<String>(fields);
-    orderedFields.sort();
-    String query =
-      'SELECT ' +
-      String.join(orderedFields, ', ') +
-      ' FROM ' +
-      objectApiName +
-      ' WHERE Id IN :recordIds WITH USER_MODE';
-    // code-analyzer-suppress-next-line ApexSOQLInjection: object and field identifiers are resolved from Schema describe metadata, recordIds is a bind variable, and the query runs WITH USER_MODE.
-    List<SObject> records = Database.query(query);
-    result.recordsById.putAll(new Map<Id, SObject>(records));
-    return result;
+    scopeRuntime = scopeRuntime == null
+      ? new RecordHealthCheckScopeRuntime(null)
+      : scopeRuntime;
+    return new RecordHealthCheckScopeRecordLoader(
+        scopeRuntime,
+        planningFailureOverride
+      )
+      .load(objectApiName, recordIds, checks, fieldPlanner);
   }
-
   @TestVisible
   private Map<Id, SObject> loadRecordsForTest(
     String objectApiName,
@@ -214,7 +242,9 @@ public with sharing class RecordHealthCheckScopePipeline {
       context,
       recordIds,
       recordsById,
+      configService.validateCheckForEvaluation(check),
       fieldAccessDenied,
+      null,
       null,
       formulaPlanningIncomplete,
       resultMode,
@@ -236,6 +266,39 @@ public with sharing class RecordHealthCheckScopePipeline {
     String runId,
     Map<String, RecordHealthCheckResultItem> itemsByIdentity
   ) {
+    evaluateCheck(
+      check,
+      context,
+      recordIds,
+      recordsById,
+      configService.validateCheckForEvaluation(check),
+      fieldAccessDenied,
+      unresolvedReasonCode,
+      null,
+      formulaPlanningIncomplete,
+      resultMode,
+      runId,
+      itemsByIdentity
+    );
+  }
+
+  private void evaluateCheck(
+    Record_Health_Check__mdt check,
+    SelectionContext context,
+    List<Id> recordIds,
+    Map<Id, SObject> recordsById,
+    RecordHealthCheckInternalResult invalidConfiguration,
+    Boolean fieldAccessDenied,
+    String unresolvedReasonCode,
+    RecordHealthCheckFormulaPlanService.Finding primaryFormulaFinding,
+    Boolean formulaPlanningIncomplete,
+    RecordHealthCheckResultMode resultMode,
+    String runId,
+    Map<String, RecordHealthCheckResultItem> itemsByIdentity
+  ) {
+    scopeRuntime = scopeRuntime == null
+      ? new RecordHealthCheckScopeRuntime(null)
+      : scopeRuntime;
     RecordHealthCheckRunContext runContext = new RecordHealthCheckRunContext(
       runId,
       context.executionOrigin
@@ -243,112 +306,106 @@ public with sharing class RecordHealthCheckScopePipeline {
     resultSupport.withRunContext(runContext);
     List<Id> applicableIds = new List<Id>();
     Map<Id, RecordHealthCheckInternalResult> internalByRecordId = new Map<Id, RecordHealthCheckInternalResult>();
-    RecordHealthCheckInternalResult invalidConfiguration = configService.validateCheckForEvaluation(
-      check
+    Map<Id, RecordHealthCheckExecutionTrace> traces = scopeRuntime.traces(
+      check.QualifiedApiName
     );
-    if (invalidConfiguration != null) {
-      RecordHealthCheckConfigValidator.discardValidatedPlugin(check);
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          resultSupport.copyResult(invalidConfiguration)
-        );
-      }
-    }
-    if (invalidConfiguration == null && formulaPlanningIncomplete) {
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          recordsById.containsKey(recordId)
-            ? resultSupport.unavailableResult(
-                check,
-                RecordHealthCheckReasonCodes.FORMULA_DEPENDENCY_DEPTH_EXCEEDED
-              )
-            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
-        );
-      }
-    }
-    if (
-      invalidConfiguration == null &&
-      !formulaPlanningIncomplete &&
-      unresolvedReasonCode != null
-    ) {
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          recordsById.containsKey(recordId)
-            ? resultSupport.unavailableResult(check, unresolvedReasonCode)
-            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
-        );
-      }
-    }
-    if (
-      invalidConfiguration == null &&
-      !formulaPlanningIncomplete &&
-      unresolvedReasonCode == null &&
-      fieldAccessDenied
-    ) {
-      for (Id recordId : recordIds) {
-        internalByRecordId.put(
-          recordId,
-          recordsById.containsKey(recordId)
-            ? resultSupport.unavailableResult(
-                check,
-                RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE
-              )
-            : resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
-        );
-      }
-    }
-    Map<Id, RecordHealthCheckInternalResult> applicabilityByRecordId = invalidConfiguration ==
-      null &&
-      !formulaPlanningIncomplete &&
-      unresolvedReasonCode == null &&
-      !fieldAccessDenied
-      ? resultSupport.applicabilityResults(check, recordIds, recordsById)
-      : new Map<Id, RecordHealthCheckInternalResult>();
-    String resolvedPrerequisite = resultSupport.resolvePrerequisite(
+    RecordHealthCheckScopeResultCoordinator.addPlanningFailures(
+      resultSupport,
       check,
-      itemsByIdentity
+      recordIds,
+      recordsById,
+      invalidConfiguration,
+      formulaPlanningIncomplete,
+      unresolvedReasonCode,
+      fieldAccessDenied,
+      internalByRecordId
     );
-    for (Id recordId : recordIds) {
-      if (
-        invalidConfiguration != null ||
-        formulaPlanningIncomplete ||
-        unresolvedReasonCode != null ||
-        fieldAccessDenied
-      ) {
-        continue;
-      }
-      SObject record = recordsById.get(recordId);
-      if (record == null) {
-        internalByRecordId.put(
-          recordId,
-          resultSupport.unavailableResult(check, 'RECORD_NOT_VISIBLE')
-        );
-      } else {
-        RecordHealthCheckInternalResult prerequisiteBlock = resultSupport.findPrerequisiteBlock(
+    Boolean canEvaluateApplicability =
+      invalidConfiguration == null &&
+      !formulaPlanningIncomplete &&
+      unresolvedReasonCode == null &&
+      !fieldAccessDenied;
+    List<Id> eligibleIds = new List<Id>();
+    Map<Id, SObject> eligibleRecordsById = new Map<Id, SObject>();
+    if (canEvaluateApplicability) {
+      RecordHealthCheckPrerequisiteEligibility.Selection eligibility = RecordHealthCheckPrerequisiteEligibility.selectEligible(
+        check,
+        recordIds,
+        recordsById,
+        itemsByIdentity,
+        context.fullCheckSetSelection,
+        resultSupport
+      );
+      eligibleIds = eligibility.recordIds;
+      eligibleRecordsById = eligibility.recordsById;
+      internalByRecordId.putAll(eligibility.blockedByRecordId);
+    }
+    if (!eligibleIds.isEmpty()) {
+      scopeRuntime.begin(traces, eligibleIds, 'APPLICABILITY_EVALUATE');
+    }
+    Map<Id, RecordHealthCheckInternalResult> applicabilityByRecordId = canEvaluateApplicability
+      ? resultSupport.applicabilityResults(
           check,
-          recordId,
-          itemsByIdentity,
-          context.fullCheckSetSelection,
-          resolvedPrerequisite
-        );
-        if (prerequisiteBlock != null) {
-          internalByRecordId.put(recordId, prerequisiteBlock);
-          continue;
-        }
-        RecordHealthCheckInternalResult applicability = applicabilityByRecordId.get(
-          recordId
-        );
-        if (applicability == null) {
-          applicableIds.add(recordId);
-        } else {
-          internalByRecordId.put(recordId, applicability);
-        }
+          eligibleIds,
+          eligibleRecordsById
+        )
+      : new Map<Id, RecordHealthCheckInternalResult>();
+    scopeRuntime.completeApplicability(
+      traces,
+      eligibleIds,
+      eligibleRecordsById,
+      applicabilityByRecordId,
+      !eligibleIds.isEmpty()
+    );
+    for (Id recordId : eligibleIds) {
+      RecordHealthCheckInternalResult applicability = applicabilityByRecordId.get(
+        recordId
+      );
+      if (applicability == null) {
+        applicableIds.add(recordId);
+      } else {
+        internalByRecordId.put(recordId, applicability);
       }
     }
 
+    executeApplicable(
+      check,
+      context,
+      applicableIds,
+      recordsById,
+      resultMode,
+      runId,
+      traces,
+      internalByRecordId
+    );
+
+    new RecordHealthCheckScopeResultCoordinator(
+        resultSupport,
+        context,
+        runId,
+        resultMode,
+        primaryFormulaFinding,
+        traces
+      )
+      .finish(
+        check,
+        recordIds,
+        recordsById,
+        internalByRecordId,
+        itemsByIdentity
+      );
+  }
+
+  private void executeApplicable(
+    Record_Health_Check__mdt check,
+    SelectionContext context,
+    List<Id> applicableIds,
+    Map<Id, SObject> recordsById,
+    RecordHealthCheckResultMode resultMode,
+    String runId,
+    Map<Id, RecordHealthCheckExecutionTrace> traces,
+    Map<Id, RecordHealthCheckInternalResult> internalByRecordId
+  ) {
     if (!applicableIds.isEmpty()) {
       try {
         if (evaluatorFailureOverride == 'SIDE_EFFECT') {
@@ -361,8 +418,15 @@ public with sharing class RecordHealthCheckScopePipeline {
           throw sideEffect;
         }
         if (evaluatorFailureOverride == 'EVALUATOR') {
-          throw new SyntheticEvaluatorException('Synthetic evaluator failure.');
+          throw new ScopePipelineException('Synthetic evaluator failure.');
         }
+        scopeRuntime.begin(
+          traces,
+          applicableIds,
+          RecordHealthCheckDiagContextBuilder.evaluatorPhase(check)
+        );
+        context.activeExecutionTraces = traces;
+        context.resultMode = resultMode;
         internalByRecordId.putAll(
           evaluatorRegistry.evaluateScope(
             check,
@@ -372,7 +436,13 @@ public with sharing class RecordHealthCheckScopePipeline {
             runId
           )
         );
+        if (check.EvaluationType__c != 'APEX') {
+          scopeRuntime.complete(traces, applicableIds, 'RESULT_VALIDATED');
+        }
+      } catch (RecordHealthCheckResourcePlan.BudgetException ex) {
+        throw ex;
       } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
+        scopeRuntime.fail(traces, applicableIds, 'PLUGIN_EXECUTE');
         RecordHealthCheckDiagnosticContext diagnosticContext = RecordHealthCheckDiagContextBuilder.forCheck(
           check,
           context.checkSetQualifiedApiName,
@@ -389,6 +459,11 @@ public with sharing class RecordHealthCheckScopePipeline {
         );
         throw ex;
       } catch (RecordHealthCheckEvaluatorException ex) {
+        scopeRuntime.fail(
+          traces,
+          applicableIds,
+          RecordHealthCheckDiagContextBuilder.evaluatorPhase(check)
+        );
         internalByRecordId.putAll(
           RecordHealthCheckIncidentRecorder.recordScopeFailure(
             check,
@@ -404,6 +479,11 @@ public with sharing class RecordHealthCheckScopePipeline {
           )
         );
       } catch (Exception ex) {
+        scopeRuntime.fail(
+          traces,
+          applicableIds,
+          RecordHealthCheckDiagContextBuilder.evaluatorPhase(check)
+        );
         internalByRecordId.putAll(
           RecordHealthCheckIncidentRecorder.recordScopeFailure(
             check,
@@ -422,87 +502,21 @@ public with sharing class RecordHealthCheckScopePipeline {
         );
       }
     }
-
-    for (Id recordId : recordIds) {
-      RecordHealthCheckInternalResult internalResult = internalByRecordId.get(
-        recordId
-      );
-      RecordHealthCheckIncidentRecorder.attachResultFailure(
-        check,
-        recordId,
-        RecordHealthCheckDiagContextBuilder.forCheck(
-          check,
-          context.checkSetQualifiedApiName,
-          runId,
-          internalResult?.reasonCode,
-          RecordHealthCheckDiagContextBuilder.evaluatorPhase(check)
-        ),
-        internalResult
-      );
-      resultSupport.finalizeDisplay(
-        check,
-        recordsById.get(recordId),
-        internalResult,
-        context.showDiagnostics == true &&
-          resultMode == RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
-      );
-      itemsByIdentity.put(
-        itemKey(recordId, check.QualifiedApiName),
-        resultSupport.toItem(check, recordId, internalResult, resultMode)
-      );
-    }
-  }
-
-  private List<Id> dedupeRecordIds(List<Id> recordIds) {
-    List<Id> ordered = new List<Id>();
-    Set<Id> seen = new Set<Id>();
-    for (Id recordId : recordIds) {
-      if (recordId != null && seen.add(recordId)) {
-        ordered.add(recordId);
-      }
-    }
-    return ordered;
-  }
-
-  private String itemKey(Id recordId, String checkQualifiedApiName) {
-    return String.valueOf(recordId) + '|' + checkQualifiedApiName;
-  }
-
-  private String primaryUnresolvedReasonCode(
-    Map<String, String> reasonCodesByField
-  ) {
-    List<String> paths = new List<String>(reasonCodesByField.keySet());
-    paths.sort();
-    return reasonCodesByField.get(paths[0]);
-  }
-
-  private String newRunId() {
-    return 'rhc-api-' +
-      String.valueOf(Datetime.now().getTime()) +
-      '-' +
-      EncodingUtil.convertToHex(Crypto.generateAesKey(128));
   }
 
   public class SelectionContext {
-    public String checkSetQualifiedApiName, checkSetDeveloperName;
+    public String checkSetQualifiedApiName;
+    public String checkSetDeveloperName;
     public Boolean checkSetActive;
     public String objectApiName;
     public Boolean showDiagnostics;
     public Boolean fullCheckSetSelection = false;
     public String executionOrigin;
+    public RecordHealthCheckResultMode resultMode;
+    public Map<Id, RecordHealthCheckExecutionTrace> activeExecutionTraces;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
   }
 
   public class ScopePipelineException extends Exception {
-  }
-
-  private class SyntheticEvaluatorException extends Exception {
-  }
-
-  private class RecordLoadPlan {
-    private Map<Id, SObject> recordsById = new Map<Id, SObject>();
-    private Set<String> inaccessibleCheckNames = new Set<String>();
-    private Map<String, String> unresolvedReasonCodeByCheckName = new Map<String, String>();
-    private Set<String> incompletePlanningCheckNames = new Set<String>();
   }
 }

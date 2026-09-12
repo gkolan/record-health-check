@@ -31,6 +31,12 @@ private class RecordHealthCheckConfigServiceTest {
       automatic.get('runMode'),
       'RUN_ON_LOAD must map to the Automatic client contract.'
     );
+    Assert.isTrue(
+      RecordHealthCheckConstants.validCardHeadingDisplays.contains(
+        automatic.get('cardHeadingDisplay')
+      ),
+      'The shell must expose a safe Card Heading Display.'
+    );
   }
 
   @IsTest
@@ -141,13 +147,27 @@ private class RecordHealthCheckConfigServiceTest {
       response.displayTitle,
       'The integration fixture title must be returned for its overridden Check Set.'
     );
-    Assert.areEqual('Automatic', response.triggerMode);
+    Assert.areEqual(
+      'Automatic',
+      response.triggerMode,
+      'The configured automatic Check Set must expose Automatic mode.'
+    );
+    Assert.isTrue(
+      RecordHealthCheckConstants.validCardHeadingDisplays.contains(
+        response.cardHeadingDisplay
+      ),
+      'Definitions must carry the normalized Card Heading Display.'
+    );
     Assert.areEqual(
       'OnDemand',
       response.comparisonDisplay,
       'The Check Set ships with the OnDemand comparison default.'
     );
-    Assert.areNotEqual(null, response.checks);
+    Assert.areNotEqual(
+      null,
+      response.checks,
+      'A definition response must include its Check collection.'
+    );
     Assert.isTrue(response.checks.size() > 0, 'Expected at least one check.');
     Assert.isTrue(
       response.checks.size() <= 25,
@@ -155,7 +175,8 @@ private class RecordHealthCheckConfigServiceTest {
     );
     Assert.areEqual(
       response.totalAvailableCheckCount > response.checks.size(),
-      response.checksOmittedByLimit
+      response.checksOmittedByLimit,
+      'The omitted flag must agree with available and returned Check counts.'
     );
   }
 
@@ -193,7 +214,8 @@ private class RecordHealthCheckConfigServiceTest {
     } catch (RecordHealthCheckConfigService.ConfigException ex) {
       Assert.areEqual(
         RecordHealthCheckConfigService.RC_INVALID_CONFIG,
-        ex.reasonCode
+        ex.reasonCode,
+        'An invalid comparison display must retain INVALID_CONFIG.'
       );
       Assert.isTrue(
         ex.getMessage().contains('Found/Expected Display'),
@@ -217,7 +239,8 @@ private class RecordHealthCheckConfigServiceTest {
     } catch (RecordHealthCheckConfigService.ConfigException ex) {
       Assert.areEqual(
         RecordHealthCheckConfigService.RC_OBJECT_MISMATCH,
-        ex.reasonCode
+        ex.reasonCode,
+        'A mismatched record object must retain the object-mismatch reason.'
       );
     }
   }
@@ -232,7 +255,8 @@ private class RecordHealthCheckConfigServiceTest {
     } catch (RecordHealthCheckConfigService.ConfigException ex) {
       Assert.areEqual(
         RecordHealthCheckConfigService.RC_NO_RECORD_CONTEXT,
-        ex.reasonCode
+        ex.reasonCode,
+        'An absent record context must retain the no-context reason.'
       );
     }
   }
@@ -258,9 +282,21 @@ private class RecordHealthCheckConfigServiceTest {
     RecordHealthCheckInternalResult result = new RecordHealthCheckConfigService()
       .validateCheckForEvaluation(check);
 
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual('INVALID_SOQL_TEMPLATE', result.reasonCode);
-    Assert.areEqual('Invalid_Query_Test', result.checkDeveloperName);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'An invalid Query Check must be unable to evaluate.'
+    );
+    Assert.areEqual(
+      'INVALID_SOQL_TEMPLATE',
+      result.reasonCode,
+      'A missing query template must retain its specific reason.'
+    );
+    Assert.areEqual(
+      'Invalid_Query_Test',
+      result.checkDeveloperName,
+      'The invalid result must identify the authored Check.'
+    );
   }
 
   @IsTest
@@ -277,7 +313,11 @@ private class RecordHealthCheckConfigServiceTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('Card Title', cardTitle);
+    Assert.areEqual(
+      'Card Title',
+      cardTitle,
+      'The definition title must use the configured Card Title.'
+    );
   }
 
   @IsTest
@@ -324,7 +364,11 @@ private class RecordHealthCheckConfigServiceTest {
     );
     Test.stopTest();
 
-    Assert.areEqual('FAILURES_ONLY', configured);
+    Assert.areEqual(
+      'FAILURES_ONLY',
+      configured,
+      'Comparison display must retain its configured value.'
+    );
   }
 
   @IsTest

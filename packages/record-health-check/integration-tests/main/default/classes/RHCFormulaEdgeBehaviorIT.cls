@@ -17,16 +17,22 @@ private class RHCFormulaEdgeBehaviorIT {
 
     Assert.areEqual(
       null,
-      evaluator.evaluateApplicabilityFormula('NULL', accountRecord, reasonCode)
+      evaluator.evaluateApplicabilityFormula('NULL', accountRecord, reasonCode),
+      'A null applicability formula must return no Boolean verdict.'
     );
-    Assert.areEqual('INVALID_FORMULA', reasonCode[0]);
+    Assert.areEqual(
+      'INVALID_FORMULA',
+      reasonCode[0],
+      'A null applicability formula must retain INVALID_FORMULA.'
+    );
 
     Account nullTextAccount = RecordHealthCheckTestDataFactory.account(
       new Map<String, Object>{ 'Name' => null }
     );
     Assert.areEqual(
       'Name: ',
-      evaluator.resolveMergeFields('Name: {!record.Name}', nullTextAccount)
+      evaluator.resolveMergeFields('Name: {!record.Name}', nullTextAccount),
+      'A null merge field must preserve the surrounding literal text.'
     );
   }
 
@@ -43,8 +49,16 @@ private class RHCFormulaEdgeBehaviorIT {
       accountRecord.Id,
       accountRecord
     );
-    Assert.areEqual('UNABLE_TO_EVALUATE', nullResult.status);
-    Assert.areEqual('INVALID_FORMULA', nullResult.reasonCode);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      nullResult.status,
+      'A null pass formula must be unable to evaluate.'
+    );
+    Assert.areEqual(
+      'INVALID_FORMULA',
+      nullResult.reasonCode,
+      'A null pass formula must retain INVALID_FORMULA.'
+    );
     Assert.isTrue(
       nullResult.detailMessage.contains('returned null'),
       'A null Boolean result must explain the likely relationship or access problem.'
@@ -58,7 +72,11 @@ private class RHCFormulaEdgeBehaviorIT {
         accountRecord.Id,
         accountRecord
       );
-      Assert.areEqual('FORMULA_EVAL_LIMIT', budgetResult.reasonCode);
+      Assert.areEqual(
+        'FORMULA_EVAL_LIMIT',
+        budgetResult.reasonCode,
+        'Exhausting the formula budget must retain FORMULA_EVAL_LIMIT.'
+      );
     } finally {
       RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = originalCount;
     }

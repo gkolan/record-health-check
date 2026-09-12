@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+<label>Employee readiness NoneProgressive</label>
+<protected>false</protected>
+<values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_Heading_NoneProgressive</value></values>
+<values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >Employee count is positive</value></values>
+<values><field>CheckDescription__c</field><value
+      xsi:type="xsd:string"
+    >Checks whether the Account has at least one employee; a missing count is treated as zero.</value></values>
+<values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >FORMULA</value></values>
+<values><field>PassConditionFormula__c</field><value
+      xsi:type="xsd:string"
+    >BLANKVALUE(NumberOfEmployees, 0) &gt; 0</value></values>
+<values><field>ApplicabilityMode__c</field><value
+      xsi:type="xsd:string"
+    >ALL_RECORDS</value></values>
+<values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+<values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >Enter an employee count greater than zero.</value></values>
+<values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >The employee count could not be checked.</value></values>
+<values><field>FixMessage__c</field><value
+      xsi:type="xsd:string"
+    >Edit the Account and enter the verified employee count.</value></values>
+<values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >10</value></values>
+<values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >true</value></values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>QueryResultHandling__c</field>
+        <value xsi:type="xsd:string">ONE_RESULT</value>
+    </values>
+</CustomMetadata>

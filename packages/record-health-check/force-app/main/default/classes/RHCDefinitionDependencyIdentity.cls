@@ -72,6 +72,13 @@ public with sharing class RHCDefinitionDependencyIdentity {
         return qualifiedApiName;
       }
     }
+    return resolveUniqueFallback(prerequisite, qualifiedApiNames);
+  }
+
+  private static String resolveUniqueFallback(
+    String prerequisite,
+    Set<String> qualifiedApiNames
+  ) {
     String onlyMatch;
     Integer matchCount = 0;
     for (String qualifiedApiName : qualifiedApiNames) {
@@ -127,6 +134,36 @@ public with sharing class RHCDefinitionDependencyIdentity {
       }
     }
     return ordered;
+  }
+
+  /** Returns only Checks that participate in a resolved prerequisite cycle. */
+  public static Set<String> cycleMembers(
+    List<Record_Health_Check__mdt> checks
+  ) {
+    Set<String> members = new Set<String>();
+    if (checks == null || checks.isEmpty()) {
+      return members;
+    }
+    Map<String, Record_Health_Check__mdt> checkByIdentity = new Map<String, Record_Health_Check__mdt>();
+    for (Record_Health_Check__mdt check : checks) {
+      if (String.isNotBlank(check?.QualifiedApiName)) {
+        checkByIdentity.put(check.QualifiedApiName, check);
+      }
+    }
+    for (String start : checkByIdentity.keySet()) {
+      String cursor = start;
+      Set<String> visited = new Set<String>();
+      while (cursor != null && !visited.contains(cursor)) {
+        visited.add(cursor);
+        String next = resolve(checkByIdentity.get(cursor), checks);
+        if (next == start) {
+          members.add(start);
+          break;
+        }
+        cursor = checkByIdentity.containsKey(next) ? next : null;
+      }
+    }
+    return members;
   }
 
   private static String namespacePrefix(

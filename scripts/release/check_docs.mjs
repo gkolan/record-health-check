@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { documentationAudienceIssues } from "../lib/documentation-audience.mjs";
 
@@ -53,6 +53,54 @@ function splitTableRow(row) {
 
 walk(docsRoot);
 const failures = [];
+const sharedAgentGuidance = [
+  [
+    "AGENTS.md",
+    [
+      "# Repository working agreement",
+      "## Agentforce and MCP contract",
+      "npm run check:mcp",
+      "requires the user's explicit authorization"
+    ]
+  ],
+  ["CLAUDE.md", ["@AGENTS.md"]],
+  ["GEMINI.md", ["@AGENTS.md"]],
+  [".github/copilot-instructions.md", ["AGENTS.md"]],
+  [".cursor/rules/agents.mdc", ["@AGENTS.md"]]
+];
+for (const [relativeFile, requiredTexts] of sharedAgentGuidance) {
+  const absoluteFile = path.join(root, relativeFile);
+  if (!fs.existsSync(absoluteFile)) {
+    failures.push(`${relativeFile}: shared coding-agent guidance is missing`);
+    continue;
+  }
+  const source = fs.readFileSync(absoluteFile, "utf8");
+  for (const requiredText of requiredTexts) {
+    if (!source.includes(requiredText)) {
+      failures.push(
+        `${relativeFile}: shared coding-agent guidance must reference ${requiredText}`
+      );
+    }
+  }
+}
+const ignoredSharedGuidanceCheck = spawnSync(
+  "git",
+  ["check-ignore", "--no-index", ...sharedAgentGuidance.map(([file]) => file)],
+  { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+);
+if (![0, 1].includes(ignoredSharedGuidanceCheck.status ?? -1)) {
+  failures.push(
+    "Could not verify whether shared coding-agent guidance is ignored."
+  );
+}
+const ignoredSharedGuidance = (ignoredSharedGuidanceCheck.stdout ?? "")
+  .split("\n")
+  .filter(Boolean);
+for (const relativeFile of ignoredSharedGuidance) {
+  failures.push(
+    `${relativeFile}: shared coding-agent guidance must not be excluded by .gitignore`
+  );
+}
 for (const file of markdownFiles) {
   if (/^\d{2}-/.test(path.basename(file))) {
     failures.push(
@@ -603,16 +651,19 @@ for (const file of markdownFiles) {
     const userResultSection = markdown
       .split(/^## What the user sees\s*$/m)[1]
       ?.split(/^## /m)[0];
+    const resultLabels = (userResultSection ?? "")
+      .split(/\r?\n/)
+      .map((row) => row.match(/^\|\s*(.*?)\s*\|/)?.[1]);
     for (const requiredRow of [
-      "| **`PASS`** |",
-      "| **`FAIL`** |",
-      "| **`SKIPPED`** |",
-      "| **Found** |",
-      "| **Expected** |"
+      "**`PASS`**",
+      "**`FAIL`**",
+      "**`SKIPPED`**",
+      "**Found**",
+      "**Expected**"
     ]) {
-      if (!userResultSection?.includes(requiredRow)) {
+      if (!resultLabels.includes(requiredRow)) {
         failures.push(
-          `${relativeFile}: What the user sees must include ${requiredRow.replaceAll("|", "").trim()}`
+          `${relativeFile}: What the user sees must include ${requiredRow}`
         );
       }
     }
@@ -799,6 +850,221 @@ for (const file of supplementalDocumentationFiles) {
         `${path.relative(root, file)}: missing repository target ${match[0]}`
       );
     }
+  }
+}
+
+const resultsAndPluginsReference = fs.readFileSync(
+  path.join(
+    docsRoot,
+    "architecture",
+    "apex-implementation",
+    "results-and-plugins.md"
+  ),
+  "utf8"
+);
+if (resultsAndPluginsReference.includes('"First 25 of N shown"')) {
+  failures.push(
+    "docs/architecture/apex-implementation/results-and-plugins.md: stale truncation contract; oversized Check Sets fail closed"
+  );
+}
+
+const bulkQueryGrammar = fs.readFileSync(
+  path.join(docsRoot, "reference", "evaluation", "bulk-query-grammar.md"),
+  "utf8"
+);
+if (bulkQueryGrammar.includes("ORDERED_PICK_AGGREGATE")) {
+  failures.push(
+    "docs/reference/evaluation/bulk-query-grammar.md: stale ORDERED_PICK_AGGREGATE strategy; ordered picks use ORDERED_PICK_IN_MEMORY"
+  );
+}
+if (!bulkQueryGrammar.includes("ORDERED_PICK_IN_MEMORY")) {
+  failures.push(
+    "docs/reference/evaluation/bulk-query-grammar.md: missing ORDERED_PICK_IN_MEMORY strategy"
+  );
+}
+
+const checkFieldReference = fs.readFileSync(
+  path.join(docsRoot, "reference", "custom-metadata", "check-fields.md"),
+  "utf8"
+);
+for (const formulaResultTypeContract of [
+  "It does **not** apply to Pass Condition or Applicability formulas",
+  "Display: Found and Display: Expected formulas, which detect their own result type",
+  "It declares the return type only when a Query"
+]) {
+  if (!checkFieldReference.includes(formulaResultTypeContract)) {
+    failures.push(
+      `docs/reference/custom-metadata/check-fields.md: Formula Result Type contract omits ${formulaResultTypeContract}`
+    );
+  }
+}
+
+const apexClassRoot = path.join(
+  root,
+  "packages",
+  "record-health-check",
+  "force-app",
+  "main",
+  "default",
+  "classes"
+);
+const constantsSource = fs.readFileSync(
+  path.join(apexClassRoot, "RecordHealthCheckConstants.cls"),
+  "utf8"
+);
+const batchSource = fs.readFileSync(
+  path.join(apexClassRoot, "RecordHealthCheckBatch.cls"),
+  "utf8"
+);
+const executionWorkflow = fs.readFileSync(
+  path.join(
+    docsRoot,
+    "build-checks",
+    "draft-with-ai",
+    "execution-workflow-generator.md"
+  ),
+  "utf8"
+);
+const apexEntryPointReference = fs.readFileSync(
+  path.join(docsRoot, "architecture", "apex-implementation", "entry-points.md"),
+  "utf8"
+);
+function apexIntegerConstant(source, name) {
+  const value = source.match(new RegExp(`\\b${name}\\s*=\\s*(\\d+)\\s*;`))?.[1];
+  if (!value) {
+    failures.push(`Apex source no longer declares numeric constant ${name}`);
+    return null;
+  }
+  return Number(value);
+}
+const maxRecordsPerScope = apexIntegerConstant(
+  constantsSource,
+  "MAX_RECORDS_PER_SCOPE"
+);
+const maxAsyncRecords = apexIntegerConstant(
+  constantsSource,
+  "MAX_ASYNC_RECORDS"
+);
+const maxFlowGroups = apexIntegerConstant(constantsSource, "MAX_FLOW_GROUPS");
+const defaultBatchScope = apexIntegerConstant(
+  batchSource,
+  "DEFAULT_SCOPE_SIZE"
+);
+for (const [value, expectedText] of [
+  [maxRecordsPerScope, `no more than ${maxRecordsPerScope} known record IDs`],
+  [
+    maxAsyncRecords,
+    `no more than ${maxAsyncRecords?.toLocaleString("en-US")} known record IDs`
+  ],
+  [maxFlowGroups, `no more than ${maxFlowGroups} distinct`],
+  [defaultBatchScope, `scope from 1 through ${defaultBatchScope}`],
+  [maxRecordsPerScope, `scope size from 1 through ${maxRecordsPerScope}`]
+]) {
+  if (value !== null && !executionWorkflow.includes(expectedText)) {
+    failures.push(
+      `docs/build-checks/draft-with-ai/execution-workflow-generator.md: source-derived execution limit is missing: ${expectedText}`
+    );
+  }
+}
+for (const [className, methodName] of [
+  ["RecordHealthCheck", "evaluate"],
+  ["RecordHealthCheckQueueable", "enqueue"],
+  ["RecordHealthCheckBatch", "run"],
+  ["RecordHealthCheckScheduled", "scheduleDaily"],
+  ["RecordHealthCheckRunCheckFlowAction", "runCheck"],
+  ["RecordHealthCheckRunSetFlowAction", "runSet"]
+]) {
+  const classSource = fs.readFileSync(
+    path.join(apexClassRoot, `${className}.cls`),
+    "utf8"
+  );
+  if (!new RegExp(`\\b${methodName}\\s*\\(`).test(classSource)) {
+    failures.push(
+      `${className}.cls: documented entry point ${methodName} is missing`
+    );
+  }
+  if (!executionWorkflow.includes(className)) {
+    failures.push(
+      `docs/build-checks/draft-with-ai/execution-workflow-generator.md: supported entry point ${className} is missing`
+    );
+  }
+}
+for (const flowActionClass of [
+  "RecordHealthCheckRunCheckFlowAction",
+  "RecordHealthCheckRunSetFlowAction"
+]) {
+  const section = apexEntryPointReference.slice(
+    apexEntryPointReference.indexOf(`### \`${flowActionClass}\``)
+  );
+  if (
+    !section
+      .slice(0, section.indexOf("### ", 4))
+      .includes("`global with sharing`")
+  ) {
+    failures.push(
+      `docs/architecture/apex-implementation/entry-points.md: ${flowActionClass} must document its global with sharing source visibility`
+    );
+  }
+}
+for (const batchScopeContract of [
+  `scope from 1 through ${defaultBatchScope}`,
+  "lowers it for the selected Check Set's FormulaEval budget",
+  `scope from 1 through ${maxRecordsPerScope}`
+]) {
+  if (!apexEntryPointReference.includes(batchScopeContract)) {
+    failures.push(
+      `docs/architecture/apex-implementation/entry-points.md: Batch contract omits ${batchScopeContract}`
+    );
+  }
+}
+for (const staleEvaluationOrderClaim of [
+  "Evaluation Order controls stable execution order",
+  "Checks with lower numbers run and appear first"
+]) {
+  for (const file of documentationContractSources) {
+    if (fs.readFileSync(file, "utf8").includes(staleEvaluationOrderClaim)) {
+      failures.push(
+        `${path.relative(root, file)}: Evaluation Order is presentation order; prerequisite references determine dependency scheduling`
+      );
+    }
+  }
+}
+
+const apexArchitectureIndex = fs.readFileSync(
+  path.join(docsRoot, "architecture", "apex-implementation", "README.md"),
+  "utf8"
+);
+for (const foundation of [
+  "RecordHealthCheckFormulaPlanService",
+  "RecordHealthCheckPluginDefinitionSource",
+  "RecordHealthCheckEvidence",
+  "RecordHealthCheckRecordEvaluator",
+  "RecordHealthCheckPreviewService",
+  "RecordHealthCheckReadinessService",
+  "RecordHealthCheckDisplayPlugin",
+  "RecordHealthCheckPresentationResolver"
+]) {
+  if (!apexArchitectureIndex.includes(`\`${foundation}\``)) {
+    failures.push(
+      `docs/architecture/apex-implementation/README.md: class index omits 2.0.10 foundation ${foundation}`
+    );
+  }
+}
+
+const apexExamplesIndex = fs.readFileSync(
+  path.join(docsRoot, "examples", "apex", "README.md"),
+  "utf8"
+);
+for (const capability of [
+  "typed parameter definition",
+  "typed evidence",
+  "per-record recovery",
+  "display override"
+]) {
+  if (!apexExamplesIndex.includes(capability)) {
+    failures.push(
+      `docs/examples/apex/README.md: recent-activity summary omits ${capability}`
+    );
   }
 }
 

@@ -101,6 +101,11 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
     ) {
       return new RecordHealthCheckApexEvaluator()
         .withRunContext(runContext(runId, context))
+        .withExecutionTraces(context.activeExecutionTraces)
+        .withCardPresentation(
+          context.resultMode ==
+          RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY
+        )
         .evaluateScope(
           check,
           recordIds,

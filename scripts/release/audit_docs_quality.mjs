@@ -221,6 +221,10 @@ function areaHomeMatches(markdown, vocabulary) {
 }
 
 function structureMatches(type, markdown) {
+  // Column alignment is presentation, not part of a page's required structure.
+  markdown = markdown.replace(/^\|.*\|$/gm, (row) =>
+    row.replace(/[ \t]*\|[ \t]*/g, " | ").trim()
+  );
   switch (type) {
     case "Documentation home":
       return hasAll(markdown, [

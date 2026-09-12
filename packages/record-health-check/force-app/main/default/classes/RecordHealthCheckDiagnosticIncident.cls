@@ -27,6 +27,10 @@ global class RecordHealthCheckDiagnosticIncident {
   @AuraEnabled
   /** Stable reason code. */
   global String reasonCode;
+  /** Server-only reason producer; projected only by opt-in diagnostic contracts. */
+  global transient String reasonOrigin;
+  /** Server-only causal reason replaced by framework validation. */
+  global transient String priorReasonCode;
   @AuraEnabled
   /** Plain-language statement of what failed. */
   global String summary;
@@ -42,6 +46,16 @@ global class RecordHealthCheckDiagnosticIncident {
   @AuraEnabled
   /** Execution phase where the problem occurred. */
   global String phase;
+  /** Server-only observed plugin invocation; projected only by opt-in diagnostic contracts. */
+  global transient Boolean pluginInvoked;
+  /** Restricted missing-value side; projected only by opt-in diagnostic contracts. */
+  global transient String valueSide;
+  /** Restricted declared value type; projected only by opt-in diagnostic contracts. */
+  global transient String valueDeclaredType;
+  /** Restricted list member count; projected only by opt-in diagnostic contracts. */
+  global transient Integer valueMemberCount;
+  /** Restricted indication that the value rendered blank. */
+  global transient Boolean valueRenderedBlank;
   @AuraEnabled
   /** Safe component or configured class identity. */
   global String component;
@@ -57,6 +71,16 @@ global class RecordHealthCheckDiagnosticIncident {
   @AuraEnabled
   /** Metadata field requiring review, when known. */
   global String configurationField;
+  /** Restricted authored token; projected only by opt-in diagnostic contracts. */
+  global transient String offendingToken;
+  /** Restricted authored token start; projected only by opt-in diagnostic contracts. */
+  global transient Integer tokenStart;
+  /** Restricted authored token end; projected only by opt-in diagnostic contracts. */
+  global transient Integer tokenEnd;
+  /** Formula base object; projected only by opt-in diagnostic contracts. */
+  global transient String baseObject;
+  /** Calculated dependency path; projected only by opt-in diagnostic contracts. */
+  global transient String dependencyPath;
   @AuraEnabled
   /** Source, comparison, or applicability query side. */
   global String querySide;

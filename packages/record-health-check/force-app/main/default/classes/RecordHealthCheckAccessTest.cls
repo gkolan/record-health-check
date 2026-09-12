@@ -14,7 +14,10 @@ private class RecordHealthCheckAccessTest {
         RecordHealthCheckAccess.requireCanRunChecks();
         Assert.fail('The unentitled test user must be rejected.');
       } catch (RecordHealthCheckAccess.AuthorizationException expected) {
-        Assert.isTrue(expected.getMessage().contains('NOT_AUTHORIZED'));
+        Assert.isTrue(
+          expected.getMessage().contains('NOT_AUTHORIZED'),
+          'The denied Run permission must expose the stable authorization marker.'
+        );
       }
     }
     RecordHealthCheckAccess.setRunPermissionForTest(null);
@@ -23,9 +26,15 @@ private class RecordHealthCheckAccessTest {
   @IsTest
   static void explicitTestOverrideStillSupportsUnitIsolation() {
     RecordHealthCheckAccess.setRunPermissionForTest(true);
-    Assert.isTrue(RecordHealthCheckAccess.canRunChecks());
+    Assert.isTrue(
+      RecordHealthCheckAccess.canRunChecks(),
+      'The explicit allow override must permit isolated unit execution.'
+    );
     RecordHealthCheckAccess.setRunPermissionForTest(false);
-    Assert.isFalse(RecordHealthCheckAccess.canRunChecks());
+    Assert.isFalse(
+      RecordHealthCheckAccess.canRunChecks(),
+      'Changing the override to deny must revoke isolated unit execution.'
+    );
   }
 
   @IsTest

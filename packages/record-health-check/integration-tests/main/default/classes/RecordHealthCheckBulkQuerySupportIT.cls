@@ -10,9 +10,9 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
       'SELECT COUNT() FROM User WHERE Id = {!record.OwnerId} AND IsActive = true' => RecordHealthCheckBulkQuerySupport.INDIRECT_REFERENCE,
       'SELECT Name FROM Account WHERE Name != null' => RecordHealthCheckBulkQuerySupport.SCOPE_INVARIANT,
       'SELECT Name FROM Account WHERE Name != null ORDER BY Industry, Name' => RecordHealthCheckBulkQuerySupport.SCOPE_INVARIANT,
-      'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate ASC LIMIT 1' => RecordHealthCheckBulkQuerySupport.ORDERED_PICK_AGGREGATE,
+      'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate ASC LIMIT 1' => RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
       'SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate ASC LIMIT 1' => RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
-      'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate DESC, Amount DESC LIMIT 1' => RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,
+      'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate DESC, Amount DESC LIMIT 1' => RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
       'SELECT Name FROM Contact WHERE AccountId = {!record.Id} ORDER BY LastName, FirstName' => RecordHealthCheckBulkQuerySupport.CHILD_DIRECT,
       'SELECT Industry FROM Account WHERE Id != {!record.Id}' => RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,
       'SELECT Name FROM Contact WHERE AccountId LIKE {!record.Id}' => RecordHealthCheckBulkQuerySupport.UNCLASSIFIED
@@ -27,7 +27,7 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
   }
 
   @IsTest
-  static void classifierRejectsSelfQueryWithUnsupportedLimit() {
+  static void classifierAcceptsSelfQueryWithRedundantLimit() {
     Test.startTest();
     String strategy = RecordHealthCheckBulkQuerySupport.classify(
       'SELECT Id FROM Account WHERE Id = {!record.Id} LIMIT 2'
@@ -35,9 +35,9 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
     Test.stopTest();
 
     Assert.areEqual(
-      RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,
+      RecordHealthCheckBulkQuerySupport.SELF,
       strategy,
-      'A self-correlated limit larger than one has no per-record contract.'
+      'A self-correlated ID equality already selects at most one row per record.'
     );
   }
 
@@ -209,8 +209,16 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
       records,
       20
     );
-    Assert.areEqual(0, Limits.getQueries() - beforeQueries);
-    Assert.areEqual(0, result.rowsByRecordId.get(account.Id).size());
+    Assert.areEqual(
+      0,
+      Limits.getQueries() - beforeQueries,
+      'An absent indirect ID must execute no query.'
+    );
+    Assert.areEqual(
+      0,
+      result.rowsByRecordId.get(account.Id).size(),
+      'An absent indirect ID must seed an empty record bucket.'
+    );
   }
 
   @IsTest
@@ -226,7 +234,7 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
 
     try {
       RecordHealthCheckBulkQuerySupport.execute(
-        'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND MailingState = \'{!record.BillingState}\'',
+        'SELECT Id FROM Contact WHERE AccountId = {!record.Id} AND MailingState = {!record.BillingState}',
         records,
         20
       );
@@ -299,9 +307,9 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
   }
 
   @IsTest
-  static void orderedAggregatePickReturnsOneValuePerRecord() {
+  static void orderedPickReturnsOneValuePerRecord() {
     Account account = RHCIntegrationTestDataFactory.createAccount(
-      'Aggregate ordered pick'
+      'Ordered row pick'
     );
     RHCIntegrationTestDataFactory.createOpportunities(
       new List<Opportunity>{
@@ -334,14 +342,14 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
     Test.stopTest();
 
     Assert.areEqual(
-      RecordHealthCheckBulkQuerySupport.ORDERED_PICK_AGGREGATE,
+      RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
       result.strategy,
-      'Selecting the ordered field must use the aggregate rewrite.'
+      'Selecting the ordered field must preserve ordered-row selection.'
     );
     Assert.areEqual(
       Date.today(),
       result.rowsByRecordId.get(account.Id)[0].get('CloseDate'),
-      'The aggregate rewrite must retain the earliest value.'
+      'The ordered row must retain the earliest value.'
     );
   }
 
@@ -370,8 +378,16 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
     );
     Test.stopTest();
 
-    Assert.areEqual(2, result.rowsByRecordId.get(first.Id).size());
-    Assert.areEqual(2, result.rowsByRecordId.get(second.Id).size());
+    Assert.areEqual(
+      2,
+      result.rowsByRecordId.get(first.Id).size(),
+      'The first scope record must receive both invariant rows.'
+    );
+    Assert.areEqual(
+      2,
+      result.rowsByRecordId.get(second.Id).size(),
+      'The second scope record must receive the same two invariant rows.'
+    );
   }
 
   @IsTest
@@ -487,11 +503,11 @@ private with sharing class RecordHealthCheckBulkQuerySupportIT {
   @IsTest
   static void classifierRejectsUnsupportedLimitCardinality() {
     Assert.areEqual(
-      RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,
+      RecordHealthCheckBulkQuerySupport.ORDERED_PICK_IN_MEMORY,
       RecordHealthCheckBulkQuerySupport.classify(
         'SELECT CloseDate FROM Opportunity WHERE AccountId = {!record.Id} ORDER BY CloseDate LIMIT 2'
       ),
-      'An ordered pick may select only one row.'
+      'An ordered correlated query may select a bounded slice per record.'
     );
     Assert.areEqual(
       RecordHealthCheckBulkQuerySupport.UNCLASSIFIED,

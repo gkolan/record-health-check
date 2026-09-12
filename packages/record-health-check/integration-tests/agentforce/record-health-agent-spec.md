@@ -149,16 +149,20 @@ IDs in custom long-lived variables.
 
 #### Outputs
 
-| Name              | Type    | Visible to agent | Meaning                                          |
-| ----------------- | ------- | ---------------- | ------------------------------------------------ |
-| `contractVersion` | string  | Yes              | Must equal `1.0`                                 |
-| `correlationId`   | string  | No               | Operational support identifier                   |
-| `success`         | boolean | Yes              | Whether a completed health response exists       |
-| `operation`       | string  | No               | Must equal `RUN_CHECK` on success                |
-| `status`          | string  | Yes              | One of the five health statuses on success       |
-| `reasonCode`      | string  | Yes              | Stable reason for the Check result when supplied |
-| `errorType`       | string  | Yes              | Stable adapter category when `success=false`     |
-| `errorMessage`    | string  | Yes              | Safe adapter explanation when `success=false`    |
+| Name                 | Type    | Visible to agent | Meaning                                                                  |
+| -------------------- | ------- | ---------------- | ------------------------------------------------------------------------ |
+| `contractVersion`    | string  | Yes              | Must equal `1.0`                                                         |
+| `correlationId`      | string  | No               | Operational support identifier                                           |
+| `success`            | boolean | Yes              | Whether a completed health response exists                               |
+| `operation`          | string  | No               | Must equal `RUN_CHECK` on success                                        |
+| `status`             | string  | Yes              | One of the five health statuses on success                               |
+| `reasonCode`         | string  | Yes              | Stable reason for the Check result when supplied                         |
+| `diagnosticId`       | string  | Yes              | Stable identifier for a bounded completed-evaluation diagnosis           |
+| `diagnosticCategory` | string  | Yes              | Broad disclosure-safe diagnosis category                                 |
+| `diagnosticSummary`  | string  | Yes              | Bounded disclosure-safe explanation; never raw administrator diagnostics |
+| `recommendedAction`  | string  | Yes              | Bounded disclosure-safe first corrective step                            |
+| `errorType`          | string  | Yes              | Stable adapter category when `success=false`                             |
+| `errorMessage`       | string  | Yes              | Safe adapter explanation when `success=false`                            |
 
 Filter `correlationId` and `operation` from model reasoning if Agent Script supports the required
 output filtering for the Apex action. They remain available to operators through approved traces.
@@ -182,20 +186,24 @@ output filtering for the Apex action. They remain available to operators through
 
 #### Outputs
 
-| Name              | Type    | Visible to agent | Meaning                                       |
-| ----------------- | ------- | ---------------- | --------------------------------------------- |
-| `contractVersion` | string  | Yes              | Must equal `1.0`                              |
-| `correlationId`   | string  | No               | Operational support identifier                |
-| `success`         | boolean | Yes              | Whether a completed health response exists    |
-| `operation`       | string  | No               | Must equal `RUN_CHECK_SET` on success         |
-| `status`          | string  | Yes              | Strongest contained health status             |
-| `passed`          | integer | Yes              | PASS count                                    |
-| `failed`          | integer | Yes              | FAIL count                                    |
-| `skipped`         | integer | Yes              | SKIPPED count                                 |
-| `unable`          | integer | Yes              | UNABLE_TO_EVALUATE count                      |
-| `systemError`     | integer | Yes              | ERROR count                                   |
-| `errorType`       | string  | Yes              | Stable adapter category when `success=false`  |
-| `errorMessage`    | string  | Yes              | Safe adapter explanation when `success=false` |
+| Name                 | Type    | Visible to agent | Meaning                                                                  |
+| -------------------- | ------- | ---------------- | ------------------------------------------------------------------------ |
+| `contractVersion`    | string  | Yes              | Must equal `1.0`                                                         |
+| `correlationId`      | string  | No               | Operational support identifier                                           |
+| `success`            | boolean | Yes              | Whether a completed health response exists                               |
+| `operation`          | string  | No               | Must equal `RUN_CHECK_SET` on success                                    |
+| `status`             | string  | Yes              | Strongest contained health status                                        |
+| `passed`             | integer | Yes              | PASS count                                                               |
+| `failed`             | integer | Yes              | FAIL count                                                               |
+| `skipped`            | integer | Yes              | SKIPPED count                                                            |
+| `unable`             | integer | Yes              | UNABLE_TO_EVALUATE count                                                 |
+| `systemError`        | integer | Yes              | ERROR count                                                              |
+| `diagnosticId`       | string  | Yes              | Stable identifier for the first bounded diagnosis when supplied          |
+| `diagnosticCategory` | string  | Yes              | Broad disclosure-safe diagnosis category                                 |
+| `diagnosticSummary`  | string  | Yes              | Bounded disclosure-safe explanation; never raw administrator diagnostics |
+| `recommendedAction`  | string  | Yes              | Bounded disclosure-safe first corrective step                            |
+| `errorType`          | string  | Yes              | Stable adapter category when `success=false`                             |
+| `errorMessage`       | string  | Yes              | Safe adapter explanation when `success=false`                            |
 
 Filter `correlationId` and `operation` from model reasoning if supported. The model needs every count
 because a summary must not hide less-severe contained results.
@@ -210,7 +218,9 @@ because a summary must not hide less-severe contained results.
   classifying or clarifying intent.
 - There is no confirmation gate because both actions are read-only and event publication is fixed to
   `NONE`.
-- There is no elevated diagnostics gate. Version 1 does not expose diagnostics.
+- There is no elevated administrator-diagnostics gate. Version 1 exposes only four bounded,
+  disclosure-safe diagnosis fields for completed evaluations; it never exposes raw logs, queries,
+  formulas, record values, stack traces, or administrator-only diagnostics.
 
 If Agent Script supports deterministic `available when` checks for collected string inputs, add
 nonblank input gates. Otherwise, enforce the same requirement through required action inputs and the
@@ -258,6 +268,13 @@ expose direct object actions because the Apex actions already enforce the suppor
 contract and access model.
 
 ## Behavioral verification suite
+
+The repository YAML targets the currently supported Agentforce DX `testing-center` runner and its
+legacy `AiEvaluationDefinition` shape. It does not claim to be an Agentforce Studio
+`AiTestingDefinition` spec. Validate its repository-owned required fields with `npm run test:scripts`,
+then use `sf agent test create --json --test-runner testing-center --spec <generated-file> --api-name
+<unique-name> --preview --target-org <authorized-existing-org>` before creation. That org-aware preview
+and every live run remain pending until explicitly authorized.
 
 The implementation must run a versioned Agentforce preview suite with live actions. Each case must
 record selected subagent, action name, normalized inputs, structured output, final response

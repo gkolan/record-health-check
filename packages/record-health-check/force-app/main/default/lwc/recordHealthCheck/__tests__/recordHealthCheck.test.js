@@ -9,7 +9,9 @@ import {
   annotateCheck,
   buildSummaryGroups,
   buildSummaryStats,
+  normalizeDisplayContent,
   normalizeComparisonDisplayMode,
+  safeInlineUrl,
   splitMessageLines,
   safeActionUrl
 } from "../healthCheckPresentation";
@@ -40,7 +42,7 @@ import {
 import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.getCheckDefinitions";
 import getCheckSetShellConfig from "@salesforce/apex/RecordHealthCheckController.getCheckSetShellConfig";
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
-import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheck";
+import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheckJson";
 import completeRun from "@salesforce/apex/RecordHealthCheckController.completeRun";
 import {
   registerRefreshHandler,
@@ -66,7 +68,7 @@ jest.mock(
   { virtual: true }
 );
 jest.mock(
-  "@salesforce/apex/RecordHealthCheckController.evaluateCheck",
+  "@salesforce/apex/RecordHealthCheckController.evaluateCheckJson",
   () => ({ default: jest.fn() }),
   { virtual: true }
 );
@@ -195,6 +197,7 @@ const makeDefinitions = (overrides = {}) => {
   const definition = {
     displayTitle: "Account Health",
     displayDescription: null,
+    cardHeadingDisplay: "TITLE_AND_SUBTITLE",
     triggerMode: "Manual",
     runButtonDisplay: "LABEL_AND_ICON",
     runButtonLabel: null,
@@ -232,6 +235,60 @@ const makeDefinitions = (overrides = {}) => {
   }));
   return definition;
 };
+
+async function renderCompletedManualCard(result) {
+  getCheckDefinitions.mockResolvedValue(
+    makeDefinitions({
+      totalAvailableCheckCount: 1,
+      checks: [
+        {
+          developerName: "Check_A",
+          qualifiedApiName: "Check_A",
+          label: "Check A",
+          description: null,
+          priority: 1,
+          dependsOnCheckDeveloperName: null
+        }
+      ]
+    })
+  );
+  evaluateCheck.mockResolvedValue(result);
+  const element = createComponent();
+  await appendAndLoad(element);
+  await clickRun(element);
+  return element;
+}
+
+function makeStructuredEvidenceResult(overrides = {}) {
+  return {
+    status: "FAIL",
+    severity: "WARNING",
+    message: "Approval routing needs attention.",
+    actualValue: "11 inactive approvers",
+    expectedValue: "No inactive approvers",
+    evidence: {
+      version: "1.0",
+      runId: "run/evidence:1",
+      checkIdentity: "Check_A",
+      recordId: "001000000000001AAA",
+      summary: "11 inactive approvers across 2 approval rules",
+      columns: [
+        { key: "stepNumber", label: "Step", dataType: "NUMBER" },
+        { key: "ruleName", label: "Rule", dataType: "STRING" }
+      ],
+      rows: Array.from({ length: 11 }, (_, index) => [
+        index < 6 ? 2 : 10,
+        index < 6 ? "Manager Approval" : "Executive Approval"
+      ]),
+      returnedItemCount: 11,
+      totalItemCount: 11,
+      completeness: "COMPLETE",
+      omittedItemCount: 0,
+      groupKeys: ["stepNumber", "ruleName"],
+      ...overrides
+    }
+  };
+}
 
 function createComponent() {
   const el = createElement("c-record-health-check", { is: RecordHealthCheck });
@@ -306,6 +363,186 @@ describe("c-record-health-check — load and error states", () => {
     expect(btn).not.toBeNull();
   });
 
+  it.each([
+    ["TITLE_AND_SUBTITLE", true, true, false],
+    ["TITLE_ONLY", true, false, false],
+    ["HIDE", false, false, true]
+  ])(
+    "renders Card Heading Display %s without changing the Run action",
+    async (
+      cardHeadingDisplay,
+      showsTitle,
+      showsSubtitle,
+      usesBodyActionRow
+    ) => {
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({
+          cardHeadingDisplay,
+          displayDescription: "Review the configured account checks."
+        })
+      );
+
+      await appendAndLoad(element);
+
+      expect(
+        Boolean(element.shadowRoot.querySelector(".rhc-header__title"))
+      ).toBe(showsTitle);
+      expect(
+        Boolean(element.shadowRoot.querySelector(".rhc-header__desc"))
+      ).toBe(showsSubtitle);
+      expect(
+        Boolean(element.shadowRoot.querySelector(".rhc-body-action-row"))
+      ).toBe(usesBodyActionRow);
+      expect(
+        element.shadowRoot.querySelectorAll(".rhc-action-button")
+      ).toHaveLength(1);
+      expect(
+        element.shadowRoot.querySelector(".rhc-card").getAttribute("aria-label")
+      ).toBe("Account Health");
+    }
+  );
+
+  it("defaults an omitted Card Heading Display to title and subtitle", async () => {
+    const definition = makeDefinitions({
+      displayDescription: "Review the configured account checks."
+    });
+    delete definition.cardHeadingDisplay;
+    getCheckDefinitions.mockResolvedValue(definition);
+
+    await appendAndLoad(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__title")
+    ).not.toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__desc")
+    ).not.toBeNull();
+  });
+
+  it("rejects a nonblank unknown Card Heading Display", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ cardHeadingDisplay: "title_only" })
+    );
+
+    await appendAndLoad(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner")
+    ).not.toBeNull();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+  });
+
+  it("defaults an unknown shell heading value without hiding the card", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardTitle: "Account Health",
+      cardDescription: "Review the configured account checks.",
+      cardHeadingDisplay: "title_only",
+      runButtonDisplay: "LABEL_AND_ICON",
+      activeCheckCount: "2"
+    });
+
+    await appendAndLoad(element);
+
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__title")
+    ).not.toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__desc")
+    ).not.toBeNull();
+  });
+
+  it("removes both heading and action row when each is independently hidden", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay: "HIDE"
+      })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-body-action-row")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
+  });
+
+  it("keeps focus on the Run action when a refreshed heading moves it", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+
+    const originalAction =
+      element.shadowRoot.querySelector(".rhc-action-button");
+    originalAction.focus();
+    expect(element.shadowRoot.activeElement).toBe(originalAction);
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({ cardHeadingDisplay: "HIDE" })
+    );
+
+    originalAction.click();
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+
+    const replacementAction = element.shadowRoot.querySelector(
+      ".rhc-body-action-row .rhc-action-button"
+    );
+    expect(replacementAction).not.toBeNull();
+    expect(element.shadowRoot.activeElement).toBe(replacementAction);
+  });
+
+  it("moves focus to the card when refreshed configuration removes the action", async () => {
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+    await appendAndLoad(element);
+
+    const originalAction =
+      element.shadowRoot.querySelector(".rhc-action-button");
+    originalAction.focus();
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay: "HIDE"
+      })
+    );
+
+    originalAction.click();
+    await flushPromises();
+    await flushPromises();
+    await flushPromises();
+
+    const card = element.shadowRoot.querySelector("[data-card-root]");
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(element.shadowRoot.activeElement).toBe(card);
+  });
+
+  it("keeps the Check Set identity visible in App Builder when runtime headings hide", async () => {
+    window.history.replaceState({}, "", "/flexipageEditor/surface");
+    getCheckSetShellConfig.mockResolvedValue({
+      checkSetLabel: "Account Data Quality",
+      cardTitle: "Runtime title",
+      cardHeadingDisplay: "HIDE",
+      activeCheckCount: "2",
+      inactiveCheckCount: "0"
+    });
+
+    await appendAndLoad(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__title").textContent
+    ).toBe("Account Data Quality");
+    expect(
+      element.shadowRoot.querySelector(".rhc-header__desc")
+    ).not.toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+  });
+
   it("does not evaluate a Manual Check Set until the user clicks Run", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
     await appendAndLoad(element);
@@ -346,7 +583,7 @@ describe("c-record-health-check — load and error states", () => {
     expect(hint.textContent).not.toContain("1 checks");
   });
 
-  it("says first 25 in the pre-run hint when the set exceeds the cap", async () => {
+  it("blocks a legacy truncated response without evaluating any Check", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         revealMode: "OneAtATime",
@@ -356,8 +593,8 @@ describe("c-record-health-check — load and error states", () => {
     );
     await appendAndLoad(element);
 
-    const hint = element.shadowRoot.querySelector(".rhc-pre-run-hint");
-    expect(hint.textContent).toContain("the first 25 of 40 checks");
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(element.shadowRoot.textContent).toContain("No Checks were run");
   });
 
   it("uses the configured Run label in the pre-run hint", async () => {
@@ -975,8 +1212,7 @@ describe("c-record-health-check — load and error states", () => {
     delete window.cancelIdleCallback;
   });
 
-  it("describes an in-progress capped run when the automatic action is hidden", async () => {
-    const pending = deferred();
+  it("blocks a capped automatic run when its action is hidden", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         triggerMode: "Automatic",
@@ -985,15 +1221,10 @@ describe("c-record-health-check — load and error states", () => {
         totalAvailableCheckCount: 30
       })
     );
-    evaluateCheck.mockReturnValue(pending.promise);
     await appendAndLoad(element);
 
-    const hint = element.shadowRoot.querySelector(".rhc-pre-run-hint");
-    expect(hint).not.toBeNull();
-    expect(hint.textContent).toContain("Evaluating the first 25 of 30 checks.");
-
-    pending.resolve(PASS_RESULT("Check_A"));
-    await flushPromises();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    expect(element.shadowRoot.textContent).toContain("No Checks were run");
   });
 
   it("does not duplicate the limit instruction in a warning badge", async () => {
@@ -1395,6 +1626,41 @@ describe("c-record-health-check — run orchestration", () => {
     );
   });
 
+  it.each([1, 2])(
+    "hides the summary and preserves %s check rows on a bare card",
+    async (count) => {
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({
+          summaryDisplay: "HIDE",
+          cardHeadingDisplay: "HIDE",
+          runButtonDisplay: "HIDE",
+          triggerMode: "Automatic",
+          checks: makeDefinitions().checks.slice(0, count)
+        })
+      );
+      evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+        Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
+      );
+      await appendAndLoad(element);
+      await flushPromises();
+      expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-stats-bar")).toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-body-action-row")
+      ).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-body--bare-top")
+      ).not.toBeNull();
+      expect(
+        element.shadowRoot.querySelectorAll(".rhc-list > .rhc-row")
+      ).toHaveLength(count);
+      expect(element.shadowRoot.textContent).toContain(
+        `Completed Checks: ${count} / ${count}`
+      );
+    }
+  );
+
   it("rejects an unrecognized Summary Display value", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ summaryDisplay: "SIDEWAYS" })
@@ -1556,6 +1822,33 @@ describe("c-record-health-check — run orchestration", () => {
     );
 
     expect(normalized.expectedValueLabel).toBe("Passes when");
+  });
+
+  it("does not restore a restricted Formula condition from evaluation data", () => {
+    const normalized = normalizeResult(
+      {
+        evaluation: {
+          checkQualifiedApiName: "rhc__Formula_Check",
+          recordId: "001000000000001AAA",
+          status: "FAIL",
+          found: { storedValue: "false" },
+          expected: { storedValue: "Owner:User.IsActive" }
+        },
+        display: {
+          foundDisplayValue: "false",
+          expectedDisplayValue: null,
+          expectedValueLabel: null
+        }
+      },
+      {
+        developerName: "Formula_Check",
+        qualifiedApiName: "rhc__Formula_Check"
+      }
+    );
+
+    expect(normalized.actualValue).toBe("false");
+    expect(normalized.expectedValue).toBeNull();
+    expect(normalized.expectedValueLabel).toBeNull();
   });
 
   it("threads a correlation runId into both Apex calls", async () => {
@@ -2467,6 +2760,40 @@ describe("c-record-health-check — Prerequisite Check enforcement", () => {
     await clickRun(element);
 
     expect(evaluateCheck).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects an ambiguous unqualified prerequisite across foreign namespaces", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        checks: [
+          {
+            developerName: "Shared",
+            qualifiedApiName: "first__Shared",
+            label: "First",
+            priority: 1
+          },
+          {
+            developerName: "Shared",
+            qualifiedApiName: "second__Shared",
+            label: "Second",
+            priority: 2
+          },
+          {
+            developerName: "Dependent",
+            qualifiedApiName: "third__Dependent",
+            label: "Dependent",
+            priority: 3,
+            dependsOnCheckDeveloperName: "Shared"
+          }
+        ]
+      })
+    );
+    await appendAndLoad(element);
+    expect(element.shadowRoot.textContent).toContain(
+      "Record Health Check returned an unexpected response."
+    );
+    expect(element.shadowRoot.textContent).not.toContain("third__Dependent");
+    expect(evaluateCheck).not.toHaveBeenCalled();
   });
 
   it("resolves an unqualified prerequisite within the dependent Check namespace", async () => {
@@ -4034,6 +4361,275 @@ describe("annotateCheck — comparison disclosure matrix", () => {
   });
 });
 
+describe("annotateCheck — structured evidence", () => {
+  const check = {
+    qualifiedApiName: "RHC_SP_Evidence_Items",
+    uiState: "RESOLVED",
+    label: "Website uses HTTPS",
+    description: null,
+    result: {
+      status: "FAIL",
+      severity: "WARNING",
+      evidence: {
+        version: "1.0",
+        runId: "run-evidence-1",
+        checkIdentity: "RHC_SP_Evidence_Items",
+        recordId: "001000000000001AAA",
+        summary: "11 inactive approvers across 2 approval rules",
+        columns: [
+          { key: "stepNumber", label: "Step", dataType: "NUMBER" },
+          { key: "ruleName", label: "Rule", dataType: "STRING" }
+        ],
+        rows: Array.from({ length: 11 }, (_, index) => [
+          index < 6 ? 2 : 10,
+          index < 6 ? "Manager Approval" : "Executive Approval"
+        ]),
+        returnedItemCount: 11,
+        totalItemCount: 11,
+        completeness: "COMPLETE",
+        omittedItemCount: 0,
+        groupKeys: ["stepNumber", "ruleName"]
+      }
+    }
+  };
+
+  it("shows ten rows first, groups numeric steps, and labels complete downloads", () => {
+    const collapsed = annotateCheck(check, false, "OnDemand", false);
+    expect(collapsed.showEvidence).toBe(true);
+    expect(collapsed.evidenceExpanded).toBe(false);
+    expect(collapsed.evidenceDownloadLabel).toBe("Download full details");
+
+    const expanded = annotateCheck(
+      { ...check, evidenceExpanded: true },
+      false,
+      "OnDemand",
+      false
+    );
+    expect(expanded.evidenceVisibleRowCount).toBe(10);
+    expect(expanded.showAllEvidence).toBe(true);
+    expect(expanded.evidenceGroups.map((group) => group.step)).toEqual([2, 10]);
+  });
+
+  it("rejects malformed column declarations and mismatched evidence rows", () => {
+    for (const patch of [
+      { columns: [{ key: "value", label: "", dataType: "STRING" }] },
+      { rows: [[1]] },
+      { rows: [null] }
+    ]) {
+      const annotated = annotateCheck(
+        {
+          ...check,
+          result: {
+            ...check.result,
+            evidence: { ...check.result.evidence, ...patch }
+          }
+        },
+        false,
+        "OnDemand",
+        false
+      );
+      expect(annotated.evidenceUnavailable).toBe(true);
+      expect(annotated.evidenceSummary).toBe("Details unavailable.");
+    }
+  });
+
+  it("places unknown evidence steps after numbered steps without discarding groups", () => {
+    const annotated = annotateCheck(
+      {
+        ...check,
+        evidenceExpanded: true,
+        result: {
+          ...check.result,
+          evidence: {
+            ...check.result.evidence,
+            rows: [
+              [null, "Unassigned A"],
+              [2, "Numbered"],
+              [null, "Unassigned B"]
+            ],
+            returnedItemCount: 3,
+            totalItemCount: 3
+          }
+        }
+      },
+      false,
+      "OnDemand",
+      false
+    );
+    expect(annotated.evidenceGroups.map((group) => group.step)).toEqual([
+      2,
+      null,
+      null
+    ]);
+    expect(annotated.evidenceVisibleRowCount).toBe(3);
+  });
+
+  it("falls back locally for unknown evidence versions", () => {
+    const annotated = annotateCheck(
+      {
+        ...check,
+        result: {
+          ...check.result,
+          evidence: { ...check.result.evidence, version: "9.0" }
+        }
+      },
+      false,
+      "OnDemand",
+      false
+    );
+    expect(annotated.showEvidence).toBe(true);
+    expect(annotated.evidenceUnavailable).toBe(true);
+    expect(annotated.evidenceSummary).toBe("Details unavailable.");
+  });
+});
+
+describe("c-record-health-check — structured evidence interactions", () => {
+  it("preserves typed null cells through serialized Apex responses", async () => {
+    const result = {
+      evaluation: {
+        status: "FAIL",
+        severity: "WARNING",
+        checkQualifiedApiName: "Check_A",
+        recordId: "001000000000001AAA"
+      },
+      display: {
+        foundDisplayValue: "1",
+        expectedDisplayValue: "0",
+        evidence: {
+          version: "1.0",
+          summary: "Typed evidence fixture",
+          columns: [{ key: "value", label: "Value", dataType: "NUMBER" }],
+          rows: [[null]],
+          returnedItemCount: 1,
+          totalItemCount: 1,
+          omittedItemCount: 0,
+          completeness: "COMPLETE",
+          groupKeys: [null, null]
+        }
+      }
+    };
+    const element = await renderCompletedManualCard(JSON.stringify(result));
+    const toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
+    expect(toggle).not.toBeNull();
+    toggle.click();
+    await flushPromises();
+    expect(element.shadowRoot.textContent).toContain("Typed evidence fixture");
+    expect(
+      element.shadowRoot.querySelector(".rhc-evidence td").textContent
+    ).toBe("—");
+    expect(element.shadowRoot.textContent).not.toContain(
+      "Details unavailable."
+    );
+  });
+
+  it.each(["{", "null", '"unexpected"'])(
+    "rejects malformed serialized responses: %s",
+    async (payload) => {
+      const element = await renderCompletedManualCard(payload);
+      expect(element.shadowRoot.textContent).toContain(
+        "The server returned an invalid result. Contact your administrator."
+      );
+      expect(element.shadowRoot.querySelector(".rhc-evidence")).toBeNull();
+    }
+  );
+
+  it("expands ten rows, shows all rows, and restores focus on collapse", async () => {
+    const element = await renderCompletedManualCard(
+      makeStructuredEvidenceResult()
+    );
+    let toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
+
+    toggle.click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelectorAll(".rhc-evidence tbody tr")
+    ).toHaveLength(10);
+
+    element.shadowRoot.querySelector(".rhc-evidence__show-all").click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelectorAll(".rhc-evidence tbody tr")
+    ).toHaveLength(11);
+
+    toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
+    toggle.click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector(".rhc-evidence__region")
+    ).toBeNull();
+    expect(element.shadowRoot.activeElement).toBe(
+      element.shadowRoot.querySelector("[data-evidence-toggle]")
+    );
+    document.body.removeChild(element);
+  });
+
+  it("downloads the exact complete envelope with a filesystem-safe name", async () => {
+    const originalCreateObjectUrl = window.URL.createObjectURL;
+    const originalRevokeObjectUrl = window.URL.revokeObjectURL;
+    window.URL.createObjectURL = jest.fn(() => "blob:rhc-evidence");
+    window.URL.revokeObjectURL = jest.fn();
+    const clickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+    const element = await renderCompletedManualCard(
+      makeStructuredEvidenceResult()
+    );
+
+    const download = [...element.shadowRoot.querySelectorAll("button")].find(
+      (button) => button.textContent.trim() === "Download full details"
+    );
+    download.click();
+    await flushPromises();
+
+    expect(window.URL.createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = window.URL.createObjectURL.mock.calls[0][0];
+    expect(blob.type).toBe("application/json;charset=utf-8");
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(
+      "blob:rhc-evidence"
+    );
+
+    clickSpy.mockRestore();
+    window.URL.createObjectURL = originalCreateObjectUrl;
+    window.URL.revokeObjectURL = originalRevokeObjectUrl;
+    document.body.removeChild(element);
+  });
+
+  it("labels incomplete evidence as partial and cleans retained URLs on disconnect", async () => {
+    const originalRevokeObjectUrl = window.URL.revokeObjectURL;
+    window.URL.revokeObjectURL = jest.fn();
+    const element = await renderCompletedManualCard(
+      makeStructuredEvidenceResult({
+        completeness: "TRUNCATED",
+        returnedItemCount: 11,
+        totalItemCount: 15,
+        omittedItemCount: 4
+      })
+    );
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-evidence").textContent
+    ).toContain("Download returned details");
+    const originalCreateObjectUrl = window.URL.createObjectURL;
+    window.URL.createObjectURL = jest.fn(() => "blob:retained-evidence");
+    const clickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+    const download = [...element.shadowRoot.querySelectorAll("button")].find(
+      (button) => button.textContent.trim() === "Download returned details"
+    );
+    download.click();
+    document.body.removeChild(element);
+    await flushPromises();
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(
+      "blob:retained-evidence"
+    );
+    clickSpy.mockRestore();
+    window.URL.createObjectURL = originalCreateObjectUrl;
+    window.URL.revokeObjectURL = originalRevokeObjectUrl;
+  });
+});
+
 describe("annotateCheck — guided remediation", () => {
   const resolved = (result) => ({
     uiState: "RESOLVED",
@@ -4090,7 +4686,21 @@ describe("annotateCheck — guided remediation", () => {
 
   it("renders no action block on a PASS (server sends no link)", () => {
     const a = annotateCheck(
-      resolved({ status: "PASS", actualValue: "x", expectedValue: "y" }),
+      resolved({
+        status: "PASS",
+        actualValue: "x",
+        expectedValue: "y",
+        fixInstructions: "Forged plain fix",
+        displayContent: {
+          fix: [
+            {
+              kind: "link",
+              text: "Forged structured fix",
+              href: "/lightning/page/home"
+            }
+          ]
+        }
+      }),
       false,
       "OnDemand",
       false
@@ -4802,6 +5412,331 @@ describe("safeActionUrl — client-side scheme guard (HI-3)", () => {
   });
 });
 
+describe("structured display content — inline URL contract", () => {
+  const fallback = {
+    message: "Plain message",
+    fix: "Plain fix",
+    found: "Plain found",
+    expected: "Plain expected"
+  };
+
+  it("accepts strict same-org and HTTPS destinations", () => {
+    expect(safeInlineUrl("/lightning/r/Account/001/view?x=a%20b")).toBe(
+      "/lightning/r/Account/001/view?x=a%20b"
+    );
+    expect(safeInlineUrl("https://example.com:443/a?q=1#part")).toBe(
+      "https://example.com:443/a?q=1#part"
+    );
+    expect(safeInlineUrl("https://intranet/path")).toBe(
+      "https://intranet/path"
+    );
+    expect(safeInlineUrl("https://127.0.0.1:443/path")).toBe(
+      "https://127.0.0.1:443/path"
+    );
+    expect(safeInlineUrl("https://xn--bcher-kva.example/path")).toBe(
+      "https://xn--bcher-kva.example/path"
+    );
+  });
+
+  it.each([
+    "//evil.example/path",
+    "http://example.com",
+    "HTTPS://example.com/path",
+    "https://localhost/path",
+    "https://user@example.com/path",
+    "https://example.com:444/path",
+    "https://2147483648.1.1.1/path",
+    "https://1.1.1.2147483648/path",
+    `https://${"9".repeat(63)}.1.1.1/path`,
+    "https://example.com/%2e%2e/private",
+    "/a/../private",
+    "/a/%5cprivate",
+    "/a/%25payload",
+    "/a/%0d%0apayload",
+    "/a/☃"
+  ])("rejects unsafe destination %s", (url) => {
+    expect(safeInlineUrl(url)).toBeNull();
+  });
+
+  it("validates all fields and falls back only the malformed field", () => {
+    const normalized = normalizeDisplayContent(
+      {
+        version: 1,
+        message: [
+          { kind: "text", text: "Review " },
+          { kind: "link", text: "account", href: "/001" }
+        ],
+        fix: [
+          {
+            kind: "link",
+            text: "unsafe",
+            href: `${"javascript"}:alert(1)`
+          }
+        ],
+        found: [
+          { kind: "text", text: "Step 1" },
+          { kind: "break" },
+          { kind: "text", text: "Step 2" }
+        ],
+        expected: []
+      },
+      fallback
+    );
+
+    expect(normalized.message.map((node) => node.kind)).toEqual([
+      "text",
+      "link"
+    ]);
+    expect(normalized.fix).toEqual([
+      expect.objectContaining({ kind: "text", text: "Plain fix" })
+    ]);
+    expect(normalized.found.map((node) => node.kind)).toEqual([
+      "text",
+      "break",
+      "text"
+    ]);
+    expect(normalized.expected).toEqual([]);
+  });
+
+  it("preserves empty fallback values and rejects oversized node lists and decorated breaks", () => {
+    const empty = normalizeDisplayContent(null, {
+      message: "",
+      fix: null,
+      found: "",
+      expected: null
+    });
+    expect(empty.message).toEqual([
+      expect.objectContaining({ kind: "text", text: "" })
+    ]);
+    expect(empty.fix).toEqual([]);
+    for (const message of [
+      Array.from({ length: 1001 }, () => ({ kind: "break" })),
+      [{ kind: "break", text: "unexpected" }]
+    ]) {
+      expect(
+        normalizeDisplayContent({ version: 1, message }, fallback).message
+      ).toEqual([
+        expect.objectContaining({ kind: "text", text: "Plain message" })
+      ]);
+    }
+  });
+
+  it("renders valid fields when their combined envelope exceeds 64 KiB", async () => {
+    const field = Array.from({ length: 30 }, () => ({
+      kind: "link",
+      text: "Budget link",
+      href: "/fixture?padding=" + "x".repeat(1900)
+    }));
+    const displayContent = {
+      version: 1,
+      message: field,
+      fix: field,
+      found: field,
+      expected: field
+    };
+    expect(Buffer.byteLength(JSON.stringify(field), "utf8")).toBeLessThan(
+      65536
+    );
+    expect(
+      Buffer.byteLength(JSON.stringify(displayContent), "utf8")
+    ).toBeGreaterThan(65536);
+    expect(
+      Buffer.byteLength(JSON.stringify(displayContent), "utf8")
+    ).toBeLessThan(262144);
+    const normalized = normalizeDisplayContent(displayContent, fallback);
+    for (const name of ["message", "fix", "found", "expected"]) {
+      expect(
+        normalized[name].filter((node) => node.kind === "link")
+      ).toHaveLength(30);
+    }
+    const element = await renderCompletedManualCard({
+      status: "FAIL",
+      severity: "ERROR",
+      message: "Plain message",
+      fixInstructions: "Plain fix",
+      actualValue: "1",
+      expectedValue: "0",
+      displayContent
+    });
+    expect(
+      element.shadowRoot.querySelectorAll(".rhc-inline-link")
+    ).toHaveLength(120);
+  });
+
+  it("enforces UTF-8 field limits independently of the response limit", () => {
+    const fieldAtBytes = (bytes) => {
+      const field = Array.from({ length: 30 }, () => ({
+        kind: "link",
+        text: "Budget link",
+        href: "/fixture?padding=" + "x".repeat(1900)
+      }));
+      field.push({ kind: "text", text: "" });
+      const remaining =
+        bytes - Buffer.byteLength(JSON.stringify(field), "utf8");
+      field[field.length - 1].text =
+        "é".repeat(Math.floor(remaining / 2)) + "x".repeat(remaining % 2);
+      expect(Buffer.byteLength(JSON.stringify(field), "utf8")).toBe(bytes);
+      return field;
+    };
+    for (const bytes of [65535, 65536]) {
+      const content = normalizeDisplayContent(
+        { version: 1, message: fieldAtBytes(bytes) },
+        fallback
+      );
+      expect(
+        content.message.filter((node) => node.kind === "link")
+      ).toHaveLength(30);
+    }
+    const oversized = normalizeDisplayContent(
+      { version: 1, message: fieldAtBytes(65537) },
+      fallback
+    );
+    expect(oversized.message).toEqual([
+      expect.objectContaining({ kind: "text", text: "Plain message" })
+    ]);
+    const field = fieldAtBytes(65536);
+    const envelope = {
+      version: 1,
+      message: field,
+      fix: field,
+      found: field,
+      expected: field
+    };
+    expect(Buffer.byteLength(JSON.stringify(envelope), "utf8")).toBeGreaterThan(
+      262144
+    );
+    expect(normalizeDisplayContent(envelope, fallback).message).toEqual([
+      expect.objectContaining({ kind: "text", text: "Plain message" })
+    ]);
+  });
+
+  it("fails closed at every payload and size boundary", () => {
+    expect(safeInlineUrl("https://example.com:999999/path")).toBeNull();
+
+    for (const message of [
+      [null],
+      [{ kind: "text", text: 7 }],
+      [{ kind: "text", text: "x".repeat(20001) }]
+    ]) {
+      expect(
+        normalizeDisplayContent({ version: 1, message }, fallback).message
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ text: "Plain message" })
+        ])
+      );
+    }
+
+    const unicode = normalizeDisplayContent(
+      {
+        version: 1,
+        message: [{ kind: "text", text: "é東😀" }]
+      },
+      fallback
+    );
+    expect(unicode.message.map((node) => node.text).join("")).toBe("é東😀");
+
+    expect(
+      normalizeDisplayContent(
+        { version: 1, message: [{ kind: "text", text: "😀".repeat(17000) }] },
+        fallback
+      ).message
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ text: "Plain message" })
+      ])
+    );
+
+    expect(
+      normalizeDisplayContent({ version: 1, message: 1n }, fallback).message
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ text: "Plain message" })
+      ])
+    );
+  });
+
+  it("rejects unknown versions, envelope keys, node kinds, and attributes", () => {
+    for (const content of [
+      { version: 2, message: [] },
+      { version: 1, message: [], surprise: true },
+      { version: 1, message: [{ kind: "html", text: "<b>x</b>" }] },
+      {
+        version: 1,
+        message: [{ kind: "link", text: "x", href: "/001", onclick: "x" }]
+      }
+    ]) {
+      expect(normalizeDisplayContent(content, fallback)).toEqual(
+        expect.objectContaining({
+          message: [expect.objectContaining({ text: "Plain message" })]
+        })
+      );
+    }
+  });
+
+  it("renders real safe anchors and breaks without interpreting markup", async () => {
+    const element = await renderCompletedManualCard({
+      status: "FAIL",
+      severity: "ERROR",
+      message: "Plain message",
+      actualValue: "Plain found",
+      expectedValue: "Plain expected",
+      displayContent: {
+        version: 1,
+        message: [
+          { kind: "text", text: "Review <b>" },
+          { kind: "link", text: "account", href: "/001" }
+        ],
+        found: [
+          { kind: "text", text: "Step 1" },
+          { kind: "break" },
+          { kind: "text", text: "Step 2" }
+        ]
+      }
+    });
+
+    const link = element.shadowRoot.querySelector(".rhc-inline-link");
+    expect(link).not.toBeNull();
+    expect(link.getAttribute("href")).toBe("/001");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(link.getAttribute("aria-label")).toContain("new tab");
+    const bubbled = jest.fn();
+    link.parentElement.addEventListener("click", bubbled);
+    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+    click.preventDefault();
+    link.dispatchEvent(click);
+    expect(bubbled).not.toHaveBeenCalled();
+    const container = link.closest("[data-expandable]");
+    const content = container.querySelector("[data-clampcontent]");
+    Object.defineProperty(content, "clientHeight", {
+      configurable: true,
+      value: 20
+    });
+    Object.defineProperty(content, "scrollHeight", {
+      configurable: true,
+      value: 80
+    });
+    let resizeCallback;
+    const frame = jest
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((callback) => {
+        resizeCallback = callback;
+        return 1;
+      });
+    window.dispatchEvent(new CustomEvent("resize"));
+    resizeCallback();
+    expect(container.querySelector("[data-clamptoggle]").ariaLabel).toBe(
+      "Expand to access links"
+    );
+    frame.mockRestore();
+
+    expect(element.shadowRoot.querySelector(".rhc-row__message b")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-cmp__val br")).not.toBeNull();
+    document.body.removeChild(element);
+  });
+});
+
 describe("HealthCheckRunner — defensive orchestration branches", () => {
   it.each(["constructor", "toString", "valueOf", "hasOwnProperty"])(
     "runs and cleans up a valid Object.prototype-like Check name: %s",
@@ -5066,6 +6001,34 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
       .forEach((scheduler) => runner._releaseEvaluationSlot(scheduler));
   });
 
+  it("releases a granted slot when invalidated before the awaiting continuation", async () => {
+    evaluateCheck.mockClear();
+    const check = { developerName: "A" };
+    const runner = makeRunner(makeRunnerHost([check]));
+    runner._runToken = 1;
+    const held = await Promise.all(
+      Array.from({ length: 5 }, () => runner._acquireEvaluationSlot(1))
+    );
+    const release = jest.spyOn(runner, "_releaseEvaluationSlot");
+
+    const pending = runner._runOneCheck(
+      check,
+      new Map(),
+      new Map(),
+      jest.fn(),
+      1
+    );
+    runner._releaseEvaluationSlot(held[0]);
+    runner._runToken = 2;
+    await pending;
+
+    expect(release).toHaveBeenCalledTimes(2);
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    held
+      .slice(1)
+      .forEach((scheduler) => runner._releaseEvaluationSlot(scheduler));
+  });
+
   it("clears a concurrent run when a launcher rejects", async () => {
     const check = { developerName: "A" };
     const runner = makeRunner(makeRunnerHost([check]));
@@ -5141,7 +6104,7 @@ describe("coverage edge contracts", () => {
 describe("healthCheckModel — complete response contracts", () => {
   const check = { developerName: "Check_A", label: "Check A", priority: 1 };
 
-  it("normalizes the public evaluation and display result shape", () => {
+  it("treats explicit display values as authoritative", () => {
     const result = normalizeResult(
       {
         evaluation: {
@@ -5170,7 +6133,7 @@ describe("healthCheckModel — complete response contracts", () => {
       expect.objectContaining({
         checkDeveloperName: "Check_A",
         actualValue: "stored found",
-        expectedValue: "stored expected",
+        expectedValue: null,
         status: "FAIL"
       })
     );
@@ -5286,6 +6249,67 @@ describe("healthCheckModel — complete response contracts", () => {
     };
 
     expect(prerequisiteIdentity(dependent, checks)).toBe("Shared");
+  });
+});
+
+describe("Architecture dependency parity", () => {
+  it("D01 isolates cycle members, skips downstream, and runs a healthy branch", async () => {
+    const checks = [
+      {
+        developerName: "A",
+        label: "A",
+        dependsOnCheckDeveloperName: "B"
+      },
+      {
+        developerName: "B",
+        label: "B",
+        dependsOnCheckDeveloperName: "A"
+      },
+      {
+        developerName: "D",
+        label: "D",
+        dependsOnCheckDeveloperName: "A"
+      },
+      {
+        developerName: "C",
+        label: "C",
+        dependsOnCheckDeveloperName: null
+      }
+    ];
+    const host = makeRunnerHost(checks);
+    const runner = makeRunner(host);
+    evaluateCheck.mockClear();
+    completeRun.mockClear();
+    evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
+      Promise.resolve(PASS_RESULT(checkQualifiedApiName))
+    );
+
+    runner.run();
+    await flushPromises();
+    await flushPromises();
+
+    expect(evaluateCheck).toHaveBeenCalledTimes(1);
+    expect(evaluateCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ checkQualifiedApiName: "C" })
+    );
+    expect(host.checks.map((check) => check.result?.status)).toEqual([
+      "UNABLE_TO_EVALUATE",
+      "UNABLE_TO_EVALUATE",
+      "SKIPPED",
+      "PASS"
+    ]);
+    expect(host.checks[2].result.reasonCode).toBe("PREREQUISITE_NOT_MET");
+    expect(host.runComplete).toBe(true);
+  });
+
+  it("D02 keeps a self-cycle separate from its downstream dependent", () => {
+    const members = detectDependencyCycles([
+      { developerName: "A", dependsOnCheckDeveloperName: "A" },
+      { developerName: "B", dependsOnCheckDeveloperName: "A" },
+      { developerName: "C", dependsOnCheckDeveloperName: null }
+    ]);
+
+    expect([...members]).toEqual(["A"]);
   });
 });
 
@@ -5611,10 +6635,11 @@ describe("c-record-health-check — defensive UI permutations", () => {
     const row = element.shadowRoot.querySelector("li.rhc-tooltip-anchor");
     row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     window.dispatchEvent(new CustomEvent("resize"));
+    const callsAfterFirstResize = animationFrame.mock.calls.length;
     window.dispatchEvent(new CustomEvent("resize"));
     document.body.removeChild(element);
 
-    expect(animationFrame).toHaveBeenCalledTimes(2);
+    expect(animationFrame).toHaveBeenCalledTimes(callsAfterFirstResize);
     expect(cancelFrame).toHaveBeenCalledWith(42);
   });
 
@@ -6447,6 +7472,7 @@ describe("c-record-health-check — the card body never collapses to a header", 
     expect(body).not.toBeNull();
     return [...body.children]
       .filter((node) => !node.classList.contains("rhc-header"))
+      .filter((node) => !node.classList.contains("slds-assistive-text"))
       .filter((node) => !(node.tagName === "UL" && node.children.length === 0));
   };
 
@@ -6702,5 +7728,107 @@ describe("c-record-health-check — the card body never collapses to a header", 
     expect(
       element.shadowRoot.querySelectorAll("li.rhc-row").length
     ).toBeGreaterThan(0);
+  });
+});
+
+describe("card stale browser callbacks", () => {
+  it.each([false, true])(
+    "ignores a cancelled idle callback after definition load=%s",
+    async (loaded) => {
+      jest.clearAllMocks();
+      const callbacks = [];
+      Object.defineProperty(window, "requestIdleCallback", {
+        configurable: true,
+        value: jest.fn((callback) => {
+          callbacks.push(callback);
+          return callbacks.length;
+        })
+      });
+      Object.defineProperty(window, "cancelIdleCallback", {
+        configurable: true,
+        value: jest.fn()
+      });
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({ triggerMode: "Automatic" })
+      );
+      const element = createComponent();
+      try {
+        await appendAndLoad(element);
+        if (loaded) {
+          callbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
+          await flushPromises();
+          await flushPromises();
+        }
+        const definitionsBefore = getCheckDefinitions.mock.calls.length;
+        expect(callbacks[0]).toEqual(expect.any(Function));
+        document.body.removeChild(element);
+        callbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
+        await flushPromises();
+        expect(getCheckDefinitions).toHaveBeenCalledTimes(definitionsBefore);
+        expect(evaluateCheck).not.toHaveBeenCalled();
+      } finally {
+        if (element.isConnected) document.body.removeChild(element);
+        delete window.requestIdleCallback;
+        delete window.cancelIdleCallback;
+      }
+    }
+  );
+});
+
+describe("card context changes during asynchronous work", () => {
+  it("ignores a rejected definition response after moving to another record", async () => {
+    jest.clearAllMocks();
+    const oldRequest = deferred();
+    getCheckDefinitions
+      .mockReturnValueOnce(oldRequest.promise)
+      .mockResolvedValue(makeDefinitions());
+    const element = createComponent();
+    await appendAndLoad(element);
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+    element.recordId = "001000000000002AAA";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    oldRequest.reject(new Error("Old record failure"));
+    await flushPromises();
+    await flushPromises();
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    expect(element.shadowRoot.textContent).not.toContain("Old record failure");
+    document.body.removeChild(element);
+  });
+
+  it("ignores a rejected availability lookup after a Check Set is selected", async () => {
+    jest.clearAllMocks();
+    const oldLookup = deferred();
+    getCheckSetAvailabilityForRecord.mockReturnValueOnce(oldLookup.promise);
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    const element = createComponent();
+    element.checkSetName = "";
+    await appendAndLoad(element);
+    expect(getCheckSetAvailabilityForRecord).toHaveBeenCalledTimes(1);
+    element.checkSetName = "Account_Data_Quality";
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    oldLookup.reject(new Error("Old availability failure"));
+    await flushPromises();
+    await flushPromises();
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    expect(element.shadowRoot.textContent).not.toContain(
+      "Old availability failure"
+    );
+    document.body.removeChild(element);
+  });
+
+  it("acknowledges RefreshView without loading when no record is selected", async () => {
+    jest.clearAllMocks();
+    const element = createComponent();
+    element.recordId = null;
+    await appendAndLoad(element);
+    const refresh = registerRefreshHandler.mock.calls.at(-1)[1];
+    await expect(refresh()).resolves.toBe(true);
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    expect(getCheckDefinitions).not.toHaveBeenCalled();
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    document.body.removeChild(element);
   });
 });

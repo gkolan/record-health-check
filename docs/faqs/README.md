@@ -3,9 +3,9 @@
 Choose the topic that matches the decision or task. Both pages describe the same product at
 different levels of detail.
 
-| Question area | Start here |
-| --- | --- |
-| Purpose, fit, value, rollout, and day-to-day behavior | [Using Record Health Check](./using-record-health-check.md) |
+| Question area                                                      | Start here                                                  |
+| ------------------------------------------------------------------ | ----------------------------------------------------------- |
+| Purpose, fit, value, rollout, and day-to-day behavior              | [Using Record Health Check](./using-record-health-check.md) |
 | Setup, permissions, data access, operations, integration, and code | [Setup and troubleshooting](./setup-and-troubleshooting.md) |
 
 The first page explains outcomes, safety, effort, data handling, and adoption without requiring

@@ -20,10 +20,10 @@ Builder palettes.
 
 ## Choose the run experience
 
-| User experience | Check Set setting | When to use it | Platform Events |
-| --- | --- | --- | --- |
-| Results appear after the page opens | **When the page opens** (`RUN_ON_LOAD`) | Users need passive readiness guidance whenever they view the record | Never publishes |
-| The card waits for the user | **When the user clicks Run** (`RUN_ON_REQUEST`) | The review is deliberate, data may change first, or publication may be enabled | Run and Rerun can publish when configured |
+| User experience                     | Check Set setting                               | When to use it                                                                 | Platform Events                           |
+| ----------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------- |
+| Results appear after the page opens | **When the page opens** (`RUN_ON_LOAD`)         | Users need passive readiness guidance whenever they view the record            | Never publishes                           |
+| The card waits for the user         | **When the user clicks Run** (`RUN_ON_REQUEST`) | The review is deliberate, data may change first, or publication may be enabled | Run and Rerun can publish when configured |
 
 ## What the component is
 
@@ -76,22 +76,22 @@ absent for unauthorized viewers and never changes record or field access.
 If the Check Set dropdown is empty, first confirm that the Check Set is active and its **Object**
 exactly matches the record-page object. The page builder needs Salesforce page-editing privileges and picker access supplied by **Record Health Check Card User**, **User**, or **Admin**. Refresh App Builder after permission changes and verify the package installation.
 
-| Card label | Programmatic status | Meaning |
-| --- | --- | --- |
-| Pass | `PASS` | Requirement met |
-| Failed, Warning, or Info | `FAIL` | Requirement not met; severity changes presentation |
-| Skipped | `SKIPPED` | Check did not apply |
-| Unable to Check | `UNABLE_TO_EVALUATE` | No reliable answer because of data, access, configuration, or limits |
-| System Error | `ERROR` | Framework or custom Apex problem |
+| Card label               | Programmatic status  | Meaning                                                              |
+| ------------------------ | -------------------- | -------------------------------------------------------------------- |
+| Pass                     | `PASS`               | Requirement met                                                      |
+| Failed, Warning, or Info | `FAIL`               | Requirement not met; severity changes presentation                   |
+| Skipped                  | `SKIPPED`            | Check did not apply                                                  |
+| Unable to Check          | `UNABLE_TO_EVALUATE` | No reliable answer because of data, access, configuration, or limits |
+| System Error             | `ERROR`              | Framework or custom Apex problem                                     |
 
 ## When the card publishes result events
 
-| Component action | Source | Set event | Check events |
-| --- | --- | --- | --- |
-| Automatic page-load run | `RUN_ON_LOAD` | Never | Never |
-| Record-save or RefreshView rerun | `RUN_ON_LOAD` | Never | Never |
-| User clicks Run | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
-| User clicks Rerun | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
+| Component action                 | Source           | Set event         | Check events   |
+| -------------------------------- | ---------------- | ----------------- | -------------- |
+| Automatic page-load run          | `RUN_ON_LOAD`    | Never             | Never          |
+| Record-save or RefreshView rerun | `RUN_ON_LOAD`    | Never             | Never          |
+| User clicks Run                  | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
+| User clicks Rerun                | `USER_INITIATED` | Enabled Check Set | Enabled Checks |
 
 Leave these settings off when users only need results on the card:
 
@@ -118,17 +118,17 @@ Rerun provide the deliberate boundary required before publication is eligible.
 
 ## Component inputs and visible outputs
 
-| Input/context | Meaning |
-| --- | --- |
-| Check Set selected in App Builder | One active Check Set whose Object matches the record page. The dropdown shows its Label and stores its exact Qualified API Name. |
-| Current record ID | Record evaluated |
-| **When the page opens** (`RUN_ON_LOAD`) | Render a quiet local shell first. At browser idle, resolve the lightweight Check Set configuration; a later idle turn loads definitions and evaluates. Publication remains blocked. |
-| **When the user clicks Run** (`RUN_ON_REQUEST`) | Render a quiet local shell first. At browser idle, resolve the lightweight Check Set configuration, then defer definitions and evaluation until the user selects Run. |
-| Check Set **Run Button Display** | Show label and icon, label only, a compact icon, or hide the action on automatic Check Sets only |
-| Run or Rerun button | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank. |
+| Input/context                                   | Meaning                                                                                                                                                                             |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Check Set selected in App Builder               | One active Check Set whose Object matches the record page. The dropdown shows its Label and stores its exact Qualified API Name.                                                    |
+| Current record ID                               | Record evaluated                                                                                                                                                                    |
+| **When the page opens** (`RUN_ON_LOAD`)         | Render a quiet local shell first. At browser idle, resolve the lightweight Check Set configuration; a later idle turn loads definitions and evaluates. Publication remains blocked. |
+| **When the user clicks Run** (`RUN_ON_REQUEST`) | Render a quiet local shell first. At browser idle, resolve the lightweight Check Set configuration, then defer definitions and evaluation until the user selects Run.               |
+| Check Set **Run Button Display**                | Show label and icon, label only, a compact icon, or hide the action on automatic Check Sets only                                                                                    |
+| Run or Rerun button                             | Explicit user-initiated run; publication can be enabled. Custom labels fall back to **Run** and **Rerun** when blank.                                                               |
 
 When the display is **Hide**, the card removes the complete action area, so the title and subtitle
-can use that space. **Icon only** uses a compact square button and retains an accessible Run or
+can use that space. **Show icon only** uses a compact square button and retains an accessible Run or
 Rerun name for assistive technology. An invalid custom icon name falls back to the built-in play
 icon. A limit notice still reserves the space it needs in the header.
 

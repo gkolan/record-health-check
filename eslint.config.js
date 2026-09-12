@@ -28,6 +28,15 @@ module.exports = defineConfig([
     extends: [...lockerConfig]
   },
 
+  // Enforce braces on maintained source, not saved org-readback evidence.
+  {
+    files: ["packages/**/lwc/**/*.js", "subscriber-app/**/lwc/**/*.js"],
+    ignores: ["**/__tests__/**", "**/__mocks__/**"],
+    rules: {
+      curly: ["error", "all"]
+    }
+  },
+
   // LWC configuration with override for LWC test files
   {
     files: ["**/lwc/**/*.test.js"],

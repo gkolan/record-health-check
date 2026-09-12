@@ -12,15 +12,16 @@ Record Health Check reads Salesforce data with the access of the user who starts
 not grant access to a record or field the user cannot already read. A standard Check does not change
 the checked record.
 
-The package protects five separate areas:
+The package protects six separate areas:
 
-| Area | Protection |
-| --- | --- |
-| Starting a run | Requires the **Record Health Check Run** Custom Permission and access to the appropriate Apex entry point |
-| Reading Salesforce data | Package queries use `WITH USER_MODE` and package classes use `with sharing` |
-| Reading Check definitions | After Run authorization succeeds, packaged Custom Metadata definitions load in system mode; this does not grant access to business records or configuration editing |
-| Viewing troubleshooting detail | Requires both the Check Set setting and a direct packaged Admin or Diagnostics Viewer Permission Set assignment |
-| Publishing or receiving events | Requires Platform Event permissions and an explicit publication choice or setting |
+| Area                           | Protection                                                                                                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Starting a run                 | Requires the **Record Health Check Run** Custom Permission and access to the appropriate Apex entry point                                                           |
+| Reading customer data          | Evaluation queries use `WITH USER_MODE` and package classes use `with sharing`                                                                                      |
+| Reading Check definitions      | After Run authorization succeeds, packaged Custom Metadata definitions load in system mode; this does not grant access to business records or configuration editing |
+| Managing readiness receipts    | After Admin plus Run authorization, a bounded with-sharing service manages private package-owned evidence; it never elevates customer-record evaluation             |
+| Viewing troubleshooting detail | Requires both the Check Set setting and a direct packaged Admin or Diagnostics Viewer Permission Set assignment                                                     |
+| Publishing or receiving events | Requires Platform Event permissions and an explicit publication choice or setting                                                                                   |
 
 ## Choose the correct Permission Set
 
@@ -36,14 +37,14 @@ To assign one, go to **Setup → Permission Sets**, open the installed Permissio
 **Record Health Check Run**; that name belongs to the Custom Permission contained in the installed
 Permission Sets.
 
-| Installed Permission Set | What it provides | Assign it to |
-| --- | --- | --- |
-| **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`) | Run Custom Permission, Lightning controller and App Builder picker classes, and Create access for card lifecycle events | People who only configure or run the record-page card; this is the least-privilege default for interactive users and supports explicitly enabled card publication |
-| **Record Health Check User** (`rhc__Record_Health_Check_User`) | Run Custom Permission; access to Lightning, Apex, Flow, Agentforce, REST, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for Set Run and Check Result events | Automation principals that use those broader entry points; not the default card-only assignment |
-| **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) | Runner access plus diagnostics, Custom Metadata type visibility, validation, and App Builder picklist access | Administrators who maintain or troubleshoot Checks; creating Custom Metadata also requires Salesforce Customize Application or equivalent access |
-| **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`) | Run Custom Permission, the versioned Apex REST adapter, and read access to both Custom Metadata Types; excludes UI, Flow, Agentforce, async Apex, lifecycle events, and diagnostics | Dedicated least-privilege MCP integration users |
-| **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`) | Diagnostics authorization only; no Run permission, Apex, metadata, object, field, or event access | Affected Card User or User assignments that need temporary diagnostic visibility without Admin access |
-| **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create) | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data |
+| Installed Permission Set                                                                     | What it provides                                                                                                                                                                                                           | Assign it to                                                                                                                                                      |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Record Health Check Card User** (`rhc__Record_Health_Check_Card_User`)                     | Run Custom Permission, Lightning controller and App Builder picker classes, and Create access for card lifecycle events                                                                                                    | People who only configure or run the record-page card; this is the least-privilege default for interactive users and supports explicitly enabled card publication |
+| **Record Health Check User** (`rhc__Record_Health_Check_User`)                               | Run Custom Permission; access to Lightning, Apex, Flow, Agentforce, REST, Queueable, Batch, and Scheduled entry classes; read access to both Custom Metadata Types; create/read access for Set Run and Check Result events | Automation principals that use those broader entry points; not the default card-only assignment                                                                   |
+| **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`)                             | Runner access plus diagnostics, Custom Metadata type visibility, validation, and App Builder picklist access                                                                                                               | Administrators who maintain or troubleshoot Checks; creating Custom Metadata also requires Salesforce Customize Application or equivalent access                  |
+| **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`)         | Run Custom Permission, the versioned Apex REST adapter, and read access to both Custom Metadata Types; excludes UI, Flow, Agentforce, async Apex, lifecycle events, and diagnostics                                        | Dedicated least-privilege MCP integration users                                                                                                                   |
+| **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`)   | Diagnostics authorization only; no Run permission, Apex, metadata, object, field, or event access                                                                                                                          | Affected Card User or User assignments that need temporary diagnostic visibility without Admin access                                                             |
+| **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create)                                                                                                                         | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data                                     |
 
 Do not assign the Admin Permission Set merely because a person needs to run a Check. Diagnostic
 detail can include formula text, SOQL text, and specific access problems.
@@ -56,15 +57,15 @@ user, or monitoring tool that needs restricted troubleshooting details.
 
 The user who starts each Salesforce transaction supplies the access used in that transaction.
 
-| How the run starts | Which user's access applies? |
-| --- | --- |
-| Person opens or runs the Lightning card | That person's access |
-| Screen Flow | The interactive user and execution context Salesforce gives that Flow transaction |
-| Record-triggered or autolaunched Flow | The user and execution context Salesforce gives that Flow transaction; do not assume system context bypasses package authorization or user-mode data reads |
-| Apex | The user running the Apex transaction |
-| Queueable Apex | The user under whom Salesforce executes the queued transaction; investigate its `AsyncApexJob` separately from submission |
-| Batch Apex | The user under whom Salesforce executes the Batch transaction |
-| Scheduled Apex | The scheduling user; the packaged scheduler rechecks authorization and starts Batch Apex |
+| How the run starts                      | Which user's access applies?                                                                                                                               |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Person opens or runs the Lightning card | That person's access                                                                                                                                       |
+| Screen Flow                             | The interactive user and execution context Salesforce gives that Flow transaction                                                                          |
+| Record-triggered or autolaunched Flow   | The user and execution context Salesforce gives that Flow transaction; do not assume system context bypasses package authorization or user-mode data reads |
+| Apex                                    | The user running the Apex transaction                                                                                                                      |
+| Queueable Apex                          | The user under whom Salesforce executes the queued transaction; investigate its `AsyncApexJob` separately from submission                                  |
+| Batch Apex                              | The user under whom Salesforce executes the Batch transaction                                                                                              |
+| Scheduled Apex                          | The scheduling user; the packaged scheduler rechecks authorization and starts Batch Apex                                                                   |
 
 Record Health Check queries business records with `WITH USER_MODE`. Salesforce therefore enforces
 object access, field access, record sharing, restriction rules, scoping rules, and future user-mode
@@ -94,6 +95,22 @@ missing Run Custom Permission can stop the request before individual results exi
 Before rollout, test with a real user from each intended access group. An administrator's successful
 test does not prove that a sales or service user can read every field required by the Check.
 
+### Private readiness evidence
+
+Preview readiness receipts are package-owned operational evidence, not customer business records or
+saved health-result history. Every Preview and expired-receipt cleanup request first requires the
+packaged Admin and Run authorizations. Only after that check does the with-sharing readiness service
+use its reviewed system-mode operations: two queries and one delete. Current-receipt lookup binds the
+running actor, org, Check, Set, definition fingerprint, and normalized scope digest, returns at most
+200 rows, and does not return representative record IDs or business values. Cleanup requires explicit
+confirmation, selects only expired rows, and deletes at most 200 at a time.
+
+The Admin Permission Set grants Read plus the Edit/Delete object combination Salesforce requires,
+but receipt fields are read-only and a validation rule rejects updates. Receipt creation remains a
+service operation. The Readiness Auditor Permission Set is read-only and does not authorize Preview,
+cleanup, or Check execution. These narrow exceptions do not change the rule that every Account,
+Opportunity, Case, or other customer-record query used for evaluation runs in user mode.
+
 Formula globals such as `$User` are not a supported way to branch a Formula Check by caller. For a
 page-versus-automation incident, use the
 [execution-context troubleshooting guide](../diagnostics/troubleshoot-execution-context.md) to distinguish access,
@@ -103,13 +120,13 @@ identity, timezone, and asynchronous transaction boundaries before changing the 
 
 Source Query, Comparison Query, and applicability count query text is inspected before it runs.
 
-| Query condition | Package behavior |
-| --- | --- |
-| Contains `WITH SYSTEM_MODE` | Rejects the query as `INVALID_SOQL_TEMPLATE` |
-| Contains a data-changing keyword such as `INSERT`, `UPDATE`, `DELETE`, `UPSERT`, or `MERGE` | Rejects the query as `INVALID_SOQL_TEMPLATE` |
-| Does not contain `WITH USER_MODE` | Adds `WITH USER_MODE` in the supported location |
-| Requests an outer `LIMIT` above 2,000 | Lowers that outer limit to 2,000 |
-| Uses a merge token other than `record.*` | Rejects the query |
+| Query condition                                                                             | Package behavior                                |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Contains `WITH SYSTEM_MODE`                                                                 | Rejects the query as `INVALID_SOQL_TEMPLATE`    |
+| Contains a data-changing keyword such as `INSERT`, `UPDATE`, `DELETE`, `UPSERT`, or `MERGE` | Rejects the query as `INVALID_SOQL_TEMPLATE`    |
+| Does not contain `WITH USER_MODE`                                                           | Adds `WITH USER_MODE` in the supported location |
+| Requests an outer `LIMIT` above 2,000                                                       | Lowers that outer limit to 2,000                |
+| Uses a merge token other than `record.*`                                                    | Rejects the query                               |
 
 Merge-token values are converted to the Salesforce data type required by the field and safely
 inserted into the query. A missing or invalid value returns a documented Reason Code instead of
@@ -169,13 +186,14 @@ Check without telling a normal user which hidden field or record caused the prob
 The package does not install a result-history object and does not write Found or Expected values
 back to the checked record.
 
-| Information | Saved by Record Health Check? |
-| --- | --- |
-| Status, Reason Code, Found, and Expected in the returned response | No; returned to the current Apex, Flow, or Lightning caller |
-| Checked record changes | No |
-| Check Set and Check configuration | Yes; stored as Custom Metadata |
-| `[RHC]` lines | Present only in Salesforce debug logs according to the org's log retention |
-| Error details waiting for logger `flush()` | Held only for the current transaction, then published or discarded |
+| Information                                                       | Saved by Record Health Check?                                                                                                          |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Status, Reason Code, Found, and Expected in the returned response | No; returned to the current Apex, Flow, or Lightning caller                                                                            |
+| Checked record changes                                            | No                                                                                                                                     |
+| Check Set and Check configuration                                 | Yes; stored as Custom Metadata                                                                                                         |
+| Explicit Preview readiness receipt                                | Yes; stores identities, fingerprint, aggregate counts, capability state, actor/org, scope digest, and expiry, but no record IDs/values |
+| `[RHC]` lines                                                     | Present only in Salesforce debug logs according to the org's log retention                                                             |
+| Error details waiting for logger `flush()`                        | Held only for the current transaction, then published or discarded                                                                     |
 
 When history is required, create a custom object owned by your team and save only the returned fields
 that the business needs. Apply object, field, sharing, and retention controls to that object. See

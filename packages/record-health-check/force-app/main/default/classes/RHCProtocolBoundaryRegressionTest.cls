@@ -118,11 +118,11 @@ private with sharing class RHCProtocolBoundaryRegressionTest {
   static void pluginCacheKeepsSharedClassChecksSeparate() {
     Record_Health_Check__mdt first = apexCheck(
       'First_Check',
-      '{"mode":"first"}'
+      '{"daysBack":30}'
     );
     Record_Health_Check__mdt second = apexCheck(
       'Second_Check',
-      '{"mode":"second"}'
+      '{"daysBack":60}'
     );
 
     Test.startTest();
@@ -131,6 +131,18 @@ private with sharing class RHCProtocolBoundaryRegressionTest {
     );
     Boolean secondValid = RecordHealthCheckConfigValidator.isValidApexPlugin(
       second
+    );
+    Assert.areEqual(
+      30,
+      RecordHealthCheckConfigValidator.validatedParameters(first)
+        .get('daysBack'),
+      'The first Check must retain its own normalized look-back window.'
+    );
+    Assert.areEqual(
+      60,
+      RecordHealthCheckConfigValidator.validatedParameters(second)
+        .get('daysBack'),
+      'The second Check must retain its own normalized look-back window.'
     );
     RecordHealthCheckPlugin firstPlugin = RecordHealthCheckConfigValidator.takeValidatedPlugin(
       first

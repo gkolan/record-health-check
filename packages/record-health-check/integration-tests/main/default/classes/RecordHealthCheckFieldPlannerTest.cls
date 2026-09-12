@@ -200,7 +200,10 @@ private class RecordHealthCheckFieldPlannerTest {
       RecordHealthCheckTestDataFactory.check(new Map<String, Object>()),
       Account.SObjectType
     );
-    Assert.isTrue(fields.contains('Id'));
+    Assert.isTrue(
+      fields.contains('Id'),
+      'Even a minimal Check must plan the record identity field.'
+    );
   }
 
   @IsTest

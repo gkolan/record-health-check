@@ -33,7 +33,11 @@ private with sharing class RecordHealthCheckEvaluatorRegistryTest {
       .get(record.Id);
     Test.stopTest();
 
-    Assert.areEqual(RecordHealthCheckStatus.FAIL, result.status);
+    Assert.areEqual(
+      RecordHealthCheckStatus.FAIL,
+      result.status,
+      'The registered evaluator must preserve its FAIL verdict.'
+    );
     Assert.areEqual(
       'Run registry-run-test from FLOW',
       result.message,
@@ -96,7 +100,11 @@ private with sharing class RecordHealthCheckEvaluatorRegistryTest {
         );
       Assert.fail('The Apex adapter must preserve fatal side effects.');
     } catch (RecordHealthCheckPluginDispatch.SideEffectException error) {
-      Assert.areEqual('QUEUEABLE', error.effect);
+      Assert.areEqual(
+        'QUEUEABLE',
+        error.effect,
+        'Async side effects must identify QUEUEABLE.'
+      );
     }
   }
 }

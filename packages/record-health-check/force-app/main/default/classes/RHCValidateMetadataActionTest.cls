@@ -6,10 +6,26 @@ private class RHCValidateMetadataActionTest {
     List<RecordHealthCheckValidateMetadataAction.Result> results = RecordHealthCheckValidateMetadataAction.validateConfiguration();
     Test.stopTest();
 
-    Assert.areEqual(1, results.size());
-    Assert.isNotNull(results[0].isValid);
-    Assert.isNotNull(results[0].errorCount);
-    Assert.isNotNull(results[0].warningCount);
-    Assert.isNotNull(results[0].reportJson);
+    Assert.areEqual(
+      1,
+      results.size(),
+      'The validation action must return one summary.'
+    );
+    Assert.isNotNull(
+      results[0].isValid,
+      'The validation summary must report validity.'
+    );
+    Assert.isNotNull(
+      results[0].errorCount,
+      'The validation summary must report its error count.'
+    );
+    Assert.isNotNull(
+      results[0].warningCount,
+      'The validation summary must report its warning count.'
+    );
+    Assert.isNotNull(
+      results[0].reportJson,
+      'The validation summary must include its JSON report.'
+    );
   }
 }

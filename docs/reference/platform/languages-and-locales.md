@@ -35,15 +35,15 @@ by language. Automation must use these stable API values, not wording shown to a
 
 ## What Salesforce formats for each user
 
-| Result value | What the user sees |
-| --- | --- |
-| Number, Currency, Percent, or Ratio as Percent | The user's decimal mark and digit-grouping style |
-| Date | The user's Salesforce date format |
-| Date/Time | The user's Salesforce date, time, and time-zone settings |
-| Picklist value | The translated picklist label when the org has one; otherwise the available Salesforce label |
-| Checkbox or Boolean | The translated Record Health Check **Yes** or **No** Custom Label |
-| Currency in a single-currency org | The currency symbol where Salesforce can provide it |
-| Currency in a multiple-currency org | The ISO currency code, such as `USD` or `EUR` |
+| Result value                                   | What the user sees                                                                           |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Number, Currency, Percent, or Ratio as percent | The user's decimal mark and digit-grouping style                                             |
+| Date                                           | The user's Salesforce date format                                                            |
+| Date/Time                                      | The user's Salesforce date, time, and time-zone settings                                     |
+| Picklist value                                 | The translated picklist label when the org has one; otherwise the available Salesforce label |
+| Checkbox or Boolean                            | The translated Record Health Check **Yes** or **No** Custom Label                            |
+| Currency in a single-currency org              | The currency symbol where Salesforce can provide it                                          |
+| Currency in a multiple-currency org            | The ISO currency code, such as `USD` or `EUR`                                                |
 
 Example: two users can run the same Check against the same amount. One might see `70,000.50`; the
 other might see `70.000,50`. The Check result remains the same because formatting happens after the
@@ -71,11 +71,11 @@ that sentence in English unless your team chooses a different configuration for 
 
 Choose an approach before rollout:
 
-| Approach | When it fits | What the administrator maintains |
-| --- | --- | --- |
-| One shared language | Everyone can work in the same business language | One Check Set |
+| Approach                        | When it fits                                                  | What the administrator maintains                                                                                  |
+| ------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| One shared language             | Everyone can work in the same business language               | One Check Set                                                                                                     |
 | Separate Check Sets by language | Different groups require fully translated titles and messages | One Check Set per language, plus a clear way to place the correct Check Set on the record page used by each group |
-| Custom user interface | Language must be selected dynamically for each user | Your own component or automation that uses stable result fields and supplies translated wording |
+| Custom user interface           | Language must be selected dynamically for each user           | Your own component or automation that uses stable result fields and supplies translated wording                   |
 
 Test the chosen record-page assignments and visibility rules with a user from every intended
 language group. Record Health Check does not choose a Check Set automatically from `User.LanguageLocaleKey`.

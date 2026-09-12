@@ -13,22 +13,22 @@ and does not use your org's Platform Event allocation.
 
 ## Decide whether you need a Platform Event
 
-| Requirement | Recommended approach |
-| --- | --- |
-| The current Flow or Apex transaction needs the result immediately | Use the result returned by the [Flow action](../flow-guides/action-inputs-and-outputs.md) or [Apex API](../developer-guides/run-from-apex.md). |
-| A custom Batch must save results after each group of records | Use `NONE` and save the returned results in the Batch `execute()` method. |
-| A separate Flow, Apex trigger, or integration must receive results | Publish a Platform Event. |
-| Administrators need a lasting history | Save direct results or received events in a custom object created by your team. Platform Events are not permanent storage. |
+| Requirement                                                        | Recommended approach                                                                                                                           |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| The current Flow or Apex transaction needs the result immediately  | Use the result returned by the [Flow action](../flow-guides/action-inputs-and-outputs.md) or [Apex API](../developer-guides/run-from-apex.md). |
+| A custom Batch must save results after each group of records       | Use `NONE` and save the returned results in the Batch `execute()` method.                                                                      |
+| A separate Flow, Apex trigger, or integration must receive results | Publish a Platform Event.                                                                                                                      |
+| Administrators need a lasting history                              | Save direct results or received events in a custom object created by your team. Platform Events are not permanent storage.                     |
 
 ## Choose a Platform Event
 
 Record Health Check includes three Platform Events:
 
-| Event | What one event represents | Use it when |
-| --- | --- | --- |
-| [Record Health Check Set Run](./save-run-summaries.md) | One summary for one Salesforce record after its Check Set finishes | Totals are enough, such as 4 passed and 1 failed. Start here for history and dashboards. |
-| [Record Health Check Result](./save-individual-results.md) | One result for one Check and one Salesforce record | Receiving automation must know the exact Check, status, severity, or Reason Code. |
-| [Record Health Check Log](./save-restricted-errors.md) | One restricted technical error | A restricted administrator, developer, or support process must investigate Record Health Check errors. |
+| Event                                                      | What one event represents                                          | Use it when                                                                                            |
+| ---------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| [Record Health Check Set Run](./save-run-summaries.md)     | One summary for one Salesforce record after its Check Set finishes | Totals are enough, such as 4 passed and 1 failed. Start here for history and dashboards.               |
+| [Record Health Check Result](./save-individual-results.md) | One result for one Check and one Salesforce record                 | Receiving automation must know the exact Check, status, severity, or Reason Code.                      |
+| [Record Health Check Log](./save-restricted-errors.md)     | One restricted technical error                                     | A restricted administrator, developer, or support process must investigate Record Health Check errors. |
 
 Use Set Run alone when counts answer the business need. Publishing a Result event for every Check
 can create much more event traffic. Restrict Log access because its message and stack trace can
@@ -38,11 +38,11 @@ For the exact fields, see the [Platform Event metadata reference](../reference/p
 
 ## Choose how to receive the event
 
-| Receiving option | Use it when | Important consideration |
-| --- | --- | --- |
-| Platform Event-triggered Flow | An administrator needs to create records, route work, or send notifications without custom code. | Add a duplicate check before creating the destination record. Use fault paths for actions that can fail. |
-| Apex trigger | A development team needs bulk processing, complex transformations, or reusable handlers. | Include tests, bulk-safe record operations, duplicate handling, and error monitoring. |
-| External integration using Pub/Sub API | Middleware, a warehouse, or monitoring outside Salesforce needs the events. | Save a Replay ID only after durable processing and reconnect before Salesforce's retention window expires. |
+| Receiving option                       | Use it when                                                                                      | Important consideration                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Platform Event-triggered Flow          | An administrator needs to create records, route work, or send notifications without custom code. | Add a duplicate check before creating the destination record. Use fault paths for actions that can fail.   |
+| Apex trigger                           | A development team needs bulk processing, complex transformations, or reusable handlers.         | Include tests, bulk-safe record operations, duplicate handling, and error monitoring.                      |
+| External integration using Pub/Sub API | Middleware, a warehouse, or monitoring outside Salesforce needs the events.                      | Save a Replay ID only after durable processing and reconnect before Salesforce's retention window expires. |
 
 Receiving automation runs separately from the health check. Its failure does not change the result
 already returned to the user, Flow, Apex code, or Batch job.
@@ -91,13 +91,13 @@ integration must be safe when that happens.
 
 Plan how receiving automation responds before activating it.
 
-| Situation | What receiving automation should do |
-| --- | --- |
-| The Event ID already exists | End successfully without repeating the action. |
-| A temporary record lock or external-service interruption occurs | Retry a limited number of times. Keep every action safe to repeat. |
-| The event has an unsupported Contract Version or value | Save a review item and end processing so one event does not stop later events. |
-| Some records in an Apex trigger fail to save | Record each failed Event ID and error. Do not report the entire group as successful. |
-| The Flow, trigger, or integration is unavailable | Recover from saved destination records or the last external Replay ID. |
+| Situation                                                                        | What receiving automation should do                                                                       |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| The Event ID already exists                                                      | End successfully without repeating the action.                                                            |
+| A temporary record lock or external-service interruption occurs                  | Retry a limited number of times. Keep every action safe to repeat.                                        |
+| The event has an unsupported Contract Version or value                           | Save a review item and end processing so one event does not stop later events.                            |
+| Some records in an Apex trigger fail to save                                     | Record each failed Event ID and error. Do not report the entire group as successful.                      |
+| The Flow, trigger, or integration is unavailable                                 | Recover from saved destination records or the last external Replay ID.                                    |
 | An external integration is offline for longer than Salesforce retains the events | Reconcile from your saved history or original Salesforce records. The event bus is not permanent storage. |
 
 For an Apex Platform Event trigger, Salesforce provides resume checkpoints and retryable exceptions

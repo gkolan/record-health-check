@@ -52,13 +52,21 @@ private class RHCSoqlEvaluatorEdgeBehaviorIT {
       soql.runQueryForEvaluation('', 1);
       Assert.isTrue(false, 'Expected a template error.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'An empty query must retain the invalid-template reason.'
+      );
     }
     try {
       soql.resolveFieldList(new List<SObject>{ accountRecord }, null);
       Assert.isTrue(false, 'Expected a missing field error.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'An absent field selection must retain the invalid-template reason.'
+      );
     }
     try {
       RecordHealthCheckComparisonEngine.applySingleComparison(
@@ -69,7 +77,11 @@ private class RHCSoqlEvaluatorEdgeBehaviorIT {
       );
       Assert.isTrue(false, 'Expected an invalid operator.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_OPERATOR', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_OPERATOR',
+        ex.reasonCode,
+        'An unknown comparison operator must retain the invalid-operator reason.'
+      );
     }
     query.EmptyValueHandling__c = 'AS_BLANK';
     RecordHealthCheckComparisonEngine.applyListComparison(
@@ -86,15 +98,18 @@ private class RHCSoqlEvaluatorEdgeBehaviorIT {
         null,
         new List<Object>{ 'a' },
         query
-      )
+      ),
+      'SKIP_RECORD must leave a missing list operand indeterminate.'
     );
     Assert.areEqual(
       null,
-      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('SKIP')
+      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('SKIP'),
+      'An empty SKIP outcome must remain indeterminate.'
     );
     Assert.areEqual(
       null,
-      RecordHealthCheckComparisonEngine.resolveEmptyBehavior(null)
+      RecordHealthCheckComparisonEngine.resolveEmptyBehavior(null),
+      'An absent empty outcome must remain indeterminate.'
     );
     query.NoRowsResult__c = 'FAIL';
     query.FailureMessage__c = null;
@@ -105,14 +120,16 @@ private class RHCSoqlEvaluatorEdgeBehaviorIT {
           new RecordHealthCheckInternalResult(),
           null
         )
-        .message
+        .message,
+      'An empty result without an authored message must use the safe default.'
     );
     Assert.areEqual(
       false,
       RecordHealthCheckSoqlBindValueResolver.isMultiSelectPicklist(
         accountRecord,
         'Bogus.Name'
-      )
+      ),
+      'An invalid relationship path must not be identified as a multiselect picklist.'
     );
     Account child = (Account) JSON.deserialize(
       '{"attributes":{"type":"Account"},"Parent":{"attributes":{"type":"Account"},"Name":"Parent"}}',
@@ -123,12 +140,14 @@ private class RHCSoqlEvaluatorEdgeBehaviorIT {
       RecordHealthCheckSoqlBindValueResolver.resolveFieldPath(
         child,
         'Parent.Name'
-      )
+      ),
+      'A loaded parent field must resolve its exact value.'
     );
     query.UnableToEvaluateMessage__c = null;
     Assert.areEqual(
       'This check could not be evaluated. Contact your administrator.',
-      RecordHealthCheckQueryEvaluatorSupport.safeCannotEvaluateMessage(query)
+      RecordHealthCheckQueryEvaluatorSupport.safeCannotEvaluateMessage(query),
+      'An absent unable message must use the safe administrator guidance.'
     );
   }
 
@@ -166,7 +185,11 @@ private class RHCSoqlEvaluatorEdgeBehaviorIT {
       .evaluate(check, accountRecord.Id, accountRecord);
     Test.stopTest();
 
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'An unresolved query field must prevent evaluation.'
+    );
     Assert.areEqual(
       'FIELD_NOT_RESOLVED',
       result.reasonCode,
@@ -231,8 +254,16 @@ private class RHCSoqlEvaluatorEdgeBehaviorIT {
     String reasonCode
   ) {
     Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'An unable result must retain its status.'
+    );
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'An unable result must retain its reason.'
+    );
   }
 
   private static void assertStatus(

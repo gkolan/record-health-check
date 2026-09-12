@@ -32,7 +32,11 @@ private class RHCEvaluatorEdgeBehaviorIT {
       );
       Assert.isTrue(false, 'Expected disallowed phrase.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'FOR UPDATE must retain the invalid-template rejection.'
+      );
     }
 
     Assert.areEqual(
@@ -42,170 +46,52 @@ private class RHCEvaluatorEdgeBehaviorIT {
           'SELECT COUNT() FROM Contact WHERE AccountId = null',
           1
         )
-        .size()
+        .size(),
+      'A COUNT query must yield one aggregate row within the cap.'
     );
     try {
       soql.runQueryForEvaluation('SELECT Id FROM Account', 0);
       Assert.isTrue(false, 'Expected row cap exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('ROW_LIMIT_EXCEEDED', ex.reasonCode);
+      Assert.areEqual(
+        'ROW_LIMIT_EXCEEDED',
+        ex.reasonCode,
+        'A zero row cap must retain the row-limit reason.'
+      );
     }
     try {
       soql.runQueryForEvaluation('SELECT NotAField__c FROM Account', 1);
       Assert.isTrue(false, 'Expected invalid query exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('FIELD_NOT_RESOLVED', ex.reasonCode);
+      Assert.areEqual(
+        'FIELD_NOT_RESOLVED',
+        ex.reasonCode,
+        'An invalid selected field must retain the unresolved-field reason.'
+      );
     }
 
     Assert.areEqual(
       accountRecord.BillingCity,
-      soql.readQueryFieldValue(accountRecord, 'BillingCity')
+      soql.readQueryFieldValue(accountRecord, 'BillingCity'),
+      'Reading BillingCity must return the selected field value.'
     );
     try {
       soql.readQueryFieldValue(accountRecord, null);
       Assert.isTrue(false, 'Expected missing field exception.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_SOQL_TEMPLATE', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        ex.reasonCode,
+        'Reading an unspecified query field must reject the template.'
+      );
     }
     Assert.areEqual(
       1,
-      soql.resolveFieldList(accountRows, 'BillingCity').size()
+      soql.resolveFieldList(accountRows, 'BillingCity').size(),
+      'A one-row field projection must return one value.'
     );
 
-    Assert.areEqual(
-      true,
-      RecordHealthCheckComparisonEngine.applyUnaryComparison('IS_BLANK', ' ')
-    );
-    Assert.areEqual(
-      false,
-      RecordHealthCheckComparisonEngine.applyUnaryComparison(
-        'IS_NOT_BLANK',
-        null
-      )
-    );
-    try {
-      RecordHealthCheckComparisonEngine.applyUnaryComparison('Bogus', 'x');
-      Assert.isTrue(false, 'Expected an invalid unary operator exception.');
-    } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_OPERATOR', ex.reasonCode);
-    }
-    Assert.areEqual(
-      true,
-      RecordHealthCheckComparisonEngine.applySingleComparison(
-        'EQUALS',
-        5,
-        '5',
-        query
-      )
-    );
-    Assert.areEqual(
-      true,
-      RecordHealthCheckComparisonEngine.applySingleComparison(
-        'GREATER_THAN_OR_EQUAL',
-        5,
-        5,
-        query
-      )
-    );
-    Assert.areEqual(
-      true,
-      RecordHealthCheckComparisonEngine.applySingleComparison(
-        'LESS_THAN',
-        Date.today(),
-        Date.today().addDays(1),
-        query
-      )
-    );
-    Assert.areEqual(
-      true,
-      RecordHealthCheckComparisonEngine.applySingleComparison(
-        'LESS_THAN_OR_EQUAL',
-        Datetime.now(),
-        Datetime.now().addSeconds(1),
-        query
-      )
-    );
-    Record_Health_Check__mdt missingMeansNoMatch = query.clone();
-    missingMeansNoMatch.EmptyValueHandling__c = 'AS_NO_MATCH';
-    Assert.areEqual(
-      false,
-      RecordHealthCheckComparisonEngine.applySingleComparisonNullSafe(
-        'EQUALS',
-        null,
-        'x',
-        missingMeansNoMatch
-      )
-    );
-    query.EmptyValueHandling__c = 'AS_BLANK';
-    Assert.areEqual(
-      true,
-      RecordHealthCheckComparisonEngine.applySingleComparisonNullSafe(
-        'EQUALS',
-        null,
-        '',
-        query
-      )
-    );
-    query.EmptyValueHandling__c = 'SKIP_RECORD';
-    Assert.areEqual(
-      null,
-      RecordHealthCheckComparisonEngine.applySingleComparisonNullSafe(
-        'EQUALS',
-        null,
-        '',
-        query
-      )
-    );
-
-    Record_Health_Check__mdt emptyPassCheck = queryCheck('Helper_Empty_Pass');
-    emptyPassCheck.NoRowsResult__c = 'PASS';
-    Assert.areEqual(
-      true,
-      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
-        emptyPassCheck,
-        emptyRows,
-        'x',
-        null
-      )
-    );
-    Record_Health_Check__mdt anySkipped = queryCheck('Helper_Any_Skipped');
-    anySkipped.QueryResultHandling__c = 'ANY_ROW_PASSES';
-    anySkipped.EmptyValueHandling__c = 'SKIP_RECORD';
-    Assert.areEqual(
-      null,
-      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
-        anySkipped,
-        new List<Object>{ null },
-        'x',
-        null
-      )
-    );
-    Record_Health_Check__mdt allSkipped = anySkipped.clone();
-    allSkipped.DeveloperName = 'Helper_All_Skipped';
-    allSkipped.QueryResultHandling__c = 'ALL_ROWS_PASS';
-    Assert.areEqual(
-      null,
-      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
-        allSkipped,
-        new List<Object>{ null },
-        'x',
-        null
-      )
-    );
-    Record_Health_Check__mdt badMode = anySkipped.clone();
-    badMode.DeveloperName = 'Helper_Bad_Mode';
-    badMode.QueryResultHandling__c = 'Nope';
-    try {
-      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
-        badMode,
-        new List<Object>{ 'x' },
-        'x',
-        null
-      );
-      Assert.isTrue(false, 'Expected invalid mode.');
-    } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_OPERATOR', ex.reasonCode);
-    }
+    assertScalarAndMultiRowBehavior(query, emptyRows);
 
     query.EmptyValueHandling__c = 'AS_NO_MATCH';
     Assert.areEqual(
@@ -215,7 +101,8 @@ private class RHCEvaluatorEdgeBehaviorIT {
         null,
         new List<Object>{ 'a' },
         query
-      )
+      ),
+      'A missing search value must not match LIST_CONTAINS_ANY under AS_NO_MATCH.'
     );
     Assert.areEqual(
       true,
@@ -224,7 +111,8 @@ private class RHCEvaluatorEdgeBehaviorIT {
         null,
         new List<Object>{ 'a' },
         query
-      )
+      ),
+      'A missing search value must satisfy LIST_CONTAINS_NONE under AS_NO_MATCH.'
     );
     try {
       RecordHealthCheckComparisonEngine.applyListComparison(
@@ -235,65 +123,50 @@ private class RHCEvaluatorEdgeBehaviorIT {
       );
       Assert.isTrue(false, 'Expected invalid list operator.');
     } catch (RecordHealthCheckEvaluatorException ex) {
-      Assert.areEqual('INVALID_OPERATOR', ex.reasonCode);
+      Assert.areEqual(
+        'INVALID_OPERATOR',
+        ex.reasonCode,
+        'An unknown list operator must retain the invalid-operator reason.'
+      );
     }
     Assert.areEqual(
       false,
-      RecordHealthCheckComparisonEngine.applyEmptyValueHandling('AS_NO_MATCH')
+      RecordHealthCheckComparisonEngine.applyEmptyValueHandling('AS_NO_MATCH'),
+      'AS_NO_MATCH must resolve empty values as false.'
     );
     Assert.areEqual(
       null,
-      RecordHealthCheckComparisonEngine.applyEmptyValueHandling('SKIP_RECORD')
+      RecordHealthCheckComparisonEngine.applyEmptyValueHandling('SKIP_RECORD'),
+      'SKIP_RECORD must resolve empty values as indeterminate.'
     );
     Assert.areEqual(
       null,
-      RecordHealthCheckComparisonEngine.applyEmptyValueHandling(null)
+      RecordHealthCheckComparisonEngine.applyEmptyValueHandling(null),
+      'An absent empty-value mode must remain indeterminate.'
     );
     Assert.areEqual(
       false,
-      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('FAIL')
+      RecordHealthCheckComparisonEngine.resolveEmptyBehavior('FAIL'),
+      'An empty FAIL outcome must resolve as false.'
     );
     Assert.areEqual(
       null,
       RecordHealthCheckComparisonEngine.resolveEmptyBehavior(
         'UNABLE_TO_EVALUATE'
-      )
-    );
-    Assert.areEqual(
-      'FAIL',
-      soql.buildEmptyOrNullResult(
-          query,
-          new RecordHealthCheckInternalResult(),
-          null
-        )
-        .status
-    );
-    query.NoRowsResult__c = 'PASS';
-    Assert.areEqual(
-      'PASS',
-      soql.buildEmptyOrNullResult(
-          query,
-          new RecordHealthCheckInternalResult(),
-          null
-        )
-        .status
-    );
-    query.NoRowsResult__c = 'UNABLE_TO_EVALUATE';
-    assertReason(
-      soql.buildEmptyOrNullResult(
-        query,
-        new RecordHealthCheckInternalResult(),
-        null
       ),
-      'NO_ROWS_RETURNED'
+      'An empty UNABLE_TO_EVALUATE outcome must remain indeterminate.'
     );
+    assertEmptyResultOutcomes(query, soql);
+
     Assert.areEqual(
       true,
-      RecordHealthCheckValueResolver.isNumericObject(Decimal.valueOf('1.5'))
+      RecordHealthCheckValueResolver.isNumericObject(Decimal.valueOf('1.5')),
+      'A Decimal must be recognized as numeric.'
     );
     Assert.areEqual(
       false,
-      RecordHealthCheckValueResolver.isNumericObject('1.5')
+      RecordHealthCheckValueResolver.isNumericObject('1.5'),
+      'Numeric-looking text must not be treated as a numeric object.'
     );
   }
 
@@ -336,8 +209,16 @@ private class RHCEvaluatorEdgeBehaviorIT {
     String reasonCode
   ) {
     Assert.areNotEqual(null, result, 'Expected an unable result.');
-    Assert.areEqual('UNABLE_TO_EVALUATE', result.status);
-    Assert.areEqual(reasonCode, result.reasonCode);
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'An unable helper result must retain its terminal status.'
+    );
+    Assert.areEqual(
+      reasonCode,
+      result.reasonCode,
+      'An unable helper result must retain its specific reason.'
+    );
   }
 
   private static void assertStatus(
@@ -361,6 +242,200 @@ private class RHCEvaluatorEdgeBehaviorIT {
       reasonCode,
       result.reasonCode,
       'Unexpected status/detail: ' + result.status + ' ' + result.detailMessage
+    );
+  }
+  private static void assertScalarAndMultiRowBehavior(
+    Record_Health_Check__mdt query,
+    List<SObject> emptyRows
+  ) {
+    Assert.areEqual(
+      true,
+      RecordHealthCheckComparisonEngine.applyUnaryComparison('IS_BLANK', ' '),
+      'Whitespace must satisfy IS_BLANK.'
+    );
+    Assert.areEqual(
+      false,
+      RecordHealthCheckComparisonEngine.applyUnaryComparison(
+        'IS_NOT_BLANK',
+        null
+      ),
+      'A null value must not satisfy IS_NOT_BLANK.'
+    );
+    try {
+      RecordHealthCheckComparisonEngine.applyUnaryComparison('Bogus', 'x');
+      Assert.isTrue(false, 'Expected an invalid unary operator exception.');
+    } catch (RecordHealthCheckEvaluatorException ex) {
+      Assert.areEqual(
+        'INVALID_OPERATOR',
+        ex.reasonCode,
+        'An unknown unary operator must retain the invalid-operator reason.'
+      );
+    }
+    Assert.areEqual(
+      true,
+      RecordHealthCheckComparisonEngine.applySingleComparison(
+        'EQUALS',
+        5,
+        '5',
+        query
+      ),
+      'A numeric value and its fixed text operand must compare equal.'
+    );
+    Assert.areEqual(
+      true,
+      RecordHealthCheckComparisonEngine.applySingleComparison(
+        'GREATER_THAN_OR_EQUAL',
+        5,
+        5,
+        query
+      ),
+      'Equal numeric operands must satisfy GREATER_THAN_OR_EQUAL.'
+    );
+    Assert.areEqual(
+      true,
+      RecordHealthCheckComparisonEngine.applySingleComparison(
+        'LESS_THAN',
+        Date.today(),
+        Date.today().addDays(1),
+        query
+      ),
+      'Today must compare less than tomorrow.'
+    );
+    Assert.areEqual(
+      true,
+      RecordHealthCheckComparisonEngine.applySingleComparison(
+        'LESS_THAN_OR_EQUAL',
+        Datetime.now(),
+        Datetime.now().addSeconds(1),
+        query
+      ),
+      'An earlier timestamp must satisfy LESS_THAN_OR_EQUAL.'
+    );
+    Record_Health_Check__mdt missingMeansNoMatch = query.clone();
+    missingMeansNoMatch.EmptyValueHandling__c = 'AS_NO_MATCH';
+    Assert.areEqual(
+      false,
+      RecordHealthCheckComparisonEngine.applySingleComparisonNullSafe(
+        'EQUALS',
+        null,
+        'x',
+        missingMeansNoMatch
+      ),
+      'AS_NO_MATCH must reject a null operand as a match.'
+    );
+    query.EmptyValueHandling__c = 'AS_BLANK';
+    Assert.areEqual(
+      true,
+      RecordHealthCheckComparisonEngine.applySingleComparisonNullSafe(
+        'EQUALS',
+        null,
+        '',
+        query
+      ),
+      'AS_BLANK must compare null and empty text as equal.'
+    );
+    query.EmptyValueHandling__c = 'SKIP_RECORD';
+    Assert.areEqual(
+      null,
+      RecordHealthCheckComparisonEngine.applySingleComparisonNullSafe(
+        'EQUALS',
+        null,
+        '',
+        query
+      ),
+      'SKIP_RECORD must leave a null comparison indeterminate.'
+    );
+
+    Record_Health_Check__mdt emptyPassCheck = queryCheck('Helper_Empty_Pass');
+    emptyPassCheck.NoRowsResult__c = 'PASS';
+    Assert.areEqual(
+      true,
+      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
+        emptyPassCheck,
+        emptyRows,
+        'x',
+        null
+      ),
+      'An empty multirow query configured PASS must pass.'
+    );
+    Record_Health_Check__mdt anySkipped = queryCheck('Helper_Any_Skipped');
+    anySkipped.QueryResultHandling__c = 'ANY_ROW_PASSES';
+    anySkipped.EmptyValueHandling__c = 'SKIP_RECORD';
+    Assert.areEqual(
+      null,
+      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
+        anySkipped,
+        new List<Object>{ null },
+        'x',
+        null
+      ),
+      'ANY_ROW_PASSES with only skipped values must remain indeterminate.'
+    );
+    Record_Health_Check__mdt allSkipped = anySkipped.clone();
+    allSkipped.DeveloperName = 'Helper_All_Skipped';
+    allSkipped.QueryResultHandling__c = 'ALL_ROWS_PASS';
+    Assert.areEqual(
+      null,
+      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
+        allSkipped,
+        new List<Object>{ null },
+        'x',
+        null
+      ),
+      'ALL_ROWS_PASS with only skipped values must remain indeterminate.'
+    );
+    Record_Health_Check__mdt badMode = anySkipped.clone();
+    badMode.DeveloperName = 'Helper_Bad_Mode';
+    badMode.QueryResultHandling__c = 'Nope';
+    try {
+      RecordHealthCheckComparisonEngine.applyMultiRecordComparison(
+        badMode,
+        new List<Object>{ 'x' },
+        'x',
+        null
+      );
+      Assert.isTrue(false, 'Expected invalid mode.');
+    } catch (RecordHealthCheckEvaluatorException ex) {
+      Assert.areEqual(
+        'INVALID_OPERATOR',
+        ex.reasonCode,
+        'An unknown multirow mode must retain the invalid-operator reason.'
+      );
+    }
+  }
+  private static void assertEmptyResultOutcomes(
+    Record_Health_Check__mdt query,
+    RecordHealthCheckSoqlEvaluator soql
+  ) {
+    Assert.areEqual(
+      'FAIL',
+      soql.buildEmptyOrNullResult(
+          query,
+          new RecordHealthCheckInternalResult(),
+          null
+        )
+        .status,
+      'The empty-result builder must preserve configured FAIL.'
+    );
+    query.NoRowsResult__c = 'PASS';
+    Assert.areEqual(
+      'PASS',
+      soql.buildEmptyOrNullResult(
+          query,
+          new RecordHealthCheckInternalResult(),
+          null
+        )
+        .status,
+      'The empty-result builder must preserve configured PASS.'
+    );
+    query.NoRowsResult__c = 'UNABLE_TO_EVALUATE';
+    assertReason(
+      soql.buildEmptyOrNullResult(
+        query,
+        new RecordHealthCheckInternalResult(),
+        null
+      ),
+      'NO_ROWS_RETURNED'
     );
   }
 }

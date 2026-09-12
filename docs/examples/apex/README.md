@@ -16,11 +16,11 @@ It must return one result for every record ID.
 
 ## Choose an Apex example
 
-| Example | Salesforce question | What the Apex demonstrates | Availability |
-| --- | --- | --- | --- |
-| [Recent Account activity](./recent-activity.md) | Does the Account have a recent completed Task or Event? | Reads two objects and accepts a configurable number of days | Included with the installed package |
-| [Open Opportunity health](./open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks? | Applies several conditions to each related record | Source example for package development and testing; not installed |
-| [Strategic Account readiness](./strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Calculates a score using several configurable values | Source example for package development and testing; not installed |
+| Example                                                 | Salesforce question                                          | What the Apex demonstrates                                                                                                    | Availability                                                      |
+| ------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [Recent Account activity](./recent-activity.md)         | Does the Account have a recent completed Task or Event?      | Declares a typed parameter definition, returns typed evidence, recovers per record, and supplies an optional display override | Included with the installed package                               |
+| [Open Opportunity health](./open-opportunity-health.md) | Does any open Opportunity carry all three coaching risks?    | Applies several conditions to each related record                                                                             | Source example for package development and testing; not installed |
+| [Strategic Account readiness](./strategic-readiness.md) | Does a Strategic Account meet a configurable weighted score? | Calculates a score using several configurable values                                                                          | Source example for package development and testing; not installed |
 
 Only **Recent Account activity** is ready to use after package installation. The other two classes live
 under `packages/record-health-check/integration-tests` and are not installed. Their pages explain
@@ -37,11 +37,11 @@ that violates the plugin contract can produce System Error and a plugin Reason C
 The class must implement `rhc.RecordHealthCheckPlugin`. Record Health Check calls its `evaluate()`
 method once for all record IDs in the current transaction.
 
-| Apex value | What it contains |
-| --- | --- |
-| `scope.recordIds` | The records being checked: normally one from the Lightning card, or as many as 200 in one Apex or Flow request |
-| `scope.parameters` | The values an administrator entered in **Apex Parameters (JSON)** on the Check |
-| Returned `Map<Id, rhc.RecordHealthCheckOutcome>` | Exactly one `PASS`, `FAIL`, `SKIPPED`, or `UNABLE_TO_EVALUATE` outcome for every supplied record ID |
+| Apex value                                       | What it contains                                                                                               |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `scope.recordIds`                                | The records being checked: normally one from the Lightning card, or as many as 200 in one Apex or Flow request |
+| `scope.parameters`                               | The values an administrator entered in **Apex Parameters (JSON)** on the Check                                 |
+| Returned `Map<Id, rhc.RecordHealthCheckOutcome>` | Exactly one `PASS`, `FAIL`, `SKIPPED`, or `UNABLE_TO_EVALUATE` outcome for every supplied record ID            |
 
 Do not put record IDs in **Apex Parameters (JSON)**. Record Health Check supplies them in
 `scope.recordIds`. Copy that list once and use it in a SOQL `IN` filter so one query reads the data
@@ -71,7 +71,9 @@ handling an optional installed product. It also requires a developer to create, 
 deploy the class.
 
 Start with [Recent Account activity](./recent-activity.md) for the complete, installed example. It
-shows the class, its test behavior, every Check field, and what an administrator sees.
+shows the class, its test behavior, every Check field, and what an administrator sees. Its 2.0.10
+contract also demonstrates bounded typed parameters, typed evidence projection, per-record recovery
+through the record evaluator, and presentation-only display overrides with metadata fallback.
 
 ## Related
 

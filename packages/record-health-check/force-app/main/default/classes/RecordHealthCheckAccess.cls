@@ -14,7 +14,7 @@ public with sharing class RecordHealthCheckAccess {
   private static Map<Id, Boolean> detailsByUser = new Map<Id, Boolean>();
 
   /** Stable authorization failure raised when the runner entitlement is absent. */
-  public class AuthorizationException extends Exception {
+  public class AuthorizationException extends Exception implements RecordHealthCheckFatalFailure {
   }
 
   /** Returns whether the current user may initiate health-check execution. */
@@ -57,6 +57,17 @@ public with sharing class RecordHealthCheckAccess {
     return detailsByUser.get(userId);
   }
 
+  /** Returns whether the caller has a direct active package-administrator assignment. */
+  public static Boolean canAdminister() {
+    if (runPermissionOverride != null) {
+      return runPermissionOverride;
+    }
+    return hasDirectAssignment(
+      UserInfo.getUserId(),
+      new Set<String>{ 'Record_Health_Check_Admin' }
+    );
+  }
+
   /**
    * Reads only the caller's authorization metadata, not business records.
    * PermissionSetAssignment is unavailable to minimum-access users in USER_MODE.
@@ -64,15 +75,21 @@ public with sharing class RecordHealthCheckAccess {
    * and returns only a Boolean; it does not grant Setup access to the caller.
    */
   private static Boolean hasDirectDiagnosticsAssignment(Id userId) {
+    return hasDirectAssignment(
+      userId,
+      new Set<String>{
+        'Record_Health_Check_Admin',
+        'Record_Health_Check_Diagnostics_Viewer'
+      }
+    );
+  }
+
+  private static Boolean hasDirectAssignment(Id userId, Set<String> names) {
     String typeName = Record_Health_Check__mdt.SObjectType.getDescribe(
         SObjectDescribeOptions.DEFERRED
       )
       .getName();
     String packageNamespace = packageNamespaceForTypeName(typeName);
-    Set<String> names = new Set<String>{
-      'Record_Health_Check_Admin',
-      'Record_Health_Check_Diagnostics_Viewer'
-    };
     try {
       if (diagnosticsQueryExceptionForTest == true) {
         throw new QueryException('Forced diagnostics authorization failure.');

@@ -22,21 +22,21 @@ A service manager is preparing for the daily review of an important customer Acc
 
 ## What you will learn
 
-| Skill | How this example teaches it |
-| --- | --- |
-| Count a filtered backlog | SOQL counts only high-priority open Cases. |
-| Enforce a maximum | The Check passes while the count stays within team capacity. |
-| Make operational limits visible | **Found** shows the backlog and **Expected** shows the approved ceiling. |
-| Share results with automation | An optional Platform Event can tell a Flow, Apex trigger, or integration how the Check finished. |
+| Skill                           | How this example teaches it                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Count a filtered backlog        | SOQL counts only high-priority open Cases.                                                       |
+| Enforce a maximum               | The Check passes while the count stays within team capacity.                                     |
+| Make operational limits visible | **Found** shows the backlog and **Expected** shows the approved ceiling.                         |
+| Share results with automation   | An optional Platform Event can tell a Flow, Apex trigger, or integration how the Check finished. |
 
 ## Why use Verify with a query
 
-| Evaluation Type | Why it fits |
-| --- | --- |
-| **Verify with a query** | Best fit. `COUNT()` returns the number of visible open high-priority Cases, and **Less than or equal** compares that count with the approved limit. |
-| **Verify with a formula** | An Account formula cannot count related Cases unless a suitable roll-up field already exists. |
-| **Compare two queries** | Would require a second query even though the approved limit is a fixed value. |
-| **Verify with Apex** | Would add code for a related Case count and number comparison already supported by Verify with a query. |
+| Evaluation Type           | Why it fits                                                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Verify with a query**   | Best fit. `COUNT()` returns the number of visible open high-priority Cases, and **Less than or equal** compares that count with the approved limit. |
+| **Verify with a formula** | An Account formula cannot count related Cases unless a suitable roll-up field already exists.                                                       |
+| **Compare two queries**   | Would require a second query even though the approved limit is a fixed value.                                                                       |
+| **Verify with Apex**      | Would add code for a related Case count and number comparison already supported by Verify with a query.                                             |
 
 ## Why not use a Validation Rule or Report
 
@@ -74,62 +74,62 @@ card-only administrators can skip it.
 In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
 create this Check Set:
 
-| Setup field | Value |
-| --- | --- |
-| **Label** | Account Related Record Review |
-| **Record Health Check Set Name** | `Account_Related_Record_Review` |
-| **Object** | `Account` |
-| **Card Title** | Related Record Review |
-| **Card Subtitle** | Confirm open high-priority Cases stay within capacity. |
-| **When Checks Run** | When the user clicks Run |
-| **Summary Display** | Below Checks |
-| **Reveal Mode** | One by one |
-| **Passed Checks** | Show each check |
-| **Skipped Checks** | Show each check |
-| **Found/Expected Display** | On demand |
-| **Stop after a system error** | Unchecked |
-| **Show Diagnostics** | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event** | Unchecked unless a Flow, Apex trigger, or integration needs one summary after the Check Set finishes |
-| **Active** | Checked |
+| Setup field                      | Value                                                                                                |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Label**                        | Account Related Record Review                                                                        |
+| **Record Health Check Set Name** | `Account_Related_Record_Review`                                                                      |
+| **Object**                       | `Account`                                                                                            |
+| **Card Title**                   | Related Record Review                                                                                |
+| **Card Subtitle**                | Confirm open high-priority Cases stay within capacity.                                               |
+| **When Checks Run**              | When the user clicks Run                                                                             |
+| **Summary Display**              | Show below checks                                                                                    |
+| **Reveal Mode**                  | One by one                                                                                           |
+| **Passed Checks**                | Show each passed check                                                                               |
+| **Skipped Checks**               | Show each skipped check                                                                              |
+| **Found/Expected Display**       | Show on demand                                                                                       |
+| **Stop after a system error**    | Unchecked                                                                                            |
+| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting                                    |
+| **Publish User Run Event**       | Unchecked unless a Flow, Apex trigger, or integration needs one summary after the Check Set finishes |
+| **Active**                       | Checked                                                                                              |
 
 ## Step 2: Configure the Check
 
 In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Developer Name** | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername) | `High_Priority_Case_Limit` |
-| **Label** | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel) | High-Priority Case Limit |
-| **Check Set** | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Related_Record_Review` |
-| **Check Title** | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c) | High-Priority Case Backlog Is Within Capacity |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c) | Verify with a query |
-| **Source Query** | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c) | `SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'` |
-| **Source Query Field** | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c) | Leave blank for `COUNT()` |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate |
-| **Comparison Operator** | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c) | Less than or equal |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value |
-| **Expected Value (Fixed)** | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c) | `3`; replace this example with your team's agreed limit |
-| **Max Query Rows (1-2000)** | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c) | `200` (default; `COUNT()` returns one result) |
+| Setup field                   | API name                                                                                                                     | Value                                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Developer Name**            | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                              | `High_Priority_Case_Limit`                                                                           |
+| **Label**                     | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                           | High-Priority Case Limit                                                                             |
+| **Check Set**                 | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)         | `Account_Related_Record_Review`                                                                      |
+| **Check Title**               | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                 | High-Priority Case Backlog Is Within Capacity                                                        |
+| **Evaluation Type**           | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                     | Verify with a query                                                                                  |
+| **Source Query**              | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c)                              | `SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'` |
+| **Source Query Field**        | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)              | Leave blank for `COUNT()`                                                                            |
+| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | One row or aggregate                                                                                 |
+| **Comparison Operator**       | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)         | Less than or equal                                                                                   |
+| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c) | Fixed value                                                                                          |
+| **Expected Value (Fixed)**    | [`ExpectedFixedValue__c`](../../reference/custom-metadata/check-fields.md#expected-value-fixed-expectedfixedvalue__c)        | `3`; replace this example with your team's agreed limit                                              |
+| **Max Query Rows (1-2000)**   | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c)                   | `200` (default; `COUNT()` returns one result)                                                        |
 
 Confirm the `High` Priority API value and replace `3` with the limit approved by your service team.
 
 ## Optional configuration
 
-| Setup field | API name | Value |
-| --- | --- | --- |
-| **Failure Severity** | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c) | Warning |
-| **Message When Failed** | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c) | `{!record.Name fallback="this record"}` has more open high-priority Cases than the service team can review through its normal process. |
-| **Check Description** | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c) | Compares the visible open high-priority Case count with the approved review limit. |
-| **Category** | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c) | Readiness |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count high-priority Cases. Confirm access to Case, AccountId, IsClosed, and Priority. |
-| **Applies To** | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c) | All records |
-| **Prerequisite Check** | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c) | Leave blank |
-| **Fix Message** | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c) | Review ownership and response plans for the open high-priority Cases, then follow your capacity-escalation process. |
-| **Action Label** | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c) | `Review cases` |
-| **Action URL** | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c) | `/lightning/r/Account/{!record.Id}/related/Cases/view` |
-| **Evaluation Order** | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c) | `140` |
-| **Active** | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c) | Checked only after confirming the Priority value and approved capacity limit |
-| **Publish User Result Event** | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c) | Unchecked unless a Flow, Apex trigger, or integration needs the result from this Check |
+| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                                                                |
+| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has more open high-priority Cases than the service team can review through its normal process. |
+| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Compares the visible open high-priority Case count with the approved review limit.                                                     |
+| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Readiness                                                                                                                              |
+| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to count high-priority Cases. Confirm access to Case, AccountId, IsClosed, and Priority.                                        |
+| **Applies To**                      | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                                  | All records                                                                                                                            |
+| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                            |
+| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Review ownership and response plans for the open high-priority Cases, then follow your capacity-escalation process.                    |
+| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Review cases`                                                                                                                         |
+| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/related/Cases/view`                                                                                 |
+| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `140`                                                                                                                                  |
+| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked only after confirming the Priority value and approved capacity limit                                                           |
+| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked unless a Flow, Apex trigger, or integration needs the result from this Check                                                 |
 
 Source Query Field stays blank because bare `COUNT()` produces the value directly. Comparison
 Query, row-empty, list, Formula-result, and Apex fields do not apply. The count is `0` when no Case
@@ -139,13 +139,13 @@ matches, so the Check passes rather than skipping.
 
 The card turns the aggregate count and upper limit into these user-facing values:
 
-| Health result or card value | What the user sees |
-| --- | --- |
-| **`PASS`** | Zero through three visible open high-priority Cases is within the example limit. |
-| **`FAIL`** | Four or more visible open high-priority Cases exceeds the limit and shows Needs attention with Warning severity. |
-| **`SKIPPED`** | Bare `COUNT()` returns zero rather than no rows, and this configuration has no applicability check or prerequisite, so it does not produce `SKIPPED`. |
-| **Found** | When the user reveals Found and Expected, Found shows the current visible high-priority Case count. |
-| **Expected** | When the user reveals Found and Expected, Expected shows the maximum allowed count: `3`. |
+| Health result or card value | What the user sees                                                                                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`PASS`**                  | Zero through three visible open high-priority Cases is within the example limit.                                                                      |
+| **`FAIL`**                  | Four or more visible open high-priority Cases exceeds the limit and shows Needs attention with Warning severity.                                      |
+| **`SKIPPED`**               | Bare `COUNT()` returns zero rather than no rows, and this configuration has no applicability check or prerequisite, so it does not produce `SKIPPED`. |
+| **Found**                   | When the user reveals Found and Expected, Found shows the current visible high-priority Case count.                                                   |
+| **Expected**                | When the user reveals Found and Expected, Expected shows the maximum allowed count: `3`.                                                              |
 
 ## Optional: Send the result to automation
 
@@ -188,11 +188,11 @@ Before activation, confirm the capacity result with the Case sharing model used 
 
 ## Failures and remedies
 
-| What the user sees | What to check |
-| --- | --- |
-| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records. |
-| Empty results behave incorrectly | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**. |
-| **Unable to evaluate** | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
+| What the user sees                     | What to check                                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records.                      |
+| Empty results behave incorrectly       | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**.                         |
+| **Unable to evaluate**                 | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
 
 ## Related
 

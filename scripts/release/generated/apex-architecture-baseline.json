@@ -25,9 +25,17 @@
       "maximum": 618,
       "category": "focused scope-evaluation contract test suite no-growth ceiling"
     },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFieldPlanner.cls": {
+      "maximum": 515,
+      "category": "shared formula and merge dependency planning no-growth ceiling"
+    },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckScopePipeline.cls": {
-      "maximum": 508,
-      "category": "scope pipeline fatal-boundary coverage no-growth ceiling"
+      "maximum": 559,
+      "category": "scope pipeline planning provenance and fatal-boundary no-growth ceiling"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RHCSubscriberFormulaSpecTest.cls": {
+      "maximum": 620,
+      "category": "focused subscriber formula contract suite no-growth ceiling"
     }
   },
   "testVisible": {
@@ -70,6 +78,10 @@
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFormulaEvaluator.cls": {
       "maximum": 3,
       "category": "formula evaluator counters and return-type algorithm"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckFormulaPlanService.cls": {
+      "maximum": 1,
+      "category": "deterministic compile-capability provider seam"
     },
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckLifecyclePublisher.cls": {
       "maximum": 3,
@@ -152,7 +164,16 @@
       "category": "Confirms multi-currency and encrypted-field rules without requiring customer-created fields."
     }
   },
-  "testRuntimeBranches": {},
+  "testRuntimeBranches": {
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckPluginDispatch.cls": {
+      "maximum": 3,
+      "category": "test-only raw plugin dispatch capture"
+    },
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckPluginTest.cls": {
+      "maximum": 1,
+      "category": "global test-facade execution fence"
+    }
+  },
   "systemDebug": {
     "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckLogger.cls": 6,
     "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckExhaustiveSmoke.cls": 3
