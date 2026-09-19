@@ -73,6 +73,14 @@ non-Check fixture exception for repository-only work. Never describe planned fix
 created or verified. Keep feature specs untracked under existing policy. This shared `AGENTS.md` and
 its Claude, Gemini, Copilot, and Cursor pointers are public repository guidance and must stay tracked.
 
+Feature specs are temporary design workspaces, not permanent product documentation. Do not delete a
+feature spec merely because its code was merged or a package candidate was created. Retire it only
+after every acceptance boundary is verified or explicitly transferred as pending, all durable API,
+security, data, test, fixture, recovery, and release lessons are promoted into tracked documentation
+and executable guards, stale public claims are corrected, and a retirement manifest maps every spec
+requirement/evidence item to its durable owner. Preserve immutable release evidence outside the
+deleted folder. See [Specification lifecycle](docs/quality-gates/specification-lifecycle.md).
+
 ## Regression-first development contract
 
 Read [Check and Check Set outcome verification](docs/quality-gates/check-outcome-verification.md)
@@ -101,6 +109,24 @@ and a passing result file do not prove a successful complete run. Keep source, o
 browser and installed-package evidence distinct. Inspect analyzer engine errors even after exit
 zero; document false positives and justified design exceptions without weakening guards. Review
 documentation claims against source and evidence, not just formatting and link checks.
+
+### Service-owned data and package-build tests
+
+Distinguish customer-record access from package-owned operational data. Customer records remain in
+user mode. A package-owned store may use a narrowly bounded system-mode operation only after the
+external entry point performs the complete actor authorization, the service retains sharing where
+row ownership matters, and `check:apex-surface` pins the exact class and operation count. Document
+the ownership, accepted identifiers, row bound, returned projection, and forbidden data for every
+such exception; never broaden a customer-data query to make a package test pass.
+
+Treat Salesforce package-version creation as a distinct Apex test context. Do not assume a package
+test principal receives a packaged Permission Set, and do not treat a same-user Permission Set
+assignment in `@TestSetup` as proof that later `USER_MODE` queries or DML have the intended access.
+Do not create Users in unlocked-package tests merely to work around that context: subscriber user
+automation can execute during package testing. Test the public authorization denial separately,
+exercise authorized service behavior with the existing test-only authorization seam, add a static
+guard for every system-mode exception, and require a real package-version test before closing the
+package boundary. See [Regression testing standard](docs/quality-gates/regression-testing-standard.md#service-owned-data-and-package-build-principals).
 
 ### Bug fixes
 
