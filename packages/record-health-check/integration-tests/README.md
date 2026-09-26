@@ -83,6 +83,10 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   Check API; and `RHC_SP_Diagnostics` proves both business verdicts as well as the separate
   inapplicable lifecycle trace. The deliberately invalid diagnostic, definition, access, and
   preview fixtures assert their exact safe failure instead of manufacturing a business verdict.
+- The versioned `tests/fixtures/release-2.0.10/outcome-contract.json` inventory maps every public
+  2.0.10 feature to success, adverse and recovery evidence. Its `test:scripts` guard requires each
+  feature to retain an integration-test anchor and prevents a generic smoke test or coverage number
+  from replacing the named behavioral regressions.
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
   `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
 - `npm run test:war-room -- --alias <alias>`: cross-platform deploy-optional runner for the negative

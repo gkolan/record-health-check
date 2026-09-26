@@ -345,7 +345,8 @@ export default class RecordHealthCheck extends LightningElement {
     }
     if (
       shellConfig?.runMode === "Manual" &&
-      shellConfig?.runButtonDisplay === "HIDE"
+      (shellConfig?.runButtonDisplay === "HIDE" ||
+        shellConfig?.cardHeadingDisplay === "HIDE")
     ) {
       this._loadDefinitions();
       return;
@@ -714,7 +715,16 @@ export default class RecordHealthCheck extends LightningElement {
       if (loadToken !== this._loadToken || !this._connected) {
         return;
       }
-      if (!response || !Array.isArray(response.checks)) {
+      if (!response || typeof response !== "object") {
+        throw this._clientDefinitionError(
+          "The server returned an invalid health-check definition response."
+        );
+      }
+      // Preserve the server-verified entitlement before any client-side
+      // validation can fail, so authorized administrators receive useful
+      // detail for truncated or malformed definition responses too.
+      this._canViewDetails = response.canViewDetails === true;
+      if (!Array.isArray(response.checks)) {
         throw this._clientDefinitionError(
           "The server returned an invalid health-check definition response."
         );
@@ -775,7 +785,7 @@ export default class RecordHealthCheck extends LightningElement {
       );
       if (response.triggerMode === "Manual" && runButtonDisplay === "HIDE") {
         const configurationError = new Error(
-          "Run Button Display cannot be Hide when checks run only after a user clicks Run. Choose a visible display or configure the Check Set to run when the page opens."
+          "Run Button Display cannot be Hide when checks run only after a user clicks Run. Use a visible Run Button Display or run checks when the page opens."
         );
         configurationError.reasonCode = "INVALID_CONFIG";
         throw configurationError;
@@ -785,6 +795,13 @@ export default class RecordHealthCheck extends LightningElement {
         CARD_HEADING_DISPLAYS,
         "Card Heading Display"
       );
+      if (response.triggerMode === "Manual" && cardHeadingDisplay === "HIDE") {
+        const configurationError = new Error(
+          "Card Heading Display cannot be Hide when checks run only after a user clicks Run. Show the heading or run checks when the page opens."
+        );
+        configurationError.reasonCode = "INVALID_CONFIG";
+        throw configurationError;
+      }
       this._requireMode(
         response.revealMode,
         ["OneAtATime", "AllAtOnce"],
@@ -826,7 +843,6 @@ export default class RecordHealthCheck extends LightningElement {
       this.comparisonDisplay = response.comparisonDisplay;
       this.stopOnFirstError = response.stopOnFirstError;
       this.showDiagnostics = response.showDiagnostics === true;
-      this._canViewDetails = response.canViewDetails === true;
       this.totalCheckCount = canonicalChecks.length;
       this.totalAvailableCheckCount =
         typeof response.totalAvailableCheckCount === "number"
@@ -887,6 +903,9 @@ export default class RecordHealthCheck extends LightningElement {
         err?.reasonCode === "CLIENT_DEFINITION_INVALID"
           ? "CLIENT_DEFINITION_INVALID"
           : parsed.reasonCode;
+      if (typeof parsed.canViewDetails === "boolean") {
+        this._canViewDetails = parsed.canViewDetails;
+      }
       this._setComponentError(
         reasonCode,
         parsed.message,
@@ -1495,7 +1514,10 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get showActionButton() {
-    return this.showRunButton || this.showRerunButton;
+    return (
+      this.cardHeadingDisplay !== "HIDE" &&
+      (this.showRunButton || this.showRerunButton)
+    );
   }
 
   get hideRunButton() {
@@ -1554,14 +1576,6 @@ export default class RecordHealthCheck extends LightningElement {
       this.showNormalHeader &&
       this.cardHeadingDisplay === "TITLE_AND_SUBTITLE" &&
       Boolean(this.displayDescription)
-    );
-  }
-
-  get showBodyActionRow() {
-    return (
-      !this.isBuilderPreview &&
-      this.cardHeadingDisplay === "HIDE" &&
-      this.showActionButton
     );
   }
 
@@ -1625,7 +1639,6 @@ export default class RecordHealthCheck extends LightningElement {
       !this.isBuilderPreview &&
       !this.isCardLoading &&
       !this.completionWarning &&
-      !this.showBodyActionRow &&
       !this.showPreRunHint &&
       !this.showSummaryStatsAbove &&
       !this.showSummaryStatsBelow &&
@@ -1648,7 +1661,7 @@ export default class RecordHealthCheck extends LightningElement {
   }
 
   get bodyClass() {
-    return !this.showNormalHeader && !this.showBodyActionRow
+    return !this.hasComponentError && !this.showNormalHeader
       ? "rhc-body rhc-body--bare-top"
       : "rhc-body";
   }

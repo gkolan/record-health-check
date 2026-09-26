@@ -15,6 +15,27 @@ import { SalesforceClient } from "../src/salesforce-client.js";
 import { testConfig } from "./helpers.js";
 
 const servers: Array<ReturnType<typeof createServer>> = [];
+
+async function startServer(app: ReturnType<typeof createApp>) {
+  const server = createServer(app);
+  servers.push(server);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    throw new Error("Test server did not bind.");
+  }
+  return `http://127.0.0.1:${address.port}`;
+}
+
+async function connectClient(app: ReturnType<typeof createApp>, name: string) {
+  const baseUrl = await startServer(app);
+  const client = new Client({ name, version: "1.0.0" });
+  await client.connect(
+    new StreamableHTTPClientTransport(new URL(`${baseUrl}/mcp`))
+  );
+  return client;
+}
+
 afterEach(async () => {
   await Promise.all(
     servers
@@ -39,15 +60,7 @@ describe("MCP Streamable HTTP", () => {
       { evaluate: vi.fn() } as unknown as SalesforceClient,
       { log: vi.fn() }
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const baseUrl = await startServer(app);
 
     const metadata = await fetch(
       `${baseUrl}/.well-known/oauth-protected-resource/mcp`
@@ -92,16 +105,9 @@ describe("MCP Streamable HTTP", () => {
       { evaluate: vi.fn() } as unknown as SalesforceClient,
       { log: vi.fn() }
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
+    const baseUrl = await startServer(app);
 
-    const response = await fetch(`http://127.0.0.1:${address.port}/mcp`, {
+    const response = await fetch(`${baseUrl}/mcp`, {
       headers: { accept: "text/event-stream" }
     });
     expect(response.status).toBe(405);
@@ -115,16 +121,9 @@ describe("MCP Streamable HTTP", () => {
       { evaluate } as unknown as SalesforceClient,
       { log: vi.fn() }
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
+    const baseUrl = await startServer(app);
 
-    const response = await fetch(`http://127.0.0.1:${address.port}/mcp`, {
+    const response = await fetch(`${baseUrl}/mcp`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ value: "x".repeat(33 * 1024) })
@@ -141,21 +140,7 @@ describe("MCP Streamable HTTP", () => {
       { evaluate } as unknown as SalesforceClient,
       { log: vi.fn() }
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
-
-    const client = new Client({ name: "limit-test", version: "1.0.0" });
-    await client.connect(
-      new StreamableHTTPClientTransport(
-        new URL(`http://127.0.0.1:${address.port}/mcp`)
-      )
-    );
+    const client = await connectClient(app, "limit-test");
     const result = await client.callTool({
       name: "run_record_health_check",
       arguments: {
@@ -192,21 +177,7 @@ describe("MCP Streamable HTTP", () => {
       { evaluate } as unknown as SalesforceClient,
       { log: vi.fn() }
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
-
-    const client = new Client({ name: "adapter-error-test", version: "1.0.0" });
-    await client.connect(
-      new StreamableHTTPClientTransport(
-        new URL(`http://127.0.0.1:${address.port}/mcp`)
-      )
-    );
+    const client = await connectClient(app, "adapter-error-test");
     const result = await client.callTool({
       name: "run_record_health_check",
       arguments: {
@@ -256,21 +227,7 @@ describe("MCP Streamable HTTP", () => {
       new SalesforceClient(config, logger, fetcher),
       logger
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
-
-    const client = new Client({ name: "adapter-error-test", version: "1.0.0" });
-    await client.connect(
-      new StreamableHTTPClientTransport(
-        new URL(`http://127.0.0.1:${address.port}/mcp`)
-      )
-    );
+    const client = await connectClient(app, "adapter-error-test");
     const result = await client.callTool({
       name: "run_record_health_check",
       arguments: {
@@ -312,21 +269,7 @@ describe("MCP Streamable HTTP", () => {
       { evaluate } as unknown as SalesforceClient,
       { log: vi.fn() }
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
-
-    const client = new Client({ name: "correlation-test", version: "1.0.0" });
-    await client.connect(
-      new StreamableHTTPClientTransport(
-        new URL(`http://127.0.0.1:${address.port}/mcp`)
-      )
-    );
+    const client = await connectClient(app, "correlation-test");
     const result = await client.callTool({
       name: "run_record_health_check",
       arguments: {
@@ -360,20 +303,7 @@ describe("MCP Streamable HTTP", () => {
     const app = createApp(config, { evaluate } as unknown as SalesforceClient, {
       log: vi.fn()
     });
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
-
-    const client = new Client({ name: "protocol-test", version: "1.0.0" });
-    const transport = new StreamableHTTPClientTransport(
-      new URL(`http://127.0.0.1:${address.port}/mcp`)
-    );
-    await client.connect(transport);
+    const client = await connectClient(app, "protocol-test");
     const packageMetadata = JSON.parse(
       readFileSync(new URL("../package.json", import.meta.url), "utf8")
     ) as { version: string };
@@ -494,15 +424,8 @@ describe("MCP Streamable HTTP", () => {
       { evaluate: vi.fn() } as unknown as SalesforceClient,
       { log: vi.fn() }
     );
-    const httpServer = createServer(app);
-    servers.push(httpServer);
-    await new Promise<void>((resolve) =>
-      httpServer.listen(0, "127.0.0.1", resolve)
-    );
-    const address = httpServer.address();
-    if (!address || typeof address === "string")
-      throw new Error("Test server did not bind.");
-    const response = await fetch(`http://127.0.0.1:${address.port}/healthz`);
+    const baseUrl = await startServer(app);
+    const response = await fetch(`${baseUrl}/healthz`);
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       status: "disabled",
@@ -552,23 +475,7 @@ describe("MCP Streamable HTTP", () => {
         { evaluate } as unknown as SalesforceClient,
         { log: vi.fn() }
       );
-      const httpServer = createServer(app);
-      servers.push(httpServer);
-      await new Promise<void>((resolve) =>
-        httpServer.listen(0, "127.0.0.1", resolve)
-      );
-      const address = httpServer.address();
-      if (!address || typeof address === "string")
-        throw new Error("Test server did not bind.");
-      const client = new Client({
-        name: "diagnostic-matrix",
-        version: "1.0.0"
-      });
-      await client.connect(
-        new StreamableHTTPClientTransport(
-          new URL(`http://127.0.0.1:${address.port}/mcp`)
-        )
-      );
+      const client = await connectClient(app, "diagnostic-matrix");
 
       const result = await client.callTool({
         name: toolName,

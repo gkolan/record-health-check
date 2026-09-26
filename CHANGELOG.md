@@ -71,7 +71,18 @@ For installation and verification, start with
 
 ## Unreleased
 
-No changes yet.
+This work is targeted for **2.0.11**, a corrective patch to the 2.0.10 card-heading controls. The
+patch closes an unreachable-action configuration without restoring a duplicate body-level Run
+action. Administrators upgrading from 2.0.10.1 must run the
+[2.0.11 compatibility audit](./docs/reference/release-2.0.11.md#upgrade-action-from-20101) and
+resolve every hidden manual-run Check Set before installation.
+
+### Changed
+
+- A Check Set that hides its card heading must run when the page opens. Manual Check Sets now reject
+  a hidden heading as invalid configuration because the heading owns the Run/Rerun action. The setup
+  error can be retried after correction without reloading the page, and verified administrators can
+  see the exact rejected setting without exposing it to ordinary users.
 
 ## Version 2.0.10
 

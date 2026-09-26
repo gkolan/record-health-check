@@ -1,5 +1,23 @@
 # Repository working agreement
 
+## Required reading at session start
+
+Before task-specific commands or edits in every new session, read this file and
+[Agent lessons and verification handoff](docs/quality-gates/agent-lessons.md) completely.
+Then read `internal/agent-notes.md` if it exists. The tracked lessons apply on every machine;
+the ignored notes supply local decisions, org ownership and evidence locations. Missing local
+notes do not block ordinary repository work, but never invent the environment facts they held.
+
+State briefly that the reading is complete and identify the lessons relevant to the task.
+Inspect the current branch and working tree before relying on old verification. After a context
+handoff, use the summary to retain completed work; reopen guidance that is missing from that
+summary or has changed. Read the task-specific standards linked below before the affected work.
+Apply this entry procedure to delegated agents too when delegation is authorized.
+
+`check:docs` guards the shared reading pointers and the lessons guide against removal or ignore
+rules. It cannot prove an agent read or understood them. Do not describe this as automatic memory
+loading or claim old passing evidence verifies later edits.
+
 Before handing off a pull request, run the checks from the `ci` job in
 `.github/workflows/ci.yml`. Do not describe the branch as CI-ready until every
 tracked-source check passes. Also confirm that the hosted Salesforce validation
@@ -263,8 +281,9 @@ analyzer invocations from `.github/workflows/salesforce-validate.yml`.
 ## Keeping notes current
 
 `internal/agent-notes.md` holds durable, machine-local project facts that every agent
-reads. Claude's own memory directory is Claude-only, so project facts belong here, not
-there.
+reads at session start. Claude's own memory directory is Claude-only, so project facts belong
+here, not there. Promote reusable lessons into the tracked owning standard and link them from
+`docs/quality-gates/agent-lessons.md`; do not leave essential guidance only in ignored notes.
 
 Before ending a turn, append a note when the turn established a fact that a future
 session would otherwise re-derive: a decision the user made and the reason, an

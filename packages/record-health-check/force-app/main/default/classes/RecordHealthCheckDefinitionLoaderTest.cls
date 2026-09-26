@@ -162,6 +162,64 @@ private class RecordHealthCheckDefinitionLoaderTest {
   }
 
   @IsTest
+  static void rejectsHiddenManualHeadingForEveryButtonStyleAtDefinitionBoundary() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+
+    for (
+      String buttonDisplay : new List<String>{
+        'LABEL_AND_ICON',
+        'LABEL_ONLY',
+        'ICON_ONLY',
+        'HIDE'
+      }
+    ) {
+      Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+        new Map<String, Object>{
+          'IsActive__c' => true,
+          'ObjectApiName__c' => 'Account',
+          'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+          'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+          'CardRunMode__c' => 'RUN_ON_REQUEST',
+          'RunButtonDisplay__c' => buttonDisplay,
+          'CardHeadingDisplay__c' => 'HIDE',
+          'CardRevealMode__c' => 'ALL_AT_ONCE',
+          'CardTitle__c' => 'Invalid hidden manual card',
+          'FoundExpectedDisplay__c' => 'ON_DEMAND'
+        }
+      );
+
+      try {
+        RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
+          checkSet,
+          'Invalid_Hidden_Manual_Card',
+          accountId
+        );
+        Assert.fail(
+          'Every hidden-heading Manual style must fail before evaluation.'
+        );
+      } catch (RecordHealthCheckConfigService.ConfigException expected) {
+        Assert.areEqual(
+          RecordHealthCheckConfigService.RC_INVALID_CONFIG,
+          expected.reasonCode,
+          'Every incompatible Manual presentation must retain INVALID_CONFIG.'
+        );
+        Assert.isTrue(
+          expected.getMessage()
+            .startsWith(
+              buttonDisplay == 'HIDE'
+                ? 'Run Button Display'
+                : 'Card Heading Display'
+            ),
+          'The definition boundary must preserve first-failure precedence.'
+        );
+      }
+    }
+  }
+
+  @IsTest
   static void retainsRunButtonValidationPrecedence() {
     Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
       new Map<String, Object>{

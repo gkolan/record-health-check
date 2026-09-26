@@ -164,13 +164,16 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
           'ERROR',
           cs.DeveloperName,
           'RunButtonDisplay__c',
-          'Run Button Display cannot be Hide when checks run only after a user clicks Run.',
+          'Run Button Display cannot be Hide when checks run only after a user clicks Run. Use a visible Run Button Display or run checks when the page opens.',
           'INVALID_CONFIG'
         )
       );
     } else if (
       cs.CardRunMode__c == 'RUN_ON_LOAD' &&
-      runButtonDisplay == 'HIDE' &&
+      (runButtonDisplay == 'HIDE' ||
+      RecordHealthCheckConstants.normalizedCardHeadingDisplay(
+        cs.CardHeadingDisplay__c
+      ) == 'HIDE') &&
       cs.PublishUserRunEvent__c == true
     ) {
       issues.add(
@@ -199,6 +202,19 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
           cs.DeveloperName,
           'CardHeadingDisplay__c',
           'Card Heading Display is not recognized. Choose TITLE_AND_SUBTITLE, TITLE_ONLY, or HIDE.',
+          'INVALID_CONFIG'
+        )
+      );
+    } else if (
+      cardHeadingDisplay == 'HIDE' &&
+      cs.CardRunMode__c == 'RUN_ON_REQUEST'
+    ) {
+      issues.add(
+        new RecordHealthCheckMetadataValidator.ValidationIssue(
+          'ERROR',
+          cs.DeveloperName,
+          'CardHeadingDisplay__c',
+          'Card Heading Display cannot be Hide when checks run only after a user clicks Run. Show the heading or run checks when the page opens.',
           'INVALID_CONFIG'
         )
       );

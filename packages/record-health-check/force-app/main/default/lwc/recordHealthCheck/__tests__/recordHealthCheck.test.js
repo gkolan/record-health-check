@@ -364,17 +364,11 @@ describe("c-record-health-check — load and error states", () => {
   });
 
   it.each([
-    ["TITLE_AND_SUBTITLE", true, true, false],
-    ["TITLE_ONLY", true, false, false],
-    ["HIDE", false, false, true]
+    ["TITLE_AND_SUBTITLE", true],
+    ["TITLE_ONLY", false]
   ])(
-    "renders Card Heading Display %s without changing the Run action",
-    async (
-      cardHeadingDisplay,
-      showsTitle,
-      showsSubtitle,
-      usesBodyActionRow
-    ) => {
+    "renders Card Heading Display %s with its integrated Run action",
+    async (cardHeadingDisplay, showsSubtitle) => {
       getCheckDefinitions.mockResolvedValue(
         makeDefinitions({
           cardHeadingDisplay,
@@ -386,13 +380,13 @@ describe("c-record-health-check — load and error states", () => {
 
       expect(
         Boolean(element.shadowRoot.querySelector(".rhc-header__title"))
-      ).toBe(showsTitle);
+      ).toBe(true);
       expect(
         Boolean(element.shadowRoot.querySelector(".rhc-header__desc"))
       ).toBe(showsSubtitle);
       expect(
-        Boolean(element.shadowRoot.querySelector(".rhc-body-action-row"))
-      ).toBe(usesBodyActionRow);
+        element.shadowRoot.querySelector(".rhc-body-action-row")
+      ).toBeNull();
       expect(
         element.shadowRoot.querySelectorAll(".rhc-action-button")
       ).toHaveLength(1);
@@ -401,6 +395,23 @@ describe("c-record-health-check — load and error states", () => {
       ).toBe("Account Health");
     }
   );
+
+  it("renders no top action bar when an automatic card hides its heading", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay: "LABEL_AND_ICON"
+      })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-body-action-row")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+  });
 
   it("defaults an omitted Card Heading Display to title and subtitle", async () => {
     const definition = makeDefinitions({
@@ -453,25 +464,32 @@ describe("c-record-health-check — load and error states", () => {
     ).not.toBeNull();
   });
 
-  it("removes both heading and action row when each is independently hidden", async () => {
-    getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({
-        triggerMode: "Automatic",
-        cardHeadingDisplay: "HIDE",
-        runButtonDisplay: "HIDE"
-      })
-    );
-    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+  it.each(["LABEL_AND_ICON", "LABEL_ONLY", "ICON_ONLY", "HIDE"])(
+    "keeps a page-load hidden heading valid without an action row for %s",
+    async (runButtonDisplay) => {
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({
+          triggerMode: "Automatic",
+          cardHeadingDisplay: "HIDE",
+          runButtonDisplay
+        })
+      );
+      evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
 
-    await appendAndLoad(element);
+      await appendAndLoad(element);
 
-    expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
-    expect(element.shadowRoot.querySelector(".rhc-body-action-row")).toBeNull();
-    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
-    expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
-  });
+      expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-body-action-row")
+      ).toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+      expect(evaluateCheck).toHaveBeenCalled();
+    }
+  );
 
-  it("keeps focus on the Run action when a refreshed heading moves it", async () => {
+  it("moves focus to the card when refreshed configuration hides the heading", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
     await appendAndLoad(element);
@@ -481,7 +499,10 @@ describe("c-record-health-check — load and error states", () => {
     originalAction.focus();
     expect(element.shadowRoot.activeElement).toBe(originalAction);
     getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({ cardHeadingDisplay: "HIDE" })
+      makeDefinitions({
+        triggerMode: "Automatic",
+        cardHeadingDisplay: "HIDE"
+      })
     );
 
     originalAction.click();
@@ -489,11 +510,157 @@ describe("c-record-health-check — load and error states", () => {
     await flushPromises();
     await flushPromises();
 
-    const replacementAction = element.shadowRoot.querySelector(
-      ".rhc-body-action-row .rhc-action-button"
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(element.shadowRoot.activeElement).toBe(
+      element.shadowRoot.querySelector("[data-card-root]")
     );
-    expect(replacementAction).not.toBeNull();
-    expect(element.shadowRoot.activeElement).toBe(replacementAction);
+  });
+
+  it.each(["LABEL_AND_ICON", "LABEL_ONLY", "ICON_ONLY"])(
+    "loads the full definition to reject a hidden Manual heading for %s",
+    async (runButtonDisplay) => {
+      getCheckSetShellConfig.mockResolvedValue({
+        runMode: "Manual",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay,
+        cardTitle: "Broken hidden manual card",
+        activeCheckCount: "1"
+      });
+      getCheckDefinitions.mockRejectedValue({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message:
+              "Card Heading Display cannot be Hide when checks run only after a user clicks Run."
+          })
+        }
+      });
+
+      await appendAndLoad(element);
+
+      expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+      expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-error-banner")
+      ).not.toBeNull();
+      expect(element.shadowRoot.textContent).toContain("configuration problem");
+      expect(evaluateCheck).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    [true, true],
+    [false, false]
+  ])(
+    "shows exact invalid configuration only when detail entitlement is %s",
+    async (canViewDetails, showsAdministratorDetail) => {
+      getCheckSetShellConfig.mockResolvedValue({
+        runMode: "Manual",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay: "LABEL_AND_ICON",
+        activeCheckCount: "1"
+      });
+      getCheckDefinitions.mockRejectedValue({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message:
+              "Card Heading Display cannot be Hide when checks run only after a user clicks Run.",
+            canViewDetails
+          })
+        }
+      });
+
+      await appendAndLoad(element);
+
+      const detail = element.shadowRoot.querySelector(
+        ".rhc-error-banner__technical"
+      );
+      expect(Boolean(detail)).toBe(showsAdministratorDetail);
+      expect(
+        detail?.textContent.includes("Card Heading Display cannot be Hide") ??
+          false
+      ).toBe(showsAdministratorDetail);
+      expect(
+        element.shadowRoot.textContent.includes(
+          "Card Heading Display cannot be Hide"
+        )
+      ).toBe(showsAdministratorDetail);
+    }
+  );
+
+  it("recovers after a hidden Manual heading is corrected to page-load", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardHeadingDisplay: "HIDE",
+      runButtonDisplay: "LABEL_AND_ICON",
+      activeCheckCount: "1"
+    });
+    getCheckDefinitions
+      .mockRejectedValueOnce({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message:
+              "Card Heading Display cannot be Hide when checks run only after a user clicks Run.",
+            canViewDetails: false
+          })
+        }
+      })
+      .mockResolvedValueOnce(
+        makeDefinitions({
+          triggerMode: "Automatic",
+          cardHeadingDisplay: "HIDE",
+          runButtonDisplay: "HIDE"
+        })
+      );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    const retry = element.shadowRoot.querySelector(
+      ".rhc-error-banner__actions button"
+    );
+    expect(retry).not.toBeNull();
+    retry.click();
+    await flushPromises();
+    await flushPromises();
+    await runScheduledAutomaticRun();
+
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(2);
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(
+      element.shadowRoot
+        .querySelector(".rhc-body")
+        .classList.contains("rhc-body--bare-top")
+    ).toBe(true);
+    expect(evaluateCheck).toHaveBeenCalled();
+  });
+
+  it("does not add bare-top spacing above a setup error heading", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Automatic",
+      cardHeadingDisplay: "HIDE",
+      runButtonDisplay: "HIDE",
+      cardTitle: "Hidden automatic card",
+      activeCheckCount: "1"
+    });
+    getCheckDefinitions.mockRejectedValue({
+      body: {
+        message: JSON.stringify({
+          reasonCode: "INVALID_CONFIG",
+          message: "Invalid test configuration."
+        })
+      }
+    });
+
+    await appendAndLoad(element);
+
+    const body = element.shadowRoot.querySelector(".rhc-body");
+    expect(element.shadowRoot.querySelector(".rhc-header")).not.toBeNull();
+    expect(body.classList).not.toContain("rhc-body--bare-top");
   });
 
   it("moves focus to the card when refreshed configuration removes the action", async () => {
@@ -586,6 +753,7 @@ describe("c-record-health-check — load and error states", () => {
   it("blocks a legacy truncated response without evaluating any Check", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
+        canViewDetails: true,
         revealMode: "OneAtATime",
         checksOmittedByLimit: true,
         totalAvailableCheckCount: 40
@@ -595,6 +763,10 @@ describe("c-record-health-check — load and error states", () => {
 
     expect(evaluateCheck).not.toHaveBeenCalled();
     expect(element.shadowRoot.textContent).toContain("No Checks were run");
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__technical")
+        .textContent
+    ).toContain("FRAMEWORK_MAX_CHECKS_EXCEEDED");
   });
 
   it("uses the configured Run label in the pre-run hint", async () => {
@@ -1319,6 +1491,7 @@ describe("c-record-health-check — load and error states", () => {
   it("shows a load error when a definition is missing its developerName", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
+        canViewDetails: true,
         checks: [
           {
             developerName: "",
@@ -1334,6 +1507,10 @@ describe("c-record-health-check — load and error states", () => {
     expect(
       element.shadowRoot.querySelector(".rhc-error-banner")
     ).not.toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__technical")
+        .textContent
+    ).toContain("missing its developer name");
   });
 
   it("shows a load error when a definition is missing its qualifiedApiName", async () => {
@@ -2184,6 +2361,30 @@ describe("c-record-health-check — run orchestration", () => {
     expect(element.shadowRoot.textContent).toContain("configuration problem");
   });
 
+  it.each(["LABEL_AND_ICON", "LABEL_ONLY", "ICON_ONLY"])(
+    "rejects a hidden Manual heading in a definition response for %s",
+    async (runButtonDisplay) => {
+      getCheckSetShellConfig.mockResolvedValue(null);
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({
+          triggerMode: "Manual",
+          cardHeadingDisplay: "HIDE",
+          runButtonDisplay
+        })
+      );
+
+      await appendAndLoad(element);
+
+      expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+      expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-error-banner")
+      ).not.toBeNull();
+      expect(element.shadowRoot.textContent).toContain("configuration problem");
+      expect(evaluateCheck).not.toHaveBeenCalled();
+    }
+  );
+
   it("uses default labels and CSS play when the new DTO fields are absent", async () => {
     const definition = makeDefinitions();
     delete definition.runButtonDisplay;
@@ -3028,6 +3229,25 @@ describe("c-record-health-check — _parseAuraError", () => {
     expect(
       element.shadowRoot.querySelector(".rhc-error-banner").textContent
     ).toContain("isn't configured for this type of record");
+  });
+
+  it("retains a server-verified detail entitlement from a structured error", () => {
+    expect(
+      parseAuraError({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message: "Invalid setting.",
+            canViewDetails: true
+          })
+        }
+      })
+    ).toEqual(
+      expect.objectContaining({
+        reasonCode: "INVALID_CONFIG",
+        canViewDetails: true
+      })
+    );
   });
 
   it("falls back gracefully when error body is not JSON", async () => {
@@ -6183,7 +6403,8 @@ describe("healthCheckModel — complete response contracts", () => {
     expect(parseAuraError({ body: { message: "{}" } })).toEqual({
       reasonCode: "LOAD_FAILED",
       message: "An error occurred loading Record Health Check.",
-      diagnosticCode: expect.anything()
+      diagnosticCode: expect.anything(),
+      canViewDetails: null
     });
   });
 
@@ -6548,6 +6769,16 @@ describe("c-record-health-check — defensive UI permutations", () => {
     expect(
       element.shadowRoot.querySelector(".rhc-error-banner")
     ).not.toBeNull();
+  });
+
+  it("retains administrator detail when the response omits its Check collection", async () => {
+    getCheckDefinitions.mockResolvedValue({ canViewDetails: true });
+    await appendAndLoad(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__technical")
+        .textContent
+    ).toContain("invalid health-check definition response");
   });
 
   it("shows a retriable system error when Check Set availability lookup fails", async () => {
@@ -7478,6 +7709,11 @@ describe("c-record-health-check — the card body never collapses to a header", 
 
   const expectBody = (el, scenario) => {
     expect(el.shadowRoot.querySelector(".rhc-header")).not.toBeNull();
+    expect(
+      el.shadowRoot
+        .querySelector(".rhc-body")
+        .classList.contains("rhc-body--bare-top")
+    ).toBe(false);
     if (bodyContent(el).length === 0) {
       throw new Error(`Header-only card in scenario: ${scenario}`);
     }

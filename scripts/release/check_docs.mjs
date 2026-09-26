@@ -53,20 +53,27 @@ function splitTableRow(row) {
 
 walk(docsRoot);
 const failures = [];
+const agentStartupReading = [
+  "docs/quality-gates/agent-lessons.md",
+  "internal/agent-notes.md"
+];
 const sharedAgentGuidance = [
   [
     "AGENTS.md",
     [
       "# Repository working agreement",
+      "## Required reading at session start",
+      ...agentStartupReading,
       "## Agentforce and MCP contract",
       "npm run check:mcp",
       "requires the user's explicit authorization"
     ]
   ],
-  ["CLAUDE.md", ["@AGENTS.md"]],
-  ["GEMINI.md", ["@AGENTS.md"]],
-  [".github/copilot-instructions.md", ["AGENTS.md"]],
-  [".cursor/rules/agents.mdc", ["@AGENTS.md"]]
+  ["CLAUDE.md", ["@AGENTS.md", ...agentStartupReading]],
+  ["GEMINI.md", ["@AGENTS.md", ...agentStartupReading]],
+  [".github/copilot-instructions.md", ["AGENTS.md", ...agentStartupReading]],
+  [".cursor/rules/agents.mdc", ["@AGENTS.md", ...agentStartupReading]],
+  ["docs/quality-gates/agent-lessons.md", ["../../AGENTS.md"]]
 ];
 for (const [relativeFile, requiredTexts] of sharedAgentGuidance) {
   const absoluteFile = path.join(root, relativeFile);

@@ -75,11 +75,19 @@ added later cannot reintroduce the header-only card without also being added to 
 condition. Adding an `await` to the load path means giving that window a loading state, because the
 scheduled-load handle is cleared before the awaited call begins.
 
-Card Heading Display and Run Button Display are independent. `TITLE_ONLY` suppresses only the
-subtitle. `HIDE` removes the normal heading; a visible Run/Rerun action moves to the first visual body
-row and remains right aligned. If both settings hide their elements, no empty heading or action container renders. The body
-retains top clearance equal to the card radius so the first status accent remains straight. Error cards retain their setup heading, and App Builder retains the selected Check
-Set identity. The normal card article keeps the resolved Card Title as its accessible name.
+`TITLE_ONLY` suppresses only the subtitle. `HIDE` removes the complete normal heading, including the
+Run/Rerun action, and is valid only with `RUN_ON_LOAD`; `RUN_ON_REQUEST` fails as invalid configuration.
+No empty heading or action container renders. The body retains top clearance equal to the card radius
+so the first status accent remains straight. Error cards retain their setup heading without inheriting
+that headerless-card clearance, and App Builder retains the selected Check Set identity. The normal
+card article keeps the resolved Card Title as its accessible name.
+
+`INVALID_CONFIG` is recoverable without a page reload. The error card offers **Try Again**, which
+rereads the full definition after an administrator corrects the Check Set. A directly assigned
+Record Health Check Admin or Diagnostics Viewer sees the exact rejected setting under
+**Administrator detail**; other users are shown only the generic setup message. The entitlement is
+verified on the server and travels with the structured configuration error, because a rejected
+definition cannot return its normal response DTO.
 
 Summary Display also supports `HIDE`: it suppresses overall and category summaries without changing
 Check evaluation or the hidden-results notice. When the list is the final body block, bottom padding

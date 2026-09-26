@@ -30,6 +30,7 @@ const { values } = parseArgs({
     "skip-upgrade": { type: "boolean", default: false },
     "upgrade-only": { type: "boolean", default: false },
     "release-pair": { type: "boolean", default: false },
+    "reuse-existing-org": { type: "boolean", default: false },
     "security-mode": { type: "string", default: "LWS" },
     "keep-org": { type: "boolean", default: false }
   }
@@ -270,10 +271,60 @@ function deployUpgradePreservationFixture(alias) {
     `${paths.subscriberApp}/main/default/classes/RHCSubscriberPlugin.cls`,
     "--source-dir",
     `${paths.subscriberApp}/main/default/classes/RHCSubscriberPlugin.cls-meta.xml`,
+    "--source-dir",
+    paths.subscriberUpgradePreflight,
     "--target-org",
     alias,
     "--wait",
     "30"
+  ]);
+}
+
+function runUpgradeCompatibilityAudit(alias, expectedCount) {
+  run(
+    "node",
+    [
+      "scripts/release/audit-2.0.11-upgrade.mjs",
+      "--target-org",
+      alias,
+      "--expect-count",
+      String(expectedCount)
+    ],
+    { cwd: paths.repoRoot }
+  );
+}
+
+function runUpgradeCompatibilityVerification(alias) {
+  run("sf", [
+    "apex",
+    "run",
+    "--target-org",
+    alias,
+    "--file",
+    `${paths.subscriberData}/verify2_0_11UpgradeCompatibility.apex`
+  ]);
+}
+
+function recoverUpgradeCompatibilityFixture(alias) {
+  run("sf", [
+    "project",
+    "deploy",
+    "start",
+    "--source-dir",
+    paths.subscriberUpgradeCorrected,
+    "--target-org",
+    alias,
+    "--wait",
+    "30"
+  ]);
+  runUpgradeCompatibilityAudit(alias, 0);
+  run("sf", [
+    "apex",
+    "run",
+    "--target-org",
+    alias,
+    "--file",
+    `${paths.subscriberData}/verify2_0_11UpgradeRecovery.apex`
   ]);
 }
 
@@ -371,9 +422,9 @@ function subscriberConfiguration(alias) {
         String(left.DeveloperName).localeCompare(String(right.DeveloperName))
       );
   }
-  if (snapshot.checkSets.length !== 2 || snapshot.checks.length !== 5) {
+  if (snapshot.checkSets.length !== 3 || snapshot.checks.length !== 6) {
     console.error(
-      `Subscriber preservation fixture is incomplete: expected 2 Check Sets and 5 Checks; found ${snapshot.checkSets.length} and ${snapshot.checks.length}.`
+      `Subscriber preservation fixture is incomplete: expected 3 Check Sets and 6 Checks; found ${snapshot.checkSets.length} and ${snapshot.checks.length}.`
     );
     process.exit(1);
   }
@@ -504,6 +555,10 @@ function main() {
     );
     process.exit(1);
   }
+  if (values["reuse-existing-org"] && !values["upgrade-only"]) {
+    console.error("--reuse-existing-org is valid only with --upgrade-only.");
+    process.exit(1);
+  }
   const candidateId = values.package;
   if (!/^04t[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(candidateId)) {
     console.error(
@@ -543,7 +598,9 @@ function main() {
       devHub,
       releases,
       securityMode,
-      true
+      true,
+      false,
+      values["reuse-existing-org"]
     );
     return;
   }
@@ -628,7 +685,8 @@ function runUpgradeGate(
   releases,
   securityMode,
   required = false,
-  reuseReleaseOrg = false
+  reuseReleaseOrg = false,
+  reuseExistingOrg = false
 ) {
   if (!upgradeFromId.startsWith("04t") || upgradeFromId === candidateId) {
     if (required) {
@@ -654,7 +712,14 @@ function runUpgradeGate(
     return;
   }
 
-  if (reuseReleaseOrg) {
+  if (reuseExistingOrg) {
+    if (aliasAvailable(alias)) {
+      console.error(
+        `--reuse-existing-org requires an existing authorized org alias; '${alias}' was not found.`
+      );
+      process.exit(1);
+    }
+  } else if (reuseReleaseOrg) {
     if (!createdAliases.has(alias) || aliasAvailable(alias)) {
       console.error(
         `Release-pair upgrade expected the clean-install org '${alias}' created by this process.`
@@ -675,7 +740,7 @@ function runUpgradeGate(
     }
   }
 
-  if (!reuseReleaseOrg) {
+  if (!reuseReleaseOrg && !reuseExistingOrg) {
     console.log(`Creating no-namespace upgrade org '${alias}'...`);
     assertScratchCapacity(devHub);
     run("sf", [
@@ -699,10 +764,31 @@ function runUpgradeGate(
     createdAliases.add(alias);
   }
 
-  console.log(
-    `Installing promoted base version ${upgradeFromId} for upgrade rehearsal...`
+  const initiallyInstalled = installedPackageRecords(
+    runJson("sf", ["package", "installed", "list", "--target-org", alias])
   );
-  installPackage(upgradeFromId, alias);
+  if (reuseExistingOrg) {
+    if (!hasInstalledPackageVersion(initiallyInstalled, upgradeFromId)) {
+      console.error(
+        `Existing org '${alias}' must already contain the exact base ${upgradeFromId}.`
+      );
+      process.exit(1);
+    }
+    if (hasInstalledPackageVersion(initiallyInstalled, candidateId)) {
+      console.error(
+        `Existing org '${alias}' already contains candidate ${candidateId}; the pre-upgrade state cannot be proven.`
+      );
+      process.exit(1);
+    }
+    console.log(
+      `Reusing authorized org '${alias}' with promoted base ${upgradeFromId}.`
+    );
+  } else {
+    console.log(
+      `Installing promoted base version ${upgradeFromId} for upgrade rehearsal...`
+    );
+    installPackage(upgradeFromId, alias);
+  }
   assignAdmin(alias, releases);
   deployUpgradePreservationFixture(alias);
 
@@ -721,9 +807,10 @@ function runUpgradeGate(
   }
 
   const configurationBeforeUpgrade = subscriberConfiguration(alias);
+  runUpgradeCompatibilityAudit(alias, 1);
   runUpgradeBaseVerification(alias);
   console.log(
-    "Pre-upgrade 2.0.6.2 global API and subscriber-preservation baseline passed."
+    "Pre-upgrade global API, compatibility audit, and subscriber-preservation baseline passed."
   );
 
   console.log(`Upgrading ${alias} to candidate ${candidateId}...`);
@@ -741,6 +828,8 @@ function runUpgradeGate(
     configurationBeforeUpgrade,
     configurationAfterUpgrade
   );
+  runUpgradeCompatibilityVerification(alias);
+  recoverUpgradeCompatibilityFixture(alias);
   deploySubscriberHarness(alias);
   runSubscriberSmoke(alias, "upgrade");
   runInstalledSurfaceGates(alias, securityMode);

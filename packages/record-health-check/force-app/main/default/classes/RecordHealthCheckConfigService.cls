@@ -138,6 +138,20 @@ public with sharing class RecordHealthCheckConfigService {
     return normalized;
   }
 
+  public static String validatedCardHeadingDisplay(
+    String configuredValue,
+    String cardRunMode
+  ) {
+    String normalized = validatedCardHeadingDisplay(configuredValue);
+    if (normalized == 'HIDE' && cardRunMode == 'RUN_ON_REQUEST') {
+      throw new ConfigException(
+        'Card Heading Display cannot be Hide when checks run only after a user clicks Run. Show the heading or run checks when the page opens.',
+        RC_INVALID_CONFIG
+      );
+    }
+    return normalized;
+  }
+
   private static String toShellRunMode(String cardRunMode) {
     if (cardRunMode == 'RUN_ON_LOAD') {
       return 'Automatic';

@@ -1,0 +1,332 @@
+{
+  "version": "2.0.10",
+  "features": [
+    {
+      "id": "apex-parameters",
+      "requiredOutcomes": ["PASS", "FAIL", "REJECTED", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberDefinitionIntegrationTest.cls",
+            "contains": [
+              "definitionFixtureOutcomesMatchIndependentExpectations",
+              "RecordHealthCheckStatus.PASS",
+              "RecordHealthCheckStatus.FAIL"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberDefinitionIntegrationTest.cls",
+            "contains": ["capacityFiveAndSix", "PLUGIN_SCOPE_LIMIT_EXCEEDED"]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberDefinitionIntegrationTest.cls",
+            "contains": ["sameCheckTransition"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "typed-outcomes",
+      "requiredOutcomes": ["PASS", "FAIL", "REJECTED", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberValueIntegrationTest.cls",
+            "contains": [
+              "equalityBuildersRejectContradiction",
+              "RecordHealthCheckStatus.PASS",
+              "RecordHealthCheckStatus.FAIL"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberValueIntegrationTest.cls",
+            "contains": ["BUILDER_VERDICT_MISMATCH", "INVALID_BUILDER_VALUES"]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberValueIntegrationTest.cls",
+            "contains": ["sameCheckTransition"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "per-record-recovery",
+      "requiredOutcomes": ["PASS", "UNABLE_TO_EVALUATE", "FATAL", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberDefinitionIntegrationTest.cls",
+            "contains": [
+              "definitionFixtureOutcomesMatchIndependentExpectations"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberDefinitionIntegrationTest.cls",
+            "contains": ["fatalNotSwallowed", "SideEffectException"]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberDefinitionIntegrationTest.cls",
+            "contains": ["isolateOneRecord", "RECORD_EVALUATION_FAILED"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "evidence",
+      "requiredOutcomes": ["PASS", "FAIL", "REDACTED", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCEvidenceFixtureTest.cls",
+            "contains": ["typedNullPreservesVerdicts"]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCEvidenceFixtureTest.cls",
+            "contains": [
+              "wrongTypedNullRemovesEvidence",
+              "malformedRowRemovesEvidence"
+            ]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCEvidenceFixtureTest.cls",
+            "contains": ["authorizedScopeRowsRemainVisible"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "presentation",
+      "requiredOutcomes": ["PASS", "FAIL", "FALLBACK", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCLinkFixtureTest.cls",
+            "contains": [
+              "legacyAndStructuredPluginsPreserveVerdictsAndPresentation"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCLinkFixtureTest.cls",
+            "contains": ["numericHostFallbackPreservesFixtureVerdicts"]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCLinkFixtureTest.cls",
+            "contains": ["savedMissingBraceIsRejectedAndRecovers"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-planning",
+      "requiredOutcomes": ["PASS", "FAIL", "FIELD_NOT_ACCESSIBLE", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberFormulaIntegrationTest.cls",
+            "contains": [
+              "formulaFixtureOutcomesMatchIndependentExpectations",
+              "RecordHealthCheckStatus.PASS",
+              "RecordHealthCheckStatus.FAIL"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberFormulaIntegrationTest.cls",
+            "contains": ["restrictedFieldParity", "FIELD_NOT_ACCESSIBLE"]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberFormulaIntegrationTest.cls",
+            "contains": ["Restoring AnnualRevenue read access must clear"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "diagnostics",
+      "requiredOutcomes": ["AUTHORIZED", "DENIED", "SAFE_ERROR", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberDiagnosticIntegrationTest.cls",
+            "contains": [
+              "authorizedV2RequestProjectsObservedPlanningTrace",
+              "diagnosticFixturePreservesBusinessPassAndFail"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RecordHealthCheckAccessTest.cls",
+            "contains": [
+              "explicitDenyRejectsAnUnentitledTestUser",
+              "inabilityToReadAssignmentsFailsClosed"
+            ]
+          },
+          {
+            "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckControllerErrorTest.cls",
+            "contains": [
+              "getCheckDefinitionsWrapsConfigErrorsForAura",
+              "canViewDetails"
+            ]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
+            "contains": [
+              "recovers after a hidden Manual heading is corrected to page-load"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "detached-preview",
+      "requiredOutcomes": ["PASS", "FAIL", "VALIDATE_ONLY", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberPreviewSpecTest.cls",
+            "contains": [
+              "activeControlUsesNormalApiForPassAndFail",
+              "unsavedDraftHasIdentityAndLiveReadiness"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberPreviewSpecTest.cls",
+            "contains": [
+              "inactivePreviewOnly",
+              "inactiveParentValidatesWithoutEnablingNormalRuns"
+            ]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberPreviewSpecTest.cls",
+            "contains": ["businessFailCanVerify"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "readiness",
+      "requiredOutcomes": ["CURRENT", "STALE", "EXPIRED", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCSubscriberPreviewSpecTest.cls",
+            "contains": [
+              "businessFailCanVerify",
+              "unsavedDraftHasIdentityAndLiveReadiness"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckReadinessStateTest.cls",
+            "contains": [
+              "unableIncompleteAndExpiredReceiptsCannotVerifyLive",
+              "contextAndAccessMismatchRevealNothing"
+            ]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckPreviewControllerTest.cls",
+            "contains": [
+              "readinessReceiptOnlyAppliesToItsExactScope",
+              "readinessServicePersistsCountsAndDecoratesCurrentDraft"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-authoring",
+      "requiredOutcomes": ["PASS", "FAIL", "INVALID_CONFIG", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCQueryRowTokenIT.cls",
+            "contains": [
+              "addressesTheSecondContactOfTheAccountBeingChecked",
+              "readsOuterScalarBesideOpaqueChildSubquery"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCReleaseBoundaryCoverageIT.cls",
+            "contains": [
+              "flowGroupClassifiesFrameworkCheckLimit",
+              "FRAMEWORK_MAX_CHECKS_EXCEEDED"
+            ]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCQueryRowTokenIT.cls",
+            "contains": ["oneMisconfiguredCheckDoesNotTakeDownItsCheckSet"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "card-heading",
+      "requiredOutcomes": ["PASS", "FAIL", "INVALID_CONFIG", "RECOVERY"],
+      "anchors": {
+        "success": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCCardHeadingTest.cls",
+            "contains": [
+              "validShellsAndDefinitionsCarryExactHeadingModes",
+              "headingModesPreserveIndependentPassAndFailOutcomes"
+            ]
+          }
+        ],
+        "adverse": [
+          {
+            "file": "packages/record-health-check/integration-tests/main/default/classes/RHCCardHeadingTest.cls",
+            "contains": [
+              "hiddenManualHeadingConfigurationsFailBeforeEvaluation",
+              "RC_INVALID_CONFIG"
+            ]
+          }
+        ],
+        "recovery": [
+          {
+            "file": "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js",
+            "contains": [
+              "recovers after a hidden Manual heading is corrected to page-load"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

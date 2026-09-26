@@ -60,6 +60,9 @@ private class RHCMetadataSetValidatorTest {
     ) {
       Record_Health_Check_Set__mdt checkSet = validCheckSet();
       checkSet.CardHeadingDisplay__c = configuredValue;
+      if (configuredValue == 'HIDE') {
+        checkSet.CardRunMode__c = 'RUN_ON_LOAD';
+      }
 
       List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataSetValidator.validate(
         checkSet
@@ -102,6 +105,55 @@ private class RHCMetadataSetValidatorTest {
       issues[0].message,
       'The invalid heading message must list the exact supported choices.'
     );
+  }
+
+  @IsTest
+  static void rejectsHiddenManualHeadingForEveryButtonStyle() {
+    for (
+      String buttonDisplay : new List<String>{
+        'LABEL_AND_ICON',
+        'LABEL_ONLY',
+        'ICON_ONLY',
+        'HIDE'
+      }
+    ) {
+      Record_Health_Check_Set__mdt checkSet = validCheckSet();
+      checkSet.CardHeadingDisplay__c = 'HIDE';
+      checkSet.RunButtonDisplay__c = buttonDisplay;
+
+      List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataSetValidator.validate(
+        checkSet
+      );
+      Integer headingIssueIndex = buttonDisplay == 'HIDE' ? 1 : 0;
+
+      Assert.areEqual(
+        buttonDisplay == 'HIDE' ? 2 : 1,
+        issues.size(),
+        'Each hidden-heading Manual style must report every invalid control.'
+      );
+      if (buttonDisplay == 'HIDE') {
+        Assert.areEqual(
+          'RunButtonDisplay__c',
+          issues[0].fieldName,
+          'The established hidden-button error must retain precedence.'
+        );
+      }
+      Assert.areEqual(
+        'CardHeadingDisplay__c',
+        issues[headingIssueIndex].fieldName,
+        'The issue must identify Card Heading Display.'
+      );
+      Assert.areEqual(
+        'INVALID_CONFIG',
+        issues[headingIssueIndex].reasonCode,
+        'Every incompatible heading and run-mode combination must be invalid configuration.'
+      );
+      Assert.areEqual(
+        'Card Heading Display cannot be Hide when checks run only after a user clicks Run. Show the heading or run checks when the page opens.',
+        issues[headingIssueIndex].message,
+        'The message must give both valid recovery choices.'
+      );
+    }
   }
 
   @IsTest
@@ -209,6 +261,29 @@ private class RHCMetadataSetValidatorTest {
       'USER_RUN_PUBLICATION_UNREACHABLE',
       issues[0].reasonCode,
       'The finding should identify the lifecycle reachability problem.'
+    );
+  }
+
+  @IsTest
+  static void warnsWhenHiddenAutomaticHeadingCannotPublishFromCard() {
+    Record_Health_Check_Set__mdt checkSet = validCheckSet();
+    checkSet.CardRunMode__c = 'RUN_ON_LOAD';
+    checkSet.CardHeadingDisplay__c = 'HIDE';
+    checkSet.PublishUserRunEvent__c = true;
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = RecordHealthCheckMetadataSetValidator.validate(
+      checkSet
+    );
+
+    Assert.areEqual(
+      1,
+      issues.size(),
+      'A hidden automatic heading should warn when it removes the in-card publication path.'
+    );
+    Assert.areEqual(
+      'USER_RUN_PUBLICATION_UNREACHABLE',
+      issues[0].reasonCode,
+      'Heading and button hiding must use the same lifecycle reachability warning.'
     );
   }
 

@@ -71,7 +71,150 @@ const definitionLoader = fs.readFileSync(
   ),
   "utf8"
 );
+const metadataSetValidator = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckMetadataSetValidator.cls"
+  ),
+  "utf8"
+);
+const metadataSetValidatorTest = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/classes/RHCMetadataSetValidatorTest.cls"
+  ),
+  "utf8"
+);
+const definitionLoaderTest = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckDefinitionLoaderTest.cls"
+  ),
+  "utf8"
+);
+const componentTemplate = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/recordHealthCheck.html"
+  ),
+  "utf8"
+);
+const componentStyles = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/recordHealthCheck.css"
+  ),
+  "utf8"
+);
+const componentTest = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/__tests__/recordHealthCheck.test.js"
+  ),
+  "utf8"
+);
+const componentDiagnostics = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/healthCheckDiagnostics.js"
+  ),
+  "utf8"
+);
+const componentModel = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/healthCheckModel.js"
+  ),
+  "utf8"
+);
+const controllerErrorTest = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/classes/RecordHealthCheckControllerErrorTest.cls"
+  ),
+  "utf8"
+);
+const headingIntegrationTest = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/integration-tests/main/default/classes/RHCCardHeadingTest.cls"
+  ),
+  "utf8"
+);
+const headingFixtureContract = JSON.parse(
+  fs.readFileSync(
+    path.join(root, "tests/fixtures/card-heading/contract.json"),
+    "utf8"
+  )
+);
+const headingFixtureGuide = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/integration-tests/card-heading-display.md"
+  ),
+  "utf8"
+);
 const failures = [];
+
+const expectedHiddenHeadingConfigurationErrors = [
+  ["RHC_Heading_Action", "LABEL_AND_ICON"],
+  ["RHC_Heading_NoneLabelManual", "LABEL_ONLY"],
+  ["RHC_Heading_NoneIconManual", "ICON_ONLY"],
+  ["RHC_Heading_NoneManual", "HIDE"]
+].map(([fixture, button]) => ({
+  fixture,
+  heading: "HIDE",
+  button,
+  run: "RUN_ON_REQUEST",
+  outcome: "INVALID_CONFIG"
+}));
+const expectedHiddenHeadingPageLoadCases = [
+  ["RHC_Heading_NoneBothAuto", "LABEL_AND_ICON"],
+  ["RHC_Heading_NoneLabelAuto", "LABEL_ONLY"],
+  ["RHC_Heading_NoneIconAuto", "ICON_ONLY"],
+  ["RHC_Heading_None", "HIDE"]
+].map(([fixture, button]) => ({
+  fixture,
+  heading: "HIDE",
+  button,
+  run: "RUN_ON_LOAD",
+  outcome: "VALID"
+}));
+
+if (
+  JSON.stringify(headingFixtureContract.configurationErrorMatrix) !==
+  JSON.stringify(expectedHiddenHeadingConfigurationErrors)
+) {
+  failures.push(
+    "Hidden-heading Manual configuration-error matrix must cover all four button styles with INVALID_CONFIG."
+  );
+}
+if (
+  JSON.stringify(headingFixtureContract.hiddenHeadingPageLoadMatrix) !==
+  JSON.stringify(expectedHiddenHeadingPageLoadCases)
+) {
+  failures.push(
+    "Hidden-heading page-load matrix must keep all four button styles valid."
+  );
+}
+for (const expected of [
+  ...expectedHiddenHeadingConfigurationErrors,
+  ...expectedHiddenHeadingPageLoadCases
+]) {
+  const fixture = headingFixtureContract.sets.find(
+    ({ name }) => name === expected.fixture
+  );
+  if (
+    !fixture ||
+    fixture.heading !== expected.heading ||
+    fixture.button !== expected.button ||
+    fixture.run !== expected.run
+  ) {
+    failures.push(
+      `Heading outcome matrix does not match fixture ${expected.fixture}.`
+    );
+  }
+}
 
 const requiredIntegrationFixtures = [
   "Record_Health_Check_Set.Review_Summary_Above_Checks.md-meta.xml",
@@ -205,10 +348,126 @@ for (const requiredContract of [
   ],
   [formulaEvaluator, "'INVALID_CONFIG'", "formula return-type rejection"],
   [activityCheck, "unableToEvaluate('INVALID_CONFIG')", "daysBack rejection"],
-  [definitionLoader, "Card Title is required", "required Card Title validation"]
+  [
+    definitionLoader,
+    "Card Title is required",
+    "required Card Title validation"
+  ],
+  [
+    configService,
+    "normalized == 'HIDE' && cardRunMode == 'RUN_ON_REQUEST'",
+    "hidden-heading Manual rejection"
+  ],
+  [
+    metadataSetValidator,
+    "Card Heading Display cannot be Hide when checks run only after a user clicks Run.",
+    "metadata validation for hidden Manual headings"
+  ],
+  [
+    component,
+    'response.triggerMode === "Manual" && cardHeadingDisplay === "HIDE"',
+    "client-side hidden Manual heading defense"
+  ],
+  [
+    component,
+    "return !this.hasComponentError && !this.showNormalHeader",
+    "error-header body spacing guard"
+  ],
+  [
+    metadataSetValidatorTest,
+    "rejectsHiddenManualHeadingForEveryButtonStyle",
+    "metadata validator button-style matrix test"
+  ],
+  [
+    definitionLoaderTest,
+    "rejectsHiddenManualHeadingForEveryButtonStyleAtDefinitionBoundary",
+    "definition boundary button-style matrix test"
+  ],
+  [
+    componentTest,
+    "keeps a page-load hidden heading valid without an action row for %s",
+    "rendered valid hidden-heading matrix test"
+  ],
+  [
+    componentTest,
+    "loads the full definition to reject a hidden Manual heading for %s",
+    "rendered shell configuration-error matrix test"
+  ],
+  [
+    componentTest,
+    "rejects a hidden Manual heading in a definition response for %s",
+    "rendered definition configuration-error matrix test"
+  ],
+  [
+    controller,
+    "buildAuraException(ex.reasonCode, ex.getMessage(), true)",
+    "server-verified detail entitlement on configuration errors"
+  ],
+  [
+    componentModel,
+    'typeof parsed.canViewDetails === "boolean"',
+    "structured error detail-entitlement parsing"
+  ],
+  [
+    component,
+    'typeof parsed.canViewDetails === "boolean"',
+    "component application of verified detail entitlement"
+  ],
+  [
+    componentDiagnostics,
+    'guidance: "Ask your Salesforce admin to review this Check Set in Setup.",\n    retryable: true',
+    "retryable invalid-configuration presentation"
+  ],
+  [
+    controllerErrorTest,
+    "getCheckDefinitionsCarriesVerifiedAdministratorEntitlement",
+    "Apex administrator-entitlement regression test"
+  ],
+  [
+    headingIntegrationTest,
+    "headingModesPreserveIndependentPassAndFailOutcomes",
+    "integration PASS/FAIL heading-independence regression test"
+  ],
+  [
+    headingIntegrationTest,
+    "hiddenManualHeadingConfigurationsFailBeforeEvaluation",
+    "integration invalid-heading pre-evaluation regression test"
+  ],
+  [
+    componentTest,
+    "shows exact invalid configuration only when detail entitlement is %s",
+    "administrator-detail visibility regression test"
+  ],
+  [
+    componentTest,
+    "recovers after a hidden Manual heading is corrected to page-load",
+    "invalid-configuration recovery regression test"
+  ],
+  [
+    headingFixtureGuide,
+    "All four must report\nINVALID_CONFIG with no evaluations.",
+    "manual verification outcome for every invalid hidden-heading fixture"
+  ],
+  [
+    headingFixtureGuide,
+    "After correcting the Set to `RUN_ON_LOAD`, select **Try\nAgain**",
+    "manual invalid-configuration recovery procedure"
+  ]
 ]) {
   if (!requiredContract[0].includes(requiredContract[1])) {
     failures.push(`Missing ${requiredContract[2]}`);
+  }
+}
+
+for (const [sourceName, source] of [
+  ["template", componentTemplate],
+  ["styles", componentStyles],
+  ["component", component]
+]) {
+  if (source.includes("rhc-body-action-row")) {
+    failures.push(
+      `Record-page card ${sourceName} must not restore a separate body action row.`
+    );
   }
 }
 
@@ -218,5 +477,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Verified exact QualifiedApiName identity, metadata-owned run scheduling, strict configuration contracts, and required integration-test fixtures."
+  "Verified exact QualifiedApiName identity, metadata-owned run scheduling, hidden-heading configuration errors, strict configuration contracts, and required integration-test fixtures."
 );

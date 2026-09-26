@@ -3,3 +3,7 @@ alwaysApply: true
 ---
 
 Follow the repository working agreement in @AGENTS.md.
+
+At the start of every session, follow its required reading procedure: read
+`docs/quality-gates/agent-lessons.md` completely, then `internal/agent-notes.md` if present.
+Report the relevant lessons briefly before task-specific work.

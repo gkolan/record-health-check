@@ -3,9 +3,9 @@
 <fullName>CardHeadingDisplay__c</fullName>
 <label>Card Heading Display</label>
 <description
-  >Controls whether the record-page card shows its title and subtitle. Run Button Display controls the Run and Rerun buttons separately.</description>
+  >Controls whether the record-page card shows its title and subtitle. Hide also removes Run and Rerun, so it is valid only when checks run when the page opens.</description>
 <inlineHelpText
-  >Show the title and subtitle, show only the title, or hide both. The Run and Rerun buttons are controlled separately.</inlineHelpText>
+  >Show the title and subtitle, show only the title, or hide the complete heading and its Run or Rerun action. Hide requires page-open runs.</inlineHelpText>
 <required>false</required><type>Picklist</type>
 <valueSet><restricted>true</restricted><valueSetDefinition><sorted
       >false</sorted>

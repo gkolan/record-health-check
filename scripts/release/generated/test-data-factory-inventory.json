@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
   "summary": {
-    "classes": 128,
+    "classes": 129,
     "persistedCallSites": 0,
     "userCallSites": 0,
-    "safeClasses": 128
+    "safeClasses": 129
   },
   "classes": [
     {
@@ -642,6 +642,14 @@
     },
     {
       "className": "RecordHealthCheckContractTypesTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckControllerErrorTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,

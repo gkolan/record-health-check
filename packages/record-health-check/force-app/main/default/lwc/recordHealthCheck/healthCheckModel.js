@@ -229,7 +229,9 @@ export function parseAuraError(err) {
     return {
       reasonCode: err.reasonCode,
       message: err.message || "An error occurred loading Record Health Check.",
-      diagnosticCode
+      diagnosticCode,
+      canViewDetails:
+        typeof err.canViewDetails === "boolean" ? err.canViewDetails : null
     };
   }
   try {
@@ -242,7 +244,11 @@ export function parseAuraError(err) {
       reasonCode: parsed.reasonCode || "LOAD_FAILED",
       message:
         parsed.message || "An error occurred loading Record Health Check.",
-      diagnosticCode: parsed.diagnosticCode || diagnosticCode
+      diagnosticCode: parsed.diagnosticCode || diagnosticCode,
+      canViewDetails:
+        typeof parsed.canViewDetails === "boolean"
+          ? parsed.canViewDetails
+          : null
     };
   } catch {
     const message = err?.body?.message || err?.message || "";

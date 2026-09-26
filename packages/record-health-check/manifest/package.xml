@@ -397,6 +397,7 @@
         <members>RecordHealthCheckContractTestData</members>
         <members>RecordHealthCheckContractTypesTest</members>
         <members>RecordHealthCheckController</members>
+        <members>RecordHealthCheckControllerErrorTest</members>
         <members>RecordHealthCheckControllerShellTest</members>
         <members>RecordHealthCheckControllerTest</members>
         <members>RecordHealthCheckCurrencySupport</members>

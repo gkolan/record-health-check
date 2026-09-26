@@ -19,6 +19,99 @@ const values = (xml) =>
     ])
   );
 
+const hiddenHeadingConfigurationErrors = [
+  {
+    fixture: "RHC_Heading_Action",
+    heading: "HIDE",
+    button: "LABEL_AND_ICON",
+    run: "RUN_ON_REQUEST",
+    outcome: "INVALID_CONFIG"
+  },
+  {
+    fixture: "RHC_Heading_NoneLabelManual",
+    heading: "HIDE",
+    button: "LABEL_ONLY",
+    run: "RUN_ON_REQUEST",
+    outcome: "INVALID_CONFIG"
+  },
+  {
+    fixture: "RHC_Heading_NoneIconManual",
+    heading: "HIDE",
+    button: "ICON_ONLY",
+    run: "RUN_ON_REQUEST",
+    outcome: "INVALID_CONFIG"
+  },
+  {
+    fixture: "RHC_Heading_NoneManual",
+    heading: "HIDE",
+    button: "HIDE",
+    run: "RUN_ON_REQUEST",
+    outcome: "INVALID_CONFIG"
+  }
+];
+
+const hiddenHeadingPageLoadCases = [
+  {
+    fixture: "RHC_Heading_NoneBothAuto",
+    heading: "HIDE",
+    button: "LABEL_AND_ICON",
+    run: "RUN_ON_LOAD",
+    outcome: "VALID"
+  },
+  {
+    fixture: "RHC_Heading_NoneLabelAuto",
+    heading: "HIDE",
+    button: "LABEL_ONLY",
+    run: "RUN_ON_LOAD",
+    outcome: "VALID"
+  },
+  {
+    fixture: "RHC_Heading_NoneIconAuto",
+    heading: "HIDE",
+    button: "ICON_ONLY",
+    run: "RUN_ON_LOAD",
+    outcome: "VALID"
+  },
+  {
+    fixture: "RHC_Heading_None",
+    heading: "HIDE",
+    button: "HIDE",
+    run: "RUN_ON_LOAD",
+    outcome: "VALID"
+  }
+];
+
+test("hidden heading configuration outcomes cover every button style", () => {
+  assert.deepEqual(
+    contract.configurationErrorMatrix,
+    hiddenHeadingConfigurationErrors
+  );
+  assert.deepEqual(
+    contract.hiddenHeadingPageLoadMatrix,
+    hiddenHeadingPageLoadCases
+  );
+
+  for (const expected of [
+    ...hiddenHeadingConfigurationErrors,
+    ...hiddenHeadingPageLoadCases
+  ]) {
+    const row = contract.sets.find(({ name }) => name === expected.fixture);
+    assert.ok(row, `Missing fixture ${expected.fixture}`);
+    assert.deepEqual(
+      {
+        heading: row.heading,
+        button: row.button,
+        run: row.run
+      },
+      {
+        heading: expected.heading,
+        button: expected.button,
+        run: expected.run
+      }
+    );
+  }
+});
+
 test("heading fixtures cover every valid heading/button/run combination", () => {
   for (const heading of ["TITLE_AND_SUBTITLE", "TITLE_ONLY", "HIDE"]) {
     for (const button of [
@@ -28,7 +121,11 @@ test("heading fixtures cover every valid heading/button/run combination", () => 
       "HIDE"
     ]) {
       for (const run of ["RUN_ON_LOAD", "RUN_ON_REQUEST"]) {
-        if (button === "HIDE" && run === "RUN_ON_REQUEST") continue;
+        if (
+          run === "RUN_ON_REQUEST" &&
+          (button === "HIDE" || heading === "HIDE")
+        )
+          continue;
         assert.ok(
           contract.sets.some(
             (row) =>

@@ -3,8 +3,10 @@
 private class RHCDisplayByteBudgetTest {
   @IsTest
   static void fieldBytesAreBoundedAtTheExactBoundary() {
-    for (String label : new List<String>{ 'x', 'é😀' }) {
-      for (Integer offset : new List<Integer>{ -1, 0, 1 }) {
+    List<String> labels = new List<String>{ 'x', 'é😀' };
+    List<Integer> boundaryOffsets = new List<Integer>{ -1, 0, 1 };
+    for (String label : labels) {
+      for (Integer offset : boundaryOffsets) {
         RecordHealthCheckDisplayText builder = exactByteBuilder(
           65536 + offset,
           label

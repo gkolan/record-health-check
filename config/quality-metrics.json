@@ -1,8 +1,8 @@
 {
-  "verifiedAt": "2026-09-12",
+  "verifiedAt": "2026-09-25",
   "apex": {
     "verifiedAt": "2026-09-12",
-    "sourceVersion": "2.0.10",
+    "sourceVersion": "2.0.11",
     "sourceCoveragePercent": 97.86,
     "coveredLines": 16834,
     "executableLines": 17203,
@@ -18,11 +18,11 @@
     "subscriberPackageVersionId": "04tak000000h2wDAAQ"
   },
   "lwc": {
-    "verifiedAt": "2026-09-12",
-    "testCount": 392,
-    "linesPercent": 98.52,
-    "statementsPercent": 98.54,
+    "verifiedAt": "2026-09-25",
+    "testCount": 407,
+    "linesPercent": 98.53,
+    "statementsPercent": 98.55,
     "functionsPercent": 99.21,
-    "branchesPercent": 93.3
+    "branchesPercent": 93.25
   }
 }

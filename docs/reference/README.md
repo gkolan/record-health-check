@@ -8,6 +8,7 @@ outcome, return to the [documentation home](../README.md) and choose a task-base
 
 | Folder                                                         | What you can find there                                                                                                                      |
 | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Version 2.0.11](./release-2.0.11.md)                          | Corrective card-heading behavior, the 2.0.10.1 compatibility audit, recovery choices, and installed-upgrade evidence                         |
 | [Feature catalog](./feature-catalog.md)                        | Every shipped capability, its supported behavior, and the detailed guide that owns it                                                        |
 | [Version 2.0.10](./release-2.0.10.md)                          | Complete contract for the plugin, evidence, display, diagnostics, preview, readiness, limits, and compatibility changes introduced in 2.0.10 |
 | [Permission Sets](./permission-sets.md)                        | The six installed access bundles and the ways they authorize runs, diagnostics, and events                                                   |
@@ -28,6 +29,7 @@ Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term 
 | I need to know…                                                           | Reference                                                                              |
 | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | What the package supports                                                 | [Complete feature catalog](./feature-catalog.md)                                       |
+| What changed in 2.0.11                                                    | [Version 2.0.11 reference](./release-2.0.11.md)                                        |
 | What changed in 2.0.10                                                    | [Version 2.0.10 reference](./release-2.0.10.md)                                        |
 | Which field to use in Setup                                               | [Custom Metadata](./custom-metadata/README.md)                                         |
 | Which Permission Set to assign                                            | [Permission Sets](./permission-sets.md)                                                |
