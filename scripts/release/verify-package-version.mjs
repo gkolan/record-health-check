@@ -17,7 +17,7 @@ import {
   installedPackageRecords
 } from "../lib/installed-packages.mjs";
 import { packageVersionString } from "../lib/package-version.mjs";
-import { run, runJson } from "../lib/run.mjs";
+import { run, runJson, tryRun } from "../lib/run.mjs";
 import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
 import { selectUpgradeBase } from "../lib/release-upgrades.mjs";
 
@@ -235,15 +235,27 @@ function resetReleasePairForUpgrade(alias, candidateId) {
 }
 
 function assignAdmin(alias, releases) {
-  run("sf", [
+  const permissionSet = namespacedPermissionSet(
+    releases.permissionSets.admin,
+    releases
+  );
+  const assignment = tryRun("sf", [
     "org",
     "assign",
     "permset",
     "--name",
-    namespacedPermissionSet(releases.permissionSets.admin, releases),
+    permissionSet,
     "--target-org",
     alias
   ]);
+  if (assignment.status === 0) return;
+  const output = `${assignment.stdout ?? ""}${assignment.stderr ?? ""}`;
+  if (output.includes("Duplicate PermissionSetAssignment")) {
+    console.log(`${permissionSet} is already assigned; continuing.`);
+    return;
+  }
+  process.stderr.write(output);
+  process.exit(assignment.status ?? 1);
 }
 
 function deploySubscriberHarness(alias) {
