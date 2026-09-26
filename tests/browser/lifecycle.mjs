@@ -40,20 +40,35 @@ export async function exerciseRefreshAndNavigation(page) {
   page.on("request", countAuraRequest);
 
   const inlinePhoneEdit = page.locator('button[title="Edit Phone"]').first();
+  const phoneInput = page.getByLabel("Phone", { exact: true });
   if (await inlinePhoneEdit.isVisible().catch(() => false)) {
     await inlinePhoneEdit.click();
   } else {
-    await page
+    const recordEdit = page
       .getByRole("button", { name: "Edit", exact: true })
-      .first()
-      .click();
+      .first();
+    await recordEdit.click();
+    const openedFromAction = await phoneInput
+      .waitFor({ state: "visible", timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!openedFromAction) {
+      // Salesforce occasionally paints the standard action before its Aura
+      // handler is ready. Use the record's own edit route so this lifecycle
+      // gate measures LDS refresh behavior instead of an action-bar race.
+      const editLink = page.locator('a[href$="/edit"]').first();
+      await expect(editLink).toBeVisible();
+      await editLink.click();
+    }
   }
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel("Phone", { exact: true }).fill("3125550199");
+  // Depending on Salesforce's current record-page shell, Edit can render as
+  // a modal dialog or as inline page detail fields. The lifecycle contract is
+  // the save notification and card refresh, not either shell presentation.
+  await expect(phoneInput).toBeVisible();
+  await phoneInput.fill("3125550199");
   auraRequestsAfterSave = 0;
-  await dialog.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(dialog).toBeHidden();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(phoneInput).toBeHidden();
   await expect.poll(() => auraRequestsAfterSave).toBeGreaterThanOrEqual(2);
   await expectAutomaticRunCompleted(page);
   page.off("request", countAuraRequest);

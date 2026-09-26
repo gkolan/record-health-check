@@ -38,8 +38,24 @@ server-side metadata validation tests, LWC retry and diagnostics tests, and brow
 proves the upgrade preserves it, verifies the exact `INVALID_CONFIG` result, applies the documented
 recovery, and proves the preserved Check evaluates to `PASS` afterward.
 
-The immutable package ID and final installed-package results are recorded only after a candidate is
-created and verified; a locked source design is not package evidence.
+Candidate `2.0.11.1`, whose immutable ID is recorded in the
+[package project aliases](../../packages/record-health-check/sfdx-project.json), was created from
+commit `b793c70` and installed by upgrading the retained no-namespace subscriber org from exact base
+`2.0.10.1`. The rehearsal recorded all of the following:
+
+- the audit found the one deliberately incompatible subscriber Check Set before upgrade and zero
+  findings after the documented correction;
+- all three subscriber-owned Check Sets and six subscriber-owned Checks retained their field values;
+- the preserved hidden/manual configuration returned exact `INVALID_CONFIG`, and its corrected
+  hidden/on-load form evaluated to `PASS`;
+- the exact subscriber Apex inventory passed 3 classes and 17 test methods;
+- live MCP `RUN_CHECK` and `RUN_CHECK_SET` requests passed;
+- the installed card, rerun/reread contract, App Builder preview, and restricted Card User persona
+  passed in Chromium and Firefox under Lightning Web Security; and
+- the deterministic subscriber dataset produced all 204 expected Check results.
+
+This package version is an unpromoted release candidate. Its ID and installed results are immutable
+candidate evidence, not a claim that 2.0.11 is promoted or generally available.
 
 ## Related
 

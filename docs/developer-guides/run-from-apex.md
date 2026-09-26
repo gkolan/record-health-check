@@ -183,6 +183,11 @@ Each item always has `evaluation`. It has `display` only when the request uses
 `EVALUATION_WITH_DISPLAY`. Machine values use `rhc.RecordHealthCheckValue`, so callers do not
 receive untyped `Object` values.
 
+Read an installed package response through these typed fields. Salesforce does not support calling
+`JSON.serialize` directly on the managed package's global response objects from subscriber-namespace
+Apex. When a JSON boundary is required, use the packaged Flow result JSON, REST adapter, or another
+documented serialized entry point instead of serializing the typed Apex response yourself.
+
 `evaluation` contains `recordId`, `checkQualifiedApiName`, `status`, `severity`, `reasonCode`,
 `found`, `comparisonOperator`, and `expected`. The `summary` fields are `passed`, `failed`,
 `skipped`, `unable`, and `systemError`; `summary.total()` returns their sum. Derive a business

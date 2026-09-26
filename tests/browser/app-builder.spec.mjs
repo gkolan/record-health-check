@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { isKnownFirefoxBuilderShellErrors } from "../../scripts/lib/salesforce-browser-errors.mjs";
 
 const builderUrl = process.env.RHC_BUILDER_URL;
 const builderPageLabel = process.env.RHC_BUILDER_PAGE_LABEL;
@@ -10,25 +11,6 @@ function pageErrorDetail(error) {
     message: error.message,
     stack: error.stack
   };
-}
-
-function isKnownFirefoxBuilderShellErrors(browserName, errors) {
-  return (
-    browserName === "firefox" &&
-    errors.length >= 2 &&
-    errors[0].name === "uncaught exception" &&
-    errors[0].message === "Object" &&
-    errors[0].stack?.includes("_getServerData") &&
-    errors[0].stack?.includes("apppart4-4.js") &&
-    errors
-      .slice(1)
-      .every(
-        (error) =>
-          error.name === "uncaught exception" &&
-          error.message === "Object" &&
-          error.stack?.trim() === "uncaught exception: Object"
-      )
-  );
 }
 
 if (!builderUrl) {

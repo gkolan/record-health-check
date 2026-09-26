@@ -11,6 +11,7 @@ import {
   browserEvidenceHtml
 } from "../lib/browser-evidence.mjs";
 import { createScratchUserNewPassword } from "../lib/salesforce-first-login.mjs";
+import { selectCardUserPermissionSet } from "../lib/browser-permission-set.mjs";
 
 process.env.SF_DISABLE_LOG_FILE ??= "true";
 
@@ -145,18 +146,19 @@ try {
     "--target-org",
     targetOrg,
     "--query",
-    "SELECT Name, NamespacePrefix FROM PermissionSet WHERE Name = 'Record_Health_Check_Card_User' AND IsOwnedByProfile = false"
+    "SELECT Id, Name, NamespacePrefix FROM PermissionSet WHERE Name = 'Record_Health_Check_Card_User' AND IsOwnedByProfile = false"
   ]).result?.records;
-  if (cardPermission?.length !== 1)
-    throw new Error("Expected one package Card User permission set.");
-  const cardPermissionName = `${cardPermission[0].NamespacePrefix ? `${cardPermission[0].NamespacePrefix}__` : ""}${cardPermission[0].Name}`;
+  const selectedCardPermission = selectCardUserPermissionSet(cardPermission, {
+    installedPackage
+  });
+  const cardPermissionName = `${selectedCardPermission.NamespacePrefix ? `${selectedCardPermission.NamespacePrefix}__` : ""}${selectedCardPermission.Name}`;
   const existingAssignment = executeJson("sf", [
     "data",
     "query",
     "--target-org",
     targetOrg,
     "--query",
-    `SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = '${restrictedUserId}' AND PermissionSet.Name = 'Record_Health_Check_Card_User' LIMIT 1`
+    `SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = '${restrictedUserId}' AND PermissionSetId = '${selectedCardPermission.Id}' LIMIT 1`
   ]).result?.records?.[0];
   if (!existingAssignment?.Id) {
     execute("sf", [
