@@ -97,7 +97,7 @@ test("GitHub Actions verifies and deploys the static site to Cloudflare Pages", 
     ".github/workflows/deploy-docs-cloudflare.yml"
   );
 
-  assert.match(workflow, /branches:\s*\[["']docs-\?["']\]/);
+  assert.match(workflow, /branches:\s*\[["']docs-\[a-z\]\[0-9\]["']\]/);
   assert.match(workflow, /npm run check:seo --prefix site/);
   assert.match(workflow, /cloudflare\/wrangler-action@v4/);
   assert.match(workflow, /pages deploy site\/dist/);

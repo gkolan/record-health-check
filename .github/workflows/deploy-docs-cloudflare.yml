@@ -2,7 +2,7 @@ name: Deploy documentation to Cloudflare Pages
 
 on:
   push:
-    branches: ["docs-?"]
+    branches: ["docs-[a-z][0-9]"]
     paths:
       - ".github/workflows/deploy-docs-cloudflare.yml"
       - "assets/**"
